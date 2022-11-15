@@ -2,40 +2,40 @@ package no.nav.su.se.bakover.database.brev
 
 import no.nav.su.se.bakover.domain.revurdering.BrevvalgRevurdering
 
-data class BrevvalgVedtaksbrevDbJson(
-    val type: BrevvalgVedtaksbrevDbType,
+internal data class BrevvalgRevurderingDbJson(
+    val type: BrevvalgRevurderingDbType,
     val fritekst: String?,
     val begrunnelse: String?,
     val bestemtav: String?,
 )
-enum class BrevvalgVedtaksbrevDbType {
+internal enum class BrevvalgRevurderingDbType {
     SEND_BREV,
     IKKE_SEND_BREV,
     IKKE_VALGT,
     ;
 }
 
-fun BrevvalgRevurdering.toDb(): BrevvalgVedtaksbrevDbJson {
+internal fun BrevvalgRevurdering.toDb(): BrevvalgRevurderingDbJson {
     return when (this) {
         BrevvalgRevurdering.IkkeValgt -> {
-            BrevvalgVedtaksbrevDbJson(
-                type = BrevvalgVedtaksbrevDbType.IKKE_VALGT,
+            BrevvalgRevurderingDbJson(
+                type = BrevvalgRevurderingDbType.IKKE_VALGT,
                 fritekst = null,
                 begrunnelse = null,
                 bestemtav = null,
             )
         }
         is BrevvalgRevurdering.Valgt.IkkeSendBrev -> {
-            BrevvalgVedtaksbrevDbJson(
-                type = BrevvalgVedtaksbrevDbType.IKKE_SEND_BREV,
+            BrevvalgRevurderingDbJson(
+                type = BrevvalgRevurderingDbType.IKKE_SEND_BREV,
                 fritekst = null,
                 begrunnelse = begrunnelse,
                 bestemtav = bestemtAv.toString(),
             )
         }
         is BrevvalgRevurdering.Valgt.SendBrev -> {
-            BrevvalgVedtaksbrevDbJson(
-                type = BrevvalgVedtaksbrevDbType.SEND_BREV,
+            BrevvalgRevurderingDbJson(
+                type = BrevvalgRevurderingDbType.SEND_BREV,
                 fritekst = fritekst,
                 begrunnelse = begrunnelse,
                 bestemtav = bestemtAv.toString(),
@@ -44,7 +44,7 @@ fun BrevvalgRevurdering.toDb(): BrevvalgVedtaksbrevDbJson {
     }
 }
 
-fun BrevvalgVedtaksbrevDbJson.toDomain(): BrevvalgRevurdering {
+internal fun BrevvalgRevurderingDbJson.toDomain(): BrevvalgRevurdering {
     fun bestemtAv(string: String): BrevvalgRevurdering.BestemtAv {
         return if (string == BrevvalgRevurdering.BestemtAv.Systembruker.toString()) {
             BrevvalgRevurdering.BestemtAv.Systembruker
@@ -53,16 +53,16 @@ fun BrevvalgVedtaksbrevDbJson.toDomain(): BrevvalgRevurdering {
         }
     }
     return when (this.type) {
-        BrevvalgVedtaksbrevDbType.IKKE_VALGT -> {
+        BrevvalgRevurderingDbType.IKKE_VALGT -> {
             BrevvalgRevurdering.IkkeValgt
         }
-        BrevvalgVedtaksbrevDbType.IKKE_SEND_BREV -> {
+        BrevvalgRevurderingDbType.IKKE_SEND_BREV -> {
             BrevvalgRevurdering.Valgt.IkkeSendBrev(
                 begrunnelse = begrunnelse,
                 bestemtAv = bestemtAv(bestemtav!!),
             )
         }
-        BrevvalgVedtaksbrevDbType.SEND_BREV -> {
+        BrevvalgRevurderingDbType.SEND_BREV -> {
             BrevvalgRevurdering.Valgt.SendBrev(
                 fritekst = fritekst,
                 begrunnelse = begrunnelse,

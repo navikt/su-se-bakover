@@ -30,7 +30,7 @@ import no.nav.su.se.bakover.database.avkorting.toDb
 import no.nav.su.se.bakover.database.avkorting.toDomain
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
 import no.nav.su.se.bakover.database.brev.BrevvalgDatabaseJson.Companion.toJson
-import no.nav.su.se.bakover.database.brev.BrevvalgVedtaksbrevDbJson
+import no.nav.su.se.bakover.database.brev.BrevvalgRevurderingDbJson
 import no.nav.su.se.bakover.database.brev.toDb
 import no.nav.su.se.bakover.database.brev.toDomain
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
@@ -607,7 +607,7 @@ internal class RevurderingPostgresRepo(
             session = session,
         )
 
-        val brevvalg = deserialize<BrevvalgVedtaksbrevDbJson>(string("brevvalg")).toDomain()
+        val brevvalg = deserialize<BrevvalgRevurderingDbJson>(string("brevvalg")).toDomain()
 
         val revurdering = lagRevurdering(
             status = status,
