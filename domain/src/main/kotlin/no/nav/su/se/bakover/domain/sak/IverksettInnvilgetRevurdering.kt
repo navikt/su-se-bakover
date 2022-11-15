@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
@@ -32,7 +31,6 @@ fun Sak.iverksettInnvilget(
     attestant: NavIdentBruker.Attestant,
     clock: Clock,
     hentAvventerKravgrunnlag: () -> Boolean,
-    hentOpprinneligAvkorting: (avkortingId: UUID) -> Avkortingsvarsel?,
     simuler: (utbetaling: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
     sessionFactory: SessionFactory,
     klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, transactionContext: TransactionContext) -> Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
@@ -57,7 +55,7 @@ fun Sak.iverksettInnvilget(
 
     return revurdering.tilIverksatt(
         attestant = attestant,
-        hentOpprinneligAvkorting = hentOpprinneligAvkorting,
+        hentOpprinneligAvkorting = { uteståendeAvkorting },
         clock = clock,
     ).mapLeft {
         when (it) {

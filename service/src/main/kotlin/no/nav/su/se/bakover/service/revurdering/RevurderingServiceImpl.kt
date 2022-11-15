@@ -1061,15 +1061,13 @@ internal class RevurderingServiceImpl(
                     attestant = attestant,
                     clock = clock,
                     hentAvventerKravgrunnlag = { tilbakekrevingService.hentAvventerKravgrunnlag(revurdering.sakId).isNotEmpty() },
-                    hentOpprinneligAvkorting = { id -> avkortingsvarselRepo.hent(id) },
                     simuler = utbetalingService::simulerUtbetaling,
                     sessionFactory = sessionFactory,
                     klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
                     lagreVedtak = vedtakRepo::lagre,
                     lagreRevurdering = revurderingRepo::lagre,
                     observers = observers,
-                    hentSak = { sakService.hentSak(it).orNull()!! },
-                ).mapLeft {
+                ) { sakService.hentSak(it).orNull()!! }.mapLeft {
                     when (it) {
                         KunneIkkeIverksetteInnvilgetRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
                         KunneIkkeIverksetteInnvilgetRevurdering.FantIkkeRevurdering -> KunneIkkeIverksetteRevurdering.FantIkkeRevurdering
