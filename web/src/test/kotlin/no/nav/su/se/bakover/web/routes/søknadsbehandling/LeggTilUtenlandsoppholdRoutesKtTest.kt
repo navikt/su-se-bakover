@@ -12,6 +12,7 @@ import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -57,9 +58,12 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
             application {
                 testSusebakover(
                     services = TestServicesBuilder.services(
-                        søknadsbehandling = mock {
-                            on { leggTilUtenlandsopphold(any(), any()) } doReturn SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling.left()
-                        },
+                        søknadsbehandling = SøknadsbehandlingServices(
+                            søknadsbehandlingService = mock {
+                                on { leggTilUtenlandsopphold(any(), any()) } doReturn SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling.left()
+                            },
+                            iverksettSøknadsbehandlingService = mock(),
+                        ),
                     ),
                 )
             }
@@ -94,9 +98,12 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
             application {
                 testSusebakover(
                     services = TestServicesBuilder.services(
-                        søknadsbehandling = mock {
-                            on { leggTilUtenlandsopphold(any(), any()) } doReturn vilkårsvurdert.right()
-                        },
+                        søknadsbehandling = SøknadsbehandlingServices(
+                            søknadsbehandlingService = mock {
+                                on { leggTilUtenlandsopphold(any(), any()) } doReturn vilkårsvurdert.right()
+                            },
+                            iverksettSøknadsbehandlingService = mock(),
+                        ),
                     ),
                 )
             }

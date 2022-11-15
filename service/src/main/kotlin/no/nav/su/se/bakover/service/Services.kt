@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
@@ -20,6 +19,7 @@ import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
@@ -35,7 +35,7 @@ data class Services(
     val oppgave: OppgaveService,
     val person: PersonService,
     val toggles: ToggleClient,
-    val søknadsbehandling: SøknadsbehandlingService,
+    val søknadsbehandling: SøknadsbehandlingServices,
     val ferdigstillVedtak: FerdigstillVedtakService,
     val revurdering: RevurderingService,
     val stansYtelse: StansYtelseService,

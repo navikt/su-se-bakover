@@ -81,7 +81,7 @@ internal class ServiceBuilderTest {
                 (it.søknad as SøknadServiceImpl).getObservers().singleOrNull(),
                 (it.revurdering as RevurderingServiceImpl).getObservers().singleOrNull(),
                 (it.reguleringService as ReguleringServiceImpl).getObservers().singleOrNull(),
-                (it.søknadsbehandling as SøknadsbehandlingServiceImpl).getObservers().singleOrNull(),
+                (it.søknadsbehandling.søknadsbehandlingService as SøknadsbehandlingServiceImpl).getObservers().singleOrNull(),
                 (it.klageService as KlageServiceImpl).getObservers().singleOrNull(),
                 (it.lukkSøknad as LukkSøknadServiceImpl).getObservers().singleOrNull(),
             ).forEach {

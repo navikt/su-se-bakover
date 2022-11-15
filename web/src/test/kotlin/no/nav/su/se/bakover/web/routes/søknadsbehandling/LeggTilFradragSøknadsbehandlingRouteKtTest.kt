@@ -10,6 +10,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
@@ -57,7 +58,14 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = TestServicesBuilder.services(søknadsbehandling = søknadsbehandlingServiceMock))
+                testSusebakover(
+                    services = TestServicesBuilder.services(
+                        søknadsbehandling = SøknadsbehandlingServices(
+                            søknadsbehandlingService = søknadsbehandlingServiceMock,
+                            iverksettSøknadsbehandlingService = mock(),
+                        ),
+                    ),
+                )
             }
             defaultRequest(
                 HttpMethod.Post,
@@ -104,7 +112,14 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = TestServicesBuilder.services(søknadsbehandling = søknadsbehandlingServiceMock))
+                testSusebakover(
+                    services = TestServicesBuilder.services(
+                        søknadsbehandling = SøknadsbehandlingServices(
+                            søknadsbehandlingService = søknadsbehandlingServiceMock,
+                            iverksettSøknadsbehandlingService = mock(),
+                        ),
+                    ),
+                )
             }
             defaultRequest(
                 HttpMethod.Post,
@@ -153,7 +168,14 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = TestServicesBuilder.services(søknadsbehandling = søknadsbehandlingServiceMock))
+                testSusebakover(
+                    services = TestServicesBuilder.services(
+                        søknadsbehandling = SøknadsbehandlingServices(
+                            søknadsbehandlingService = søknadsbehandlingServiceMock,
+                            iverksettSøknadsbehandlingService = mock(),
+                        ),
+                    ),
+                )
             }
             defaultRequest(
                 HttpMethod.Post,
@@ -202,7 +224,14 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = TestServicesBuilder.services(søknadsbehandling = søknadsbehandlingServiceMock))
+                testSusebakover(
+                    services = TestServicesBuilder.services(
+                        søknadsbehandling = SøknadsbehandlingServices(
+                            søknadsbehandlingService = søknadsbehandlingServiceMock,
+                            iverksettSøknadsbehandlingService = mock(),
+                        ),
+                    ),
+                )
             }
             defaultRequest(
                 HttpMethod.Post,
@@ -251,7 +280,14 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = TestServicesBuilder.services(søknadsbehandling = søknadsbehandlingServiceMock))
+                testSusebakover(
+                    services = TestServicesBuilder.services(
+                        søknadsbehandling = SøknadsbehandlingServices(
+                            søknadsbehandlingService = søknadsbehandlingServiceMock,
+                            iverksettSøknadsbehandlingService = mock(),
+                        ),
+                    ),
+                )
             }
             defaultRequest(
                 HttpMethod.Post,
@@ -300,7 +336,14 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = TestServicesBuilder.services(søknadsbehandling = søknadsbehandlingServiceMock))
+                testSusebakover(
+                    services = TestServicesBuilder.services(
+                        søknadsbehandling = SøknadsbehandlingServices(
+                            søknadsbehandlingService = søknadsbehandlingServiceMock,
+                            iverksettSøknadsbehandlingService = mock(),
+                        ),
+                    ),
+                )
             }
             defaultRequest(
                 HttpMethod.Post,

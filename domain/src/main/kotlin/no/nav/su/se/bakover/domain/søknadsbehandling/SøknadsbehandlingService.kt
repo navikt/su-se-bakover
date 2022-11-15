@@ -40,7 +40,7 @@ interface SøknadsbehandlingService {
     fun simuler(request: SimulerRequest): Either<KunneIkkeSimulereBehandling, Søknadsbehandling.Simulert>
     fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeTilAttestering, Søknadsbehandling.TilAttestering>
     fun underkjenn(request: UnderkjennRequest): Either<KunneIkkeUnderkjenne, Søknadsbehandling.Underkjent>
-    fun iverksett(request: IverksettRequest): Either<KunneIkkeIverksette, Søknadsbehandling.Iverksatt>
+
     fun brev(request: BrevRequest): Either<KunneIkkeLageDokument, ByteArray>
     fun hent(request: HentRequest): Either<FantIkkeBehandling, Søknadsbehandling>
     fun oppdaterStønadsperiode(request: OppdaterStønadsperiodeRequest): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling>
@@ -183,11 +183,6 @@ interface SøknadsbehandlingService {
         object KunneIkkeOppretteOppgave : KunneIkkeUnderkjenne()
         object FantIkkeAktørId : KunneIkkeUnderkjenne()
     }
-
-    data class IverksettRequest(
-        val behandlingId: UUID,
-        val attestering: Attestering,
-    )
 
     sealed class BrevRequest {
         abstract val behandling: Søknadsbehandling
