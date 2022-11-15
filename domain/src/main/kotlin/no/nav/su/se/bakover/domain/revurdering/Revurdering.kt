@@ -1943,6 +1943,7 @@ sealed class IverksattRevurdering : Revurdering() {
     val attestering: Attestering
         get() = attesteringer.hentSisteAttestering()
     abstract override val avkorting: AvkortingVedRevurdering.Iverksatt
+    abstract val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet
 
     abstract override fun accept(visitor: RevurderingVisitor)
 
@@ -1962,7 +1963,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Iverksatt,
-        val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet,
+        override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet,
         override val sakinfo: SakInfo,
     ) : IverksattRevurdering() {
 
@@ -1993,7 +1994,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Iverksatt,
-        val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet,
+        override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet,
         override val sakinfo: SakInfo,
     ) : IverksattRevurdering() {
         override val erOpphørt = true
@@ -2051,6 +2052,8 @@ sealed class IverksattRevurdering : Revurdering() {
     ) : IverksattRevurdering() {
         override val erOpphørt = false
         override val simulering: Simulering? = null
+        override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet
+            get() = TODO("Under utfasing og ikke i bruk")
 
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)

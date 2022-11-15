@@ -30,7 +30,6 @@ fun Sak.iverksettInnvilget(
     revurderingId: UUID,
     attestant: NavIdentBruker.Attestant,
     clock: Clock,
-    hentAvventerKravgrunnlag: () -> Boolean,
     simuler: (utbetaling: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
     sessionFactory: SessionFactory,
     klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, transactionContext: TransactionContext) -> Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
@@ -42,7 +41,7 @@ fun Sak.iverksettInnvilget(
     val revurdering = hentRevurdering(revurderingId)
         .getOrHandle { return KunneIkkeIverksetteInnvilgetRevurdering.FantIkkeRevurdering.left() }
 
-    if (hentAvventerKravgrunnlag()) {
+    if (avventerKravgrunnlag()) {
         return KunneIkkeIverksetteInnvilgetRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving.left()
     }
 

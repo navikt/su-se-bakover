@@ -35,6 +35,7 @@ import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -826,6 +827,11 @@ data class Sak(
             KunneIkkeOppdatereStønadsperiode()
 
         object StønadsperiodeInneholderAvkortingPgaUtenlandsopphold : KunneIkkeOppdatereStønadsperiode()
+    }
+
+    fun avventerKravgrunnlag(): Boolean {
+        return revurderinger.filterIsInstance<IverksattRevurdering>()
+            .any { it.tilbakekrevingsbehandling.avventerKravgrunnlag() }
     }
 }
 

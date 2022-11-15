@@ -1060,7 +1060,6 @@ internal class RevurderingServiceImpl(
                     revurderingId = revurderingId,
                     attestant = attestant,
                     clock = clock,
-                    hentAvventerKravgrunnlag = { tilbakekrevingService.hentAvventerKravgrunnlag(revurdering.sakId).isNotEmpty() },
                     simuler = utbetalingService::simulerUtbetaling,
                     sessionFactory = sessionFactory,
                     klargjørUtbetaling = utbetalingService::klargjørUtbetaling,

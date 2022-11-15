@@ -316,6 +316,9 @@ sealed interface Tilbakekrevingsbehandling {
     sealed interface Ferdigbehandlet : Tilbakekrevingsbehandling {
 
         override fun skalTilbakekreve(): Either<Unit, UnderBehandling.VurderTilbakekreving.Avgjort>
+        fun avventerKravgrunnlag(): Boolean {
+            return this is AvventerKravgrunnlag
+        }
 
         sealed interface UtenKravgrunnlag : Ferdigbehandlet {
 
