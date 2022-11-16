@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -78,9 +77,11 @@ import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurder
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.domain.sak.KunneIkkeIverksetteInnvilgetRevurdering
+import no.nav.su.se.bakover.domain.sak.KunneIkkeIverksetteOpphørtRevurdering
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.ferdigstillIverksettelseITransaksjon
 import no.nav.su.se.bakover.domain.sak.iverksettInnvilgetRevurdering
+import no.nav.su.se.bakover.domain.sak.iverksettOpphørtRevurdering
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
@@ -89,7 +90,6 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
@@ -1082,103 +1082,32 @@ internal class RevurderingServiceImpl(
                 }
             }
 
-            is RevurderingTilAttestering.Opphørt -> revurdering.tilIverksatt(
-                attestant = attestant,
-                clock = clock,
-                hentOpprinneligAvkorting = { avkortingid -> avkortingsvarselRepo.hent(avkortingid) },
-            ).mapLeft {
-                when (it) {
-                    RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
-                    RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
-                    RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarBlittAnnullertAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
-                }
-            }.flatMap { iverksattRevurdering ->
-                tilbakekrevingService.hentAvventerKravgrunnlag(revurdering.sakId)
-                    .ifNotEmpty {
-                        return KunneIkkeIverksetteRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving.left()
-                    }
-
-                Either.catch {
-                    val simulertUtbetaling = sak.lagUtbetalingForOpphør(
-                        opphørsperiode = revurdering.opphørsperiodeForUtbetalinger,
-                        behandler = attestant,
-                        clock = clock,
-                    ).let {
-                        sak.simulerUtbetaling(
-                            utbetalingForSimulering = it,
-                            periode = revurdering.opphørsperiodeForUtbetalinger,
-                            simuler = utbetalingService::simulerUtbetaling,
-                            kontrollerMotTidligereSimulering = revurdering.simulering,
-                            clock = clock,
-                        )
-                    }.getOrHandle {
-                        throw IverksettTransactionException(
-                            "Kunne ikke opphøre utbetalinger. Underliggende feil: $it.",
-                            KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(UtbetalingFeilet.KunneIkkeSimulere(it)),
-                        )
-                    }
-
-                    /**
-                     * OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake.
-                     * Hvis funksjonene returnerer Left/null o.l. vil transaksjonen gå igjennom. De tilfellene må håndteres eksplisitt per funksjon.
-                     * Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka.
-                     * Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
-                     */
-                    sessionFactory.withTransactionContext { tx ->
-                        val opphørUtbetaling = utbetalingService.klargjørUtbetaling(
-                            utbetaling = simulertUtbetaling,
-                            transactionContext = tx,
-                        ).getOrHandle {
-                            throw IverksettTransactionException(
-                                "Kunne ikke opphøre utbetalinger. Underliggende feil: $it.",
-                                KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it),
-                            )
-                        }
-                        val opphørtVedtak = VedtakSomKanRevurderes.from(
-                            revurdering = iverksattRevurdering,
-                            utbetalingId = opphørUtbetaling.utbetaling.id,
-                            clock = clock,
-                        )
-                        vedtakRepo.lagre(
-                            vedtak = opphørtVedtak,
-                            sessionContext = tx,
-                        )
-                        kontrollsamtaleService.annullerKontrollsamtale(
-                            sakId = opphørtVedtak.behandling.sakId,
-                            sessionContext = tx,
-                        ).getOrHandle {
-                            throw IverksettTransactionException(
-                                "Kunne ikke annullere kontrollsamtale. Underliggende feil: $it.",
-                                KunneIkkeIverksetteRevurdering.KunneIkkeAnnulereKontrollsamtale,
-                            )
-                        }
-                        revurderingRepo.lagre(
-                            revurdering = iverksattRevurdering,
-                            transactionContext = tx,
-                        )
-                        opphørUtbetaling.sendUtbetaling()
-                            .getOrHandle {
-                                throw IverksettTransactionException(
-                                    "Kunne ikke publisere utbetaling på køen. Underliggende feil: $it.",
-                                    KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it),
-                                )
-                            }
-                        opphørtVedtak
-                    }
-                }.mapLeft {
-                    log.error(
-                        "Kunne ikke iverksette revurdering for sak ${iverksattRevurdering.sakId} og søknadsbehandling ${iverksattRevurdering.id}.",
-                        it,
-                    )
+            is RevurderingTilAttestering.Opphørt -> {
+                sak.iverksettOpphørtRevurdering(
+                    revurderingId = revurderingId,
+                    attestant = attestant,
+                    clock = clock,
+                    simuler = utbetalingService::simulerUtbetaling,
+                ).mapLeft {
                     when (it) {
-                        is IverksettTransactionException -> it.feil
-                        else -> KunneIkkeIverksetteRevurdering.LagringFeilet
+                        KunneIkkeIverksetteOpphørtRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+                        KunneIkkeIverksetteOpphørtRevurdering.FantIkkeRevurdering -> KunneIkkeIverksetteRevurdering.FantIkkeRevurdering
+                        KunneIkkeIverksetteOpphørtRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
+                        is KunneIkkeIverksetteOpphørtRevurdering.KunneIkkeUtbetale -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it.utbetalingFeilet)
+                        KunneIkkeIverksetteOpphørtRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving -> KunneIkkeIverksetteRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving
+                        is KunneIkkeIverksetteOpphørtRevurdering.UgyldigTilstand -> KunneIkkeIverksetteRevurdering.UgyldigTilstand(it.fra, it.til)
                     }
-                }.map { vedtak ->
-                    // TODO jah: Vi har gjort endringer på saken underveis - endret regulering, ny utbetaling og nytt vedtak - uten at selve saken blir oppdatert underveis. Når saken returnerer en oppdatert versjon av seg selv for disse tilfellene kan vi fjerne det ekstra kallet til hentSak.
-                    observers.notify(StatistikkEvent.Stønadsvedtak(vedtak) { sakService.hentSak(sak.id).orNull()!! })
-                    observers.notify(StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt(vedtak))
-                    iverksattRevurdering
+                }.flatMap {
+                    it.ferdigstillIverksettelseITransaksjon(
+                        sessionFactory = sessionFactory,
+                        klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
+                        lagreVedtak = vedtakRepo::lagre,
+                        lagreRevurdering = revurderingRepo::lagre,
+                        annullerKontrollsamtale = { sakId, tx ->
+                            kontrollsamtaleService.annullerKontrollsamtale(sakId, tx).map {}
+                        },
+                        statistikkObservers = { observers },
+                    )
                 }
             }
         }

@@ -202,7 +202,6 @@ internal class IverksettRevurderingTest {
             transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
         )
         verify(callback).invoke(utbetalingKlarForOversendelse.utbetaling.utbetalingsrequest)
-        verify(serviceAndMocks.tilbakekrevingService).hentAvventerKravgrunnlag(argThat<UUID> { it shouldBe revurdering.sakId })
         serviceAndMocks.verifyNoMoreInteractions()
     }
 
