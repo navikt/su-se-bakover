@@ -22,8 +22,11 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
+
+private val log = LoggerFactory.getLogger("IverksettOpphørtRevurdering")
 
 fun Sak.iverksettOpphørtRevurdering(
     revurderingId: UUID,
@@ -143,10 +146,11 @@ fun IverksettOpphørtRevurderingResponse.ferdigstillIverksettelseITransaksjon(
     }.mapLeft {
         when (it) {
             is IverksettTransactionException -> {
+                log.error("Feil ved iverksetting av revurdering ${vedtak.behandling.id}", it)
                 it.feil
             }
             else -> {
-                no.nav.su.se.bakover.common.log.error("Ukjent feil:${it.message} ved iverksetting av revurdering ${vedtak.behandling.id}")
+                log.error("Ukjent feil ved iverksetting av revurdering ${vedtak.behandling.id}", it)
                 KunneIkkeFerdigstilleIverksettelsestransaksjon.LagringFeilet
             }
         }
