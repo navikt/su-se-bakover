@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.ctc.wstx.exc.WstxEOFException
+import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingRequest
@@ -13,6 +14,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerBeregningFeilUnderBehandling
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerFpService
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningRequest
+import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
 import java.net.SocketException
 import java.time.Clock
@@ -23,6 +25,7 @@ import javax.xml.ws.soap.SOAPFaultException
 internal class SimuleringSoapClient(
     private val simulerFpService: SimulerFpService,
     private val clock: Clock,
+    private val unleash: Unleash,
 ) : SimuleringClient {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -33,6 +36,14 @@ internal class SimuleringSoapClient(
         val simulerRequest = SimuleringRequestBuilder(request).build()
         return try {
             simulerFpService.simulerBeregning(simulerRequest)?.response?.let {
+                unleash.isEnabled("supstonad.logg.simulering").ifTrue {
+                    sikkerLogg.debug(
+                        """
+                            Request: ${objectMapper.writeValueAsString(simulerRequest)},
+                            Response: ${objectMapper.writeValueAsString(it)}
+                        """.trimIndent(),
+                    )
+                }
                 SimuleringResponseMapper(it, clock).simulering.right()
             } ?: SimuleringResponseMapper(
                 utbetaling = request.utbetaling,

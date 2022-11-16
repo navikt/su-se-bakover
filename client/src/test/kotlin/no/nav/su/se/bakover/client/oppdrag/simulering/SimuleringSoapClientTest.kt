@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import no.finn.unleash.FakeUnleash
 import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
 import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
 import no.nav.su.se.bakover.common.Fnr
@@ -66,6 +67,7 @@ internal class SimuleringSoapClientTest {
                 }
             },
             clock = fixedClock,
+            unleash = FakeUnleash(),
         )
 
         simuleringService.simulerUtbetaling(
@@ -92,6 +94,7 @@ internal class SimuleringSoapClientTest {
                 }
             },
             clock = fixedClock,
+            unleash = FakeUnleash(),
         )
 
         val opphør = nyUtbetaling.copy(
@@ -144,6 +147,7 @@ internal class SimuleringSoapClientTest {
                 }
             },
             clock = fixedClock,
+            unleash = FakeUnleash(),
         )
 
         simuleringService.simulerUtbetaling(
@@ -167,6 +171,7 @@ internal class SimuleringSoapClientTest {
                 }
             },
             clock = fixedClock,
+            unleash = FakeUnleash(),
         )
 
         simuleringService.simulerUtbetaling(
@@ -190,6 +195,7 @@ internal class SimuleringSoapClientTest {
                 }
             },
             clock = fixedClock,
+            unleash = FakeUnleash(),
         )
 
         val response = simuleringService.simulerUtbetaling(
@@ -215,6 +221,7 @@ internal class SimuleringSoapClientTest {
                 }
             },
             clock = fixedClock,
+            unleash = FakeUnleash(),
         )
 
         simuleringService.simulerUtbetaling(
@@ -239,6 +246,7 @@ internal class SimuleringSoapClientTest {
                 }
             },
             clock = fixedClock,
+            unleash = FakeUnleash(),
         )
 
         val utenBeløp = Utbetaling.UtbetalingForSimulering(
