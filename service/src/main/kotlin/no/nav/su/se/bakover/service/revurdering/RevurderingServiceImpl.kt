@@ -79,7 +79,8 @@ import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.domain.sak.KunneIkkeIverksetteInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.sak.iverksettInnvilget
+import no.nav.su.se.bakover.domain.sak.ferdigstillIverksettelseITransaksjon
+import no.nav.su.se.bakover.domain.sak.iverksettInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
@@ -1056,26 +1057,28 @@ internal class RevurderingServiceImpl(
             }
 
             is RevurderingTilAttestering.Innvilget -> {
-                sak.iverksettInnvilget(
+                sak.iverksettInnvilgetRevurdering(
                     revurderingId = revurderingId,
                     attestant = attestant,
                     clock = clock,
                     simuler = utbetalingService::simulerUtbetaling,
-                    sessionFactory = sessionFactory,
-                    klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
-                    lagreVedtak = vedtakRepo::lagre,
-                    lagreRevurdering = revurderingRepo::lagre,
-                    observers = observers,
-                ) { sakService.hentSak(it).orNull()!! }.mapLeft {
+                ).mapLeft {
                     when (it) {
                         KunneIkkeIverksetteInnvilgetRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
                         KunneIkkeIverksetteInnvilgetRevurdering.FantIkkeRevurdering -> KunneIkkeIverksetteRevurdering.FantIkkeRevurdering
                         KunneIkkeIverksetteInnvilgetRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
                         is KunneIkkeIverksetteInnvilgetRevurdering.KunneIkkeUtbetale -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it.utbetalingFeilet)
-                        KunneIkkeIverksetteInnvilgetRevurdering.LagringFeilet -> KunneIkkeIverksetteRevurdering.LagringFeilet
                         KunneIkkeIverksetteInnvilgetRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving -> KunneIkkeIverksetteRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving
                         is KunneIkkeIverksetteInnvilgetRevurdering.UgyldigTilstand -> KunneIkkeIverksetteRevurdering.UgyldigTilstand(it.fra, it.til)
                     }
+                }.flatMap {
+                    it.ferdigstillIverksettelseITransaksjon(
+                        sessionFactory = sessionFactory,
+                        klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
+                        lagreVedtak = vedtakRepo::lagre,
+                        lagreRevurdering = revurderingRepo::lagre,
+                        statistikkObservers = { observers },
+                    )
                 }
             }
 
@@ -1088,9 +1091,6 @@ internal class RevurderingServiceImpl(
                     RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
                     RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
                     RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarBlittAnnullertAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
-                    is RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(
-                        it.utbetalingFeilet,
-                    )
                 }
             }.flatMap { iverksattRevurdering ->
                 tilbakekrevingService.hentAvventerKravgrunnlag(revurdering.sakId)

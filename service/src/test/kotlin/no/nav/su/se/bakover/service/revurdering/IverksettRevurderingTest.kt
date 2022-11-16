@@ -378,6 +378,13 @@ internal class IverksettRevurderingTest {
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
             },
+            utbetalingService = mock {
+                on { simulerUtbetaling(any(), any()) } doReturn simulerUtbetaling(
+                    sak = sak,
+                    revurdering = revurdering,
+                ).getOrFail().right()
+            },
+            clock = tikkendeFixedClock,
         )
 
         val response = serviceAndMocks.revurderingService.iverksett(
@@ -390,7 +397,9 @@ internal class IverksettRevurderingTest {
 
     @Test
     fun `skal returnere left dersom lagring feiler for opphørt`() {
-        val (sak, revurdering) = revurderingTilAttestering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()))
+        val (sak, revurdering) = revurderingTilAttestering(
+            vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
+        )
         val serviceAndMocks = RevurderingServiceMocks(
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
@@ -401,6 +410,13 @@ internal class IverksettRevurderingTest {
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
             },
+            utbetalingService = mock {
+                on { simulerUtbetaling(any(), any()) } doReturn simulerOpphør(
+                    sak = sak,
+                    revurdering = revurdering,
+                ).getOrFail().right()
+            },
+            clock = tikkendeFixedClock,
         )
 
         val response = serviceAndMocks.revurderingService.iverksett(
@@ -467,29 +483,6 @@ internal class IverksettRevurderingTest {
         )
 
         response shouldBe KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left()
-    }
-
-    @Test
-    fun `skal returnere left dersom lagring feiler for iverksett`() {
-        val (sak, revurdering) = revurderingTilAttestering()
-        val serviceAndMocks = RevurderingServiceMocks(
-            sakService = mock {
-                on { hentSakForRevurdering(any()) } doReturn sak
-            },
-            vedtakRepo = mock {
-                on { lagre(any(), anyOrNull()) } doThrow RuntimeException("Lagring feilet")
-            },
-            tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
-            },
-        )
-
-        val response = serviceAndMocks.revurderingService.iverksett(
-            revurderingId = revurdering.id,
-            attestant = attestant,
-        )
-
-        response shouldBe KunneIkkeIverksetteRevurdering.LagringFeilet.left()
     }
 
     @Test

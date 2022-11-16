@@ -331,6 +331,7 @@ fun simuler(
             sak = sak,
             utbetaling = utbetaling,
             simuleringsperiode = simuleringsperiode,
+            clock = clock,
         ).mapLeft {
             SimulerUtbetalingFeilet.FeilVedSimulering(it)
         }
