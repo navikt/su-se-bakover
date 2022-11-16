@@ -76,12 +76,10 @@ import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingReque
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.opprett.opprettRevurdering
-import no.nav.su.se.bakover.domain.sak.KunneIkkeIverksetteInnvilgetRevurdering
-import no.nav.su.se.bakover.domain.sak.KunneIkkeIverksetteOpphørtRevurdering
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.sak.ferdigstillIverksettelseITransaksjon
-import no.nav.su.se.bakover.domain.sak.iverksettInnvilgetRevurdering
-import no.nav.su.se.bakover.domain.sak.iverksettOpphørtRevurdering
+import no.nav.su.se.bakover.domain.sak.iverksett.ferdigstillIverksettelseITransaksjon
+import no.nav.su.se.bakover.domain.sak.iverksett.iverksettInnvilgetRevurdering
+import no.nav.su.se.bakover.domain.sak.iverksett.iverksettOpphørtRevurdering
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
@@ -1041,19 +1039,24 @@ internal class RevurderingServiceImpl(
         val sak = sakService.hentSakForRevurdering(revurderingId)
 
         val revurdering = sak.hentRevurdering(revurderingId)
-            .getOrHandle { return KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left() }
+            .getOrHandle {
+                return KunneIkkeIverksetteRevurdering.FeilVedIverksettelse(
+                    no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeIverksetteRevurdering.FantIkkeRevurdering,
+                ).left()
+            }
 
         if (revurdering !is RevurderingTilAttestering) {
-            return KunneIkkeIverksetteRevurdering.UgyldigTilstand(
-                revurdering::class,
-                IverksattRevurdering::class,
+            return KunneIkkeIverksetteRevurdering.FeilVedIverksettelse(
+                no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeIverksetteRevurdering.UgyldigTilstand(
+                    fra = revurdering::class,
+                    til = IverksattRevurdering::class,
+                ),
             ).left()
         }
 
         return when (revurdering) {
             is RevurderingTilAttestering.IngenEndring -> {
-                log.error("Revudere til INGEN_ENDRING er ikke lov. SakId: ${revurdering.sakId}")
-                KunneIkkeIverksetteRevurdering.IngenEndringErIkkeGyldig.left()
+                throw IllegalArgumentException("Revudere til INGEN_ENDRING er ikke lov. SakId: ${revurdering.sakId}")
             }
 
             is RevurderingTilAttestering.Innvilget -> {
@@ -1063,22 +1066,17 @@ internal class RevurderingServiceImpl(
                     clock = clock,
                     simuler = utbetalingService::simulerUtbetaling,
                 ).mapLeft {
-                    when (it) {
-                        KunneIkkeIverksetteInnvilgetRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
-                        KunneIkkeIverksetteInnvilgetRevurdering.FantIkkeRevurdering -> KunneIkkeIverksetteRevurdering.FantIkkeRevurdering
-                        KunneIkkeIverksetteInnvilgetRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
-                        is KunneIkkeIverksetteInnvilgetRevurdering.KunneIkkeUtbetale -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it.utbetalingFeilet)
-                        KunneIkkeIverksetteInnvilgetRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving -> KunneIkkeIverksetteRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving
-                        is KunneIkkeIverksetteInnvilgetRevurdering.UgyldigTilstand -> KunneIkkeIverksetteRevurdering.UgyldigTilstand(it.fra, it.til)
-                    }
-                }.flatMap {
-                    it.ferdigstillIverksettelseITransaksjon(
+                    KunneIkkeIverksetteRevurdering.FeilVedIverksettelse(it)
+                }.flatMap { iverksettelse ->
+                    iverksettelse.ferdigstillIverksettelseITransaksjon(
                         sessionFactory = sessionFactory,
                         klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
                         lagreVedtak = vedtakRepo::lagre,
                         lagreRevurdering = revurderingRepo::lagre,
                         statistikkObservers = { observers },
-                    )
+                    ).mapLeft {
+                        KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(it)
+                    }
                 }
             }
 
@@ -1089,16 +1087,9 @@ internal class RevurderingServiceImpl(
                     clock = clock,
                     simuler = utbetalingService::simulerUtbetaling,
                 ).mapLeft {
-                    when (it) {
-                        KunneIkkeIverksetteOpphørtRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
-                        KunneIkkeIverksetteOpphørtRevurdering.FantIkkeRevurdering -> KunneIkkeIverksetteRevurdering.FantIkkeRevurdering
-                        KunneIkkeIverksetteOpphørtRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
-                        is KunneIkkeIverksetteOpphørtRevurdering.KunneIkkeUtbetale -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it.utbetalingFeilet)
-                        KunneIkkeIverksetteOpphørtRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving -> KunneIkkeIverksetteRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving
-                        is KunneIkkeIverksetteOpphørtRevurdering.UgyldigTilstand -> KunneIkkeIverksetteRevurdering.UgyldigTilstand(it.fra, it.til)
-                    }
-                }.flatMap {
-                    it.ferdigstillIverksettelseITransaksjon(
+                    KunneIkkeIverksetteRevurdering.FeilVedIverksettelse(it)
+                }.flatMap { iverksettelse ->
+                    iverksettelse.ferdigstillIverksettelseITransaksjon(
                         sessionFactory = sessionFactory,
                         klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
                         lagreVedtak = vedtakRepo::lagre,
@@ -1107,16 +1098,13 @@ internal class RevurderingServiceImpl(
                             kontrollsamtaleService.annullerKontrollsamtale(sakId, tx).map {}
                         },
                         statistikkObservers = { observers },
-                    )
+                    ).mapLeft {
+                        KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(it)
+                    }
                 }
             }
         }
     }
-
-    private data class IverksettTransactionException(
-        override val message: String,
-        val feil: KunneIkkeIverksetteRevurdering,
-    ) : RuntimeException(message)
 
     override fun underkjenn(
         revurderingId: UUID,

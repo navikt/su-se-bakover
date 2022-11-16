@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.sak
+package no.nav.su.se.bakover.domain.sak.iverksett
 
 import arrow.core.Either
 import arrow.core.flatMap
@@ -14,33 +14,32 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
+import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import java.time.Clock
 import java.util.UUID
-import kotlin.reflect.KClass
 
 fun Sak.iverksettOpphørtRevurdering(
     revurderingId: UUID,
     attestant: NavIdentBruker.Attestant,
     clock: Clock,
     simuler: (utbetaling: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
-): Either<KunneIkkeIverksetteOpphørtRevurdering, IverksettOpphørtRevurderingResponse> {
+): Either<KunneIkkeIverksetteRevurdering, IverksettOpphørtRevurderingResponse> {
     val revurdering = hentRevurdering(revurderingId)
-        .getOrHandle { return KunneIkkeIverksetteOpphørtRevurdering.FantIkkeRevurdering.left() }
+        .getOrHandle { return KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left() }
 
     if (avventerKravgrunnlag()) {
-        return KunneIkkeIverksetteOpphørtRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving.left()
+        return KunneIkkeIverksetteRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving.left()
     }
 
     if (revurdering !is RevurderingTilAttestering.Opphørt) {
-        return KunneIkkeIverksetteOpphørtRevurdering.UgyldigTilstand(
+        return KunneIkkeIverksetteRevurdering.UgyldigTilstand(
             fra = revurdering::class,
             til = IverksattRevurdering::class,
         ).left()
@@ -52,9 +51,9 @@ fun Sak.iverksettOpphørtRevurdering(
         clock = clock,
     ).mapLeft {
         when (it) {
-            RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> KunneIkkeIverksetteOpphørtRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
-            RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> KunneIkkeIverksetteOpphørtRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
-            RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarBlittAnnullertAvEnAnnen -> KunneIkkeIverksetteOpphørtRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
+            RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+            RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
+            RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarBlittAnnullertAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
         }
     }.flatMap { iverksattRevurdering ->
         lagUtbetalingForOpphør(
@@ -70,7 +69,7 @@ fun Sak.iverksettOpphørtRevurdering(
                 clock = clock,
             )
         }.mapLeft {
-            KunneIkkeIverksetteOpphørtRevurdering.KunneIkkeUtbetale(UtbetalingFeilet.KunneIkkeSimulere(it))
+            KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(UtbetalingFeilet.KunneIkkeSimulere(it))
         }.map { simulertUtbetaling ->
             VedtakSomKanRevurderes.from(
                 revurdering = iverksattRevurdering,
@@ -98,7 +97,7 @@ fun IverksettOpphørtRevurderingResponse.ferdigstillIverksettelseITransaksjon(
     lagreRevurdering: (revurdering: IverksattRevurdering.Opphørt, tx: TransactionContext) -> Unit,
     annullerKontrollsamtale: (sakId: UUID, tx: TransactionContext) -> Either<UgyldigStatusovergang, Unit>,
     statistikkObservers: () -> List<StatistikkEventObserver>,
-): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering.Opphørt> {
+): Either<KunneIkkeFerdigstilleIverksettelsestransaksjon, IverksattRevurdering.Opphørt> {
     return Either.catch {
         sessionFactory.withTransactionContext { tx ->
             /**
@@ -113,7 +112,7 @@ fun IverksettOpphørtRevurderingResponse.ferdigstillIverksettelseITransaksjon(
             ).getOrHandle {
                 throw IverksettTransactionException(
                     "Kunne ikke opprette utbetaling. Underliggende feil:$it.",
-                    KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it),
+                    KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeUtbetale(it),
                 )
             }
             lagreVedtak(vedtak, tx)
@@ -122,7 +121,7 @@ fun IverksettOpphørtRevurderingResponse.ferdigstillIverksettelseITransaksjon(
                 .getOrHandle {
                     throw IverksettTransactionException(
                         "Kunne ikke annullere kontrollsamtale. Underliggende feil: $it.",
-                        KunneIkkeIverksetteRevurdering.KunneIkkeAnnulereKontrollsamtale,
+                        KunneIkkeFerdigstilleIverksettelsestransaksjon.Opphør.KunneIkkeAnnullereKontrollsamtale,
                     )
                 }
             lagreRevurdering(vedtak.behandling, tx)
@@ -131,7 +130,7 @@ fun IverksettOpphørtRevurderingResponse.ferdigstillIverksettelseITransaksjon(
                 .getOrHandle { feil ->
                     throw IverksettTransactionException(
                         "Kunne ikke publisere utbetaling på køen. Underliggende feil: $feil.",
-                        KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(feil),
+                        KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeUtbetale(feil),
                     )
                 }
 
@@ -148,7 +147,7 @@ fun IverksettOpphørtRevurderingResponse.ferdigstillIverksettelseITransaksjon(
             }
             else -> {
                 no.nav.su.se.bakover.common.log.error("Ukjent feil:${it.message} ved iverksetting av revurdering ${vedtak.behandling.id}")
-                KunneIkkeIverksetteRevurdering.LagringFeilet
+                KunneIkkeFerdigstilleIverksettelsestransaksjon.LagringFeilet
             }
         }
     }
@@ -164,17 +163,4 @@ data class IverksettOpphørtRevurderingResponse(
         StatistikkEvent.Stønadsvedtak(vedtak) { sak },
         StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt(vedtak),
     )
-}
-
-sealed interface KunneIkkeIverksetteOpphørtRevurdering {
-    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteOpphørtRevurdering
-    data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksetteOpphørtRevurdering
-    object FantIkkeRevurdering : KunneIkkeIverksetteOpphørtRevurdering
-    object HarAlleredeBlittAvkortetAvEnAnnen : KunneIkkeIverksetteOpphørtRevurdering
-    object SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving : KunneIkkeIverksetteOpphørtRevurdering
-
-    data class UgyldigTilstand(
-        val fra: KClass<out AbstraktRevurdering>,
-        val til: KClass<out AbstraktRevurdering>,
-    ) : KunneIkkeIverksetteOpphørtRevurdering
 }

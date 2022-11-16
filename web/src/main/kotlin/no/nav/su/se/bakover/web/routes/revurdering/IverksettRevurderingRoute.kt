@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.avkortingErAlleredeAvkortet
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ingenEndringUgyldig
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.lagringFeilet
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.sakAvventerKravgrunnlagForTilbakekreving
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstand
@@ -23,10 +22,8 @@ import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.metrics.SuMetrics
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteRevurdering
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteRevurdering.FantIkkeRevurdering
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteRevurdering.UgyldigTilstand
 import no.nav.su.se.bakover.domain.revurdering.RevurderingService
+import no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
@@ -60,17 +57,24 @@ internal fun Route.iverksettRevurderingRoute(
 }
 
 private fun KunneIkkeIverksetteRevurdering.tilResultat() = when (this) {
-    is FantIkkeRevurdering -> fantIkkeRevurdering
-    is UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
-    is AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
-    is KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> this.utbetalingFeilet.tilResultat()
-    KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> avkortingErAlleredeAvkortet
-    KunneIkkeIverksetteRevurdering.IngenEndringErIkkeGyldig -> ingenEndringUgyldig
-    KunneIkkeIverksetteRevurdering.LagringFeilet -> lagringFeilet
-    KunneIkkeIverksetteRevurdering.KunneIkkeAnnulereKontrollsamtale -> HttpStatusCode.InternalServerError.errorJson(
-        "Kunne ikke annulere kontrollsamtale",
-        "kunne_ikke_annulere_kontrollsamtale",
-    )
-
-    KunneIkkeIverksetteRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving -> sakAvventerKravgrunnlagForTilbakekreving
+    is KunneIkkeIverksetteRevurdering.FeilVedIverksettelse -> {
+        when (val f = this.feil) {
+            no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
+            no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeIverksetteRevurdering.FantIkkeRevurdering -> fantIkkeRevurdering
+            no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> avkortingErAlleredeAvkortet
+            is no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> f.utbetalingFeilet.tilResultat()
+            no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeIverksetteRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving -> sakAvventerKravgrunnlagForTilbakekreving
+            is no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeIverksetteRevurdering.UgyldigTilstand -> ugyldigTilstand(f.fra, f.til)
+        }
+    }
+    is KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet -> {
+        when (val f = this.feil) {
+            is KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeUtbetale -> f.utbetalingFeilet.tilResultat()
+            KunneIkkeFerdigstilleIverksettelsestransaksjon.LagringFeilet -> lagringFeilet
+            KunneIkkeFerdigstilleIverksettelsestransaksjon.Opphør.KunneIkkeAnnullereKontrollsamtale -> HttpStatusCode.InternalServerError.errorJson(
+                "Kunne ikke annulere kontrollsamtale",
+                "kunne_ikke_annulere_kontrollsamtale",
+            )
+        }
+    }
 }

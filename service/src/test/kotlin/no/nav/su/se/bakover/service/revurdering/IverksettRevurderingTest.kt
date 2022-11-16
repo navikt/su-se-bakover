@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.mai
-import no.nav.su.se.bakover.common.periode.november
 import no.nav.su.se.bakover.domain.kontrollsamtale.UgyldigStatusovergang
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -358,9 +357,11 @@ internal class IverksettRevurderingTest {
             attestant = attestant,
         )
 
-        response shouldBe KunneIkkeIverksetteRevurdering.UgyldigTilstand(
-            iverksattRevurdering().second::class,
-            IverksattRevurdering::class,
+        response shouldBe KunneIkkeIverksetteRevurdering.FeilVedIverksettelse(
+            no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeIverksetteRevurdering.UgyldigTilstand(
+                iverksattRevurdering().second::class,
+                IverksattRevurdering::class,
+            ),
         ).left()
     }
 
@@ -391,7 +392,7 @@ internal class IverksettRevurderingTest {
             attestant = attestant,
         )
 
-        response shouldBe KunneIkkeIverksetteRevurdering.LagringFeilet.left()
+        response shouldBe KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon.LagringFeilet).left()
     }
 
     @Test
@@ -423,7 +424,7 @@ internal class IverksettRevurderingTest {
             attestant = attestant,
         )
 
-        response shouldBe KunneIkkeIverksetteRevurdering.LagringFeilet.left()
+        response shouldBe KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon.LagringFeilet).left()
     }
 
     @Test
@@ -481,7 +482,7 @@ internal class IverksettRevurderingTest {
             attestant = attestant,
         )
 
-        response shouldBe KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left()
+        response shouldBe KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil)).left()
     }
 
     @Test
@@ -532,7 +533,7 @@ internal class IverksettRevurderingTest {
         serviceAndMocks.revurderingService.iverksett(
             revurderingId = revurderingTilAttestering.id,
             attestant = attestant,
-        ) shouldBe KunneIkkeIverksetteRevurdering.KunneIkkeAnnulereKontrollsamtale.left()
+        ) shouldBe KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon.Opphør.KunneIkkeAnnullereKontrollsamtale).left()
     }
 
     @Test
@@ -593,7 +594,7 @@ internal class IverksettRevurderingTest {
             revurderingId = revurderingTilAttestering.id,
             attestant = attestant,
         )
-        response shouldBe KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left()
+        response shouldBe KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil)).left()
     }
 
     @Test
@@ -621,7 +622,7 @@ internal class IverksettRevurderingTest {
             it.revurderingService.iverksett(
                 revurderingTilAttestering.id,
                 attestant,
-            ) shouldBe KunneIkkeIverksetteRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving.left()
+            ) shouldBe KunneIkkeIverksetteRevurdering.FeilVedIverksettelse(no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeIverksetteRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving).left()
         }
     }
 }

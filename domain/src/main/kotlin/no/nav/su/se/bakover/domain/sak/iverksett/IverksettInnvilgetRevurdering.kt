@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.sak
+package no.nav.su.se.bakover.domain.sak.iverksett
 
 import arrow.core.Either
 import arrow.core.flatMap
@@ -15,33 +15,33 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
+import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import java.time.Clock
 import java.util.UUID
-import kotlin.reflect.KClass
 
 fun Sak.iverksettInnvilgetRevurdering(
     revurderingId: UUID,
     attestant: NavIdentBruker.Attestant,
     clock: Clock,
     simuler: (utbetaling: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
-): Either<KunneIkkeIverksetteInnvilgetRevurdering, IverksettInnvilgetRevurderingResponse> {
+): Either<KunneIkkeIverksetteRevurdering, IverksettInnvilgetRevurderingResponse> {
     val revurdering = hentRevurdering(revurderingId)
-        .getOrHandle { return KunneIkkeIverksetteInnvilgetRevurdering.FantIkkeRevurdering.left() }
+        .getOrHandle { return KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left() }
 
     if (avventerKravgrunnlag()) {
-        return KunneIkkeIverksetteInnvilgetRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving.left()
+        return KunneIkkeIverksetteRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving.left()
     }
 
     if (revurdering !is RevurderingTilAttestering.Innvilget) {
-        return KunneIkkeIverksetteInnvilgetRevurdering.UgyldigTilstand(
+        return KunneIkkeIverksetteRevurdering.UgyldigTilstand(
             fra = revurdering::class,
             til = IverksattRevurdering::class,
         ).left()
@@ -53,9 +53,9 @@ fun Sak.iverksettInnvilgetRevurdering(
         clock = clock,
     ).mapLeft {
         when (it) {
-            RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> KunneIkkeIverksetteInnvilgetRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
-            RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> KunneIkkeIverksetteInnvilgetRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
-            RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarBlittAnnullertAvEnAnnen -> KunneIkkeIverksetteInnvilgetRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
+            RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+            RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
+            RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarBlittAnnullertAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
         }
     }.flatMap { iverksattRevurdering ->
         lagNyUtbetaling(
@@ -83,7 +83,7 @@ fun Sak.iverksettInnvilgetRevurdering(
                 clock = clock,
             )
         }.mapLeft { feil ->
-            KunneIkkeIverksetteInnvilgetRevurdering.KunneIkkeUtbetale(UtbetalingFeilet.KunneIkkeSimulere(feil))
+            KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(UtbetalingFeilet.KunneIkkeSimulere(feil))
         }.map { simulertUtbetaling ->
             VedtakSomKanRevurderes.from(
                 revurdering = iverksattRevurdering,
@@ -110,7 +110,7 @@ fun IverksettInnvilgetRevurderingResponse.ferdigstillIverksettelseITransaksjon(
     lagreVedtak: (vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering, tx: TransactionContext) -> Unit,
     lagreRevurdering: (revurdering: IverksattRevurdering.Innvilget, tx: TransactionContext) -> Unit,
     statistikkObservers: () -> List<StatistikkEventObserver>,
-): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering> {
+): Either<KunneIkkeFerdigstilleIverksettelsestransaksjon, IverksattRevurdering> {
     return Either.catch {
         sessionFactory.withTransactionContext { tx ->
             /**
@@ -125,7 +125,7 @@ fun IverksettInnvilgetRevurderingResponse.ferdigstillIverksettelseITransaksjon(
             ).getOrHandle {
                 throw IverksettTransactionException(
                     "Kunne ikke opprette utbetaling. Underliggende feil:$it.",
-                    KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it),
+                    KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeUtbetale(it),
                 )
             }
             lagreVedtak(vedtak, tx)
@@ -135,7 +135,7 @@ fun IverksettInnvilgetRevurderingResponse.ferdigstillIverksettelseITransaksjon(
                 .getOrHandle { feil ->
                     throw IverksettTransactionException(
                         "Kunne ikke publisere utbetaling på køen. Underliggende feil: $feil.",
-                        KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(feil),
+                        KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeUtbetale(feil),
                     )
                 }
 
@@ -152,7 +152,7 @@ fun IverksettInnvilgetRevurderingResponse.ferdigstillIverksettelseITransaksjon(
             }
             else -> {
                 no.nav.su.se.bakover.common.log.error("Ukjent feil:${it.message} ved iverksetting av revurdering ${vedtak.behandling.id}")
-                KunneIkkeIverksetteRevurdering.LagringFeilet
+                KunneIkkeFerdigstilleIverksettelsestransaksjon.LagringFeilet
             }
         }
     }
@@ -168,20 +168,3 @@ data class IverksettInnvilgetRevurderingResponse(
         StatistikkEvent.Behandling.Revurdering.Iverksatt.Innvilget(vedtak),
     )
 }
-
-sealed interface KunneIkkeIverksetteInnvilgetRevurdering {
-    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteInnvilgetRevurdering
-    data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksetteInnvilgetRevurdering
-    object FantIkkeRevurdering : KunneIkkeIverksetteInnvilgetRevurdering
-    object HarAlleredeBlittAvkortetAvEnAnnen : KunneIkkeIverksetteInnvilgetRevurdering
-    object SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving : KunneIkkeIverksetteInnvilgetRevurdering
-
-    data class UgyldigTilstand(
-        val fra: KClass<out AbstraktRevurdering>,
-        val til: KClass<out AbstraktRevurdering>,
-    ) : KunneIkkeIverksetteInnvilgetRevurdering
-}
-data class IverksettTransactionException(
-    override val message: String,
-    val feil: KunneIkkeIverksetteRevurdering,
-) : RuntimeException(message)
