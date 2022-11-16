@@ -111,6 +111,7 @@ data class ProdClientsBuilder(
                     serviceUser = serviceUser,
                 ).wrapWithSTSSimulerFpService(),
                 clock = clock,
+                unleash = unleash,
             ),
             utbetalingPublisher = UtbetalingMqPublisher(
                 mqPublisher = applicationConfig.oppdrag.let {
