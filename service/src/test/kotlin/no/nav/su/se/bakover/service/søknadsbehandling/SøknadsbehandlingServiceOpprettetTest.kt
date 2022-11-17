@@ -25,11 +25,10 @@ import no.nav.su.se.bakover.test.søknad.nySakMedLukketSøknad
 import no.nav.su.se.bakover.test.søknad.nySakMedNySøknad
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
-import no.nav.su.se.bakover.test.søknad.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
-import no.nav.su.se.bakover.test.toSøknadsbehandling
 import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingUføre
 import org.junit.jupiter.api.Test
@@ -129,7 +128,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         val nySøknad = nySøknadJournalførtMedOppgave(
             clock = fixedClock,
             sakId = sak.id,
-            søknadInnhold = søknadinnhold(
+            søknadInnhold = søknadinnholdUføre(
                 personopplysninger = Personopplysninger(sak.fnr),
             ),
         )

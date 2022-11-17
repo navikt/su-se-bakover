@@ -321,7 +321,7 @@ data class Sak(
         clock: Clock,
         formuegrenserFactory: FormuegrenserFactory,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling.Vilkårsvurdert> {
+    ): Either<KunneIkkeOppdatereStønadsperiode, Pair<Sak, Søknadsbehandling.Vilkårsvurdert>> {
         val søknadsbehandling = søknadsbehandlinger.singleOrNull {
             it.id == søknadsbehandlingId
         } ?: return KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
@@ -366,6 +366,13 @@ data class Sak(
                     KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
                 }
             }
+        }.map { søknadsbehandlingMedOppdatertStønadsperiode ->
+            Pair(
+                this.copy(
+                    søknadsbehandlinger = søknadsbehandlinger.filterNot { it.id == søknadsbehandlingMedOppdatertStønadsperiode.id } + søknadsbehandlingMedOppdatertStønadsperiode,
+                ),
+                søknadsbehandlingMedOppdatertStønadsperiode,
+            )
         }
     }
 

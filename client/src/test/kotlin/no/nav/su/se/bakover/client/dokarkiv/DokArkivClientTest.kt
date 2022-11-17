@@ -21,7 +21,7 @@ import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.test.brev.brevInnholdInnvilgetVedtak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.søknad.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import org.junit.jupiter.api.Test
 import java.util.Base64
 import java.util.UUID
@@ -31,7 +31,7 @@ internal class DokArkivClientTest : WiremockBase {
 
     private val saksnummer: Long = 2021
     private val navn = "Strømøy, Tore Johnas"
-    private val søknadInnhold = søknadinnhold()
+    private val søknadInnhold = søknadinnholdUføre()
     private val søknadPdfInnhold = SøknadPdfInnhold.create(
         saksnummer = Saksnummer(Random.nextLong(2021, Long.MAX_VALUE)),
         søknadsId = UUID.randomUUID(),

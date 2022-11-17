@@ -40,7 +40,7 @@ fun nySakMedNySøknad(
     søknadId: UUID = no.nav.su.se.bakover.test.søknad.søknadId,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     søknadInnsendtAv: NavIdentBruker = veileder,
-    søknadInnhold: SøknadInnhold = søknadinnhold(personopplysninger = personopplysninger(fnr)),
+    søknadInnhold: SøknadInnhold = søknadinnholdUføre(personopplysninger = personopplysninger(fnr)),
     clock: Clock = fixedClock,
 ): Pair<Sak, Søknad.Ny> = SakFactory(
     uuidFactory = object : UUIDFactory() {
@@ -140,6 +140,7 @@ fun nySakMedJournalførtSøknadUtenOppgave(
     journalpostId: JournalpostId = journalpostIdSøknad,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     clock: Clock = fixedClock,
+    søknadInnhold: SøknadInnhold = søknadinnholdUføre(personopplysninger = personopplysninger(fnr)),
 ): Pair<Sak, Søknad.Journalført.UtenOppgave> {
     return nySakMedNySøknad(
         saksnummer = saksnummer,
@@ -147,6 +148,7 @@ fun nySakMedJournalførtSøknadUtenOppgave(
         søknadId = søknadId,
         fnr = fnr,
         clock = clock,
+        søknadInnhold = søknadInnhold,
     ).let { (sak, nySøknad) ->
         val journalførtSøknad = nySøknad.journalfør(journalpostId)
         Pair(
@@ -167,6 +169,7 @@ fun nySakMedjournalførtSøknadOgOppgave(
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     klager: List<Klage> = emptyList(),
     clock: Clock = fixedClock,
+    søknadInnhold: SøknadInnhold = søknadinnholdUføre(personopplysninger = personopplysninger(fnr)),
 ): Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> {
     klager.forEach {
         assert(it.sakId == sakId) { "Klagenes sakId må være identisk med sakens id." }
@@ -178,6 +181,7 @@ fun nySakMedjournalførtSøknadOgOppgave(
         journalpostId = journalpostId,
         fnr = fnr,
         clock = clock,
+        søknadInnhold = søknadInnhold,
     ).let { (sak, journalførtSøknad) ->
         val journalførtSøknadMedOppgave = journalførtSøknad.medOppgave(oppgaveId)
         Pair(

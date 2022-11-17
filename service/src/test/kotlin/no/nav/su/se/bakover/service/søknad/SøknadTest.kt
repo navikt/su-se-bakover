@@ -32,7 +32,7 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.søknad.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -44,7 +44,7 @@ import java.util.UUID
 
 class SøknadTest {
 
-    private val søknadInnhold: SøknadsinnholdUføre = søknadinnhold()
+    private val søknadInnhold: SøknadsinnholdUføre = søknadinnholdUføre()
     private val fnr = søknadInnhold.personopplysninger.fnr
     private val person: Person = PersonOppslagStub.person(fnr).getOrFail()
     private val sakId = UUID.randomUUID()
@@ -250,7 +250,7 @@ class SøknadTest {
             søknadMetrics = mock(),
             toggleService = mock(),
         ).also {
-            val søknadInnhold = søknadinnhold(personopplysninger = Personopplysninger(sak.fnr))
+            val søknadInnhold = søknadinnholdUføre(personopplysninger = Personopplysninger(sak.fnr))
             val actual = it.service.nySøknad(søknadInnhold, innsender)
             inOrder(*it.allMocks()) {
                 verify(it.personService).hentPerson(argThat { it shouldBe sak.fnr })

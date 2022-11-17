@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.test.fnrUnder67
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.søknad.søknadId
-import no.nav.su.se.bakover.test.søknad.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.trekkSøknad
 import no.nav.su.se.bakover.test.veileder
 import org.junit.jupiter.api.Test
@@ -22,7 +22,7 @@ internal class UføresøknadJsonTest {
             sakId = sakId,
             opprettet = Tidspunkt.EPOCH,
             id = søknadId,
-            søknadInnhold = søknadinnhold(),
+            søknadInnhold = søknadinnholdUføre(),
             innsendtAv = veileder,
         )
         private val opprettetTidspunkt: String = DateTimeFormatter.ISO_INSTANT.format(søknad.opprettet)

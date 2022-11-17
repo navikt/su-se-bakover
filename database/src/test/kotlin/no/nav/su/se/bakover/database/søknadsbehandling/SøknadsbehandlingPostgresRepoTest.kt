@@ -28,7 +28,7 @@ import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
-import no.nav.su.se.bakover.test.nySøknadsbehandling
+import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
@@ -123,7 +123,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             val repo = testDataHelper.søknadsbehandlingRepo
 
             val (_, vilkårsvurdert) = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart { (sak, søknad) ->
-                nySøknadsbehandling(
+                nySøknadsbehandlingMedStønadsperiode(
                     sakOgSøknad = sak to søknad,
                     stønadsperiode = Stønadsperiode.create(periode = januar(2021)),
                 )
@@ -452,7 +452,6 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     ),
                     sakOgSøknad = sak to søknad,
                     customVilkår = listOf(personligOppmøtevilkårAvslag()),
-                    avkorting = avkorting,
                 )
             }
 
@@ -489,7 +488,6 @@ internal class SøknadsbehandlingPostgresRepoTest {
                         type = sak.type,
                     ),
                     sakOgSøknad = sak to søknad,
-                    avkorting = avkorting,
                 )
             }
 

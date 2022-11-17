@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.søknad.journalpostIdSøknad
 import no.nav.su.se.bakover.test.søknad.oppgaveIdSøknad
 import no.nav.su.se.bakover.test.søknad.søknadId
-import no.nav.su.se.bakover.test.søknad.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.søknad.søknadsinnholdAlder
 import java.time.Clock
 import java.util.LinkedList
@@ -58,7 +58,7 @@ fun nySakUføre(
         fnr = fnr,
         type = Sakstype.UFØRE,
     ),
-    søknadsInnhold: SøknadsinnholdUføre = søknadinnhold(personopplysninger = Personopplysninger(sakInfo.fnr)),
+    søknadsInnhold: SøknadsinnholdUføre = søknadinnholdUføre(personopplysninger = Personopplysninger(sakInfo.fnr)),
     søknadInnsendtAv: NavIdentBruker = veileder,
 ): Pair<Sak, Søknad.Journalført.MedOppgave> {
     return nySak(

@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.domain.søknadinnhold.TrygdeytelseIUtlandet
 import no.nav.su.se.bakover.domain.søknadinnhold.Uførevedtak
 import no.nav.su.se.bakover.domain.søknadinnhold.Utenlandsopphold
 import no.nav.su.se.bakover.domain.søknadinnhold.UtenlandsoppholdPeriode
-import no.nav.su.se.bakover.test.epsFnr
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.fnrOver67
@@ -199,7 +198,7 @@ fun søknadsinnholdAlder(
     ektefelle = ektefelle,
 ).getOrHandle { throw IllegalArgumentException("Feil ved oppsett av test data - $it") }
 
-fun søknadinnhold(
+fun søknadinnholdUføre(
     uførevedtak: Uførevedtak = Uførevedtak(true),
     personopplysninger: Personopplysninger = Personopplysninger(fnr),
     flyktningsstatus: Flyktningsstatus = Flyktningsstatus(

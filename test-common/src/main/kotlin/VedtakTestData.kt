@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
@@ -45,7 +44,6 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
         bosituasjon = grunnlagsdata.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }.toNonEmptyList(),
     ),
     clock: Clock = tikkendeFixedClock,
-    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling> {
     require(
         grunnlagsdata.bosituasjon.all { it is Grunnlag.Bosituasjon.Fullstendig },
@@ -55,7 +53,6 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
         stønadsperiode = stønadsperiode,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
-        avkorting = avkorting,
         clock = clock,
     ).let { (sak, søknadsbehandling) ->
         val utbetaling = simulerUtbetaling(

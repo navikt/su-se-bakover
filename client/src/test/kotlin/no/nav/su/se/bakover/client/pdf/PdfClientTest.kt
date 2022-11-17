@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.søknad.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import org.junit.jupiter.api.Test
 import java.util.UUID
 import kotlin.random.Random
@@ -25,7 +25,7 @@ internal class PdfClientTest : WiremockBase {
         søknadsId = UUID.randomUUID(),
         navn = Person.Navn("Tore", null, "Strømøy"),
         søknadOpprettet = Tidspunkt.EPOCH,
-        søknadInnhold = søknadinnhold(),
+        søknadInnhold = søknadinnholdUføre(),
         clock = fixedClock,
     )
     private val søknadPdfInnholdJson = objectMapper.writeValueAsString(søknadPdfInnhold)

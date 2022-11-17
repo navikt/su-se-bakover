@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.søknad.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.veileder
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -34,7 +34,7 @@ class HentSøknadPdfTest {
 
     private val sakId = UUID.randomUUID()
     private val søknadId = UUID.randomUUID()
-    private val søknadInnhold: SøknadsinnholdUføre = søknadinnhold()
+    private val søknadInnhold: SøknadsinnholdUføre = søknadinnholdUføre()
     private val søknad = Søknad.Ny(
         id = søknadId,
         opprettet = Tidspunkt.EPOCH,

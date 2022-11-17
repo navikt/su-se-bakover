@@ -21,8 +21,6 @@ import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.toNonEmptyList
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
@@ -45,7 +43,6 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
-import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkår.avslåttFormueVilkår
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
@@ -353,19 +350,6 @@ internal class RevurderingBeregnTest {
         opprettetRevurdering(
             sakOgVedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(
                 stønadsperiode = Stønadsperiode.create(revurderingsperiode),
-                avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-                    avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-                        objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                            sakId = UUID.randomUUID(),
-                            revurderingId = UUID.randomUUID(),
-                            // hardkodet 15000 feilutbetaling
-                            simulering = simuleringFeilutbetaling(
-                                perioder = feilutbetaltePerioder.toTypedArray(),
-                            ),
-                            opprettet = Tidspunkt.now(fixedClock),
-                        ),
-                    ),
-                ),
             ),
             revurderingsperiode = revurderingsperiode,
         ).let { (sak, revurdering) ->
@@ -441,19 +425,6 @@ internal class RevurderingBeregnTest {
         opprettetRevurdering(
             sakOgVedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(
                 stønadsperiode = Stønadsperiode.create(revurderingsperiode),
-                avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-                    avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-                        objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                            sakId = UUID.randomUUID(),
-                            revurderingId = UUID.randomUUID(),
-                            // hardkodet 15000 feilutbetaling
-                            simulering = simuleringFeilutbetaling(
-                                perioder = feilutbetaltePerioder.toTypedArray(),
-                            ),
-                            opprettet = Tidspunkt.now(fixedClock),
-                        ),
-                    ),
-                ),
             ),
             revurderingsperiode = revurderingsperiode,
             grunnlagsdataOverrides = listOf(
@@ -561,18 +532,7 @@ internal class RevurderingBeregnTest {
     @Test
     fun `får ikke lov til å opphøre pga andre vilkår dersom revurdering inneholder fremtidige fradrag for avkorting`() {
         opprettetRevurdering(
-            sakOgVedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(
-                avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-                    avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-                        objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                            sakId = UUID.randomUUID(),
-                            revurderingId = UUID.randomUUID(),
-                            simulering = simuleringFeilutbetaling(mai(2021), juni(2021)),
-                            opprettet = Tidspunkt.now(fixedClock),
-                        ),
-                    ),
-                ),
-            ),
+            sakOgVedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(),
             vilkårOverrides = listOf(
                 avslåttFormueVilkår(periode = år(2021)),
             ),
@@ -592,18 +552,7 @@ internal class RevurderingBeregnTest {
     @Test
     fun `får ikke lov til å opphøre dersom revurderingsperioden har utestående beløp som skal avkortes`() {
         opprettetRevurdering(
-            sakOgVedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(
-                avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-                    avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-                        objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                            sakId = UUID.randomUUID(),
-                            revurderingId = UUID.randomUUID(),
-                            simulering = simuleringFeilutbetaling(mai(2021), juni(2021)),
-                            opprettet = Tidspunkt.now(fixedClock),
-                        ),
-                    ),
-                ),
-            ),
+            sakOgVedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(),
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
                     periode = januar(2021),
@@ -643,7 +592,10 @@ internal class RevurderingBeregnTest {
         kvittering = mock(),
     )
 
-    private fun lagUtbetalingslinje(månedsbeløp: Int, periode: Periode) = Utbetalingslinje.Ny(
+    private fun lagUtbetalingslinje(
+        @Suppress("SameParameterValue") månedsbeløp: Int,
+        periode: Periode,
+    ) = Utbetalingslinje.Ny(
         opprettet = fixedTidspunkt,
         fraOgMed = periode.fraOgMed,
         tilOgMed = periode.tilOgMed,

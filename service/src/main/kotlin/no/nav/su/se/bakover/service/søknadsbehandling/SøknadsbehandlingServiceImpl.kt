@@ -361,8 +361,8 @@ internal class SøknadsbehandlingServiceImpl(
         ).mapLeft {
             KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode(it)
         }.map {
-            søknadsbehandlingRepo.lagre(it)
-            it
+            søknadsbehandlingRepo.lagre(it.second)
+            it.second
         }
     }
 

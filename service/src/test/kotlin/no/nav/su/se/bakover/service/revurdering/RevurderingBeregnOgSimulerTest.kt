@@ -11,8 +11,6 @@ import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -43,7 +41,7 @@ import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
-import no.nav.su.se.bakover.test.søknad.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vedtakRevurdering
@@ -446,8 +444,8 @@ internal class RevurderingBeregnOgSimulerTest {
 
         val stønadsperiode1 = stønadsperiode2021
         val (sakEtterInnvilgelse1, _, innvilget1) = iverksattSøknadsbehandlingUføre(
-            stønadsperiode = stønadsperiode1,
             clock = tikkendeKlokke,
+            stønadsperiode = stønadsperiode1,
         )
 
         innvilget1.harPågåendeAvkorting() shouldBe false
@@ -470,20 +468,17 @@ internal class RevurderingBeregnOgSimulerTest {
         revurdering1.harIdentifisertBehovForFremtidigAvkorting() shouldBe true
 
         val stønadsperiode2 = Stønadsperiode.create(Periode.create(1.juli(2021), 31.desember(2021)))
-        val uteståendeAvkorting =
-            (((revurdering1 as VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering).behandling.avkorting) as AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel).avkortingsvarsel
 
         val (sakEtterInnvilgelse2, _, innvilget2) = iverksattSøknadsbehandlingUføre(
+            clock = tikkendeKlokke,
+            stønadsperiode = stønadsperiode2,
             sakOgSøknad = sakEtterRevurdering1 to nySøknadJournalførtMedOppgave(
                 clock = tikkendeKlokke,
                 sakId = sakEtterRevurdering1.id,
-                søknadInnhold = søknadinnhold(
+                søknadInnhold = søknadinnholdUføre(
                     personopplysninger = Personopplysninger(sakEtterRevurdering1.fnr),
                 ),
             ),
-            stønadsperiode = stønadsperiode2,
-            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(uteståendeAvkorting),
-            clock = tikkendeKlokke,
         )
 
         innvilget2.harPågåendeAvkorting() shouldBe true

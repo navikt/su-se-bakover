@@ -30,19 +30,32 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
+import no.nav.su.se.bakover.domain.søknadinnhold.Personopplysninger
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.sakMedUteståendeAvkorting
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
+import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
+import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandling
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -137,21 +150,27 @@ class SøknadsbehandlingServiceBeregningTest {
 
     @Test
     fun `håndtering av utestående avkorting for innvilget beregning`() {
-        val uteståendeAvkorting = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-            objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                sakId = UUID.randomUUID(),
-                revurderingId = UUID.randomUUID(),
-                simulering = simuleringFeilutbetaling(
-                    juni(2021),
-                ),
-                opprettet = Tidspunkt.now(fixedClock),
-            ),
+       val clock = TikkendeKlokke(fixedClock)
+
+        val sakMedUteståendeAvkorting = sakMedUteståendeAvkorting(
+            // Siste måned blir ikke utbetalt og vil derfor kunne overskrives av neste søknadsbehandling.
+            stønadsperiode = Stønadsperiode.create(januar(2021)..februar(2021)),
+            clock = clock,
         )
 
-        val (_, vilkårsvurdert) = søknadsbehandlingVilkårsvurdertInnvilget(
-            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-                avkortingsvarsel = uteståendeAvkorting,
-            ).kanIkke(),
+        val (sak, vilkårsvurdert) = vilkårsvurdertSøknadsbehandling(
+            stønadsperiode = Stønadsperiode.create(februar(2021)),
+            clock = clock,
+            sakOgSøknad = Pair(
+                sakMedUteståendeAvkorting.first,
+                nySøknadJournalførtMedOppgave(
+                    sakId = sakMedUteståendeAvkorting.first.id,
+                    clock = clock,
+                    søknadInnhold = søknadinnholdUføre(
+                        personopplysninger = Personopplysninger(sakMedUteståendeAvkorting.first.fnr),
+                    ),
+                ),
+            ),
         )
 
         SøknadsbehandlingServiceAndMocks(
@@ -170,9 +189,63 @@ class SøknadsbehandlingServiceBeregningTest {
             ).getOrFail()
 
             beregnet shouldBe beOfType<Søknadsbehandling.Beregnet.Innvilget>()
-            beregnet.avkorting shouldBe AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(
-                avkortingsvarsel = uteståendeAvkorting,
-            )
+            (beregnet.avkorting as AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående).avkortingsvarsel.let {
+                it.periode() shouldBe januar(2021)
+                it.sakId shouldBe sak.id
+                it.revurderingId shouldBe sakMedUteståendeAvkorting.third.behandling.id
+                it.simulering shouldBe Simulering(
+                    gjelderId = sak.fnr,
+                    gjelderNavn = "MYGG LUR",
+                    datoBeregnet =1.januar(2021),
+                    nettoBeløp = sakMedUteståendeAvkorting.second.beregning.getSumYtelse()*-1,
+                    periodeList = listOf(
+                        SimulertPeriode(
+                            fraOgMed =1.januar(2021),
+                            tilOgMed =31.januar(2021),
+                            utbetaling = listOf(
+                                SimulertUtbetaling(
+                                    fagSystemId = "12345676",
+                                    utbetalesTilId = sak.fnr,
+                                    utbetalesTilNavn = "LYR MYGG",
+                                    forfall =1.januar(2021),
+                                    feilkonto = true,
+                                    detaljer = listOf(
+                                        SimulertDetaljer(
+                                            faktiskFraOgMed =1.januar(2021),
+                                            faktiskTilOgMed =31.januar(2021),
+                                            konto = "4952000",
+                                            // TODO Jacob: Kan du se over disse? Hilsen John
+                                            belop = sakMedUteståendeAvkorting.second.beregning.getSumYtelse()*-1/2,
+                                            tilbakeforing = true,
+                                            sats = 0,
+                                            typeSats = "",
+                                            antallSats = 0,
+                                            uforegrad = 0,
+                                            klassekode =KlasseKode.SUUFORE,
+                                            klassekodeBeskrivelse = "Supplerende stønad UFØRE",
+                                            klasseType =KlasseType.YTEL
+                                        ),SimulertDetaljer(
+                                            faktiskFraOgMed =1.januar(2021),
+                                            faktiskTilOgMed =31.januar(2021),
+                                            konto = "4952000",
+                                            belop = sakMedUteståendeAvkorting.second.beregning.getSumYtelse()*-1/2,
+                                            tilbakeforing = false,
+                                            sats = 0,
+                                            typeSats = "",
+                                            antallSats = 0,
+                                            uforegrad = 0,
+                                            klassekode =KlasseKode.KL_KODE_FEIL_INNT,
+                                            klassekodeBeskrivelse = "Feilutbetaling UFØRE",
+                                            klasseType =KlasseType.FEIL
+                                        )
+                                    )
+                                )
+                            ),
+                        ),
+                    ),
+
+                    )
+            }
             beregnet.grunnlagsdata shouldNotBe vilkårsvurdert.grunnlagsdata
             beregnet.grunnlagsdata.fradragsgrunnlag
                 .any { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold } shouldBe true
@@ -188,33 +261,61 @@ class SøknadsbehandlingServiceBeregningTest {
 
     @Test
     fun `håndtering av utestående avkorting for avslag beregning`() {
-        val uteståendeAvkorting = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-            objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                sakId = UUID.randomUUID(),
-                revurderingId = UUID.randomUUID(),
-                simulering = simuleringFeilutbetaling(
-                    juni(2021),
-                ),
-                opprettet = Tidspunkt.now(fixedClock),
-            ),
+        // val uteståendeAvkorting = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
+        //     objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
+        //         sakId = UUID.randomUUID(),
+        //         revurderingId = UUID.randomUUID(),
+        //         simulering = simuleringFeilutbetaling(
+        //             juni(2021),
+        //         ),
+        //         opprettet = Tidspunkt.now(fixedClock),
+        //     ),
+        // )
+        //
+        // val (_, vilkårsvurdert) = søknadsbehandlingVilkårsvurdertInnvilget(
+        //     avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
+        //         uteståendeAvkorting,
+        //     ),
+        // ).let { (sak, vilkårsvurdert) ->
+        //     sak to vilkårsvurdert.leggTilFradragsgrunnlag(
+        //         fradragsgrunnlag = listOf(
+        //             fradragsgrunnlagArbeidsinntekt(
+        //                 periode = vilkårsvurdert.periode.måneder().first(),
+        //                 arbeidsinntekt = 25000.0,
+        //                 tilhører = FradragTilhører.BRUKER,
+        //             ),
+        //         ),
+        //         saksbehandler = saksbehandler,
+        //     ).getOrFail()
+        // }
+
+        val clock = TikkendeKlokke(fixedClock)
+
+        val sakMedUteståendeAvkorting = sakMedUteståendeAvkorting(
+            stønadsperiode = Stønadsperiode.create(januar(2021)..februar(2021)),
+            clock = clock,
         )
 
-        val (_, vilkårsvurdert) = søknadsbehandlingVilkårsvurdertInnvilget(
-            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-                uteståendeAvkorting,
-            ),
-        ).let { (sak, vilkårsvurdert) ->
-            sak to vilkårsvurdert.leggTilFradragsgrunnlag(
-                fradragsgrunnlag = listOf(
-                    fradragsgrunnlagArbeidsinntekt(
-                        periode = vilkårsvurdert.periode.måneder().first(),
-                        arbeidsinntekt = 25000.0,
-                        tilhører = FradragTilhører.BRUKER,
+        val (sak, vilkårsvurdert) = vilkårsvurdertSøknadsbehandling(
+            stønadsperiode = Stønadsperiode.create(februar(2021)),
+            clock = clock,
+            customGrunnlag = listOf(
+                fradragsgrunnlagArbeidsinntekt(
+                    periode = februar(2021),
+                    arbeidsinntekt = 25000.0,
+                    tilhører = FradragTilhører.BRUKER,
+                )),
+            sakOgSøknad = Pair(
+                sakMedUteståendeAvkorting.first,
+                nySøknadJournalførtMedOppgave(
+                    sakId = sakMedUteståendeAvkorting.first.id,
+                    clock = clock,
+                    søknadInnhold = søknadinnholdUføre(
+                        personopplysninger = Personopplysninger(sakMedUteståendeAvkorting.first.fnr),
                     ),
                 ),
-                saksbehandler = saksbehandler,
-            ).getOrFail()
-        }
+            ),
+        )
 
         SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = mock {
@@ -232,11 +333,77 @@ class SøknadsbehandlingServiceBeregningTest {
             ).getOrFail()
 
             beregnet shouldBe beOfType<Søknadsbehandling.Beregnet.Avslag>()
-            beregnet.avkorting shouldBe AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere(
-                håndtert = AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(
-                    avkortingsvarsel = uteståendeAvkorting,
-                ),
-            )
+            // beregnet.avkorting shouldBe AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere(
+            //     håndtert = AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(
+            //         Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
+            //             objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
+            //                 sakId = UUID.randomUUID(),
+            //                 revurderingId = UUID.randomUUID(),
+            //                 simulering = simuleringFeilutbetaling(
+            //                     juni(2021),
+            //                 ),
+            //                 opprettet = Tidspunkt.now(fixedClock),
+            //             ),
+            //         ),
+            //     ),
+            // )
+            (beregnet.avkorting as AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående).avkortingsvarsel.let {
+                it.periode() shouldBe januar(2021)
+                it.sakId shouldBe sak.id
+                it.revurderingId shouldBe sakMedUteståendeAvkorting.third.behandling.id
+                it.simulering shouldBe Simulering(
+                    gjelderId = sak.fnr,
+                    gjelderNavn = "MYGG LUR",
+                    datoBeregnet =1.januar(2021),
+                    nettoBeløp = sakMedUteståendeAvkorting.second.beregning.getSumYtelse()*-1,
+                    periodeList = listOf(
+                        SimulertPeriode(
+                            fraOgMed =1.januar(2021),
+                            tilOgMed =31.januar(2021),
+                            utbetaling = listOf(
+                                SimulertUtbetaling(
+                                    fagSystemId = "12345676",
+                                    utbetalesTilId = sak.fnr,
+                                    utbetalesTilNavn = "LYR MYGG",
+                                    forfall =1.januar(2021),
+                                    feilkonto = true,
+                                    detaljer = listOf(
+                                        SimulertDetaljer(
+                                            faktiskFraOgMed =1.januar(2021),
+                                            faktiskTilOgMed =31.januar(2021),
+                                            konto = "4952000",
+                                            // TODO Jacob: Kan du se over disse? Hilsen John
+                                            belop = sakMedUteståendeAvkorting.second.beregning.getSumYtelse()*-1/2,
+                                            tilbakeforing = true,
+                                            sats = 0,
+                                            typeSats = "",
+                                            antallSats = 0,
+                                            uforegrad = 0,
+                                            klassekode =KlasseKode.SUUFORE,
+                                            klassekodeBeskrivelse = "Supplerende stønad UFØRE",
+                                            klasseType =KlasseType.YTEL
+                                        ),SimulertDetaljer(
+                                            faktiskFraOgMed =1.januar(2021),
+                                            faktiskTilOgMed =31.januar(2021),
+                                            konto = "4952000",
+                                            belop = sakMedUteståendeAvkorting.second.beregning.getSumYtelse()*-1/2,
+                                            tilbakeforing = false,
+                                            sats = 0,
+                                            typeSats = "",
+                                            antallSats = 0,
+                                            uforegrad = 0,
+                                            klassekode =KlasseKode.KL_KODE_FEIL_INNT,
+                                            klassekodeBeskrivelse = "Feilutbetaling UFØRE",
+                                            klasseType =KlasseType.FEIL
+                                        )
+                                    )
+                                )
+                            ),
+                        ),
+                    ),
+
+                    )
+            }
             beregnet.grunnlagsdata shouldNotBe vilkårsvurdert.grunnlagsdata
             beregnet.grunnlagsdata.fradragsgrunnlag
                 .any { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold } shouldBe true

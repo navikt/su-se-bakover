@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
+import arrow.core.flatten
 import arrow.core.left
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Fnr
@@ -25,9 +26,11 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
+import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
+import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandling
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -68,8 +71,14 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
     fun `kan oppdatere med ufullstendig bosituasjon`() {
         SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = mock {
-                on { hent(any()) } doReturn søknadsbehandlingVilkårsvurdertUavklart(
-                    grunnlagsdata = grunnlagsdataEnsligMedFradrag(),
+                on { hent(any()) } doReturn vilkårsvurdertSøknadsbehandling(
+                    sakOgSøknad = nySakMedjournalførtSøknadOgOppgave(),
+                    customGrunnlag = grunnlagsdataEnsligMedFradrag().let {
+                        listOf(
+                            it.bosituasjon,
+                            it.fradragsgrunnlag,
+                        ).flatten()
+                    },
                 ).second
             },
         ).let {
@@ -329,18 +338,17 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
 
     @Test
     fun `fullfør happy case`() {
-        val uavklart = søknadsbehandlingVilkårsvurdertUavklart(
+        val søknadsbehandling = vilkårsvurdertSøknadsbehandling(
             stønadsperiode = stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.create(
-                bosituasjon = listOf(
-                    Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = stønadsperiode.periode,
-                    ),
+            sakOgSøknad = nySakMedjournalførtSøknadOgOppgave(),
+            customGrunnlag = listOf(
+                Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    periode = stønadsperiode.periode,
                 ),
             ),
-        ).second
+        ).second as Søknadsbehandling.Vilkårsvurdert.Innvilget
 
         val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
             id = UUID.randomUUID(),
@@ -348,17 +356,17 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             periode = stønadsperiode.periode,
         )
 
-        val expected = uavklart.copy(
+        val expected = søknadsbehandling.copy(
             grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(
                     bosituasjon,
                 ),
             ),
-            vilkårsvurderinger = uavklart.vilkårsvurderinger.leggTil(tilstrekkeligDokumentert()),
+            vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger.leggTil(tilstrekkeligDokumentert()),
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn uavklart
+            on { hent(any()) } doReturn søknadsbehandling
         }
 
         val response = createSøknadsbehandlingService(
@@ -366,7 +374,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             clock = fixedClock,
         ).fullførBosituasjongrunnlag(
             FullførBosituasjonRequest(
-                behandlingId = uavklart.id,
+                behandlingId = søknadsbehandling.id,
                 bosituasjon = BosituasjonValg.BOR_ALENE,
             ),
             saksbehandler = saksbehandler,
@@ -382,7 +390,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             ),
         )
 
-        verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe uavklart.id })
+        verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe søknadsbehandling.id })
         verify(søknadsbehandlingRepoMock).defaultTransactionContext()
         verify(søknadsbehandlingRepoMock).lagre(any(), anyOrNull())
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)

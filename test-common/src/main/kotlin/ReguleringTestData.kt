@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.regulering.Regulering
@@ -92,7 +91,6 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
         stønadsperiode.periode,
     ),
     clock: Clock = TikkendeKlokke(),
-    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Regulering.OpprettetRegulering> {
     val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
@@ -100,7 +98,6 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         clock = clock,
-        avkorting = avkorting,
     )
     val sak = sakOgVedtak.first
     val regulering = sak.opprettEllerOppdaterRegulering(regulerFraOgMed, clock).getOrFail()
@@ -142,7 +139,6 @@ fun innvilgetSøknadsbehandlingMedIverksattRegulering(
         stønadsperiode.periode,
     ),
     clock: Clock = TikkendeKlokke(),
-    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Regulering.IverksattRegulering> {
     val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
@@ -150,7 +146,6 @@ fun innvilgetSøknadsbehandlingMedIverksattRegulering(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         clock = clock,
-        avkorting = avkorting,
     )
     val sak = sakOgVedtak.first
     val regulering = iverksattAutomatiskRegulering()

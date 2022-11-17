@@ -52,7 +52,7 @@ import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
-import no.nav.su.se.bakover.test.søknad.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
@@ -346,8 +346,8 @@ internal class OpprettRevurderingServiceTest {
         val tikkendeKlokke = TikkendeKlokke(fixedClock)
 
         val (sak1, _, vedtakForFørsteJanuarLagetForLengeSiden) = iverksattSøknadsbehandlingUføre(
-            stønadsperiode = Stønadsperiode.create(vedtaksperiode),
             clock = tikkendeKlokke,
+            stønadsperiode = Stønadsperiode.create(vedtaksperiode),
         )
         val (sak2, vedtakForFørsteJanuarLagetNå) = vedtakRevurdering(
             clock = tikkendeKlokke,
@@ -571,7 +571,7 @@ internal class OpprettRevurderingServiceTest {
             stønadsperiode = Stønadsperiode.create(januar(2022).rangeTo(desember(2022))),
             sakOgSøknad = sakMedFørstegangsbehandling.first to nySøknadJournalførtMedOppgave(
                 sakId = sakMedFørstegangsbehandling.first.id,
-                søknadInnhold = søknadinnhold(
+                søknadInnhold = søknadinnholdUføre(
                     personopplysninger = Personopplysninger(sakMedFørstegangsbehandling.first.fnr),
                 ),
             ),

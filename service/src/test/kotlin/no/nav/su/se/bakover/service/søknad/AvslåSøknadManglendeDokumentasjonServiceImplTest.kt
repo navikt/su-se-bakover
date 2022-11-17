@@ -41,8 +41,10 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.nySøknadsbehandlingUtenStønadsperiode
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.søknad.søknadId
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
@@ -63,7 +65,7 @@ import java.util.UUID
 internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
     @Test
     fun `kan avslå en søknad uten påbegynt behandling`() {
-        val (sak, uavklart) = søknadsbehandlingVilkårsvurdertUavklart(stønadsperiode = null)
+        val (sak, uavklart) = nySøknadsbehandlingUtenStønadsperiode(sakOgSøknad = nySakMedjournalførtSøknadOgOppgave())
 
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { opprett(any()) } doReturn uavklart.right()

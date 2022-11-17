@@ -6,11 +6,11 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.test.bortfallSøknad
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.nySøknadsbehandlingUtenStønadsperiode
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknad.søknadId
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingTrukket
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.veileder
 import org.junit.jupiter.api.Test
 
@@ -42,18 +42,18 @@ internal class LukketSøknadsbehandlingTest {
 
     @Test
     fun `skal kunne lukke en opprettet søknadsbehandling uten stønadsperiode`() {
-        søknadsbehandlingVilkårsvurdertUavklart().second.copy(stønadsperiode = null).let {
-            it.lukkSøknadsbehandlingOgSøknad(
+        nySøknadsbehandlingUtenStønadsperiode().let {(sak,søknadsbehandling)->
+            søknadsbehandling.lukkSøknadsbehandlingOgSøknad(
                 bortfallSøknad(søknadId),
             ) shouldBe LukketSøknadsbehandling.createFromPersistedState(
-                søknadsbehandling = it,
+                søknadsbehandling = søknadsbehandling,
                 søknad = Søknad.Journalført.MedOppgave.Lukket.Bortfalt(
-                    id = it.søknad.id,
-                    opprettet = it.søknad.opprettet,
-                    sakId = it.søknad.sakId,
-                    søknadInnhold = it.søknad.søknadInnhold,
-                    journalpostId = it.søknad.journalpostId,
-                    oppgaveId = it.søknad.oppgaveId,
+                    id = søknadsbehandling.søknad.id,
+                    opprettet = søknadsbehandling.søknad.opprettet,
+                    sakId = sak.id,
+                    søknadInnhold = søknadsbehandling.søknad.søknadInnhold,
+                    journalpostId = søknadsbehandling.søknad.journalpostId,
+                    oppgaveId = søknadsbehandling.søknad.oppgaveId,
                     lukketTidspunkt = fixedTidspunkt,
                     lukketAv = saksbehandler,
                     innsendtAv = veileder,

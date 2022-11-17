@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.søknadinnhold.ForNav
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
-import no.nav.su.se.bakover.test.søknad.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import org.junit.jupiter.api.Test
 
 internal class NøkkeltallPostgresRepoTest {
@@ -114,7 +114,7 @@ internal class NøkkeltallPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
             testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave(
-                søknadInnhold = søknadinnhold(
+                søknadInnhold = søknadinnholdUføre(
                     forNav = ForNav.Papirsøknad(
                         mottaksdatoForSøknad = fixedLocalDate,
                         grunnForPapirinnsending = ForNav.Papirsøknad.GrunnForPapirinnsending.MidlertidigUnntakFraOppmøteplikt,

@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
@@ -38,7 +37,7 @@ import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
-import no.nav.su.se.bakover.test.søknad.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
@@ -70,18 +69,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
         @Test
         fun `velger videreføring dersom ingen utestående avkortinger men grunnlag for avkorting`() {
             val (sak, revurdering) = opprettetRevurdering(
-                sakOgVedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(
-                    avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-                        avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-                            objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                                sakId = UUID.randomUUID(),
-                                revurderingId = UUID.randomUUID(),
-                                simulering = simuleringFeilutbetaling(mai(2021), juni(2021)),
-                                opprettet = Tidspunkt.now(fixedClock),
-                            ),
-                        ),
-                    ),
-                ),
+                sakOgVedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(),
             )
             BeregnRevurderingStrategyDecider(
                 revurdering = revurdering,
@@ -108,7 +96,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 it.third as VedtakSomKanRevurderes
             }
 
-            val opphørUtenlandsopphold = vedtakRevurdering(
+            vedtakRevurdering(
                 clock = tikkendeKlokke,
                 stønadsperiode = stønadsperiode2021,
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
@@ -129,13 +117,10 @@ internal class BeregnRevurderingStrategyDeciderTest {
             val nyStønadsperiode = iverksattSøknadsbehandlingUføre(
                 clock = tikkendeKlokke,
                 stønadsperiode = Stønadsperiode.create(Periode.create(1.juli(2021), 30.juni(2022))),
-                avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-                    avkortingsvarsel = opphørUtenlandsopphold.hentUteståendeAvkorting().avkortingsvarsel(),
-                ),
                 sakOgSøknad = sak to nySøknadJournalførtMedOppgave(
                     clock = tikkendeKlokke,
                     sakId = sak.id,
-                    søknadInnhold = søknadinnhold(
+                    søknadInnhold = søknadinnholdUføre(
                         personopplysninger = Personopplysninger(sak.fnr),
                     ),
                 ),
@@ -178,7 +163,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
             it.third as VedtakSomKanRevurderes
         }
 
-        val opphørUtenlandsopphold = vedtakRevurdering(
+        vedtakRevurdering(
             clock = tikkendeKlokke,
             stønadsperiode = stønadsperiode2021,
             revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
@@ -199,13 +184,10 @@ internal class BeregnRevurderingStrategyDeciderTest {
         val nyStønadsperiode = iverksattSøknadsbehandlingUføre(
             clock = tikkendeKlokke,
             stønadsperiode = Stønadsperiode.create(Periode.create(1.juli(2021), 30.juni(2022))),
-            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-                avkortingsvarsel = opphørUtenlandsopphold.hentUteståendeAvkorting().avkortingsvarsel(),
-            ),
             sakOgSøknad = sak to nySøknadJournalførtMedOppgave(
                 clock = tikkendeKlokke,
                 sakId = sak.id,
-                søknadInnhold = søknadinnhold(
+                søknadInnhold = søknadinnholdUføre(
                     personopplysninger = Personopplysninger(sak.fnr),
                 ),
             ),
@@ -271,18 +253,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
         @Test
         fun `velger videreføring dersom utestående avkortinger og grunnlag for avkorting`() {
             val (sak, revurdering) = opprettetRevurdering(
-                sakOgVedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(
-                    avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-                        avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-                            objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                                sakId = UUID.randomUUID(),
-                                revurderingId = UUID.randomUUID(),
-                                simulering = simuleringFeilutbetaling(mai(2021), juni(2021)),
-                                opprettet = Tidspunkt.now(fixedClock),
-                            ),
-                        ),
-                    ),
-                ),
+                sakOgVedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(),
                 avkorting = AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(
                     avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
                         objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
@@ -469,18 +440,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
         @Test
         fun `viderefører avkortinger håndtert av tidligere søknadsbehandling`() {
             val (sak, revurdering) = opprettetRevurdering(
-                sakOgVedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(
-                    avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-                        avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-                            objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                                sakId = UUID.randomUUID(),
-                                revurderingId = UUID.randomUUID(),
-                                simulering = simuleringFeilutbetaling(mai(2021), juni(2021)),
-                                opprettet = Tidspunkt.now(fixedClock),
-                            ),
-                        ),
-                    ),
-                ),
+                sakOgVedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(),
                 avkorting = AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(
                     avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
                         objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
@@ -517,7 +477,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 it.third as VedtakSomKanRevurderes
             }
 
-            val opphørUtenlandsopphold = vedtakRevurdering(
+            vedtakRevurdering(
                 clock = tikkendeKlokke,
                 stønadsperiode = stønadsperiode2021,
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
@@ -537,13 +497,10 @@ internal class BeregnRevurderingStrategyDeciderTest {
             val nyStønadsperiode = iverksattSøknadsbehandlingUføre(
                 clock = tikkendeKlokke,
                 stønadsperiode = Stønadsperiode.create(Periode.create(1.juli(2021), 30.juni(2022))),
-                avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-                    avkortingsvarsel = opphørUtenlandsopphold.hentUteståendeAvkorting().avkortingsvarsel(),
-                ),
                 sakOgSøknad = sak to nySøknadJournalførtMedOppgave(
                     clock = tikkendeKlokke,
                     sakId = sak.id,
-                    søknadInnhold = søknadinnhold(
+                    søknadInnhold = søknadinnholdUføre(
                         personopplysninger = Personopplysninger(sak.fnr),
                     ),
                 ),
@@ -596,7 +553,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 it.third as VedtakSomKanRevurderes
             }
 
-            val opphørUtenlandsopphold = vedtakRevurdering(
+            vedtakRevurdering(
                 clock = tikkendeKlokke,
                 stønadsperiode = stønadsperiode2021,
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
@@ -617,13 +574,10 @@ internal class BeregnRevurderingStrategyDeciderTest {
             val nyStønadsperiode = iverksattSøknadsbehandlingUføre(
                 clock = tikkendeKlokke,
                 stønadsperiode = Stønadsperiode.create(Periode.create(1.juli(2021), 30.juni(2022))),
-                avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-                    avkortingsvarsel = opphørUtenlandsopphold.hentUteståendeAvkorting().avkortingsvarsel(),
-                ),
                 sakOgSøknad = sak to nySøknadJournalførtMedOppgave(
                     clock = tikkendeKlokke,
                     sakId = sak.id,
-                    søknadInnhold = søknadinnhold(
+                    søknadInnhold = søknadinnholdUføre(
                         personopplysninger = Personopplysninger(sak.fnr),
                     ),
                 ),

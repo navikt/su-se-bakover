@@ -239,18 +239,18 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
 
         // naturlig utløp i forrige måned
         val (sak1, _) = vedtakSøknadsbehandlingIverksattInnvilget(
-            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 30.juni(2021))),
             saksnummer = Saksnummer(3001),
+            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 30.juni(2021))),
         )
         // naturlig utløp i inneværende måned
         val (sak2, _) = vedtakSøknadsbehandlingIverksattInnvilget(
-            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.juli(2021))),
             saksnummer = Saksnummer(3002),
+            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.juli(2021))),
         )
         // naturlig utløp i neste måned
         val (sak3, _) = vedtakSøknadsbehandlingIverksattInnvilget(
-            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.august(2021))),
             saksnummer = Saksnummer(3003),
+            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.august(2021))),
         )
 
         // opphør fra fra neste måned

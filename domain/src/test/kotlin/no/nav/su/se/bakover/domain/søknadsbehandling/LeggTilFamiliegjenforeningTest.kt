@@ -4,7 +4,20 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
+import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
+import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
+import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
+import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
+import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
+import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
+import no.nav.su.se.bakover.test.nySøknadsbehandlingUtenStønadsperiode
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
+import no.nav.su.se.bakover.test.søknad.søknadsinnholdAlder
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
@@ -19,11 +32,10 @@ import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.vilkår.familiegjenforeningVilkårInnvilget
-import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingIkkeVurdertAlder
 import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingVurdertAvslagAlder
 import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder
+import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandling
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import vurderingsperiode.vurderingsperiodeFamiliegjenforeningAvslag
@@ -33,8 +45,11 @@ internal class LeggTilFamiliegjenforeningTest {
 
     @Test
     fun `kan legge til familiegjenforening ved uavklart`() {
-        val uavklart =
-            søknadsbehandlingVilkårsvurdertUavklart(vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdertAlder())
+        val uavklart = nySøknadsbehandlingMedStønadsperiode(
+            sakOgSøknad = nySakMedjournalførtSøknadOgOppgave(
+                søknadInnhold = søknadsinnholdAlder()
+            ),
+        )
 
         uavklart.second.leggTilFamiliegjenforeningvilkår(
             familiegjenforening = familiegjenforeningVilkårInnvilget(),

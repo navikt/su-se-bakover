@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.persistence.antall
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.nySøknadsbehandling
+import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
@@ -24,7 +24,7 @@ internal class UføregrunnlagPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val grunnlagRepo = UføregrunnlagPostgresRepo(testDataHelper.dbMetrics)
             val behandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert { (sak, søknad) ->
-                nySøknadsbehandling(
+                nySøknadsbehandlingMedStønadsperiode(
                     sakOgSøknad = sak to søknad,
                 )
             }.second

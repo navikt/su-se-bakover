@@ -4,7 +4,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.nySøknadsbehandling
+import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
@@ -167,7 +167,7 @@ internal class AvkortingsvarselPostgresRepoTest {
             val revurdering3 = testDataHelper.persisterRevurderingOpprettet(sakOgVedtak = (sak to vedtak)).second
 
             val (_, nySøknadsbehandling) = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart { (sak, søknad) ->
-                nySøknadsbehandling(
+                nySøknadsbehandlingMedStønadsperiode(
                     sakOgSøknad = sak to søknad,
                     stønadsperiode = stønadsperiode2022,
                 )

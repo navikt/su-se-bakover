@@ -30,7 +30,6 @@ import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.november
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknadinnhold.Personopplysninger
@@ -65,7 +64,7 @@ import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
-import no.nav.su.se.bakover.test.søknad.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.tikkendeFixedClock
@@ -204,11 +203,10 @@ internal class SakTest {
             val (sakEtterNyPeriode, _, nyPeriode) = iverksattSøknadsbehandling(
                 sakOgSøknad = sakEtterOpphør to nySøknadJournalførtMedOppgave(
                     sakId = sakEtterOpphør.id,
-                    søknadInnhold = søknadinnhold(personopplysninger = Personopplysninger(sakEtterOpphør.fnr)),
+                    søknadInnhold = søknadinnholdUføre(personopplysninger = Personopplysninger(sakEtterOpphør.fnr)),
                 ),
                 stønadsperiode = Stønadsperiode.create(periode = Periode.create(1.juni(2021), 31.desember(2021))),
                 clock = tikkendeKlokke,
-                avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
             )
 
             val (sakEtterRevurdering, revurdering) = vedtakRevurderingIverksattInnvilget(
@@ -396,7 +394,7 @@ internal class SakTest {
                 sakOgSøknad = førHull to nySøknadJournalførtMedOppgave(
                     clock = fixedClock,
                     sakId = førHull.id,
-                    søknadInnhold = søknadinnhold(
+                    søknadInnhold = søknadinnholdUføre(
                         personopplysninger = Personopplysninger(førHull.fnr),
                     ),
                 ),
@@ -421,7 +419,7 @@ internal class SakTest {
                 sakOgSøknad = førHull to nySøknadJournalførtMedOppgave(
                     clock = fixedClock,
                     sakId = førHull.id,
-                    søknadInnhold = søknadinnhold(
+                    søknadInnhold = søknadinnholdUføre(
                         personopplysninger = Personopplysninger(førHull.fnr),
                     ),
                 ),
@@ -684,19 +682,19 @@ internal class SakTest {
         fun `henter gjeldende månedsberegninger med hull mellom vedtak`() {
             val tikkendeKlokke = TikkendeKlokke(fixedClock)
             iverksattSøknadsbehandlingUføre(
-                stønadsperiode = Stønadsperiode.create(januar(2021)..november(2021)),
                 clock = tikkendeKlokke,
+                stønadsperiode = Stønadsperiode.create(januar(2021)..november(2021)),
             ).also { (sak1, _, vedtak1) ->
                 iverksattSøknadsbehandlingUføre(
+                    clock = tikkendeKlokke,
                     stønadsperiode = Stønadsperiode.create(januar(2022)..november(2022)),
                     sakOgSøknad = sak1 to nySøknadJournalførtMedOppgave(
                         clock = tikkendeKlokke,
                         sakId = sak1.id,
-                        søknadInnhold = søknadinnhold(
+                        søknadInnhold = søknadinnholdUføre(
                             personopplysninger = Personopplysninger(sak1.fnr),
                         ),
                     ),
-                    clock = tikkendeKlokke,
                 ).also { (sak2, _, vedtak2) ->
                     sak2.hentGjeldendeMånedsberegninger(
                         periode = november(2021)..januar(2022),
@@ -786,8 +784,8 @@ internal class SakTest {
             val clock = TikkendeKlokke(fixedClock)
 
             val (sak1, _, vedtak1) = iverksattSøknadsbehandlingUføre(
-                stønadsperiode = Stønadsperiode.create(år(2021)),
                 clock = clock,
+                stønadsperiode = Stønadsperiode.create(år(2021)),
             )
 
             sak1.historiskGrunnlagForVedtaketsPeriode(

@@ -147,14 +147,14 @@ internal class VedtakPostgresRepoTest {
             // Persisterer et ikke-aktivt vedtak
             testDataHelper.persisterSøknadsbehandlingIverksatt { (sak, søknad) ->
                 iverksattSøknadsbehandlingUføre(
-                    sakOgSøknad = sak to søknad,
                     stønadsperiode = Stønadsperiode.create(januar(2021)),
+                    sakOgSøknad = sak to søknad,
                 )
             }
             val (_, _, vedtakSomErAktivt) = testDataHelper.persisterSøknadsbehandlingIverksatt { (sak, søknad) ->
                 iverksattSøknadsbehandlingUføre(
-                    sakOgSøknad = sak to søknad,
                     stønadsperiode = Stønadsperiode.create(Periode.create(1.februar(2021), 31.mars(2021))),
+                    sakOgSøknad = sak to søknad,
                 )
             }
 
