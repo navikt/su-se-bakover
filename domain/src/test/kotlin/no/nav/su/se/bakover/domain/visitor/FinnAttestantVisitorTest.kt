@@ -81,12 +81,6 @@ internal class FinnAttestantVisitorTest {
             it.attestant shouldBe null
         }
 
-        // @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
-        // FinnAttestantVisitor().let {
-        //     tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak().second.accept(it)
-        //     it.attestant shouldBe null
-        // }
-
         FinnAttestantVisitor().let {
             søknadsbehandlingTilAttesteringInnvilget().second
                 .tilUnderkjent(
@@ -109,11 +103,5 @@ internal class FinnAttestantVisitorTest {
             søknadsbehandlingIverksattAvslagUtenBeregning().second.accept(it)
             it.attestant shouldBe attestant
         }
-
-        // @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
-        // FinnAttestantVisitor().let { visitor ->
-        //     iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak().second.accept(visitor)
-        //     visitor.attestant shouldBe attestant
-        // }
     }
 }

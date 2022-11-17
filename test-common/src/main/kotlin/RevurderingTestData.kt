@@ -668,7 +668,6 @@ fun lagFradragsgrunnlag(
     ),
 ).getOrFail()
 
-// legger til grunnlaget som allerede finnes pluss et fradrag slik at revurdering blir en endring og ikke ingenEndring
 fun innvilgetGrunnlagsdataOgVilkårsvurderinger(
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes>,
     revurderingsperiode: Periode,

@@ -71,8 +71,6 @@ class LeggTilUtenlandsoppholdTest {
     fun `får bare lagt til opphold i utlandet for enkelte typer`() {
         listOf(
             opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(),
-            // @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
-            // beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(),
             beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(),
             beregnetRevurdering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag())),
             simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(),
@@ -88,12 +86,8 @@ class LeggTilUtenlandsoppholdTest {
         }
 
         listOf(
-            // @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
-            // tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(),
             tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(),
             revurderingTilAttestering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag())),
-            // @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
-            // iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(),
             iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(),
             iverksattRevurdering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag())).let { (it.first to it.second) },
             avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(),
