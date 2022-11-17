@@ -201,7 +201,6 @@ internal class OppdaterRevurderingServiceTest {
                 oppdatertRevurdering.tilRevurdering shouldBe sak.vedtakListe.single().id
                 oppdatertRevurdering.saksbehandler shouldBe NavIdentBruker.Saksbehandler("En ny saksbehandlinger")
                 oppdatertRevurdering.oppgaveId shouldBe oppgaveIdRevurdering
-                oppdatertRevurdering.fritekstTilBrev shouldBe ""
                 oppdatertRevurdering.revurderingsårsak shouldBe Revurderingsårsak(
                     årsak = Revurderingsårsak.Årsak.ANDRE_KILDER,
                     begrunnelse = Revurderingsårsak.Begrunnelse.create("bør bli oppdatert"),

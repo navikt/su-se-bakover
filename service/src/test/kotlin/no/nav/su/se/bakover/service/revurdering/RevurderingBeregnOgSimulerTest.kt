@@ -455,6 +455,7 @@ internal class RevurderingBeregnOgSimulerTest {
 
         val revurderingsperiode1 = Periode.create(1.mai(2021), 31.desember(2021))
         val (sakEtterRevurdering1, revurdering1) = vedtakRevurdering(
+            clock = tikkendeKlokke,
             revurderingsperiode = revurderingsperiode1,
             sakOgVedtakSomKanRevurderes = sakEtterInnvilgelse1 to innvilget1 as VedtakSomKanRevurderes,
             vilkårOverrides = listOf(
@@ -462,7 +463,6 @@ internal class RevurderingBeregnOgSimulerTest {
                     periode = revurderingsperiode1,
                 ),
             ),
-            clock = tikkendeKlokke,
             utbetalingerKjørtTilOgMed = 1.juli(2021),
         )
 

@@ -86,6 +86,21 @@ object Feilresponser {
         "kunne_ikke_opprette_oppgave",
     )
 
+    val tilbakekrevingsbehandlingErIkkeFullstendig = BadRequest.errorJson(
+        message = "Behandling av tilbakekreving er ikke fullstendig og må fullføres først.",
+        code = "tilbakekrevingsbehandling_er_ikke_fullstendig",
+    )
+
+    val gReguleringKanIkkeFøreTilOpphør = BadRequest.errorJson(
+        "G-regulering kan ikke føre til opphør",
+        "g_regulering_kan_ikke_føre_til_opphør",
+    )
+
+    val brevvalgMangler = BadRequest.errorJson(
+        "Brevvalg mangler",
+        "brevvalg_mangler",
+    )
+
     val søknadManglerOppgave = InternalServerError.errorJson(
         "Søknad mangler oppgave",
         "søknad_mangler_oppgave",

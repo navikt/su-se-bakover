@@ -78,7 +78,6 @@ fun Sak.opprettRevurdering(
                 tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(dato = command.periode.fraOgMed)!!.id,
                 saksbehandler = command.saksbehandler,
                 oppgaveId = oppgaveId,
-                fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
                 grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                 vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,

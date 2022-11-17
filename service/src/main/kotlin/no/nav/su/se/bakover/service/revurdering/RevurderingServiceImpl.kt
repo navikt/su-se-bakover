@@ -48,6 +48,7 @@ import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLageBrevutkastForAvsluttingAvRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilBosituasjongrunnlag
+import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilBrevvalg
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilFormuegrunnlag
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilUføreVilkår
@@ -57,6 +58,7 @@ import no.nav.su.se.bakover.domain.revurdering.KunneIkkeOppdatereTilbakekrevings
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.domain.revurdering.LeggTilBosituasjonerRequest
+import no.nav.su.se.bakover.domain.revurdering.LeggTilBrevvalgRequest
 import no.nav.su.se.bakover.domain.revurdering.OppdaterTilbakekrevingsbehandlingRequest
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -71,7 +73,6 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Varselmelding
 import no.nav.su.se.bakover.domain.revurdering.VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling
-import no.nav.su.se.bakover.domain.revurdering.medFritekst
 import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingRequest
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
@@ -801,8 +802,6 @@ internal class RevurderingServiceImpl(
                 sendTilAttestering(
                     revurdering = it,
                     saksbehandler = request.saksbehandler,
-                    fritekstTilBrev = request.fritekstTilBrev,
-                    skalFøreTilBrevutsending = request.skalFøreTilBrevutsending,
                 )
             }
     }
@@ -810,8 +809,6 @@ internal class RevurderingServiceImpl(
     private fun sendTilAttestering(
         revurdering: Revurdering,
         saksbehandler: NavIdentBruker.Saksbehandler,
-        fritekstTilBrev: String,
-        skalFøreTilBrevutsending: Boolean,
     ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering> {
         kanSendesTilAttestering(revurdering).getOrHandle {
             return it.left()
@@ -846,8 +843,6 @@ internal class RevurderingServiceImpl(
             is BeregnetRevurdering.IngenEndring -> revurdering.tilAttestering(
                 oppgaveId,
                 saksbehandler,
-                fritekstTilBrev,
-                skalFøreTilBrevutsending,
             ).let {
                 Pair(it, null)
             }
@@ -855,17 +850,8 @@ internal class RevurderingServiceImpl(
             is SimulertRevurdering.Innvilget -> revurdering.tilAttestering(
                 oppgaveId,
                 saksbehandler,
-                fritekstTilBrev,
             ).getOrHandle {
-                return when (it) {
-                    SimulertRevurdering.KunneIkkeSendeInnvilgetRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandlet -> {
-                        KunneIkkeSendeRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandlet
-                    }
-
-                    SimulertRevurdering.KunneIkkeSendeInnvilgetRevurderingTilAttestering.TilbakekrevingsbehandlingErIkkeFullstendig -> {
-                        KunneIkkeSendeRevurderingTilAttestering.TilbakekrevingsbehandlingErIkkeFullstendig
-                    }
-                }.left()
+                return KunneIkkeSendeRevurderingTilAttestering.FeilInnvilget(it).left()
             }.let {
                 Pair(it, StatistikkEvent.Behandling.Revurdering.TilAttestering.Innvilget(it))
             }
@@ -873,21 +859,8 @@ internal class RevurderingServiceImpl(
             is SimulertRevurdering.Opphørt -> revurdering.tilAttestering(
                 oppgaveId,
                 saksbehandler,
-                fritekstTilBrev,
             ).getOrHandle {
-                return when (it) {
-                    SimulertRevurdering.Opphørt.KanIkkeSendeOpphørtRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandlet -> {
-                        KunneIkkeSendeRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandlet
-                    }
-
-                    SimulertRevurdering.Opphørt.KanIkkeSendeOpphørtRevurderingTilAttestering.KanIkkeSendeEnOpphørtGReguleringTilAttestering -> {
-                        KunneIkkeSendeRevurderingTilAttestering.KanIkkeRegulereGrunnbeløpTilOpphør
-                    }
-
-                    SimulertRevurdering.Opphørt.KanIkkeSendeOpphørtRevurderingTilAttestering.TilbakekrevingsbehandlingErIkkeFullstendig -> {
-                        KunneIkkeSendeRevurderingTilAttestering.TilbakekrevingsbehandlingErIkkeFullstendig
-                    }
-                }.left()
+                return KunneIkkeSendeRevurderingTilAttestering.FeilOpphørt(it).left()
             }.let {
                 Pair(it, StatistikkEvent.Behandling.Revurdering.TilAttestering.Opphør(it))
             }
@@ -895,8 +868,6 @@ internal class RevurderingServiceImpl(
             is UnderkjentRevurdering.IngenEndring -> revurdering.tilAttestering(
                 oppgaveId,
                 saksbehandler,
-                fritekstTilBrev,
-                skalFøreTilBrevutsending,
             ).let {
                 Pair(it, null)
             }
@@ -904,7 +875,6 @@ internal class RevurderingServiceImpl(
             is UnderkjentRevurdering.Opphørt -> revurdering.tilAttestering(
                 oppgaveId,
                 saksbehandler,
-                fritekstTilBrev,
             ).getOrElse {
                 return KunneIkkeSendeRevurderingTilAttestering.KanIkkeRegulereGrunnbeløpTilOpphør.left()
             }.let {
@@ -914,7 +884,6 @@ internal class RevurderingServiceImpl(
             is UnderkjentRevurdering.Innvilget -> revurdering.tilAttestering(
                 oppgaveId,
                 saksbehandler,
-                fritekstTilBrev,
             ).let {
                 Pair(it, StatistikkEvent.Behandling.Revurdering.TilAttestering.Innvilget(it))
             }
@@ -1008,28 +977,38 @@ internal class RevurderingServiceImpl(
         }
     }
 
+    override fun leggTilBrevvalg(request: LeggTilBrevvalgRequest): Either<KunneIkkeLeggeTilBrevvalg, Revurdering> {
+        return hent(request.revurderingId)
+            .mapLeft { KunneIkkeLeggeTilBrevvalg.FantIkkeRevurdering }
+            .flatMap {
+                it.leggTilBrevvalg(request.toDomain())
+                    .mapLeft { feil -> KunneIkkeLeggeTilBrevvalg.Feil(feil) }
+                    .map { medBrevvalg ->
+                        revurderingRepo.lagre(medBrevvalg)
+                        medBrevvalg
+                    }
+            }
+    }
+
     override fun lagBrevutkastForRevurdering(
         revurderingId: UUID,
         fritekst: String?,
     ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
-        val revurdering =
-            hent(revurderingId).getOrHandle { return KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering.left() }
-
-        val revurderingMedPotensiellFritekst = if (fritekst != null) {
-            revurdering.medFritekst(fritekst)
-        } else {
-            revurdering
-        }
-
-        return brevService.lagDokument(revurderingMedPotensiellFritekst).mapLeft {
-            when (it) {
-                KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeFinneGjeldendeUtbetaling
-                KunneIkkeLageDokument.KunneIkkeGenererePDF -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast
-                KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
-                KunneIkkeLageDokument.KunneIkkeHentePerson -> KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson
-                KunneIkkeLageDokument.DetSkalIkkeSendesBrev -> KunneIkkeLageBrevutkastForRevurdering.DetSkalIkkeSendesBrev
+        return hent(revurderingId)
+            .mapLeft { KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering }
+            .flatMap { revurdering ->
+                brevService.lagDokument(revurdering)
+                    .mapLeft {
+                        when (it) {
+                            KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeFinneGjeldendeUtbetaling
+                            KunneIkkeLageDokument.KunneIkkeGenererePDF -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast
+                            KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
+                            KunneIkkeLageDokument.KunneIkkeHentePerson -> KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson
+                            KunneIkkeLageDokument.DetSkalIkkeSendesBrev -> KunneIkkeLageBrevutkastForRevurdering.DetSkalIkkeSendesBrev
+                        }
+                    }
+                    .map { it.generertDokument }
             }
-        }.map { it.generertDokument }
     }
 
     override fun iverksett(

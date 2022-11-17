@@ -25,13 +25,13 @@ internal class TilbakekrevingsbehandlingTest {
     @Test
     fun `tilbakekrevingsvedtak for full tilbakekreving`() {
         val (sak, revurdering, utbetaling) = iverksattRevurdering(
+            clock = TikkendeKlokke(1.august(2021).fixedClock()),
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
                     periode = mai(2021),
                     arbeidsinntekt = 12500.0,
                 ),
             ),
-            clock = TikkendeKlokke(1.august(2021).fixedClock()),
             utbetalingerKjørtTilOgMed = 1.juli(2021),
         )
         val kravgrunnlag = matchendeKravgrunnlag(
@@ -174,13 +174,13 @@ internal class TilbakekrevingsbehandlingTest {
     @Test
     fun `tilbakekrevingsvedtak for ingen tilbakekreving`() {
         val (sak, revurdering, utbetaling) = iverksattRevurdering(
+            clock = TikkendeKlokke(1.august(2021).fixedClock()),
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
                     periode = mai(2021),
                     arbeidsinntekt = 12500.0,
                 ),
             ),
-            clock = TikkendeKlokke(1.august(2021).fixedClock()),
             utbetalingerKjørtTilOgMed = 1.juli(2021),
         )
         val kravgrunnlag = matchendeKravgrunnlag(

@@ -11,11 +11,14 @@ internal class SkalSendeBrevVisitor : VedtakVisitor {
     var sendBrev by Delegates.notNull<Boolean>()
 
     override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling) {
-        sendBrev = !vedtak.innvilgetGRegulering()
+        sendBrev = true
     }
 
     override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering) {
-        sendBrev = !vedtak.innvilgetGRegulering() && vedtak.behandling.tilbakekrevingErVurdert().isLeft()
+        sendBrev = !vedtak.innvilgetGRegulering() &&
+            vedtak.behandling.skalSendeBrev().isRight() &&
+            /** Enn så lenge unngår vi å svare ja dersom vi er i et tilbakekrevingsløp, utsending av brev håndteres i løpe for kravgrunnlag*/
+            vedtak.behandling.tilbakekrevingErVurdert().isLeft()
     }
 
     override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering) {
@@ -23,7 +26,10 @@ internal class SkalSendeBrevVisitor : VedtakVisitor {
     }
 
     override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering) {
-        sendBrev = !vedtak.innvilgetGRegulering() && vedtak.behandling.tilbakekrevingErVurdert().isLeft()
+        sendBrev = !vedtak.innvilgetGRegulering() &&
+            vedtak.behandling.skalSendeBrev().isRight() &&
+            /** Enn så lenge unngår vi å svare ja dersom vi er i et tilbakekrevingsløp */
+            vedtak.behandling.tilbakekrevingErVurdert().isLeft()
     }
 
     override fun visit(vedtak: Avslagsvedtak.AvslagVilkår) {
@@ -35,15 +41,16 @@ internal class SkalSendeBrevVisitor : VedtakVisitor {
     }
 
     override fun visit(vedtak: VedtakSomKanRevurderes.IngenEndringIYtelse) {
-        sendBrev = !vedtak.årsakErGRegulering() && vedtak.sendBrevErValgt()
+        sendBrev = !vedtak.årsakErGRegulering() &&
+            vedtak.behandling.skalSendeBrev().isRight()
     }
 
     override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse) {
-        sendBrev = false
+        sendBrev = vedtak.behandling.brevvalgRevurdering.skalSendeBrev().isRight()
     }
 
     override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse) {
-        sendBrev = false
+        sendBrev = vedtak.behandling.brevvalgRevurdering.skalSendeBrev().isRight()
     }
 
     private fun VedtakSomKanRevurderes.årsakErGRegulering(): Boolean {
@@ -51,17 +58,7 @@ internal class SkalSendeBrevVisitor : VedtakVisitor {
     }
 
     private fun VedtakSomKanRevurderes.EndringIYtelse.innvilgetGRegulering(): Boolean {
-        return behandling is IverksattRevurdering.Innvilget && årsakErGRegulering()
+        return behandling is IverksattRevurdering.Innvilget &&
+            årsakErGRegulering()
     }
-
-    private fun VedtakSomKanRevurderes.IngenEndringIYtelse.sendBrevErValgt(): Boolean {
-        return behandling.skalFøreTilUtsendingAvVedtaksbrev
-    }
-
-    /**
-     * Note to self: forsøk på å erstatte følgende spredt logikk for utsending av  brev for vedtak
-     (this.behandling as? IverksattRevurdering.Innvilget)?.revurderingsårsak?.årsak != Revurderingsårsak.Årsak.REGULER_GRUNNBELØP (Vedtak.skalSendeBrev)
-     vedtak.behandling is IverksattRevurdering.IngenEndring && !(vedtak.behandling as IverksattRevurdering.IngenEndring).skalFøreTilBrevutsending ()
-     if (revurdering.revurderingsårsak.årsak == REGULER_GRUNNBELØP) false else request.skalFøreTilBrevutsending, (Revurderingservice.sendTilAttestering)
-     */
 }

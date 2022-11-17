@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.revurdering.attestering.sendTilAttestering
 import no.nav.su.se.bakover.web.revurdering.avgjørTilbakekreving
 import no.nav.su.se.bakover.web.revurdering.beregnOgSimuler
+import no.nav.su.se.bakover.web.revurdering.brevvalg.velgSendBrev
 import no.nav.su.se.bakover.web.revurdering.fradrag.leggTilFradrag
 import no.nav.su.se.bakover.web.revurdering.iverksett.iverksett
 import no.nav.su.se.bakover.web.revurdering.opprett.opprettRevurdering
@@ -398,6 +399,10 @@ class TilbakekrevingKomponentTest {
                 },
             )
             beregnOgSimuler(
+                sakId = sakId,
+                behandlingId = revurderingId,
+            )
+            velgSendBrev(
                 sakId = sakId,
                 behandlingId = revurderingId,
             )

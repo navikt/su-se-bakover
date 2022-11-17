@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.bosituasjonEpsUnder67
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEpsUførFlyktning
-import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
@@ -290,7 +289,6 @@ internal class PersonPostgresRepoTest {
                         tilRevurdering = revurdering.tilRevurdering,
                         saksbehandler = revurdering.saksbehandler,
                         oppgaveId = revurdering.oppgaveId,
-                        fritekstTilBrev = revurdering.fritekstTilBrev,
                         revurderingsårsak = revurdering.revurderingsårsak,
                         beregning = beregning(periode = revurdering.periode),
                         simulering = simulering(fnr = revurdering.fnr),
@@ -301,6 +299,7 @@ internal class PersonPostgresRepoTest {
                         avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
                         tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
                         sakinfo = revurdering.sakinfo,
+                        brevvalgRevurdering = revurdering.brevvalgRevurdering,
                     ),
                 ).first
 
@@ -355,7 +354,6 @@ internal class PersonPostgresRepoTest {
                         tilRevurdering = revurdering.tilRevurdering,
                         saksbehandler = revurdering.saksbehandler,
                         oppgaveId = revurdering.oppgaveId,
-                        fritekstTilBrev = revurdering.fritekstTilBrev,
                         revurderingsårsak = revurdering.revurderingsårsak,
                         beregning = beregning(periode = revurdering.periode),
                         simulering = simulering(revurdering.fnr),
@@ -366,6 +364,7 @@ internal class PersonPostgresRepoTest {
                         avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
                         tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
                         sakinfo = revurdering.sakinfo,
+                        brevvalgRevurdering = revurdering.brevvalgRevurdering,
                     ),
                 ).first
 

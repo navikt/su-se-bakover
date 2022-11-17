@@ -255,6 +255,7 @@ internal class UtbetalingsstrategiOpphørTest {
         )
 
         val (sak2, _) = iverksattRevurdering(
+            clock = tikkendeKlokke,
             revurderingsperiode = mai(2021).rangeTo(desember(2021)),
             sakOgVedtakSomKanRevurderes = sak to vedtak as VedtakSomKanRevurderes,
             vilkårOverrides = listOf(
@@ -262,7 +263,6 @@ internal class UtbetalingsstrategiOpphørTest {
                     periode = mai(2021).rangeTo(desember(2021)),
                 ),
             ),
-            clock = tikkendeKlokke,
         )
 
         Utbetalingsstrategi.Opphør(

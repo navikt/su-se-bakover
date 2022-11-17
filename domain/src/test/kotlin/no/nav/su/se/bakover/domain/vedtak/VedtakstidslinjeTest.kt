@@ -302,6 +302,7 @@ internal class VedtakstidslinjeTest {
         )
 
         val (sak, vedtak) = vedtakRevurdering(
+            clock = tikkendeKlokke,
             stønadsperiode = Stønadsperiode.create(periode),
             vilkårOverrides = listOf(
                 UføreVilkår.Vurdert.create(
@@ -322,7 +323,6 @@ internal class VedtakstidslinjeTest {
                 f2,
                 f3,
             ),
-            clock = tikkendeKlokke,
         )
 
         sak.vedtakstidslinje(mai(2021)..juli(2021)).tidslinje.also { tidslinje ->
@@ -526,9 +526,9 @@ internal class VedtakstidslinjeTest {
         )
 
         val (sakMedToVedtak, andre) = vedtakRevurdering(
+            clock = tikkendeKlokke,
             revurderingsperiode = år(2021),
             sakOgVedtakSomKanRevurderes = sak to første as VedtakSomKanRevurderes,
-            clock = tikkendeKlokke,
         )
 
         sakMedToVedtak.vedtakstidslinje(år(2021)).tidslinje.also { tidslinje ->

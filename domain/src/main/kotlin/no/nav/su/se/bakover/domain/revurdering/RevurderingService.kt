@@ -82,6 +82,10 @@ interface RevurderingService {
         request: OppdaterTilbakekrevingsbehandlingRequest,
     ): Either<KunneIkkeOppdatereTilbakekrevingsbehandling, SimulertRevurdering>
 
+    fun leggTilBrevvalg(
+        request: LeggTilBrevvalgRequest,
+    ): Either<KunneIkkeLeggeTilBrevvalg, Revurdering>
+
     fun lagBrevutkastForRevurdering(
         revurderingId: UUID,
         fritekst: String?,
@@ -184,10 +188,8 @@ sealed interface Varselmelding {
 object FantIkkeRevurdering
 
 data class SendTilAttesteringRequest(
-    val revurderingId: UUID,
-    val saksbehandler: NavIdentBruker.Saksbehandler,
-    val fritekstTilBrev: String,
-    val skalFøreTilBrevutsending: Boolean,
+    val revurderingId: java.util.UUID,
+    val saksbehandler: no.nav.su.se.bakover.common.NavIdentBruker.Saksbehandler,
 )
 
 sealed class KunneIkkeOppdatereRevurdering {
@@ -228,20 +230,19 @@ sealed class KunneIkkeForhåndsvarsle {
 }
 
 sealed class KunneIkkeSendeRevurderingTilAttestering {
+    data class FeilInnvilget(val feil: SimulertRevurdering.KunneIkkeSendeInnvilgetRevurderingTilAttestering) : KunneIkkeSendeRevurderingTilAttestering()
+    data class FeilOpphørt(val feil: SimulertRevurdering.Opphørt.KanIkkeSendeOpphørtRevurderingTilAttestering) : KunneIkkeSendeRevurderingTilAttestering()
     object FantIkkeRevurdering : KunneIkkeSendeRevurderingTilAttestering()
     object FantIkkeAktørId : KunneIkkeSendeRevurderingTilAttestering()
     object KunneIkkeOppretteOppgave : KunneIkkeSendeRevurderingTilAttestering()
     object KanIkkeRegulereGrunnbeløpTilOpphør : KunneIkkeSendeRevurderingTilAttestering()
-    object ForhåndsvarslingErIkkeFerdigbehandlet : KunneIkkeSendeRevurderingTilAttestering()
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
         KunneIkkeSendeRevurderingTilAttestering()
 
-    object ManglerBeslutningPåForhåndsvarsel : KunneIkkeSendeRevurderingTilAttestering()
     object FeilutbetalingStøttesIkke : KunneIkkeSendeRevurderingTilAttestering()
     data class RevurderingsutfallStøttesIkke(val feilmeldinger: List<RevurderingsutfallSomIkkeStøttes>) :
         KunneIkkeSendeRevurderingTilAttestering()
 
-    object TilbakekrevingsbehandlingErIkkeFullstendig : KunneIkkeSendeRevurderingTilAttestering()
     data class SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving(
         val revurderingId: UUID,
     ) : KunneIkkeSendeRevurderingTilAttestering()
@@ -465,5 +466,42 @@ data class OppdaterTilbakekrevingsbehandlingRequest(
     enum class Avgjørelse {
         TILBAKEKREV,
         IKKE_TILBAKEKREV,
+    }
+}
+
+sealed interface KunneIkkeLeggeTilBrevvalg {
+
+    object FantIkkeRevurdering : KunneIkkeLeggeTilBrevvalg
+    data class Feil(val feil: Revurdering.KunneIkkeLeggeTilBrevvalg) : KunneIkkeLeggeTilBrevvalg
+}
+
+data class LeggTilBrevvalgRequest(
+    val revurderingId: UUID,
+    val valg: Valg,
+    val fritekst: String?,
+    val begrunnelse: String?,
+    val saksbehandler: NavIdentBruker.Saksbehandler,
+) {
+    enum class Valg {
+        SEND,
+        IKKE_SEND,
+        ;
+    }
+
+    fun toDomain(): BrevvalgRevurdering {
+        return when (valg) {
+            Valg.SEND -> {
+                BrevvalgRevurdering.Valgt.SendBrev(
+                    fritekst = fritekst,
+                    begrunnelse = begrunnelse,
+                    bestemtAv = BrevvalgRevurdering.BestemtAv.Behandler(saksbehandler.navIdent),
+                )
+            } Valg.IKKE_SEND -> {
+                BrevvalgRevurdering.Valgt.IkkeSendBrev(
+                    begrunnelse = begrunnelse,
+                    bestemtAv = BrevvalgRevurdering.BestemtAv.Behandler(saksbehandler.navIdent),
+                )
+            }
+        }
     }
 }

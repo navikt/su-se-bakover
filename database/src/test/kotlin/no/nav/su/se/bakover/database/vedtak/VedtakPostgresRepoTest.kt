@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.sendBrev
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
@@ -105,7 +106,6 @@ internal class VedtakPostgresRepoTest {
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 attesteringer = Attesteringshistorikk.empty()
                     .leggTilNyAttestering(Attestering.Iverksatt(søknadsbehandlingVedtak.attestant, fixedTidspunkt)),
-                fritekstTilBrev = "",
                 revurderingsårsak = Revurderingsårsak(
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                     Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
@@ -115,6 +115,7 @@ internal class VedtakPostgresRepoTest {
                 avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
                 tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingFerdigbehandlet,
                 sakinfo = søknadsbehandlingVedtak.sakinfo(),
+                brevvalgRevurdering = sendBrev(),
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
@@ -213,18 +214,17 @@ internal class VedtakPostgresRepoTest {
                 saksbehandler = nyRevurdering.saksbehandler,
                 oppgaveId = OppgaveId(""),
                 beregning = beregning,
-                fritekstTilBrev = "",
                 revurderingsårsak = Revurderingsårsak(
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                     Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
                 ),
-                skalFøreTilUtsendingAvVedtaksbrev = true,
                 grunnlagsdata = nyRevurdering.grunnlagsdata,
                 vilkårsvurderinger = nyRevurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
                 attesteringer = Attesteringshistorikk.empty(),
                 avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
                 sakinfo = søknadsbehandlingVedtak.sakinfo(),
+                brevvalgRevurdering = sendBrev(),
             )
             testDataHelper.revurderingRepo.lagre(attestertRevurdering)
             val iverksattRevurdering = IverksattRevurdering.IngenEndring(
@@ -237,17 +237,16 @@ internal class VedtakPostgresRepoTest {
                 beregning = beregning,
                 attesteringer = Attesteringshistorikk.empty()
                     .leggTilNyAttestering(Attestering.Iverksatt(attestant, fixedTidspunkt)),
-                fritekstTilBrev = "",
                 revurderingsårsak = Revurderingsårsak(
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                     Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
                 ),
-                skalFøreTilUtsendingAvVedtaksbrev = true,
                 grunnlagsdata = nyRevurdering.grunnlagsdata,
                 vilkårsvurderinger = nyRevurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
                 avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
                 sakinfo = søknadsbehandlingVedtak.sakinfo(),
+                brevvalgRevurdering = sendBrev(),
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 

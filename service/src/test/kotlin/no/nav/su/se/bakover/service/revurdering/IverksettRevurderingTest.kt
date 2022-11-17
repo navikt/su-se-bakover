@@ -63,8 +63,8 @@ internal class IverksettRevurderingTest {
 
         val (sak, revurderingTilAttestering) = revurderingTilAttestering(
             sakOgVedtakSomKanRevurderes = sakOgVedtak,
-            grunnlagsdataOverrides = grunnlagsdata,
             clock = clock,
+            grunnlagsdataOverrides = grunnlagsdata,
         )
 
         val utbetalingKlargjortForOversendelse = UtbetalingKlargjortForOversendelse(
@@ -130,8 +130,8 @@ internal class IverksettRevurderingTest {
     @Test
     fun `iverksett - iverksetter opphør av ytelse`() {
         val (sak, revurdering) = revurderingTilAttestering(
-            vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
             clock = tikkendeFixedClock,
+            vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
         ).let { (sak, revurdering) -> sak to revurdering as RevurderingTilAttestering.Opphørt }
 
         val simulertUtbetaling = simulerOpphør(
@@ -207,8 +207,8 @@ internal class IverksettRevurderingTest {
     @Test
     fun `iverksett opphør - opphøret skal publiseres etter alle databasekallene`() {
         val (sak, revurderingTilAttestering) = revurderingTilAttestering(
-            vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
             clock = tikkendeFixedClock,
+            vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
         ).let { (sak, revurdering) -> sak to revurdering as RevurderingTilAttestering.Opphørt }
 
         val simulertUtbetaling = simulerOpphør(
@@ -430,8 +430,8 @@ internal class IverksettRevurderingTest {
     @Test
     fun `skal returnere left dersom utbetaling feiler for opphørt`() {
         val (sak, revurderingTilAttestering) = revurderingTilAttestering(
-            vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
             clock = tikkendeFixedClock,
+            vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
         ).let { (sak, revurdering) -> sak to revurdering as RevurderingTilAttestering.Opphørt }
 
         val simulertUtbetaling = simulerOpphør(
@@ -488,8 +488,8 @@ internal class IverksettRevurderingTest {
     @Test
     fun `skal ikke opphøre dersom annullering av kontrollsamtale feiler`() {
         val (sak, revurderingTilAttestering) = revurderingTilAttestering(
-            vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
             clock = tikkendeFixedClock,
+            vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
         ).let { (sak, revurdering) -> sak to revurdering as RevurderingTilAttestering.Opphørt }
 
         val simulertUtbetaling = simulerOpphør(

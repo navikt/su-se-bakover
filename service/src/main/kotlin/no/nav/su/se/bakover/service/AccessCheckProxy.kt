@@ -82,6 +82,7 @@ import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLageBrevutkastForAvsluttingAvRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilBosituasjongrunnlag
+import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilBrevvalg
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilFormuegrunnlag
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilUføreVilkår
@@ -91,6 +92,7 @@ import no.nav.su.se.bakover.domain.revurdering.KunneIkkeOppdatereTilbakekrevings
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.domain.revurdering.LeggTilBosituasjonerRequest
+import no.nav.su.se.bakover.domain.revurdering.LeggTilBrevvalgRequest
 import no.nav.su.se.bakover.domain.revurdering.OppdaterTilbakekrevingsbehandlingRequest
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -709,6 +711,11 @@ open class AccessCheckProxy(
                 override fun oppdaterTilbakekrevingsbehandling(request: OppdaterTilbakekrevingsbehandlingRequest): Either<KunneIkkeOppdatereTilbakekrevingsbehandling, SimulertRevurdering> {
                     assertHarTilgangTilRevurdering(request.revurderingId)
                     return services.revurdering.oppdaterTilbakekrevingsbehandling(request)
+                }
+
+                override fun leggTilBrevvalg(request: LeggTilBrevvalgRequest): Either<KunneIkkeLeggeTilBrevvalg, Revurdering> {
+                    assertHarTilgangTilRevurdering(request.revurderingId)
+                    return services.revurdering.leggTilBrevvalg(request)
                 }
 
                 override fun lagBrevutkastForRevurdering(

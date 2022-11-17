@@ -56,4 +56,8 @@ object RevurderingJson {
     fun hentInstitusjonsoppholdVilkår(json: String): String {
         return JSONObject(json).getJSONObject("revurdering").getJSONObject("grunnlagsdataOgVilkårsvurderinger").getJSONObject("institusjonsopphold").toString()
     }
+
+    fun hentBrevvalg(json: String): String {
+        return JSONObject(json).getJSONObject("brevvalg").toString()
+    }
 }

@@ -449,7 +449,7 @@ class LagBrevRequestVisitor(
                 saksbehandlerNavn = it.saksbehandlerNavn,
                 attestantNavn = it.attestantNavn,
                 revurdertBeregning = beregning,
-                fritekst = revurdering.fritekstTilBrev,
+                fritekst = revurdering.skalSendeBrev().getOrHandle { return KunneIkkeLageBrevRequest.SkalIkkeSendeBrev.left() }.fritekst ?: "",
                 // TODO("flere_satser denne må endres til å støtte flere")
                 harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEPS(),
                 forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.uføreVilkår()
@@ -627,7 +627,7 @@ class LagBrevRequestVisitor(
                 person = personOgNavn.person,
                 harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEPS(),
                 beregning = beregning,
-                fritekst = revurdering.fritekstTilBrev,
+                fritekst = revurdering.skalSendeBrev().getOrHandle { return KunneIkkeLageBrevRequest.SkalIkkeSendeBrev.left() }.fritekst ?: "",
                 saksbehandlerNavn = personOgNavn.saksbehandlerNavn,
                 attestantNavn = personOgNavn.attestantNavn,
                 forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.hentUføregrunnlag()
@@ -728,6 +728,8 @@ class LagBrevRequestVisitor(
         object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeLageBrevRequest()
         object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeLageBrevRequest()
 
+        object SkalIkkeSendeBrev : KunneIkkeLageBrevRequest()
+
         data class KanIkkeLageBrevrequestForInstans(
             val instans: KClass<*>,
             val msg: String = "Kan ikke lage brevrequest for instans av typen: ${instans.qualifiedName}",
@@ -749,7 +751,7 @@ class LagBrevRequestVisitor(
                     personOgNavn = personOgNavn,
                     beregning = beregning,
                     uføregrunnlag = revurdering.vilkårsvurderinger.hentUføregrunnlag(),
-                    fritekst = revurdering.fritekstTilBrev,
+                    fritekst = revurdering.skalSendeBrev().getOrHandle { return KunneIkkeLageBrevRequest.SkalIkkeSendeBrev.left() }.fritekst ?: "",
                     harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEPS(),
                     gjeldendeMånedsutbetaling = gjeldendeUtbetaling,
                     saksnummer = revurdering.saksnummer,

@@ -85,6 +85,7 @@ internal class BrevServiceImpl(
                 LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling
                 LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
                 LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson -> KunneIkkeLageDokument.KunneIkkeHentePerson
+                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.SkalIkkeSendeBrev -> KunneIkkeLageDokument.DetSkalIkkeSendesBrev
             }
         }.flatMap { lagBrevRequest ->
             lagDokument(lagBrevRequest)

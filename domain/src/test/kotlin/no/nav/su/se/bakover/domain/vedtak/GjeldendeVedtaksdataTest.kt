@@ -145,13 +145,13 @@ internal class GjeldendeVedtaksdataTest {
     @Test
     fun `gjeldende vedtaksdata inneholder utbetalinger som skal avkortes`() {
         val (sak, _) = vedtakRevurdering(
+            clock = TikkendeKlokke(1.august(2021).fixedClock()),
             revurderingsperiode = år(2021),
             vilkårOverrides = listOf(
                 utenlandsoppholdAvslag(
                     periode = år(2021),
                 ),
             ),
-            clock = TikkendeKlokke(1.august(2021).fixedClock()),
             utbetalingerKjørtTilOgMed = 1.juli(2021),
         )
 

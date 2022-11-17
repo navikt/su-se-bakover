@@ -115,7 +115,6 @@ internal class TilbakekrevingPostgresRepoTest {
             val iverksatt = revurdering.tilAttestering(
                 attesteringsoppgaveId = oppgaveIdRevurdering,
                 saksbehandler = saksbehandler,
-                fritekstTilBrev = "nei",
             ).getOrFail().tilIverksatt(
                 attestant = attestant,
                 hentOpprinneligAvkorting = { null },

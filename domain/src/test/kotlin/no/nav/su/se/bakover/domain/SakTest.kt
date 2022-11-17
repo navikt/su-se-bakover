@@ -173,9 +173,9 @@ internal class SakTest {
         @Test
         fun `henter stønadsperioder og justerer varigheten dersom de er delvis opphørt`() {
             val (sak, _) = vedtakRevurdering(
-                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = Periode.create(1.mai(2021), 31.desember(2021)))),
-                sakOgVedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(),
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
+                sakOgVedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(),
+                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = Periode.create(1.mai(2021), 31.desember(2021)))),
             )
 
             sak.hentPerioderMedLøpendeYtelse() shouldBe listOf(
@@ -191,10 +191,10 @@ internal class SakTest {
             )
 
             val (sakEtterOpphør, opphør) = vedtakRevurdering(
-                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = Periode.create(1.mai(2021), 31.desember(2021)))),
+                clock = tikkendeKlokke,
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
                 sakOgVedtakSomKanRevurderes = sak to vedtak,
-                clock = tikkendeKlokke,
+                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = Periode.create(1.mai(2021), 31.desember(2021)))),
             )
 
             sakEtterOpphør.hentPerioderMedLøpendeYtelse() shouldBe listOf(

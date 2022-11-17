@@ -155,9 +155,9 @@ internal class ReguleringServiceImplTest {
         fun `En periode med hele perioden som opphør må behandles manuelt`() {
             val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(clock = fixedClock)
             val revurdertSak = vedtakRevurdering(
-                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
-                sakOgVedtakSomKanRevurderes = sakOgVedtak,
                 clock = fixedClock.plus(1, ChronoUnit.DAYS),
+                sakOgVedtakSomKanRevurderes = sakOgVedtak,
+                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
             ).first
 
             val reguleringService = lagReguleringServiceImpl(revurdertSak)
@@ -170,8 +170,8 @@ internal class ReguleringServiceImplTest {
         @Test
         fun `en behandling med delvis opphør i slutten av perioden skal reguleres automatisk`() {
             val revurdertSak = vedtakRevurdering(
-                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = Periode.create(1.september(2021), 31.desember(2021)))),
                 revurderingsperiode = Periode.create(1.september(2021), 31.desember(2021)),
+                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = Periode.create(1.september(2021), 31.desember(2021)))),
             ).first
 
             val reguleringService = lagReguleringServiceImpl(revurdertSak)
@@ -185,12 +185,13 @@ internal class ReguleringServiceImplTest {
         fun `en behandling med delvis opphør i starten av perioden skal reguleres automatisk`() {
             val clock = TikkendeKlokke()
             val (sakEtterFørsteRevudering, vedtak) = vedtakRevurdering(
-                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = Periode.create(1.mai(2021), 31.desember(2021)))),
-                revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
                 clock = clock,
+                revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
+                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = Periode.create(1.mai(2021), 31.desember(2021)))),
             )
 
             val sak = vedtakRevurdering(
+                clock = clock,
                 revurderingsperiode = Periode.create(1.juni(2021), tilOgMed = 31.desember(2021)),
                 sakOgVedtakSomKanRevurderes = sakEtterFørsteRevudering to vedtak,
                 vilkårOverrides = listOf(
@@ -201,7 +202,6 @@ internal class ReguleringServiceImplTest {
                         ),
                     ),
                 ),
-                clock = clock,
             ).first
             val reguleringService = lagReguleringServiceImpl(sak)
 
@@ -214,12 +214,13 @@ internal class ReguleringServiceImplTest {
         fun `en behandling med delvis opphør i midten av perioden skal ikke støttes`() {
             val clock = TikkendeKlokke()
             val (sakEtterFørsteRevudering, vedtak) = vedtakRevurdering(
-                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = Periode.create(1.juni(2021), 31.desember(2021)))),
-                revurderingsperiode = Periode.create(1.juni(2021), 31.desember(2021)),
                 clock = clock,
+                revurderingsperiode = Periode.create(1.juni(2021), 31.desember(2021)),
+                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = Periode.create(1.juni(2021), 31.desember(2021)))),
             )
 
             val sak = vedtakRevurdering(
+                clock = clock,
                 revurderingsperiode = Periode.create(1.august(2021), tilOgMed = 31.desember(2021)),
                 sakOgVedtakSomKanRevurderes = sakEtterFørsteRevudering to vedtak,
                 vilkårOverrides = listOf(
@@ -230,7 +231,6 @@ internal class ReguleringServiceImplTest {
                         ),
                     ),
                 ),
-                clock = clock,
             ).first
             val reguleringService = lagReguleringServiceImpl(sak)
 
