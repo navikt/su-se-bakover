@@ -35,7 +35,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
@@ -1860,7 +1859,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
         object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteRevurdering()
         object HarBlittAnnullertAvEnAnnen : KunneIkkeIverksetteRevurdering()
         object HarAlleredeBlittAvkortetAvEnAnnen : KunneIkkeIverksetteRevurdering()
-        data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksetteRevurdering()
     }
 
     fun underkjenn(
@@ -1943,6 +1941,7 @@ sealed class IverksattRevurdering : Revurdering() {
     val attestering: Attestering
         get() = attesteringer.hentSisteAttestering()
     abstract override val avkorting: AvkortingVedRevurdering.Iverksatt
+    abstract val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet
 
     abstract override fun accept(visitor: RevurderingVisitor)
 
@@ -1962,7 +1961,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Iverksatt,
-        val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet,
+        override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet,
         override val sakinfo: SakInfo,
     ) : IverksattRevurdering() {
 
@@ -1993,7 +1992,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Iverksatt,
-        val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet,
+        override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet,
         override val sakinfo: SakInfo,
     ) : IverksattRevurdering() {
         override val erOpphørt = true
@@ -2051,6 +2050,8 @@ sealed class IverksattRevurdering : Revurdering() {
     ) : IverksattRevurdering() {
         override val erOpphørt = false
         override val simulering: Simulering? = null
+        override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet
+            get() = TODO("Under utfasing og ikke i bruk")
 
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)

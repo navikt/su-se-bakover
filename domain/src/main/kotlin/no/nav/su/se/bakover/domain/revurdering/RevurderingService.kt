@@ -17,13 +17,13 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingRequest
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
+import no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.LeggTilFastOppholdINorgeRequest
 import no.nav.su.se.bakover.domain.vilkår.flyktning.KunneIkkeLeggeTilFlyktningVilkår
@@ -248,19 +248,8 @@ sealed class KunneIkkeSendeRevurderingTilAttestering {
 }
 
 sealed interface KunneIkkeIverksetteRevurdering {
-    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteRevurdering
-    data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksetteRevurdering
-    object IngenEndringErIkkeGyldig : KunneIkkeIverksetteRevurdering
-    object FantIkkeRevurdering : KunneIkkeIverksetteRevurdering
-    object LagringFeilet : KunneIkkeIverksetteRevurdering
-    object HarAlleredeBlittAvkortetAvEnAnnen : KunneIkkeIverksetteRevurdering
-    object KunneIkkeAnnulereKontrollsamtale : KunneIkkeIverksetteRevurdering
-    object SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving : KunneIkkeIverksetteRevurdering
-
-    data class UgyldigTilstand(
-        val fra: KClass<out AbstraktRevurdering>,
-        val til: KClass<out AbstraktRevurdering>,
-    ) : KunneIkkeIverksetteRevurdering
+    data class IverksettelsestransaksjonFeilet(val feil: KunneIkkeFerdigstilleIverksettelsestransaksjon) : KunneIkkeIverksetteRevurdering
+    data class FeilVedIverksettelse(val feil: no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeIverksetteRevurdering) : KunneIkkeIverksetteRevurdering
 }
 
 sealed class KunneIkkeLageBrevutkastForRevurdering {

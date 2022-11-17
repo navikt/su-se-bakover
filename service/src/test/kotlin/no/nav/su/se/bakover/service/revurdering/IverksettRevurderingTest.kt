@@ -6,14 +6,15 @@ import arrow.core.right
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.kontrollsamtale.UgyldigStatusovergang
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeTilbakekrev
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -22,6 +23,7 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.kontrollsamtale.AnnulerKontrollsamtaleResultat
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.attestant
+import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.iverksattRevurdering
@@ -32,6 +34,7 @@ import no.nav.su.se.bakover.test.simulerOpphør
 import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.utbetalingsRequest
+import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
@@ -120,7 +123,6 @@ internal class IverksettRevurderingTest {
             transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
         )
         verify(utbetalingKlargjortForOversendelse.callback).invoke(utbetalingsRequest)
-        verify(serviceAndMocks.tilbakekrevingService).hentAvventerKravgrunnlag(argThat<UUID> { it shouldBe response.sakId })
 
         serviceAndMocks.verifyNoMoreInteractions()
     }
@@ -199,7 +201,6 @@ internal class IverksettRevurderingTest {
             transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
         )
         verify(callback).invoke(utbetalingKlarForOversendelse.utbetaling.utbetalingsrequest)
-        verify(serviceAndMocks.tilbakekrevingService).hentAvventerKravgrunnlag(argThat<UUID> { it shouldBe revurdering.sakId })
         serviceAndMocks.verifyNoMoreInteractions()
     }
 
@@ -356,9 +357,11 @@ internal class IverksettRevurderingTest {
             attestant = attestant,
         )
 
-        response shouldBe KunneIkkeIverksetteRevurdering.UgyldigTilstand(
-            iverksattRevurdering().second::class,
-            IverksattRevurdering::class,
+        response shouldBe KunneIkkeIverksetteRevurdering.FeilVedIverksettelse(
+            no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeIverksetteRevurdering.UgyldigTilstand(
+                iverksattRevurdering().second::class,
+                IverksattRevurdering::class,
+            ),
         ).left()
     }
 
@@ -375,6 +378,13 @@ internal class IverksettRevurderingTest {
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
             },
+            utbetalingService = mock {
+                on { simulerUtbetaling(any(), any()) } doReturn simulerUtbetaling(
+                    sak = sak,
+                    revurdering = revurdering,
+                ).getOrFail().right()
+            },
+            clock = tikkendeFixedClock,
         )
 
         val response = serviceAndMocks.revurderingService.iverksett(
@@ -382,12 +392,14 @@ internal class IverksettRevurderingTest {
             attestant = attestant,
         )
 
-        response shouldBe KunneIkkeIverksetteRevurdering.LagringFeilet.left()
+        response shouldBe KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon.LagringFeilet).left()
     }
 
     @Test
     fun `skal returnere left dersom lagring feiler for opphørt`() {
-        val (sak, revurdering) = revurderingTilAttestering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()))
+        val (sak, revurdering) = revurderingTilAttestering(
+            vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
+        )
         val serviceAndMocks = RevurderingServiceMocks(
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
@@ -398,6 +410,13 @@ internal class IverksettRevurderingTest {
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
             },
+            utbetalingService = mock {
+                on { simulerUtbetaling(any(), any()) } doReturn simulerOpphør(
+                    sak = sak,
+                    revurdering = revurdering,
+                ).getOrFail().right()
+            },
+            clock = tikkendeFixedClock,
         )
 
         val response = serviceAndMocks.revurderingService.iverksett(
@@ -405,7 +424,7 @@ internal class IverksettRevurderingTest {
             attestant = attestant,
         )
 
-        response shouldBe KunneIkkeIverksetteRevurdering.LagringFeilet.left()
+        response shouldBe KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon.LagringFeilet).left()
     }
 
     @Test
@@ -463,30 +482,7 @@ internal class IverksettRevurderingTest {
             attestant = attestant,
         )
 
-        response shouldBe KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left()
-    }
-
-    @Test
-    fun `skal returnere left dersom lagring feiler for iverksett`() {
-        val (sak, revurdering) = revurderingTilAttestering()
-        val serviceAndMocks = RevurderingServiceMocks(
-            sakService = mock {
-                on { hentSakForRevurdering(any()) } doReturn sak
-            },
-            vedtakRepo = mock {
-                on { lagre(any(), anyOrNull()) } doThrow RuntimeException("Lagring feilet")
-            },
-            tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
-            },
-        )
-
-        val response = serviceAndMocks.revurderingService.iverksett(
-            revurderingId = revurdering.id,
-            attestant = attestant,
-        )
-
-        response shouldBe KunneIkkeIverksetteRevurdering.LagringFeilet.left()
+        response shouldBe KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil)).left()
     }
 
     @Test
@@ -537,7 +533,7 @@ internal class IverksettRevurderingTest {
         serviceAndMocks.revurderingService.iverksett(
             revurderingId = revurderingTilAttestering.id,
             attestant = attestant,
-        ) shouldBe KunneIkkeIverksetteRevurdering.KunneIkkeAnnulereKontrollsamtale.left()
+        ) shouldBe KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon.Opphør.KunneIkkeAnnullereKontrollsamtale).left()
     }
 
     @Test
@@ -598,33 +594,35 @@ internal class IverksettRevurderingTest {
             revurderingId = revurderingTilAttestering.id,
             attestant = attestant,
         )
-        response shouldBe KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left()
+        response shouldBe KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil)).left()
     }
 
     @Test
     fun `feil ved åpent kravgrunnlag`() {
-        val (sak, revurderingTilAttestering) = revurderingTilAttestering()
+        val (sak, vedtakAvventerKravgrunnlag) = vedtakRevurdering(
+            revurderingsperiode = mai(2021)..desember(2021),
+            grunnlagsdataOverrides = listOf(
+                fradragsgrunnlagArbeidsinntekt(
+                    periode = mai(2021)..desember(2021),
+                    arbeidsinntekt = 5000.0,
+                ),
+            ),
+            utbetalingerKjørtTilOgMed = 1.november(2021),
+        )
+
+        val (sakMedTilAttestering, revurderingTilAttestering) = revurderingTilAttestering(
+            sakOgVedtakSomKanRevurderes = sak to vedtakAvventerKravgrunnlag,
+        )
 
         RevurderingServiceMocks(
             sakService = mock {
-                on { hentSakForRevurdering(any()) } doReturn sak
-            },
-            tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn listOf(
-                    IkkeTilbakekrev(
-                        id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(),
-                        sakId = revurderingTilAttestering.sakId,
-                        revurderingId = revurderingTilAttestering.id,
-                        periode = revurderingTilAttestering.periode,
-                    ).fullførBehandling(),
-                )
+                on { hentSakForRevurdering(any()) } doReturn sakMedTilAttestering
             },
         ).also {
             it.revurderingService.iverksett(
                 revurderingTilAttestering.id,
                 attestant,
-            ) shouldBe KunneIkkeIverksetteRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving.left()
+            ) shouldBe KunneIkkeIverksetteRevurdering.FeilVedIverksettelse(no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeIverksetteRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving).left()
         }
     }
 }
