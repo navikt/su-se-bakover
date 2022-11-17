@@ -850,18 +850,7 @@ data class OpprettetRevurdering(
     override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
     override val avkorting: AvkortingVedRevurdering.Uhåndtert,
     override val sakinfo: SakInfo,
-    override val brevvalgRevurdering: BrevvalgRevurdering = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
-        BrevvalgRevurdering.Valgt.IkkeSendBrev(
-            begrunnelse = null,
-            bestemtAv = BrevvalgRevurdering.BestemtAv.Systembruker,
-        )
-    } else {
-        BrevvalgRevurdering.Valgt.SendBrev(
-            fritekst = null,
-            begrunnelse = null,
-            bestemtAv = BrevvalgRevurdering.BestemtAv.Systembruker,
-        )
-    },
+    override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
 ) : Revurdering() {
     override val erOpphørt = false
     override val beregning: Beregning? = null

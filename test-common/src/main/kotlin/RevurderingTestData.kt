@@ -801,7 +801,7 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             },
         ).getOrFail().oppdaterTilbakekrevingsbehandling(
             tilbakekrevingsbehandling = tilbakekrevingsbehandling,
-        )
+        ).leggTilBrevvalg(sendBrev()).getOrFail() as SimulertRevurdering.Innvilget
         Pair(
             sak.copy(
                 // Erstatter den gamle versjonen av samme revurderinger.

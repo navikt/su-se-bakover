@@ -15,6 +15,8 @@ internal enum class BrevvalgRevurderingDbType {
     ;
 }
 
+private val SYSTEMBRUKER_DB = "srvsupstonad"
+
 internal fun BrevvalgRevurdering.toDb(): BrevvalgRevurderingDbJson {
     return when (this) {
         BrevvalgRevurdering.IkkeValgt -> {
@@ -30,7 +32,10 @@ internal fun BrevvalgRevurdering.toDb(): BrevvalgRevurderingDbJson {
                 type = BrevvalgRevurderingDbType.IKKE_SEND_BREV,
                 fritekst = null,
                 begrunnelse = begrunnelse,
-                bestemtav = bestemtAv.toString(),
+                bestemtav = when (val verdi = bestemtAv) {
+                    is BrevvalgRevurdering.BestemtAv.Behandler -> verdi.ident
+                    BrevvalgRevurdering.BestemtAv.Systembruker -> SYSTEMBRUKER_DB
+                },
             )
         }
         is BrevvalgRevurdering.Valgt.SendBrev -> {
@@ -38,7 +43,10 @@ internal fun BrevvalgRevurdering.toDb(): BrevvalgRevurderingDbJson {
                 type = BrevvalgRevurderingDbType.SEND_BREV,
                 fritekst = fritekst,
                 begrunnelse = begrunnelse,
-                bestemtav = bestemtAv.toString(),
+                bestemtav = when (val verdi = bestemtAv) {
+                    is BrevvalgRevurdering.BestemtAv.Behandler -> verdi.ident
+                    BrevvalgRevurdering.BestemtAv.Systembruker -> SYSTEMBRUKER_DB
+                },
             )
         }
     }
@@ -46,7 +54,7 @@ internal fun BrevvalgRevurdering.toDb(): BrevvalgRevurderingDbJson {
 
 internal fun BrevvalgRevurderingDbJson.toDomain(): BrevvalgRevurdering {
     fun bestemtAv(string: String): BrevvalgRevurdering.BestemtAv {
-        return if (string == BrevvalgRevurdering.BestemtAv.Systembruker.toString()) {
+        return if (string == SYSTEMBRUKER_DB) {
             BrevvalgRevurdering.BestemtAv.Systembruker
         } else {
             BrevvalgRevurdering.BestemtAv.Behandler(string)

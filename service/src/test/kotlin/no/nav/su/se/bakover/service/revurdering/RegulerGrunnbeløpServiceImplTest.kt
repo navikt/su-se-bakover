@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeSendeRevurderingTilAttestering
-import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.SendTilAttesteringRequest
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
@@ -25,7 +24,6 @@ import no.nav.su.se.bakover.domain.vilkår.uføre.UførevilkårStatus
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingsårsakRegulerGrunnbeløp
 import no.nav.su.se.bakover.test.aktørId
-import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.getOrFail
@@ -34,7 +32,6 @@ import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandl
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.revurderingUnderkjent
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.vilkår.flyktningVilkårAvslått
@@ -212,50 +209,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
             )
         }.also {
             it.message shouldContain "KanIkkeSendeEnOpphørtGReguleringTilAttestering"
-        }
-    }
-
-    @Test
-    fun `En attestert beregnet revurdering skal ikke sende brev`() {
-        val (sak, beregnetRevurdering) = beregnetRevurdering(
-            revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
-        )
-        RevurderingServiceMocks(
-            revurderingRepo = mock {
-                on { hent(any()) } doReturn beregnetRevurdering
-            },
-            personService = mock {
-                on { hentAktørId(any()) } doReturn aktørId.right()
-            },
-            oppgaveService = mock {
-                on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveid").right()
-                on { lukkOppgave(any()) } doReturn Unit.right()
-            },
-            sakService = mock {
-                on { hentSakForRevurdering(any()) } doReturn sak
-            },
-            tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
-            },
-        ).also {
-            val actual = it.revurderingService.sendTilAttestering(
-                SendTilAttesteringRequest(
-                    revurderingId = beregnetRevurdering.id,
-                    saksbehandler = saksbehandler,
-                ),
-            ).getOrFail().shouldBeType<RevurderingTilAttestering.IngenEndring>()
-
-            inOrder(it.revurderingRepo, it.personService, it.oppgaveService) {
-                verify(it.revurderingRepo).hent(beregnetRevurdering.id)
-                verify(it.personService).hentAktørId(argThat { it shouldBe fnr })
-
-                verify(it.oppgaveService).opprettOppgave(any())
-                verify(it.oppgaveService).lukkOppgave(any())
-
-                verify(it.revurderingRepo).defaultTransactionContext()
-                verify(it.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
-            }
-            verifyNoMoreInteractions(it.revurderingRepo, it.personService, it.oppgaveService)
         }
     }
 }

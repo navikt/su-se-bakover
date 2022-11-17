@@ -38,10 +38,10 @@ internal class LeggTilBrevvalgIT {
                     JSONAssert.assertEquals(
                         """
                     {
-                        "valg":"SEND",
+                        "valg":"IKKE_VALGT",
                         "fritekst":null,
                         "begrunnelse":null,
-                        "bestemtAv":"srvsupstonad"
+                        "bestemtAv":""
                     }
                     """,
                         RevurderingJson.hentBrevvalg(revurderingJson),
