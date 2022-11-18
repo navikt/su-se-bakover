@@ -42,7 +42,7 @@ internal class LukketSøknadsbehandlingTest {
 
     @Test
     fun `skal kunne lukke en opprettet søknadsbehandling uten stønadsperiode`() {
-        nySøknadsbehandlingUtenStønadsperiode().let {(sak,søknadsbehandling)->
+        nySøknadsbehandlingUtenStønadsperiode().let { (sak, søknadsbehandling) ->
             søknadsbehandling.lukkSøknadsbehandlingOgSøknad(
                 bortfallSøknad(søknadId),
             ) shouldBe LukketSøknadsbehandling.createFromPersistedState(

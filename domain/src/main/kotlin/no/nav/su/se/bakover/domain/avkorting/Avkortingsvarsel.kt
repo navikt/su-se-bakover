@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.avkorting
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.application.Månedsbeløp
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel.Utenlandsopphold.Annullert
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel.Utenlandsopphold.Avkortet
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel.Utenlandsopphold.Opprettet
@@ -108,4 +109,41 @@ sealed interface Avkortingsvarsel {
     }
 
     object Ingen : Avkortingsvarsel
+}
+
+fun Sak.oppdaterUteståendeAvkortingVedIverksettelse(behandletAvkorting: AvkortingVedSøknadsbehandling.Iverksatt): Sak {
+    return copy(
+        uteståendeAvkorting = when (behandletAvkorting) {
+            is AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående -> {
+                Avkortingsvarsel.Ingen
+            }
+            AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående -> {
+                uteståendeAvkorting
+            }
+            is AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere -> {
+                uteståendeAvkorting
+            }
+        },
+    )
+}
+fun Sak.oppdaterUteståendeAvkortingVedIverksettelse(behandletAvkorting: AvkortingVedRevurdering.Iverksatt): Sak {
+    return copy(
+        uteståendeAvkorting = when (behandletAvkorting) {
+            is AvkortingVedRevurdering.Iverksatt.AnnullerUtestående -> {
+                Avkortingsvarsel.Ingen
+            }
+            AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående -> {
+                uteståendeAvkorting
+            }
+            is AvkortingVedRevurdering.Iverksatt.KanIkkeHåndteres -> {
+                uteståendeAvkorting
+            }
+            is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel -> {
+                behandletAvkorting.avkortingsvarsel
+            }
+            is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
+                behandletAvkorting.avkortingsvarsel
+            }
+        },
+    )
 }

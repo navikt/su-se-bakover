@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.november
 import no.nav.su.se.bakover.common.periode.oktober
@@ -15,6 +16,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 
 fun avkortingsvarselUtenlandsopphold(
@@ -38,7 +40,9 @@ fun avkortingsvarselUtenlandsopphold(
 fun sakMedUteståendeAvkorting(
     clock: Clock = TikkendeKlokke(),
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    revurderingsperiode: Periode = stønadsperiode.periode,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    utbetalingerKjørtTilOgMed: LocalDate = revurderingsperiode.tilOgMed,
 ): Triple<Sak, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering> {
     val sakOgVedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
@@ -46,18 +50,18 @@ fun sakMedUteståendeAvkorting(
         clock = clock,
     )
     val (sak, revurderingsvedtak) = vedtakRevurdering(
-        stønadsperiode =stønadsperiode,
-        revurderingsperiode = stønadsperiode.periode,
+        stønadsperiode = stønadsperiode,
+        revurderingsperiode = revurderingsperiode,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         clock = clock,
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Utenlandsopphold)),
         vilkårOverrides = listOf(
             utenlandsoppholdAvslag(
-                periode = stønadsperiode.periode,
+                periode = revurderingsperiode,
                 opprettet = Tidspunkt.now(clock),
             ),
         ),
-        utbetalingerKjørtTilOgMed = stønadsperiode.periode.tilOgMed,
+        utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
     )
     return Triple(
         sak,

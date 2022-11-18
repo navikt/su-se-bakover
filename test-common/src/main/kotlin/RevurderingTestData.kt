@@ -128,7 +128,6 @@ fun opprettRevurderingFraSaksopplysninger(
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes>,
     clock: Clock = tikkendeFixedClock,
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
-    avkorting: AvkortingVedRevurdering.Uhåndtert = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
 ): Pair<Sak, OpprettetRevurdering> {
@@ -177,7 +176,7 @@ fun opprettRevurderingFraSaksopplysninger(
         vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.tilVilkårsvurderingerRevurdering(),
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
-        avkorting = avkorting,
+        avkorting = sakOgVedtakSomKanRevurderes.first.hentUteståendeAvkortingForRevurdering().fold({ it }, { it }),
         sakinfo = sakOgVedtakSomKanRevurderes.first.info(),
     )
     return Pair(
@@ -202,7 +201,6 @@ fun opprettetRevurdering(
     clock: Clock = tikkendeFixedClock,
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
-    avkorting: AvkortingVedRevurdering.Uhåndtert = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
 ): Pair<Sak, OpprettetRevurdering> {
     return opprettRevurderingFraSaksopplysninger(
         revurderingsperiode = revurderingsperiode,
@@ -210,7 +208,6 @@ fun opprettetRevurdering(
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         clock = clock,
         revurderingsårsak = revurderingsårsak,
-        avkorting = avkorting,
         vilkårOverrides = vilkårOverrides,
         grunnlagsdataOverrides = grunnlagsdataOverrides,
     )
@@ -236,8 +233,8 @@ fun beregnetRevurdering(
         revurderingsperiode = revurderingsperiode,
         informasjonSomRevurderes = informasjonSomRevurderes,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
-        clock = clock,
         revurderingsårsak = revurderingsårsak,
+        clock = clock,
         vilkårOverrides = vilkårOverrides,
         grunnlagsdataOverrides = grunnlagsdataOverrides,
     ).let { (sak, opprettet) ->

@@ -35,18 +35,18 @@ class LeggTilBosituasjonTest {
             periode = år(2021),
         )
         opprettetRevurdering(
+            vilkårOverrides = listOf(
+                innvilgetFormueVilkår(
+                    periode = år(2021),
+                    bosituasjon = bosituasjon,
+                ),
+            ),
             grunnlagsdataOverrides = listOf(
                 bosituasjon,
                 fradragsgrunnlagArbeidsinntekt(
                     periode = år(2021),
                     tilhører = FradragTilhører.EPS,
                     arbeidsinntekt = 10_000.0,
-                ),
-            ),
-            vilkårOverrides = listOf(
-                innvilgetFormueVilkår(
-                    periode = år(2021),
-                    bosituasjon = bosituasjon,
                 ),
             ),
         ).let { (_, revurdering) ->
@@ -96,18 +96,18 @@ class LeggTilBosituasjonTest {
             periode = år(2021),
         )
         opprettetRevurdering(
+            vilkårOverrides = listOf(
+                innvilgetFormueVilkår(
+                    periode = år(2021),
+                    bosituasjon = bosituasjon,
+                ),
+            ),
             grunnlagsdataOverrides = listOf(
                 bosituasjon,
                 fradragsgrunnlagArbeidsinntekt(
                     periode = år(2021),
                     tilhører = FradragTilhører.EPS,
                     arbeidsinntekt = 10_000.0,
-                ),
-            ),
-            vilkårOverrides = listOf(
-                innvilgetFormueVilkår(
-                    periode = år(2021),
-                    bosituasjon = bosituasjon,
                 ),
             ),
         ).let { (_, revurdering) ->
@@ -136,14 +136,14 @@ class LeggTilBosituasjonTest {
     fun `legger til tom formue for EPS dersom bosituasjon endres til å ha EPS`() {
         val bosituasjon = fullstendigUtenEPS(år(2021))
         opprettetRevurdering(
-            grunnlagsdataOverrides = listOf(
-                bosituasjon,
-            ),
             vilkårOverrides = listOf(
                 innvilgetFormueVilkår(
                     periode = år(2021),
                     bosituasjon = bosituasjon,
                 ),
+            ),
+            grunnlagsdataOverrides = listOf(
+                bosituasjon,
             ),
         ).let { (_, revurdering) ->
             revurdering.grunnlagsdata.bosituasjon.harEPS() shouldBe false

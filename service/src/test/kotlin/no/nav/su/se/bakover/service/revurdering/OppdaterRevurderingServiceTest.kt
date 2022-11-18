@@ -171,8 +171,8 @@ internal class OppdaterRevurderingServiceTest {
     @Test
     fun `oppdater en revurdering`() {
         val (sak, revurdering) = opprettetRevurdering(
-            revurderingsperiode = stønadsperiodeNesteMånedOgTreMånederFram.periode,
             stønadsperiode = stønadsperiodeNesteMånedOgTreMånederFram,
+            revurderingsperiode = stønadsperiodeNesteMånedOgTreMånederFram.periode,
         )
         RevurderingServiceMocks(
             sakService = mock {

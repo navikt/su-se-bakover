@@ -550,8 +550,7 @@ internal class SakTest {
             )
 
             val periode = år(2022)
-            val nyStønadsperiode =
-                Stønadsperiode.create(periode)
+            val nyStønadsperiode = Stønadsperiode.create(periode)
             val (_, nySøknadsbehandling) = søknadsbehandlingVilkårsvurdertUavklart(
                 clock = tikkendeKlokke,
                 stønadsperiode = nyStønadsperiode,
@@ -570,7 +569,7 @@ internal class SakTest {
                     clock = tikkendeKlokke,
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                     saksbehandler = saksbehandler,
-                ).getOrFail() shouldBe nySøknadsbehandlingMedOpplysningsplikt
+                ).getOrFail().second shouldBe nySøknadsbehandlingMedOpplysningsplikt
 
                 listOf(
                     1.mai(2021),
@@ -603,7 +602,7 @@ internal class SakTest {
                         clock = tikkendeKlokke,
                         formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                         saksbehandler = saksbehandler,
-                    ).getOrFail() shouldBe nySøknadsbehandlingMedOpplysningsplikt.copy(
+                    ).getOrFail().second shouldBe nySøknadsbehandlingMedOpplysningsplikt.copy(
                         stønadsperiode = stønadsperiode,
                         vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
                             formue = FormueVilkår.IkkeVurdert,

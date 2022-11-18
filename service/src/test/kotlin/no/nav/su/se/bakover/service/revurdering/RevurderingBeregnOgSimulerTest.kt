@@ -64,13 +64,13 @@ internal class RevurderingBeregnOgSimulerTest {
     @Test
     fun `legger ved feilmeldinger for tilfeller som ikke støttes`() {
         val (sak, opprettet) = opprettetRevurdering(
-            grunnlagsdataOverrides = listOf(
-                fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 150500.0),
-            ),
+            clock = tikkendeFixedClock,
             vilkårOverrides = listOf(
                 avslåttUførevilkårUtenGrunnlag(),
             ),
-            clock = tikkendeFixedClock,
+            grunnlagsdataOverrides = listOf(
+                fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 150500.0),
+            ),
         )
 
         val serviceAndMocks = RevurderingServiceMocks(
@@ -143,12 +143,12 @@ internal class RevurderingBeregnOgSimulerTest {
     @Test
     fun `legger ikke ved varsel dersom beløpsendring er mindre enn 10 prosent av gjeldende utbetaling, men opphør pga vilkår`() {
         val (sak, revurdering) = opprettetRevurdering(
+            clock = tikkendeFixedClock,
             vilkårOverrides = listOf(
                 avslåttUførevilkårUtenGrunnlag(
                     periode = år(2021),
                 ),
             ),
-            clock = tikkendeFixedClock,
         )
 
         RevurderingServiceMocks(
@@ -182,6 +182,7 @@ internal class RevurderingBeregnOgSimulerTest {
     fun `beregnOgSimuler - kan beregne og simulere`() {
         val clock = tikkendeFixedClock
         val (sak, opprettetRevurdering) = opprettetRevurdering(
+            clock = clock,
             grunnlagsdataOverrides = listOf(
                 bosituasjongrunnlagEnslig(),
                 fradragsgrunnlagArbeidsinntekt(
@@ -190,7 +191,6 @@ internal class RevurderingBeregnOgSimulerTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-            clock = clock,
         )
 
         val serviceAndMocks = RevurderingServiceMocks(
@@ -386,10 +386,10 @@ internal class RevurderingBeregnOgSimulerTest {
     @Test
     fun `hvis vilkår ikke er oppfylt, fører revurderingen til et opphør`() {
         val (sak, opprettet) = opprettetRevurdering(
+            clock = tikkendeFixedClock,
             vilkårOverrides = listOf(
                 avslåttUførevilkårUtenGrunnlag(),
             ),
-            clock = tikkendeFixedClock,
         )
 
         val serviceAndMocks = RevurderingServiceMocks(

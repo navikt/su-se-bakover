@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.avkorting.oppdaterUteståendeAvkortingVedIverksettelse
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -824,7 +825,7 @@ fun iverksattSøknadsbehandling(
                 søknadsbehandlinger = sak.søknadsbehandlinger.filterNot { it.id == iverksatt.id } + iverksatt,
                 vedtakListe = sak.vedtakListe + vedtak,
                 utbetalinger = utbetaling?.let { sak.utbetalinger + it } ?: sak.utbetalinger,
-            ),
+            ).oppdaterUteståendeAvkortingVedIverksettelse(iverksatt.avkorting),
             iverksatt,
             vedtak,
         )
