@@ -438,7 +438,7 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo as RevurderingPostgresRepo
-            val iverksatt = testDataHelper.persisterRevurderingIverksattInnvilget()
+            val iverksatt = testDataHelper.persisterRevurderingIverksattInnvilget().second
 
             repo.hent(iverksatt.id) shouldBe iverksatt
             dataSource.withSession {

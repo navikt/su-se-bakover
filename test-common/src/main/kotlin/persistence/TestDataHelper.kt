@@ -557,6 +557,9 @@ class TestDataHelper(
         }
     }
 
+    /**
+     * Oppretter sak, søknad og søknadsbehandlingsvedtak dersom dette ikke sendes eksplisitt inn.
+     */
     fun persisterIverksattRevurdering(
         sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
@@ -668,12 +671,16 @@ class TestDataHelper(
         }
     }
 
+    /**
+     * Oppretter sak, søknad og søknadsbehandlingsvedtak dersom dette ikke sendes eksplisitt inn.
+     */
     fun persisterRevurderingIverksattInnvilget(
         sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
-    ): IverksattRevurdering.Innvilget {
-        return persisterIverksattRevurdering(sakOgVedtak).second as IverksattRevurdering.Innvilget
+    ): Triple<Sak, IverksattRevurdering.Innvilget, Utbetaling?> {
+        @Suppress("UNCHECKED_CAST")
+        return persisterIverksattRevurdering(sakOgVedtak) as Triple<Sak, IverksattRevurdering.Innvilget, Utbetaling?>
     }
 
     fun persisterRevurderingIverksattOpphørt(

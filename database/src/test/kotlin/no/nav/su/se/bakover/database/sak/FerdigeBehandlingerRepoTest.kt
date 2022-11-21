@@ -65,7 +65,7 @@ internal class FerdigeBehandlingerRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.sakRepo
 
-            val iverksattRevurderingInnvilget = testDataHelper.persisterRevurderingIverksattInnvilget()
+            val iverksattRevurderingInnvilget = testDataHelper.persisterRevurderingIverksattInnvilget().second
             val iverksattRevurderingOpphørt = testDataHelper.persisterRevurderingIverksattOpphørt()
             val (_, iverksattStansAvYtelse) = testDataHelper.persisterIverksattStansAvYtelse()
             val iverksattGjenopptak = testDataHelper.persisterGjenopptakAvYtelseIverksatt()
