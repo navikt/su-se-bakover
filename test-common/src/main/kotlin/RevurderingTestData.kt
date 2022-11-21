@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.test
 
+import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.nonEmptyListOf
 import arrow.core.right
-import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.endOfMonth
@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
@@ -25,6 +24,7 @@ import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
@@ -43,6 +43,8 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.sak.iverksett.iverksettInnvilgetRevurdering
+import no.nav.su.se.bakover.domain.sak.iverksett.iverksettOpphørtRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -451,7 +453,6 @@ private fun oppdaterTilbakekrevingsbehandling(revurdering: SimulertRevurdering):
         }
     }
 }
-
 fun iverksattRevurdering(
     clock: Clock = tikkendeFixedClock,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
@@ -471,7 +472,7 @@ fun iverksattRevurdering(
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
     brevvalg: BrevvalgRevurdering = sendBrev(),
-): Triple<Sak, IverksattRevurdering, Utbetaling?> {
+): Triple<Sak, IverksattRevurdering, Utbetaling> {
     return revurderingTilAttestering(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -486,79 +487,75 @@ fun iverksattRevurdering(
         attesteringsoppgaveId = attesteringsoppgaveId,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
         brevvalg = brevvalg,
-    ).let { (sak, tilAttestering) ->
-        val (iverksatt, utbetaling) = tilAttestering.tilIverksatt(
-            attestant = attestering.attestant,
-            clock = clock,
-            hentOpprinneligAvkorting = {
-                when (val opprinnelig = tilAttestering.avkorting) {
-                    is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
-                        opprinnelig.avkortingsvarsel
-                    }
 
-                    AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
-                        null
-                    }
-
-                    is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
-                        null
-                    }
-
-                    is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
-                        null
-                    }
-
-                    is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
-                        opprinnelig.annullerUtestående
-                    }
+    ).let { (sakMedRevurderingTilAttestering, tilAttestering) ->
+        fun simuler(
+            @Suppress("UNUSED_PARAMETER") utbetaling: Utbetaling.UtbetalingForSimulering,
+            periode: Periode,
+        ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+            return when (tilAttestering) {
+                is RevurderingTilAttestering.IngenEndring -> {
+                    throw IllegalStateException("Should we be here?") // null
                 }
-            },
-        ).getOrFail() to when (tilAttestering) {
+
+                is RevurderingTilAttestering.Innvilget -> {
+                    simulerUtbetaling(
+                        sak = sakMedRevurderingTilAttestering,
+                        revurdering = tilAttestering,
+                        simuleringsperiode = periode,
+                        behandler = attestering.attestant,
+                        clock = clock,
+                        utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+                    ).getOrFail()
+                }
+
+                is RevurderingTilAttestering.Opphørt -> {
+                    simulerOpphør(
+                        sak = sakMedRevurderingTilAttestering,
+                        revurdering = tilAttestering,
+                        simuleringsperiode = periode,
+                        behandler = attestering.attestant,
+                        clock = clock,
+                        utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+                    ).getOrFail()
+                }
+            }.right()
+        }
+        // TODO jah: Denne when-en er også noe domenet bør håndtere.
+        when (tilAttestering) {
             is RevurderingTilAttestering.IngenEndring -> {
-                null
+                throw IllegalStateException("Should we be here?")
             }
 
             is RevurderingTilAttestering.Innvilget -> {
-                simulerUtbetaling(
-                    sak = sak,
-                    revurdering = tilAttestering,
-                    simuleringsperiode = tilAttestering.periode,
-                    behandler = attestering.attestant,
+                sakMedRevurderingTilAttestering.iverksettInnvilgetRevurdering(
+                    revurderingId = tilAttestering.id,
+                    attestant = attestering.attestant,
                     clock = clock,
-                    utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+                    simuler = ::simuler,
                 ).getOrFail().let {
-                    it.toOversendtUtbetaling(UtbetalingStub.generateRequest(it))
+                    Triple(
+                        first = it.sak,
+                        second = it.vedtak.behandling,
+                        third = it.utbetaling,
+                    )
                 }
             }
-
             is RevurderingTilAttestering.Opphørt -> {
-                simulerOpphør(
-                    sak = sak,
-                    revurdering = tilAttestering,
-                    simuleringsperiode = tilAttestering.opphørsperiodeForUtbetalinger,
-                    behandler = attestering.attestant,
+                sakMedRevurderingTilAttestering.iverksettOpphørtRevurdering(
+                    revurderingId = tilAttestering.id,
+                    attestant = attestering.attestant,
                     clock = clock,
-                    utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+                    simuler = ::simuler,
                 ).getOrFail().let {
-                    it.toOversendtUtbetaling(UtbetalingStub.generateRequest(it))
+                    Triple(
+                        first = it.sak,
+                        second = it.vedtak.behandling,
+                        third = it.utbetaling,
+                    )
                 }
             }
         }
-        Triple(
-            first = sak.copy(
-                revurderinger = sak.revurderinger.filterNot { it.id == iverksatt.id } + iverksatt,
-                utbetalinger = if (utbetaling != null) sak.utbetalinger + utbetaling else sak.utbetalinger,
-                uteståendeAvkorting = when (val avkorting = iverksatt.avkorting) {
-                    is AvkortingVedRevurdering.Iverksatt.AnnullerUtestående -> Avkortingsvarsel.Ingen
-                    is AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående -> Avkortingsvarsel.Ingen
-                    is AvkortingVedRevurdering.Iverksatt.KanIkkeHåndteres -> Avkortingsvarsel.Ingen
-                    is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel -> avkorting.avkortingsvarsel
-                    is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> avkorting.avkortingsvarsel
-                },
-            ),
-            second = iverksatt,
-            third = utbetaling,
-        )
     }
 }
 
