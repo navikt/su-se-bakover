@@ -80,6 +80,7 @@ object ServiceBuilder {
             dokumentRepo = databaseRepos.dokumentRepo,
             brevService = brevService,
             personService = personService,
+            identClient = clients.identClient,
         ).apply { addObserver(statistikkEventObserver) }
 
         val oppgaveService = OppgaveServiceImpl(

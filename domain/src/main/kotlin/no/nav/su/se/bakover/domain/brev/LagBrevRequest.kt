@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.application.Månedsbeløp
 import no.nav.su.se.bakover.common.ddMMyyyy
@@ -564,13 +563,13 @@ interface LagBrevRequest {
         override val person: Person,
         override val dagensDato: LocalDate,
         override val saksnummer: Saksnummer,
-        val saksbehandler: NavIdentBruker.Saksbehandler,
+        val saksbehandlerNavn: String,
         val brevTittel: String,
         val fritekst: String,
     ) : LagBrevRequest {
         override val brevInnhold: BrevInnhold = BrevInnhold.Fritekst(
             personalia = lagPersonalia(),
-            saksbehandlerNavn = saksbehandler.navIdent,
+            saksbehandlerNavn = saksbehandlerNavn,
             tittel = brevTittel,
             fritekst = fritekst,
         )

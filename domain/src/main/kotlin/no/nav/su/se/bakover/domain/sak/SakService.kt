@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import java.util.UUID
 
@@ -74,4 +75,6 @@ data class OpprettDokumentRequest(
 sealed interface KunneIkkeOppretteDokument {
     data class KunneIkkeLageDokument(val feil: no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument) :
         KunneIkkeOppretteDokument
+
+    data class FeilVedHentingAvSaksbehandlernavn(val feil: KunneIkkeHenteNavnForNavIdent) : KunneIkkeOppretteDokument
 }
