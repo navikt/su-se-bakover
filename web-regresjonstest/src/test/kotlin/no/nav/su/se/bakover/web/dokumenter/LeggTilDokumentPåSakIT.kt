@@ -25,7 +25,6 @@ internal class LeggTilDokumentPåSakIT {
             opprettFritekstDokument(
                 sakId = sakId,
                 expectedOpprettResponse = SharedRegressionTestData.pdf,
-
             )
 
             lagreOgSendFritekstDokument(

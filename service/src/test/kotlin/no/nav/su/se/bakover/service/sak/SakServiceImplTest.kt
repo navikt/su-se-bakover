@@ -1,15 +1,27 @@
 package no.nav.su.se.bakover.service.sak
 
+import arrow.core.right
+import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.brev.BrevService
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.person.IdentClient
+import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
+import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjon
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.person
+import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.saksbehandlerNavn
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
@@ -42,7 +54,7 @@ internal class SakServiceImplTest {
 
         val observer: StatistikkEventObserver = mock()
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock())
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock())
         sakService.addObserver(observer)
         sakService.opprettSak(mock { on { id } doReturn sakId })
 
@@ -59,7 +71,7 @@ internal class SakServiceImplTest {
 
         val observer: StatistikkEventObserver = mock()
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock())
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock())
         sakService.addObserver(observer)
         assertThrows<RuntimeException> {
             sakService.opprettSak(mock())
@@ -84,7 +96,7 @@ internal class SakServiceImplTest {
             )
         }
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock())
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock())
         val sakMedÅpenSøknad = sakService.hentÅpneBehandlingerForAlleSaker()
 
         sakMedÅpenSøknad shouldBe listOf(
@@ -133,7 +145,7 @@ internal class SakServiceImplTest {
             )
         }
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock())
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock())
         val sakerMedÅpneBehandlinger = sakService.hentÅpneBehandlingerForAlleSaker()
 
         sakerMedÅpneBehandlinger shouldBe listOf(
@@ -207,7 +219,7 @@ internal class SakServiceImplTest {
             )
         }
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock())
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock())
         val sakerMedÅpneRevurderinger = sakService.hentÅpneBehandlingerForAlleSaker()
 
         sakerMedÅpneRevurderinger shouldBe listOf(
@@ -240,5 +252,32 @@ internal class SakServiceImplTest {
                 behandlingStartet = tilAttesteringRevurdering.opprettet,
             ),
         )
+    }
+
+    @Test
+    fun `oppretter fritekst dokument`() {
+        val sak = nySakMedjournalførtSøknadOgOppgave().first
+        val sakRepo: SakRepo = mock {
+            on { hentSak(any<UUID>()) } doReturn sak
+        }
+        val brevService = mock<BrevService> {
+            on { lagDokument(any<LagBrevRequest>()) } doReturn dokumentUtenMetadataInformasjon().right()
+        }
+
+        val personService = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person(sak.fnr, AktørId("aktørId")).right()
+        }
+        val identClient = mock<IdentClient> {
+            on { hentNavnForNavIdent(any()) } doReturn saksbehandlerNavn.right()
+        }
+
+        SakServiceImpl(sakRepo, fixedClock, mock(), brevService, personService, identClient).opprettFritekstDokument(
+            request = OpprettDokumentRequest(
+                sakId = sak.id,
+                saksbehandler = saksbehandler,
+                tittel = "Brev tittel",
+                fritekst = "Brev fritekst",
+            ),
+        ).shouldBeRight()
     }
 }

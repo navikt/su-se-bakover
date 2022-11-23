@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
+import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteDokument
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
@@ -285,6 +286,7 @@ internal fun Route.sakRoutes(
 
 fun KunneIkkeOppretteDokument.tilResultat(): Resultat = when (this) {
     is KunneIkkeOppretteDokument.KunneIkkeLageDokument -> this.feil.tilResultat()
+    is KunneIkkeOppretteDokument.FeilVedHentingAvSaksbehandlernavn -> this.feil.tilResultat()
 }
 
 fun KunneIkkeLageDokument.tilResultat(): Resultat = when (this) {
@@ -293,4 +295,12 @@ fun KunneIkkeLageDokument.tilResultat(): Resultat = when (this) {
     KunneIkkeLageDokument.KunneIkkeGenererePDF -> Feilresponser.feilVedGenereringAvDokument
     KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> Feilresponser.feilVedHentingAvSaksbehandlerNavn
     KunneIkkeLageDokument.KunneIkkeHentePerson -> Feilresponser.fantIkkePerson
+}
+
+// frontend bryr seg kanskje ikke så veldig om de tekniske feilene? Dem blir logget i client
+internal fun KunneIkkeHenteNavnForNavIdent.tilResultat() = when (this) {
+    KunneIkkeHenteNavnForNavIdent.DeserialiseringAvResponsFeilet -> Feilresponser.ukjentFeil
+    KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent -> Feilresponser.fantIkkeSaksbehandlerEllerAttestant
+    KunneIkkeHenteNavnForNavIdent.FeilVedHentingAvOnBehalfOfToken -> Feilresponser.ukjentFeil
+    KunneIkkeHenteNavnForNavIdent.KallTilMicrosoftGraphApiFeilet -> Feilresponser.ukjentFeil
 }

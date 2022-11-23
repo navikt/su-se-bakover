@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
+import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
@@ -44,6 +45,7 @@ internal class SakServiceImpl(
     private val dokumentRepo: DokumentRepo,
     private val brevService: BrevService,
     private val personService: PersonService,
+    private val identClient: IdentClient,
 ) : SakService {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
@@ -135,12 +137,16 @@ internal class SakServiceImpl(
             throw IllegalStateException("Fant ikke person ved opprettFritekstDokument. sakid ${request.sakId}, fnr ${sak.fnr}")
         }
 
+        val saksbehandlerNavn = identClient.hentNavnForNavIdent(request.saksbehandler).getOrHandle {
+            return KunneIkkeOppretteDokument.FeilVedHentingAvSaksbehandlernavn(it).left()
+        }
+
         return brevService.lagDokument(
             LagBrevRequest.Fritekst(
                 person = person,
                 dagensDato = LocalDate.now(clock),
                 saksnummer = sak.saksnummer,
-                saksbehandler = request.saksbehandler,
+                saksbehandlerNavn = saksbehandlerNavn,
                 brevTittel = request.tittel,
                 fritekst = request.fritekst,
             ),
