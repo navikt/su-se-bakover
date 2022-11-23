@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingClient
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingRepo
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
+import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -60,9 +61,20 @@ class TilbakekrevingServiceImpl(
                 val vedtak =
                     vedtakService.hentForRevurderingId(tilbakekrevingsbehandling.avgjort.revurderingId)!! as Stønadsvedtak
 
-                val brevRequest = brevService.lagBrevRequest(vedtak).fold(
+                val dokument = brevService.lagBrevRequest(vedtak).fold(
                     {
-                        throw RuntimeException("Kunne ikke lage brev, feil: $it")
+                        when (it) {
+                            LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling,
+                            LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant,
+                            LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson,
+                            -> {
+                                throw RuntimeException("Kunne ikke lage brev, feil: $it")
+                            }
+                            LagBrevRequestVisitor.KunneIkkeLageBrevRequest.SkalIkkeSendeBrev -> {
+                                log.info("Det er valgt å ikke sende ut brev for vedtak: ${vedtak.id}, hopper over.")
+                                null
+                            }
+                        }
                     },
                     { brevRequest ->
                         tilbakekrevingsbehandling.skalTilbakekreve().fold(
@@ -73,26 +85,26 @@ class TilbakekrevingServiceImpl(
                                 check(brevRequest is LagBrevRequest.TilbakekrevingAvPenger) { "Generert tilbakekrevingsbrev for vedtak:${vedtak.id} er ikke et tilbakekrevingsbrev!" }
                                 brevRequest.erstattBruttoMedNettoFeilutbetaling(tilbakekrevingsvedtak.netto())
                             },
-                        )
+                        ).let { brevRequestMedNettoHvisTilbakekreving ->
+                            brevService.lagDokument(brevRequestMedNettoHvisTilbakekreving)
+                                .fold(
+                                    {
+                                        throw RuntimeException("Kunne ikke lage dokument, feil: $it")
+                                    },
+                                    {
+                                        it.leggTilMetadata(
+                                            Dokument.Metadata(
+                                                sakId = vedtak.behandling.sakId,
+                                                vedtakId = vedtak.id,
+                                                revurderingId = vedtak.behandling.id,
+                                                bestillBrev = true,
+                                            ),
+                                        )
+                                    },
+                                )
+                        }
                     },
                 )
-
-                val dokument = brevService.lagDokument(brevRequest)
-                    .fold(
-                        {
-                            throw RuntimeException("Kunne ikke lage dokument, feil: $it")
-                        },
-                        {
-                            it.leggTilMetadata(
-                                Dokument.Metadata(
-                                    sakId = vedtak.behandling.sakId,
-                                    vedtakId = vedtak.id,
-                                    revurderingId = vedtak.behandling.id,
-                                    bestillBrev = true,
-                                ),
-                            )
-                        },
-                    )
 
                 /**
                  * Litt underlig logikk for lagring for å sikre at vi ikke havner i utakt, både mot økonomi og internt.
@@ -115,10 +127,12 @@ class TilbakekrevingServiceImpl(
                         ),
                         transactionContext = tx,
                     )
-                    brevService.lagreDokument(
-                        dokument = dokument,
-                        transactionContext = tx,
-                    )
+                    dokument?.let {
+                        brevService.lagreDokument(
+                            dokument = dokument,
+                            transactionContext = tx,
+                        )
+                    }
 
                     tilbakekrevingClient.sendTilbakekrevingsvedtak(tilbakekrevingsvedtak)
                         .fold(
@@ -139,7 +153,7 @@ class TilbakekrevingServiceImpl(
                         ),
                     )
                 } catch (ex: Throwable) {
-                    sikkerLogg.info("Klarte ikke å oppdatere tilbakekrevingsbehandling: ${tilbakekrevingsbehandling.avgjort.id} med request/response xml. Innhold som ble forsøkt lagret: $råTilbakekrevingsvedtakForsendelse. Vedtak er sendt og brev bestilt.")
+                    sikkerLogg.info("Klarte ikke å oppdatere tilbakekrevingsbehandling: ${tilbakekrevingsbehandling.avgjort.id} med request/response xml. Innhold som ble forsøkt lagret: $råTilbakekrevingsvedtakForsendelse. Tilbakerevingsvedtak er sendt.")
                     throw ex
                 }
             }
