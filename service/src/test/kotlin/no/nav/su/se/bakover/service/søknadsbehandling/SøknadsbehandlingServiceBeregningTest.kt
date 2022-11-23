@@ -5,7 +5,6 @@ import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -30,19 +29,26 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.søknadinnhold.Personopplysninger
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.sakMedUteståendeAvkorting
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.simuleringFeilutbetaling
+import no.nav.su.se.bakover.test.shouldBeType
+import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
+import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandling
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -137,21 +143,27 @@ class SøknadsbehandlingServiceBeregningTest {
 
     @Test
     fun `håndtering av utestående avkorting for innvilget beregning`() {
-        val uteståendeAvkorting = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-            objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                sakId = UUID.randomUUID(),
-                revurderingId = UUID.randomUUID(),
-                simulering = simuleringFeilutbetaling(
-                    juni(2021),
-                ),
-                opprettet = Tidspunkt.now(fixedClock),
-            ),
+        val clock = TikkendeKlokke(fixedClock)
+
+        val sakMedUteståendeAvkorting = sakMedUteståendeAvkorting(
+            // Siste måned blir ikke utbetalt og vil derfor kunne overskrives av neste søknadsbehandling.
+            stønadsperiode = Stønadsperiode.create(januar(2021)..februar(2021)),
+            clock = clock,
         )
 
-        val (_, vilkårsvurdert) = søknadsbehandlingVilkårsvurdertInnvilget(
-            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-                avkortingsvarsel = uteståendeAvkorting,
-            ).kanIkke(),
+        val (sak, vilkårsvurdert) = vilkårsvurdertSøknadsbehandling(
+            stønadsperiode = Stønadsperiode.create(februar(2021)),
+            clock = clock,
+            sakOgSøknad = Pair(
+                sakMedUteståendeAvkorting.first,
+                nySøknadJournalførtMedOppgave(
+                    sakId = sakMedUteståendeAvkorting.first.id,
+                    clock = clock,
+                    søknadInnhold = søknadinnholdUføre(
+                        personopplysninger = Personopplysninger(sakMedUteståendeAvkorting.first.fnr),
+                    ),
+                ),
+            ),
         )
 
         SøknadsbehandlingServiceAndMocks(
@@ -170,9 +182,19 @@ class SøknadsbehandlingServiceBeregningTest {
             ).getOrFail()
 
             beregnet shouldBe beOfType<Søknadsbehandling.Beregnet.Innvilget>()
-            beregnet.avkorting shouldBe AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(
-                avkortingsvarsel = uteståendeAvkorting,
-            )
+            beregnet.avkorting.shouldBeType<AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående>().also {
+                Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
+                    objekt = sak.uteståendeAvkorting.shouldBeType<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes>().let {
+                        Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                            id = it.id,
+                            sakId = sak.id,
+                            revurderingId = sakMedUteståendeAvkorting.third.behandling.id,
+                            simulering = it.simulering,
+                            opprettet = it.opprettet,
+                        )
+                    },
+                )
+            }
             beregnet.grunnlagsdata shouldNotBe vilkårsvurdert.grunnlagsdata
             beregnet.grunnlagsdata.fradragsgrunnlag
                 .any { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold } shouldBe true
@@ -188,42 +210,42 @@ class SøknadsbehandlingServiceBeregningTest {
 
     @Test
     fun `håndtering av utestående avkorting for avslag beregning`() {
-        val uteståendeAvkorting = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-            objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                sakId = UUID.randomUUID(),
-                revurderingId = UUID.randomUUID(),
-                simulering = simuleringFeilutbetaling(
-                    juni(2021),
-                ),
-                opprettet = Tidspunkt.now(fixedClock),
-            ),
+        val clock = TikkendeKlokke(fixedClock)
+        val sakMedUteståendeAvkorting = sakMedUteståendeAvkorting(
+            stønadsperiode = Stønadsperiode.create(januar(2021)..februar(2021)),
+            clock = clock,
         )
 
-        val (_, vilkårsvurdert) = søknadsbehandlingVilkårsvurdertInnvilget(
-            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-                uteståendeAvkorting,
+        val (sak, vilkårsvurdert) = vilkårsvurdertSøknadsbehandling(
+            stønadsperiode = Stønadsperiode.create(mars(2021)..april(2021)),
+            clock = clock,
+            customGrunnlag = listOf(
+                fradragsgrunnlagArbeidsinntekt(
+                    periode = mars(2021),
+                    arbeidsinntekt = 25000.0,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
             ),
-        ).let { (sak, vilkårsvurdert) ->
-            sak to vilkårsvurdert.leggTilFradragsgrunnlag(
-                fradragsgrunnlag = listOf(
-                    fradragsgrunnlagArbeidsinntekt(
-                        periode = vilkårsvurdert.periode.måneder().first(),
-                        arbeidsinntekt = 25000.0,
-                        tilhører = FradragTilhører.BRUKER,
+            sakOgSøknad = Pair(
+                sakMedUteståendeAvkorting.first,
+                nySøknadJournalførtMedOppgave(
+                    sakId = sakMedUteståendeAvkorting.first.id,
+                    clock = clock,
+                    søknadInnhold = søknadinnholdUføre(
+                        personopplysninger = Personopplysninger(sakMedUteståendeAvkorting.first.fnr),
                     ),
                 ),
-                saksbehandler = saksbehandler,
-            ).getOrFail()
-        }
+            ),
+        )
 
         SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = mock {
                 on { hent(any()) } doReturn vilkårsvurdert
             },
-        ).let {
+        ).let { serviceAndMocks ->
             vilkårsvurdert.avkorting shouldBe beOfType<AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting>()
 
-            val beregnet = it.søknadsbehandlingService.beregn(
+            val beregnet = serviceAndMocks.søknadsbehandlingService.beregn(
                 request = SøknadsbehandlingService.BeregnRequest(
                     behandlingId = vilkårsvurdert.id,
                     begrunnelse = "du skal avkortes",
@@ -234,7 +256,17 @@ class SøknadsbehandlingServiceBeregningTest {
             beregnet shouldBe beOfType<Søknadsbehandling.Beregnet.Avslag>()
             beregnet.avkorting shouldBe AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere(
                 håndtert = AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(
-                    avkortingsvarsel = uteståendeAvkorting,
+                    Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
+                        objekt = sak.uteståendeAvkorting.shouldBeType<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes>().let {
+                            Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                                id = it.id,
+                                sakId = sak.id,
+                                revurderingId = sakMedUteståendeAvkorting.third.behandling.id,
+                                simulering = it.simulering,
+                                opprettet = it.opprettet,
+                            )
+                        },
+                    ),
                 ),
             )
             beregnet.grunnlagsdata shouldNotBe vilkårsvurdert.grunnlagsdata
@@ -242,11 +274,10 @@ class SøknadsbehandlingServiceBeregningTest {
                 .any { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold } shouldBe true
             beregnet.beregning.getFradrag()
                 .any { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold } shouldBe true
-
-            verify(it.søknadsbehandlingRepo).hent(vilkårsvurdert.id)
-            verify(it.søknadsbehandlingRepo).defaultTransactionContext()
-            verify(it.søknadsbehandlingRepo).lagre(eq(beregnet), anyOrNull())
-            it.verifyNoMoreInteractions()
+            verify(serviceAndMocks.søknadsbehandlingRepo).hent(vilkårsvurdert.id)
+            verify(serviceAndMocks.søknadsbehandlingRepo).defaultTransactionContext()
+            verify(serviceAndMocks.søknadsbehandlingRepo).lagre(eq(beregnet), anyOrNull())
+            serviceAndMocks.verifyNoMoreInteractions()
         }
     }
 

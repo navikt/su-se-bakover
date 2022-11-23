@@ -2,21 +2,25 @@ package no.nav.su.se.bakover.database.søknadsbehandling
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
-import no.nav.su.se.bakover.common.periode.juni
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.persistence.antall
 import no.nav.su.se.bakover.common.persistence.hent
-import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
+import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.sak.NySak
-import no.nav.su.se.bakover.domain.sak.SakInfo
+import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.test.attestant
@@ -26,22 +30,25 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
-import no.nav.su.se.bakover.test.nySøknadsbehandling
+import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulerUtbetaling
-import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
+import no.nav.su.se.bakover.test.stønadsperiode2022
 import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
+import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import vilkår.personligOppmøtevilkårAvslag
+import java.util.UUID
 
 internal class SøknadsbehandlingPostgresRepoTest {
 
@@ -84,7 +91,10 @@ internal class SøknadsbehandlingPostgresRepoTest {
                         mapOf("status" to SøknadsbehandlingStatusDB.VILKÅRSVURDERT_INNVILGET.toString()),
                         session,
                     ) shouldBe 1
-                    it.antall(mapOf("status" to SøknadsbehandlingStatusDB.IVERKSATT_AVSLAG.toString()), session) shouldBe 1
+                    it.antall(
+                        mapOf("status" to SøknadsbehandlingStatusDB.IVERKSATT_AVSLAG.toString()),
+                        session,
+                    ) shouldBe 1
                 }
             }
         }
@@ -123,7 +133,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             val repo = testDataHelper.søknadsbehandlingRepo
 
             val (_, vilkårsvurdert) = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart { (sak, søknad) ->
-                nySøknadsbehandling(
+                nySøknadsbehandlingMedStønadsperiode(
                     sakOgSøknad = sak to søknad,
                     stønadsperiode = Stønadsperiode.create(periode = januar(2021)),
                 )
@@ -326,7 +336,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 oppgaveId = iverksatt.oppgaveId,
                 fnr = iverksatt.fnr,
                 saksbehandler = saksbehandler,
-                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(attesteringIverksatt(clock = enUkeEtterFixedClock)),
+                attesteringer = Attesteringshistorikk.empty()
+                    .leggTilNyAttestering(attesteringIverksatt(clock = enUkeEtterFixedClock)),
                 fritekstTilBrev = "Dette er fritekst",
                 stønadsperiode = stønadsperiode2021,
                 grunnlagsdata = iverksatt.grunnlagsdata,
@@ -425,39 +436,68 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
     @Test
     fun `gjør ingenting med avkorting dersom ingenting har blitt avkortet`() {
+        // Dersom det finnes en utestående avkorting på saken, og vi avslår en ny søknadsbehandling, forventer vi at den er uforandret på saken.
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val revurdering = testDataHelper.persisterRevurderingIverksattInnvilget() // juker litt for å koble avkortingsvarsel mot en revurdering
-            val avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-                Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-                    objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                        sakId = revurdering.sakId,
-                        revurderingId = revurdering.id,
-                        simulering = simuleringFeilutbetaling(juni(2021)),
-                        opprettet = Tidspunkt.now(fixedClock),
-                    ),
-                ),
-            )
-            testDataHelper.sessionFactory.withTransaction { tx ->
-                (testDataHelper.databaseRepos.avkortingsvarselRepo as AvkortingsvarselPostgresRepo).lagre(avkortingsvarsel = avkorting.avkortingsvarsel, tx)
-            }
 
-            val (_, iverksattAvslagUtenBeregning, _) = testDataHelper.persisterIverksattSøknadsbehandlingAvslag { (sak, søknad) ->
+            val (sak, revurderingSomFørteTilAvkorting, _) = testDataHelper.persisterIverksattRevurdering(
+                sakOgRevurdering = {
+                    iverksattRevurdering(
+                        sakOgVedtakSomKanRevurderes = it,
+                        informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Utenlandsopphold)),
+                        vilkårOverrides = listOf(
+                            utenlandsoppholdAvslag(
+                                opprettet = Tidspunkt.now(testDataHelper.clock),
+                            ),
+                        ),
+                        utbetalingerKjørtTilOgMed = år(2021).tilOgMed,
+                        clock = testDataHelper.clock,
+                    )
+                },
+            )
+            verifiserUteståendeAvkortingPåSak(
+                sak = sak,
+                revurderingId = revurderingSomFørteTilAvkorting.id,
+                sakRepo = testDataHelper.sakRepo,
+            )
+
+            val (sakOppdatertMedSøknad, iverksattAvslagUtenBeregning, _) = testDataHelper.persisterIverksattSøknadsbehandlingAvslag(
+                sakOgSøknad = Pair(sak, testDataHelper.persisterJournalførtSøknadMedOppgave(sakId = sak.id).second),
+            ) { (sak, søknad) ->
                 iverksattSøknadsbehandlingUføre(
-                    sakInfo = SakInfo(
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                        fnr = sak.fnr,
-                        type = sak.type,
-                    ),
+                    clock = testDataHelper.clock,
+                    stønadsperiode = stønadsperiode2022,
                     sakOgSøknad = sak to søknad,
-                    customVilkår = listOf(personligOppmøtevilkårAvslag()),
-                    avkorting = avkorting,
+                    customVilkår = listOf(
+                        personligOppmøtevilkårAvslag(
+                            periode = år(2022),
+                        ),
+                    ),
                 )
             }
+            // Et avslag i 2022 som ikke overlapper med 2021, skal ikke påvirke avkortinga.
+            verifiserUteståendeAvkortingPåSak(
+                sak = sakOppdatertMedSøknad,
+                revurderingId = revurderingSomFørteTilAvkorting.id,
+                sakRepo = testDataHelper.sakRepo,
+            )
 
-            iverksattAvslagUtenBeregning.avkorting shouldBe avkorting.håndter().kanIkke().iverksett(iverksattAvslagUtenBeregning.id)
-            testDataHelper.databaseRepos.avkortingsvarselRepo.hent(avkorting.avkortingsvarsel.id) shouldBe avkorting.avkortingsvarsel
+            iverksattAvslagUtenBeregning.avkorting.shouldBeInstanceOf<AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere>()
+                .also {
+                    it.håndtert.shouldBeInstanceOf<AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående>().also {
+                        it shouldBe AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(
+                            Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
+                                objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                                    id = it.avkortingsvarsel.id,
+                                    sakId = sakOppdatertMedSøknad.id,
+                                    revurderingId = revurderingSomFørteTilAvkorting.id,
+                                    opprettet = it.avkortingsvarsel.opprettet,
+                                    simulering = it.avkortingsvarsel.simulering,
+                                ),
+                            ),
+                        )
+                    }
+                }
         }
     }
 
@@ -465,39 +505,76 @@ internal class SøknadsbehandlingPostgresRepoTest {
     fun `oppdaterer avkorting ved lagring av iverksatt innvilget søknadsbehandling med avkorting`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val revurdering = testDataHelper.persisterRevurderingIverksattInnvilget() // juker litt for å koble avkortingsvarsel mot en revurdering
-            val avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-                Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-                    objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                        sakId = revurdering.sakId,
-                        revurderingId = revurdering.id,
-                        simulering = simuleringFeilutbetaling(juni(2021)),
-                        opprettet = Tidspunkt.now(fixedClock),
-                    ),
-                ),
-            )
-            testDataHelper.sessionFactory.withTransaction { tx ->
-                (testDataHelper.databaseRepos.avkortingsvarselRepo as AvkortingsvarselPostgresRepo).lagre(avkortingsvarsel = avkorting.avkortingsvarsel, tx)
-            }
 
-            val (_, iverksattInnvilgetAvkortet, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilget { (sak, søknad) ->
+            val (sak, revurderingSomFørteTilAvkorting, _) = testDataHelper.persisterIverksattRevurdering(
+                sakOgRevurdering = {
+                    iverksattRevurdering(
+                        sakOgVedtakSomKanRevurderes = it,
+                        informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Utenlandsopphold)),
+                        vilkårOverrides = listOf(
+                            utenlandsoppholdAvslag(
+                                opprettet = Tidspunkt.now(testDataHelper.clock),
+                            ),
+                        ),
+                        utbetalingerKjørtTilOgMed = februar(2021).tilOgMed,
+                        clock = testDataHelper.clock,
+                    )
+                },
+            )
+            verifiserUteståendeAvkortingPåSak(
+                sak = sak,
+                revurderingId = revurderingSomFørteTilAvkorting.id,
+                sakRepo = testDataHelper.sakRepo,
+            )
+
+            val (sakOppdatertMedSøknad, iverksattSøknadsbehandlingVedtak, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
+                sakOgSøknad = Pair(sak, testDataHelper.persisterJournalførtSøknadMedOppgave(sakId = sak.id).second),
+            ) { (sak, søknad) ->
                 iverksattSøknadsbehandlingUføre(
-                    sakInfo = SakInfo(
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                        fnr = sak.fnr,
-                        type = sak.type,
-                    ),
+                    clock = testDataHelper.clock,
+                    stønadsperiode = stønadsperiode2022,
                     sakOgSøknad = sak to søknad,
-                    avkorting = avkorting,
                 )
             }
 
-            testDataHelper.søknadsbehandlingRepo.hent(iverksattInnvilgetAvkortet.id)!!.let {
-                val oppdatertAvkorting = avkorting.håndter().iverksett(iverksattInnvilgetAvkortet.id)
-                it.avkorting shouldBe oppdatertAvkorting
-                testDataHelper.avkortingsvarselRepo.hent(avkorting.avkortingsvarsel.id) shouldBe oppdatertAvkorting.avkortingsvarsel
-            }
+            // Forventer at den nye søknadsbehandlingen har avkortet alle utestående avkortinger på saken.
+            testDataHelper.sakRepo.hentSak(sak.id) shouldBe sakOppdatertMedSøknad
+            sakOppdatertMedSøknad.uteståendeAvkorting.shouldBeInstanceOf<Avkortingsvarsel.Ingen>()
+
+            iverksattSøknadsbehandlingVedtak.behandling.avkorting.shouldBeInstanceOf<AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående>()
+                .also {
+                    it.avkortingsvarsel shouldBe Avkortingsvarsel.Utenlandsopphold.Avkortet(
+                        Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
+                            objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                                id = it.avkortingsvarsel.id,
+                                sakId = sakOppdatertMedSøknad.id,
+                                revurderingId = revurderingSomFørteTilAvkorting.id,
+                                opprettet = it.avkortingsvarsel.opprettet,
+                                simulering = it.avkortingsvarsel.simulering,
+                            ),
+                        ),
+                        behandlingId = iverksattSøknadsbehandlingVedtak.behandling.id,
+                    )
+                }
+        }
+    }
+
+    private fun verifiserUteståendeAvkortingPåSak(
+        sak: Sak,
+        revurderingId: UUID,
+        sakRepo: SakRepo,
+    ) {
+        sakRepo.hentSak(sak.id) shouldBe sak
+        sak.uteståendeAvkorting.shouldBeInstanceOf<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes>().also {
+            it shouldBe Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
+                objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                    id = it.id,
+                    sakId = sak.id,
+                    revurderingId = revurderingId,
+                    simulering = it.simulering,
+                    opprettet = it.opprettet,
+                ),
+            )
         }
     }
 }

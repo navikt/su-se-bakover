@@ -26,7 +26,7 @@ internal class DokumentPostgresRepoTest {
             val dokumentRepo = testDataHelper.databaseRepos.dokumentRepo
 
             val (sak, vedtak, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
-            val revurdering = testDataHelper.persisterRevurderingIverksattInnvilget()
+            val revurdering = testDataHelper.persisterRevurderingIverksattInnvilget().second
             val klage = testDataHelper.persisterKlageOversendt(
                 vedtak = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
                 oppgaveId = oppgaveIdKlage,

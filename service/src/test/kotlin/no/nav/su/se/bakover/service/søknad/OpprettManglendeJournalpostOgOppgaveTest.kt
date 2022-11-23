@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.søknad.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.veileder
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -36,7 +36,7 @@ import org.mockito.kotlin.mock
 import java.util.UUID
 
 class OpprettManglendeJournalpostOgOppgaveTest {
-    private val søknadInnhold = søknadinnhold()
+    private val søknadInnhold = søknadinnholdUføre()
     private val sakId = UUID.randomUUID()
     private val nySøknad = Søknad.Ny(
         sakId = sakId,

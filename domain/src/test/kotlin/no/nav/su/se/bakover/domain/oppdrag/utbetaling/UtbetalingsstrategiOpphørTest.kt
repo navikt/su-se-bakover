@@ -135,8 +135,8 @@ internal class UtbetalingsstrategiOpphørTest {
     fun `rekonstruerer historikk for måneder senere enn nye utbetalinger`() {
         val tikkendeKlokke = TikkendeKlokke(1.januar(2022).fixedClock())
         val (sak, _, _) = iverksattSøknadsbehandlingUføre(
-            stønadsperiode = stønadsperiode2021,
             clock = tikkendeKlokke,
+            stønadsperiode = stønadsperiode2021,
         )
 
         Utbetalingsstrategi.Opphør(
@@ -189,8 +189,8 @@ internal class UtbetalingsstrategiOpphørTest {
     fun `rekonstruerer historikk for måneder senere enn nye utbetalinger - stans`() {
         val tikkendeKlokke = TikkendeKlokke(1.april(2021).fixedClock())
         val (sak, _, vedtak) = iverksattSøknadsbehandlingUføre(
-            stønadsperiode = stønadsperiode2021,
             clock = tikkendeKlokke,
+            stønadsperiode = stønadsperiode2021,
         )
 
         val (sak2, _) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
@@ -250,8 +250,8 @@ internal class UtbetalingsstrategiOpphørTest {
     fun `rekonstruerer historikk for måneder senere enn nye utbetalinger - opphør`() {
         val tikkendeKlokke = TikkendeKlokke(1.februar(2021).fixedClock())
         val (sak, _, vedtak) = iverksattSøknadsbehandlingUføre(
-            stønadsperiode = stønadsperiode2021,
             clock = tikkendeKlokke,
+            stønadsperiode = stønadsperiode2021,
         )
 
         val (sak2, _) = iverksattRevurdering(
@@ -316,8 +316,8 @@ internal class UtbetalingsstrategiOpphørTest {
     fun `rekonstruerer historikk for måneder senere enn nye utbetalinger - reaktivering`() {
         val tikkendeKlokke = TikkendeKlokke(1.april(2021).fixedClock())
         val (sak, _, vedtak) = iverksattSøknadsbehandlingUføre(
-            stønadsperiode = stønadsperiode2021,
             clock = tikkendeKlokke,
+            stønadsperiode = stønadsperiode2021,
         )
 
         val (sak2, stans) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(

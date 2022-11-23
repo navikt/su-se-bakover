@@ -310,19 +310,19 @@ internal class RevurderingLeggTilFormueServiceTest {
     @Test
     fun `når formue blir avslått, og uførhet er det også, får vi feil om at utfallet ikke støttes pga opphør av flere vilkår`() {
         val (sak, opprettet) = opprettetRevurdering(
-            grunnlagsdataOverrides = listOf(
-                Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                    id = UUID.randomUUID(),
-                    opprettet = fixedTidspunkt,
-                    periode = stønadsperiode2021.periode,
-                ),
-            ),
             vilkårOverrides = listOf(
                 avslåttUførevilkårUtenGrunnlag(
                     periode = år(2021),
                 ),
                 formuevilkårIkkeVurdert(),
                 UtenlandsoppholdVilkår.IkkeVurdert,
+            ),
+            grunnlagsdataOverrides = listOf(
+                Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    periode = stønadsperiode2021.periode,
+                ),
             ),
         )
 

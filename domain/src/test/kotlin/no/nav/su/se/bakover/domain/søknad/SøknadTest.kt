@@ -4,7 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.søknadinnhold.ForNav
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.søknad.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.veileder
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -18,7 +18,7 @@ internal class SøknadTest {
             sakId = UUID.randomUUID(),
             id = UUID.randomUUID(),
             opprettet = opprettet,
-            søknadInnhold = søknadinnhold(
+            søknadInnhold = søknadinnholdUføre(
                 forNav = ForNav.DigitalSøknad(),
             ),
             innsendtAv = veileder,
@@ -33,7 +33,7 @@ internal class SøknadTest {
             sakId = UUID.randomUUID(),
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            søknadInnhold = søknadinnhold(
+            søknadInnhold = søknadinnholdUføre(
                 forNav = ForNav.Papirsøknad(
                     mottaksdatoForSøknad = dato,
                     grunnForPapirinnsending = ForNav.Papirsøknad.GrunnForPapirinnsending.Annet,

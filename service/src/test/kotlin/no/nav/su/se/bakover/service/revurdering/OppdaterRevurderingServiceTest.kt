@@ -52,7 +52,7 @@ import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
-import no.nav.su.se.bakover.test.søknad.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vilkår.avslåttFormueVilkår
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
@@ -171,8 +171,8 @@ internal class OppdaterRevurderingServiceTest {
     @Test
     fun `oppdater en revurdering`() {
         val (sak, revurdering) = opprettetRevurdering(
-            revurderingsperiode = stønadsperiodeNesteMånedOgTreMånederFram.periode,
             stønadsperiode = stønadsperiodeNesteMånedOgTreMånederFram,
+            revurderingsperiode = stønadsperiodeNesteMånedOgTreMånederFram.periode,
         )
         RevurderingServiceMocks(
             sakService = mock {
@@ -305,7 +305,7 @@ internal class OppdaterRevurderingServiceTest {
             stønadsperiode = Stønadsperiode.create(januar(2022).rangeTo(desember(2022))),
             sakOgSøknad = sakMedFørstegangsbehandling.first to nySøknadJournalførtMedOppgave(
                 sakId = sakMedFørstegangsbehandling.first.id,
-                søknadInnhold = søknadinnhold(
+                søknadInnhold = søknadinnholdUføre(
                     personopplysninger = Personopplysninger(sakMedFørstegangsbehandling.first.fnr),
                 ),
             ),
@@ -359,8 +359,8 @@ internal class OppdaterRevurderingServiceTest {
         val tikkendeKlokke = TikkendeKlokke()
 
         val sakOgSøknadsvedtak = iverksattSøknadsbehandlingUføre(
-            stønadsperiode = stønadsperiode2021,
             clock = tikkendeKlokke,
+            stønadsperiode = stønadsperiode2021,
         )
 
         val revurderingsperiode = Periode.create(1.oktober(2021), 31.desember(2021))

@@ -27,6 +27,7 @@ fun fradragsgrunnlagArbeidsinntekt(
     periode: Periode = år(2021),
     arbeidsinntekt: Double,
     tilhører: FradragTilhører = FradragTilhører.BRUKER,
+    opprettet: Tidspunkt = fixedTidspunkt,
 ): Grunnlag.Fradragsgrunnlag {
     return lagFradragsgrunnlag(
         id = id,
@@ -35,6 +36,7 @@ fun fradragsgrunnlagArbeidsinntekt(
         periode = periode,
         utenlandskInntekt = null,
         tilhører = tilhører,
+        opprettet = opprettet,
     )
 }
 

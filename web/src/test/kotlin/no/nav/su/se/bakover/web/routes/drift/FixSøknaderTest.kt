@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteJournalpost
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.service.søknad.OpprettManglendeJournalpostOgOppgaveResultat
 import no.nav.su.se.bakover.service.søknad.SøknadService
-import no.nav.su.se.bakover.test.søknad.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.veileder
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
@@ -96,7 +96,7 @@ internal class FixSøknaderTest {
             sakId = sakId,
             journalpostId = JournalpostId("1"),
             opprettet = Tidspunkt.EPOCH,
-            søknadInnhold = søknadinnhold(),
+            søknadInnhold = søknadinnholdUføre(),
             innsendtAv = veileder,
         )
         val journalførtSøknadMedOppgave = Søknad.Journalført.MedOppgave.IkkeLukket(
@@ -104,7 +104,7 @@ internal class FixSøknaderTest {
             sakId = sakId,
             journalpostId = JournalpostId("2"),
             opprettet = Tidspunkt.EPOCH,
-            søknadInnhold = søknadinnhold(),
+            søknadInnhold = søknadinnholdUføre(),
             innsendtAv = veileder,
             oppgaveId = OppgaveId("2"),
         )

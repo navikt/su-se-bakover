@@ -65,6 +65,7 @@ internal class StønadsstatistikkTest {
             sakOgVedtakSomKanRevurderes = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
                 periode = periode,
                 sakOgVedtakSomKanRevurderes = iverksattSøknadsbehandlingUføre(
+                    clock = tikkendeFixedClock,
                     stønadsperiode = Stønadsperiode.create(periode),
                     customVilkår = listOf(
                         innvilgetUførevilkår(
@@ -73,7 +74,6 @@ internal class StønadsstatistikkTest {
                             periode = periode,
                         ),
                     ),
-                    clock = tikkendeFixedClock,
                 ).let { Pair(it.first, it.third as VedtakSomKanRevurderes) },
                 clock = tikkendeFixedClock,
             ),

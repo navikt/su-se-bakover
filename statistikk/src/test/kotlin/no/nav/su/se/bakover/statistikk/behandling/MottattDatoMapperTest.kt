@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.søknad.forNavDigitalSøknad
 import no.nav.su.se.bakover.test.søknad.forNavPapirsøknad
 import no.nav.su.se.bakover.test.søknad.nySakMedNySøknad
-import no.nav.su.se.bakover.test.søknad.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import org.junit.jupiter.api.Test
 
 internal class MottattDatoMapperTest {
@@ -17,7 +17,7 @@ internal class MottattDatoMapperTest {
     fun `mottatt dato settes til dato for mottak av papirsøknad`() {
         val søknad = nySakMedNySøknad(
             clock = fixedClockAt(2.januar(2021)),
-            søknadInnhold = søknadinnhold(
+            søknadInnhold = søknadinnholdUføre(
                 personopplysninger = Personopplysninger(fnr),
                 forNav = forNavPapirsøknad(
                     mottaksdatoForSøknad = 1.januar(2021),
@@ -31,7 +31,7 @@ internal class MottattDatoMapperTest {
     fun `mottatt dato settes til dato for opprettelse av behandling ved digital søknad`() {
         val søknad = nySakMedNySøknad(
             clock = fixedClockAt(1.januar(2021)),
-            søknadInnhold = søknadinnhold(
+            søknadInnhold = søknadinnholdUføre(
                 personopplysninger = Personopplysninger(fnr),
                 forNav = forNavDigitalSøknad(),
             ),

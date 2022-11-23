@@ -92,8 +92,8 @@ internal class AvstemmingPostgresRepoTest {
             val repo = testDataHelper.avstemmingRepo
             val (_, vedtak, utbetaling) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling { (sak, søknad) ->
                 iverksattSøknadsbehandlingUføre(
-                    sakOgSøknad = sak to søknad,
                     clock = ellevteOktoberStart,
+                    sakOgSøknad = sak to søknad,
                 )
             }.also { (_, _, utbetaling) ->
                 utbetaling.avstemmingsnøkkel shouldBe Avstemmingsnøkkel(
@@ -153,8 +153,8 @@ internal class AvstemmingPostgresRepoTest {
             val repo = testDataHelper.avstemmingRepo
             val (_, _, utbetaling1) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling { (sak, søknad) ->
                 iverksattSøknadsbehandlingUføre(
-                    sakOgSøknad = sak to søknad,
                     clock = ellevteOktoberStart,
+                    sakOgSøknad = sak to søknad,
                 )
             }.also { (_, _, utbetaling) ->
                 utbetaling.avstemmingsnøkkel shouldBe Avstemmingsnøkkel(
@@ -164,8 +164,8 @@ internal class AvstemmingPostgresRepoTest {
 
             val (_, _, utbetaling2) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling { (sak, søknad) ->
                 iverksattSøknadsbehandlingUføre(
-                    sakOgSøknad = sak to søknad,
                     clock = ellevteOktoberSlutt,
+                    sakOgSøknad = sak to søknad,
                 )
             }.also { (_, _, utbetaling) ->
                 utbetaling.avstemmingsnøkkel shouldBe Avstemmingsnøkkel(
@@ -428,6 +428,10 @@ internal class AvstemmingPostgresRepoTest {
                 testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling { (sak, søknad) ->
                     iverksattSøknadsbehandlingUføre(
                         sakOgSøknad = sak to søknad,
+                        customGrunnlag = listOf(
+                            fradragsgrunnlagArbeidsinntekt(periode = p1, arbeidsinntekt = 6500.0),
+                            fradragsgrunnlagArbeidsinntekt(periode = p2, arbeidsinntekt = 6500.0),
+                        ),
                         customVilkår = listOf(
                             UføreVilkår.Vurdert.create(
                                 vurderingsperioder = nonEmptyListOf(
@@ -447,10 +451,6 @@ internal class AvstemmingPostgresRepoTest {
                                     ),
                                 ),
                             ),
-                        ),
-                        customGrunnlag = listOf(
-                            fradragsgrunnlagArbeidsinntekt(periode = p1, arbeidsinntekt = 6500.0),
-                            fradragsgrunnlagArbeidsinntekt(periode = p2, arbeidsinntekt = 6500.0),
                         ),
                     )
                 }

@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.domain.søknadinnhold.OppgittAdresse
 import no.nav.su.se.bakover.domain.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.fnrOver67
 import no.nav.su.se.bakover.test.fnrUnder67
 import no.nav.su.se.bakover.test.getOrFail
@@ -33,7 +32,7 @@ class SøknadPdfInnholdJsonTest {
         søknadOpprettet: Tidspunkt = 1.januar(2021).startOfDay(),
         fnr: Fnr = fnrUnder67,
         epsFnr: Fnr = fnrOver67,
-        søknadInnhold: SøknadInnhold = no.nav.su.se.bakover.test.søknad.søknadinnhold(
+        søknadInnhold: SøknadInnhold = no.nav.su.se.bakover.test.søknad.søknadinnholdUføre(
             personopplysninger = Personopplysninger(fnr),
             boforhold = boforhold(
                 ektefellePartnerSamboer = EktefellePartnerSamboer(
@@ -206,7 +205,7 @@ class SøknadPdfInnholdJsonTest {
     @Test
     fun `søker bor på annen adresse matcher json`() {
         val søknadPdfInnhold = søknadPdfInnhold(
-            søknadInnhold = no.nav.su.se.bakover.test.søknad.søknadinnhold(
+            søknadInnhold = no.nav.su.se.bakover.test.søknad.søknadinnholdUføre(
                 personopplysninger = Personopplysninger(fnrUnder67),
                 boforhold = Boforhold.tryCreate(
                     borOgOppholderSegINorge = true,
@@ -378,7 +377,7 @@ class SøknadPdfInnholdJsonTest {
     @Test
     fun `søker oppgir adresse matcher json`() {
         val søknadPdfInnhold = søknadPdfInnhold(
-            søknadInnhold = no.nav.su.se.bakover.test.søknad.søknadinnhold(
+            søknadInnhold = no.nav.su.se.bakover.test.søknad.søknadinnholdUføre(
                 personopplysninger = Personopplysninger(fnrUnder67),
                 boforhold = Boforhold.tryCreate(
                     borOgOppholderSegINorge = true,

@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
-import no.nav.su.se.bakover.test.søknad.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
@@ -72,20 +72,20 @@ internal class GjeldendeVedtaksdataTest {
         val tikkendeKlokke = TikkendeKlokke(fixedClock)
 
         val (sak, _, førstegangsvedtak) = iverksattSøknadsbehandlingUføre(
-            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.mars(2021))),
             clock = tikkendeKlokke,
+            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.mars(2021))),
         )
 
         val (sak2, _, nyStønadsperiode) = iverksattSøknadsbehandlingUføre(
+            clock = tikkendeKlokke,
+            stønadsperiode = Stønadsperiode.create(Periode.create(1.mai(2021), 31.desember(2021))),
             sakOgSøknad = sak to nySøknadJournalførtMedOppgave(
                 clock = tikkendeKlokke,
                 sakId = sak.id,
-                søknadInnhold = søknadinnhold(
+                søknadInnhold = søknadinnholdUføre(
                     personopplysninger = Personopplysninger(sak.fnr),
                 ),
             ),
-            stønadsperiode = Stønadsperiode.create(Periode.create(1.mai(2021), 31.desember(2021))),
-            clock = tikkendeKlokke,
         )
         val data = sak2.kopierGjeldendeVedtaksdata(
             fraOgMed = førstegangsvedtak.periode.fraOgMed,

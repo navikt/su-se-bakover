@@ -110,6 +110,11 @@ internal class VedtakstidslinjeTest {
 
         val (sak, _, vedtak) = iverksattSøknadsbehandlingUføre(
             stønadsperiode = Stønadsperiode.create(periode),
+            customGrunnlag = listOf(
+                bosituasjon,
+                f1,
+                f2,
+            ),
             customVilkår = listOf(
                 UføreVilkår.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
@@ -120,11 +125,6 @@ internal class VedtakstidslinjeTest {
                 utenlandsoppholdInnvilget(periode = periode),
                 tilstrekkeligDokumentert(periode = periode),
                 lovligOppholdVilkårInnvilget(),
-            ),
-            customGrunnlag = listOf(
-                bosituasjon,
-                f1,
-                f2,
             ),
         )
 
@@ -521,8 +521,8 @@ internal class VedtakstidslinjeTest {
     fun `vedtak som overskrives av nye er ikke synlige på tidslinjen`() {
         val tikkendeKlokke = TikkendeKlokke(fixedClock)
         val (sak, _, første) = iverksattSøknadsbehandlingUføre(
-            stønadsperiode = Stønadsperiode.create(år(2021)),
             clock = tikkendeKlokke,
+            stønadsperiode = Stønadsperiode.create(år(2021)),
         )
 
         val (sakMedToVedtak, andre) = vedtakRevurdering(

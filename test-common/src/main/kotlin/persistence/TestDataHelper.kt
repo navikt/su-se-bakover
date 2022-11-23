@@ -86,7 +86,7 @@ import no.nav.su.se.bakover.test.iverksattStansAvYtelseFraIverksattSøknadsbehan
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.kvittering
-import no.nav.su.se.bakover.test.nySøknadsbehandling
+import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
@@ -103,7 +103,7 @@ import no.nav.su.se.bakover.test.simulertSøknadsbehandling
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.journalpostIdSøknad
 import no.nav.su.se.bakover.test.søknad.oppgaveIdSøknad
-import no.nav.su.se.bakover.test.søknad.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.tilAttesteringSøknadsbehandling
 import no.nav.su.se.bakover.test.trekkSøknad
@@ -161,7 +161,7 @@ class TestDataHelper(
         sakId: UUID = UUID.randomUUID(),
         søknadId: UUID = UUID.randomUUID(),
         fnr: Fnr = Fnr.generer(),
-        søknadInnhold: SøknadInnhold = søknadinnhold(),
+        søknadInnhold: SøknadInnhold = søknadinnholdUføre(),
         søknadInnsendtAv: NavIdentBruker = veileder,
     ): NySak {
         return SakFactory(
@@ -188,7 +188,7 @@ class TestDataHelper(
     fun persisterSøknadUtenJournalføringOgOppgavePåEksisterendeSak(
         sakId: UUID,
         søknadId: UUID = UUID.randomUUID(),
-        søknadInnhold: SøknadInnhold = søknadinnhold(),
+        søknadInnhold: SøknadInnhold = søknadinnholdUføre(),
         identBruker: NavIdentBruker = veileder,
     ): Søknad.Ny {
         return Søknad.Ny(
@@ -209,7 +209,7 @@ class TestDataHelper(
         søknadId: UUID = UUID.randomUUID(),
         fnr: Fnr = Fnr.generer(),
         journalpostId: JournalpostId = journalpostIdSøknad,
-        søknadInnhold: SøknadsinnholdUføre = søknadinnhold(),
+        søknadInnhold: SøknadsinnholdUføre = søknadinnholdUføre(),
     ): Søknad.Journalført.MedOppgave.Lukket {
         return persisterJournalførtSøknadMedOppgave(
             sakId = sakId,
@@ -234,7 +234,7 @@ class TestDataHelper(
         søknadId: UUID = UUID.randomUUID(),
         fnr: Fnr = Fnr.generer(),
         journalpostId: JournalpostId = journalpostIdSøknad,
-        søknadInnhold: SøknadInnhold = søknadinnhold(),
+        søknadInnhold: SøknadInnhold = søknadinnholdUføre(),
     ): Pair<Sak, Søknad.Journalført.UtenOppgave> {
         val nySak: NySak = persisterSakMedSøknadUtenJournalføringOgOppgave(
             fnr = fnr,
@@ -256,7 +256,7 @@ class TestDataHelper(
         sakId: UUID,
         søknadId: UUID = UUID.randomUUID(),
         journalpostId: JournalpostId = journalpostIdSøknad,
-        søknadInnhold: SøknadInnhold = søknadinnhold(),
+        søknadInnhold: SøknadInnhold = søknadinnholdUføre(),
     ): Søknad.Journalført.UtenOppgave {
         return persisterSøknadUtenJournalføringOgOppgavePåEksisterendeSak(
             sakId = sakId,
@@ -276,7 +276,7 @@ class TestDataHelper(
         fnr: Fnr = Fnr.generer(),
         oppgaveId: OppgaveId = oppgaveIdSøknad,
         journalpostId: JournalpostId = journalpostIdSøknad,
-        søknadInnhold: SøknadInnhold = søknadinnhold(),
+        søknadInnhold: SøknadInnhold = søknadinnholdUføre(),
     ): Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> {
         return databaseRepos.sak.hentSak(sakId).let {
             if (it == null) {
@@ -314,8 +314,8 @@ class TestDataHelper(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, Søknadsbehandling.Iverksatt, Stønadsvedtak> = { (sak, søknad) ->
             iverksattSøknadsbehandlingUføre(
-                sakOgSøknad = sak to søknad,
                 clock = clock,
+                sakOgSøknad = sak to søknad,
             )
         },
     ): Triple<Sak, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, Utbetaling.OversendtUtbetaling.MedKvittering> {
@@ -540,6 +540,7 @@ class TestDataHelper(
         }
     }
 
+    @Suppress("MemberVisibilityCanBePrivate")
     fun persisterRevurderingTilAttestering(
         sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
@@ -556,6 +557,9 @@ class TestDataHelper(
         }
     }
 
+    /**
+     * Oppretter sak, søknad og søknadsbehandlingsvedtak dersom dette ikke sendes eksplisitt inn.
+     */
     fun persisterIverksattRevurdering(
         sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
@@ -667,12 +671,16 @@ class TestDataHelper(
         }
     }
 
+    /**
+     * Oppretter sak, søknad og søknadsbehandlingsvedtak dersom dette ikke sendes eksplisitt inn.
+     */
     fun persisterRevurderingIverksattInnvilget(
         sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
-    ): IverksattRevurdering.Innvilget {
-        return persisterIverksattRevurdering(sakOgVedtak).second as IverksattRevurdering.Innvilget
+    ): Triple<Sak, IverksattRevurdering.Innvilget, Utbetaling?> {
+        @Suppress("UNCHECKED_CAST")
+        return persisterIverksattRevurdering(sakOgVedtak) as Triple<Sak, IverksattRevurdering.Innvilget, Utbetaling?>
     }
 
     fun persisterRevurderingIverksattOpphørt(
@@ -845,6 +853,7 @@ class TestDataHelper(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, Søknadsbehandling.Iverksatt, Stønadsvedtak> = { (sak, søknad) ->
             iverksattSøknadsbehandlingUføre(
+                clock = clock,
                 sakInfo = SakInfo(
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
@@ -852,7 +861,6 @@ class TestDataHelper(
                     type = sak.type,
                 ),
                 sakOgSøknad = sak to søknad,
-                clock = clock,
                 customVilkår = listOf(
                     personligOppmøtevilkårAvslag(),
                 ),
@@ -892,7 +900,7 @@ class TestDataHelper(
     fun persisterSøknadsbehandlingVilkårsvurdertUavklart(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> = { (sak, søknad) ->
-            nySøknadsbehandling(
+            nySøknadsbehandlingMedStønadsperiode(
                 sakOgSøknad = sak to søknad,
                 clock = clock,
             )
@@ -1068,6 +1076,7 @@ class TestDataHelper(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, Søknadsbehandling.Iverksatt, Stønadsvedtak> = { (sak, søknad) ->
             iverksattSøknadsbehandlingUføre(
+                clock = clock,
                 sakInfo = SakInfo(
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
@@ -1075,7 +1084,6 @@ class TestDataHelper(
                     type = sak.type,
                 ),
                 sakOgSøknad = sak to søknad,
-                clock = clock,
             )
         },
     ): Triple<Sak, Søknadsbehandling.Iverksatt, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling> {
@@ -1213,7 +1221,7 @@ class TestDataHelper(
                 clock = clock,
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 saksbehandler = saksbehandler,
-            ).getOrFail().let {
+            ).getOrFail().second.let {
                 databaseRepos.søknadsbehandling.lagre(it)
                 assert(it.fnr == sak.fnr && it.sakId == sakId)
                 Pair(databaseRepos.sak.hentSak(sakId)!!, it as Søknadsbehandling.Vilkårsvurdert.Uavklart)

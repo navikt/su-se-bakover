@@ -5,7 +5,7 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.søknad.nySøknad
-import no.nav.su.se.bakover.test.søknad.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.veileder
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -30,7 +30,7 @@ class HentSøknadTest {
         val søknad = nySøknad(
             clock = fixedClock,
             sakId = UUID.randomUUID(),
-            søknadInnhold = søknadinnhold(),
+            søknadInnhold = søknadinnholdUføre(),
             søknadInnsendtAv = veileder,
         )
 

@@ -237,8 +237,8 @@ internal class RevurderingPostgresRepoTest {
                         fnr = sak.fnr,
                         type = sak.type,
                     ),
-                    sakOgSøknad = sak to søknad,
                     stønadsperiode = stønadsperiode2021,
+                    sakOgSøknad = sak to søknad,
                 )
             }
             val (_, _, etAnnetVedtak) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilget(
@@ -246,8 +246,8 @@ internal class RevurderingPostgresRepoTest {
             ) { (sak, søknad) ->
                 iverksattSøknadsbehandlingUføre(
                     sakInfo = sak.info(),
-                    sakOgSøknad = sak to søknad,
                     stønadsperiode = stønadsperiode2022,
+                    sakOgSøknad = sak to søknad,
                 )
             }
 
@@ -438,7 +438,7 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo as RevurderingPostgresRepo
-            val iverksatt = testDataHelper.persisterRevurderingIverksattInnvilget()
+            val iverksatt = testDataHelper.persisterRevurderingIverksattInnvilget().second
 
             repo.hent(iverksatt.id) shouldBe iverksatt
             dataSource.withSession {
