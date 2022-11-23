@@ -26,11 +26,14 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.revurderingId
+import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.revurdering.attestering.sendTilAttestering
 import no.nav.su.se.bakover.web.revurdering.avgjørTilbakekreving
 import no.nav.su.se.bakover.web.revurdering.beregnOgSimuler
+import no.nav.su.se.bakover.web.revurdering.brevvalg.velgIkkeSendBrev
 import no.nav.su.se.bakover.web.revurdering.brevvalg.velgSendBrev
 import no.nav.su.se.bakover.web.revurdering.fradrag.leggTilFradrag
 import no.nav.su.se.bakover.web.revurdering.iverksett.iverksett
@@ -357,8 +360,58 @@ class TilbakekrevingKomponentTest {
         }
     }
 
+    @Test
+    fun `kan velge å ikke sende ut brev for tilbakekrevingsvedtak`() {
+        val clock = TikkendeKlokke(1.oktober(2021).fixedClock())
+        withKomptestApplication(
+            clock = clock,
+        ) { appComponents ->
+            val (_, revurderingId) = vedtakMedTilbakekreving(
+                avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV,
+                brevvalg = { sakId, revurderingId ->
+                    velgIkkeSendBrev(
+                        sakId = sakId,
+                        behandlingId = revurderingId,
+                    )
+                },
+            )
+
+            val vedtak = appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
+                .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>().also {
+                    it.behandling.tilbakekrevingsbehandling.shouldBeType<AvventerKravgrunnlag>()
+                }
+
+            appComponents.consumers.tilbakekrevingConsumer.onMessage(
+                lagKravgrunnlag(vedtak) {
+                    lagKravgrunnlagPerioder(
+                        mai(2021).until(oktober(2021)).map {
+                            Feilutbetaling(
+                                måned = it,
+                                gammelUtbetaling = 21989,
+                                nyUtbetaling = 3681,
+                            )
+                        },
+                    )
+                },
+            )
+
+            appComponents.sendTilbakekrevingsvedtakTilØkonomi()
+
+            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtak.id)) shouldBe emptyList()
+            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Revurdering(vedtak.behandling.id)) shouldBe emptyList()
+            appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
+                .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>().behandling.tilbakekrevingsbehandling.shouldBeType<SendtTilbakekrevingsvedtak>()
+        }
+    }
+
     private fun ApplicationTestBuilder.vedtakMedTilbakekreving(
         avgjørelse: TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson,
+        brevvalg: (sakId: String, revurderingId: String) -> String = { sakId, revurderingId ->
+            velgSendBrev(
+                sakId = sakId,
+                behandlingId = revurderingId,
+            )
+        },
     ): Pair<String, String> {
         return opprettInnvilgetSøknadsbehandling(
             fnr = Fnr.generer().toString(),
@@ -402,9 +455,9 @@ class TilbakekrevingKomponentTest {
                 sakId = sakId,
                 behandlingId = revurderingId,
             )
-            velgSendBrev(
-                sakId = sakId,
-                behandlingId = revurderingId,
+            brevvalg(
+                sakId,
+                revurderingId,
             )
             avgjørTilbakekreving(
                 sakId = sakId,
