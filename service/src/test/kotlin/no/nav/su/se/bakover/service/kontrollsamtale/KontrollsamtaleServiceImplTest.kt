@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrev
@@ -20,6 +21,7 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.gjennomførtKontrollsamtale
 import no.nav.su.se.bakover.test.innkaltKontrollsamtale
@@ -271,11 +273,11 @@ internal class KontrollsamtaleServiceImplTest {
             sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn søknadsbehandlingIverksattInnvilget().first.right()
             },
-            clock = fixedClock,
+            clock = fixedClockAt(1.januar(2022)),
         )
         services.kontrollsamtaleService.nyDato(
             sak.id,
-            fixedLocalDate.plusMonths(2),
+            1.januar(2022),
         ) shouldBe KunneIkkeSetteNyDatoForKontrollsamtale.FantIkkeGjeldendeStønadsperiode.left()
 
         verify(services.sakService).hentSak(any<UUID>())

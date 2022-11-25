@@ -30,7 +30,6 @@ import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB.Companion.status
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -357,51 +356,6 @@ internal class SøknadsbehandlingPostgresRepo(
                 )
             }
             else -> { /*noop*/ }
-        }
-    }
-
-    override fun lagreAvslagManglendeDokumentasjon(
-        avslag: AvslagManglendeDokumentasjon,
-        sessionContext: TransactionContext,
-    ) {
-        dbMetrics.timeQuery("lagreAvslagManglendeDokumentasjon") {
-            sessionContext.withTransaction { tx ->
-                (
-                    """
-                    update behandling set
-                        saksbehandler = :saksbehandler,
-                        attestering = to_json(:attestering::json),
-                        fritekstTilBrev = :fritekstTilBrev,
-                        stønadsperiode = to_json(:stonadsperiode::json),
-                        status = :status,
-                        beregning = :beregning,
-                        simulering = :simulering,
-                        avkorting = to_json(:avkorting::json)
-                    where id = :id
-                    """.trimIndent()
-                    ).insert(
-                    params = avslag.søknadsbehandling.let {
-                        mapOf(
-                            "saksbehandler" to it.saksbehandler,
-                            "attestering" to it.attesteringer.serialize(),
-                            "fritekstTilBrev" to it.fritekstTilBrev,
-                            "stonadsperiode" to serialize(it.stønadsperiode),
-                            "status" to it.status().toString(),
-                            "id" to it.id,
-                            "beregning" to null,
-                            "simulering" to null,
-                            "avkorting" to serialize(it.avkorting.toDb()),
-                        )
-                    },
-                    session = tx,
-                )
-
-                grunnlagsdataOgVilkårsvurderingerPostgresRepo.lagre(
-                    behandlingId = avslag.søknadsbehandling.id,
-                    grunnlagsdataOgVilkårsvurderinger = avslag.søknadsbehandling.grunnlagsdataOgVilkårsvurderinger,
-                    tx = tx,
-                )
-            }
         }
     }
 

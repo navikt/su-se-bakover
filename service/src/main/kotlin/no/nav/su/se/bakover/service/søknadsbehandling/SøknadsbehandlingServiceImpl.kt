@@ -8,8 +8,8 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
-import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
@@ -49,7 +49,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeOpprette
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeUnderkjenne
@@ -114,26 +113,37 @@ internal class SøknadsbehandlingServiceImpl(
 
     fun getObservers(): List<StatistikkEventObserver> = observers.toList()
 
-    override fun opprett(request: OpprettRequest): Either<KunneIkkeOpprette, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
-        val sak = sakService.hentSak(request.sakId)
-            .getOrHandle { return KunneIkkeOpprette.FantIkkeSak.left() }
+    /**
+     * Sideeffekter:
+     * - søknadsbehandlingen persisteres.
+     * - det sendes statistikk
+     *
+     * @param hentSak Mulighet for å sende med en funksjon som henter en sak, default er null, som gjør at saken hentes på nytt fra persisteringslaget basert på request.sakId.
+     */
+    override fun opprett(
+        request: OpprettRequest,
+        hentSak: (() -> Sak)?,
+    ): Either<Sak.KunneIkkeOppretteSøknadsbehandling, Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart>> {
+        val sakId = request.sakId
+        val sak = hentSak?.let { it() } ?: sakService.hentSak(sakId)
+            .getOrHandle { throw IllegalArgumentException("Fant ikke sak $sakId") }
 
-        return sak.opprettNySøknadsbehandling(søknadId = request.søknadId, clock = clock, request.saksbehandler)
-            .mapLeft {
-                return KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling(it).left()
-            }.map { nySøknadsbehandling ->
-                søknadsbehandlingRepo.lagreNySøknadsbehandling(nySøknadsbehandling)
+        require(sak.id == sakId) { "sak.id ${sak.id} må være lik request.sakId $sakId" }
 
-                // Må hente fra db for å få joinet med saksnummer.
-                return (søknadsbehandlingRepo.hent(nySøknadsbehandling.id)!! as Søknadsbehandling.Vilkårsvurdert.Uavklart).let {
-                    observers.forEach { observer ->
-                        observer.handle(
-                            StatistikkEvent.Behandling.Søknad.Opprettet(it, request.saksbehandler),
-                        )
-                    }
-                    it.right()
-                }
-            }
+        return sak.opprettNySøknadsbehandling(
+            søknadId = request.søknadId,
+            clock = clock,
+            saksbehandler = request.saksbehandler,
+        ).map { (sak, nySøknadsbehandling, uavklartSøknadsbehandling) ->
+            søknadsbehandlingRepo.lagreNySøknadsbehandling(nySøknadsbehandling)
+            observers.notify(
+                StatistikkEvent.Behandling.Søknad.Opprettet(
+                    uavklartSøknadsbehandling,
+                    request.saksbehandler,
+                ),
+            )
+            Pair(sak, uavklartSøknadsbehandling)
+        }
     }
 
     override fun beregn(request: BeregnRequest): Either<KunneIkkeBeregne, Søknadsbehandling.Beregnet> {
@@ -537,10 +547,6 @@ internal class SøknadsbehandlingServiceImpl(
 
     override fun persisterSøknadsbehandling(lukketSøknadbehandling: LukketSøknadsbehandling, tx: TransactionContext) {
         søknadsbehandlingRepo.lagre(lukketSøknadbehandling, tx)
-    }
-
-    override fun lagre(avslag: AvslagManglendeDokumentasjon, tx: TransactionContext) {
-        return søknadsbehandlingRepo.lagreAvslagManglendeDokumentasjon(avslag, tx)
     }
 
     override fun leggTilUtenlandsopphold(

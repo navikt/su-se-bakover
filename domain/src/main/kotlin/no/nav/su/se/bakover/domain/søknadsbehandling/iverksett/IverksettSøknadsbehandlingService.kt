@@ -5,8 +5,17 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 
-fun interface IverksettSøknadsbehandlingService {
-    fun iverksett(
-        command: IverksettSøknadsbehandlingCommand,
-    ): Either<KunneIkkeIverksetteSøknadsbehandling, Triple<Sak, Søknadsbehandling.Iverksatt, Stønadsvedtak>>
+interface IverksettSøknadsbehandlingService {
+    /**
+     * Tiltenkt å kalles fra web-laget.
+     * Utfører både domenedelen og sideeffekter.
+     */
+    fun iverksett(command: IverksettSøknadsbehandlingCommand): Either<KunneIkkeIverksetteSøknadsbehandling, Triple<Sak, Søknadsbehandling.Iverksatt, Stønadsvedtak>>
+
+    /**
+     * Utfører kun sideeffekter.
+     * Kaster dersom noe kritisk går galt; logger ellers (oppgave + statistikk)
+     * Tiltenkt å kalles fra andre servicer.
+     */
+    fun iverksett(iverksattSøknadsbehandlingResponse: IverksattSøknadsbehandlingResponse<*>)
 }

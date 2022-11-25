@@ -20,7 +20,7 @@ internal class VedtakServiceImpl(
         return vedtakRepo.lagre(vedtak)
     }
 
-    override fun lagre(vedtak: Vedtak, sessionContext: TransactionContext) {
+    override fun lagreITransaksjon(vedtak: Vedtak, sessionContext: TransactionContext) {
         return vedtakRepo.lagreITransaksjon(vedtak, sessionContext)
     }
 

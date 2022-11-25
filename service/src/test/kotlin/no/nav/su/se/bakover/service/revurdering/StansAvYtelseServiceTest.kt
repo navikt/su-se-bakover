@@ -283,7 +283,7 @@ internal class StansAvYtelseServiceTest {
                 }.whenever(it).klargjørUtbetaling(any(), any())
             },
             vedtakService = mock {
-                doNothing().whenever(it).lagre(any(), any())
+                doNothing().whenever(it).lagreITransaksjon(any(), any())
             },
             clock = tikkendeKlokke,
         )
@@ -314,7 +314,7 @@ internal class StansAvYtelseServiceTest {
             revurdering = argThat { it shouldBe response },
             transactionContext = argThat { TestSessionFactory.transactionContext },
         )
-        verify(serviceAndMocks.vedtakService).lagre(
+        verify(serviceAndMocks.vedtakService).lagreITransaksjon(
             vedtak = argThat { it.shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse>() },
             sessionContext = argThat { TestSessionFactory.transactionContext },
         )

@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.brev.HentDokumenterForIdType
@@ -133,7 +132,12 @@ import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattSøknadsbehandlingResponse
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
+import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.FullførBosituasjonRequest
@@ -175,10 +179,7 @@ import no.nav.su.se.bakover.service.kontrollsamtale.UtløptFristForKontrollsamta
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.service.skatt.SkatteService
-import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
-import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
-import no.nav.su.se.bakover.service.søknad.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.OpprettManglendeJournalpostOgOppgaveResultat
@@ -472,15 +473,25 @@ open class AccessCheckProxy(
             },
             toggles = services.toggles,
             søknadsbehandling = SøknadsbehandlingServices(
-                iverksettSøknadsbehandlingService = {
-                    assertHarTilgangTilBehandling(it.behandlingId)
-                    services.søknadsbehandling.iverksettSøknadsbehandlingService.iverksett(it)
+                iverksettSøknadsbehandlingService = object : IverksettSøknadsbehandlingService {
+
+                    override fun iverksett(command: IverksettSøknadsbehandlingCommand): Either<KunneIkkeIverksetteSøknadsbehandling, Triple<Sak, Søknadsbehandling.Iverksatt, Stønadsvedtak>> {
+                        assertHarTilgangTilBehandling(command.behandlingId)
+                        return services.søknadsbehandling.iverksettSøknadsbehandlingService.iverksett(command)
+                    }
+
+                    override fun iverksett(iverksattSøknadsbehandlingResponse: IverksattSøknadsbehandlingResponse<*>) {
+                        kastKanKunKallesFraAnnenService()
+                    }
                 },
                 søknadsbehandlingService = object : SøknadsbehandlingService {
                     val service = services.søknadsbehandling.søknadsbehandlingService
-                    override fun opprett(request: SøknadsbehandlingService.OpprettRequest): Either<SøknadsbehandlingService.KunneIkkeOpprette, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
+                    override fun opprett(
+                        request: SøknadsbehandlingService.OpprettRequest,
+                        hentSak: (() -> Sak)?,
+                    ): Either<Sak.KunneIkkeOppretteSøknadsbehandling, Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart>> {
                         assertHarTilgangTilSøknad(request.søknadId)
-                        return service.opprett(request)
+                        return service.opprett(request, hentSak)
                     }
 
                     override fun beregn(request: SøknadsbehandlingService.BeregnRequest): Either<SøknadsbehandlingService.KunneIkkeBeregne, Søknadsbehandling.Beregnet> {
@@ -578,11 +589,6 @@ open class AccessCheckProxy(
 
                     override fun persisterSøknadsbehandling(
                         lukketSøknadbehandling: LukketSøknadsbehandling,
-                        tx: TransactionContext,
-                    ) = kastKanKunKallesFraAnnenService()
-
-                    override fun lagre(
-                        avslag: AvslagManglendeDokumentasjon,
                         tx: TransactionContext,
                     ) = kastKanKunKallesFraAnnenService()
 
@@ -886,7 +892,7 @@ open class AccessCheckProxy(
             object : VedtakService {
                 override fun lagre(vedtak: Vedtak) = kastKanKunKallesFraAnnenService()
 
-                override fun lagre(
+                override fun lagreITransaksjon(
                     vedtak: Vedtak,
                     sessionContext: TransactionContext,
                 ) = kastKanKunKallesFraAnnenService()
@@ -909,12 +915,9 @@ open class AccessCheckProxy(
                     return services.nøkkeltallService.hentNøkkeltall()
                 }
             },
-            avslåSøknadManglendeDokumentasjonService =
-            object : AvslåSøknadManglendeDokumentasjonService {
-                override fun avslå(request: AvslåManglendeDokumentasjonRequest): Either<KunneIkkeAvslåSøknad, Sak> {
-                    assertHarTilgangTilSøknad(request.søknadId)
-                    return services.avslåSøknadManglendeDokumentasjonService.avslå(request)
-                }
+            avslåSøknadManglendeDokumentasjonService = {
+                assertHarTilgangTilSøknad(it.søknadId)
+                services.avslåSøknadManglendeDokumentasjonService.avslå(it)
             },
             kontrollsamtale =
             object : KontrollsamtaleService {

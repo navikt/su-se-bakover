@@ -534,39 +534,38 @@ data class Sak(
             ?: FantIkkeSøknadsbehandlingForSøknad.left()
     }
 
-    sealed interface KunneIkkeOppretteSøknad {
-        object FantIkkeSøknad : KunneIkkeOppretteSøknad
-        object HarÅpenBehandling : KunneIkkeOppretteSøknad
-        object ErLukket : KunneIkkeOppretteSøknad
-        object ManglerOppgave : KunneIkkeOppretteSøknad
-        object HarAlleredeBehandling : KunneIkkeOppretteSøknad
+    sealed interface KunneIkkeOppretteSøknadsbehandling {
+        object HarÅpenBehandling : KunneIkkeOppretteSøknadsbehandling
+        object ErLukket : KunneIkkeOppretteSøknadsbehandling
+        object ManglerOppgave : KunneIkkeOppretteSøknadsbehandling
+        object HarAlleredeBehandling : KunneIkkeOppretteSøknadsbehandling
     }
 
     fun opprettNySøknadsbehandling(
         søknadId: UUID,
         clock: Clock,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeOppretteSøknad, NySøknadsbehandling> = if (!kanOppretteBehandling()) {
-        KunneIkkeOppretteSøknad.HarÅpenBehandling.left()
-    } else {
+    ): Either<KunneIkkeOppretteSøknadsbehandling, Triple<Sak, NySøknadsbehandling, Søknadsbehandling.Vilkårsvurdert.Uavklart>> {
+        if (!kanOppretteBehandling()) {
+            return KunneIkkeOppretteSøknadsbehandling.HarÅpenBehandling.left()
+        }
         val søknad = hentSøknad(søknadId).fold(
-            ifLeft = { return KunneIkkeOppretteSøknad.FantIkkeSøknad.left() },
+            ifLeft = { throw IllegalArgumentException("Fant ikke søknad $søknadId") },
             ifRight = {
                 if (it is Søknad.Journalført.MedOppgave.Lukket) {
-                    return KunneIkkeOppretteSøknad.ErLukket.left()
+                    return KunneIkkeOppretteSøknadsbehandling.ErLukket.left()
                 }
                 if (it !is Søknad.Journalført.MedOppgave) {
                     // TODO Prøv å opprette oppgaven hvis den mangler? (systembruker blir kanskje mest riktig?)
-                    return KunneIkkeOppretteSøknad.ManglerOppgave.left()
+                    return KunneIkkeOppretteSøknadsbehandling.ManglerOppgave.left()
                 }
                 if (hentSøknadsbehandlingForSøknad(søknadId).isNotEmpty()) {
-                    return KunneIkkeOppretteSøknad.HarAlleredeBehandling.left()
+                    return KunneIkkeOppretteSøknadsbehandling.HarAlleredeBehandling.left()
                 }
                 it
             },
         )
-
-        NySøknadsbehandling(
+        return NySøknadsbehandling(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
             sakId = this.id,
@@ -576,7 +575,16 @@ data class Sak(
             avkorting = this.hentUteståendeAvkortingForSøknadsbehandling().fold({ it }, { it }).kanIkke(),
             sakstype = søknad.type,
             saksbehandler = saksbehandler,
-        ).right()
+        ).let { nySøknadsbehandling ->
+            val søknadsbehandling = nySøknadsbehandling.toSøknadsbehandling(this.saksnummer)
+            Triple(
+                this.copy(
+                    søknadsbehandlinger = this.søknadsbehandlinger + søknadsbehandling,
+                ),
+                nySøknadsbehandling,
+                søknadsbehandling,
+            ).right()
+        }
     }
 
     internal fun kontrollerAtUteståendeAvkortingRevurderes(

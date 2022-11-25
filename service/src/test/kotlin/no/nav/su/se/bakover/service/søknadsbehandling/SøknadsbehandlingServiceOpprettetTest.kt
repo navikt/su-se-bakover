@@ -2,8 +2,10 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.left
 import arrow.core.right
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -52,14 +54,15 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                 on { hentSak(any<UUID>()) } doReturn nySakUføre(fixedClock).first.right()
             },
         ).also {
-            it.søknadsbehandlingService.opprett(
-                SøknadsbehandlingService.OpprettRequest(
-                    søknadId = UUID.randomUUID(),
-                    sakId = sakId,
-                    saksbehandler = saksbehandler,
-                ),
-            ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling(Sak.KunneIkkeOppretteSøknad.FantIkkeSøknad)
-                .left()
+            shouldThrow<IllegalArgumentException> {
+                it.søknadsbehandlingService.opprett(
+                    SøknadsbehandlingService.OpprettRequest(
+                        søknadId = UUID.randomUUID(),
+                        sakId = sakId,
+                        saksbehandler = saksbehandler,
+                    ),
+                )
+            }.message shouldContain "Fant ikke søknad"
         }
     }
 
@@ -76,8 +79,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                     sakId = sak.id,
                     saksbehandler = saksbehandler,
                 ),
-            ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling(Sak.KunneIkkeOppretteSøknad.ErLukket)
-                .left()
+            ) shouldBe Sak.KunneIkkeOppretteSøknadsbehandling.ErLukket.left()
         }
     }
 
@@ -96,8 +98,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                     sakId = sak.id,
                     saksbehandler = saksbehandler,
                 ),
-            ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling(Sak.KunneIkkeOppretteSøknad.ManglerOppgave)
-                .left()
+            ) shouldBe Sak.KunneIkkeOppretteSøknadsbehandling.ManglerOppgave.left()
         }
     }
 
@@ -116,8 +117,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                     sakId = sak.id,
                     saksbehandler = saksbehandler,
                 ),
-            ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling(Sak.KunneIkkeOppretteSøknad.HarAlleredeBehandling)
-                .left()
+            ) shouldBe Sak.KunneIkkeOppretteSøknadsbehandling.HarAlleredeBehandling.left()
         }
     }
 
@@ -146,8 +146,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                     sakId = nySøknad.sakId,
                     saksbehandler = saksbehandler,
                 ),
-            ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling(Sak.KunneIkkeOppretteSøknad.HarÅpenBehandling)
-                .left()
+            ) shouldBe Sak.KunneIkkeOppretteSøknadsbehandling.HarÅpenBehandling.left()
         }
     }
 
@@ -183,7 +182,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                 sakId = sak.id,
                 saksbehandler = saksbehandler,
             ),
-        ).getOrFail().shouldBeEqualToIgnoringFields(
+        ).getOrFail().second.shouldBeEqualToIgnoringFields(
             Søknadsbehandling.Vilkårsvurdert.Uavklart(
                 id = capturedSøknadsbehandling.firstValue.id,
                 opprettet = capturedSøknadsbehandling.firstValue.opprettet,
@@ -220,11 +219,6 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                 )
             },
         )
-
-        verify(søknadsbehandlingRepoMock).hent(
-            argThat { it shouldBe capturedSøknadsbehandling.firstValue.id },
-        )
-        verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe capturedSøknadsbehandling.firstValue.id })
         verify(serviceAndMocks.observer).handle(
             argThat {
                 it shouldBe StatistikkEvent.Behandling.Søknad.Opprettet(

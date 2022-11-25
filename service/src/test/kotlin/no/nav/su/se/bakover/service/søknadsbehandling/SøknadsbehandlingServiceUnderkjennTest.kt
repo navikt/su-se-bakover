@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.tilAttesteringSøknadsbehandlingUføre
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -115,12 +116,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
 
     @Test
     fun `Feil behandlingsstatus`() {
-        val behandling: Søknadsbehandling.Iverksatt.Innvilget = innvilgetBehandlingTilAttestering.tilIverksatt(
-            Attestering.Iverksatt(
-                NavIdentBruker.Attestant("attestant"),
-                fixedTidspunkt,
-            ),
-        )
+        val behandling: Søknadsbehandling.Iverksatt.Innvilget = iverksattSøknadsbehandlingUføre().second as Søknadsbehandling.Iverksatt.Innvilget
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn behandling
@@ -145,7 +141,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         }.msg shouldContain "Ugyldig statusovergang"
 
         inOrder(søknadsbehandlingRepoMock) {
-            verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
+            verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandling.id })
         }
 
         verifyNoMoreInteractions(

@@ -3,13 +3,11 @@ package no.nav.su.se.bakover.service.søknad
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
-import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
@@ -18,92 +16,88 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
-import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
-import no.nav.su.se.bakover.domain.oppgave.OppgaveService
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattSøknadsbehandlingResponse
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.IverksattAvslåttSøknadsbehandlingResponse
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.vedtak.VedtakService
-import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nySøknadsbehandlingUtenStønadsperiode
-import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
+import no.nav.su.se.bakover.test.søknad.nySøknadPåEksisterendeSak
 import no.nav.su.se.bakover.test.søknad.søknadId
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingUføre
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
-import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
+import org.mockito.kotlin.whenever
 import java.time.Clock
 import java.time.LocalDate
-import java.util.UUID
 
 internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
+
     @Test
     fun `kan avslå en søknad uten påbegynt behandling`() {
+        // Vi får testet alt minus sideeffektene (som skjer i IverksettSøknadsbehandlingService og testes isolert sett der.)
         val (sak, uavklart) = nySøknadsbehandlingUtenStønadsperiode(sakOgSøknad = nySakMedjournalførtSøknadOgOppgave())
 
-        val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { opprett(any()) } doReturn uavklart.right()
-        }
-        val oppgaveServiceMock = mock<OppgaveService> {
-            on { lukkOppgave(any()) } doReturn Unit.right()
-        }
-
-        val dokument = Dokument.UtenMetadata.Vedtak(
+        val mockedDokument = Dokument.UtenMetadata.Vedtak(
             opprettet = fixedTidspunkt,
-            tittel = "tittel",
-            generertDokument = "".toByteArray(),
-            generertDokumentJson = "",
+            tittel = "testTittel",
+            generertDokument = "testData".toByteArray(),
+            generertDokumentJson = """{"test":"data"}""",
         )
-
-        val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn dokument.right()
-        }
-
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(any<UUID>()) } doReturn sak.right()
-            on { hentSakForSøknad(any()) } doReturn sak.right()
-        }
-
         AvslåSøknadServiceAndMocks(
-            søknadsbehandlingService = søknadsbehandlingServiceMock,
-            oppgaveService = oppgaveServiceMock,
-            brevService = brevServiceMock,
-            sakService = sakServiceMock,
-            clock = fixedClock,
+            sakService = mock {
+                on { hentSakForSøknad(any()) } doReturn sak.right()
+            },
+            utbetalingService = mock {
+                doAnswer { invocation ->
+                    simulerUtbetaling(
+                        sak,
+                        invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
+                        invocation.getArgument(1) as Periode,
+                        fixedClock,
+                    )
+                }.whenever(it).simulerUtbetaling(any(), any())
+            },
+            brevService = mock {
+                on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn mockedDokument.right()
+            },
         ).let { serviceAndMocks ->
-            serviceAndMocks.service.avslå(
-                AvslåManglendeDokumentasjonRequest(
-                    søknadId,
-                    saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
-                    fritekstTilBrev = "finfin tekst",
+            val actualSak = serviceAndMocks.service.avslå(
+                AvslåManglendeDokumentasjonCommand(
+                    uavklart.søknad.id,
+                    saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
+                    fritekstTilBrev = "fritekstTilBrev",
                 ),
-            ).getOrFail("$serviceAndMocks")
+            ).getOrFail()
 
             val expectedPeriode = Periode.create(
                 fraOgMed = LocalDate.now(serviceAndMocks.clock).startOfMonth(),
@@ -118,16 +112,16 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 søknad = uavklart.søknad,
                 oppgaveId = uavklart.oppgaveId,
                 fnr = uavklart.fnr,
-                saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
+                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
                 attesteringer = Attesteringshistorikk.create(
-                    attesteringer = listOf(
+                    listOf(
                         Attestering.Iverksatt(
-                            attestant = NavIdentBruker.Attestant("saksemannen"),
-                            opprettet = Tidspunkt.now(fixedClock),
+                            attestant = NavIdentBruker.Attestant("saksbehandlerSomAvslo"),
+                            opprettet = fixedTidspunkt,
                         ),
                     ),
                 ),
-                fritekstTilBrev = "finfin tekst",
+                fritekstTilBrev = "fritekstTilBrev",
                 stønadsperiode = Stønadsperiode.create(
                     periode = expectedPeriode,
                 ),
@@ -136,10 +130,10 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     OpplysningspliktVilkår.Vurdert.tryCreate(
                         vurderingsperioder = nonEmptyListOf(
                             VurderingsperiodeOpplysningsplikt.create(
-                                id = UUID.randomUUID(),
+                                id = (actualSak.søknadsbehandlinger[0].vilkårsvurderinger.opplysningsplikt as OpplysningspliktVilkår.Vurdert).vurderingsperioder[0].id,
                                 opprettet = Tidspunkt.now(fixedClock),
                                 grunnlag = Opplysningspliktgrunnlag(
-                                    id = UUID.randomUUID(),
+                                    id = (actualSak.søknadsbehandlinger[0].vilkårsvurderinger.opplysningsplikt).grunnlag[0].id,
                                     opprettet = Tidspunkt.now(fixedClock),
                                     periode = expectedPeriode,
                                     beskrivelse = OpplysningspliktBeskrivelse.UtilstrekkeligDokumentasjon,
@@ -155,66 +149,52 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 sakstype = sak.type,
             )
 
-            val expectedAvslagVilkår = Avslagsvedtak.AvslagVilkår(
-                id = UUID.randomUUID(),
+            val expectedVedtak = Avslagsvedtak.AvslagVilkår(
+                id = actualSak.vedtakListe[0].id,
                 opprettet = fixedTidspunkt,
                 behandling = expectedSøknadsbehandling,
-                saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
-                attestant = NavIdentBruker.Attestant("saksemannen"),
-                periode = expectedPeriode,
+                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
+                attestant = NavIdentBruker.Attestant("saksbehandlerSomAvslo"),
+                periode = expectedSøknadsbehandling.periode,
                 avslagsgrunner = listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON),
             )
 
-            verify(serviceAndMocks.søknadsbehandlingService).hentForSøknad(søknadId)
-            verify(serviceAndMocks.søknadsbehandlingService).opprett(
-                argThat {
-                    it shouldBe SøknadsbehandlingService.OpprettRequest(
-                        søknadId = søknadId,
-                        sakId = sakId,
-                        saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
-                    )
-                },
-            )
-            verify(serviceAndMocks.søknadsbehandlingService).lagre(
-                argThat {
-                    it.søknadsbehandling.shouldBeEqualToIgnoringFields(
-                        expectedSøknadsbehandling,
-                        Søknadsbehandling::vilkårsvurderinger,
-                    )
-
-                    it.søknadsbehandling.vilkårsvurderinger.erLik(expectedSøknadsbehandling.vilkårsvurderinger)
-                },
-                argThat { TestSessionFactory.transactionContext },
+            val expectedSak = sak.copy(
+                søknadsbehandlinger = listOf(expectedSøknadsbehandling),
+                vedtakListe = listOf(expectedVedtak),
             )
 
-            val actualVedtak = argumentCaptor<Vedtak>()
-            verify(serviceAndMocks.vedtakService).lagre(
-                actualVedtak.capture(),
-                argThat { TestSessionFactory.transactionContext },
-            ).also {
-                actualVedtak.firstValue.shouldBeEqualToIgnoringFields(
-                    expectedAvslagVilkår,
-                    VedtakSomKanRevurderes::id,
-                )
-            }
-            verify(serviceAndMocks.oppgaveService).lukkOppgave(expectedSøknadsbehandling.oppgaveId)
-            verify(serviceAndMocks.brevService).lagDokument(
-                argThat<Visitable<LagBrevRequestVisitor>> { it shouldBe actualVedtak.firstValue },
-            )
-            verify(serviceAndMocks.brevService).lagreDokument(
-                argThat {
-                    it shouldBe dokument.leggTilMetadata(
-                        metadata = Dokument.Metadata(
-                            sakId = expectedSøknadsbehandling.sakId,
-                            søknadId = expectedSøknadsbehandling.søknad.id,
-                            vedtakId = actualVedtak.firstValue.id,
-                            bestillBrev = true,
+            actualSak shouldBe expectedSak
+
+            verify(serviceAndMocks.sakService).hentSakForSøknad(argThat { it shouldBe uavklart.søknad.id })
+
+            verify(serviceAndMocks.iverksettSøknadsbehandlingService).iverksett(
+                argThat<IverksattSøknadsbehandlingResponse<Søknadsbehandling.Iverksatt.Avslag.UtenBeregning>> {
+                    it shouldBe IverksattAvslåttSøknadsbehandlingResponse(
+                        sak = expectedSak,
+                        vedtak = expectedVedtak,
+                        statistikkhendelse =
+                        StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag(
+                            vedtak = expectedVedtak,
                         ),
+                        dokument = Dokument.MedMetadata.Vedtak(
+                            utenMetadata = mockedDokument,
+                            metadata = Dokument.Metadata(
+                                sakId = sak.id,
+                                søknadId = null,
+                                vedtakId = expectedVedtak.id,
+                                revurderingId = null,
+                                klageId = null,
+                                bestillBrev = true,
+                                journalpostId = null,
+                                brevbestillingId = null,
+                            ),
+
+                        ),
+                        oppgaveSomSkalLukkes = expectedSøknadsbehandling.oppgaveId,
                     )
                 },
-                argThat { TestSessionFactory.transactionContext },
             )
-            verify(serviceAndMocks.sakService).hentSak(expectedSøknadsbehandling.sakId)
             serviceAndMocks.verifyNoMoreInteractions()
         }
     }
@@ -223,42 +203,39 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
     fun `kan avslå en søknad med påbegynt behandling`() {
         val (sak, vilkårsvurdertInnvilget) = søknadsbehandlingVilkårsvurdertInnvilget()
 
-        val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { hentForSøknad(søknadId) } doReturn vilkårsvurdertInnvilget
-        }
-        val oppgaveServiceMock = mock<OppgaveService> {
-            on { lukkOppgave(any()) } doReturn Unit.right()
-        }
-
-        val dokument = Dokument.UtenMetadata.Vedtak(
+        val mockedDokument = Dokument.UtenMetadata.Vedtak(
             opprettet = fixedTidspunkt,
-            tittel = "tittel",
-            generertDokument = "".toByteArray(),
-            generertDokumentJson = "",
+            tittel = "testTittel",
+            generertDokument = "testData".toByteArray(),
+            generertDokumentJson = """{"test":"data"}""",
         )
 
-        val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn dokument.right()
-        }
-
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(any<UUID>()) } doReturn sak.right()
-        }
-
         AvslåSøknadServiceAndMocks(
-            søknadsbehandlingService = søknadsbehandlingServiceMock,
-            oppgaveService = oppgaveServiceMock,
-            brevService = brevServiceMock,
-            sakService = sakServiceMock,
-            clock = fixedClock,
+            sakService = mock {
+                on { hentSakForSøknad(any()) } doReturn sak.right()
+            },
+            utbetalingService = mock {
+                doAnswer { invocation ->
+                    simulerUtbetaling(
+                        sak,
+                        invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
+                        invocation.getArgument(1) as Periode,
+                        fixedClock,
+                    )
+                }.whenever(it).simulerUtbetaling(any(), any())
+            },
+            brevService = mock {
+                on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn mockedDokument.right()
+            },
         ).let { serviceAndMocks ->
-            serviceAndMocks.service.avslå(
-                AvslåManglendeDokumentasjonRequest(
+
+            val actualSak = serviceAndMocks.service.avslå(
+                AvslåManglendeDokumentasjonCommand(
                     søknadId,
-                    saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
-                    fritekstTilBrev = "finfin tekst",
+                    saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
+                    fritekstTilBrev = "fritekstTilBrev",
                 ),
-            ).getOrFail("$serviceAndMocks")
+            ).getOrFail()
 
             val expectedPeriode = vilkårsvurdertInnvilget.periode
 
@@ -270,26 +247,26 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 søknad = vilkårsvurdertInnvilget.søknad,
                 oppgaveId = vilkårsvurdertInnvilget.oppgaveId,
                 fnr = vilkårsvurdertInnvilget.fnr,
-                saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
+                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
                 attesteringer = Attesteringshistorikk.create(
-                    attesteringer = listOf(
+                    listOf(
                         Attestering.Iverksatt(
-                            attestant = NavIdentBruker.Attestant("saksemannen"),
-                            opprettet = Tidspunkt.now(fixedClock),
+                            attestant = NavIdentBruker.Attestant("saksbehandlerSomAvslo"),
+                            opprettet = fixedTidspunkt,
                         ),
                     ),
                 ),
-                fritekstTilBrev = "finfin tekst",
+                fritekstTilBrev = "fritekstTilBrev",
                 stønadsperiode = vilkårsvurdertInnvilget.stønadsperiode,
                 grunnlagsdata = vilkårsvurdertInnvilget.grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurdertInnvilget.vilkårsvurderinger.leggTil(
                     OpplysningspliktVilkår.Vurdert.tryCreate(
                         vurderingsperioder = nonEmptyListOf(
                             VurderingsperiodeOpplysningsplikt.create(
-                                id = UUID.randomUUID(),
+                                id = (actualSak.søknadsbehandlinger[0].vilkårsvurderinger.opplysningsplikt as OpplysningspliktVilkår.Vurdert).vurderingsperioder[0].id,
                                 opprettet = Tidspunkt.now(fixedClock),
                                 grunnlag = Opplysningspliktgrunnlag(
-                                    id = UUID.randomUUID(),
+                                    id = (actualSak.søknadsbehandlinger[0].vilkårsvurderinger.opplysningsplikt).grunnlag[0].id,
                                     opprettet = Tidspunkt.now(fixedClock),
                                     periode = expectedPeriode,
                                     beskrivelse = OpplysningspliktBeskrivelse.UtilstrekkeligDokumentasjon,
@@ -305,260 +282,125 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 sakstype = sak.type,
             )
 
-            val expectedAvslagVilkår = Avslagsvedtak.AvslagVilkår(
-                id = UUID.randomUUID(),
+            val expectedVedtak = Avslagsvedtak.AvslagVilkår(
+                id = actualSak.vedtakListe[0].id,
                 opprettet = fixedTidspunkt,
                 behandling = expectedSøknadsbehandling,
-                saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
-                attestant = NavIdentBruker.Attestant("saksemannen"),
+                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
+                attestant = NavIdentBruker.Attestant("saksbehandlerSomAvslo"),
                 periode = expectedSøknadsbehandling.periode,
                 avslagsgrunner = listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON),
             )
 
-            verify(serviceAndMocks.søknadsbehandlingService).hentForSøknad(søknadId)
-            verify(serviceAndMocks.søknadsbehandlingService).lagre(
-                argThat {
-                    it.søknadsbehandling.shouldBeEqualToIgnoringFields(
-                        expectedSøknadsbehandling,
-                        Søknadsbehandling::vilkårsvurderinger,
-                    )
-                    it.søknadsbehandling.vilkårsvurderinger.erLik(expectedSøknadsbehandling.vilkårsvurderinger)
-                },
-                argThat { TestSessionFactory.transactionContext },
+            val expectedSak = sak.copy(
+                søknadsbehandlinger = listOf(expectedSøknadsbehandling),
+                vedtakListe = listOf(expectedVedtak),
             )
-            val actualVedtak = argumentCaptor<Vedtak>()
-            verify(serviceAndMocks.vedtakService).lagre(
-                actualVedtak.capture(),
-                argThat { TestSessionFactory.transactionContext },
-            ).also {
-                actualVedtak.firstValue.shouldBeEqualToIgnoringFields(
-                    expectedAvslagVilkår,
-                    VedtakSomKanRevurderes::id,
-                )
-            }
-            verify(serviceAndMocks.oppgaveService).lukkOppgave(expectedSøknadsbehandling.oppgaveId)
-            verify(serviceAndMocks.brevService).lagDokument(
-                argThat<Visitable<LagBrevRequestVisitor>> {
-                    it.shouldBeEqualToIgnoringFields(
-                        expectedAvslagVilkår,
-                        VedtakSomKanRevurderes::id,
-                    )
-                },
-            )
-            verify(serviceAndMocks.brevService).lagreDokument(
-                argThat {
-                    it shouldBe dokument.leggTilMetadata(
-                        metadata = Dokument.Metadata(
-                            sakId = expectedSøknadsbehandling.sakId,
-                            søknadId = expectedSøknadsbehandling.søknad.id,
-                            vedtakId = actualVedtak.firstValue.id,
-                            bestillBrev = true,
+
+            verify(serviceAndMocks.sakService).hentSakForSøknad(argThat { it shouldBe vilkårsvurdertInnvilget.søknad.id })
+
+            verify(serviceAndMocks.iverksettSøknadsbehandlingService).iverksett(
+                argThat<IverksattSøknadsbehandlingResponse<Søknadsbehandling.Iverksatt.Avslag.UtenBeregning>> {
+                    it shouldBe IverksattAvslåttSøknadsbehandlingResponse(
+                        sak = expectedSak,
+                        vedtak = expectedVedtak,
+                        statistikkhendelse =
+                        StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag(
+                            vedtak = expectedVedtak,
                         ),
+                        dokument = Dokument.MedMetadata.Vedtak(
+                            utenMetadata = mockedDokument,
+                            metadata = Dokument.Metadata(
+                                sakId = sak.id,
+                                søknadId = null,
+                                vedtakId = expectedVedtak.id,
+                                revurderingId = null,
+                                klageId = null,
+                                bestillBrev = true,
+                                journalpostId = null,
+                                brevbestillingId = null,
+                            ),
+
+                        ),
+                        oppgaveSomSkalLukkes = expectedSøknadsbehandling.oppgaveId,
                     )
                 },
-                argThat { TestSessionFactory.transactionContext },
             )
-            verify(serviceAndMocks.sakService).hentSak(expectedSøknadsbehandling.sakId)
             serviceAndMocks.verifyNoMoreInteractions()
         }
     }
 
     @Test
     fun `svarer med feil dersom ugyldig tilstand`() {
-        val (_, iverksatt) = søknadsbehandlingIverksattInnvilget()
+        val (sak, _) = søknadsbehandlingIverksattInnvilget()
 
-        val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { hentForSøknad(søknadId) } doReturn iverksatt
-        }
-
+        val serviceAndMocks = AvslåSøknadServiceAndMocks(
+            sakService = mock {
+                on { hentSakForSøknad(any()) } doReturn sak.right()
+            },
+        )
         assertThrows<IllegalArgumentException> {
-            AvslåSøknadServiceAndMocks(
-                søknadsbehandlingService = søknadsbehandlingServiceMock,
-                clock = fixedClock,
-            ).let {
-                it.service.avslå(
-                    AvslåManglendeDokumentasjonRequest(
-                        søknadId,
-                        saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
-                        fritekstTilBrev = "finfin tekst",
-                    ),
-                )
-
-                verify(søknadsbehandlingServiceMock).hentForSøknad(søknadId)
-                it.verifyNoMoreInteractions()
-            }
-        }
+            serviceAndMocks.service.avslå(
+                AvslåManglendeDokumentasjonCommand(
+                    søknadId,
+                    saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
+                    fritekstTilBrev = "fritekstTilBrev",
+                ),
+            )
+        }.message shouldBe "UgyldigTilstand(fra=class no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling\$Iverksatt\$Innvilget, til=class no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling\$Vilkårsvurdert)"
+        verify(serviceAndMocks.sakService).hentSakForSøknad(søknadId)
+        serviceAndMocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `svarer med feil dersom vi ikke får opprettet behandling`() {
-        val (sak, søknadsbehandling) = vilkårsvurdertSøknadsbehandlingUføre()
-
-        AvslåSøknadServiceAndMocks(
-            sakService = mock {
-                on { hentSakForSøknad(any()) } doReturn sak.right()
-            },
-            søknadsbehandlingService = mock {
-                on { hentForSøknad(any()) } doReturn null
-                on { opprett(any()) } doReturn SøknadsbehandlingService.KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling(
-                    Sak.KunneIkkeOppretteSøknad.HarAlleredeBehandling,
-                ).left()
-            },
-            clock = fixedClock,
-        ).let {
-            it.service.avslå(
-                AvslåManglendeDokumentasjonRequest(
-                    søknadId = søknadsbehandling.søknad.id,
-                    saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
-                    fritekstTilBrev = "finfin tekst",
-                ),
-            ) shouldBe KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling(
-                SøknadsbehandlingService.KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling(
-                    Sak.KunneIkkeOppretteSøknad.HarAlleredeBehandling,
-                ),
-            )
-                .left()
-
-            verify(it.sakService).hentSakForSøknad(any())
-            verify(it.søknadsbehandlingService).hentForSøknad(any())
-            verify(it.søknadsbehandlingService).opprett(any())
-            it.verifyNoMoreInteractions()
-        }
-    }
-
-    @Test
-    fun `overlever dersom lukking av oppgave feiler`() {
-        val (sak, uavklart) = søknadsbehandlingVilkårsvurdertUavklart()
-
-        val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { opprett(any()) } doReturn uavklart.right()
-        }
-        val oppgaveServiceMock = mock<OppgaveService> {
-            on { lukkOppgave(any()) } doReturn OppgaveFeil.KunneIkkeLukkeOppgave.left()
-        }
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(any<UUID>()) } doReturn sak.right()
-            on { hentSakForSøknad(any()) } doReturn sak.right()
-        }
-
-        val dokument = Dokument.UtenMetadata.Vedtak(
-            opprettet = fixedTidspunkt,
-            tittel = "tittel",
-            generertDokument = "".toByteArray(),
-            generertDokumentJson = "",
+        // Legger på en ny søknad som det ikke skal være lov å starte på samtidig som den andre søknadsbehandlingen.
+        val (sak, nySøknad) = nySøknadPåEksisterendeSak(
+            eksisterendeSak = vilkårsvurdertSøknadsbehandlingUføre().first,
         )
 
-        val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn dokument.right()
-        }
-
         AvslåSøknadServiceAndMocks(
-            søknadsbehandlingService = søknadsbehandlingServiceMock,
-            oppgaveService = oppgaveServiceMock,
-            brevService = brevServiceMock,
-            sakService = sakServiceMock,
-            clock = fixedClock,
-        ).let {
-            it.service.avslå(
-                AvslåManglendeDokumentasjonRequest(
-                    søknadId,
-                    saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
-                    fritekstTilBrev = "finfin tekst",
-                ),
-            ).getOrFail("Feil i testdataoppsett")
-
-            verify(it.søknadsbehandlingService).hentForSøknad(any())
-            verify(it.søknadsbehandlingService).opprett(any())
-            verify(it.søknadsbehandlingService).lagre(
-                any(),
-                argThat { TestSessionFactory.transactionContext },
-            )
-            verify(it.vedtakService).lagre(
-                any(),
-                argThat { TestSessionFactory.transactionContext },
-            )
-            verify(it.brevService).lagDokument(any<Visitable<LagBrevRequestVisitor>>())
-            verify(it.brevService).lagreDokument(
-                any(),
-                argThat { TestSessionFactory.transactionContext },
-            )
-            verify(it.oppgaveService).lukkOppgave(uavklart.oppgaveId)
-            verify(it.sakService).hentSak(sak.id)
-            it.verifyNoMoreInteractions()
-        }
-    }
-
-    @Test
-    fun `svarer med feil dersom opprettesle av dokument feiler`() {
-        val (sak, uavklart) = søknadsbehandlingVilkårsvurdertUavklart()
-        AvslåSøknadServiceAndMocks(
-            søknadsbehandlingService = mock {
-                on { opprett(any()) } doReturn uavklart.right()
-            },
-            oppgaveService = mock {
-                on { lukkOppgave(any()) } doReturn Unit.right()
-            },
-            brevService = mock {
-                on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
-            },
             sakService = mock {
                 on { hentSakForSøknad(any()) } doReturn sak.right()
             },
             clock = fixedClock,
-        ).let { serviceAndMocks ->
-            serviceAndMocks.service.avslå(
-                AvslåManglendeDokumentasjonRequest(
-                    søknadId,
-                    saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler som avslår"),
+        ).let {
+            it.service.avslå(
+                AvslåManglendeDokumentasjonCommand(
+                    søknadId = nySøknad.id,
+                    saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
                     fritekstTilBrev = "fritekstTilBrev",
                 ),
-            ) shouldBe KunneIkkeAvslåSøknad.KunneIkkeLageDokument(KunneIkkeLageDokument.KunneIkkeGenererePDF)
-                .left()
+            ) shouldBe KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling(
+                Sak.KunneIkkeOppretteSøknadsbehandling.HarÅpenBehandling,
+            ).left()
 
-            verify(serviceAndMocks.søknadsbehandlingService).hentForSøknad(søknadId)
-            verify(serviceAndMocks.søknadsbehandlingService).opprett(
-                argThat {
-                    it shouldBe SøknadsbehandlingService.OpprettRequest(
-                        søknadId = søknadId,
-                        sakId = sakId,
-                        saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler som avslår"),
-                    )
-                },
-            )
-            verify(serviceAndMocks.brevService).lagDokument(any<Visitable<LagBrevRequestVisitor>>())
-            serviceAndMocks.verifyNoMoreInteractions()
+            verify(it.sakService).hentSakForSøknad(nySøknad.id)
+            it.verifyNoMoreInteractions()
         }
     }
 
     private data class AvslåSøknadServiceAndMocks(
         val clock: Clock = fixedClock,
-        val søknadService: SøknadService = mock(),
-        val søknadsbehandlingService: SøknadsbehandlingService = mock(),
-        val vedtakService: VedtakService = mock(),
-        val oppgaveService: OppgaveService = mock(),
-        val brevService: BrevService = mock(),
+        val iverksettSøknadsbehandlingService: IverksettSøknadsbehandlingService = mock(),
         val sakService: SakService = mock(),
-        val sessionFactory: SessionFactory = TestSessionFactory(),
         val satsFactory: SatsFactory = satsFactoryTestPåDato(),
+        val utbetalingService: UtbetalingService = mock(),
+        val brevService: BrevService = mock(),
     ) {
         val service = AvslåSøknadManglendeDokumentasjonServiceImpl(
             clock = clock,
-            søknadsbehandlingService = søknadsbehandlingService,
-            vedtakService = vedtakService,
-            oppgaveService = oppgaveService,
-            brevService = brevService,
-            sessionFactory = sessionFactory,
             sakService = sakService,
             satsFactory = satsFactory,
+            iverksettSøknadsbehandlingService = iverksettSøknadsbehandlingService,
+            utbetalingService = utbetalingService,
+            brevService = brevService,
         )
 
         fun verifyNoMoreInteractions() {
             verifyNoMoreInteractions(
-                søknadService,
-                søknadsbehandlingService,
-                vedtakService,
-                oppgaveService,
-                brevService,
+                sakService,
+                iverksettSøknadsbehandlingService,
             )
         }
     }

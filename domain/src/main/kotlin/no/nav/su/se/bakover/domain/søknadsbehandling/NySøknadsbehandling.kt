@@ -33,9 +33,6 @@ data class NySøknadsbehandling(
         }
     }
 
-    /**
-     * TODO jah: Denne bør på sikt brukes av domenet også.
-     */
     fun toSøknadsbehandling(saksnummer: Saksnummer): Søknadsbehandling.Vilkårsvurdert.Uavklart {
         return Søknadsbehandling.Vilkårsvurdert.Uavklart(
             id = id,

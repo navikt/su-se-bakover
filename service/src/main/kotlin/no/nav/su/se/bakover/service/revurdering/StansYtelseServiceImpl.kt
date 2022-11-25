@@ -256,7 +256,7 @@ internal class StansYtelseServiceImpl(
                     revurdering = iverksattRevurdering,
                     transactionContext = transactionContext,
                 )
-                vedtakService.lagre(
+                vedtakService.lagreITransaksjon(
                     vedtak = vedtak,
                     sessionContext = transactionContext,
                 )

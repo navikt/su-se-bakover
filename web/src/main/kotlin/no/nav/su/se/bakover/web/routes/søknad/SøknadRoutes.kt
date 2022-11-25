@@ -28,8 +28,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.withStringParam
 import no.nav.su.se.bakover.common.infrastructure.web.withSøknadId
 import no.nav.su.se.bakover.common.metrics.SuMetrics
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvBoforhold
 import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvFormue
@@ -38,10 +36,9 @@ import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvSøknadinn
 import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedValideringAvBoforholdOgEktefelle
 import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder
 import no.nav.su.se.bakover.domain.søknadinnhold.ForNav
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
-import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
-import no.nav.su.se.bakover.service.søknad.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
@@ -52,6 +49,8 @@ import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FeilVedOpprettelseAvEktefelleJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.KunneIkkeLageSøknadinnhold
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.iverksett.tilResultat
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.opprett.tilResultat
 import java.time.Clock
 
 internal enum class Søknadstype(val value: String) {
@@ -179,7 +178,7 @@ internal fun Route.søknadRoutes(
             call.withSøknadId { søknadId ->
                 call.withBody<WithFritekstBody> { body ->
                     avslåSøknadManglendeDokumentasjonService.avslå(
-                        AvslåManglendeDokumentasjonRequest(
+                        AvslåManglendeDokumentasjonCommand(
                             søknadId = søknadId,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                             fritekstTilBrev = body.fritekst,
@@ -187,24 +186,8 @@ internal fun Route.søknadRoutes(
                     ).mapLeft {
                         call.svar(
                             when (it) {
-                                is KunneIkkeAvslåSøknad.KunneIkkeLageDokument -> when (it.nested) {
-                                    // KunneIkkeAvslåSøknad.SøknadsbehandlingIUgyldigTilstandForAvslag -> Feilresponser.behandlingErIUgyldigTilstand
-                                    KunneIkkeLageDokument.DetSkalIkkeSendesBrev -> TODO()
-                                    KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> Feilresponser.fantIkkeGjeldendeUtbetaling
-                                    KunneIkkeLageDokument.KunneIkkeGenererePDF -> Feilresponser.Brev.kunneIkkeGenerereBrev
-                                    KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> Feilresponser.fantIkkeSaksbehandlerEllerAttestant
-                                    KunneIkkeLageDokument.KunneIkkeHentePerson -> Feilresponser.fantIkkePerson
-                                }
-
-                                KunneIkkeAvslåSøknad.FantIkkeSak -> Feilresponser.fantIkkeSak
-                                is KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling -> {
-                                    when (it.feil) {
-                                        SøknadsbehandlingService.KunneIkkeOpprette.FantIkkeSak -> Feilresponser.fantIkkeSak
-                                        is SøknadsbehandlingService.KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling -> it.feil.tilResultat()
-                                    }
-                                }
-
-                                KunneIkkeAvslåSøknad.FantIkkeSøknad -> Feilresponser.fantIkkeSøknad
+                                is KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling -> it.underliggendeFeil.tilResultat()
+                                is KunneIkkeAvslåSøknad.KunneIkkeIverksetteSøknadsbehandling -> it.underliggendeFeil.tilResultat()
                             },
                         )
                     }.map {
@@ -342,17 +325,4 @@ private fun FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder.tilRe
         "Familiegjenforening er ikke utfylt",
         "familiegjenforening_er_ikke_utfylt",
     )
-}
-
-internal fun SøknadsbehandlingService.KunneIkkeOpprette.tilResultat() = when (this) {
-    SøknadsbehandlingService.KunneIkkeOpprette.FantIkkeSak -> Feilresponser.fantIkkeSak
-    is SøknadsbehandlingService.KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling -> this.feil.tilResultat()
-}
-
-internal fun Sak.KunneIkkeOppretteSøknad.tilResultat() = when (this) {
-    Sak.KunneIkkeOppretteSøknad.ErLukket -> Feilresponser.søknadErLukket
-    Sak.KunneIkkeOppretteSøknad.FantIkkeSøknad -> Feilresponser.fantIkkeSøknad
-    Sak.KunneIkkeOppretteSøknad.HarAlleredeBehandling -> Feilresponser.søknadHarBehandlingFraFør
-    Sak.KunneIkkeOppretteSøknad.HarÅpenBehandling -> Feilresponser.harAlleredeÅpenBehandling
-    Sak.KunneIkkeOppretteSøknad.ManglerOppgave -> Feilresponser.søknadManglerOppgave
 }

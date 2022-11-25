@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.nySøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
@@ -123,13 +124,15 @@ internal class StatusovergangTest {
         tilAttesteringAvslagVilkår.tilUnderkjent(attesteringUnderkjent(clock = fixedClock))
     private val underkjentAvslagBeregning: Søknadsbehandling.Underkjent.Avslag.MedBeregning =
         tilAttesteringAvslagBeregning.tilUnderkjent(attesteringUnderkjent(clock = fixedClock))
-    private val iverksattInnvilget = tilAttesteringInnvilget.tilIverksatt(attestering)
+    private val iverksattInnvilget = iverksattSøknadsbehandling().second as Søknadsbehandling.Iverksatt.Innvilget
 
-    private val iverksattAvslagVilkår =
-        tilAttesteringAvslagVilkår.tilIverksatt(attestering)
+    private val iverksattAvslagVilkår = iverksattSøknadsbehandling(
+        customVilkår = listOf(avslåttUførevilkårUtenGrunnlag()),
+    ).second as Søknadsbehandling.Iverksatt.Avslag.UtenBeregning
 
-    private val iverksattAvslagBeregning =
-        tilAttesteringAvslagBeregning.tilIverksatt(attestering)
+    private val iverksattAvslagBeregning = iverksattSøknadsbehandling(
+        customGrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 30000.0)),
+    ).second as Søknadsbehandling.Iverksatt.Avslag.MedBeregning
 
     private val lukketSøknadsbehandling =
         underkjentInnvilget.lukkSøknadsbehandlingOgSøknad(

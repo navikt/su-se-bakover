@@ -55,7 +55,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.BrevRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.HentRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeBeregne
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeOpprette
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.OpprettRequest
@@ -64,8 +63,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.UnderkjennRequest
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.sak.sakPath
-import no.nav.su.se.bakover.web.routes.søknad.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.StønadsperiodeJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.opprett.tilResultat
 import no.nav.su.se.bakover.web.routes.tilResultat
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -97,19 +96,12 @@ internal fun Route.søknadsbehandlingRoutes(
                                 saksbehandler = call.suUserContext.saksbehandler,
                             ),
                         ).fold(
-                            {
-                                call.svar(
-                                    when (it) {
-                                        is KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling -> it.feil.tilResultat()
-                                        KunneIkkeOpprette.FantIkkeSak -> Feilresponser.fantIkkeSak
-                                    },
-                                )
-                            },
+                            { call.svar(it.tilResultat()) },
                             {
                                 call.sikkerlogg("Opprettet behandling på sak: $sakId og søknadId: $søknadId")
-                                call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
+                                call.audit(it.second.fnr, AuditLogEvent.Action.CREATE, it.second.id)
                                 SuMetrics.behandlingStartet(SuMetrics.Behandlingstype.SØKNAD)
-                                call.svar(Created.jsonBody(it, satsFactory))
+                                call.svar(Created.jsonBody(it.second, satsFactory))
                             },
                         )
                     }
