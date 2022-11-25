@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
@@ -15,24 +14,19 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak
 import org.slf4j.LoggerFactory
 
 interface FerdigstillVedtakService {
     fun ferdigstillVedtakEtterUtbetaling(
         utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering,
     ): Either<KunneIkkeFerdigstilleVedtak, Unit>
+
     fun lukkOppgaveMedBruker(
         behandling: Behandling,
     ): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit>
-
-    sealed class KunneIkkeFerdigstilleVedtak {
-        data class FantIkkeVedtakForUtbetalingId(val utbetalingId: UUID30) : KunneIkkeFerdigstilleVedtak()
-        object KunneIkkeGenerereBrev : KunneIkkeFerdigstilleVedtak()
-        object KunneIkkeLukkeOppgave : KunneIkkeFerdigstilleVedtak()
-    }
 }
 
 internal class FerdigstillVedtakServiceImpl(
@@ -80,24 +74,22 @@ internal class FerdigstillVedtakServiceImpl(
     }
 
     fun lagreDokument(vedtak: VedtakSomKanRevurderes): Either<KunneIkkeFerdigstilleVedtak, VedtakSomKanRevurderes> {
-        return brevService.lagDokument(vedtak)
-            .mapLeft {
-                KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev
-            }
-            .map {
-                brevService.lagreDokument(
-                    it.leggTilMetadata(
-                        metadata = Dokument.Metadata(
-                            sakId = vedtak.behandling.sakId,
-                            søknadId = null,
-                            vedtakId = vedtak.id,
-                            revurderingId = null,
-                            bestillBrev = true,
-                        ),
+        return brevService.lagDokument(vedtak).mapLeft {
+            KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev
+        }.map {
+            brevService.lagreDokument(
+                it.leggTilMetadata(
+                    metadata = Dokument.Metadata(
+                        sakId = vedtak.behandling.sakId,
+                        søknadId = null,
+                        vedtakId = vedtak.id,
+                        revurderingId = null,
+                        bestillBrev = true,
                     ),
-                )
-                vedtak
-            }
+                ),
+            )
+            vedtak
+        }
     }
 
     private fun lukkOppgaveMedSystembruker(behandling: Behandling): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit> {
@@ -122,14 +114,13 @@ internal class FerdigstillVedtakServiceImpl(
             return KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave.left()
         }
 
-        return lukkOppgave(oppgaveId)
-            .mapLeft {
-                log.error("Kunne ikke lukke oppgave: $oppgaveId for behandling: ${behandling.id}")
-                KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave
-            }.map {
-                log.info("Lukket oppgave: $oppgaveId for behandling: ${behandling.id}")
-                incrementLukketOppgave(behandling)
-            }
+        return lukkOppgave(oppgaveId).mapLeft {
+            log.error("Kunne ikke lukke oppgave: $oppgaveId for behandling: ${behandling.id}")
+            KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave
+        }.map {
+            log.info("Lukket oppgave: $oppgaveId for behandling: ${behandling.id}")
+            incrementLukketOppgave(behandling)
+        }
     }
 
     private fun incrementLukketOppgave(behandling: Behandling) {
@@ -137,6 +128,7 @@ internal class FerdigstillVedtakServiceImpl(
             is Søknadsbehandling.Iverksatt.Avslag -> {
                 behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.LUKKET_OPPGAVE)
             }
+
             is Søknadsbehandling.Iverksatt.Innvilget -> {
                 behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
             }

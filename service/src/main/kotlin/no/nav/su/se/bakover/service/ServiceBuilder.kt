@@ -144,7 +144,6 @@ object ServiceBuilder {
             sessionFactory = databaseRepos.sessionFactory,
             formuegrenserFactory = satsFactory.formuegrenserFactory,
             sakService = sakService,
-            avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo,
             tilbakekrevingService = tilbakekrevingService,
             satsFactory = satsFactory,
         ).apply { addObserver(statistikkEventObserver) }
@@ -262,7 +261,6 @@ object ServiceBuilder {
                 iverksettSøknadsbehandlingService = IverksettSøknadsbehandlingServiceImpl(
                     søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
                     utbetalingService = utbetalingService,
-                    behandlingMetrics = behandlingMetrics,
                     brevService = brevService,
                     clock = clock,
                     vedtakRepo = databaseRepos.vedtakRepo,
@@ -270,9 +268,6 @@ object ServiceBuilder {
                     sakService = sakService,
                     kontrollsamtaleService = kontrollsamtaleService,
                     sessionFactory = databaseRepos.sessionFactory,
-                    avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo,
-                    tilbakekrevingService = tilbakekrevingService,
-                    // TODO jah: Verifiser at vedtaksjobben prøver lukke oppgaven.
                 ),
             ),
             ferdigstillVedtak = ferdigstillVedtakService,

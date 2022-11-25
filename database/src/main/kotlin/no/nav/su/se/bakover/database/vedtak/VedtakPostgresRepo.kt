@@ -113,11 +113,11 @@ internal class VedtakPostgresRepo(
 
     override fun lagre(vedtak: Vedtak) {
         sessionFactory.withTransactionContext { tx ->
-            lagre(vedtak, tx)
+            lagreITransaksjon(vedtak, tx)
         }
     }
 
-    override fun lagre(vedtak: Vedtak, sessionContext: TransactionContext) {
+    override fun lagreITransaksjon(vedtak: Vedtak, sessionContext: TransactionContext) {
         return dbMetrics.timeQuery("lagreVedtak") {
             sessionContext.withSession { tx ->
                 when (vedtak) {

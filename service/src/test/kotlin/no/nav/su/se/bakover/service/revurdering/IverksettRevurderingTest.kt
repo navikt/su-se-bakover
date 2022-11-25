@@ -97,7 +97,7 @@ internal class IverksettRevurderingTest {
                 on { klargjørUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
             },
             vedtakRepo = mock {
-                doNothing().whenever(it).lagre(any(), anyOrNull())
+                doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
             },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
@@ -114,7 +114,7 @@ internal class IverksettRevurderingTest {
             utbetaling = any(),
             transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
         )
-        verify(serviceAndMocks.vedtakRepo).lagre(
+        verify(serviceAndMocks.vedtakRepo).lagreITransaksjon(
             vedtak = argThat { it should beOfType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>() },
             sessionContext = argThat { TestSessionFactory.transactionContext },
         )
@@ -161,7 +161,7 @@ internal class IverksettRevurderingTest {
                 on { klargjørUtbetaling(any(), any()) } doReturn utbetalingKlarForOversendelse.right()
             },
             vedtakRepo = mock {
-                doNothing().whenever(it).lagre(any(), anyOrNull())
+                doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
             },
             kontrollsamtaleService = mock {
                 on {
@@ -188,7 +188,7 @@ internal class IverksettRevurderingTest {
             utbetaling = any(),
             transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
         )
-        verify(serviceAndMocks.vedtakRepo).lagre(
+        verify(serviceAndMocks.vedtakRepo).lagreITransaksjon(
             vedtak = argThat { it should beOfType<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>() },
             sessionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
         )
@@ -236,7 +236,7 @@ internal class IverksettRevurderingTest {
                 on { klargjørUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
             },
             vedtakRepo = mock {
-                doNothing().whenever(it).lagre(any(), anyOrNull())
+                doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
             },
             kontrollsamtaleService = mock {
                 on {
@@ -265,7 +265,7 @@ internal class IverksettRevurderingTest {
                 any(),
                 argThat { it shouldBe TestSessionFactory.transactionContext },
             )
-            verify(serviceAndMocks.vedtakRepo).lagre(
+            verify(serviceAndMocks.vedtakRepo).lagreITransaksjon(
                 any(),
                 argThat { it shouldBe TestSessionFactory.transactionContext },
             )
@@ -317,7 +317,7 @@ internal class IverksettRevurderingTest {
                 on { klargjørUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
             },
             vedtakRepo = mock {
-                doNothing().whenever(it).lagre(any(), anyOrNull())
+                doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
             },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
@@ -331,7 +331,7 @@ internal class IverksettRevurderingTest {
         )
 
         inOrder(*serviceAndMocks.all(), utbetalingKlargjortForOversendelse.callback) {
-            verify(serviceAndMocks.vedtakRepo).lagre(
+            verify(serviceAndMocks.vedtakRepo).lagreITransaksjon(
                 vedtak = any(),
                 sessionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
             )
@@ -373,7 +373,7 @@ internal class IverksettRevurderingTest {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
             vedtakRepo = mock {
-                on { lagre(any(), anyOrNull()) } doThrow RuntimeException("Lagring feilet")
+                on { lagreITransaksjon(any(), anyOrNull()) } doThrow RuntimeException("Lagring feilet")
             },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
@@ -405,7 +405,7 @@ internal class IverksettRevurderingTest {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
             vedtakRepo = mock {
-                on { lagre(any(), anyOrNull()) } doThrow RuntimeException("Lagring feilet")
+                on { lagreITransaksjon(any(), anyOrNull()) } doThrow RuntimeException("Lagring feilet")
             },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
@@ -459,7 +459,7 @@ internal class IverksettRevurderingTest {
                 on { klargjørUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
             },
             vedtakRepo = mock {
-                doNothing().whenever(it).lagre(any(), anyOrNull())
+                doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
             },
             kontrollsamtaleService = mock {
                 on {
@@ -513,7 +513,7 @@ internal class IverksettRevurderingTest {
                 on { klargjørUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
             },
             vedtakRepo = mock {
-                doNothing().whenever(it).lagre(any(), anyOrNull())
+                doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
             },
             kontrollsamtaleService = mock {
                 on {
@@ -572,7 +572,7 @@ internal class IverksettRevurderingTest {
                 on { klargjørUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
             },
             vedtakRepo = mock {
-                doNothing().whenever(it).lagre(any(), anyOrNull())
+                doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
             },
             kontrollsamtaleService = mock {
                 on {

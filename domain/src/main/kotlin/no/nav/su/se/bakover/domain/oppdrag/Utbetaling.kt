@@ -163,9 +163,13 @@ internal fun List<Utbetaling>.harUtbetalingerEtter(date: LocalDate): Boolean {
 
 sealed class UtbetalingFeilet {
     data class SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(val feil: KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet) : UtbetalingFeilet()
-    object Protokollfeil : UtbetalingFeilet()
+    object Protokollfeil : UtbetalingFeilet() {
+        override fun toString() = this::class.simpleName!!
+    }
     data class KunneIkkeSimulere(val simuleringFeilet: SimulerUtbetalingFeilet) : UtbetalingFeilet()
-    object FantIkkeSak : UtbetalingFeilet()
+    object FantIkkeSak : UtbetalingFeilet() {
+        override fun toString() = this::class.simpleName!!
+    }
 }
 
 fun List<Utbetaling>.tidslinje(

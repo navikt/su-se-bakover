@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
@@ -128,7 +127,6 @@ internal class RevurderingServiceImpl(
     private val sessionFactory: SessionFactory,
     private val formuegrenserFactory: FormuegrenserFactory,
     private val sakService: SakService,
-    private val avkortingsvarselRepo: AvkortingsvarselRepo,
     private val tilbakekrevingService: TilbakekrevingService,
     private val satsFactory: SatsFactory,
 ) : RevurderingService {
@@ -1050,7 +1048,7 @@ internal class RevurderingServiceImpl(
                     iverksettelse.ferdigstillIverksettelseITransaksjon(
                         sessionFactory = sessionFactory,
                         klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
-                        lagreVedtak = vedtakRepo::lagre,
+                        lagreVedtak = vedtakRepo::lagreITransaksjon,
                         lagreRevurdering = revurderingRepo::lagre,
                         statistikkObservers = { observers },
                     ).mapLeft {
@@ -1071,7 +1069,7 @@ internal class RevurderingServiceImpl(
                     iverksettelse.ferdigstillIverksettelseITransaksjon(
                         sessionFactory = sessionFactory,
                         klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
-                        lagreVedtak = vedtakRepo::lagre,
+                        lagreVedtak = vedtakRepo::lagreITransaksjon,
                         lagreRevurdering = revurderingRepo::lagre,
                         annullerKontrollsamtale = { sakId, tx ->
                             kontrollsamtaleService.annullerKontrollsamtale(sakId, tx).map {}

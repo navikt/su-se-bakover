@@ -16,12 +16,11 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.FantIkkeVedtakForUtbetalingId
-import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.kvittering
@@ -97,7 +96,7 @@ internal class FerdigstillVedtakServiceImplTest {
         ) {
             val feil =
                 service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
-            feil shouldBe FantIkkeVedtakForUtbetalingId(vedtak.utbetalingId).left()
+            feil shouldBe KunneIkkeFerdigstilleVedtak.FantIkkeVedtakForUtbetalingId(vedtak.utbetalingId).left()
 
             verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
         }
@@ -117,7 +116,7 @@ internal class FerdigstillVedtakServiceImplTest {
         ) {
             val feil =
                 service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
-            feil shouldBe KunneIkkeGenerereBrev.left()
+            feil shouldBe KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev.left()
 
             verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
             verify(brevService).lagDokument(vedtak)
@@ -138,7 +137,7 @@ internal class FerdigstillVedtakServiceImplTest {
         ) {
             val feil =
                 service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
-            feil shouldBe KunneIkkeGenerereBrev.left()
+            feil shouldBe KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev.left()
 
             inOrder(
                 *all(),
@@ -230,7 +229,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { lukkOppgave(any()) } doReturn KunneIkkeLukkeOppgave.left()
             },
         ) {
-            service.lukkOppgaveMedBruker(behandling) shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave.left()
+            service.lukkOppgaveMedBruker(behandling) shouldBe KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave.left()
 
             inOrder(
                 *all(),

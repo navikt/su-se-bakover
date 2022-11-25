@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
-import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
@@ -19,9 +18,9 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.metrics.SuMetrics
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
-import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettRequest
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.behandlingPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.jsonBody
@@ -40,7 +39,7 @@ internal fun Route.iverksettSøknadsbehandlingRoute(
                 val navIdent = call.suUserContext.navIdent
 
                 service.iverksett(
-                    IverksettRequest(
+                    IverksettSøknadsbehandlingCommand(
                         behandlingId = behandlingId,
                         attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent), Tidspunkt.now(clock)),
                     ),
@@ -49,10 +48,11 @@ internal fun Route.iverksettSøknadsbehandlingRoute(
                         call.svar(kunneIkkeIverksetteMelding(it))
                     },
                     {
+                        val søknadsbehandling = it.second
                         call.sikkerlogg("Iverksatte behandling med id: $behandlingId")
-                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                        call.audit(søknadsbehandling.fnr, AuditLogEvent.Action.UPDATE, søknadsbehandling.id)
                         SuMetrics.vedtakIverksatt(SuMetrics.Behandlingstype.SØKNAD)
-                        call.svar(HttpStatusCode.OK.jsonBody(it, satsFactory))
+                        call.svar(HttpStatusCode.OK.jsonBody(søknadsbehandling, satsFactory))
                     },
                 )
             }
@@ -60,21 +60,12 @@ internal fun Route.iverksettSøknadsbehandlingRoute(
     }
 }
 
-private fun kunneIkkeIverksetteMelding(value: KunneIkkeIverksette): Resultat {
+private fun kunneIkkeIverksetteMelding(value: KunneIkkeIverksetteSøknadsbehandling): Resultat {
     return when (value) {
-        is KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
-        is KunneIkkeIverksette.KunneIkkeUtbetale -> value.utbetalingFeilet.tilResultat()
-        is KunneIkkeIverksette.KunneIkkeGenerereVedtaksbrev -> Feilresponser.Brev.kunneIkkeGenerereBrev
-        is KunneIkkeIverksette.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
-        KunneIkkeIverksette.AvkortingErUfullstendig -> Feilresponser.avkortingErUfullstendig
-        KunneIkkeIverksette.HarAlleredeBlittAvkortetAvEnAnnen -> Feilresponser.avkortingErAlleredeAvkortet
-        KunneIkkeIverksette.HarBlittAnnullertAvEnAnnen -> Feilresponser.avkortingErAlleredeAnnullert
-        KunneIkkeIverksette.KunneIkkeOpprettePlanlagtKontrollsamtale -> HttpStatusCode.InternalServerError.errorJson(
-            "Kunne ikke opprette kontrollsamtale",
-            "kunne_ikke_opprette_kontrollsamtale",
-        )
-
-        KunneIkkeIverksette.LagringFeilet -> Feilresponser.lagringFeilet
-        KunneIkkeIverksette.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving -> Feilresponser.sakAvventerKravgrunnlagForTilbakekreving
+        is KunneIkkeIverksetteSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
+        is KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale -> value.utbetalingFeilet.tilResultat()
+        is KunneIkkeIverksetteSøknadsbehandling.KunneIkkeGenerereVedtaksbrev -> Feilresponser.Brev.kunneIkkeGenerereBrev
+        KunneIkkeIverksetteSøknadsbehandling.AvkortingErUfullstendig -> Feilresponser.avkortingErUfullstendig
+        KunneIkkeIverksetteSøknadsbehandling.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving -> Feilresponser.sakAvventerKravgrunnlagForTilbakekreving
     }
 }

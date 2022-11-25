@@ -211,7 +211,7 @@ class GjenopptaYtelseServiceImpl(
                             revurdering = iverksattRevurdering,
                             transactionContext = tx,
                         )
-                        vedtakRepo.lagre(
+                        vedtakRepo.lagreITransaksjon(
                             vedtak = vedtak,
                             sessionContext = tx,
                         )
