@@ -82,7 +82,6 @@ internal enum class RevurderingsStatus {
     OPPRETTET,
     BEREGNET_INNVILGET,
     BEREGNET_OPPHØRT,
-    BEREGNET_INGEN_ENDRING,
     SIMULERT_INNVILGET,
     SIMULERT_OPPHØRT,
     TIL_ATTESTERING_INNVILGET,
@@ -90,10 +89,8 @@ internal enum class RevurderingsStatus {
     TIL_ATTESTERING_INGEN_ENDRING,
     IVERKSATT_INNVILGET,
     IVERKSATT_OPPHØRT,
-    IVERKSATT_INGEN_ENDRING,
     UNDERKJENT_INNVILGET,
     UNDERKJENT_OPPHØRT,
-    UNDERKJENT_INGEN_ENDRING,
     AVSLUTTET,
     SIMULERT_STANS,
     AVSLUTTET_STANS,
@@ -326,7 +323,6 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson = whe
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         status = InstansTilStatusMapper(this).status,
         simulering = when (this) {
-            is RevurderingTilAttestering.IngenEndring -> null
             is RevurderingTilAttestering.Innvilget -> simulering.toJson()
             is RevurderingTilAttestering.Opphørt -> simulering.toJson()
         },
@@ -339,12 +335,10 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson = whe
         attesteringer = attesteringer.toJson(),
         sakstype = sakstype.toJson(),
         simuleringForAvkortingsvarsel = when (this) {
-            is RevurderingTilAttestering.IngenEndring -> null
             is RevurderingTilAttestering.Innvilget -> null
             is RevurderingTilAttestering.Opphørt -> avkorting.toJson()
         },
         tilbakekrevingsbehandling = when (this) {
-            is RevurderingTilAttestering.IngenEndring -> null
             is RevurderingTilAttestering.Innvilget -> tilbakekrevingsbehandling.toJson()
             is RevurderingTilAttestering.Opphørt -> tilbakekrevingsbehandling.toJson()
         },
@@ -361,7 +355,6 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson = whe
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         status = InstansTilStatusMapper(this).status,
         simulering = when (this) {
-            is IverksattRevurdering.IngenEndring -> null
             is IverksattRevurdering.Innvilget -> simulering.toJson()
             is IverksattRevurdering.Opphørt -> simulering.toJson()
         },
@@ -374,12 +367,10 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson = whe
         attesteringer = attesteringer.toJson(),
         sakstype = sakstype.toJson(),
         simuleringForAvkortingsvarsel = when (this) {
-            is IverksattRevurdering.IngenEndring -> null
             is IverksattRevurdering.Innvilget -> null
             is IverksattRevurdering.Opphørt -> avkorting.toJson()
         },
         tilbakekrevingsbehandling = when (this) {
-            is IverksattRevurdering.IngenEndring -> null
             is IverksattRevurdering.Innvilget -> tilbakekrevingsbehandling.toJson()
             is IverksattRevurdering.Opphørt -> tilbakekrevingsbehandling.toJson()
         },
@@ -396,7 +387,6 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson = whe
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         status = InstansTilStatusMapper(this).status,
         simulering = when (this) {
-            is UnderkjentRevurdering.IngenEndring -> null
             is UnderkjentRevurdering.Innvilget -> simulering.toJson()
             is UnderkjentRevurdering.Opphørt -> simulering.toJson()
         },
@@ -409,12 +399,10 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson = whe
         attesteringer = attesteringer.toJson(),
         sakstype = sakstype.toJson(),
         simuleringForAvkortingsvarsel = when (this) {
-            is UnderkjentRevurdering.IngenEndring -> null
             is UnderkjentRevurdering.Innvilget -> null
             is UnderkjentRevurdering.Opphørt -> avkorting.toJson()
         },
         tilbakekrevingsbehandling = when (this) {
-            is UnderkjentRevurdering.IngenEndring -> null
             is UnderkjentRevurdering.Innvilget -> tilbakekrevingsbehandling.toJson()
             is UnderkjentRevurdering.Opphørt -> tilbakekrevingsbehandling.toJson()
         },
@@ -466,19 +454,15 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson = whe
 
 internal class InstansTilStatusMapper(revurdering: AbstraktRevurdering) {
     val status = when (revurdering) {
-        is BeregnetRevurdering.IngenEndring -> RevurderingsStatus.BEREGNET_INGEN_ENDRING
         is BeregnetRevurdering.Innvilget -> RevurderingsStatus.BEREGNET_INNVILGET
         is BeregnetRevurdering.Opphørt -> RevurderingsStatus.BEREGNET_OPPHØRT
-        is IverksattRevurdering.IngenEndring -> RevurderingsStatus.IVERKSATT_INGEN_ENDRING
         is IverksattRevurdering.Innvilget -> RevurderingsStatus.IVERKSATT_INNVILGET
         is IverksattRevurdering.Opphørt -> RevurderingsStatus.IVERKSATT_OPPHØRT
         is OpprettetRevurdering -> RevurderingsStatus.OPPRETTET
-        is RevurderingTilAttestering.IngenEndring -> RevurderingsStatus.TIL_ATTESTERING_INGEN_ENDRING
         is RevurderingTilAttestering.Innvilget -> RevurderingsStatus.TIL_ATTESTERING_INNVILGET
         is RevurderingTilAttestering.Opphørt -> RevurderingsStatus.TIL_ATTESTERING_OPPHØRT
         is SimulertRevurdering.Innvilget -> RevurderingsStatus.SIMULERT_INNVILGET
         is SimulertRevurdering.Opphørt -> RevurderingsStatus.SIMULERT_OPPHØRT
-        is UnderkjentRevurdering.IngenEndring -> RevurderingsStatus.UNDERKJENT_INGEN_ENDRING
         is UnderkjentRevurdering.Innvilget -> RevurderingsStatus.UNDERKJENT_INNVILGET
         is UnderkjentRevurdering.Opphørt -> RevurderingsStatus.UNDERKJENT_OPPHØRT
         is StansAvYtelseRevurdering.IverksattStansAvYtelse -> RevurderingsStatus.IVERKSATT_STANS

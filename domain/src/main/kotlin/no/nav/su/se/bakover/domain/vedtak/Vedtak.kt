@@ -45,7 +45,6 @@ fun Vedtak.beregningKanVæreGjeldende(): Either<Unit, VedtakSomKanRevurderes> {
         is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> this.right()
         is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> this.right()
         is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> this.right()
-        is VedtakSomKanRevurderes.IngenEndringIYtelse, // har beregning, men vil aldri føre til endring i utbetaling - flyt eliminiert inntil videre - se @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
         is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse, // ingen beregning, stanser utbetalinger beregnet av et annet vedtak
         is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse, // ingen beregning, gjenopptar utbetalinger beregnet av et annet vedtak
         is Klagevedtak.Avvist,

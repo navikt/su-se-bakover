@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeSendeRevurderingTilAttestering
@@ -32,6 +33,7 @@ import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandl
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.revurderingUnderkjent
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.vilkår.flyktningVilkårAvslått
@@ -41,11 +43,14 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
+import org.mockito.kotlin.whenever
 import java.util.UUID
 
 internal class RegulerGrunnbeløpServiceImplTest {
@@ -119,7 +124,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
     }
 
     @Test
-    fun `G-regulering med uendret fradrag og forventetInntekt fører til IngenEndring`() {
+    fun `G-regulering med uendret fradrag og forventetInntekt fører til Innvilget`() {
         val (sak, revurdering) = opprettetRevurdering(
             revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
@@ -132,6 +137,14 @@ internal class RegulerGrunnbeløpServiceImplTest {
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
+            utbetalingService = mock {
+                doAnswer { invocation ->
+                    simulerUtbetaling(
+                        sak = sak,
+                        utbetaling = (invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering),
+                    )
+                }.whenever(it).simulerUtbetaling(any(), any())
+            },
         ).also {
             val actual = it.revurderingService.beregnOgSimuler(
                 revurderingId = revurdering.id,
@@ -142,6 +155,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 *it.all(),
             ) {
                 verify(it.sakService).hentSakForRevurdering(revurdering.id)
+                verify(it.utbetalingService, times(2)).simulerUtbetaling(any(), any())
                 verify(it.revurderingRepo).defaultTransactionContext()
                 verify(it.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
                 verify(it.sakService).hentSakForRevurdering(revurdering.id)

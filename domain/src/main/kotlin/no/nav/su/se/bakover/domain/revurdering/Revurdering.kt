@@ -97,7 +97,6 @@ sealed class AbstraktRevurdering : Behandling {
         -> true
 
         is AvsluttetRevurdering,
-        is IverksattRevurdering.IngenEndring,
         is IverksattRevurdering.Innvilget,
         is IverksattRevurdering.Opphørt,
         is GjenopptaYtelseRevurdering.AvsluttetGjenoppta,
@@ -690,28 +689,6 @@ sealed class Revurdering :
                 brevvalgRevurdering = brevvalgRevurdering,
             )
 
-        fun ingenEndring(
-            revurdering: OpprettetRevurdering,
-            revurdertBeregning: Beregning,
-        ): BeregnetRevurdering.IngenEndring =
-            BeregnetRevurdering.IngenEndring(
-                id = revurdering.id,
-                periode = revurdering.periode,
-                opprettet = revurdering.opprettet,
-                tilRevurdering = revurdering.tilRevurdering,
-                saksbehandler = revurdering.saksbehandler,
-                beregning = revurdertBeregning,
-                oppgaveId = revurdering.oppgaveId,
-                revurderingsårsak = revurdering.revurderingsårsak,
-                grunnlagsdata = revurdering.grunnlagsdata,
-                vilkårsvurderinger = revurdering.vilkårsvurderinger,
-                informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
-                attesteringer = revurdering.attesteringer,
-                avkorting = revurdering.avkorting.håndter(),
-                sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering,
-            )
-
         fun kontrollerOpphørAvFremtidigAvkorting(): Either<KunneIkkeBeregneRevurdering.OpphørAvYtelseSomSkalAvkortes, Unit> {
             val erOpphør = VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
                 vilkårsvurderinger = vilkårsvurderinger,
@@ -746,56 +723,21 @@ sealed class Revurdering :
             return opphør(revurdering, beregning).right()
         }
 
-        return when (revurdering.revurderingsårsak.årsak) {
-            Revurderingsårsak.Årsak.REGULER_GRUNNBELØP -> {
-                when (
-                    VurderOmBeløpErForskjelligFraGjeldendeUtbetaling(
-                        eksisterendeUtbetalinger = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer },
-                        nyBeregning = beregning,
-                    ).resultat
-                ) {
-                    true -> {
-                        when (
-                            VurderOmBeregningGirOpphørVedRevurdering(
-                                beregning = beregning,
-                                clock = clock,
-                            ).resultat
-                        ) {
-                            is OpphørVedRevurdering.Ja -> {
-                                kontrollerOpphørAvFremtidigAvkorting().getOrHandle {
-                                    return it.left()
-                                }
-                                opphør(revurdering, beregning)
-                            }
-
-                            is OpphørVedRevurdering.Nei -> {
-                                innvilget(revurdering, beregning)
-                            }
-                        }
-                    }
-
-                    false -> ingenEndring(revurdering, beregning)
+        return when (
+            VurderOmBeregningGirOpphørVedRevurdering(
+                beregning = beregning,
+                clock = clock,
+            ).resultat
+        ) {
+            is OpphørVedRevurdering.Ja -> {
+                kontrollerOpphørAvFremtidigAvkorting().getOrHandle {
+                    return it.left()
                 }
+                opphør(revurdering, beregning)
             }
 
-            else -> {
-                when (
-                    VurderOmBeregningGirOpphørVedRevurdering(
-                        beregning = beregning,
-                        clock = clock,
-                    ).resultat
-                ) {
-                    is OpphørVedRevurdering.Ja -> {
-                        kontrollerOpphørAvFremtidigAvkorting().getOrHandle {
-                            return it.left()
-                        }
-                        opphør(revurdering, beregning)
-                    }
-
-                    is OpphørVedRevurdering.Nei -> {
-                        innvilget(revurdering, beregning)
-                    }
-                }
+            is OpphørVedRevurdering.Nei -> {
+                innvilget(revurdering, beregning)
             }
         }.right()
     }
@@ -1093,59 +1035,6 @@ sealed class BeregnetRevurdering : Revurdering() {
                     brevvalgRevurdering = brevvalgRevurdering,
                 )
             }
-        }
-    }
-
-    data class IngenEndring(
-        override val id: UUID,
-        override val periode: Periode,
-        override val opprettet: Tidspunkt,
-        override val tilRevurdering: UUID,
-        override val saksbehandler: Saksbehandler,
-        override val beregning: Beregning,
-        override val oppgaveId: OppgaveId,
-        override val revurderingsårsak: Revurderingsårsak,
-        override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
-        override val informasjonSomRevurderes: InformasjonSomRevurderes,
-        override val attesteringer: Attesteringshistorikk,
-        override val avkorting: AvkortingVedRevurdering.DelvisHåndtert,
-        override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
-    ) : BeregnetRevurdering() {
-        override val erOpphørt = false
-        override val simulering: Simulering? = null
-
-        fun tilAttestering(
-            attesteringsoppgaveId: OppgaveId,
-            saksbehandler: Saksbehandler,
-        ): RevurderingTilAttestering.IngenEndring {
-            require(brevvalgRevurdering is BrevvalgRevurdering.Valgt) { "Brevvalg må gjøres før man kan sende til attestering" }
-            return RevurderingTilAttestering.IngenEndring(
-                id = id,
-                periode = periode,
-                opprettet = opprettet,
-                tilRevurdering = tilRevurdering,
-                saksbehandler = saksbehandler,
-                beregning = beregning,
-                oppgaveId = attesteringsoppgaveId,
-                revurderingsårsak = revurderingsårsak,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes,
-                attesteringer = attesteringer,
-                avkorting = avkorting.håndter(),
-                sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering,
-            )
-        }
-
-        override fun accept(visitor: RevurderingVisitor) {
-            visitor.visit(this)
-        }
-
-        override fun Revurdering.leggTilBrevvalgInternal(brevvalgRevurdering: BrevvalgRevurdering.Valgt): Either<KunneIkkeLeggeTilBrevvalg, IngenEndring> {
-            return copy(brevvalgRevurdering = brevvalgRevurdering).right()
         }
     }
 
@@ -1815,68 +1704,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
         }
     }
 
-    data class IngenEndring(
-        override val id: UUID,
-        override val periode: Periode,
-        override val opprettet: Tidspunkt,
-        override val tilRevurdering: UUID,
-        override val saksbehandler: Saksbehandler,
-        override val beregning: Beregning,
-        override val oppgaveId: OppgaveId,
-        override val revurderingsårsak: Revurderingsårsak,
-        override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
-        override val informasjonSomRevurderes: InformasjonSomRevurderes,
-        override val attesteringer: Attesteringshistorikk,
-        override val avkorting: AvkortingVedRevurdering.Håndtert,
-        override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
-    ) : RevurderingTilAttestering() {
-
-        override val erOpphørt = false
-        override val simulering: Simulering? = null
-
-        override fun accept(visitor: RevurderingVisitor) {
-            visitor.visit(this)
-        }
-
-        override fun tilIverksatt(
-            attestant: NavIdentBruker.Attestant,
-            hentOpprinneligAvkorting: (id: UUID) -> Avkortingsvarsel?,
-            clock: Clock,
-        ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering.IngenEndring> {
-            return validerTilIverksettOvergang(
-                attestant = attestant,
-                hentOpprinneligAvkorting = hentOpprinneligAvkorting,
-                saksbehandler = saksbehandler,
-                avkorting = avkorting,
-            ).map {
-                return IverksattRevurdering.IngenEndring(
-                    id = id,
-                    periode = periode,
-                    opprettet = opprettet,
-                    tilRevurdering = tilRevurdering,
-                    saksbehandler = saksbehandler,
-                    beregning = beregning,
-                    oppgaveId = oppgaveId,
-                    revurderingsårsak = revurderingsårsak,
-                    grunnlagsdata = grunnlagsdata,
-                    vilkårsvurderinger = vilkårsvurderinger,
-                    informasjonSomRevurderes = informasjonSomRevurderes,
-                    attesteringer = attesteringer.leggTilNyAttestering(
-                        Attestering.Iverksatt(
-                            attestant,
-                            Tidspunkt.now(clock),
-                        ),
-                    ),
-                    avkorting = avkorting.iverksett(id),
-                    sakinfo = sakinfo,
-                    brevvalgRevurdering = brevvalgRevurdering,
-                ).right()
-            }
-        }
-    }
-
     override fun beregn(
         eksisterendeUtbetalinger: List<Utbetaling>,
         clock: Clock,
@@ -1931,24 +1758,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 avkorting = avkorting,
                 tilbakekrevingsbehandling = tilbakekrevingsbehandling,
-                sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering,
-            )
-
-            is IngenEndring -> UnderkjentRevurdering.IngenEndring(
-                id = id,
-                periode = periode,
-                opprettet = opprettet,
-                tilRevurdering = tilRevurdering,
-                saksbehandler = saksbehandler,
-                beregning = beregning,
-                oppgaveId = oppgaveId,
-                attesteringer = attesteringer.leggTilNyAttestering(attestering),
-                revurderingsårsak = revurderingsårsak,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes,
-                avkorting = avkorting,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
             )
@@ -2057,40 +1866,6 @@ sealed class IverksattRevurdering : Revurdering() {
             return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
         }
     }
-
-    data class IngenEndring(
-        override val id: UUID,
-        override val periode: Periode,
-        override val opprettet: Tidspunkt,
-        override val tilRevurdering: UUID,
-        override val saksbehandler: Saksbehandler,
-        override val beregning: Beregning,
-        override val oppgaveId: OppgaveId,
-        override val revurderingsårsak: Revurderingsårsak,
-        override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
-        override val informasjonSomRevurderes: InformasjonSomRevurderes,
-        override val attesteringer: Attesteringshistorikk,
-        override val avkorting: AvkortingVedRevurdering.Iverksatt,
-        override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
-    ) : IverksattRevurdering() {
-        override val erOpphørt = false
-        override val simulering: Simulering? = null
-        override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet
-            get() = TODO("Under utfasing og ikke i bruk")
-
-        override fun accept(visitor: RevurderingVisitor) {
-            visitor.visit(this)
-        }
-    }
-
-    override fun beregn(
-        eksisterendeUtbetalinger: List<Utbetaling>,
-        clock: Clock,
-        gjeldendeVedtaksdata: GjeldendeVedtaksdata,
-        satsFactory: SatsFactory,
-    ) = throw RuntimeException("Skal ikke kunne beregne når revurderingen er iverksatt")
 }
 
 sealed class UnderkjentRevurdering : Revurdering() {
@@ -2358,58 +2133,6 @@ sealed class UnderkjentRevurdering : Revurdering() {
         }
 
         override fun Revurdering.leggTilBrevvalgInternal(brevvalgRevurdering: BrevvalgRevurdering.Valgt): Either<KunneIkkeLeggeTilBrevvalg, Opphørt> {
-            return copy(brevvalgRevurdering = brevvalgRevurdering).right()
-        }
-    }
-
-    data class IngenEndring(
-        override val id: UUID,
-        override val periode: Periode,
-        override val opprettet: Tidspunkt,
-        override val tilRevurdering: UUID,
-        override val saksbehandler: Saksbehandler,
-        override val beregning: Beregning,
-        override val oppgaveId: OppgaveId,
-        override val revurderingsårsak: Revurderingsårsak,
-        override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
-        override val informasjonSomRevurderes: InformasjonSomRevurderes,
-        override val attesteringer: Attesteringshistorikk,
-        override val avkorting: AvkortingVedRevurdering.Håndtert,
-        override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
-    ) : UnderkjentRevurdering() {
-        override val erOpphørt = false
-        override val simulering: Simulering? = null
-
-        override fun accept(visitor: RevurderingVisitor) {
-            visitor.visit(this)
-        }
-
-        fun tilAttestering(
-            oppgaveId: OppgaveId,
-            saksbehandler: Saksbehandler,
-        ): RevurderingTilAttestering.IngenEndring {
-            return RevurderingTilAttestering.IngenEndring(
-                id = id,
-                periode = periode,
-                opprettet = opprettet,
-                tilRevurdering = tilRevurdering,
-                saksbehandler = saksbehandler,
-                beregning = beregning,
-                oppgaveId = oppgaveId,
-                revurderingsårsak = revurderingsårsak,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes,
-                attesteringer = attesteringer,
-                avkorting = avkorting,
-                sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering,
-            )
-        }
-
-        override fun Revurdering.leggTilBrevvalgInternal(brevvalgRevurdering: BrevvalgRevurdering.Valgt): Either<KunneIkkeLeggeTilBrevvalg, IngenEndring> {
             return copy(brevvalgRevurdering = brevvalgRevurdering).right()
         }
     }

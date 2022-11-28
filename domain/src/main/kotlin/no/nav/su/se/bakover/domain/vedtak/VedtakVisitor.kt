@@ -9,7 +9,6 @@ interface VedtakVisitor : Visitor {
     fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering)
     fun visit(vedtak: Avslagsvedtak.AvslagVilkår)
     fun visit(vedtak: Avslagsvedtak.AvslagBeregning)
-    fun visit(vedtak: VedtakSomKanRevurderes.IngenEndringIYtelse)
     fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse)
     fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse)
 }

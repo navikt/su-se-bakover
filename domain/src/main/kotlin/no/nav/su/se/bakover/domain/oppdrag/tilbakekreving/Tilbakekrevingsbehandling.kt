@@ -101,9 +101,6 @@ data class AvventerKravgrunnlag(
     ) {
         val simulering = hentRevurdering(avgjort.revurderingId).let {
             when (it) {
-                is IverksattRevurdering.IngenEndring -> {
-                    throw IllegalStateException("Tilbakekreving er ikke relevant for ingen endring")
-                }
                 is IverksattRevurdering.Innvilget -> {
                     it.simulering
                 }

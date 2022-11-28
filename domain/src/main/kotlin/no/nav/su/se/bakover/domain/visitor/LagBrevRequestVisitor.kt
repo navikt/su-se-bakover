@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
-import arrow.core.zip
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -184,13 +183,6 @@ class LagBrevRequestVisitor(
         throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(revurdering::class)
     }
 
-    override fun visit(revurdering: BeregnetRevurdering.IngenEndring) {
-        brevRequest = revurderingIngenEndring(
-            revurdering = revurdering,
-            beregning = revurdering.beregning,
-        )
-    }
-
     override fun visit(revurdering: SimulertRevurdering.Innvilget) {
         brevRequest = innvilgetRevurdering(
             revurdering = revurdering,
@@ -225,10 +217,6 @@ class LagBrevRequestVisitor(
         )
     }
 
-    override fun visit(revurdering: RevurderingTilAttestering.IngenEndring) {
-        brevRequest = revurderingIngenEndring(revurdering, revurdering.beregning)
-    }
-
     override fun visit(revurdering: IverksattRevurdering.Innvilget) {
         brevRequest = innvilgetRevurdering(
             revurdering = revurdering,
@@ -246,10 +234,6 @@ class LagBrevRequestVisitor(
         )
     }
 
-    override fun visit(revurdering: IverksattRevurdering.IngenEndring) {
-        brevRequest = revurderingIngenEndring(revurdering, revurdering.beregning)
-    }
-
     override fun visit(revurdering: UnderkjentRevurdering.Innvilget) {
         brevRequest = innvilgetRevurdering(
             revurdering = revurdering,
@@ -265,10 +249,6 @@ class LagBrevRequestVisitor(
             opphørsgrunner = revurdering.utledOpphørsgrunner(clock),
             simulering = revurdering.simulering,
         )
-    }
-
-    override fun visit(revurdering: UnderkjentRevurdering.IngenEndring) {
-        brevRequest = revurderingIngenEndring(revurdering, revurdering.beregning)
     }
 
     override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling) {
@@ -314,13 +294,6 @@ class LagBrevRequestVisitor(
             avslagsgrunner = vedtak.behandling.avslagsgrunner,
             beregning = vedtak.behandling.beregning,
             fritekst = vedtak.behandling.fritekstTilBrev,
-        )
-    }
-
-    override fun visit(vedtak: VedtakSomKanRevurderes.IngenEndringIYtelse) {
-        brevRequest = revurderingIngenEndring(
-            revurdering = vedtak.behandling,
-            beregning = vedtak.behandling.beregning,
         )
     }
 
@@ -735,54 +708,6 @@ class LagBrevRequestVisitor(
             val msg: String = "Kan ikke lage brevrequest for instans av typen: ${instans.qualifiedName}",
         ) : RuntimeException(msg)
     }
-
-    private fun revurderingIngenEndring(revurdering: Revurdering, beregning: Beregning) =
-        hentPersonOgNavn(
-            fnr = revurdering.fnr,
-            saksbehandler = revurdering.saksbehandler,
-            attestant = FinnAttestantVisitor().let {
-                revurdering.accept(it)
-                it.attestant
-            },
-        )
-            .zip(hentGjeldendeUtbetaling(revurdering.sakId, LocalDate.now(clock)))
-            .map { (personOgNavn, gjeldendeUtbetaling) ->
-                requestIngenEndring(
-                    personOgNavn = personOgNavn,
-                    beregning = beregning,
-                    uføregrunnlag = revurdering.vilkårsvurderinger.hentUføregrunnlag(),
-                    fritekst = revurdering.skalSendeBrev().getOrHandle { return KunneIkkeLageBrevRequest.SkalIkkeSendeBrev.left() }.fritekst ?: "",
-                    harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEPS(),
-                    gjeldendeMånedsutbetaling = gjeldendeUtbetaling,
-                    saksnummer = revurdering.saksnummer,
-                    bosituasjon = revurdering.grunnlagsdata.bosituasjon,
-                    sakstype = revurdering.sakstype,
-                )
-            }
-
-    private fun requestIngenEndring(
-        personOgNavn: PersonOgNavn,
-        beregning: Beregning,
-        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
-        fritekst: String,
-        harEktefelle: Boolean,
-        gjeldendeMånedsutbetaling: Int,
-        saksnummer: Saksnummer,
-        bosituasjon: List<Grunnlag.Bosituasjon>,
-        sakstype: Sakstype,
-    ) = LagBrevRequest.VedtakIngenEndring(
-        person = personOgNavn.person,
-        saksbehandlerNavn = personOgNavn.saksbehandlerNavn,
-        attestantNavn = personOgNavn.attestantNavn,
-        beregning = beregning,
-        fritekst = fritekst,
-        harEktefelle = harEktefelle,
-        forventetInntektStørreEnn0 = uføregrunnlag.harForventetInntektStørreEnn0(),
-        gjeldendeMånedsutbetaling = gjeldendeMånedsutbetaling,
-        dagensDato = LocalDate.now(clock),
-        saksnummer = saksnummer,
-        satsoversikt = Satsoversikt.fra(bosituasjon, satsFactory, sakstype),
-    )
 }
 
 private fun FormueVilkår.hentFormueGrunnlagForSøknadsbehandling(avslagsgrunner: List<Avslagsgrunn>): Formuegrunnlag? {
@@ -796,19 +721,15 @@ private fun FormueVilkår.hentFormueGrunnlagForSøknadsbehandling(avslagsgrunner
 private fun Revurdering.skalTilbakekreve(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
     return when (this) {
         is AvsluttetRevurdering -> Unit.left()
-        is BeregnetRevurdering.IngenEndring -> Unit.left()
         is BeregnetRevurdering.Innvilget -> Unit.left()
         is BeregnetRevurdering.Opphørt -> Unit.left()
-        is IverksattRevurdering.IngenEndring -> Unit.left()
         is IverksattRevurdering.Innvilget -> tilbakekrevingsbehandling.skalTilbakekreve()
         is IverksattRevurdering.Opphørt -> tilbakekrevingsbehandling.skalTilbakekreve()
         is OpprettetRevurdering -> Unit.left()
-        is RevurderingTilAttestering.IngenEndring -> Unit.left()
         is RevurderingTilAttestering.Innvilget -> tilbakekrevingsbehandling.skalTilbakekreve()
         is RevurderingTilAttestering.Opphørt -> tilbakekrevingsbehandling.skalTilbakekreve()
         is SimulertRevurdering.Innvilget -> tilbakekrevingsbehandling.skalTilbakekreve()
         is SimulertRevurdering.Opphørt -> tilbakekrevingsbehandling.skalTilbakekreve()
-        is UnderkjentRevurdering.IngenEndring -> Unit.left()
         is UnderkjentRevurdering.Innvilget -> tilbakekrevingsbehandling.skalTilbakekreve()
         is UnderkjentRevurdering.Opphørt -> tilbakekrevingsbehandling.skalTilbakekreve()
     }

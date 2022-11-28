@@ -107,16 +107,6 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             utbetalingId = utbetalingId,
         )
 
-        fun from(revurdering: IverksattRevurdering.IngenEndring, clock: Clock) = IngenEndringIYtelse(
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(clock),
-            behandling = revurdering,
-            periode = revurdering.periode,
-            beregning = revurdering.beregning,
-            saksbehandler = revurdering.saksbehandler,
-            attestant = revurdering.attestering.attestant,
-        )
-
         fun from(revurdering: IverksattRevurdering.Innvilget, utbetalingId: UUID30, clock: Clock) =
             EndringIYtelse.InnvilgetRevurdering(
                 id = UUID.randomUUID(),
@@ -318,23 +308,6 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override fun accept(visitor: VedtakVisitor) {
                 visitor.visit(this)
             }
-        }
-    }
-
-    data class IngenEndringIYtelse(
-        override val id: UUID,
-        override val opprettet: Tidspunkt,
-        override val behandling: IverksattRevurdering.IngenEndring,
-        override val saksbehandler: NavIdentBruker.Saksbehandler,
-        override val attestant: NavIdentBruker.Attestant,
-        override val periode: Periode,
-        val beregning: Beregning,
-    ) : VedtakSomKanRevurderes {
-        override fun harIdentifisertBehovForFremtidigAvkorting() =
-            behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel
-
-        override fun accept(visitor: VedtakVisitor) {
-            visitor.visit(this)
         }
     }
 

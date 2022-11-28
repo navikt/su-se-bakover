@@ -129,24 +129,19 @@ internal class FerdigeBehandlingerRepo(
             RevurderingsType.OPPRETTET,
             RevurderingsType.BEREGNET_INNVILGET,
             RevurderingsType.BEREGNET_OPPHØRT,
-            RevurderingsType.BEREGNET_INGEN_ENDRING,
             RevurderingsType.SIMULERT_INNVILGET,
             RevurderingsType.SIMULERT_OPPHØRT,
             RevurderingsType.SIMULERT_STANS,
             RevurderingsType.SIMULERT_GJENOPPTAK,
             RevurderingsType.TIL_ATTESTERING_INNVILGET,
             RevurderingsType.TIL_ATTESTERING_OPPHØRT,
-            RevurderingsType.TIL_ATTESTERING_INGEN_ENDRING,
             RevurderingsType.UNDERKJENT_INNVILGET,
             RevurderingsType.UNDERKJENT_OPPHØRT,
-            RevurderingsType.UNDERKJENT_INGEN_ENDRING,
             -> throw IllegalStateException("Behandlinger som ikke er iverksatt, avslått, eller avsluttet er ikke en ferdig behandling")
 
             RevurderingsType.IVERKSATT_STANS -> Behandlingsoversikt.Behandlingsstatus.STANS
 
             RevurderingsType.IVERKSATT_OPPHØRT -> Behandlingsoversikt.Behandlingsstatus.OPPHØR
-
-            RevurderingsType.IVERKSATT_INGEN_ENDRING -> Behandlingsoversikt.Behandlingsstatus.INGEN_ENDRING
 
             RevurderingsType.IVERKSATT_GJENOPPTAK -> Behandlingsoversikt.Behandlingsstatus.GJENOPPTAK
 

@@ -536,11 +536,6 @@ internal class RevurderingServiceImpl(
                 )
 
                 when (beregnetRevurdering) {
-                    is BeregnetRevurdering.IngenEndring -> {
-                        revurderingRepo.lagre(beregnetRevurdering)
-                        identifiserFeilOgLagResponse(beregnetRevurdering).leggTil(potensielleVarsel).right()
-                    }
-
                     is BeregnetRevurdering.Innvilget -> {
                         beregnetRevurdering.simuler(
                             saksbehandler = saksbehandler,
@@ -838,13 +833,6 @@ internal class RevurderingServiceImpl(
 
         // TODO endre rekkefølge slik at vi ikke lager/lukker oppgaver før vi har vært innom domenemodellen
         val (tilAttestering, statistikkhendelse) = when (revurdering) {
-            is BeregnetRevurdering.IngenEndring -> revurdering.tilAttestering(
-                oppgaveId,
-                saksbehandler,
-            ).let {
-                Pair(it, null)
-            }
-
             is SimulertRevurdering.Innvilget -> revurdering.tilAttestering(
                 oppgaveId,
                 saksbehandler,
@@ -861,13 +849,6 @@ internal class RevurderingServiceImpl(
                 return KunneIkkeSendeRevurderingTilAttestering.FeilOpphørt(it).left()
             }.let {
                 Pair(it, StatistikkEvent.Behandling.Revurdering.TilAttestering.Opphør(it))
-            }
-
-            is UnderkjentRevurdering.IngenEndring -> revurdering.tilAttestering(
-                oppgaveId,
-                saksbehandler,
-            ).let {
-                Pair(it, null)
             }
 
             is UnderkjentRevurdering.Opphørt -> revurdering.tilAttestering(
@@ -893,7 +874,7 @@ internal class RevurderingServiceImpl(
         }
 
         revurderingRepo.lagre(tilAttestering)
-        statistikkhendelse?.also {
+        statistikkhendelse.also {
             observers.notify(it)
         }
         return tilAttestering.right()
@@ -913,17 +894,6 @@ internal class RevurderingServiceImpl(
         }
 
         return when (revurdering) {
-            is BeregnetRevurdering.IngenEndring -> {
-                identifiserUtfallSomIkkeStøttes(
-                    revurderingsperiode = revurdering.periode,
-                    vilkårsvurderinger = revurdering.vilkårsvurderinger,
-                    gjeldendeMånedsberegninger = gjeldendeMånedsberegninger,
-                    nyBeregning = revurdering.beregning,
-                ).mapLeft {
-                    KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
-                }
-            }
-
             is SimulertRevurdering -> {
                 identifiserUtfallSomIkkeStøttes(
                     revurderingsperiode = revurdering.periode,
@@ -956,18 +926,6 @@ internal class RevurderingServiceImpl(
                     KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
                 }
             }
-
-            is UnderkjentRevurdering.IngenEndring -> {
-                identifiserUtfallSomIkkeStøttes(
-                    revurderingsperiode = revurdering.periode,
-                    vilkårsvurderinger = revurdering.vilkårsvurderinger,
-                    gjeldendeMånedsberegninger = gjeldendeMånedsberegninger,
-                    nyBeregning = revurdering.beregning,
-                ).mapLeft {
-                    KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
-                }
-            }
-
             else -> KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand(
                 fra = revurdering::class,
                 til = RevurderingTilAttestering::class,
@@ -1032,10 +990,6 @@ internal class RevurderingServiceImpl(
         }
 
         return when (revurdering) {
-            is RevurderingTilAttestering.IngenEndring -> {
-                throw IllegalArgumentException("Revudere til INGEN_ENDRING er ikke lov. SakId: ${revurdering.sakId}")
-            }
-
             is RevurderingTilAttestering.Innvilget -> {
                 sak.iverksettInnvilgetRevurdering(
                     revurderingId = revurderingId,
@@ -1131,7 +1085,6 @@ internal class RevurderingServiceImpl(
         }
 
         when (underkjent) {
-            is UnderkjentRevurdering.IngenEndring -> Unit // Ønsker ikke sende en statistikkhendelse ved ingen endring (den statusen er uansett på vei ut)
             is UnderkjentRevurdering.Innvilget -> observers.notify(
                 StatistikkEvent.Behandling.Revurdering.Underkjent.Innvilget(underkjent),
             )

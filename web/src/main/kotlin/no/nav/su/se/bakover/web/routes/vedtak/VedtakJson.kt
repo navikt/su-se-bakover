@@ -34,7 +34,6 @@ internal enum class VedtakTypeJson(private val beskrivelse: String) {
     AVSLAG("AVSLAG"),
     ENDRING("ENDRING"),
     REGULERING("REGULERING"),
-    INGEN_ENDRING("INGEN_ENDRING"),
     OPPHØR("OPPHØR"),
     STANS_AV_YTELSE("STANS_AV_YTELSE"),
     GJENOPPTAK_AV_YTELSE("GJENOPPTAK_AV_YTELSE"),
@@ -51,7 +50,6 @@ internal fun Vedtak.toJson(): VedtakJson {
         is Avslagsvedtak.AvslagBeregning -> this.toJson()
         is Avslagsvedtak.AvslagVilkår -> this.toJson()
         is VedtakSomKanRevurderes.EndringIYtelse -> this.toJson()
-        is VedtakSomKanRevurderes.IngenEndringIYtelse -> this.toJson()
         is Klagevedtak.Avvist -> this.toJson()
     }
 }
@@ -118,22 +116,6 @@ internal fun VedtakSomKanRevurderes.EndringIYtelse.toJson(): VedtakJson = Vedtak
     },
 )
 
-internal fun VedtakSomKanRevurderes.IngenEndringIYtelse.toJson(): VedtakJson = VedtakJson(
-    id = id.toString(),
-    opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-    beregning = beregning.toJson(),
-    simulering = null,
-    attestant = attestant.navIdent,
-    saksbehandler = saksbehandler.navIdent,
-    utbetalingId = null,
-    behandlingId = behandling.id,
-    sakId = behandling.sakId,
-    saksnummer = behandling.saksnummer.toString(),
-    fnr = behandling.fnr.toString(),
-    periode = periode.toJson(),
-    type = VedtakTypeJson.INGEN_ENDRING.toString(),
-)
-
 internal fun Klagevedtak.toJson(): VedtakJson = VedtakJson(
     id = id.toString(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
@@ -152,7 +134,6 @@ internal fun Klagevedtak.toJson(): VedtakJson = VedtakJson(
 
 internal fun VedtakSomKanRevurderes.toJson(): VedtakJson = when (this) {
     is VedtakSomKanRevurderes.EndringIYtelse -> this.toJson()
-    is VedtakSomKanRevurderes.IngenEndringIYtelse -> this.toJson()
 }
 
 internal fun VedtakSomKanRevurderes.toVedtakTypeJson(): VedtakTypeJson = when (this) {
@@ -162,5 +143,4 @@ internal fun VedtakSomKanRevurderes.toVedtakTypeJson(): VedtakTypeJson = when (t
     is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> VedtakTypeJson.SØKNAD
     is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> VedtakTypeJson.OPPHØR
     is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> VedtakTypeJson.STANS_AV_YTELSE
-    is VedtakSomKanRevurderes.IngenEndringIYtelse -> VedtakTypeJson.INGEN_ENDRING
 }

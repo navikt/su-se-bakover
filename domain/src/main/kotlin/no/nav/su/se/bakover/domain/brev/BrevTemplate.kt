@@ -39,11 +39,6 @@ sealed class BrevTemplate(
         )
     }
 
-    object VedtakIngenEndring : BrevTemplate(
-        pdfTemplate = PdfTemplate.VedtakIngenEndring,
-        brevTittel = "Ny behandling førte ikke til endring av stønaden",
-    )
-
     object Forhåndsvarsel : BrevTemplate(
         pdfTemplate = PdfTemplate.Forhåndsvarsel,
         brevTittel = "Varsel om at vi vil ta opp stønaden din til ny vurdering",
