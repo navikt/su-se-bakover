@@ -12,7 +12,7 @@ dependencies {
 
     compileOnly("io.kotest:kotest-assertions-core:$kotestVersion")
     // TODO jah: Finn en måte å gjenbruke de versjonene her på.
-    compileOnly("org.mockito.kotlin:mockito-kotlin:4.0.0")
+    compileOnly("org.mockito.kotlin:mockito-kotlin:4.1.0")
     compileOnly("org.skyscreamer:jsonassert:1.5.1")
     compileOnly("io.zonky.test:embedded-postgres:2.0.1")
 }

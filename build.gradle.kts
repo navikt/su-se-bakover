@@ -74,7 +74,7 @@ subprojects {
         testImplementation("io.kotest.extensions:kotest-assertions-arrow:1.3.0")
         testImplementation("io.kotest:kotest-extensions:$kotestVersion")
         testImplementation("org.skyscreamer:jsonassert:1.5.1")
-        testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
+        testImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
         // Embedded database brukes av modulene: web og database
         testImplementation(
             // select version() i preprod 2022-08-30 -> PostgreSQL 11.16 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-44), 64-bit
