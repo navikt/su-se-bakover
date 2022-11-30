@@ -24,6 +24,6 @@ updates:
     schedule:
       interval: "daily"
     ignore:
-      - dependency-name: navikt/java
+      - dependency-name: ghcr.io/navikt/baseimages/temurin
         versions:
           - "18"
