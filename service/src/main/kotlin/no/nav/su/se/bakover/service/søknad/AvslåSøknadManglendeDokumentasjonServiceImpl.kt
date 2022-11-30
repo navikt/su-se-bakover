@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.nonEmptyListOf
+import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.endOfMonth
@@ -43,21 +44,45 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
     private val satsFactory: SatsFactory,
 ) : AvslåSøknadManglendeDokumentasjonService {
     override fun avslå(request: AvslåManglendeDokumentasjonRequest): Either<KunneIkkeAvslåSøknad, Sak> {
-        return søknadsbehandlingService.hentForSøknad(request.søknadId)
-            ?.let { harBehandlingFraFør(request, it) }
-            ?: opprettNyBehandlingFørst(request)
+        return søknadsbehandlingService.hentForSøknad(request.søknadId).let { nullableSøknadsbehandling ->
+            if (nullableSøknadsbehandling == null) {
+                opprettNyBehandling(request).mapLeft {
+                    return it.left()
+                }.map {
+                    return avslå(request, it)
+                }
+            } else {
+                return avslå(request, nullableSøknadsbehandling)
+            }
+        }
     }
 
-    private fun harBehandlingFraFør(
-        request: AvslåManglendeDokumentasjonRequest,
-        søknadsbehandling: Søknadsbehandling,
-    ): Either<KunneIkkeAvslåSøknad, Sak> {
-        return avslå(request, søknadsbehandling)
+    override fun brev(request: AvslåManglendeDokumentasjonRequest): Either<KunneIkkeLageBrev, ByteArray> {
+        val søknadsbehandling =
+            søknadsbehandlingService.hentForSøknad(request.søknadId).let { søknadsbehandling ->
+                if (søknadsbehandling == null) {
+                    return opprettNyBehandling(request).mapLeft {
+                        return KunneIkkeLageBrev.KunneIkkeAvslåSøknad(it).left()
+                    }.map {
+                        return@let it
+                    }
+                }
+                søknadsbehandling
+            }
+
+        val midlertidigSøknadsbehandling = søknadsbehandling
+            .leggTilStønadsperiodeHvisNull(request.saksbehandler)
+            .avslåPgaManglendeDok(request.saksbehandler)
+            .tilAttestering(request.saksbehandler, request.fritekstTilBrev)
+
+        return brevService.lagDokument(midlertidigSøknadsbehandling)
+            .map { it.generertDokument }
+            .mapLeft { KunneIkkeLageBrev.KunneIkkeLageDokument(it) }
     }
 
-    private fun opprettNyBehandlingFørst(
+    private fun opprettNyBehandling(
         request: AvslåManglendeDokumentasjonRequest,
-    ): Either<KunneIkkeAvslåSøknad, Sak> {
+    ): Either<KunneIkkeAvslåSøknad, Søknadsbehandling> {
         val sak = sakService.hentSakForSøknad(request.søknadId)
             .getOrHandle { return KunneIkkeAvslåSøknad.FantIkkeSak.left() }
 
@@ -73,7 +98,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
         ).mapLeft {
             KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling(it)
         }.map {
-            return avslå(request, it)
+            return it.right()
         }
     }
 

@@ -8,6 +8,8 @@ import java.util.UUID
 
 interface AvslåSøknadManglendeDokumentasjonService {
     fun avslå(request: AvslåManglendeDokumentasjonRequest): Either<KunneIkkeAvslåSøknad, Sak>
+
+    fun brev(request: AvslåManglendeDokumentasjonRequest): Either<KunneIkkeLageBrev, ByteArray>
 }
 
 sealed class KunneIkkeAvslåSøknad {
@@ -16,6 +18,11 @@ sealed class KunneIkkeAvslåSøknad {
     data class KunneIkkeLageDokument(val nested: no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument) : KunneIkkeAvslåSøknad()
     object FantIkkeSak : KunneIkkeAvslåSøknad()
     object FantIkkeSøknad : KunneIkkeAvslåSøknad()
+}
+
+sealed interface KunneIkkeLageBrev {
+    data class KunneIkkeLageDokument(val feil: no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument) : KunneIkkeLageBrev
+    data class KunneIkkeAvslåSøknad(val feil: no.nav.su.se.bakover.service.søknad.KunneIkkeAvslåSøknad) : KunneIkkeLageBrev
 }
 
 data class AvslåManglendeDokumentasjonRequest(

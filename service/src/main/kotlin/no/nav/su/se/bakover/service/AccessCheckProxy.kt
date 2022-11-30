@@ -179,6 +179,7 @@ import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeAvslåSøknad
+import no.nav.su.se.bakover.service.søknad.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.OpprettManglendeJournalpostOgOppgaveResultat
@@ -914,6 +915,11 @@ open class AccessCheckProxy(
                 override fun avslå(request: AvslåManglendeDokumentasjonRequest): Either<KunneIkkeAvslåSøknad, Sak> {
                     assertHarTilgangTilSøknad(request.søknadId)
                     return services.avslåSøknadManglendeDokumentasjonService.avslå(request)
+                }
+
+                override fun brev(request: AvslåManglendeDokumentasjonRequest): Either<KunneIkkeLageBrev, ByteArray> {
+                    assertHarTilgangTilSøknad(request.søknadId)
+                    return services.avslåSøknadManglendeDokumentasjonService.brev(request)
                 }
             },
             kontrollsamtale =

@@ -42,12 +42,14 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.KunneIkkeAvslåSøknad
+import no.nav.su.se.bakover.service.søknad.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.sak.tilResultat
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FeilVedOpprettelseAvEktefelleJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.KunneIkkeLageSøknadinnhold
@@ -211,6 +213,33 @@ internal fun Route.søknadRoutes(
                         call.audit(it.fnr, AuditLogEvent.Action.UPDATE, søknadId)
                         call.svar(Resultat.json(OK, serialize(it.toJson(clock, satsFactory))))
                     }
+                }
+            }
+        }
+    }
+
+    post("$søknadPath/{søknadId}/avslag/brevutkast") {
+        authorize(Brukerrolle.Saksbehandler) {
+            call.withSøknadId { søknadId ->
+                call.withBody<WithFritekstBody> { body ->
+                    avslåSøknadManglendeDokumentasjonService.brev(
+                        request = AvslåManglendeDokumentasjonRequest(
+                            søknadId = søknadId,
+                            saksbehandler = call.suUserContext.saksbehandler,
+                            fritekstTilBrev = body.fritekst,
+                        ),
+                    ).fold(
+                        ifLeft = {
+                            call.svar(
+                                when (it) {
+                                    is KunneIkkeLageBrev.KunneIkkeLageDokument -> it.feil.tilResultat()
+                                    // holder ute dem tekniske tingene for å konstruere brevet
+                                    is KunneIkkeLageBrev.KunneIkkeAvslåSøknad -> Feilresponser.feilVedGenereringAvDokument
+                                },
+                            )
+                        },
+                        ifRight = { call.respondBytes(it, ContentType.Application.Pdf) },
+                    )
                 }
             }
         }

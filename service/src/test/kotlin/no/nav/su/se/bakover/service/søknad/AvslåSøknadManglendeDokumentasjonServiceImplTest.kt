@@ -530,6 +530,73 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         }
     }
 
+    @Test
+    fun `lager brev for søknad uten behandling`() {
+        val (sak, søknad) = nySakMedjournalførtSøknadOgOppgave()
+        val brevByteArray = "brev byte array".toByteArray()
+        AvslåSøknadServiceAndMocks(
+            søknadService = mock {
+                on { hentSøknad(any()) } doReturn søknad.right()
+            },
+            søknadsbehandlingService = mock {
+                on { opprett(any()) } doReturn søknadsbehandlingVilkårsvurdertUavklart().second.right()
+            },
+            brevService = mock {
+                on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn Dokument.UtenMetadata.Vedtak(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    tittel = "brev tittel",
+                    generertDokument = brevByteArray,
+                    generertDokumentJson = """{"json": "json"}""",
+                ).right()
+            },
+            sakService = mock {
+                on { hentSakForSøknad(any()) } doReturn sak.right()
+            },
+            clock = fixedClock,
+        ).let { serviceAndMocks ->
+            serviceAndMocks.service.brev(
+                AvslåManglendeDokumentasjonRequest(
+                    søknad.id,
+                    saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler som avslår"),
+                    fritekstTilBrev = "fritekstTilBrev",
+                ),
+            ) shouldBe brevByteArray.right()
+        }
+    }
+
+    @Test
+    fun `lager brev for søknad med søknadsbehandling`() {
+        val (sak, søknadsbehandling) = søknadsbehandlingVilkårsvurdertUavklart()
+        val brevByteArray = "brev byte array".toByteArray()
+        AvslåSøknadServiceAndMocks(
+            søknadsbehandlingService = mock {
+                on { opprett(any()) } doReturn søknadsbehandling.right()
+            },
+            brevService = mock {
+                on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn Dokument.UtenMetadata.Vedtak(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    tittel = "brev tittel",
+                    generertDokument = brevByteArray,
+                    generertDokumentJson = """{"json": "json"}""",
+                ).right()
+            },
+            sakService = mock {
+                on { hentSakForSøknad(any()) } doReturn sak.right()
+            },
+            clock = fixedClock,
+        ).let { serviceAndMocks ->
+            serviceAndMocks.service.brev(
+                AvslåManglendeDokumentasjonRequest(
+                    søknadId,
+                    saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler som avslår"),
+                    fritekstTilBrev = "fritekstTilBrev",
+                ),
+            ) shouldBe brevByteArray.right()
+        }
+    }
+
     private data class AvslåSøknadServiceAndMocks(
         val clock: Clock = fixedClock,
         val søknadService: SøknadService = mock(),
