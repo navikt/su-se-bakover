@@ -60,6 +60,29 @@ fun nySakMedNySøknad(
     Pair(it.toSak(saksnummer, Hendelsesversjon(1)), it.søknad)
 }
 
+fun nySøknadPåEksisterendeSak(
+    eksisterendeSak: Sak,
+    søknadId: UUID = UUID.randomUUID(),
+    søknadInnsendtAv: NavIdentBruker = veileder,
+    søknadInnhold: SøknadInnhold = søknadinnholdUføre(personopplysninger = personopplysninger(eksisterendeSak.fnr)),
+    clock: Clock = fixedClock,
+): Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> {
+    return nySøknadJournalførtMedOppgave(
+        clock = clock,
+        søknadInnhold = søknadInnhold,
+        søknadInnsendtAv = søknadInnsendtAv,
+        søknadId = søknadId,
+        sakId = eksisterendeSak.id,
+    ).let {
+        Pair(
+            eksisterendeSak.copy(
+                søknader = eksisterendeSak.søknader + it,
+            ),
+            it,
+        )
+    }
+}
+
 fun trukketSøknad(): Pair<Sak, Søknad.Journalført.MedOppgave.Lukket.TrukketAvSøker> {
     return nySakMedjournalførtSøknadOgOppgave().mapSecond {
         it.lukk(
@@ -97,7 +120,9 @@ fun avvistSøknadMedInformasjonsbrev(
     søknadId: UUID = UUID.randomUUID(),
     lukketTidspunkt: Tidspunkt = fixedTidspunkt.plus(1, ChronoUnit.SECONDS),
     lukketAv: NavIdentBruker.Saksbehandler = saksbehandler,
-    brevvalg: Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst("informasjonsbrev med fritekst"),
+    brevvalg: Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst(
+        "informasjonsbrev med fritekst",
+    ),
 ): Søknad.Journalført.MedOppgave.Lukket.Avvist {
     return nySakMedjournalførtSøknadOgOppgave(
         søknadId = søknadId,
@@ -214,11 +239,15 @@ fun nySøknadJournalført(
     clock: Clock = fixedClock,
     sakId: UUID,
     søknadInnhold: SøknadInnhold,
+    søknadId: UUID = UUID.randomUUID(),
+    søknadInnsendtAv: NavIdentBruker = veileder,
 ): Søknad.Journalført.UtenOppgave {
     return nySøknad(
         clock = clock,
         sakId = sakId,
         søknadInnhold = søknadInnhold,
+        søknadId = søknadId,
+        søknadInnsendtAv = søknadInnsendtAv,
     ).journalfør(journalpostIdSøknad)
 }
 
@@ -226,11 +255,15 @@ fun nySøknadJournalførtMedOppgave(
     clock: Clock = fixedClock,
     sakId: UUID,
     søknadInnhold: SøknadInnhold,
+    søknadId: UUID = UUID.randomUUID(),
+    søknadInnsendtAv: NavIdentBruker = veileder,
 ): Søknad.Journalført.MedOppgave.IkkeLukket {
     return nySøknadJournalført(
         clock = clock,
         sakId = sakId,
         søknadInnhold = søknadInnhold,
+        søknadId = søknadId,
+        søknadInnsendtAv = søknadInnsendtAv,
     ).medOppgave(oppgaveIdSøknad)
 }
 

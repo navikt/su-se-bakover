@@ -5,7 +5,7 @@ import arrow.core.getOrHandle
 import io.kotest.assertions.fail
 
 fun <A, B> Either<A, B>.getOrFail(msg: String): B {
-    return getOrHandle { fail(msg) }
+    return getOrHandle { fail("Message: $msg, Error: $it") }
 }
 
 fun <A, B> Either<A, B>.getOrFail(): B {

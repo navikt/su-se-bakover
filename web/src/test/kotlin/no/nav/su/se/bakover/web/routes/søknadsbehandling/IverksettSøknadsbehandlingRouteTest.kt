@@ -14,6 +14,7 @@ import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
@@ -44,7 +45,7 @@ internal class IverksettSøknadsbehandlingRouteTest {
                         søknadsbehandling = SøknadsbehandlingServices(
                             søknadsbehandlingService = mock(),
                             iverksettSøknadsbehandlingService = mock {
-                                on { iverksett(any()) } doReturn KunneIkkeIverksetteSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+                                on { iverksett(any<IverksettSøknadsbehandlingCommand>()) } doReturn KunneIkkeIverksetteSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
                             },
                         ),
                     ),
@@ -74,7 +75,7 @@ internal class IverksettSøknadsbehandlingRouteTest {
                         søknadsbehandling = SøknadsbehandlingServices(
                             søknadsbehandlingService = mock(),
                             iverksettSøknadsbehandlingService = mock {
-                                on { iverksett(any()) } doReturn iverksattSøknadsbehandlingUføre().right()
+                                on { iverksett(any<IverksettSøknadsbehandlingCommand>()) } doReturn iverksattSøknadsbehandlingUføre().right()
                             },
                         ),
                     ),
@@ -104,7 +105,7 @@ internal class IverksettSøknadsbehandlingRouteTest {
                         søknadsbehandling = SøknadsbehandlingServices(
                             søknadsbehandlingService = mock(),
                             iverksettSøknadsbehandlingService = mock {
-                                on { iverksett(any()) } doReturn KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil)
+                                on { iverksett(any<IverksettSøknadsbehandlingCommand>()) } doReturn KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil)
                                     .left()
                             },
                         ),

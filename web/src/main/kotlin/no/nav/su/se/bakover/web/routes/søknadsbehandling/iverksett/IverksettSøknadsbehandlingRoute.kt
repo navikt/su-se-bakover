@@ -45,7 +45,7 @@ internal fun Route.iverksettSøknadsbehandlingRoute(
                     ),
                 ).fold(
                     {
-                        call.svar(kunneIkkeIverksetteMelding(it))
+                        call.svar(it.tilResultat())
                     },
                     {
                         val søknadsbehandling = it.second
@@ -60,10 +60,10 @@ internal fun Route.iverksettSøknadsbehandlingRoute(
     }
 }
 
-private fun kunneIkkeIverksetteMelding(value: KunneIkkeIverksetteSøknadsbehandling): Resultat {
-    return when (value) {
+internal fun KunneIkkeIverksetteSøknadsbehandling.tilResultat(): Resultat {
+    return when (this) {
         is KunneIkkeIverksetteSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
-        is KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale -> value.utbetalingFeilet.tilResultat()
+        is KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale -> this.utbetalingFeilet.tilResultat()
         is KunneIkkeIverksetteSøknadsbehandling.KunneIkkeGenerereVedtaksbrev -> Feilresponser.Brev.kunneIkkeGenerereBrev
         KunneIkkeIverksetteSøknadsbehandling.AvkortingErUfullstendig -> Feilresponser.avkortingErUfullstendig
         KunneIkkeIverksetteSøknadsbehandling.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving -> Feilresponser.sakAvventerKravgrunnlagForTilbakekreving

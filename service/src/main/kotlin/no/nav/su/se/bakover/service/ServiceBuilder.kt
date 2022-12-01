@@ -230,6 +230,17 @@ object ServiceBuilder {
         )
         val skatteServiceImpl =
             SkatteServiceImpl(skatteClient = clients.skatteOppslag, maskinportenClient = clients.maskinportenClient)
+        val iverksettSøknadsbehandlingService = IverksettSøknadsbehandlingServiceImpl(
+            søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
+            utbetalingService = utbetalingService,
+            brevService = brevService,
+            clock = clock,
+            vedtakRepo = databaseRepos.vedtakRepo,
+            ferdigstillVedtakService = ferdigstillVedtakService,
+            sakService = sakService,
+            kontrollsamtaleService = kontrollsamtaleService,
+            sessionFactory = databaseRepos.sessionFactory,
+        )
         return Services(
             avstemming = AvstemmingServiceImpl(
                 repo = databaseRepos.avstemming,
@@ -258,17 +269,7 @@ object ServiceBuilder {
             toggles = toggleService,
             søknadsbehandling = SøknadsbehandlingServices(
                 søknadsbehandlingService = søknadsbehandlingService,
-                iverksettSøknadsbehandlingService = IverksettSøknadsbehandlingServiceImpl(
-                    søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
-                    utbetalingService = utbetalingService,
-                    brevService = brevService,
-                    clock = clock,
-                    vedtakRepo = databaseRepos.vedtakRepo,
-                    ferdigstillVedtakService = ferdigstillVedtakService,
-                    sakService = sakService,
-                    kontrollsamtaleService = kontrollsamtaleService,
-                    sessionFactory = databaseRepos.sessionFactory,
-                ),
+                iverksettSøknadsbehandlingService = iverksettSøknadsbehandlingService,
             ),
             ferdigstillVedtak = ferdigstillVedtakService,
             revurdering = revurderingService,
@@ -276,13 +277,11 @@ object ServiceBuilder {
             nøkkeltallService = nøkkelTallService,
             avslåSøknadManglendeDokumentasjonService = AvslåSøknadManglendeDokumentasjonServiceImpl(
                 clock = clock,
-                søknadsbehandlingService = søknadsbehandlingService,
-                vedtakService = vedtakService,
-                oppgaveService = oppgaveService,
-                brevService = brevService,
-                sessionFactory = databaseRepos.sessionFactory,
                 sakService = sakService,
                 satsFactory = satsFactory,
+                iverksettSøknadsbehandlingService = iverksettSøknadsbehandlingService,
+                utbetalingService = utbetalingService,
+                brevService = brevService,
             ),
             kontrollsamtale = kontrollsamtaleService,
             klageService = klageService,

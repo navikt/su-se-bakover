@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
@@ -45,7 +44,6 @@ import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandlingUføre
@@ -57,18 +55,21 @@ import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattRevurdering
+import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
+import no.nav.su.se.bakover.test.nySøknadsbehandlingUtenStønadsperiode
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.sendBrev
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulertSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
+import no.nav.su.se.bakover.test.tilAttesteringSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.underkjentSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vilkår.flyktningVilkårAvslått
 import no.nav.su.se.bakover.test.vilkår.formuevilkårAvslåttPgrBrukersformue
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
-import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
+import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandling
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.fail
@@ -80,21 +81,19 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `responderer med feil dersom vi ikke får til å hente person`() {
-        vilkårsvurdertInnvilget.leggTilInstitusjonsoppholdVilkår(
-            saksbehandler = saksbehandler,
-            institusjonsoppholdvilkårAvslag(),
-        ).getOrFail()
-            .let { søknadsbehandling ->
-                LagBrevRequestVisitor(
-                    hentPerson = { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson.left() },
-                    hentNavn = { hentNavn(it) },
-                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
-                    clock = fixedClock,
-                    satsFactory = satsFactoryTestPåDato(),
-                ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson.left()
-                }
+        vilkårsvurdertSøknadsbehandling(
+            customVilkår = listOf(institusjonsoppholdvilkårAvslag()),
+        ).second.let { søknadsbehandling ->
+            LagBrevRequestVisitor(
+                hentPerson = { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson.left() },
+                hentNavn = { hentNavn(it) },
+                hentGjeldendeUtbetaling = { _, _ -> 0.right() },
+                clock = fixedClock,
+                satsFactory = satsFactoryTestPåDato(),
+            ).apply { søknadsbehandling.accept(this) }.let {
+                it.brevRequest shouldBe LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson.left()
             }
+        }
     }
 
     @Test
@@ -115,7 +114,7 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `responderer med feil dersom det ikke er mulig å lage brev for aktuell søknadsbehandling`() {
         assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {
-            vilkårsvurdertInnvilget.let {
+            vilkårsvurdertSøknadsbehandling().second.let {
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
                     hentNavn = { hentNavn(it) },
@@ -127,10 +126,7 @@ internal class LagBrevRequestVisitorTest {
         }
 
         assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {
-            vilkårsvurdertInnvilget.leggTilInstitusjonsoppholdVilkår(
-                saksbehandler = saksbehandler,
-                institusjonsoppholdvilkårInnvilget(),
-            ).getOrFail()
+            nySøknadsbehandlingUtenStønadsperiode().second
                 .let {
                     LagBrevRequestVisitor(
                         hentPerson = { person.right() },
@@ -145,10 +141,10 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `lager request for vilkårsvurdert avslag`() {
-        vilkårsvurdertInnvilget.leggTilUførevilkår(
-            uførhet = avslåttUførevilkårUtenGrunnlag(),
-            saksbehandler = saksbehandler,
-        ).getOrFail().let { søknadsbehandling ->
+        vilkårsvurdertSøknadsbehandling(
+            customVilkår = listOf(avslåttUførevilkårUtenGrunnlag()),
+        ).let { (sak, søknadsbehandling) ->
+            søknadsbehandling.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
             LagBrevRequestVisitor(
                 hentPerson = { person.right() },
                 hentNavn = { hentNavn(it) },
@@ -171,7 +167,7 @@ internal class LagBrevRequestVisitorTest {
                     fritekst = "",
                     forventetInntektStørreEnn0 = false,
                     dagensDato = fixedLocalDate,
-                    saksnummer = vilkårsvurdertInnvilget.saksnummer,
+                    saksnummer = sak.saksnummer,
                     satsoversikt = null,
                     sakstype = Sakstype.UFØRE,
                 ).right()
@@ -188,13 +184,10 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `lager request for vilkårsvurdert avslag pga formue`() {
-        val vilkårsvurdertAvslagPgaFormue: Søknadsbehandling.Vilkårsvurdert.Avslag =
-            søknadsbehandlingVilkårsvurdertInnvilget().second
-                .leggTilFormuevilkår(
-                    vilkår = formuevilkårAvslåttPgrBrukersformue(),
-                    saksbehandler = saksbehandler,
-                ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
-        vilkårsvurdertAvslagPgaFormue.let { søknadsbehandling ->
+        vilkårsvurdertSøknadsbehandling(
+            customVilkår = listOf(formuevilkårAvslåttPgrBrukersformue()),
+        ).let { (sak, søknadsbehandling) ->
+            søknadsbehandling.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
             LagBrevRequestVisitor(
                 hentPerson = { person.right() },
                 hentNavn = { hentNavn(it) },
@@ -234,7 +227,7 @@ internal class LagBrevRequestVisitorTest {
                     fritekst = "",
                     forventetInntektStørreEnn0 = false,
                     dagensDato = fixedLocalDate,
-                    saksnummer = vilkårsvurdertInnvilget.saksnummer,
+                    saksnummer = sak.saksnummer,
                     satsoversikt = null,
                     sakstype = Sakstype.UFØRE,
                 ).right()
@@ -251,13 +244,8 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `lager request for beregnet innvilget`() {
-        vilkårsvurdertInnvilget.beregn(
-            begrunnelse = null,
-            clock = fixedClock,
-            satsFactory = satsFactoryTestPåDato(),
-            nySaksbehandler = saksbehandler,
-        ).getOrFail()
-            .let { søknadsbehandling ->
+        beregnetSøknadsbehandlingUføre()
+            .let { (sak, søknadsbehandling) ->
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
                     hentNavn = { hentNavn(it) },
@@ -265,6 +253,7 @@ internal class LagBrevRequestVisitorTest {
                     clock = fixedClock,
                     satsFactory = satsFactoryTestPåDato(),
                 ).apply { søknadsbehandling.accept(this) }.let {
+                    søknadsbehandling.shouldBeType<Søknadsbehandling.Beregnet.Innvilget>()
                     it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
                         person = person,
                         beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
@@ -274,7 +263,7 @@ internal class LagBrevRequestVisitorTest {
                         fritekst = "",
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
-                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
+                        saksnummer = sak.saksnummer,
                         satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
                         sakstype = Sakstype.UFØRE,
                     ).right()
@@ -284,26 +273,12 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `lager request for beregnet avslag`() {
-        vilkårsvurdertInnvilget.leggTilFradragsgrunnlag(
-            fradragsgrunnlag = listOf(
-                Grunnlag.Fradragsgrunnlag.create(
-                    opprettet = fixedTidspunkt,
-                    fradrag = FradragFactory.nyFradragsperiode(
-                        fradragstype = Fradragstype.Arbeidsinntekt,
-                        månedsbeløp = 50000.0,
-                        periode = år(2021),
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                ),
+        beregnetSøknadsbehandlingUføre(
+            customGrunnlag = listOf(
+                fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 50000.0),
             ),
-            saksbehandler = saksbehandler,
-        ).getOrFail().beregn(
-            begrunnelse = null,
-            clock = fixedClock,
-            satsFactory = satsFactoryTestPåDato(),
-            nySaksbehandler = saksbehandler,
-        ).getOrFail().let { søknadsbehandling ->
+        ).let { (sak, søknadsbehandling) ->
+            søknadsbehandling.shouldBeType<Søknadsbehandling.Beregnet.Avslag>()
             LagBrevRequestVisitor(
                 hentPerson = { person.right() },
                 hentNavn = { hentNavn(it) },
@@ -326,7 +301,7 @@ internal class LagBrevRequestVisitorTest {
                     fritekst = "",
                     forventetInntektStørreEnn0 = false,
                     dagensDato = fixedLocalDate,
-                    saksnummer = vilkårsvurdertInnvilget.saksnummer,
+                    saksnummer = sak.saksnummer,
                     satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
                     sakstype = Sakstype.UFØRE,
                 ).right()
@@ -336,7 +311,8 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `lager request for simulert`() {
-        simulertSøknadsbehandlingUføre().second.let { søknadsbehandling ->
+        simulertSøknadsbehandlingUføre().let { (sak, søknadsbehandling) ->
+            søknadsbehandling.shouldBeType<Søknadsbehandling.Simulert>()
             LagBrevRequestVisitor(
                 hentPerson = { person.right() },
                 hentNavn = { hentNavn(it) },
@@ -353,7 +329,7 @@ internal class LagBrevRequestVisitorTest {
                     fritekst = "",
                     forventetInntektStørreEnn0 = false,
                     dagensDato = fixedLocalDate,
-                    saksnummer = vilkårsvurdertInnvilget.saksnummer,
+                    saksnummer = sak.saksnummer,
                     satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
                     sakstype = Sakstype.UFØRE,
                 ).right()
@@ -370,414 +346,322 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `lager request for avslag til attestering uten beregning`() {
-        (
-            vilkårsvurdertInnvilget.leggTilInstitusjonsoppholdVilkår(
-                saksbehandler = saksbehandler,
-                institusjonsoppholdvilkårAvslag(),
-            ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
-            )
-            .tilAttestering(saksbehandler, "Fritekst!")
-            .let { søknadsbehandling ->
-                LagBrevRequestVisitor(
-                    hentPerson = { person.right() },
-                    hentNavn = { hentNavn(it) },
-                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
-                    clock = fixedClock,
-                    satsFactory = satsFactoryTestPåDato(),
-                ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe AvslagBrevRequest(
-                        person = person,
-                        avslag = Avslag(
-                            opprettet = fixedTidspunkt,
-                            avslagsgrunner = listOf(Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON),
-                            harEktefelle = false,
-                            beregning = null,
-                            formuegrunnlag = null,
-                            halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
-                        ),
-                        saksbehandlerNavn = saksbehandlerNavn,
-                        attestantNavn = "-",
-                        fritekst = "Fritekst!",
-                        forventetInntektStørreEnn0 = false,
-                        dagensDato = fixedLocalDate,
-                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
-                        satsoversikt = null,
-                        sakstype = Sakstype.UFØRE,
-                    ).right()
-                }
+        tilAttesteringSøknadsbehandlingUføre(
+            customVilkår = listOf(institusjonsoppholdvilkårAvslag()),
+            fritekstTilBrev = "Fritekst!",
+        ).let { (sak, søknadsbehandling) ->
+            søknadsbehandling.shouldBeType<Søknadsbehandling.TilAttestering.Avslag.UtenBeregning>()
+            LagBrevRequestVisitor(
+                hentPerson = { person.right() },
+                hentNavn = { hentNavn(it) },
+                hentGjeldendeUtbetaling = { _, _ -> 0.right() },
+                clock = fixedClock,
+                satsFactory = satsFactoryTestPåDato(),
+            ).apply { søknadsbehandling.accept(this) }.let {
+                it.brevRequest shouldBe AvslagBrevRequest(
+                    person = person,
+                    avslag = Avslag(
+                        opprettet = fixedTidspunkt,
+                        avslagsgrunner = listOf(Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON),
+                        harEktefelle = false,
+                        beregning = null,
+                        formuegrunnlag = null,
+                        halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
+                    ),
+                    saksbehandlerNavn = saksbehandlerNavn,
+                    attestantNavn = "-",
+                    fritekst = "Fritekst!",
+                    forventetInntektStørreEnn0 = false,
+                    dagensDato = fixedLocalDate,
+                    saksnummer = sak.saksnummer,
+                    satsoversikt = null,
+                    sakstype = Sakstype.UFØRE,
+                ).right()
             }
+        }
     }
 
     @Test
     fun `lager request for avslag til attestering med beregning`() {
-        (
-            vilkårsvurdertInnvilget.leggTilFradragsgrunnlag(
-                fradragsgrunnlag = listOf(
-                    Grunnlag.Fradragsgrunnlag.create(
-                        opprettet = fixedTidspunkt,
-                        fradrag = FradragFactory.nyFradragsperiode(
-                            fradragstype = Fradragstype.Arbeidsinntekt,
-                            månedsbeløp = 50000.0,
-                            periode = år(2021),
-                            utenlandskInntekt = null,
-                            tilhører = FradragTilhører.BRUKER,
-                        ),
-                    ),
-                ),
-                saksbehandler = saksbehandler,
-            ).getOrFail().beregn(
-                begrunnelse = null,
+        tilAttesteringSøknadsbehandlingUføre(
+            customGrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 50000.0)),
+            fritekstTilBrev = "Fritekst!",
+        ).let { (sak, søknadsbehandling) ->
+            søknadsbehandling.shouldBeType<Søknadsbehandling.TilAttestering.Avslag.MedBeregning>()
+            LagBrevRequestVisitor(
+                hentPerson = { person.right() },
+                hentNavn = { hentNavn(it) },
+                hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
-                nySaksbehandler = saksbehandler,
-            ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
-            )
-            .tilAttestering(saksbehandler, "Fritekst!")
-            .let { søknadsbehandling ->
-                LagBrevRequestVisitor(
-                    hentPerson = { person.right() },
-                    hentNavn = { hentNavn(it) },
-                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
-                    clock = fixedClock,
-                    satsFactory = satsFactoryTestPåDato(),
-                ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe AvslagBrevRequest(
-                        person = person,
-                        avslag = Avslag(
-                            opprettet = fixedTidspunkt,
-                            avslagsgrunner = listOf(Avslagsgrunn.FOR_HØY_INNTEKT),
-                            harEktefelle = false,
-                            beregning = expectedAvslagBeregning(søknadsbehandling.beregning.getId()),
-                            formuegrunnlag = null,
-                            halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
-                        ),
-                        saksbehandlerNavn = saksbehandlerNavn,
-                        attestantNavn = "-",
-                        fritekst = "Fritekst!",
-                        forventetInntektStørreEnn0 = false,
-                        dagensDato = fixedLocalDate,
-                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
-                        satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
-                        sakstype = Sakstype.UFØRE,
-                    ).right()
-                }
+            ).apply { søknadsbehandling.accept(this) }.let {
+                it.brevRequest shouldBe AvslagBrevRequest(
+                    person = person,
+                    avslag = Avslag(
+                        opprettet = fixedTidspunkt,
+                        avslagsgrunner = listOf(Avslagsgrunn.FOR_HØY_INNTEKT),
+                        harEktefelle = false,
+                        beregning = expectedAvslagBeregning(søknadsbehandling.beregning!!.getId()),
+                        formuegrunnlag = null,
+                        halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
+                    ),
+                    saksbehandlerNavn = saksbehandlerNavn,
+                    attestantNavn = "-",
+                    fritekst = "Fritekst!",
+                    forventetInntektStørreEnn0 = false,
+                    dagensDato = fixedLocalDate,
+                    saksnummer = sak.saksnummer,
+                    satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
+                    sakstype = Sakstype.UFØRE,
+                ).right()
             }
+        }
     }
 
     @Test
     fun `lager request for innvilget til attestering`() {
-        simulertSøknadsbehandlingUføre().second
-            .tilAttestering(saksbehandler, "Fritekst!").let { søknadsbehandling ->
-                LagBrevRequestVisitor(
-                    hentPerson = { person.right() },
-                    hentNavn = { hentNavn(it) },
-                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
-                    clock = fixedClock,
-                    satsFactory = satsFactoryTestPåDato(),
-                ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
-                        person = person,
-                        beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
-                        harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEPS(),
-                        saksbehandlerNavn = saksbehandlerNavn,
-                        attestantNavn = "-",
-                        fritekst = "Fritekst!",
-                        forventetInntektStørreEnn0 = false,
-                        dagensDato = fixedLocalDate,
-                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
-                        satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
-                        sakstype = Sakstype.UFØRE,
-                    ).right()
-                }
+        tilAttesteringSøknadsbehandlingUføre(
+            fritekstTilBrev = "Fritekst!",
+        ).let { (sak, søknadsbehandling) ->
+            søknadsbehandling.shouldBeType<Søknadsbehandling.TilAttestering.Innvilget>()
+            LagBrevRequestVisitor(
+                hentPerson = { person.right() },
+                hentNavn = { hentNavn(it) },
+                hentGjeldendeUtbetaling = { _, _ -> 0.right() },
+                clock = fixedClock,
+                satsFactory = satsFactoryTestPåDato(),
+            ).apply { søknadsbehandling.accept(this) }.let {
+                it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
+                    person = person,
+                    beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning!!.getId()),
+                    harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEPS(),
+                    saksbehandlerNavn = saksbehandlerNavn,
+                    attestantNavn = "-",
+                    fritekst = "Fritekst!",
+                    forventetInntektStørreEnn0 = false,
+                    dagensDato = fixedLocalDate,
+                    saksnummer = sak.saksnummer,
+                    satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
+                    sakstype = Sakstype.UFØRE,
+                ).right()
             }
+        }
     }
 
     @Test
     fun `lager request for underkjent avslag uten beregning`() {
-        (
-            vilkårsvurdertInnvilget.leggTilInstitusjonsoppholdVilkår(saksbehandler = saksbehandler, institusjonsoppholdvilkårAvslag())
-                .getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
-            )
-            .tilAttestering(saksbehandler, "Fritekst!")
-            .tilUnderkjent(
-                Attestering.Underkjent(
-                    attestant = attestant,
-                    grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-                    kommentar = "kommentar",
-                    opprettet = fixedTidspunkt,
-                ),
-            )
-            .let { søknadsbehandling ->
-                LagBrevRequestVisitor(
-                    hentPerson = { person.right() },
-                    hentNavn = { hentNavn(it) },
-                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
-                    clock = fixedClock,
-                    satsFactory = satsFactoryTestPåDato(),
-                ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe AvslagBrevRequest(
-                        person = person,
-                        avslag = Avslag(
-                            opprettet = fixedTidspunkt,
-                            avslagsgrunner = listOf(Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON),
-                            harEktefelle = false,
-                            beregning = null,
-                            formuegrunnlag = null,
-                            halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
-                        ),
-                        saksbehandlerNavn = saksbehandlerNavn,
-                        attestantNavn = attestantNavn,
-                        fritekst = "Fritekst!",
-                        forventetInntektStørreEnn0 = false,
-                        dagensDato = fixedLocalDate,
-                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
-                        satsoversikt = null,
-                        sakstype = Sakstype.UFØRE,
-                    ).right()
-                }
+        underkjentSøknadsbehandlingUføre(
+            customVilkår = listOf(institusjonsoppholdvilkårAvslag()),
+            fritekstTilBrev = "Fritekst!",
+        ).let { (sak, søknadsbehandling) ->
+            søknadsbehandling.shouldBeType<Søknadsbehandling.Underkjent.Avslag.UtenBeregning>()
+            LagBrevRequestVisitor(
+                hentPerson = { person.right() },
+                hentNavn = { hentNavn(it) },
+                hentGjeldendeUtbetaling = { _, _ -> 0.right() },
+                clock = fixedClock,
+                satsFactory = satsFactoryTestPåDato(),
+            ).apply { søknadsbehandling.accept(this) }.let {
+                it.brevRequest shouldBe AvslagBrevRequest(
+                    person = person,
+                    avslag = Avslag(
+                        opprettet = fixedTidspunkt,
+                        avslagsgrunner = listOf(Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON),
+                        harEktefelle = false,
+                        beregning = null,
+                        formuegrunnlag = null,
+                        halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
+                    ),
+                    saksbehandlerNavn = saksbehandlerNavn,
+                    attestantNavn = attestantNavn,
+                    fritekst = "Fritekst!",
+                    forventetInntektStørreEnn0 = false,
+                    dagensDato = fixedLocalDate,
+                    saksnummer = sak.saksnummer,
+                    satsoversikt = null,
+                    sakstype = Sakstype.UFØRE,
+                ).right()
             }
+        }
     }
 
     @Test
     fun `lager request for underkjent avslag med beregning`() {
-        (
-            vilkårsvurdertInnvilget.leggTilFradragsgrunnlag(
-                fradragsgrunnlag = listOf(
-                    Grunnlag.Fradragsgrunnlag.create(
-                        opprettet = fixedTidspunkt,
-                        fradrag = FradragFactory.nyFradragsperiode(
-                            fradragstype = Fradragstype.Arbeidsinntekt,
-                            månedsbeløp = 50000.0,
-                            periode = år(2021),
-                            utenlandskInntekt = null,
-                            tilhører = FradragTilhører.BRUKER,
-                        ),
-                    ),
-                ),
-                saksbehandler = saksbehandler,
-            ).getOrFail().beregn(
-                begrunnelse = null,
+        underkjentSøknadsbehandlingUføre(
+            customGrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 50000.0)),
+            fritekstTilBrev = "Fritekst!",
+        ).let { (sak, søknadsbehandling) ->
+            søknadsbehandling.shouldBeType<Søknadsbehandling.Underkjent.Avslag.MedBeregning>()
+            LagBrevRequestVisitor(
+                hentPerson = { person.right() },
+                hentNavn = { hentNavn(it) },
+                hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
-                nySaksbehandler = saksbehandler,
-            ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
-            )
-            .tilAttestering(saksbehandler, "Fritekst!")
-            .tilUnderkjent(
-                Attestering.Underkjent(
-                    attestant = attestant,
-                    grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-                    kommentar = "kommentar",
-                    opprettet = fixedTidspunkt,
-
-                ),
-            )
-            .let { søknadsbehandling ->
-                LagBrevRequestVisitor(
-                    hentPerson = { person.right() },
-                    hentNavn = { hentNavn(it) },
-                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
-                    clock = fixedClock,
-                    satsFactory = satsFactoryTestPåDato(),
-                ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe AvslagBrevRequest(
-                        person = person,
-                        avslag = Avslag(
-                            opprettet = fixedTidspunkt,
-                            avslagsgrunner = listOf(Avslagsgrunn.FOR_HØY_INNTEKT),
-                            harEktefelle = false,
-                            beregning = expectedAvslagBeregning(søknadsbehandling.beregning.getId()),
-                            formuegrunnlag = null,
-                            halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
-                        ),
-                        saksbehandlerNavn = saksbehandlerNavn,
-                        attestantNavn = attestantNavn,
-                        fritekst = "Fritekst!",
-                        forventetInntektStørreEnn0 = false,
-                        dagensDato = fixedLocalDate,
-                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
-                        satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
-                        sakstype = Sakstype.UFØRE,
-                    ).right()
-                }
+            ).apply { søknadsbehandling.accept(this) }.let {
+                it.brevRequest shouldBe AvslagBrevRequest(
+                    person = person,
+                    avslag = Avslag(
+                        opprettet = fixedTidspunkt,
+                        avslagsgrunner = listOf(Avslagsgrunn.FOR_HØY_INNTEKT),
+                        harEktefelle = false,
+                        beregning = expectedAvslagBeregning(søknadsbehandling.beregning!!.getId()),
+                        formuegrunnlag = null,
+                        halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
+                    ),
+                    saksbehandlerNavn = saksbehandlerNavn,
+                    attestantNavn = attestantNavn,
+                    fritekst = "Fritekst!",
+                    forventetInntektStørreEnn0 = false,
+                    dagensDato = fixedLocalDate,
+                    saksnummer = sak.saksnummer,
+                    satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
+                    sakstype = Sakstype.UFØRE,
+                ).right()
             }
+        }
     }
 
     @Test
     fun `lager request for underkjent innvilgelse`() {
-        simulertSøknadsbehandlingUføre().second
-            .tilAttestering(saksbehandler, "Fritekst!")
-            .tilUnderkjent(
-                Attestering.Underkjent(
-                    attestant = attestant,
-                    grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-                    kommentar = "kommentar",
-                    opprettet = fixedTidspunkt,
-                ),
-            ).let { søknadsbehandling ->
-                LagBrevRequestVisitor(
-                    hentPerson = { person.right() },
-                    hentNavn = { hentNavn(it) },
-                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
-                    clock = fixedClock,
-                    satsFactory = satsFactoryTestPåDato(),
-                ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
-                        person = person,
-                        beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
-                        harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEPS(),
-                        saksbehandlerNavn = saksbehandlerNavn,
-                        attestantNavn = attestantNavn,
-                        fritekst = "Fritekst!",
-                        forventetInntektStørreEnn0 = false,
-                        dagensDato = fixedLocalDate,
-                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
-                        satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
-                        sakstype = Sakstype.UFØRE,
-                    ).right()
-                }
+        underkjentSøknadsbehandlingUføre(
+            fritekstTilBrev = "Fritekst!",
+        ).let { (sak, søknadsbehandling) ->
+            søknadsbehandling.shouldBeType<Søknadsbehandling.Underkjent.Innvilget>()
+            LagBrevRequestVisitor(
+                hentPerson = { person.right() },
+                hentNavn = { hentNavn(it) },
+                hentGjeldendeUtbetaling = { _, _ -> 0.right() },
+                clock = fixedClock,
+                satsFactory = satsFactoryTestPåDato(),
+            ).apply { søknadsbehandling.accept(this) }.let {
+                it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
+                    person = person,
+                    beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning!!.getId()),
+                    harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEPS(),
+                    saksbehandlerNavn = saksbehandlerNavn,
+                    attestantNavn = attestantNavn,
+                    fritekst = "Fritekst!",
+                    forventetInntektStørreEnn0 = false,
+                    dagensDato = fixedLocalDate,
+                    saksnummer = sak.saksnummer,
+                    satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
+                    sakstype = Sakstype.UFØRE,
+                ).right()
             }
+        }
     }
 
     @Test
     fun `lager request for iverksatt avslag uten beregning`() {
-        (
-            vilkårsvurdertInnvilget.leggTilInstitusjonsoppholdVilkår(saksbehandler = saksbehandler, institusjonsoppholdvilkårAvslag())
-                .getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
-            )
-            .tilAttestering(saksbehandler, "Fritekst!")
-            .tilIverksatt(
-                Attestering.Iverksatt(attestant, fixedTidspunkt),
-            )
-            .let { søknadsbehandling ->
-                LagBrevRequestVisitor(
-                    hentPerson = { person.right() },
-                    hentNavn = { hentNavn(it) },
-                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
-                    clock = fixedClock,
-                    satsFactory = satsFactoryTestPåDato(),
-                ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe AvslagBrevRequest(
-                        person = person,
-                        avslag = Avslag(
-                            opprettet = fixedTidspunkt,
-                            avslagsgrunner = listOf(Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON),
-                            harEktefelle = false,
-                            beregning = null,
-                            formuegrunnlag = null,
-                            halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
-                        ),
-                        saksbehandlerNavn = saksbehandlerNavn,
-                        attestantNavn = attestantNavn,
-                        fritekst = "Fritekst!",
-                        forventetInntektStørreEnn0 = false,
-                        dagensDato = fixedLocalDate,
-                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
-                        satsoversikt = null,
-                        sakstype = Sakstype.UFØRE,
-                    ).right()
-                }
+        iverksattSøknadsbehandling(
+            customVilkår = listOf(
+                institusjonsoppholdvilkårAvslag(),
+            ),
+            fritekstTilBrev = "Fritekst!",
+        ).let { (sak, søknadsbehandling) ->
+            søknadsbehandling.shouldBeType<Søknadsbehandling.Iverksatt.Avslag.UtenBeregning>()
+            LagBrevRequestVisitor(
+                hentPerson = { person.right() },
+                hentNavn = { hentNavn(it) },
+                hentGjeldendeUtbetaling = { _, _ -> 0.right() },
+                clock = fixedClock,
+                satsFactory = satsFactoryTestPåDato(),
+            ).apply { søknadsbehandling.accept(this) }.let {
+                it.brevRequest shouldBe AvslagBrevRequest(
+                    person = person,
+                    avslag = Avslag(
+                        opprettet = fixedTidspunkt,
+                        avslagsgrunner = listOf(Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON),
+                        harEktefelle = false,
+                        beregning = null,
+                        formuegrunnlag = null,
+                        halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
+                    ),
+                    saksbehandlerNavn = saksbehandlerNavn,
+                    attestantNavn = attestantNavn,
+                    fritekst = "Fritekst!",
+                    forventetInntektStørreEnn0 = false,
+                    dagensDato = fixedLocalDate,
+                    saksnummer = sak.saksnummer,
+                    satsoversikt = null,
+                    sakstype = Sakstype.UFØRE,
+                ).right()
             }
+        }
     }
 
     @Test
     fun `lager request for iverksatt avslag med beregning`() {
-        (
-            vilkårsvurdertInnvilget.leggTilFradragsgrunnlag(
-                fradragsgrunnlag = listOf(
-                    Grunnlag.Fradragsgrunnlag.create(
+        iverksattSøknadsbehandling(
+            customGrunnlag = listOf(
+                fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 50000.0),
+            ),
+            fritekstTilBrev = "Fritekst!",
+        ).let { (sak, søknadsbehandling) ->
+            søknadsbehandling.shouldBeType<Søknadsbehandling.Iverksatt.Avslag.MedBeregning>()
+            LagBrevRequestVisitor(
+                hentPerson = { person.right() },
+                hentNavn = { hentNavn(it) },
+                hentGjeldendeUtbetaling = { _, _ -> 0.right() },
+                clock = fixedClock,
+                satsFactory = satsFactoryTestPåDato(),
+            ).apply { søknadsbehandling.accept(this) }.let {
+                it.brevRequest shouldBe AvslagBrevRequest(
+                    person = person,
+                    avslag = Avslag(
                         opprettet = fixedTidspunkt,
-                        fradrag = FradragFactory.nyFradragsperiode(
-                            fradragstype = Fradragstype.Arbeidsinntekt,
-                            månedsbeløp = 50000.0,
-                            periode = år(2021),
-                            utenlandskInntekt = null,
-                            tilhører = FradragTilhører.BRUKER,
-                        ),
+                        avslagsgrunner = listOf(Avslagsgrunn.FOR_HØY_INNTEKT),
+                        harEktefelle = false,
+                        beregning = expectedAvslagBeregning(søknadsbehandling.beregning!!.getId()),
+                        formuegrunnlag = null,
+                        halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
                     ),
-                ),
-                saksbehandler = saksbehandler,
-            ).getOrFail()
-                .beregn(
-                    begrunnelse = null,
-                    clock = fixedClock,
-                    satsFactory = satsFactoryTestPåDato(),
-                    nySaksbehandler = saksbehandler,
-                ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
-            )
-            .tilAttestering(saksbehandler, "Fritekst!")
-            .tilIverksatt(
-                Attestering.Iverksatt(attestant, fixedTidspunkt),
-            )
-            .let { søknadsbehandling ->
-                LagBrevRequestVisitor(
-                    hentPerson = { person.right() },
-                    hentNavn = { hentNavn(it) },
-                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
-                    clock = fixedClock,
-                    satsFactory = satsFactoryTestPåDato(),
-                ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe AvslagBrevRequest(
-                        person = person,
-                        avslag = Avslag(
-                            opprettet = fixedTidspunkt,
-                            avslagsgrunner = listOf(Avslagsgrunn.FOR_HØY_INNTEKT),
-                            harEktefelle = false,
-                            beregning = expectedAvslagBeregning(søknadsbehandling.beregning.getId()),
-                            formuegrunnlag = null,
-                            halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
-                        ),
-                        saksbehandlerNavn = saksbehandlerNavn,
-                        attestantNavn = attestantNavn,
-                        fritekst = "Fritekst!",
-                        forventetInntektStørreEnn0 = false,
-                        dagensDato = fixedLocalDate,
-                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
-                        satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
-                        sakstype = Sakstype.UFØRE,
-                    ).right()
-                }
+                    saksbehandlerNavn = saksbehandlerNavn,
+                    attestantNavn = attestantNavn,
+                    fritekst = "Fritekst!",
+                    forventetInntektStørreEnn0 = false,
+                    dagensDato = fixedLocalDate,
+                    saksnummer = sak.saksnummer,
+                    satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
+                    sakstype = Sakstype.UFØRE,
+                ).right()
             }
+        }
     }
 
     @Test
     fun `lager request for iverksatt innvilget`() {
-        simulertSøknadsbehandlingUføre().second
-            .tilAttestering(saksbehandler, "Fritekst!")
-            .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
-            .let { søknadsbehandling ->
-                LagBrevRequestVisitor(
-                    hentPerson = { person.right() },
-                    hentNavn = { hentNavn(it) },
-                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
-                    clock = fixedClock,
-                    satsFactory = satsFactoryTestPåDato(),
-                ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
-                        person = person,
-                        beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
-                        harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEPS(),
-                        saksbehandlerNavn = saksbehandlerNavn,
-                        attestantNavn = attestantNavn,
-                        fritekst = "Fritekst!",
-                        forventetInntektStørreEnn0 = false,
-                        dagensDato = fixedLocalDate,
-                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
-                        satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
-                        sakstype = Sakstype.UFØRE,
-                    ).right()
-                }
+        iverksattSøknadsbehandling(fritekstTilBrev = "Fritekst!").let { (sak, søknadsbehandling, _) ->
+            LagBrevRequestVisitor(
+                hentPerson = { person.right() },
+                hentNavn = { hentNavn(it) },
+                hentGjeldendeUtbetaling = { _, _ -> 0.right() },
+                clock = fixedClock,
+                satsFactory = satsFactoryTestPåDato(),
+            ).apply { søknadsbehandling.accept(this) }.let {
+                it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
+                    person = person,
+                    beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning!!.getId()),
+                    harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEPS(),
+                    saksbehandlerNavn = saksbehandlerNavn,
+                    attestantNavn = attestantNavn,
+                    fritekst = "Fritekst!",
+                    forventetInntektStørreEnn0 = false,
+                    dagensDato = fixedLocalDate,
+                    saksnummer = sak.saksnummer,
+                    satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
+                    sakstype = Sakstype.UFØRE,
+                ).right()
             }
+        }
     }
 
     @Test
     fun `lager request for vedtak om innvilget stønad`() {
-        val utbetalingId = UUID30.randomUUID()
-        val søknadsbehandling = simulertSøknadsbehandlingUføre().second
-            .tilAttestering(saksbehandler, "Fritekst!")
-            .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
-
-        val innvilgetVedtak = VedtakSomKanRevurderes.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock)
+        val (_, søknadsbehandling, innvilgetVedtak) = iverksattSøknadsbehandling(
+            fritekstTilBrev = "Fritekst!",
+        )
 
         val brevSøknadsbehandling = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -798,7 +682,7 @@ internal class LagBrevRequestVisitorTest {
         brevSøknadsbehandling.brevRequest shouldBe brevVedtak.brevRequest
         brevSøknadsbehandling.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
             person = person,
-            beregning = expectedInnvilgetBeregning(innvilgetVedtak.beregning.getId()),
+            beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning!!.getId()),
             harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEPS(),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
@@ -813,24 +697,11 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `lager request for vedtak om avslått stønad med beregning`() {
-        val søknadsbehandling = beregnetSøknadsbehandlingUføre(
-            customGrunnlag = listOf(
-                Grunnlag.Fradragsgrunnlag.create(
-                    opprettet = fixedTidspunkt,
-                    fradrag = FradragFactory.nyFradragsperiode(
-                        fradragstype = Fradragstype.Arbeidsinntekt,
-                        månedsbeløp = 50000.0,
-                        periode = år(2021),
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                ),
-            ),
-        ).second.shouldBeType<Søknadsbehandling.Beregnet.Avslag>()
-            .tilAttestering(saksbehandler, "Fritekst!")
-            .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
-
-        val avslåttVedtak = Avslagsvedtak.fromSøknadsbehandlingMedBeregning(søknadsbehandling, fixedClock)
+        val (_, søknadsbehandling, avslåttVedtak) = iverksattSøknadsbehandling(
+            customGrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 50000.0)),
+            fritekstTilBrev = "Fritekst!",
+        )
+        søknadsbehandling.shouldBeType<Søknadsbehandling.Iverksatt.Avslag.MedBeregning>()
 
         val brevSøknadsbehandling = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -855,7 +726,7 @@ internal class LagBrevRequestVisitorTest {
                 opprettet = fixedTidspunkt,
                 avslagsgrunner = listOf(Avslagsgrunn.FOR_HØY_INNTEKT),
                 harEktefelle = false,
-                beregning = expectedAvslagBeregning(søknadsbehandling.beregning.getId()),
+                beregning = expectedAvslagBeregning(søknadsbehandling.beregning!!.getId()),
                 formuegrunnlag = null,
                 halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
             ),
@@ -872,17 +743,11 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `lager request for vedtak om avslått stønad uten beregning`() {
-        val søknadsbehandling = (
-            vilkårsvurdertInnvilget.leggTilInstitusjonsoppholdVilkår(saksbehandler = saksbehandler, institusjonsoppholdvilkårAvslag())
-                .getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
-            )
-            .tilAttestering(saksbehandler, "Fritekst!")
-            .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
-
-        val avslåttVedtak = Avslagsvedtak.fromSøknadsbehandlingUtenBeregning(
-            avslag = søknadsbehandling,
-            clock = fixedClock,
+        val (_, søknadsbehandling, avslåttVedtak) = iverksattSøknadsbehandling(
+            customVilkår = listOf(institusjonsoppholdvilkårAvslag()),
+            fritekstTilBrev = "Fritekst!",
         )
+        søknadsbehandling.shouldBeType<Søknadsbehandling.Iverksatt.Avslag.UtenBeregning>()
 
         val brevSøknadsbehandling = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -924,21 +789,11 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `lager request for vedtak med avslått formue`() {
-        val søknadsbehandling = (
-            søknadsbehandlingVilkårsvurdertInnvilget().second
-                .leggTilFormuevilkår(
-                    saksbehandler = saksbehandler,
-                    vilkår = formuevilkårAvslåttPgrBrukersformue(),
-                ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
-            )
-            .tilAttestering(saksbehandler, "Fritekst!")
-            .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
-
-        val avslåttVedtak = Avslagsvedtak.fromSøknadsbehandlingUtenBeregning(
-            avslag = søknadsbehandling,
-            clock = fixedClock,
+        val (_, søknadsbehandling, avslåttVedtak) = iverksattSøknadsbehandling(
+            customVilkår = listOf(formuevilkårAvslåttPgrBrukersformue()),
+            fritekstTilBrev = "Fritekst!",
         )
-
+        søknadsbehandling.shouldBeType<Søknadsbehandling.Iverksatt.Avslag.UtenBeregning>()
         val brevSøknadsbehandling = LagBrevRequestVisitor(
             hentPerson = { person.right() },
             hentNavn = { hentNavn(it) },
@@ -1169,7 +1024,7 @@ internal class LagBrevRequestVisitorTest {
     fun `lager opphørsvedtak med opphørsgrunn for høy inntekt`() {
         val opphørsperiode = august(2021)..desember(2021)
 
-        val (_, revurdering, opphørsvedtak) = vedtakRevurdering(
+        val (revurdering, opphørsvedtak) = vedtakRevurdering(
             revurderingsperiode = opphørsperiode,
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
@@ -1179,7 +1034,7 @@ internal class LagBrevRequestVisitorTest {
             ),
             brevvalg = sendBrev(fritekst = "FRITEKST REVURDERING"),
         ).let {
-            Triple(sak, it.second.behandling as IverksattRevurdering, it.second)
+            Pair(it.second.behandling as IverksattRevurdering, it.second)
         }
 
         val brevRevurdering = LagBrevRequestVisitor(
@@ -1445,8 +1300,4 @@ internal class LagBrevRequestVisitorTest {
             ),
         ),
     )
-
-    private val sakOgInnvilget = søknadsbehandlingVilkårsvurdertInnvilget()
-    private val sak = sakOgInnvilget.first
-    private val vilkårsvurdertInnvilget = sakOgInnvilget.second
 }

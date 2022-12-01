@@ -34,7 +34,7 @@ fun Sak.iverksettSøknadsbehandling(
     }
 
     if (
-        saksbehandlerOgAttestantErLike(
+        command.saksbehandlerOgAttestantKanIkkeVæreDenSamme && saksbehandlerOgAttestantErLike(
             søknadsbehandling = søknadsbehandling,
             attestering = command.attestering,
         )

@@ -2,172 +2,50 @@ package no.nav.su.se.bakover.service.søknad
 
 import arrow.core.Either
 import arrow.core.getOrHandle
-import arrow.core.left
-import arrow.core.nonEmptyListOf
-import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.endOfMonth
-import no.nav.su.se.bakover.common.log
-import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.common.startOfMonth
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.brev.BrevService
-import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
-import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
-import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
-import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
-import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
-import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.IverksattAvslåttSøknadsbehandlingResponse
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.KunneIkkeAvslåSøknad
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.avslåSøknadPgaManglendeDokumentasjon
+import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import java.time.Clock
-import java.time.LocalDate
-import java.util.UUID
 
 internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
     private val clock: Clock,
-    private val søknadsbehandlingService: SøknadsbehandlingService,
-    private val vedtakService: VedtakService,
-    private val oppgaveService: OppgaveService,
-    private val brevService: BrevService,
-    private val sessionFactory: SessionFactory,
     private val sakService: SakService,
     private val satsFactory: SatsFactory,
+    private val iverksettSøknadsbehandlingService: IverksettSøknadsbehandlingService,
+    private val utbetalingService: UtbetalingService,
+    private val brevService: BrevService,
 ) : AvslåSøknadManglendeDokumentasjonService {
-    override fun avslå(request: AvslåManglendeDokumentasjonRequest): Either<KunneIkkeAvslåSøknad, Sak> {
-        return søknadsbehandlingService.hentForSøknad(request.søknadId)
-            ?.let { harBehandlingFraFør(request, it) }
-            ?: opprettNyBehandlingFørst(request)
-    }
 
-    private fun harBehandlingFraFør(
-        request: AvslåManglendeDokumentasjonRequest,
-        søknadsbehandling: Søknadsbehandling,
+    override fun avslå(
+        command: AvslåManglendeDokumentasjonCommand,
     ): Either<KunneIkkeAvslåSøknad, Sak> {
-        return avslå(request, søknadsbehandling)
-    }
-
-    private fun opprettNyBehandlingFørst(
-        request: AvslåManglendeDokumentasjonRequest,
-    ): Either<KunneIkkeAvslåSøknad, Sak> {
-        val sak = sakService.hentSakForSøknad(request.søknadId)
-            .getOrHandle { return KunneIkkeAvslåSøknad.FantIkkeSak.left() }
-
-        val søknad = sak.hentSøknad(request.søknadId)
-            .getOrHandle { return KunneIkkeAvslåSøknad.FantIkkeSøknad.left() }
-
-        return søknadsbehandlingService.opprett(
-            request = SøknadsbehandlingService.OpprettRequest(
-                søknadId = søknad.id,
-                sakId = sak.id,
-                saksbehandler = request.saksbehandler,
-            ),
-        ).mapLeft {
-            KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling(it)
-        }.map {
-            return avslå(request, it)
+        return lagAvslg(command).map {
+            iverksettSøknadsbehandlingService.iverksett(it)
+            it.sak
         }
     }
 
-    private fun avslå(
-        request: AvslåManglendeDokumentasjonRequest,
-        søknadsbehandling: Søknadsbehandling,
-    ): Either<KunneIkkeAvslåSøknad, Sak> {
-        /**
-         * //TODO skulle ideelt sett at denne bare kunne bruke søknadsbehandlingservice for å få utført disse oppgavene, bør i såfall få plass transkasjoner på tvers av servicer.
-         */
-        val avslåttSøknadsbehandling = søknadsbehandling
-            .leggTilStønadsperiodeHvisNull(request.saksbehandler)
-            .avslåPgaManglendeDok(request.saksbehandler)
-            .tilAttestering(
-                saksbehandler = request.saksbehandler,
-                fritekstTilBrev = request.fritekstTilBrev,
-            )
-            .tilIverksatt(
-                attestering = Attestering.Iverksatt(
-                    attestant = NavIdentBruker.Attestant(request.saksbehandler.navIdent),
-                    opprettet = Tidspunkt.now(clock),
-                ),
-            )
-
-        val avslag = AvslagManglendeDokumentasjon(avslåttSøknadsbehandling)
-
-        val avslagsvedtak: Avslagsvedtak.AvslagVilkår = Avslagsvedtak.fromAvslagManglendeDokumentasjon(
-            avslag = avslag,
-            clock = clock,
-        )
-
-        val dokument = brevService.lagDokument(avslagsvedtak).getOrHandle {
-            return KunneIkkeAvslåSøknad.KunneIkkeLageDokument(it).left()
-        }.leggTilMetadata(
-            metadata = Dokument.Metadata(
-                sakId = avslagsvedtak.behandling.sakId,
-                søknadId = avslagsvedtak.behandling.søknad.id,
-                vedtakId = avslagsvedtak.id,
-                bestillBrev = true,
-            ),
-        )
-
-        sessionFactory.withTransactionContext { tx ->
-            søknadsbehandlingService.lagre(avslag, tx)
-            vedtakService.lagre(avslagsvedtak, tx)
-            brevService.lagreDokument(dokument, tx)
-        }
-
-        oppgaveService.lukkOppgave(avslag.søknadsbehandling.oppgaveId)
-            .mapLeft {
-                log.warn("Klarte ikke å lukke oppgave for søknadsbehandling: ${avslag.søknadsbehandling.id}, feil:$it")
-            }
-
-        return sakService.hentSak(avslagsvedtak.behandling.sakId)
-            .mapLeft { KunneIkkeAvslåSøknad.FantIkkeSak }
+    override fun genererBrevForhåndsvisning(command: AvslåManglendeDokumentasjonCommand): Either<KunneIkkeAvslåSøknad, Pair<Fnr, ByteArray>> {
+        return lagAvslg(command).map { it.sak.fnr to it.dokument.generertDokument }
     }
 
-    // må ta inn saksbehandler. Hvis det er en søknadsbehandling som er opprettet lenge siden, vil saksbehandler være null
-    // i søknadsbehandlingen
-    private fun Søknadsbehandling.leggTilStønadsperiodeHvisNull(saksbehandler: NavIdentBruker.Saksbehandler): Søknadsbehandling {
-        return oppdaterStønadsperiode(
-            oppdatertStønadsperiode = stønadsperiode
-                ?: Stønadsperiode.create(
-                    periode = Periode.create(
-                        fraOgMed = LocalDate.now(clock).startOfMonth(),
-                        tilOgMed = LocalDate.now(clock).endOfMonth(),
-                    ),
-                ),
-            formuegrenserFactory = satsFactory.formuegrenserFactory,
-            clock = clock,
-            saksbehandler = saksbehandler,
-        ).getOrHandle { throw IllegalArgumentException(it.toString()) }
-    }
-
-    // må ta inn saksbehandler. Hvis det er en søknadsbehandling som er opprettet lenge siden, vil saksbehandler være null
-    // i søknadsbehandlingen
-    private fun Søknadsbehandling.avslåPgaManglendeDok(saksbehandler: NavIdentBruker.Saksbehandler): Søknadsbehandling.Vilkårsvurdert.Avslag {
-        return leggTilOpplysningspliktVilkår(
-            opplysningspliktVilkår = OpplysningspliktVilkår.Vurdert.tryCreate(
-                vurderingsperioder = nonEmptyListOf(
-                    VurderingsperiodeOpplysningsplikt.create(
-                        id = UUID.randomUUID(),
-                        opprettet = opprettet,
-                        periode = periode,
-                        grunnlag = Opplysningspliktgrunnlag(
-                            id = UUID.randomUUID(),
-                            opprettet = opprettet,
-                            periode = periode,
-                            beskrivelse = OpplysningspliktBeskrivelse.UtilstrekkeligDokumentasjon,
-                        ),
-                    ),
-                ),
-            ).getOrHandle { throw IllegalArgumentException(it.toString()) },
-            saksbehandler = saksbehandler,
-        ).getOrHandle { throw IllegalArgumentException(it.toString()) } as Søknadsbehandling.Vilkårsvurdert.Avslag
+    private fun lagAvslg(command: AvslåManglendeDokumentasjonCommand): Either<KunneIkkeAvslåSøknad, IverksattAvslåttSøknadsbehandlingResponse> {
+        return sakService.hentSakForSøknad(command.søknadId)
+            .getOrHandle { throw IllegalArgumentException("Fant ikke søknad ${command.søknadId}. Kan ikke avslå søknad pgr. manglende dokumentasjon.") }
+            .avslåSøknadPgaManglendeDokumentasjon(
+                command = command,
+                clock = clock,
+                satsFactory = satsFactory,
+                lagDokument = brevService::lagDokument,
+                simulerUtbetaling = utbetalingService::simulerUtbetaling,
+            )
     }
 }
