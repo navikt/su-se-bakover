@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
@@ -48,17 +49,23 @@ class IverksettSøknadsbehandlingServiceImpl(
                 simulerUtbetaling = utbetalingService::simulerUtbetaling,
             )
             .map {
-                it.ferdigstillIverksettelseITransaksjon(
-                    sessionFactory = sessionFactory,
-                    lagreSøknadsbehandling = søknadsbehandlingRepo::lagre,
-                    lagreVedtak = vedtakRepo::lagreITransaksjon,
-                    statistikkObservers = observers,
-                    lagreDokument = brevService::lagreDokument,
-                    lukkOppgave = ferdigstillVedtakService::lukkOppgaveMedBruker,
-                    klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
-                    opprettPlanlagtKontrollsamtale = kontrollsamtaleService::opprettPlanlagtKontrollsamtale,
-                )
+                iverksett(it)
                 Triple(it.sak, it.søknadsbehandling, it.vedtak)
             }
+    }
+
+    override fun iverksett(
+        iverksattSøknadsbehandlingResponse: IverksattSøknadsbehandlingResponse<*>,
+    ) {
+        iverksattSøknadsbehandlingResponse.ferdigstillIverksettelseITransaksjon(
+            sessionFactory = sessionFactory,
+            lagreSøknadsbehandling = søknadsbehandlingRepo::lagre,
+            lagreVedtak = vedtakRepo::lagreITransaksjon,
+            statistikkObservers = observers,
+            lagreDokument = brevService::lagreDokument,
+            lukkOppgave = ferdigstillVedtakService::lukkOppgaveMedBruker,
+            klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
+            opprettPlanlagtKontrollsamtale = kontrollsamtaleService::opprettPlanlagtKontrollsamtale,
+        )
     }
 }

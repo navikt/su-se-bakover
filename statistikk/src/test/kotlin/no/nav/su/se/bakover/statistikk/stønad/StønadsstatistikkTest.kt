@@ -38,7 +38,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 
 internal class StønadsstatistikkTest {
 
@@ -109,27 +108,28 @@ internal class StønadsstatistikkTest {
 
     @Test
     fun `Gjenopptak bruker nyeste beregning for hver måned`() {
+        val clock = TikkendeKlokke(fixedClock)
         val stønadsperiode = Periode.create(1.januar(2021), 28.februar(2021))
         var sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
             stønadsperiode = Stønadsperiode.create(stønadsperiode),
-            clock = fixedClock,
+            clock = clock,
         )
         lateinit var gjenopptakVedtak: VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse
         // revurderer 0 -> 7500 i arbeidsinntekt i februar
         sakOgVedtak = vedtakRevurderingIverksattInnvilget(
             sakOgVedtakSomKanRevurderes = sakOgVedtak,
             revurderingsperiode = Periode.create(1.februar(2021), 28.februar(2021)),
-            clock = fixedClock.plus(1, ChronoUnit.SECONDS),
+            clock = clock,
         )
         sakOgVedtak = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             sakOgVedtakSomKanRevurderes = sakOgVedtak,
             periode = stønadsperiode,
-            clock = fixedClock.plus(2, ChronoUnit.SECONDS),
+            clock = clock,
         )
         val (sak, _) = vedtakIverksattGjenopptakAvYtelseFraIverksattStans(
             sakOgVedtakSomKanRevurderes = sakOgVedtak,
             periode = stønadsperiode,
-            clock = fixedClock.plus(3, ChronoUnit.SECONDS),
+            clock = clock,
         ).also {
             sakOgVedtak = it
             gjenopptakVedtak = it.second
@@ -173,28 +173,29 @@ internal class StønadsstatistikkTest {
                 }
             ]
             """.trimIndent(),
-            funksjonellTid = "2021-01-01T01:02:06.456789Z",
+            funksjonellTid = "2021-01-01T01:03:43.456789Z",
         )
     }
 
     @Test
     fun `Gjenopptak for en kortere periode enn søknadsperioden bruker nyeste beregning for hver måned`() {
         val stønadsperiode = Periode.create(1.januar(2021), 28.februar(2021))
+        val clock = TikkendeKlokke(fixedClock)
         var sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
             stønadsperiode = Stønadsperiode.create(stønadsperiode),
-            clock = fixedClock,
+            clock = clock,
         )
         val stansOgGjenopptagelsesperiode = Periode.create(1.februar(2021), 28.februar(2021))
         lateinit var gjenopptakVedtak: VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse
         sakOgVedtak = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             sakOgVedtakSomKanRevurderes = sakOgVedtak,
             periode = stansOgGjenopptagelsesperiode,
-            clock = fixedClock.plus(2, ChronoUnit.SECONDS),
+            clock = clock,
         )
         vedtakIverksattGjenopptakAvYtelseFraIverksattStans(
             sakOgVedtakSomKanRevurderes = sakOgVedtak,
             periode = stansOgGjenopptagelsesperiode,
-            clock = fixedClock.plus(3, ChronoUnit.SECONDS),
+            clock = clock,
         ).also {
             sakOgVedtak = it
             gjenopptakVedtak = it.second
@@ -224,7 +225,7 @@ internal class StønadsstatistikkTest {
             ]
             """.trimIndent(),
             ytelseVirkningstidspunkt = januar(2021).fraOgMed,
-            funksjonellTid = "2021-01-01T01:02:06.456789Z",
+            funksjonellTid = "2021-01-01T01:02:43.456789Z",
         )
     }
 
@@ -234,6 +235,7 @@ internal class StønadsstatistikkTest {
             stønadsperiode = Stønadsperiode.create(
                 periode = Periode.create(1.januar(2021), 28.februar(2021)),
             ),
+            clock = TikkendeKlokke(fixedClock),
         )
         assert(
             event = StatistikkEvent.Stønadsvedtak(regulering) { sak },
@@ -275,6 +277,7 @@ internal class StønadsstatistikkTest {
             ]
             """.trimIndent(),
             ytelseVirkningstidspunkt = januar(2021).fraOgMed,
+            funksjonellTid = "2021-01-01T01:02:19.456789Z",
         )
     }
 

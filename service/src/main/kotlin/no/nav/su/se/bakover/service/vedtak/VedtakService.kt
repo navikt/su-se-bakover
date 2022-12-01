@@ -11,7 +11,7 @@ import java.util.UUID
 
 interface VedtakService {
     fun lagre(vedtak: Vedtak)
-    fun lagre(vedtak: Vedtak, sessionContext: TransactionContext)
+    fun lagreITransaksjon(vedtak: Vedtak, sessionContext: TransactionContext)
     fun hentForVedtakId(vedtakId: UUID): Vedtak?
     fun hentForRevurderingId(revurderingId: UUID): Vedtak?
     fun hentJournalpostId(vedtakId: UUID): JournalpostId?

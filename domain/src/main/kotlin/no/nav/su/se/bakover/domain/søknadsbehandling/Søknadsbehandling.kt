@@ -416,7 +416,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     @Suppress("UNCHECKED_CAST")
-    protected fun <T : KunneIkkeLeggeTilVilkår> valider(vilkår: Vilkår): Either<T, Unit> {
+    private fun <T : KunneIkkeLeggeTilVilkår> valider(vilkår: Vilkår): Either<T, Unit> {
         return when (vilkår) {
             is FamiliegjenforeningVilkår.Vurdert -> Unit.right()
             is FastOppholdINorgeVilkår.Vurdert -> Unit.right()
@@ -773,8 +773,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         it.leggTil(
                             /**
                              * Legger til implisitt vilkår for oppfylt opplysningsplikt dersom dette ikke er vurdert fra før.
-                             * Tar enn så lenge ikke stilling til dette vilkåret fra frontend ved søknadsbehandling, men brukes
-                             * av [no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon]
+                             * Tar enn så lenge ikke stilling til dette vilkåret fra frontend ved søknadsbehandling.
                              */
                             OpplysningspliktVilkår.Vurdert.tryCreate(
                                 vurderingsperioder = nonEmptyListOf(
@@ -1588,7 +1587,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     )
                 }
 
-                fun tilIverksatt(
+                internal fun tilIverksatt(
                     attestering: Attestering,
                 ): Iverksatt.Avslag.MedBeregning {
                     return Iverksatt.Avslag.MedBeregning(

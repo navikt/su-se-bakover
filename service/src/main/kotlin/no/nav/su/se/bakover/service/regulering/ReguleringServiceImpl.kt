@@ -376,7 +376,7 @@ class ReguleringServiceImpl(
                     clock = clock,
                 )
 
-                vedtakService.lagre(
+                vedtakService.lagreITransaksjon(
                     vedtak = vedtak,
                     sessionContext = tx,
                 )

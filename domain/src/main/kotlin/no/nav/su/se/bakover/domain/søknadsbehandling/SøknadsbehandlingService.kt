@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
@@ -35,7 +34,10 @@ import java.util.UUID
 import kotlin.reflect.KClass
 
 interface SøknadsbehandlingService {
-    fun opprett(request: OpprettRequest): Either<KunneIkkeOpprette, Søknadsbehandling.Vilkårsvurdert.Uavklart>
+    fun opprett(
+        request: OpprettRequest,
+        hentSak: (() -> Sak)? = null,
+    ): Either<Sak.KunneIkkeOppretteSøknadsbehandling, Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart>>
     fun beregn(request: BeregnRequest): Either<KunneIkkeBeregne, Søknadsbehandling.Beregnet>
     fun simuler(request: SimulerRequest): Either<KunneIkkeSimulereBehandling, Søknadsbehandling.Simulert>
     fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeTilAttestering, Søknadsbehandling.TilAttestering>
@@ -81,7 +83,6 @@ interface SøknadsbehandlingService {
 
     fun hentForSøknad(søknadId: UUID): Søknadsbehandling?
     fun persisterSøknadsbehandling(lukketSøknadbehandling: LukketSøknadsbehandling, tx: TransactionContext)
-    fun lagre(avslag: AvslagManglendeDokumentasjon, tx: TransactionContext)
     fun leggTilUtenlandsopphold(
         request: LeggTilFlereUtenlandsoppholdRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,
@@ -119,11 +120,6 @@ interface SøknadsbehandlingService {
         val sakId: UUID,
         val saksbehandler: NavIdentBruker.Saksbehandler,
     )
-
-    sealed class KunneIkkeOpprette {
-        object FantIkkeSak : KunneIkkeOpprette()
-        data class KunneIkkeOppretteSøknadsbehandling(val feil: Sak.KunneIkkeOppretteSøknad) : KunneIkkeOpprette()
-    }
 
     sealed class KunneIkkeVilkårsvurdere {
         object FantIkkeBehandling : KunneIkkeVilkårsvurdere()

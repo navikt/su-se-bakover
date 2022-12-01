@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.sak.NySak
@@ -401,8 +400,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
             val opprettetMedStønadsperiode =
                 testDataHelper.persisterSøknadsbehandlingIverksattAvslagUtenBeregning().second
 
-            testDataHelper.søknadsbehandlingRepo.lagreAvslagManglendeDokumentasjon(
-                avslag = AvslagManglendeDokumentasjon(søknadsbehandling = opprettetMedStønadsperiode),
+            testDataHelper.søknadsbehandlingRepo.lagre(
+                søknadsbehandling = opprettetMedStønadsperiode,
             )
 
             testDataHelper.søknadsbehandlingRepo.hent(opprettetMedStønadsperiode.id) shouldBe Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(

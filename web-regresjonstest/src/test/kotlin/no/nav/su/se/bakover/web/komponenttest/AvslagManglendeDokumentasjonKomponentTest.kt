@@ -16,12 +16,12 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
-import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
@@ -45,7 +45,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
             val søknadId = UUID.fromString(NySøknadJson.Response.hentSøknadId(søknadJson))
 
             appComponents.services.avslåSøknadManglendeDokumentasjonService.avslå(
-                AvslåManglendeDokumentasjonRequest(
+                AvslåManglendeDokumentasjonCommand(
                     søknadId = søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler("jossi"),
                     fritekstTilBrev = "Du må svare i telefonen",
@@ -128,7 +128,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
             )
 
             appComponents.services.avslåSøknadManglendeDokumentasjonService.avslå(
-                AvslåManglendeDokumentasjonRequest(
+                AvslåManglendeDokumentasjonCommand(
                     søknadId = UUID.fromString(søknadId),
                     saksbehandler = NavIdentBruker.Saksbehandler("jossi"),
                     fritekstTilBrev = "Du må svare i telefonen",

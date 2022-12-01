@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.brev.BrevService
@@ -233,7 +234,26 @@ internal class SøknadsbehandlingServiceIverksettTest {
         fun `attesterer og iverksetter avslag hvis alt er ok`() {
             val attestering = Attestering.Iverksatt(attestant, fixedTidspunkt)
             val (sak, avslagTilAttestering) = søknadsbehandlingTilAttesteringAvslagMedBeregning()
-            val expectedAvslag = avslagTilAttestering.tilIverksatt(attestering)
+            val expectedAvslag = Søknadsbehandling.Iverksatt.Avslag.MedBeregning(
+                id = avslagTilAttestering.id,
+                opprettet = avslagTilAttestering.opprettet,
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                søknad = avslagTilAttestering.søknad,
+                oppgaveId = avslagTilAttestering.oppgaveId,
+                fnr = sak.fnr,
+                beregning = avslagTilAttestering.beregning,
+                saksbehandler = avslagTilAttestering.saksbehandler,
+                attesteringer = Attesteringshistorikk.create(listOf(attestering)),
+                fritekstTilBrev = avslagTilAttestering.fritekstTilBrev,
+                stønadsperiode = avslagTilAttestering.stønadsperiode,
+                grunnlagsdata = avslagTilAttestering.grunnlagsdata,
+                vilkårsvurderinger = avslagTilAttestering.vilkårsvurderinger,
+                avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
+                    håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
+                ),
+                sakstype = avslagTilAttestering.sakstype,
+            )
 
             val serviceAndMocks = ServiceAndMocks(
                 sakOgSøknadsbehandling = Pair(sak, avslagTilAttestering),

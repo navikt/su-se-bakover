@@ -73,7 +73,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.time.Clock
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 // TODO refaktorer disse testene til å unngå "scrambling" og hacking, og i større grad bruke satsfactory til å trigge endringer.
 internal class ReguleringServiceImplTest {
@@ -153,14 +152,15 @@ internal class ReguleringServiceImplTest {
 
         @Test
         fun `En periode med hele perioden som opphør må behandles manuelt`() {
-            val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(clock = fixedClock)
+            val clock = TikkendeKlokke(fixedClock)
+            val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(clock = clock)
             val revurdertSak = vedtakRevurdering(
-                clock = fixedClock.plus(1, ChronoUnit.DAYS),
+                clock = clock,
                 sakOgVedtakSomKanRevurderes = sakOgVedtak,
                 vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
             ).first
 
-            val reguleringService = lagReguleringServiceImpl(revurdertSak)
+            val reguleringService = lagReguleringServiceImpl(sak = revurdertSak, clock = clock)
 
             reguleringService.startRegulering(1.mai(2021))
                 .first() shouldBe KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode)

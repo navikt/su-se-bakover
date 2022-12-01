@@ -69,7 +69,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
 
             søknad.type shouldBe Sakstype.ALDER
 
-            val søknadsbehandling = appComponents.services.søknadsbehandling.søknadsbehandlingService.opprett(
+            val (_, søknadsbehandling) = appComponents.services.søknadsbehandling.søknadsbehandlingService.opprett(
                 request = SøknadsbehandlingService.OpprettRequest(
                     søknadId = søknad.id,
                     sakId = sak.id,
