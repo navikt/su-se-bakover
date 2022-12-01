@@ -136,6 +136,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
@@ -179,6 +181,7 @@ import no.nav.su.se.bakover.service.kontrollsamtale.UtløptFristForKontrollsamta
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.service.skatt.SkatteService
+import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
@@ -915,9 +918,16 @@ open class AccessCheckProxy(
                     return services.nøkkeltallService.hentNøkkeltall()
                 }
             },
-            avslåSøknadManglendeDokumentasjonService = {
-                assertHarTilgangTilSøknad(it.søknadId)
-                services.avslåSøknadManglendeDokumentasjonService.avslå(it)
+            avslåSøknadManglendeDokumentasjonService = object : AvslåSøknadManglendeDokumentasjonService {
+                override fun avslå(command: AvslåManglendeDokumentasjonCommand): Either<KunneIkkeAvslåSøknad, Sak> {
+                    assertHarTilgangTilSøknad(command.søknadId)
+                    return services.avslåSøknadManglendeDokumentasjonService.avslå(command)
+                }
+
+                override fun genererBrevForhåndsvisning(command: AvslåManglendeDokumentasjonCommand): Either<KunneIkkeAvslåSøknad, Pair<Fnr, ByteArray>> {
+                    assertHarTilgangTilSøknad(command.søknadId)
+                    return services.avslåSøknadManglendeDokumentasjonService.genererBrevForhåndsvisning(command)
+                }
             },
             kontrollsamtale =
             object : KontrollsamtaleService {

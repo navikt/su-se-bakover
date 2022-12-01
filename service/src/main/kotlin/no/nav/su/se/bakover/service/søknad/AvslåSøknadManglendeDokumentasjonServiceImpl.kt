@@ -2,11 +2,13 @@ package no.nav.su.se.bakover.service.søknad
 
 import arrow.core.Either
 import arrow.core.getOrHandle
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.IverksattAvslåttSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.avslåSøknadPgaManglendeDokumentasjon
@@ -25,6 +27,17 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
     override fun avslå(
         command: AvslåManglendeDokumentasjonCommand,
     ): Either<KunneIkkeAvslåSøknad, Sak> {
+        return lagAvslg(command).map {
+            iverksettSøknadsbehandlingService.iverksett(it)
+            it.sak
+        }
+    }
+
+    override fun genererBrevForhåndsvisning(command: AvslåManglendeDokumentasjonCommand): Either<KunneIkkeAvslåSøknad, Pair<Fnr, ByteArray>> {
+        return lagAvslg(command).map { it.sak.fnr to it.dokument.generertDokument }
+    }
+
+    private fun lagAvslg(command: AvslåManglendeDokumentasjonCommand): Either<KunneIkkeAvslåSøknad, IverksattAvslåttSøknadsbehandlingResponse> {
         return sakService.hentSakForSøknad(command.søknadId)
             .getOrHandle { throw IllegalArgumentException("Fant ikke søknad ${command.søknadId}. Kan ikke avslå søknad pgr. manglende dokumentasjon.") }
             .avslåSøknadPgaManglendeDokumentasjon(
@@ -33,9 +46,6 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
                 satsFactory = satsFactory,
                 lagDokument = brevService::lagDokument,
                 simulerUtbetaling = utbetalingService::simulerUtbetaling,
-            ).map {
-                iverksettSøknadsbehandlingService.iverksett(it)
-                it.sak
-            }
+            )
     }
 }

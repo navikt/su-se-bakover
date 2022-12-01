@@ -20,8 +20,8 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.IverksattAvslåttSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.iverksettSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
@@ -40,7 +40,7 @@ fun Sak.avslåSøknadPgaManglendeDokumentasjon(
     satsFactory: SatsFactory,
     lagDokument: (visitable: Visitable<LagBrevRequestVisitor>) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
     simulerUtbetaling: (utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
-): Either<KunneIkkeAvslåSøknad, IverksattSøknadsbehandlingResponse<out Søknadsbehandling.Iverksatt>> {
+): Either<KunneIkkeAvslåSøknad, IverksattAvslåttSøknadsbehandlingResponse> {
     val søknadId = command.søknadId
     return this.hentSøknadsbehandlingForSøknad(søknadId).fold(
         {
@@ -78,7 +78,9 @@ fun Sak.avslåSøknadPgaManglendeDokumentasjon(
             lagDokument = lagDokument,
             simulerUtbetaling = simulerUtbetaling,
             clock = clock,
-        ).mapLeft { KunneIkkeAvslåSøknad.KunneIkkeIverksetteSøknadsbehandling(it) }
+        ).map {
+            it as IverksattAvslåttSøknadsbehandlingResponse
+        }.mapLeft { KunneIkkeAvslåSøknad.KunneIkkeIverksetteSøknadsbehandling(it) }
     }
 }
 

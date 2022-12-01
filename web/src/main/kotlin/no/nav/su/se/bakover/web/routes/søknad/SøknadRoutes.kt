@@ -199,6 +199,27 @@ internal fun Route.søknadRoutes(
         }
     }
 
+    post("$søknadPath/{søknadId}/avslag/brevutkast") {
+        authorize(Brukerrolle.Saksbehandler) {
+            call.withSøknadId { søknadId ->
+                call.withBody<WithFritekstBody> { body ->
+                    avslåSøknadManglendeDokumentasjonService.genererBrevForhåndsvisning(
+                        AvslåManglendeDokumentasjonCommand(
+                            søknadId = søknadId,
+                            saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                            fritekstTilBrev = body.fritekst,
+                        ),
+                    ).mapLeft {
+                        call.svar(Feilresponser.feilVedGenereringAvDokument)
+                    }.map {
+                        call.audit(it.first, AuditLogEvent.Action.ACCESS, søknadId)
+                        call.respondBytes(it.second, ContentType.Application.Pdf)
+                    }
+                }
+            }
+        }
+    }
+
     post("$søknadPath/{søknadId}/lukk/brevutkast") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
