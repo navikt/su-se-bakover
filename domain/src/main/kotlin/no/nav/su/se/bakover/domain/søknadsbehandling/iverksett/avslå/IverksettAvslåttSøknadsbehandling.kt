@@ -31,7 +31,6 @@ internal fun Sak.iverksettAvslagSøknadsbehandling(
         .leggTilMetadata(
             Dokument.Metadata(
                 sakId = vedtak.behandling.sakId,
-                // TODO jah: Avklar med Jacob om denne skal settes til søknadId eller ikke. AvslåSøknadManglendeDokumentasjonServiceImpl har satt denne til søknadId fram til nå.
                 søknadId = null,
                 vedtakId = vedtak.id,
                 revurderingId = null,

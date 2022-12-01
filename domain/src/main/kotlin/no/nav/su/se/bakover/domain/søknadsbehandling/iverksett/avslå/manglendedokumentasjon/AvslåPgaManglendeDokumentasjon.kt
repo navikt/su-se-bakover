@@ -49,7 +49,6 @@ fun Sak.avslåSøknadPgaManglendeDokumentasjon(
                 clock = clock,
                 saksbehandler = command.saksbehandler,
             ).getOrHandle { return KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling(it).left() }.let {
-                // TODO jah: Ta en avsjekk med Jacob om det går fint og hoppe over persister(NySøknadsbehandling)
                 Pair(it.first, it.third)
             }
         },
@@ -113,6 +112,10 @@ private fun avslå(
         }
 }
 
+/**
+ * Burde kanskje oppdatere via [Sak.oppdaterStønadsperiodeForSøknadsbehandling] men for å unngå problemer i tilfeller der stønadsperiode
+ * ikke er valgt av saksbeahndler gjør vi det direkte på søknadsbehandling.
+ */
 private fun Søknadsbehandling.leggTilStønadsperiodeHvisNull(
     saksbehandler: NavIdentBruker.Saksbehandler,
     clock: Clock,

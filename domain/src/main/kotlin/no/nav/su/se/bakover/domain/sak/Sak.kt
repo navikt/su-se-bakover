@@ -545,7 +545,7 @@ data class Sak(
         søknadId: UUID,
         clock: Clock,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeOppretteSøknadsbehandling, Triple<Sak, NySøknadsbehandling, Søknadsbehandling.Vilkårsvurdert.Uavklart>> {
+    ): Either<KunneIkkeOppretteSøknadsbehandling, Tuple4<Sak, NySøknadsbehandling, Søknadsbehandling.Vilkårsvurdert.Uavklart, StatistikkEvent.Behandling.Søknad.Opprettet>> {
         if (!kanOppretteBehandling()) {
             return KunneIkkeOppretteSøknadsbehandling.HarÅpenBehandling.left()
         }
@@ -577,12 +577,13 @@ data class Sak(
             saksbehandler = saksbehandler,
         ).let { nySøknadsbehandling ->
             val søknadsbehandling = nySøknadsbehandling.toSøknadsbehandling(this.saksnummer)
-            Triple(
+            Tuple4(
                 this.copy(
                     søknadsbehandlinger = this.søknadsbehandlinger + søknadsbehandling,
                 ),
                 nySøknadsbehandling,
                 søknadsbehandling,
+                StatistikkEvent.Behandling.Søknad.Opprettet(søknadsbehandling, saksbehandler),
             ).right()
         }
     }

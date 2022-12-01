@@ -134,14 +134,9 @@ internal class SøknadsbehandlingServiceImpl(
             søknadId = request.søknadId,
             clock = clock,
             saksbehandler = request.saksbehandler,
-        ).map { (sak, nySøknadsbehandling, uavklartSøknadsbehandling) ->
+        ).map { (sak, nySøknadsbehandling, uavklartSøknadsbehandling, statistikk) ->
             søknadsbehandlingRepo.lagreNySøknadsbehandling(nySøknadsbehandling)
-            observers.notify(
-                StatistikkEvent.Behandling.Søknad.Opprettet(
-                    uavklartSøknadsbehandling,
-                    request.saksbehandler,
-                ),
-            )
+            observers.notify(statistikk)
             Pair(sak, uavklartSøknadsbehandling)
         }
     }

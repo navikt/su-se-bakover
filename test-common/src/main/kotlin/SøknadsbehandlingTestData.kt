@@ -27,6 +27,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.IverksattAvslåttSøknadsbehandlingResponse
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.innvilg.IverksattInnvilgetSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.iverksettSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
@@ -789,22 +791,19 @@ fun iverksattSøknadsbehandling(
                 ).getOrFail().right()
             },
             clock = clock,
-        ).getOrFail().let {
+        ).getOrFail().let { response ->
             Triple(
-                it.sak.copy(
-                    // Dette gjøres i implementasjonen av servicen  it.ferdigstillIverksettelseITransaksjon( med klargjørUtbetaling(...))
-                    // TODO: Domenet bør kalle den funksjonen.
-                    utbetalinger = it.sak.utbetalinger.map {
-                        when (it) {
-                            is Utbetaling.OversendtUtbetaling.MedKvittering -> it
-                            is Utbetaling.OversendtUtbetaling.UtenKvittering -> it
-                            is Utbetaling.SimulertUtbetaling -> it.toOversendtUtbetaling(UtbetalingStub.generateRequest(it))
-                            is Utbetaling.UtbetalingForSimulering -> throw IllegalStateException("Kan ikke ha en simulert utbetaling på sak")
-                        }
-                    },
-                ),
-                it.søknadsbehandling,
-                it.vedtak,
+                when (response) {
+                    is IverksattAvslåttSøknadsbehandlingResponse -> response.sak
+                    is IverksattInnvilgetSøknadsbehandlingResponse -> response.sak.copy(
+                        utbetalinger = response.sak.utbetalinger.filterNot { it.id == response.utbetaling.id }
+                            .plus(response.utbetaling.toOversendtUtbetaling(UtbetalingStub.generateRequest(response.utbetaling))),
+                    )
+
+                    else -> TODO("Ingen andre nåværende implementasjoner")
+                },
+                response.søknadsbehandling,
+                response.vedtak,
             )
         }
     }
