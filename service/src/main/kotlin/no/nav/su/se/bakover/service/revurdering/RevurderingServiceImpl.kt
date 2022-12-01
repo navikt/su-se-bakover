@@ -77,9 +77,7 @@ import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurder
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.sak.iverksett.ferdigstillIverksettelseITransaksjon
-import no.nav.su.se.bakover.domain.sak.iverksett.iverksettInnvilgetRevurdering
-import no.nav.su.se.bakover.domain.sak.iverksett.iverksettOpphørtRevurdering
+import no.nav.su.se.bakover.domain.sak.iverksett.iverksettRevurdering
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
@@ -971,68 +969,25 @@ internal class RevurderingServiceImpl(
         revurderingId: UUID,
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering> {
-        val sak = sakService.hentSakForRevurdering(revurderingId)
-
-        val revurdering = sak.hentRevurdering(revurderingId)
-            .getOrHandle {
-                return KunneIkkeIverksetteRevurdering.FeilVedIverksettelse(
-                    no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeIverksetteRevurdering.FantIkkeRevurdering,
-                ).left()
-            }
-
-        if (revurdering !is RevurderingTilAttestering) {
-            return KunneIkkeIverksetteRevurdering.FeilVedIverksettelse(
-                no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeIverksetteRevurdering.UgyldigTilstand(
-                    fra = revurdering::class,
-                    til = IverksattRevurdering::class,
-                ),
-            ).left()
-        }
-
-        return when (revurdering) {
-            is RevurderingTilAttestering.Innvilget -> {
-                sak.iverksettInnvilgetRevurdering(
-                    revurderingId = revurderingId,
-                    attestant = attestant,
-                    clock = clock,
-                    simuler = utbetalingService::simulerUtbetaling,
-                ).mapLeft {
-                    KunneIkkeIverksetteRevurdering.FeilVedIverksettelse(it)
-                }.flatMap { iverksettelse ->
-                    iverksettelse.ferdigstillIverksettelseITransaksjon(
-                        sessionFactory = sessionFactory,
-                        klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
-                        lagreVedtak = vedtakRepo::lagreITransaksjon,
-                        lagreRevurdering = revurderingRepo::lagre,
-                        statistikkObservers = { observers },
-                    ).mapLeft {
-                        KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(it)
-                    }
-                }
-            }
-
-            is RevurderingTilAttestering.Opphørt -> {
-                sak.iverksettOpphørtRevurdering(
-                    revurderingId = revurderingId,
-                    attestant = attestant,
-                    clock = clock,
-                    simuler = utbetalingService::simulerUtbetaling,
-                ).mapLeft {
-                    KunneIkkeIverksetteRevurdering.FeilVedIverksettelse(it)
-                }.flatMap { iverksettelse ->
-                    iverksettelse.ferdigstillIverksettelseITransaksjon(
-                        sessionFactory = sessionFactory,
-                        klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
-                        lagreVedtak = vedtakRepo::lagreITransaksjon,
-                        lagreRevurdering = revurderingRepo::lagre,
-                        annullerKontrollsamtale = { sakId, tx ->
-                            kontrollsamtaleService.annullerKontrollsamtale(sakId, tx).map {}
-                        },
-                        statistikkObservers = { observers },
-                    ).mapLeft {
-                        KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(it)
-                    }
-                }
+        return sakService.hentSakForRevurdering(revurderingId).iverksettRevurdering(
+            revurderingId = revurderingId,
+            attestant = attestant,
+            clock = clock,
+            simuler = utbetalingService::simulerUtbetaling,
+        ).mapLeft {
+            KunneIkkeIverksetteRevurdering.FeilVedIverksettelse(it)
+        }.flatMap {
+            it.ferdigstillIverksettelseITransaksjon(
+                sessionFactory = sessionFactory,
+                klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
+                lagreVedtak = vedtakRepo::lagreITransaksjon,
+                lagreRevurdering = revurderingRepo::lagre,
+                statistikkObservers = { observers },
+                annullerKontrollsamtale = { sakId, tx ->
+                    kontrollsamtaleService.annullerKontrollsamtale(sakId, tx).map {}
+                },
+            ).mapLeft {
+                KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(it)
             }
         }
     }
