@@ -34,6 +34,10 @@ data class Måned private constructor(
         return fra(årOgMåned.plusMonths(monthsToAdd))
     }
 
+    fun tilPeriode(): Periode {
+        return create(fraOgMed, tilOgMed)
+    }
+
     companion object {
         private val factory = CacheingFactory()
         fun now(clock: Clock): Måned {

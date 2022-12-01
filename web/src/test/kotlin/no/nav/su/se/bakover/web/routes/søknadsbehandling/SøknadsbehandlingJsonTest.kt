@@ -212,16 +212,26 @@ internal class SøknadsbehandlingJsonTest {
                 "begrunnelse": null
               },
               "status": "IVERKSATT_INNVILGET",
-              "simulering": {
+              "simulering": {                
                 "perioder": [
-                  {
-                    "fraOgMed": "2021-01-01",
-                    "tilOgMed": "2021-01-31",
-                    "type": "ETTERBETALING",
-                    "bruttoYtelse": 20946
-                  }
+                    {
+                      "kontooppstilling": {
+                        "sumYtelse": 20946,
+                        "debetFeilkonto": 0,
+                        "kreditFeilkonto": 0,
+                        "debetMotpostFeilkonto": 0,
+                        "kreditMotpostFeilkonto": 0,
+                        "sumMotpostFeilkonto": 0,
+                        "kreditYtelse": 0,
+                        "debetYtelse": 20946,
+                        "simulertUtbetaling": 20946,
+                        "sumFeilkonto": 0
+                      },
+                      "fraOgMed": "2021-01-01",
+                      "tilOgMed": "2021-01-31"
+                    }
                 ],
-                "totalBruttoYtelse": 20946
+               "totalBruttoYtelse": 20946
               },
               "opprettet": "${søknadsbehandling.opprettet}",
               "attesteringer": [

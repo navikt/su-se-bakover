@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.fixedClock
@@ -42,7 +43,13 @@ internal class UtbetalingMapperTest {
                 gjelderNavn = "navn",
                 datoBeregnet = idag(fixedClock),
                 nettoBeløp = 0,
-                periodeList = listOf(),
+                periodeList = listOf(
+                    SimulertPeriode(
+                        fraOgMed = januar(2021).fraOgMed,
+                        tilOgMed = januar(2021).tilOgMed,
+                        utbetaling = listOf(),
+                    ),
+                ),
             ),
             utbetalingsrequest = Utbetalingsrequest(
                 value = "",
@@ -71,7 +78,13 @@ internal class UtbetalingMapperTest {
                 gjelderNavn = "navn",
                 datoBeregnet = idag(fixedClock),
                 nettoBeløp = 0,
-                periodeList = listOf(),
+                periodeList = listOf(
+                    SimulertPeriode(
+                        fraOgMed = januar(2021).fraOgMed,
+                        tilOgMed = januar(2021).tilOgMed,
+                        utbetaling = listOf(),
+                    ),
+                ),
             ),
             utbetalingsrequest = Utbetalingsrequest(
                 value = "",

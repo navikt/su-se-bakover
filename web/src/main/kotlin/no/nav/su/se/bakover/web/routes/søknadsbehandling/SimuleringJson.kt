@@ -1,9 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Kontooppstilling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.TolketPeriode
-import no.nav.su.se.bakover.domain.oppdrag.simulering.TolketSimulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.TolketUtbetaling
 import java.time.LocalDate
 
 internal data class UtbetalingJson(
@@ -12,73 +10,55 @@ internal data class UtbetalingJson(
     val beløp: Int,
     val type: String,
 )
-
-internal enum class SimulertUtbetalingstype {
-    ETTERBETALING,
-    FEILUTBETALING,
-    ORDINÆR,
-    UENDRET,
-    INGEN_UTBETALING,
-}
-
+data class KontooppstillingJson(
+    val simulertUtbetaling: Int,
+    val debetYtelse: Int,
+    val kreditYtelse: Int,
+    val debetFeilkonto: Int,
+    val kreditFeilkonto: Int,
+    val debetMotpostFeilkonto: Int,
+    val kreditMotpostFeilkonto: Int,
+    val sumYtelse: Int,
+    val sumFeilkonto: Int,
+    val sumMotpostFeilkonto: Int,
+)
 internal data class SimuleringJson(
-    val perioder: List<SimulertPeriodeJson>,
     val totalBruttoYtelse: Int,
+    val perioder: List<NySimulertPeriodeJson> = emptyList(),
 ) {
-    data class SimulertPeriodeJson(
+    data class NySimulertPeriodeJson(
         val fraOgMed: LocalDate,
         val tilOgMed: LocalDate,
-        val type: SimulertUtbetalingstype,
-        val bruttoYtelse: Int,
+        val kontooppstilling: KontooppstillingJson,
     )
 
     companion object {
-        fun Simulering.toJson() = TolketSimulering(this).let {
-            SimuleringJson(
-                perioder = it.simulertePerioder.map { sp -> sp.toJson() },
-                totalBruttoYtelse = it.simulertePerioder
-                    .sumOf { sp -> sp.utbetaling.bruttobeløp() },
+        fun Simulering.toJson(): SimuleringJson {
+            return SimuleringJson(
+                totalBruttoYtelse = hentTilUtbetaling().sum(),
+                perioder = kontooppstilling().map { (måned, kontooppstilling) ->
+                    NySimulertPeriodeJson(
+                        fraOgMed = måned.fraOgMed,
+                        tilOgMed = måned.tilOgMed,
+                        kontooppstilling = kontooppstilling.toJson(),
+                    )
+                },
             )
         }
     }
 }
 
-internal fun TolketPeriode.toJson(): SimuleringJson.SimulertPeriodeJson {
-    return when (utbetaling) {
-        is TolketUtbetaling.Etterbetaling -> SimuleringJson.SimulertPeriodeJson(
-            fraOgMed = periode.fraOgMed,
-            tilOgMed = periode.tilOgMed,
-            type = SimulertUtbetalingstype.ETTERBETALING,
-            bruttoYtelse = utbetaling.bruttobeløp(),
-        )
-        is TolketUtbetaling.Feilutbetaling -> SimuleringJson.SimulertPeriodeJson(
-            fraOgMed = periode.fraOgMed,
-            tilOgMed = periode.tilOgMed,
-            type = SimulertUtbetalingstype.FEILUTBETALING,
-            bruttoYtelse = utbetaling.bruttobeløp()
-                .times(-1),
-        )
-        is TolketUtbetaling.Ordinær -> SimuleringJson.SimulertPeriodeJson(
-            fraOgMed = periode.fraOgMed,
-            tilOgMed = periode.tilOgMed,
-            type = SimulertUtbetalingstype.ORDINÆR,
-            bruttoYtelse = utbetaling.bruttobeløp(),
-        )
-        is TolketUtbetaling.UendretUtbetaling -> SimuleringJson.SimulertPeriodeJson(
-            fraOgMed = periode.fraOgMed,
-            tilOgMed = periode.tilOgMed,
-            type = SimulertUtbetalingstype.UENDRET,
-            bruttoYtelse = utbetaling.bruttobeløp(),
-        )
-
-        is TolketUtbetaling.IngenUtbetaling -> SimuleringJson.SimulertPeriodeJson(
-            fraOgMed = periode.fraOgMed,
-            tilOgMed = periode.tilOgMed,
-            type = SimulertUtbetalingstype.INGEN_UTBETALING,
-            bruttoYtelse = utbetaling.bruttobeløp(),
-        )
-    }
+internal fun Kontooppstilling.toJson(): KontooppstillingJson {
+    return KontooppstillingJson(
+        debetYtelse = debetYtelse.sum(),
+        simulertUtbetaling = simulertUtbetaling.sum(),
+        kreditYtelse = kreditYtelse.sum(),
+        debetFeilkonto = debetFeilkonto.sum(),
+        kreditFeilkonto = kreditFeilkonto.sum(),
+        debetMotpostFeilkonto = debetMotpostFeilkonto.sum(),
+        kreditMotpostFeilkonto = kreditMotpostFeilkonto.sum(),
+        sumYtelse = sumUtbetaling.sum(),
+        sumFeilkonto = sumFeilkonto.sum(),
+        sumMotpostFeilkonto = sumMotpostFeilkonto.sum(),
+    )
 }
-
-object MerEnnEnUtbetalingIMinstEnAvPeriodene :
-    IllegalStateException("En periode i simuleringen inneholdt mer enn én utbetaling. Dette støttes ikke p.t.")

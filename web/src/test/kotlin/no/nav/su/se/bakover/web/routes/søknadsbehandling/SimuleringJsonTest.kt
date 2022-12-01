@@ -25,21 +25,41 @@ internal class SimuleringJsonTest {
     private val expectedJson =
         """
         {
-            "totalBruttoYtelse" : 30000,
-            "perioder" : [
-                {
-                  "fraOgMed" : "2020-01-01",
-                  "tilOgMed" : "2020-01-31",
-                  "bruttoYtelse" : 15000,
-                  "type": "ORDINÆR"
-                },
-                {
-                  "fraOgMed" : "2020-02-01",
-                  "tilOgMed" : "2020-02-29",
-                  "bruttoYtelse": 15000,
-                  "type": "ORDINÆR"
-                }
-            ]
+            "totalBruttoYtelse" : 30000,            
+            "perioder": [
+                    {
+                      "kontooppstilling": {
+                        "sumYtelse": 15000,
+                        "debetFeilkonto": 0,
+                        "kreditFeilkonto": 0,
+                        "debetMotpostFeilkonto": 0,
+                        "kreditMotpostFeilkonto": 0,
+                        "sumMotpostFeilkonto": 0,
+                        "kreditYtelse": 0,
+                        "debetYtelse": 15000,
+                        "simulertUtbetaling": 15000,
+                        "sumFeilkonto": 0
+                      },
+                      "fraOgMed": "2020-01-01",
+                      "tilOgMed": "2020-01-31"
+                    },
+                    {
+                      "kontooppstilling": {
+                        "sumYtelse": 15000,
+                        "debetFeilkonto": 0,
+                        "kreditFeilkonto": 0,
+                        "debetMotpostFeilkonto": 0,
+                        "kreditMotpostFeilkonto": 0,
+                        "sumMotpostFeilkonto": 0,
+                        "kreditYtelse": 0,
+                        "debetYtelse": 15000,
+                        "simulertUtbetaling": 15000,
+                        "sumFeilkonto": 0
+                      },
+                      "fraOgMed": "2020-02-01",
+                      "tilOgMed": "2020-02-29"
+                    }
+                ]
         }
         """.trimIndent()
 

@@ -5,6 +5,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -13,13 +14,14 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
-import no.nav.su.se.bakover.domain.oppdrag.simulering.toFeilkode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.toYtelsekode
 import no.nav.su.se.bakover.domain.oppdrag.tidslinje
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import java.time.Clock
 import java.time.LocalDate
+import kotlin.math.abs
+import kotlin.math.roundToInt
 
 class SimuleringStub(
     val clock: Clock,
@@ -30,15 +32,6 @@ class SimuleringStub(
     override fun simulerUtbetaling(request: SimulerUtbetalingRequest): Either<SimuleringFeilet, Simulering> {
         return simulerUtbetalinger(request).right()
     }
-
-    private fun List<SimulertPeriode>.calculateNetto() =
-        this.sumOf { it.bruttoYtelse() } + this.sumOf { simulertPeriode ->
-            simulertPeriode.utbetaling
-                .flatMap { it.detaljer }
-                .filter { !it.isYtelse() }
-                .sumOf { it.belop }
-        }
-
     private fun simulerUtbetalinger(request: SimulerUtbetalingRequest): Simulering {
         val utbetaling = request.utbetaling
         val simuleringsperiode = request.simuleringsperiode
@@ -146,6 +139,12 @@ class SimuleringStub(
                                                 beløp = diff,
                                                 sakstype = utbetaling.sakstype,
                                             ),
+                                            createMotpostFeilkonto(
+                                                fraOgMed = måned.fraOgMed,
+                                                tilOgMed = måned.tilOgMed,
+                                                beløp = diff,
+                                                sakstype = utbetaling.sakstype,
+                                            ),
                                         ),
                                     )
                                 }
@@ -248,6 +247,12 @@ class SimuleringStub(
                                             beløp = diff,
                                             sakstype = utbetaling.sakstype,
                                         ),
+                                        createMotpostFeilkonto(
+                                            fraOgMed = måned.fraOgMed,
+                                            tilOgMed = måned.tilOgMed,
+                                            beløp = diff,
+                                            sakstype = utbetaling.sakstype,
+                                        ),
                                     ),
                                 )
                             } else {
@@ -297,6 +302,12 @@ class SimuleringStub(
                                             beløp = diff,
                                             sakstype = utbetaling.sakstype,
                                         ),
+                                        createMotpostFeilkonto(
+                                            fraOgMed = måned.fraOgMed,
+                                            tilOgMed = måned.tilOgMed,
+                                            beløp = diff,
+                                            sakstype = utbetaling.sakstype,
+                                        ),
                                     ),
                                 )
                             } else {
@@ -325,9 +336,23 @@ class SimuleringStub(
                     gjelderId = utbetaling.fnr,
                     gjelderNavn = "MYGG LUR",
                     datoBeregnet = idag(clock),
-                    nettoBeløp = it.calculateNetto(),
-                    periodeList = it,
-                )
+                    nettoBeløp = 0,
+                    periodeList = it.ifEmpty {
+                        listOf(
+                            SimulertPeriode(
+                                fraOgMed = simuleringsperiode.fraOgMed,
+                                tilOgMed = simuleringsperiode.tilOgMed,
+                                utbetaling = emptyList(),
+                            ),
+                        )
+                    },
+                ).let { simulering ->
+                    /**
+                     * Setter bare netto til halvparten av brutto for at det skal oppføre seg ca som OS.
+                     * Eventuell skatt som trekkes fra brutto filtreres ut i [no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringResponseMapper]
+                     */
+                    simulering.copy(nettoBeløp = (simulering.hentTilUtbetaling().sum() * 0.5).roundToInt())
+                }
             }
     }
 
@@ -369,13 +394,28 @@ private fun createFeilutbetaling(fraOgMed: LocalDate, tilOgMed: LocalDate, belø
     faktiskFraOgMed = fraOgMed,
     faktiskTilOgMed = tilOgMed,
     konto = "4952000",
-    belop = beløp,
+    belop = abs(beløp),
     tilbakeforing = false,
     sats = 0,
     typeSats = "",
     antallSats = 0,
     uforegrad = 0,
-    klassekode = sakstype.toFeilkode(),
+    klassekode = KlasseKode.KL_KODE_FEIL_INNT,
     klassekodeBeskrivelse = "Feilutbetaling $sakstype",
     klasseType = KlasseType.FEIL,
+)
+
+private fun createMotpostFeilkonto(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int, sakstype: Sakstype) = SimulertDetaljer(
+    faktiskFraOgMed = fraOgMed,
+    faktiskTilOgMed = tilOgMed,
+    konto = "4952000",
+    belop = -abs(beløp),
+    tilbakeforing = false,
+    sats = 0,
+    typeSats = "",
+    antallSats = 0,
+    uforegrad = 0,
+    klassekode = KlasseKode.TBMOTOBS,
+    klassekodeBeskrivelse = "Motpost feilkonto $sakstype",
+    klasseType = KlasseType.MOTP,
 )

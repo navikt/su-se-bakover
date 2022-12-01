@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.august
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.juni
@@ -1334,7 +1333,7 @@ internal class LagBrevRequestVisitorTest {
             ),
             tilbakekreving = Tilbakekreving(
                 månedBeløp = listOf(
-                    MånedBeløp(Periode.create(1.juni(2021), 30.juni(2021)), Beløp(20946)),
+                    MånedBeløp(juni(2021), Beløp(20946)),
                 ),
             ),
             satsoversikt = Satsoversikt(

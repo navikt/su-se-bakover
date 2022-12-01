@@ -1,14 +1,11 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
 import no.finn.unleash.FakeUnleash
-import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
-import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
-import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.client.oppdrag.XmlMapper
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.oktober
@@ -16,42 +13,42 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.oktober
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.common.toNonEmptyList
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
-import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
+import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
-import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.utbetalingslinje
+import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerBeregningFeilUnderBehandling
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerFpService
-import no.nav.system.os.entiteter.beregningskjema.Beregning
-import no.nav.system.os.entiteter.beregningskjema.BeregningStoppnivaa
-import no.nav.system.os.entiteter.beregningskjema.BeregningStoppnivaaDetaljer
-import no.nav.system.os.entiteter.beregningskjema.BeregningsPeriode
 import no.nav.system.os.tjenester.simulerfpservice.feil.FeilUnderBehandling
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SendInnOppdragRequest
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SendInnOppdragResponse
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningRequest
-import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningResponse
 import org.junit.jupiter.api.Test
-import java.math.BigDecimal
-import java.math.BigInteger
 import java.net.SocketException
-import java.time.Clock
 import javax.net.ssl.SSLException
 import javax.xml.ws.WebServiceException
 
 internal class SimuleringSoapClientTest {
 
-    private val FNR = Fnr("12345678910")
-
-    private val nyUtbetaling = createUtbetaling()
+    private val nyUtbetaling = beregnetRevurdering().let {
+        it.first.lagNyUtbetaling(
+            saksbehandler = saksbehandler,
+            beregning = it.second.beregning,
+            clock = fixedClock,
+            utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+            uføregrunnlag = it.second.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag.toNonEmptyList(),
+        )
+    }
 
     @Test
     fun `should return ok simulering`() {
@@ -62,8 +59,7 @@ internal class SimuleringSoapClientTest {
                 }
 
                 override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
-                    return no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse()
-                        .apply { response = okSimuleringResponse() }
+                    return XmlMapper.readValue(xmlResponse)
                 }
             },
             clock = fixedClock,
@@ -75,10 +71,7 @@ internal class SimuleringSoapClientTest {
                 simuleringsperiode = år(2020),
                 utbetaling = nyUtbetaling,
             ),
-        ) shouldBe SimuleringResponseMapper(
-            okSimuleringResponse(),
-            fixedClock,
-        ).simulering.right()
+        ).getOrFail().shouldBeType<Simulering>()
     }
 
     @Test
@@ -97,26 +90,17 @@ internal class SimuleringSoapClientTest {
             unleash = FakeUnleash(),
         )
 
-        val opphør = nyUtbetaling.copy(
-            utbetalingslinjer = nonEmptyListOf(
-                Utbetalingslinje.Endring.Opphør(
-                    utbetalingslinje = nyUtbetaling.sisteUtbetalingslinje(),
-                    virkningsperiode = Periode.create(1.januar(2018), nyUtbetaling.sisteUtbetalingslinje().periode.tilOgMed),
-                    clock = Clock.systemUTC(),
-                ),
-            ),
-        )
         simuleringService.simulerUtbetaling(
             request = SimulerUtbetalingForPeriode(
                 simuleringsperiode = Periode.create(
                     fraOgMed = 1.januar(2018),
                     tilOgMed = 31.desember(2020),
                 ),
-                utbetaling = opphør,
+                utbetaling = nyUtbetaling,
             ),
         ) shouldBe Simulering(
-            gjelderId = FNR,
-            gjelderNavn = FNR.toString(),
+            gjelderId = nyUtbetaling.fnr,
+            gjelderNavn = nyUtbetaling.fnr.toString(),
             nettoBeløp = 0,
             datoBeregnet = fixedLocalDate,
             periodeList = listOf(
@@ -249,30 +233,14 @@ internal class SimuleringSoapClientTest {
             unleash = FakeUnleash(),
         )
 
-        val utenBeløp = Utbetaling.UtbetalingForSimulering(
-            opprettet = fixedTidspunkt,
-            sakId = sakId,
-            saksnummer = saksnummer,
-            fnr = FNR,
-            utbetalingslinjer = nonEmptyListOf(
-                utbetalingslinje(
-                    periode = oktober(2020)..desember(2020),
-                    beløp = 0,
-                ),
-            ),
-            behandler = NavIdentBruker.Saksbehandler("Z123"),
-            avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
-            sakstype = Sakstype.UFØRE,
-        )
-
         simuleringService.simulerUtbetaling(
             request = SimulerUtbetalingForPeriode(
                 simuleringsperiode = oktober(2020)..desember(2020),
-                utbetaling = utenBeløp,
+                utbetaling = nyUtbetaling,
             ),
         ) shouldBe Simulering(
-            gjelderId = FNR,
-            gjelderNavn = FNR.toString(),
+            gjelderId = nyUtbetaling.fnr,
+            gjelderNavn = nyUtbetaling.fnr.toString(),
             nettoBeløp = 0,
             datoBeregnet = fixedLocalDate,
             periodeList = listOf(
@@ -285,59 +253,90 @@ internal class SimuleringSoapClientTest {
         ).right()
     }
 
-    private fun createUtbetaling() = Utbetaling.UtbetalingForSimulering(
-        opprettet = fixedTidspunkt,
-        sakId = sakId,
-        saksnummer = saksnummer,
-        fnr = Fnr("12345678910"),
-        utbetalingslinjer = nonEmptyListOf(
-            utbetalingslinje(
-                periode = år(2020),
-                beløp = 405,
-            ),
-        ),
-        behandler = NavIdentBruker.Saksbehandler("Z123"),
-        avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
-        sakstype = Sakstype.UFØRE,
-    )
-
-    private fun okSimuleringResponse() = SimulerBeregningResponse().apply {
-        simulering = Beregning().apply {
-            gjelderId = FNR.toString()
-            gjelderNavn = "gjelderNavn"
-            datoBeregnet = "2020-01-01"
-            belop = BigDecimal(15000)
-            beregningsPeriode.add(
-                BeregningsPeriode().apply {
-                    periodeFom = "2020-01-01"
-                    periodeTom = "2020-12-31"
-                    beregningStoppnivaa.add(
-                        BeregningStoppnivaa().apply {
-                            fagsystemId = "SUP"
-                            utbetalesTilId = FNR.toString()
-                            utbetalesTilNavn = "utbetalesTilNavn"
-                            forfall = "2020-02-01"
-                            isFeilkonto = false
-                            beregningStoppnivaaDetaljer.add(
-                                BeregningStoppnivaaDetaljer().apply {
-                                    faktiskFom = "2020-01-01"
-                                    faktiskTom = "2020-12-31"
-                                    uforeGrad = BigInteger.valueOf(50L)
-                                    antallSats = BigDecimal(20L)
-                                    typeSats = "4"
-                                    sats = BigDecimal(400)
-                                    belop = BigDecimal(15000)
-                                    kontoStreng = "1234.12.12345"
-                                    isTilbakeforing = false
-                                    klassekode = "SUUFORE"
-                                    klasseKodeBeskrivelse = "klasseKodeBeskrivelse"
-                                    typeKlasse = "YTEL"
-                                },
-                            )
-                        },
-                    )
-                },
-            )
-        }
-    }
+    //language=xml
+    private val xmlResponse = """
+    <simulerBeregningResponse xmlns="http://nav.no/system/os/tjenester/simulerFpService/simulerFpServiceGrensesnitt">
+             <response xmlns="">
+                <simulering>
+                   <gjelderId>$fnr</gjelderId>
+                   <gjelderNavn>navn</gjelderNavn>
+                   <datoBeregnet>2521-04-07</datoBeregnet>
+                   <kodeFaggruppe>INNT</kodeFaggruppe>
+                   <belop>10390.00</belop>
+                   <beregningsPeriode xmlns="http://nav.no/system/os/entiteter/beregningSkjema">
+                      <periodeFom xmlns="">2021-04-01</periodeFom>
+                      <periodeTom xmlns="">2021-04-30</periodeTom>
+                      <beregningStoppnivaa>
+                         <kodeFagomraade xmlns="">SUUFORE</kodeFagomraade>
+                         <stoppNivaaId xmlns="">1</stoppNivaaId>
+                         <behandlendeEnhet xmlns="">8020</behandlendeEnhet>
+                         <oppdragsId xmlns="">53387554</oppdragsId>
+                         <fagsystemId xmlns="">1234</fagsystemId>
+                         <kid xmlns=""/>
+                         <utbetalesTilId xmlns="">$fnr</utbetalesTilId>
+                         <utbetalesTilNavn xmlns="">navn</utbetalesTilNavn>
+                         <bilagsType xmlns="">U</bilagsType>
+                         <forfall xmlns="">2021-04-19</forfall>
+                         <feilkonto xmlns="">false</feilkonto>
+                         <beregningStoppnivaaDetaljer>
+                            <faktiskFom xmlns="">2021-04-01</faktiskFom>
+                            <faktiskTom xmlns="">2021-04-30</faktiskTom>
+                            <kontoStreng xmlns="">12345</kontoStreng>
+                            <behandlingskode xmlns="">2</behandlingskode>
+                            <belop xmlns="">20779.00</belop>
+                            <trekkVedtakId xmlns="">0</trekkVedtakId>
+                            <stonadId xmlns=""></stonadId>
+                            <korrigering xmlns=""></korrigering>
+                            <tilbakeforing xmlns="">false</tilbakeforing>
+                            <linjeId xmlns="">3</linjeId>
+                            <sats xmlns="">20779.00</sats>
+                            <typeSats xmlns="">MND</typeSats>
+                            <antallSats xmlns="">1.00</antallSats>
+                            <saksbehId xmlns="">Z123</saksbehId>
+                            <uforeGrad xmlns="">0</uforeGrad>
+                            <kravhaverId xmlns=""></kravhaverId>
+                            <delytelseId xmlns="">0adee7fd-f21b-4fcb-9dc0-e2234a</delytelseId>
+                            <bostedsenhet xmlns="">8020</bostedsenhet>
+                            <skykldnerId xmlns=""></skykldnerId>
+                            <klassekode xmlns="">SUUFORE</klassekode>
+                            <klasseKodeBeskrivelse xmlns="">Supplerende stønad Uføre</klasseKodeBeskrivelse>
+                            <typeKlasse xmlns="">YTEL</typeKlasse>
+                            <typeKlasseBeskrivelse xmlns="">Klassetype for ytelseskonti</typeKlasseBeskrivelse>
+                            <refunderesOrgNr xmlns=""></refunderesOrgNr>
+                         </beregningStoppnivaaDetaljer>
+                         <beregningStoppnivaaDetaljer>
+                            <faktiskFom xmlns="">2021-04-01</faktiskFom>
+                            <faktiskTom xmlns="">2021-04-30</faktiskTom>
+                            <kontoStreng xmlns="">0510000</kontoStreng>
+                            <behandlingskode xmlns="">0</behandlingskode>
+                            <belop xmlns="">-10389.00</belop>
+                            <trekkVedtakId xmlns="">11845513</trekkVedtakId>
+                            <stonadId xmlns=""></stonadId>
+                            <korrigering xmlns=""></korrigering>
+                            <tilbakeforing xmlns="">false</tilbakeforing>
+                            <linjeId xmlns="">0</linjeId>
+                            <sats xmlns="">0.00</sats>
+                            <typeSats xmlns="">MND</typeSats>
+                            <antallSats xmlns="">30.00</antallSats>
+                            <saksbehId xmlns="">Z123</saksbehId>
+                            <uforeGrad xmlns="">0</uforeGrad>
+                            <kravhaverId xmlns=""></kravhaverId>
+                            <delytelseId xmlns=""></delytelseId>
+                            <bostedsenhet xmlns="">8020</bostedsenhet>
+                            <skykldnerId xmlns=""></skykldnerId>
+                            <klassekode xmlns="">FSKTSKAT</klassekode>
+                            <klasseKodeBeskrivelse xmlns="">Forskuddskatt</klasseKodeBeskrivelse>
+                            <typeKlasse xmlns="">SKAT</typeKlasse>
+                            <typeKlasseBeskrivelse xmlns="">Klassetype for skatt</typeKlasseBeskrivelse>
+                            <refunderesOrgNr xmlns=""></refunderesOrgNr>
+                         </beregningStoppnivaaDetaljer>
+                      </beregningStoppnivaa>
+                   </beregningsPeriode>
+                </simulering>
+                <infomelding>
+                   <beskrMelding>Simulering er utført uten skattevedtak. Nominell sats benyttet.</beskrMelding>
+                </infomelding>
+             </response>
+          </simulerBeregningResponse>
+    """.trimIndent()
 }

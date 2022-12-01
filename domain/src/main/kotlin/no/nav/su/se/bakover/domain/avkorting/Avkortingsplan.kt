@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.application.Beløp
 import no.nav.su.se.bakover.common.application.MånedBeløp
 import no.nav.su.se.bakover.common.application.Månedsbeløp
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.tilMåned
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -53,7 +54,7 @@ internal class Avkortingsplan(
                     if (saldo() > 0) {
                         tilbakebetalinger.add(
                             MånedBeløp(
-                                periode = periode,
+                                periode = periode.tilMåned(),
                                 beløp = Beløp(kalkulerMaksbeløp(beløpsgrense)),
                             ),
                         )

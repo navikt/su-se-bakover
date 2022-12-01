@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.application.Beløp
 import no.nav.su.se.bakover.common.application.MånedBeløp
 import no.nav.su.se.bakover.common.application.Månedsbeløp
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.tilMåned
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import java.math.BigDecimal
 
@@ -51,7 +52,7 @@ sealed interface Tilbakekrevingsvedtak {
     ) {
         fun brutto(): MånedBeløp {
             return MånedBeløp(
-                periode,
+                periode.tilMåned(),
                 tilbakekrevingsbeløp.filterIsInstance<Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse>()
                     .fold(Beløp.zero()) { acc, tilbakekrevingsbeløpYtelse -> acc + tilbakekrevingsbeløpYtelse.brutto() },
             )
@@ -59,7 +60,7 @@ sealed interface Tilbakekrevingsvedtak {
 
         fun netto(): MånedBeløp {
             return MånedBeløp(
-                periode,
+                periode.tilMåned(),
                 tilbakekrevingsbeløp.filterIsInstance<Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse>()
                     .fold(Beløp.zero()) { acc, tilbakekrevingsbeløpYtelse -> acc + tilbakekrevingsbeløpYtelse.netto() },
             )
@@ -67,7 +68,7 @@ sealed interface Tilbakekrevingsvedtak {
 
         fun skatt(): MånedBeløp {
             return MånedBeløp(
-                periode,
+                periode.tilMåned(),
                 tilbakekrevingsbeløp.filterIsInstance<Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse>()
                     .fold(Beløp.zero()) { acc, tilbakekrevingsbeløpYtelse -> acc + tilbakekrevingsbeløpYtelse.skatt() },
             )

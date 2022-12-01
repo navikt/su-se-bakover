@@ -1,9 +1,11 @@
 package no.nav.su.se.bakover.domain.oppdrag.simulering
 
 import com.fasterxml.jackson.annotation.JsonAlias
-import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.application.MånedBeløp
 import no.nav.su.se.bakover.common.application.Månedsbeløp
+import no.nav.su.se.bakover.common.periode.Måned
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import java.time.LocalDate
 
@@ -14,40 +16,50 @@ data class Simulering(
     val nettoBeløp: Int,
     val periodeList: List<SimulertPeriode>,
 ) {
-    fun bruttoYtelse() = periodeList
-        .sumOf { it.bruttoYtelse() }
+    private val tolkning = TolketSimulering(this)
 
     fun harFeilutbetalinger(): Boolean {
-        return tolk().simulertePerioder.any { it.harFeilutbetalinger() }
-    }
-
-    fun tolk(): TolketSimulering {
-        return TolketSimulering(this)
+        return tolkning.harFeilutbetalinger()
     }
 
     fun hentUtbetalteBeløp(): Månedsbeløp {
-        return tolk().hentUtbetalteBeløp()
+        return tolkning.hentUtbetalteBeløp()
+    }
+
+    fun hentUtbetalteBeløp(måned: Måned): MånedBeløp? {
+        return hentUtbetalteBeløp().singleOrNull { it.periode == måned }
+    }
+
+    fun hentTilUtbetaling(): Månedsbeløp {
+        return tolkning.hentTilUtbetaling()
     }
 
     fun hentFeilutbetalteBeløp(): Månedsbeløp {
-        return tolk().hentFeilutbetalteBeløp()
+        return tolkning.hentFeilutbetalteBeløp()
     }
 
-    /**
-     * Nettobeløpet påvirkes av skatt, så tas ikke med i equals-sjekken.
-     * Bruttobeløpet, altså summen av månedsbeløpene, brukes i stedet .
-     */
-    override fun equals(other: Any?) = other is Simulering &&
-        other.gjelderId == this.gjelderId &&
-        other.gjelderNavn == this.gjelderNavn &&
-        other.periodeList == this.periodeList &&
-        other.bruttoYtelse() == this.bruttoYtelse()
+    fun hentUtbetalingSomSimuleres(): Månedsbeløp {
+        return tolkning.hentUtbetalingSomSimuleres()
+    }
 
-    override fun hashCode(): Int {
-        var result = gjelderId.hashCode()
-        result = 31 * result + gjelderNavn.hashCode()
-        result = 31 * result + periodeList.hashCode()
-        return result
+    fun hentUtbetalingSomSimuleres(måned: Måned): MånedBeløp? {
+        return tolkning.hentUtbetalingSomSimuleres().singleOrNull { it.periode == måned }
+    }
+
+    fun hentDebetYtelse(): Månedsbeløp {
+        return tolkning.hentDebetYtelse()
+    }
+
+    fun erSimuleringUtenUtbetalinger(): Boolean {
+        return tolkning.erSimuleringUtenUtbetalinger()
+    }
+
+    fun periode(): Periode {
+        return tolkning.periode
+    }
+
+    fun kontooppstilling(): Map<Periode, Kontooppstilling> {
+        return tolkning.kontooppstilling()
     }
 }
 
@@ -58,9 +70,20 @@ data class SimulertPeriode(
     val tilOgMed: LocalDate,
     val utbetaling: List<SimulertUtbetaling>,
 ) {
-
-    fun bruttoYtelse() = utbetaling
-        .sumOf { it.bruttoYtelse() }
+    internal fun tolk(): TolketPeriode {
+        return if (utbetaling.isEmpty()) {
+            TolketPeriodeUtenUtbetalinger(periode = Periode.create(fraOgMed, tilOgMed))
+        } else {
+            /**
+             * I Teorien kan det være flere utbetalnger per periode, f.eks hvis bruker mottar andre ytelser.
+             * Vi bryr oss kun om SU og forventer derfor bare 1.
+             */
+            TolketPeriodeMedUtbetalinger(
+                måned = Måned.fra(fraOgMed, tilOgMed),
+                utbetaling = utbetaling.single().tolk(),
+            )
+        }
+    }
 }
 
 data class SimulertUtbetaling(
@@ -71,24 +94,9 @@ data class SimulertUtbetaling(
     val feilkonto: Boolean,
     val detaljer: List<SimulertDetaljer>,
 ) {
-    fun bruttoYtelse() = detaljer
-        .filter { it.isYtelse() }
-        .sumOf { it.belop }
 
-    override fun equals(other: Any?) = other is SimulertUtbetaling &&
-        other.fagSystemId == this.fagSystemId &&
-        other.utbetalesTilId == this.utbetalesTilId &&
-        other.utbetalesTilNavn == this.utbetalesTilNavn &&
-        other.feilkonto == this.feilkonto &&
-        other.detaljer == this.detaljer
-
-    override fun hashCode(): Int {
-        var result = fagSystemId.hashCode()
-        result = 31 * result + utbetalesTilId.hashCode()
-        result = 31 * result + utbetalesTilNavn.hashCode()
-        result = 31 * result + feilkonto.hashCode()
-        result = 31 * result + detaljer.hashCode()
-        return result
+    internal fun tolk(): TolketUtbetaling {
+        return TolketUtbetaling(detaljer.mapNotNull { it.tolk(forfall = forfall) })
     }
 }
 
@@ -108,36 +116,30 @@ data class SimulertDetaljer(
     val klassekodeBeskrivelse: String,
     val klasseType: KlasseType,
 ) {
-    @JsonIgnore
-    fun isYtelse() = KlasseType.YTEL == klasseType
+    fun tolk(forfall: LocalDate): TolketDetalj? {
+        return TolketDetalj.from(simulertDetaljer = this, forfall = forfall)
+    }
 }
 
 enum class KlasseType {
     YTEL,
     SKAT,
     FEIL,
-
-    @Deprecated("Filtreres ut av klient") // TODO flytt dette lenger ut
     MOTP,
-
     ;
 
     companion object {
-        fun skalIkkeFiltreres() = setOf(YTEL, FEIL)
+        fun skalIkkeFiltreres() = setOf(YTEL, FEIL, MOTP)
     }
 }
 
 enum class KlasseKode {
     SUUFORE,
     KL_KODE_FEIL_INNT,
-
-    @Deprecated("Filtreres ut av klient") // TODO flytt dette lenger ut
     TBMOTOBS,
-
-    @Deprecated("Filtreres ut av klient, bakoverkompatabilitet")
     FSKTSKAT,
 
-    @Deprecated("Filtreres ut av klient, bakoverkompatabilitet")
+    /** Filtreres vekk av klient, bakoverkompatabilitet */
     UFOREUT,
 
     SUALDER,
@@ -145,7 +147,7 @@ enum class KlasseKode {
     ;
 
     companion object {
-        fun skalIkkeFiltreres() = setOf(SUUFORE, KL_KODE_FEIL_INNT, SUALDER, KL_KODE_FEIL)
+        fun skalIkkeFiltreres() = setOf(SUUFORE, KL_KODE_FEIL_INNT, SUALDER, KL_KODE_FEIL, TBMOTOBS)
     }
 }
 
