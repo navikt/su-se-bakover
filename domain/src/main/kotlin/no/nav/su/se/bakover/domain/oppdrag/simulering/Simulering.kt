@@ -22,6 +22,10 @@ data class Simulering(
         return tolkning.harFeilutbetalinger()
     }
 
+    /**
+     * Kredit for ytelseskonto. Representerer tidligere utbetalte beløp ved endringer.
+     * Se sammenheng mellom hva som til slutt utbetales i [hentDebetYtelse]
+     */
     fun hentUtbetalteBeløp(): Månedsbeløp {
         return tolkning.hentUtbetalteBeløp()
     }
@@ -30,14 +34,25 @@ data class Simulering(
         return hentUtbetalteBeløp().singleOrNull { it.periode == måned }
     }
 
+    /**
+     * Beløp som vil bli utbetalt som en konsenvens av denne simuleringen.
+     * Typisk differansen mellom [hentUtbetalingSomSimuleres] - [hentUtbetalteBeløp] dersom denne er positiv.
+     * 0 dersom differansen er negativ.
+     */
     fun hentTilUtbetaling(): Månedsbeløp {
         return tolkning.hentTilUtbetaling()
     }
 
+    /**
+     * Perioder hvor det vil forekomme debitering (økning) av feilkonto som følge av denne simuleringen.
+     */
     fun hentFeilutbetalteBeløp(): Månedsbeløp {
         return tolkning.hentFeilutbetalteBeløp()
     }
 
+    /**
+     * Beløpet vi har simulert utbetaling for i denne simuleringen.
+     */
     fun hentUtbetalingSomSimuleres(): Månedsbeløp {
         return tolkning.hentUtbetalingSomSimuleres()
     }
@@ -46,6 +61,11 @@ data class Simulering(
         return tolkning.hentUtbetalingSomSimuleres().singleOrNull { it.periode == måned }
     }
 
+    /**
+     * Debit for ytelseskonto. Representerer i sin enkelste form brutto-beløpet som skal betales ut.
+     * Dersom ytelse tidligere har blitt betalt ut for en periode vil ny utbetaling ([hentTilUtbetaling]) tilsvare differansen mellom
+     * [hentDebetYtelse] og [hentUtbetalteBeløp]
+     */
     fun hentDebetYtelse(): Månedsbeløp {
         return tolkning.hentDebetYtelse()
     }
@@ -58,10 +78,35 @@ data class Simulering(
         return tolkning.periode
     }
 
+    /**
+     * Debet/kredit oppstilling av de ulike konti.
+     */
     fun kontooppstilling(): Map<Periode, Kontooppstilling> {
         return tolkning.kontooppstilling()
     }
+    fun oppsummering(): SimuleringsOppsummering {
+        return SimuleringsOppsummering(
+            totalOppsummering = tolkning.totalOppsummering(),
+            periodeOppsummering = tolkning.periodeOppsummering(),
+        )
+    }
 }
+
+data class SimuleringsOppsummering(
+    val totalOppsummering: PeriodeOppsummering,
+    val periodeOppsummering: List<PeriodeOppsummering>,
+)
+
+data class PeriodeOppsummering(
+    val periode: Periode,
+    val sumTilUtbetaling: Int,
+    val sumEtterbetaling: Int,
+    val sumFramtidigUtbetaling: Int,
+    val sumTotalUtbetaling: Int,
+    val sumTidligereUtbetalt: Int,
+    val sumFeilutbetaling: Int,
+    val sumReduksjonFeilkonto: Int,
+)
 
 data class SimulertPeriode(
     @JsonAlias("fraOgMed", "fom")
@@ -96,7 +141,7 @@ data class SimulertUtbetaling(
 ) {
 
     internal fun tolk(): TolketUtbetaling {
-        return TolketUtbetaling(detaljer.mapNotNull { it.tolk(forfall = forfall) })
+        return TolketUtbetaling(detaljer = detaljer.mapNotNull { it.tolk() }, forfall = forfall)
     }
 }
 
@@ -116,8 +161,8 @@ data class SimulertDetaljer(
     val klassekodeBeskrivelse: String,
     val klasseType: KlasseType,
 ) {
-    fun tolk(forfall: LocalDate): TolketDetalj? {
-        return TolketDetalj.from(simulertDetaljer = this, forfall = forfall)
+    fun tolk(): TolketDetalj? {
+        return TolketDetalj.from(simulertDetaljer = this)
     }
 }
 

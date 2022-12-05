@@ -1,7 +1,8 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Kontooppstilling
+import no.nav.su.se.bakover.domain.oppdrag.simulering.PeriodeOppsummering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringsOppsummering
 import java.time.LocalDate
 
 internal data class UtbetalingJson(
@@ -10,55 +11,56 @@ internal data class UtbetalingJson(
     val beløp: Int,
     val type: String,
 )
-data class KontooppstillingJson(
-    val simulertUtbetaling: Int,
-    val debetYtelse: Int,
-    val kreditYtelse: Int,
-    val debetFeilkonto: Int,
-    val kreditFeilkonto: Int,
-    val debetMotpostFeilkonto: Int,
-    val kreditMotpostFeilkonto: Int,
-    val sumYtelse: Int,
-    val sumFeilkonto: Int,
-    val sumMotpostFeilkonto: Int,
-)
 internal data class SimuleringJson(
-    val totalBruttoYtelse: Int,
-    val perioder: List<NySimulertPeriodeJson> = emptyList(),
+    val totalOppsummering: PeriodeOppsummeringJson,
+    val periodeOppsummering: List<PeriodeOppsummeringJson> = emptyList(),
 ) {
-    data class NySimulertPeriodeJson(
-        val fraOgMed: LocalDate,
-        val tilOgMed: LocalDate,
-        val kontooppstilling: KontooppstillingJson,
-    )
-
     companion object {
         fun Simulering.toJson(): SimuleringJson {
-            return SimuleringJson(
-                totalBruttoYtelse = hentTilUtbetaling().sum(),
-                perioder = kontooppstilling().map { (måned, kontooppstilling) ->
-                    NySimulertPeriodeJson(
-                        fraOgMed = måned.fraOgMed,
-                        tilOgMed = måned.tilOgMed,
-                        kontooppstilling = kontooppstilling.toJson(),
-                    )
-                },
-            )
+            return oppsummering().toJson().let {
+                SimuleringJson(
+                    it.totalOppsummering,
+                    it.periodeOppsummering,
+                )
+            }
         }
     }
 }
 
-internal fun Kontooppstilling.toJson(): KontooppstillingJson {
-    return KontooppstillingJson(
-        debetYtelse = debetYtelse.sum(),
-        simulertUtbetaling = simulertUtbetaling.sum(),
-        kreditYtelse = kreditYtelse.sum(),
-        debetFeilkonto = debetFeilkonto.sum(),
-        kreditFeilkonto = kreditFeilkonto.sum(),
-        debetMotpostFeilkonto = debetMotpostFeilkonto.sum(),
-        kreditMotpostFeilkonto = kreditMotpostFeilkonto.sum(),
-        sumYtelse = sumUtbetaling.sum(),
-        sumFeilkonto = sumFeilkonto.sum(),
-        sumMotpostFeilkonto = sumMotpostFeilkonto.sum(),
+internal fun SimuleringsOppsummering.toJson(): SimuleringsOppsummeringJson {
+    return SimuleringsOppsummeringJson(
+        totalOppsummering = totalOppsummering.toJson(),
+        periodeOppsummering = periodeOppsummering.map { it.toJson() },
     )
 }
+
+internal data class SimuleringsOppsummeringJson(
+    val totalOppsummering: PeriodeOppsummeringJson,
+    val periodeOppsummering: List<PeriodeOppsummeringJson>,
+)
+
+internal fun PeriodeOppsummering.toJson(): PeriodeOppsummeringJson {
+    return PeriodeOppsummeringJson(
+        fraOgMed = periode.fraOgMed,
+        tilOgMed = periode.tilOgMed,
+        sumTilUtbetaling = sumTilUtbetaling,
+        sumEtterbetaling = sumEtterbetaling,
+        sumFramtidigUtbetaling = sumFramtidigUtbetaling,
+        sumTotalUtbetaling = sumTotalUtbetaling,
+        sumTidligereUtbetalt = sumTidligereUtbetalt,
+        sumFeilutbetaling = sumFeilutbetaling,
+        sumReduksjonFeilkonto = sumReduksjonFeilkonto,
+    )
+}
+
+internal data class PeriodeOppsummeringJson(
+    val fraOgMed: LocalDate,
+    val tilOgMed: LocalDate,
+    val sumTilUtbetaling: Int,
+    val sumEtterbetaling: Int,
+    val sumFramtidigUtbetaling: Int,
+    val sumTotalUtbetaling: Int,
+    val sumTidligereUtbetalt: Int,
+    val sumFeilutbetaling: Int,
+    val sumReduksjonFeilkonto: Int,
+)

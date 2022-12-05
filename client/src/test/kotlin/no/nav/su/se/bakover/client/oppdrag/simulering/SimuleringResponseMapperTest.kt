@@ -19,7 +19,9 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Kontobeløp
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Kontooppstilling
+import no.nav.su.se.bakover.domain.oppdrag.simulering.PeriodeOppsummering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringsOppsummering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
@@ -440,6 +442,40 @@ internal class SimuleringResponseMapperTest {
                     it.sumMotpostFeilkonto shouldBe Kontobeløp.Summert(0)
                 },
             )
+            it.oppsummering() shouldBe SimuleringsOppsummering(
+                totalOppsummering = PeriodeOppsummering(
+                    periode = februar(2021)..mars(2021),
+                    sumTilUtbetaling = 10000,
+                    sumEtterbetaling = 0,
+                    sumFramtidigUtbetaling = 10000,
+                    sumTotalUtbetaling = 30779,
+                    sumTidligereUtbetalt = 20779,
+                    sumFeilutbetaling = 10779,
+                    sumReduksjonFeilkonto = 0,
+                ),
+                periodeOppsummering = listOf(
+                    PeriodeOppsummering(
+                        periode = februar(2021),
+                        sumTilUtbetaling = 0,
+                        sumEtterbetaling = 0,
+                        sumFramtidigUtbetaling = 0,
+                        sumTotalUtbetaling = 20779,
+                        sumTidligereUtbetalt = 20779,
+                        sumFeilutbetaling = 10779,
+                        sumReduksjonFeilkonto = 0,
+                    ),
+                    PeriodeOppsummering(
+                        periode = mars(2021),
+                        sumTilUtbetaling = 10000,
+                        sumEtterbetaling = 0,
+                        sumFramtidigUtbetaling = 10000,
+                        sumTotalUtbetaling = 10000,
+                        sumTidligereUtbetalt = 0,
+                        sumFeilutbetaling = 0,
+                        sumReduksjonFeilkonto = 0,
+                    ),
+                ),
+            )
         }
     }
 
@@ -810,6 +846,40 @@ internal class SimuleringResponseMapperTest {
                     it.sumFeilkonto shouldBe Kontobeløp.Summert(0)
                     it.sumMotpostFeilkonto shouldBe Kontobeløp.Summert(0)
                 },
+            )
+            it.oppsummering() shouldBe SimuleringsOppsummering(
+                totalOppsummering = PeriodeOppsummering(
+                    periode = februar(2021)..mars(2021),
+                    sumTilUtbetaling = 39221,
+                    sumEtterbetaling = 9221,
+                    sumFramtidigUtbetaling = 30000,
+                    sumTotalUtbetaling = 60000,
+                    sumTidligereUtbetalt = 20779,
+                    sumFeilutbetaling = 0,
+                    sumReduksjonFeilkonto = 0,
+                ),
+                periodeOppsummering = listOf(
+                    PeriodeOppsummering(
+                        periode = februar(2021),
+                        sumTilUtbetaling = 9221,
+                        sumEtterbetaling = 9221,
+                        sumFramtidigUtbetaling = 0,
+                        sumTotalUtbetaling = 30000,
+                        sumTidligereUtbetalt = 20779,
+                        sumFeilutbetaling = 0,
+                        sumReduksjonFeilkonto = 0,
+                    ),
+                    PeriodeOppsummering(
+                        periode = mars(2021),
+                        sumTilUtbetaling = 30000,
+                        sumEtterbetaling = 0,
+                        sumFramtidigUtbetaling = 30000,
+                        sumTotalUtbetaling = 30000,
+                        sumTidligereUtbetalt = 0,
+                        sumFeilutbetaling = 0,
+                        sumReduksjonFeilkonto = 0,
+                    ),
+                ),
             )
         }
     }
@@ -1206,6 +1276,30 @@ internal class SimuleringResponseMapperTest {
                     it.sumMotpostFeilkonto shouldBe Kontobeløp.Summert(21181)
                 },
             )
+            it.oppsummering() shouldBe SimuleringsOppsummering(
+                totalOppsummering = PeriodeOppsummering(
+                    periode = august(2022),
+                    sumTilUtbetaling = 0,
+                    sumEtterbetaling = 0,
+                    sumFramtidigUtbetaling = 0,
+                    sumTotalUtbetaling = 21181,
+                    sumTidligereUtbetalt = 21181,
+                    sumFeilutbetaling = 0,
+                    sumReduksjonFeilkonto = 21181,
+                ),
+                periodeOppsummering = listOf(
+                    PeriodeOppsummering(
+                        periode = august(2022),
+                        sumTilUtbetaling = 0,
+                        sumEtterbetaling = 0,
+                        sumFramtidigUtbetaling = 0,
+                        sumTotalUtbetaling = 21181,
+                        sumTidligereUtbetalt = 21181,
+                        sumFeilutbetaling = 0,
+                        sumReduksjonFeilkonto = 21181,
+                    ),
+                ),
+            )
         }
     }
 
@@ -1387,6 +1481,30 @@ internal class SimuleringResponseMapperTest {
                     it.sumFeilkonto shouldBe Kontobeløp.Summert(-21181)
                     it.sumMotpostFeilkonto shouldBe Kontobeløp.Summert(21181)
                 },
+            )
+            it.oppsummering() shouldBe SimuleringsOppsummering(
+                totalOppsummering = PeriodeOppsummering(
+                    periode = august(2022),
+                    sumTilUtbetaling = 1858,
+                    sumEtterbetaling = 1858,
+                    sumFramtidigUtbetaling = 0,
+                    sumTotalUtbetaling = 23039,
+                    sumTidligereUtbetalt = 21181,
+                    sumFeilutbetaling = 0,
+                    sumReduksjonFeilkonto = 21181,
+                ),
+                periodeOppsummering = listOf(
+                    PeriodeOppsummering(
+                        periode = august(2022),
+                        sumTilUtbetaling = 1858,
+                        sumEtterbetaling = 1858,
+                        sumFramtidigUtbetaling = 0,
+                        sumTotalUtbetaling = 23039,
+                        sumTidligereUtbetalt = 21181,
+                        sumFeilutbetaling = 0,
+                        sumReduksjonFeilkonto = 21181,
+                    ),
+                ),
             )
         }
     }
@@ -1591,6 +1709,30 @@ internal class SimuleringResponseMapperTest {
                     it.sumFeilkonto shouldBe Kontobeløp.Summert(-2000)
                     it.sumMotpostFeilkonto shouldBe Kontobeløp.Summert(2000)
                 },
+            )
+            it.oppsummering() shouldBe SimuleringsOppsummering(
+                totalOppsummering = PeriodeOppsummering(
+                    periode = januar(2022),
+                    sumTilUtbetaling = 0,
+                    sumEtterbetaling = 0,
+                    sumFramtidigUtbetaling = 0,
+                    sumTotalUtbetaling = 8989,
+                    sumTidligereUtbetalt = 8989,
+                    sumFeilutbetaling = 0,
+                    sumReduksjonFeilkonto = 2000,
+                ),
+                periodeOppsummering = listOf(
+                    PeriodeOppsummering(
+                        periode = januar(2022),
+                        sumTilUtbetaling = 0,
+                        sumEtterbetaling = 0,
+                        sumFramtidigUtbetaling = 0,
+                        sumTotalUtbetaling = 8989,
+                        sumTidligereUtbetalt = 8989,
+                        sumFeilutbetaling = 0,
+                        sumReduksjonFeilkonto = 2000,
+                    ),
+                ),
             )
         }
     }

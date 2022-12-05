@@ -123,6 +123,40 @@ internal data class TolketSimulering(
             )
         }
     }
+
+    fun totalOppsummering(): PeriodeOppsummering {
+        return periodeOppsummering().reduce { acc, periodeOppsummering ->
+            acc.copy(
+                periode = periode,
+                sumTilUtbetaling = acc.sumTilUtbetaling + periodeOppsummering.sumTilUtbetaling,
+                sumEtterbetaling = acc.sumEtterbetaling + periodeOppsummering.sumEtterbetaling,
+                sumFramtidigUtbetaling = acc.sumFramtidigUtbetaling + periodeOppsummering.sumFramtidigUtbetaling,
+                sumTotalUtbetaling = acc.sumTotalUtbetaling + periodeOppsummering.sumTotalUtbetaling,
+                sumTidligereUtbetalt = acc.sumTidligereUtbetalt + periodeOppsummering.sumTidligereUtbetalt,
+                sumFeilutbetaling = acc.sumFeilutbetaling + periodeOppsummering.sumFeilutbetaling,
+                sumReduksjonFeilkonto = acc.sumReduksjonFeilkonto + periodeOppsummering.sumReduksjonFeilkonto,
+            )
+        }
+    }
+
+    fun periodeOppsummering(): List<PeriodeOppsummering> {
+        return if (erSimuleringUtenUtbetalinger()) {
+            listOf(
+                PeriodeOppsummering(
+                    periode = periode,
+                    sumTilUtbetaling = 0,
+                    sumEtterbetaling = 0,
+                    sumFramtidigUtbetaling = 0,
+                    sumTotalUtbetaling = 0,
+                    sumTidligereUtbetalt = 0,
+                    sumFeilutbetaling = 0,
+                    sumReduksjonFeilkonto = 0,
+                ),
+            )
+        } else {
+            hentPerioderMedUtbetaling().map { it.oppsummering() }
+        }
+    }
 }
 internal sealed interface TolketPeriode
 
@@ -145,6 +179,10 @@ internal data class TolketPeriodeMedUtbetalinger(
         return MånedBeløp(måned.tilMåned(), Beløp(utbetaling.kontoppstilling.debetFeilkonto.sum()))
     }
 
+    fun hentReduksjonFeilkonto(): MånedBeløp {
+        return MånedBeløp(måned.tilMåned(), Beløp(utbetaling.kontoppstilling.kreditFeilkonto.sum()))
+    }
+
     fun hentUtbetalingSomSimuleres(): MånedBeløp {
         return MånedBeløp(måned.tilMåned(), Beløp(utbetaling.kontoppstilling.simulertUtbetaling.sum()))
     }
@@ -156,10 +194,44 @@ internal data class TolketPeriodeMedUtbetalinger(
     fun hentDebetYtelse(): MånedBeløp {
         return MånedBeløp(måned.tilMåned(), Beløp(utbetaling.kontoppstilling.debetYtelse.sum()))
     }
+
+    fun hentEtterbetaling(): MånedBeløp {
+        return if (måned.erForfalt()) {
+            hentTilUtbetaling()
+        } else {
+            MånedBeløp(måned.tilMåned(), Beløp.zero())
+        }
+    }
+
+    fun hentFramtidigUtbetaling(): MånedBeløp {
+        return if (!måned.erForfalt()) {
+            hentTilUtbetaling()
+        } else {
+            MånedBeløp(måned.tilMåned(), Beløp.zero())
+        }
+    }
+
+    fun oppsummering(): PeriodeOppsummering {
+        return PeriodeOppsummering(
+            periode = måned,
+            sumTilUtbetaling = Månedsbeløp(månedbeløp = listOf(hentTilUtbetaling())).sum(),
+            sumEtterbetaling = Månedsbeløp(månedbeløp = listOf(hentEtterbetaling())).sum(),
+            sumFramtidigUtbetaling = Månedsbeløp(månedbeløp = listOf(hentFramtidigUtbetaling())).sum(),
+            sumTotalUtbetaling = Månedsbeløp(månedbeløp = listOf(hentDebetYtelse())).sum(),
+            sumTidligereUtbetalt = Månedsbeløp(månedbeløp = listOf(hentUtbetaltBeløp())).sum(),
+            sumFeilutbetaling = Månedsbeløp(månedbeløp = listOf(hentFeilutbetalteBeløp())).sum(),
+            sumReduksjonFeilkonto = Månedsbeløp(månedbeløp = listOf(hentReduksjonFeilkonto())).sum(),
+        )
+    }
+
+    private fun Måned.erForfalt(): Boolean {
+        return tilOgMed < utbetaling.forfall
+    }
 }
 
 internal data class TolketUtbetaling(
     private val detaljer: List<TolketDetalj>,
+    val forfall: LocalDate,
 ) {
     private val feilkonto: List<TolketDetalj.Feilkonto> = detaljer.filterIsInstance<TolketDetalj.Feilkonto>()
     private val motpostFeilkonto: List<TolketDetalj.MotpostFeilkonto> = detaljer.filterIsInstance<TolketDetalj.MotpostFeilkonto>()
@@ -202,23 +274,10 @@ internal data class TolketUtbetaling(
     private fun hentKreditMotpostFeilkonto(): Kontobeløp.Kredit {
         return Kontobeløp.Kredit(motpostFeilkonto.filter { it.erKredit() }.sumOf { it.sum() })
     }
-
-    private fun hentTilUtbetaling(): Kontobeløp.Summert {
-        return Kontobeløp.Summert(max(Kontobeløp.Summert(hentUtbetalingSomSimuleres(), hentKreditYtelse()).sum(), 0))
-    }
-
-    fun erTomSimulering(): Boolean {
-        return detaljer.isEmpty()
-    }
-
-    private fun forfallsDato(): LocalDate {
-        return ytelse.first().forfall
-    }
 }
 
 sealed class TolketDetalj {
     abstract val beløp: Kontobeløp
-    abstract val forfall: LocalDate
     fun erDebet() = beløp is Kontobeløp.Debet
     fun erKredit() = beløp is Kontobeløp.Kredit
     fun sum() = beløp.sum()
@@ -232,18 +291,18 @@ sealed class TolketDetalj {
                 antallSats == 1 &&
                 !tilbakeforing
         }
-        fun from(simulertDetaljer: SimulertDetaljer, forfall: LocalDate) = when {
+        fun from(simulertDetaljer: SimulertDetaljer) = when {
             simulertDetaljer.erFeilkonto() -> {
-                Feilkonto(beløp = Kontobeløp(simulertDetaljer.belop), forfall = forfall)
+                Feilkonto(beløp = Kontobeløp(simulertDetaljer.belop))
             }
             simulertDetaljer.erYtelse() -> {
-                Ytelse(beløp = Kontobeløp(simulertDetaljer.belop), forfall = forfall, erUtbetalingSomSimuleres = simulertDetaljer.erUtbetalingSomSimuleres())
+                Ytelse(beløp = Kontobeløp(simulertDetaljer.belop), erUtbetalingSomSimuleres = simulertDetaljer.erUtbetalingSomSimuleres())
             }
             simulertDetaljer.erMotpostFeilkonto() -> {
-                MotpostFeilkonto(beløp = Kontobeløp(simulertDetaljer.belop), forfall = forfall)
+                MotpostFeilkonto(beløp = Kontobeløp(simulertDetaljer.belop))
             }
             simulertDetaljer.erSkatt() -> {
-                Skatt(beløp = Kontobeløp(simulertDetaljer.belop), forfall = forfall)
+                Skatt(beløp = Kontobeløp(simulertDetaljer.belop))
             }
             else -> {
                 log.error("Ukjent detalj: $simulertDetaljer")
@@ -260,22 +319,18 @@ sealed class TolketDetalj {
 
     data class Feilkonto(
         override val beløp: Kontobeløp,
-        override val forfall: LocalDate,
     ) : TolketDetalj()
 
     data class Ytelse(
         override val beløp: Kontobeløp,
-        override val forfall: LocalDate,
         val erUtbetalingSomSimuleres: Boolean,
     ) : TolketDetalj()
 
     data class MotpostFeilkonto(
         override val beløp: Kontobeløp,
-        override val forfall: LocalDate,
     ) : TolketDetalj()
 
     data class Skatt(
         override val beløp: Kontobeløp,
-        override val forfall: LocalDate,
     ) : TolketDetalj()
 }

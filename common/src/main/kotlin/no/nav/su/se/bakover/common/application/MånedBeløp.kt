@@ -28,6 +28,10 @@ data class Månedsbeløp(
     fun måneder(): List<Måned> {
         return månedbeløp.map { it.periode }.distinct()
     }
+
+    operator fun plus(other: Månedsbeløp): Månedsbeløp {
+        return Månedsbeløp(månedbeløp + other.månedbeløp)
+    }
 }
 
 data class MånedBeløp(

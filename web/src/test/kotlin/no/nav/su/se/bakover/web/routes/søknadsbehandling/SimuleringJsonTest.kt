@@ -22,46 +22,45 @@ internal class SimuleringJsonTest {
     }
 
     //language=JSON
-    private val expectedJson =
-        """
+    private val expectedJson = """
         {
-            "totalBruttoYtelse" : 30000,            
-            "perioder": [
-                    {
-                      "kontooppstilling": {
-                        "sumYtelse": 15000,
-                        "debetFeilkonto": 0,
-                        "kreditFeilkonto": 0,
-                        "debetMotpostFeilkonto": 0,
-                        "kreditMotpostFeilkonto": 0,
-                        "sumMotpostFeilkonto": 0,
-                        "kreditYtelse": 0,
-                        "debetYtelse": 15000,
-                        "simulertUtbetaling": 15000,
-                        "sumFeilkonto": 0
-                      },
-                      "fraOgMed": "2020-01-01",
-                      "tilOgMed": "2020-01-31"
-                    },
-                    {
-                      "kontooppstilling": {
-                        "sumYtelse": 15000,
-                        "debetFeilkonto": 0,
-                        "kreditFeilkonto": 0,
-                        "debetMotpostFeilkonto": 0,
-                        "kreditMotpostFeilkonto": 0,
-                        "sumMotpostFeilkonto": 0,
-                        "kreditYtelse": 0,
-                        "debetYtelse": 15000,
-                        "simulertUtbetaling": 15000,
-                        "sumFeilkonto": 0
-                      },
-                      "fraOgMed": "2020-02-01",
-                      "tilOgMed": "2020-02-29"
-                    }
-                ]
+          "totalOppsummering": {
+            "fraOgMed": "2020-01-01",
+            "tilOgMed": "2020-02-29",
+            "sumTilUtbetaling": 30000,
+            "sumEtterbetaling": 0,
+            "sumFramtidigUtbetaling": 30000,
+            "sumTotalUtbetaling": 30000,
+            "sumTidligereUtbetalt": 0,
+            "sumFeilutbetaling": 0,
+            "sumReduksjonFeilkonto": 0
+          },
+          "periodeOppsummering": [
+            {
+              "fraOgMed": "2020-01-01",
+              "tilOgMed": "2020-01-31",
+              "sumTilUtbetaling": 15000,
+              "sumEtterbetaling": 0,
+              "sumFramtidigUtbetaling": 15000,
+              "sumTotalUtbetaling": 15000,
+              "sumTidligereUtbetalt": 0,
+              "sumFeilutbetaling": 0,
+              "sumReduksjonFeilkonto": 0
+            },
+            {
+              "fraOgMed": "2020-02-01",
+              "tilOgMed": "2020-02-29",
+              "sumTilUtbetaling": 15000,
+              "sumEtterbetaling": 0,
+              "sumFramtidigUtbetaling": 15000,
+              "sumTotalUtbetaling": 15000,
+              "sumTidligereUtbetalt": 0,
+              "sumFeilutbetaling": 0,
+              "sumReduksjonFeilkonto": 0
+            }
+          ]
         }
-        """.trimIndent()
+    """.trimIndent()
 
     private val simulering = simulering(
         perioder = listOf(

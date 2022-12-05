@@ -212,26 +212,31 @@ internal class SøknadsbehandlingJsonTest {
                 "begrunnelse": null
               },
               "status": "IVERKSATT_INNVILGET",
-              "simulering": {                
-                "perioder": [
+              "simulering": {                  
+                  "totalOppsummering": {
+                    "fraOgMed": "2021-01-01",
+                    "tilOgMed": "2021-01-31",
+                    "sumTilUtbetaling": 20946,
+                    "sumEtterbetaling": 20946,
+                    "sumFramtidigUtbetaling": 0,
+                    "sumTotalUtbetaling": 20946,
+                    "sumTidligereUtbetalt": 0,
+                    "sumFeilutbetaling": 0,
+                    "sumReduksjonFeilkonto": 0
+                  },
+                  "periodeOppsummering": [
                     {
-                      "kontooppstilling": {
-                        "sumYtelse": 20946,
-                        "debetFeilkonto": 0,
-                        "kreditFeilkonto": 0,
-                        "debetMotpostFeilkonto": 0,
-                        "kreditMotpostFeilkonto": 0,
-                        "sumMotpostFeilkonto": 0,
-                        "kreditYtelse": 0,
-                        "debetYtelse": 20946,
-                        "simulertUtbetaling": 20946,
-                        "sumFeilkonto": 0
-                      },
                       "fraOgMed": "2021-01-01",
-                      "tilOgMed": "2021-01-31"
-                    }
-                ],
-               "totalBruttoYtelse": 20946
+                      "tilOgMed": "2021-01-31",
+                      "sumTilUtbetaling": 20946,
+                      "sumEtterbetaling": 20946,
+                      "sumFramtidigUtbetaling": 0,
+                      "sumTotalUtbetaling": 20946,
+                      "sumTidligereUtbetalt": 0,
+                      "sumFeilutbetaling": 0,
+                      "sumReduksjonFeilkonto": 0
+                    }                    
+                  ]
               },
               "opprettet": "${søknadsbehandling.opprettet}",
               "attesteringer": [
