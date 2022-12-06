@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.test
 
-import arrow.core.getOrHandle
+import arrow.core.Tuple4
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
@@ -43,6 +42,10 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.sak.iverksett.IverksettInnvilgetRevurderingResponse
+import no.nav.su.se.bakover.domain.sak.iverksett.IverksettOpphørtRevurderingResponse
+import no.nav.su.se.bakover.domain.sak.iverksett.IverksettRevurderingResponse
+import no.nav.su.se.bakover.domain.sak.iverksett.iverksettRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -360,20 +363,14 @@ fun revurderingTilAttestering(
     ).let { (sak, simulert) ->
         val tilAttestering = when (simulert) {
             is SimulertRevurdering.Innvilget -> {
-                val oppdatertTilbakekreving =
-                    (oppdaterTilbakekrevingsbehandling(simulert) as SimulertRevurdering.Innvilget)
-
-                oppdatertTilbakekreving.tilAttestering(
+                simulert.tilAttestering(
                     attesteringsoppgaveId = attesteringsoppgaveId,
                     saksbehandler = saksbehandler,
                 ).getOrFail()
             }
 
             is SimulertRevurdering.Opphørt -> {
-                val oppdatertTilbakekreving =
-                    (oppdaterTilbakekrevingsbehandling(simulert) as SimulertRevurdering.Opphørt)
-
-                oppdatertTilbakekreving.tilAttestering(
+                simulert.tilAttestering(
                     attesteringsoppgaveId = attesteringsoppgaveId,
                     saksbehandler = saksbehandler,
                 ).getOrFail()
@@ -460,12 +457,12 @@ fun iverksattRevurdering(
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
-    attestering: Attestering = attesteringIverksatt(clock),
+    attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
     brevvalg: BrevvalgRevurdering = sendBrev(),
-): Triple<Sak, IverksattRevurdering, Utbetaling?> {
+): Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.UtenKvittering, VedtakSomKanRevurderes.EndringIYtelse> {
     return revurderingTilAttestering(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -481,74 +478,41 @@ fun iverksattRevurdering(
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
         brevvalg = brevvalg,
     ).let { (sak, tilAttestering) ->
-        val (iverksatt, utbetaling) = tilAttestering.tilIverksatt(
-            attestant = attestering.attestant,
+        sak.iverksettRevurdering(
+            revurderingId = tilAttestering.id,
+            attestant = attestant,
             clock = clock,
-            hentOpprinneligAvkorting = {
-                when (val opprinnelig = tilAttestering.avkorting) {
-                    is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
-                        opprinnelig.avkortingsvarsel
-                    }
-
-                    AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
-                        null
-                    }
-
-                    is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
-                        null
-                    }
-
-                    is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
-                        null
-                    }
-
-                    is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
-                        opprinnelig.annullerUtestående
-                    }
-                }
-            },
-        ).getOrFail() to when (tilAttestering) {
-            is RevurderingTilAttestering.Innvilget -> {
+            simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
                 simulerUtbetaling(
                     sak = sak,
-                    revurdering = tilAttestering,
-                    simuleringsperiode = tilAttestering.periode,
-                    behandler = attestering.attestant,
+                    utbetaling = utbetalingForSimulering,
+                    simuleringsperiode = periode,
                     clock = clock,
                     utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
-                ).getOrFail().let {
-                    it.toOversendtUtbetaling(UtbetalingStub.generateRequest(it))
-                }
-            }
+                )
+            },
+        ).getOrFail().let { response ->
+            /**
+             * TODO
+             * se om vi får til noe som oppfører seg som [IverksettRevurderingResponse.ferdigstillIverksettelseITransaksjon]?
+             */
+            val oversendtUtbetaling = response.utbetaling.toOversendtUtbetaling(UtbetalingStub.generateRequest(response.utbetaling))
 
-            is RevurderingTilAttestering.Opphørt -> {
-                simulerOpphør(
-                    sak = sak,
-                    revurdering = tilAttestering,
-                    simuleringsperiode = tilAttestering.opphørsperiodeForUtbetalinger,
-                    behandler = attestering.attestant,
-                    clock = clock,
-                    utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
-                ).getOrFail().let {
-                    it.toOversendtUtbetaling(UtbetalingStub.generateRequest(it))
-                }
-            }
-        }
-        Triple(
-            first = sak.copy(
-                revurderinger = sak.revurderinger.filterNot { it.id == iverksatt.id } + iverksatt,
-                utbetalinger = sak.utbetalinger + utbetaling,
-                uteståendeAvkorting = when (val avkorting = iverksatt.avkorting) {
-                    is AvkortingVedRevurdering.Iverksatt.AnnullerUtestående -> Avkortingsvarsel.Ingen
-                    is AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående -> Avkortingsvarsel.Ingen
-                    is AvkortingVedRevurdering.Iverksatt.KanIkkeHåndteres -> Avkortingsvarsel.Ingen
-                    is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel -> avkorting.avkortingsvarsel
-                    is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> avkorting.avkortingsvarsel
+            Tuple4(
+                first = response.sak.copy(utbetalinger = response.sak.utbetalinger.filterNot { it.id == oversendtUtbetaling.id } + oversendtUtbetaling),
+                second = when (response) {
+                    is IverksettInnvilgetRevurderingResponse -> {
+                        response.vedtak.behandling
+                    }
+                    is IverksettOpphørtRevurderingResponse -> {
+                        response.vedtak.behandling
+                    }
+                    else -> TODO("Ukjent implementasjon av ${IverksettRevurderingResponse::class}")
                 },
-            ),
-            second = iverksatt,
-            third = utbetaling,
-        )
+                third = oversendtUtbetaling,
+                fourth = response.vedtak,
+            )
+        }
     }
 }
 
@@ -566,7 +530,7 @@ fun vedtakRevurdering(
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
-    attestering: Attestering = attesteringIverksatt(clock),
+    attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
     brevvalg: BrevvalgRevurdering = sendBrev(),
 ): Pair<Sak, VedtakSomKanRevurderes> {
@@ -580,23 +544,11 @@ fun vedtakRevurdering(
         revurderingsårsak = revurderingsårsak,
         vilkårOverrides = vilkårOverrides,
         grunnlagsdataOverrides = grunnlagsdataOverrides,
-        attestering = attestering,
+        attestant = attestant,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
         brevvalg = brevvalg,
-    ).let { (sak, iverksatt, utbetaling) ->
-        val vedtak = when (iverksatt) {
-            is IverksattRevurdering.Innvilget -> {
-                VedtakSomKanRevurderes.from(iverksatt, utbetaling!!.id, clock)
-            }
-
-            is IverksattRevurdering.Opphørt -> {
-                VedtakSomKanRevurderes.from(iverksatt, utbetaling!!.id, clock)
-            }
-        }
-
-        sak.copy(
-            vedtakListe = sak.vedtakListe + vedtak,
-        ) to vedtak
+    ).let {
+        it.first to it.fourth
     }
 }
 
@@ -841,53 +793,6 @@ fun underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
     }
 }
 
-fun iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
-    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
-    stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    revurderingsperiode: Periode = år(2021),
-    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-    sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
-        saksnummer = saksnummer,
-        stønadsperiode = stønadsperiode,
-    ),
-    clock: Clock = tikkendeFixedClock,
-    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = innvilgetGrunnlagsdataOgVilkårsvurderinger(
-        sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
-        revurderingsperiode = revurderingsperiode,
-        clock = clock,
-    ),
-    attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
-    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-    attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
-    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
-): Pair<Sak, IverksattRevurdering.Innvilget> {
-    return tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
-        saksnummer = saksnummer,
-        stønadsperiode = stønadsperiode,
-        revurderingsperiode = revurderingsperiode,
-        informasjonSomRevurderes = informasjonSomRevurderes,
-        sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
-        clock = clock,
-        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-        attesteringsoppgaveId = attesteringsoppgaveId,
-        saksbehandler = saksbehandler,
-        revurderingsårsak = revurderingsårsak,
-    ).let { (sak, revurdering) ->
-        val innvilgetIverksattRevurdering = revurdering.tilIverksatt(
-            attestant = attestant,
-            clock = clock,
-            hentOpprinneligAvkorting = { null },
-        ).getOrHandle { throw RuntimeException("Feilet med generering av test data for Iverksatt-revurdering") }
-        Pair(
-            sak.copy(
-                // Erstatter den gamle versjonen av samme revurderinger.
-                revurderinger = sak.revurderinger.filterNot { it.id == innvilgetIverksattRevurdering.id } + innvilgetIverksattRevurdering,
-            ),
-            innvilgetIverksattRevurdering,
-        )
-    }
-}
-
 fun avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     begrunnelse: String = "begrunnelsensen",
     fritekst: String? = null,
@@ -1028,6 +933,7 @@ fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
                 gjenopptak = null,
                 behandler = saksbehandler,
                 clock = clock,
+                utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
             ).getOrFail().simulering,
             revurderingsårsak = Revurderingsårsak.create(
                 årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),

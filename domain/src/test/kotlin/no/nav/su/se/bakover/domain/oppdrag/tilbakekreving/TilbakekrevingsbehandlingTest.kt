@@ -37,7 +37,7 @@ internal class TilbakekrevingsbehandlingTest {
         val kravgrunnlag = matchendeKravgrunnlag(
             revurdering = revurdering,
             simulering = (revurdering as IverksattRevurdering.Innvilget).simulering,
-            utbetalingId = utbetaling!!.id,
+            utbetalingId = utbetaling.id,
             clock = fixedClock,
         )
 
@@ -114,7 +114,7 @@ internal class TilbakekrevingsbehandlingTest {
         val kravgrunnlag = matchendeKravgrunnlag(
             revurdering = revurdering,
             simulering = (revurdering as IverksattRevurdering.Innvilget).simulering,
-            utbetalingId = utbetaling!!.id,
+            utbetalingId = utbetaling.id,
             clock = fixedClock,
         )
 
@@ -149,7 +149,7 @@ internal class TilbakekrevingsbehandlingTest {
         val kravgrunnlag = matchendeKravgrunnlag(
             revurdering = revurdering,
             simulering = (revurdering as IverksattRevurdering.Innvilget).simulering,
-            utbetalingId = utbetaling!!.id,
+            utbetalingId = utbetaling.id,
             clock = fixedClock,
         )
 
@@ -186,7 +186,7 @@ internal class TilbakekrevingsbehandlingTest {
         val kravgrunnlag = matchendeKravgrunnlag(
             revurdering = revurdering,
             simulering = (revurdering as IverksattRevurdering.Innvilget).simulering,
-            utbetalingId = utbetaling!!.id,
+            utbetalingId = utbetaling.id,
             clock = fixedClock,
         )
 

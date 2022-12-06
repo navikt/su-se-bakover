@@ -3,17 +3,12 @@ package no.nav.su.se.bakover.database.person
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.person.PersonRepo
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
-import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.bosituasjonEpsUnder67
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEpsUførFlyktning
@@ -23,7 +18,6 @@ import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
-import no.nav.su.se.bakover.test.simulering
 import no.nav.su.se.bakover.test.vilkår.formuevilkårMedEps0Innvilget
 import no.nav.su.se.bakover.test.vilkår.formuevilkårUtenEps0Innvilget
 import org.junit.jupiter.api.Test
@@ -274,34 +268,12 @@ internal class PersonPostgresRepoTest {
                 )
             }
 
-            val revurdering = testDataHelper.persisterIverksattRevurdering((sak to vedtak)) { (s, v) ->
+            val revurderingVedtak = testDataHelper.persisterIverksattRevurdering((sak to vedtak)) { (s, v) ->
                 iverksattRevurdering(
                     sakOgVedtakSomKanRevurderes = s to v,
                     grunnlagsdataOverrides = if (epsFnrRevurdering == null) listOf(bosituasjongrunnlagEnslig()) else listOf(bosituasjonEpsUnder67(fnr = epsFnrRevurdering)),
                 )
-            }.second
-            val revurderingVedtak =
-                testDataHelper.persisterVedtakMedInnvilgetRevurderingOgOversendtUtbetalingMedKvittering(
-                    RevurderingTilAttestering.Innvilget(
-                        id = revurdering.id,
-                        periode = revurdering.periode,
-                        opprettet = revurdering.opprettet,
-                        tilRevurdering = revurdering.tilRevurdering,
-                        saksbehandler = revurdering.saksbehandler,
-                        oppgaveId = revurdering.oppgaveId,
-                        revurderingsårsak = revurdering.revurderingsårsak,
-                        beregning = beregning(periode = revurdering.periode),
-                        simulering = simulering(fnr = revurdering.fnr),
-                        grunnlagsdata = revurdering.grunnlagsdata,
-                        vilkårsvurderinger = revurdering.vilkårsvurderinger,
-                        informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
-                        attesteringer = Attesteringshistorikk.empty(),
-                        avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
-                        tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
-                        sakinfo = revurdering.sakinfo,
-                        brevvalgRevurdering = revurdering.brevvalgRevurdering,
-                    ),
-                ).first
+            }.fourth
 
             VedtakCtx(
                 dataSource = dataSource,
@@ -339,34 +311,12 @@ internal class PersonPostgresRepoTest {
                 )
             }
 
-            val (sak2, revurdering) = testDataHelper.persisterIverksattRevurdering((sak to vedtak)) { (s, v) ->
+            val (sak2, _, _, revurderingVedtak) = testDataHelper.persisterIverksattRevurdering((sak to vedtak)) { (s, v) ->
                 iverksattRevurdering(
                     sakOgVedtakSomKanRevurderes = s to v,
                     grunnlagsdataOverrides = if (epsFnrRevurdering == null) listOf(bosituasjongrunnlagEnslig()) else listOf(bosituasjonEpsUnder67(fnr = epsFnrRevurdering)),
                 )
             }
-            val revurderingVedtak =
-                testDataHelper.persisterVedtakMedInnvilgetRevurderingOgOversendtUtbetalingMedKvittering(
-                    RevurderingTilAttestering.Innvilget(
-                        id = revurdering.id,
-                        periode = revurdering.periode,
-                        opprettet = revurdering.opprettet,
-                        tilRevurdering = revurdering.tilRevurdering,
-                        saksbehandler = revurdering.saksbehandler,
-                        oppgaveId = revurdering.oppgaveId,
-                        revurderingsårsak = revurdering.revurderingsårsak,
-                        beregning = beregning(periode = revurdering.periode),
-                        simulering = simulering(revurdering.fnr),
-                        grunnlagsdata = revurdering.grunnlagsdata,
-                        vilkårsvurderinger = revurdering.vilkårsvurderinger,
-                        informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
-                        attesteringer = Attesteringshistorikk.empty(),
-                        avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
-                        tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
-                        sakinfo = revurdering.sakinfo,
-                        brevvalgRevurdering = revurdering.brevvalgRevurdering,
-                    ),
-                ).first
 
             val revurderingAvRevurdering = testDataHelper.persisterRevurderingOpprettet(sakOgVedtak = sak2 to revurderingVedtak) { (s, v) ->
                 opprettetRevurdering(
