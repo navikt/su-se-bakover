@@ -18,9 +18,9 @@ import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknad
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattRevurdering
-import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.revurderingTilAttestering
+import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
@@ -88,7 +88,7 @@ class LeggTilUtenlandsoppholdTest {
         listOf(
             tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(),
             revurderingTilAttestering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag())),
-            iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(),
+            iverksattRevurdering().let { it.first to it.second.shouldBeType<IverksattRevurdering.Innvilget>() },
             iverksattRevurdering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag())).let { (it.first to it.second) },
             avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(),
         ).map {

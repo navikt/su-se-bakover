@@ -792,6 +792,10 @@ fun iverksattSøknadsbehandling(
             },
             clock = clock,
         ).getOrFail().let { response ->
+            /**
+             * TODO
+             * se om vi får til noe som oppfører seg som [no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattSøknadsbehandlingResponse.ferdigstillIverksettelseITransaksjon]?
+             */
             Triple(
                 when (response) {
                     is IverksattAvslåttSøknadsbehandlingResponse -> response.sak

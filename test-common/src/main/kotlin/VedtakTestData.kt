@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.test
 
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
+import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.endOfMonth
@@ -18,11 +19,16 @@ import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBre
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.BrevvalgRevurdering
+import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
@@ -153,48 +159,42 @@ fun vedtakSøknadsbehandlingIverksattAvslagUtenBeregning(
  * Ikke journalført eller distribuert brev
  */
 fun vedtakRevurderingIverksattInnvilget(
+    clock: Clock = tikkendeFixedClock,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = år(2021),
+    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
+        saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
-    ),
-    clock: Clock = tikkendeFixedClock,
-    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = innvilgetGrunnlagsdataOgVilkårsvurderinger(
-        sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
-        revurderingsperiode = revurderingsperiode,
         clock = clock,
     ),
-    utbetalingId: UUID30 = UUID30.randomUUID(),
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
+    vilkårOverrides: List<Vilkår> = emptyList(),
+    grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
+    attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
+    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
+    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
+    brevvalg: BrevvalgRevurdering = sendBrev(),
 ): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering> {
-    return iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+    return iverksattRevurdering(
+        clock = clock,
+        saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
         revurderingsperiode = revurderingsperiode,
+        informasjonSomRevurderes = informasjonSomRevurderes,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
-        clock = clock,
-        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
-    ).let { (sak, revurdering) ->
-        val utbetaling = oversendtUtbetalingMedKvittering(
-            id = utbetalingId,
-            fnr = fnr,
-            sakId = sakId,
-            saksnummer = saksnummer,
-            eksisterendeUtbetalinger = sak.utbetalinger,
-            clock = clock,
-        )
-        val vedtak = VedtakSomKanRevurderes.from(
-            revurdering = revurdering,
-            utbetalingId = utbetalingId,
-            clock = clock,
-        )
-        Pair(
-            sak.copy(
-                vedtakListe = sak.vedtakListe + vedtak,
-                utbetalinger = sak.utbetalinger + utbetaling,
-            ),
-            vedtak,
-        )
+        vilkårOverrides = vilkårOverrides,
+        grunnlagsdataOverrides = grunnlagsdataOverrides,
+        attestant = attestant,
+        saksbehandler = saksbehandler,
+        attesteringsoppgaveId = attesteringsoppgaveId,
+        utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+        brevvalg = brevvalg,
+    ).let { (sak, _, _, vedtak) ->
+        sak to vedtak.shouldBeType()
     }
 }
 

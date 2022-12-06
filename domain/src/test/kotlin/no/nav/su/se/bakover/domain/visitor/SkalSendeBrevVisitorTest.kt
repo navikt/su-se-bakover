@@ -7,13 +7,14 @@ import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.mai
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
-import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
@@ -25,12 +26,12 @@ internal class SkalSendeBrevVisitorTest {
     @Test
     fun `vedtak for innvilget revurdering med årsak g-regulering skal ikke sende brev`() {
         val vedtak = VedtakSomKanRevurderes.from(
-            revurdering = iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+            revurdering = iverksattRevurdering(
                 revurderingsårsak = Revurderingsårsak.create(
                     årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.toString(),
                     begrunnelse = "må regge",
                 ),
-            ).second,
+            ).second.shouldBeType<IverksattRevurdering.Innvilget>(),
             utbetalingId = UUID30.randomUUID(),
             clock = fixedClock,
         )
@@ -45,7 +46,7 @@ internal class SkalSendeBrevVisitorTest {
     @Test
     fun `vedtak for revurderinger sender brev som default`() {
         val vedtak = VedtakSomKanRevurderes.from(
-            revurdering = iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second,
+            revurdering = iverksattRevurdering().second.shouldBeType<IverksattRevurdering.Innvilget>(),
             utbetalingId = UUID30.randomUUID(),
             clock = fixedClock,
         )

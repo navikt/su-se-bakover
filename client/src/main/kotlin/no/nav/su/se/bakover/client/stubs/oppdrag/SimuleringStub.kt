@@ -47,6 +47,23 @@ class SimuleringStub(
                 clock = clock,
             )
 
+        /**
+         * Reaktiveringen vil bare bære med seg 1 beløp for utbetaling. Dersom vi reaktiverer over perioder med flere
+         * endringer i ytelse må vi finne fram til det faktiske beløpet for hver enkelt periode. Lager en midlertidig
+         * tidslinje som inkuderer utbetalingen som simuleres slik at vi kan delegere denne jobben til
+         * [no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger].
+         */
+        fun finnBeløpVedReaktivering(måned: Måned): Int {
+            return (utbetalingRepo.hentUtbetalinger(utbetaling.sakId) + utbetaling)
+                .tidslinje(
+                    periode = simuleringsperiode,
+                    clock = clock,
+                ).fold(
+                    { throw RuntimeException("Disse skal eksistere") },
+                    { it.gjeldendeForDato(måned.fraOgMed)!!.beløp },
+                )
+        }
+
         return simuleringsperiode.måneder()
             .asSequence()
             .map { måned ->
@@ -94,7 +111,7 @@ class SimuleringStub(
                                     createOrdinær(
                                         fraOgMed = måned.fraOgMed,
                                         tilOgMed = måned.tilOgMed,
-                                        beløp = nyLinje.beløp,
+                                        beløp = finnBeløpVedReaktivering(måned),
                                         sakstype = utbetaling.sakstype,
                                     ),
                                 ),
@@ -271,7 +288,7 @@ class SimuleringStub(
                                     createOrdinær(
                                         fraOgMed = måned.fraOgMed,
                                         tilOgMed = måned.tilOgMed,
-                                        beløp = nyLinje.beløp,
+                                        beløp = finnBeløpVedReaktivering(måned),
                                         sakstype = utbetaling.sakstype,
                                     ),
                                 ),
