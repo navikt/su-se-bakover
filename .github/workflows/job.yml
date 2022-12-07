@@ -1,0 +1,58 @@
+
+on:
+  push:
+    branches:
+      - datapakker
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}/su-se-bakover/datapakker/søknad:${{ github.sha }}
+
+jobs:
+  build:
+    name: Build and push Docker container
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-v2-${{ hashFiles('gradle.properties', 'settings.gradle.kts', '**/build.gradle.kts', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      - uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'zulu'
+      - name: test and build
+        run: ./gradlew :datapakker:søknad:build
+        env:
+          ORG_GRADLE_PROJECT_githubUser: x-access-token
+          ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to DockerHub
+        uses: docker/login-action@v2.1.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and publish Docker image
+        uses: docker/build-push-action@v3.2.0
+        with:
+          context: .
+          push: true
+          pull: true
+          tags: ${{env.IMAGE}}
+
+  deploy-nais-job:
+    apiVersion: nais.io/v1
+    kind: Naisjob
+    metadata:
+      labels:
+        team: supstonad
+      name: job
+      namespace: supstonad
+    spec:
+      image: ghcr.io/navikt/myapp:mytag
+      schedule: "*/1 * * * *"
+    needs: build
