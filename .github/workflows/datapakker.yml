@@ -5,7 +5,7 @@ on:
       - datapakker
 
 env:
-  IMAGE: ghcr.io/${{ github.repository }}/su-se-bakover/datapakker/søknad:${{ github.sha }}
+  IMAGE: ghcr.io/${{ github.repository }}/datapakker/soknad:${{ github.sha }}
 
 jobs:
   build:
