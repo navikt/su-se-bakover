@@ -112,13 +112,13 @@ internal data class TolketSimulering(
         }
     }
 
-    fun hentDebetYtelse(): Månedsbeløp {
+    fun hentTotalUtbetaling(): Månedsbeløp {
         return if (erSimuleringUtenUtbetalinger()) {
             Månedsbeløp(emptyList())
         } else {
             Månedsbeløp(
                 hentPerioderMedUtbetaling()
-                    .map { it.hentDebetYtelse() }
+                    .map { it.hentTotalUtbetaling() }
                     .filter { it.sum() > 0 },
             )
         }
@@ -191,8 +191,8 @@ internal data class TolketPeriodeMedUtbetalinger(
         return MånedBeløp(måned.tilMåned(), Beløp(max(utbetaling.kontoppstilling.sumUtbetaling.sum(), 0)))
     }
 
-    fun hentDebetYtelse(): MånedBeløp {
-        return MånedBeløp(måned.tilMåned(), Beløp(utbetaling.kontoppstilling.debetYtelse.sum()))
+    fun hentTotalUtbetaling(): MånedBeløp {
+        return MånedBeløp(måned.tilMåned(), Beløp(utbetaling.kontoppstilling.debetYtelse.sum() - utbetaling.kontoppstilling.debetFeilkonto.sum()))
     }
 
     fun hentEtterbetaling(): MånedBeløp {
@@ -217,7 +217,7 @@ internal data class TolketPeriodeMedUtbetalinger(
             sumTilUtbetaling = Månedsbeløp(månedbeløp = listOf(hentTilUtbetaling())).sum(),
             sumEtterbetaling = Månedsbeløp(månedbeløp = listOf(hentEtterbetaling())).sum(),
             sumFramtidigUtbetaling = Månedsbeløp(månedbeløp = listOf(hentFramtidigUtbetaling())).sum(),
-            sumTotalUtbetaling = Månedsbeløp(månedbeløp = listOf(hentDebetYtelse())).sum(),
+            sumTotalUtbetaling = Månedsbeløp(månedbeløp = listOf(hentTotalUtbetaling())).sum(),
             sumTidligereUtbetalt = Månedsbeløp(månedbeløp = listOf(hentUtbetaltBeløp())).sum(),
             sumFeilutbetaling = Månedsbeløp(månedbeløp = listOf(hentFeilutbetalteBeløp())).sum(),
             sumReduksjonFeilkonto = Månedsbeløp(månedbeløp = listOf(hentReduksjonFeilkonto())).sum(),

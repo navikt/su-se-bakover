@@ -111,6 +111,11 @@ internal class SimuleringResponseMapperTest {
                     it.sumMotpostFeilkonto shouldBe Kontobeløp.Summert(0)
                 },
             )
+            it.hentTotalUtbetaling() shouldBe Månedsbeløp(
+                listOf(
+                    MånedBeløp(april(2021), Beløp(20779)),
+                ),
+            )
         }
     }
 
@@ -448,7 +453,7 @@ internal class SimuleringResponseMapperTest {
                     sumTilUtbetaling = 10000,
                     sumEtterbetaling = 0,
                     sumFramtidigUtbetaling = 10000,
-                    sumTotalUtbetaling = 30779,
+                    sumTotalUtbetaling = 20000,
                     sumTidligereUtbetalt = 20779,
                     sumFeilutbetaling = 10779,
                     sumReduksjonFeilkonto = 0,
@@ -459,7 +464,7 @@ internal class SimuleringResponseMapperTest {
                         sumTilUtbetaling = 0,
                         sumEtterbetaling = 0,
                         sumFramtidigUtbetaling = 0,
-                        sumTotalUtbetaling = 20779,
+                        sumTotalUtbetaling = 10000,
                         sumTidligereUtbetalt = 20779,
                         sumFeilutbetaling = 10779,
                         sumReduksjonFeilkonto = 0,
@@ -474,6 +479,12 @@ internal class SimuleringResponseMapperTest {
                         sumFeilutbetaling = 0,
                         sumReduksjonFeilkonto = 0,
                     ),
+                ),
+            )
+            it.hentTotalUtbetaling() shouldBe Månedsbeløp(
+                listOf(
+                    MånedBeløp(februar(2021), Beløp(10000)),
+                    MånedBeløp(mars(2021), Beløp(10000)),
                 ),
             )
         }
@@ -879,6 +890,12 @@ internal class SimuleringResponseMapperTest {
                         sumFeilutbetaling = 0,
                         sumReduksjonFeilkonto = 0,
                     ),
+                ),
+            )
+            it.hentTotalUtbetaling() shouldBe Månedsbeløp(
+                listOf(
+                    MånedBeløp(februar(2021), Beløp(30000)),
+                    MånedBeløp(mars(2021), Beløp(30000)),
                 ),
             )
         }
@@ -1298,6 +1315,11 @@ internal class SimuleringResponseMapperTest {
                         sumFeilutbetaling = 0,
                         sumReduksjonFeilkonto = 21181,
                     ),
+                ),
+            )
+            it.hentTotalUtbetaling() shouldBe Månedsbeløp(
+                listOf(
+                    MånedBeløp(august(2022), Beløp(21181)),
                 ),
             )
         }

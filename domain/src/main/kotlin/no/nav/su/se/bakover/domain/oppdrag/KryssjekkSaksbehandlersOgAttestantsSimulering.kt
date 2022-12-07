@@ -40,7 +40,7 @@ class KryssjekkSaksbehandlersOgAttestantsSimulering(
             return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløp.left()
         }
 
-        if (saksbehandlersSimulering.hentDebetYtelse() != attestantsSimulering.simulering.hentDebetYtelse()) {
+        if (saksbehandlersSimulering.hentTotalUtbetaling() != attestantsSimulering.simulering.hentTotalUtbetaling()) {
             return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløp.left()
         }
 

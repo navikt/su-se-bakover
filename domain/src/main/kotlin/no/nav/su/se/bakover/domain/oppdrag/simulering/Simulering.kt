@@ -24,7 +24,7 @@ data class Simulering(
 
     /**
      * Kredit for ytelseskonto. Representerer tidligere utbetalte beløp ved endringer.
-     * Se sammenheng mellom hva som til slutt utbetales i [hentDebetYtelse]
+     * Se sammenheng mellom hva som til slutt utbetales i [hentTotalUtbetaling]
      */
     fun hentUtbetalteBeløp(): Månedsbeløp {
         return tolkning.hentUtbetalteBeløp()
@@ -62,12 +62,13 @@ data class Simulering(
     }
 
     /**
-     * Debit for ytelseskonto. Representerer i sin enkelste form brutto-beløpet som skal betales ut.
-     * Dersom ytelse tidligere har blitt betalt ut for en periode vil ny utbetaling ([hentTilUtbetaling]) tilsvare differansen mellom
-     * [hentDebetYtelse] og [hentUtbetalteBeløp]
+     * Total utbetaling som har eller vil bli utbetalt for perioden. Representerer debet for ytelse fratrukket feilkonto.
+     * I sin enkelste form tilsvarer beløpet brutto-beløpet som skal betales ut.
+     * Dersom ytelse tidligere har blitt betalt ut for en periode vil ny utbetaling/feilutbetaling ([hentTilUtbetaling])
+     * tilsvare differansen mellom [hentTotalUtbetaling] og [hentUtbetalteBeløp]
      */
-    fun hentDebetYtelse(): Månedsbeløp {
-        return tolkning.hentDebetYtelse()
+    fun hentTotalUtbetaling(): Månedsbeløp {
+        return tolkning.hentTotalUtbetaling()
     }
 
     fun erSimuleringUtenUtbetalinger(): Boolean {
