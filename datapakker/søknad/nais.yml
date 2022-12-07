@@ -6,6 +6,6 @@ metadata:
   name: datapakker-soknad
   namespace: supstonad
 spec:
-  schedule: '0 1 0 0 0'
+  schedule: '1 1 0 0 0'
   image: {{ image }}
   concurrencyPolicy: Replace
