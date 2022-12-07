@@ -386,11 +386,7 @@ internal class GjenopptakAvYtelseServiceTest {
                     SimulerGjenopptakFeil.KunneIkkeSimulere(
                         SimulerUtbetalingFeilet.FeilVedKryssjekkAvTidslinjeOgSimulering(
                             KryssjekkAvTidslinjeOgSimuleringFeilet.KryssjekkFeilet(
-                                KryssjekkFeil.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
-                                    periode = Periode.create(1.mai(2021), 31.mai(2021)),
-                                    simulertType = "class no.nav.su.se.bakover.domain.oppdrag.simulering.TolketUtbetaling${"\$"}Feilutbetaling",
-                                    tidslinjeType = "class no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje${"\$"}Reaktivering",
-                                ),
+                                KryssjekkFeil.GjenopptakMedFeilutbetaling,
                             ),
                         ),
                     ),

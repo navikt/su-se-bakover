@@ -22,26 +22,45 @@ internal class SimuleringJsonTest {
     }
 
     //language=JSON
-    private val expectedJson =
-        """
+    private val expectedJson = """
         {
-            "totalBruttoYtelse" : 30000,
-            "perioder" : [
-                {
-                  "fraOgMed" : "2020-01-01",
-                  "tilOgMed" : "2020-01-31",
-                  "bruttoYtelse" : 15000,
-                  "type": "ORDINÆR"
-                },
-                {
-                  "fraOgMed" : "2020-02-01",
-                  "tilOgMed" : "2020-02-29",
-                  "bruttoYtelse": 15000,
-                  "type": "ORDINÆR"
-                }
-            ]
+          "totalOppsummering": {
+            "fraOgMed": "2020-01-01",
+            "tilOgMed": "2020-02-29",
+            "sumTilUtbetaling": 30000,
+            "sumEtterbetaling": 0,
+            "sumFramtidigUtbetaling": 30000,
+            "sumTotalUtbetaling": 30000,
+            "sumTidligereUtbetalt": 0,
+            "sumFeilutbetaling": 0,
+            "sumReduksjonFeilkonto": 0
+          },
+          "periodeOppsummering": [
+            {
+              "fraOgMed": "2020-01-01",
+              "tilOgMed": "2020-01-31",
+              "sumTilUtbetaling": 15000,
+              "sumEtterbetaling": 0,
+              "sumFramtidigUtbetaling": 15000,
+              "sumTotalUtbetaling": 15000,
+              "sumTidligereUtbetalt": 0,
+              "sumFeilutbetaling": 0,
+              "sumReduksjonFeilkonto": 0
+            },
+            {
+              "fraOgMed": "2020-02-01",
+              "tilOgMed": "2020-02-29",
+              "sumTilUtbetaling": 15000,
+              "sumEtterbetaling": 0,
+              "sumFramtidigUtbetaling": 15000,
+              "sumTotalUtbetaling": 15000,
+              "sumTidligereUtbetalt": 0,
+              "sumFeilutbetaling": 0,
+              "sumReduksjonFeilkonto": 0
+            }
+          ]
         }
-        """.trimIndent()
+    """.trimIndent()
 
     private val simulering = simulering(
         perioder = listOf(

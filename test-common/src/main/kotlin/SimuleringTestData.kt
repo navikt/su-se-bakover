@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.toNonEmptyList
@@ -46,6 +47,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
+import kotlin.math.roundToInt
 
 private data class UtbetalingRepoMock(
     private val eksisterendeUtbetalinger: List<Utbetaling>,
@@ -418,6 +420,10 @@ fun simuleringOpphørt(
     }.getOrFail()
 }
 
+fun Simulering.settFiktivNetto(): Simulering {
+    return copy(nettoBeløp = (hentTilUtbetaling().sum() * 0.5).roundToInt())
+}
+
 fun simulering(
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     perioder: List<Periode> = år(2021).måneder(),
@@ -427,13 +433,13 @@ fun simulering(
         gjelderId = fnr,
         gjelderNavn = "navn",
         datoBeregnet = fixedLocalDate,
-        nettoBeløp = simulertePerioder.sumOf { it.bruttoYtelse() },
+        nettoBeløp = 0,
         periodeList = simulertePerioder,
-    )
+    ).settFiktivNetto()
 }
 
 fun simuleringFeilutbetaling(
-    vararg perioder: Periode,
+    vararg perioder: Periode = listOf(juni(2021)).toTypedArray(),
     simulertePerioder: List<SimulertPeriode> = perioder.map { it.måneder() }.flatten()
         .map { simulertPeriodeFeilutbetaling(it) },
 ): Simulering {
@@ -441,9 +447,9 @@ fun simuleringFeilutbetaling(
         gjelderId = fnr,
         gjelderNavn = "navn",
         datoBeregnet = fixedLocalDate,
-        nettoBeløp = simulertePerioder.sumOf { it.bruttoYtelse() },
+        nettoBeløp = 0,
         periodeList = simulertePerioder,
-    )
+    ).settFiktivNetto()
 }
 
 fun simulertPeriode(

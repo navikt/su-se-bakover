@@ -1,9 +1,8 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
+import no.nav.su.se.bakover.domain.oppdrag.simulering.PeriodeOppsummering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.TolketPeriode
-import no.nav.su.se.bakover.domain.oppdrag.simulering.TolketSimulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.TolketUtbetaling
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringsOppsummering
 import java.time.LocalDate
 
 internal data class UtbetalingJson(
@@ -12,73 +11,56 @@ internal data class UtbetalingJson(
     val beløp: Int,
     val type: String,
 )
-
-internal enum class SimulertUtbetalingstype {
-    ETTERBETALING,
-    FEILUTBETALING,
-    ORDINÆR,
-    UENDRET,
-    INGEN_UTBETALING,
-}
-
 internal data class SimuleringJson(
-    val perioder: List<SimulertPeriodeJson>,
-    val totalBruttoYtelse: Int,
+    val totalOppsummering: PeriodeOppsummeringJson,
+    val periodeOppsummering: List<PeriodeOppsummeringJson> = emptyList(),
 ) {
-    data class SimulertPeriodeJson(
-        val fraOgMed: LocalDate,
-        val tilOgMed: LocalDate,
-        val type: SimulertUtbetalingstype,
-        val bruttoYtelse: Int,
-    )
-
     companion object {
-        fun Simulering.toJson() = TolketSimulering(this).let {
-            SimuleringJson(
-                perioder = it.simulertePerioder.map { sp -> sp.toJson() },
-                totalBruttoYtelse = it.simulertePerioder
-                    .sumOf { sp -> sp.utbetaling.bruttobeløp() },
-            )
+        fun Simulering.toJson(): SimuleringJson {
+            return oppsummering().toJson().let {
+                SimuleringJson(
+                    it.totalOppsummering,
+                    it.periodeOppsummering,
+                )
+            }
         }
     }
 }
 
-internal fun TolketPeriode.toJson(): SimuleringJson.SimulertPeriodeJson {
-    return when (utbetaling) {
-        is TolketUtbetaling.Etterbetaling -> SimuleringJson.SimulertPeriodeJson(
-            fraOgMed = periode.fraOgMed,
-            tilOgMed = periode.tilOgMed,
-            type = SimulertUtbetalingstype.ETTERBETALING,
-            bruttoYtelse = utbetaling.bruttobeløp(),
-        )
-        is TolketUtbetaling.Feilutbetaling -> SimuleringJson.SimulertPeriodeJson(
-            fraOgMed = periode.fraOgMed,
-            tilOgMed = periode.tilOgMed,
-            type = SimulertUtbetalingstype.FEILUTBETALING,
-            bruttoYtelse = utbetaling.bruttobeløp()
-                .times(-1),
-        )
-        is TolketUtbetaling.Ordinær -> SimuleringJson.SimulertPeriodeJson(
-            fraOgMed = periode.fraOgMed,
-            tilOgMed = periode.tilOgMed,
-            type = SimulertUtbetalingstype.ORDINÆR,
-            bruttoYtelse = utbetaling.bruttobeløp(),
-        )
-        is TolketUtbetaling.UendretUtbetaling -> SimuleringJson.SimulertPeriodeJson(
-            fraOgMed = periode.fraOgMed,
-            tilOgMed = periode.tilOgMed,
-            type = SimulertUtbetalingstype.UENDRET,
-            bruttoYtelse = utbetaling.bruttobeløp(),
-        )
-
-        is TolketUtbetaling.IngenUtbetaling -> SimuleringJson.SimulertPeriodeJson(
-            fraOgMed = periode.fraOgMed,
-            tilOgMed = periode.tilOgMed,
-            type = SimulertUtbetalingstype.INGEN_UTBETALING,
-            bruttoYtelse = utbetaling.bruttobeløp(),
-        )
-    }
+internal fun SimuleringsOppsummering.toJson(): SimuleringsOppsummeringJson {
+    return SimuleringsOppsummeringJson(
+        totalOppsummering = totalOppsummering.toJson(),
+        periodeOppsummering = periodeOppsummering.map { it.toJson() },
+    )
 }
 
-object MerEnnEnUtbetalingIMinstEnAvPeriodene :
-    IllegalStateException("En periode i simuleringen inneholdt mer enn én utbetaling. Dette støttes ikke p.t.")
+internal data class SimuleringsOppsummeringJson(
+    val totalOppsummering: PeriodeOppsummeringJson,
+    val periodeOppsummering: List<PeriodeOppsummeringJson>,
+)
+
+internal fun PeriodeOppsummering.toJson(): PeriodeOppsummeringJson {
+    return PeriodeOppsummeringJson(
+        fraOgMed = periode.fraOgMed,
+        tilOgMed = periode.tilOgMed,
+        sumTilUtbetaling = sumTilUtbetaling,
+        sumEtterbetaling = sumEtterbetaling,
+        sumFramtidigUtbetaling = sumFramtidigUtbetaling,
+        sumTotalUtbetaling = sumTotalUtbetaling,
+        sumTidligereUtbetalt = sumTidligereUtbetalt,
+        sumFeilutbetaling = sumFeilutbetaling,
+        sumReduksjonFeilkonto = sumReduksjonFeilkonto,
+    )
+}
+
+internal data class PeriodeOppsummeringJson(
+    val fraOgMed: LocalDate,
+    val tilOgMed: LocalDate,
+    val sumTilUtbetaling: Int,
+    val sumEtterbetaling: Int,
+    val sumFramtidigUtbetaling: Int,
+    val sumTotalUtbetaling: Int,
+    val sumTidligereUtbetalt: Int,
+    val sumFeilutbetaling: Int,
+    val sumReduksjonFeilkonto: Int,
+)

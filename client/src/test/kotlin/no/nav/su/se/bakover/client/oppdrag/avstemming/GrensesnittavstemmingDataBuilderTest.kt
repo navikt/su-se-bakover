@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.fixedClock
@@ -169,7 +170,13 @@ private val simulering = Simulering(
     gjelderNavn = "",
     datoBeregnet = idag(fixedClock),
     nettoBeløp = 0,
-    periodeList = listOf(),
+    periodeList = listOf(
+        SimulertPeriode(
+            fraOgMed = år(2021).fraOgMed,
+            tilOgMed = år(2021).tilOgMed,
+            utbetaling = listOf(),
+        ),
+    ),
 )
 
 internal fun alleUtbetalinger() = listOf(

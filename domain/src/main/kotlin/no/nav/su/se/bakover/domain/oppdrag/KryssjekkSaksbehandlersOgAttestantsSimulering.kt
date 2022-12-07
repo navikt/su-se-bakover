@@ -32,24 +32,18 @@ class KryssjekkSaksbehandlersOgAttestantsSimulering(
             return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikFeilutbetaling.left()
         }
 
-        val tolketSaksbehandlers = saksbehandlersSimulering.tolk()
-        val tolketAttestants = attestantsSimulering.simulering.tolk()
-
-        if (!tolketSaksbehandlers.erTomSimulering() && !tolketAttestants.erTomSimulering()) {
-            if (tolketSaksbehandlers.periode() != tolketAttestants.periode()) {
-                return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikPeriode.left()
-            }
-        } else {
-            if (!(tolketSaksbehandlers.erTomSimulering() && tolketAttestants.erTomSimulering())) {
-                return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikPeriode.left()
-            }
+        if (saksbehandlersSimulering.hentUtbetalingSomSimuleres().måneder() != attestantsSimulering.simulering.hentUtbetalingSomSimuleres().måneder()) {
+            return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikPeriode.left()
         }
 
-        tolketSaksbehandlers.simulertePerioder.forEach { tolketPeriode ->
-            if (tolketSaksbehandlers.hentØnsketUtbetaling(tolketPeriode.periode).sum() != tolketAttestants.hentØnsketUtbetaling(tolketPeriode.periode).sum()) {
-                return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløp.left()
-            }
+        if (saksbehandlersSimulering.hentUtbetalingSomSimuleres() != attestantsSimulering.simulering.hentUtbetalingSomSimuleres()) {
+            return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløp.left()
         }
+
+        if (saksbehandlersSimulering.hentDebetYtelse() != attestantsSimulering.simulering.hentDebetYtelse()) {
+            return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløp.left()
+        }
+
         return Unit.right()
     }
 }

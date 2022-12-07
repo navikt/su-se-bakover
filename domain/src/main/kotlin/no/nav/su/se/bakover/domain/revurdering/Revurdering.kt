@@ -1262,8 +1262,6 @@ sealed class SimulertRevurdering : Revurdering() {
 
     abstract override fun accept(visitor: RevurderingVisitor)
 
-    fun harSimuleringFeilutbetaling() = simulering.harFeilutbetalinger()
-
     override fun lagForhåndsvarsel(
         person: Person,
         saksbehandlerNavn: String,

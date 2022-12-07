@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
@@ -411,7 +412,13 @@ internal class UtbetalingsstrategiStansTest {
                 gjelderNavn = "navn",
                 datoBeregnet = idag(clock),
                 nettoBeløp = 0,
-                periodeList = listOf(),
+                periodeList = listOf(
+                    SimulertPeriode(
+                        fraOgMed = utbetalingslinjer.minOf { it.periode.fraOgMed },
+                        tilOgMed = utbetalingslinjer.maxOf { it.periode.tilOgMed },
+                        utbetaling = listOf(),
+                    ),
+                ),
             ),
         ).toOversendtUtbetaling(
             oppdragsmelding = Utbetalingsrequest(

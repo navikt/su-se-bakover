@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.fixedClock
@@ -163,7 +164,13 @@ class AvstemmingPublisherTest {
                     gjelderNavn = "",
                     datoBeregnet = idag(fixedClock),
                     nettoBeløp = 5000,
-                    periodeList = listOf(),
+                    periodeList = listOf(
+                        SimulertPeriode(
+                            fraOgMed = januar(2021).fraOgMed,
+                            tilOgMed = januar(2021).tilOgMed,
+                            utbetaling = listOf(),
+                        ),
+                    ),
                 ),
             ).toOversendtUtbetaling(
                 oppdragsmelding = Utbetalingsrequest(value = ""),

@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.application.MånedBeløp
 import no.nav.su.se.bakover.common.application.Månedsbeløp
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
-import no.nav.su.se.bakover.common.periode.år
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -28,15 +27,6 @@ internal class MånedsbeløpTest {
                 listOf(
                     MånedBeløp(januar(2021), Beløp(-5000)),
                     MånedBeløp(januar(2021), Beløp(1000)),
-                ),
-            )
-        }
-
-        assertThrows<IllegalArgumentException> {
-            Månedsbeløp(
-                listOf(
-                    MånedBeløp(januar(2021), Beløp(-5000)),
-                    MånedBeløp(år(2021), Beløp(1000)),
                 ),
             )
         }

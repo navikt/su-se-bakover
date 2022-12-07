@@ -7,11 +7,9 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.førsteINesteMåned
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.komplement
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.oppdrag.simulering.TolketUtbetaling
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import java.time.Clock
 
@@ -90,6 +88,7 @@ sealed interface KryssjekkAvTidslinjeOgSimuleringFeilet {
 
 sealed class KryssjekkFeil(val prioritet: Int) : Comparable<KryssjekkFeil> {
     object StansMedFeilutbetaling : KryssjekkFeil(prioritet = 1)
+    object GjenopptakMedFeilutbetaling : KryssjekkFeil(prioritet = 1)
     data class KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
         val periode: Periode,
         val simulertType: String,
@@ -110,153 +109,79 @@ private fun sjekkTidslinjeMotSimulering(
     tidslinje: TidslinjeForUtbetalinger,
     simulering: Simulering,
 ): Either<List<KryssjekkFeil>, Unit> {
-    val tolketSimulering = simulering.tolk()
     val feil = mutableListOf<KryssjekkFeil>()
 
-    if (tolketSimulering.erTomSimulering()) {
-        tidslinje.tidslinje.forEach { utbetaling ->
-            kryssjekkType(
-                tolketPeriode = utbetaling.periode,
-                tolket = TolketUtbetaling.IngenUtbetaling(),
-                utbetaling = utbetaling,
-            ).getOrHandle { feil.add(it) }
+    if (simulering.erSimuleringUtenUtbetalinger()) {
+        simulering.periode().also { periode ->
+            periode.måneder().forEach {
+                val utbetaling = tidslinje.gjeldendeForDato(it.fraOgMed)!!
+                if (!(
+                    utbetaling is UtbetalingslinjePåTidslinje.Stans ||
+                        utbetaling is UtbetalingslinjePåTidslinje.Opphør ||
+                        utbetaling is UtbetalingslinjePåTidslinje.Ny && utbetaling.beløp == 0 ||
+                        utbetaling is UtbetalingslinjePåTidslinje.Reaktivering && utbetaling.beløp == 0
+                    )
+                ) {
+                    feil.add(
+                        KryssjekkFeil.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
+                            periode = it,
+                            simulertType = "IngenUtbetaling",
+                            tidslinjeType = utbetaling::class.toString(),
+                        ),
+                    )
+                }
+            }
         }
     } else {
-        tolketSimulering.simulertePerioder.map { it.periode }.komplement().forEach { periode ->
-            /**
-             * Fravær av måneder her er det samme som at ingenting vil bli utbetalt. Dette kan skyldes
-             * at ytelsen er stanset/opphørt, avkortet, eller at det aldri har eksistert utbetalinger for perioden
-             * (f.eks ved hull mellom stønadsperioder e.l). Dersom vi har utbetalinger på tidslinjen for
-             * de aktuelle periodene må vi sjekke at vi er "enige" i at månedene ikke fører til utbetaling.
-             */
-            tidslinje.gjeldendeForDato(periode.fraOgMed)?.also { utbetalingslinjePåTidslinje ->
-                kryssjekkType(
-                    tolketPeriode = periode,
-                    tolket = TolketUtbetaling.IngenUtbetaling(),
-                    utbetaling = utbetalingslinjePåTidslinje,
-                ).getOrHandle { feil.add(it) }
+        simulering.periode().also { periode ->
+            periode.måneder().forEach {
+                val utbetaling = tidslinje.gjeldendeForDato(it.fraOgMed)!!
+                if (utbetaling is UtbetalingslinjePåTidslinje.Stans && simulering.harFeilutbetalinger()) {
+                    feil.add(KryssjekkFeil.StansMedFeilutbetaling)
+                }
             }
         }
 
-        tolketSimulering.simulertePerioder.forEach { tolketPeriode ->
-            val utbetaling = tidslinje.gjeldendeForDato(tolketPeriode.periode.fraOgMed)!!
-            when (val tolket = tolketPeriode.utbetaling) {
-                is TolketUtbetaling.IngenUtbetaling -> {
-                    kryssjekkType(
-                        tolketPeriode = tolketPeriode.periode,
-                        tolket = tolket,
-                        utbetaling = utbetaling,
-                    ).getOrHandle { feil.add(it) }
-                }
-                is TolketUtbetaling.Etterbetaling,
-                is TolketUtbetaling.Feilutbetaling,
-                is TolketUtbetaling.Ordinær,
-                is TolketUtbetaling.UendretUtbetaling,
-                -> {
-                    kryssjekkType(
-                        tolketPeriode = tolketPeriode.periode,
-                        tolket = tolket,
-                        utbetaling = utbetaling,
-                    ).getOrHandle { feil.add(it) }
-                    kryssjekkBeløp(
-                        tolketPeriode = tolketPeriode.periode,
-                        tolket = tolket,
-                        utbetaling = utbetaling,
-                    ).getOrHandle { feil.add(it) }
+        simulering.periode().also { periode ->
+            periode.måneder().forEach {
+                val utbetaling = tidslinje.gjeldendeForDato(it.fraOgMed)!!
+                if (utbetaling is UtbetalingslinjePåTidslinje.Reaktivering && simulering.harFeilutbetalinger()) {
+                    feil.add(KryssjekkFeil.GjenopptakMedFeilutbetaling)
                 }
             }
+        }
+
+        simulering.hentUtbetalingSomSimuleres().forEach { månedsbeløp ->
+            kryssjekkBeløp(
+                tolketPeriode = månedsbeløp.periode,
+                simulertUtbetaling = månedsbeløp.beløp.sum(),
+                beløpPåTidslinje = tidslinje.gjeldendeForDato(månedsbeløp.periode.fraOgMed)!!.beløp,
+            ).getOrHandle { feil.add(it) }
+        }
+        simulering.hentDebetYtelse().forEach { månedsbeløp ->
+            kryssjekkBeløp(
+                tolketPeriode = månedsbeløp.periode,
+                simulertUtbetaling = månedsbeløp.beløp.sum(),
+                beløpPåTidslinje = tidslinje.gjeldendeForDato(månedsbeløp.periode.fraOgMed)!!.beløp,
+            ).getOrHandle { feil.add(it) }
         }
     }
-
     return when (feil.isEmpty()) {
         true -> Unit.right()
         false -> feil.sorted().left()
     }
 }
 
-private fun kryssjekkType(
-    tolketPeriode: Periode,
-    tolket: TolketUtbetaling,
-    utbetaling: UtbetalingslinjePåTidslinje,
-): Either<KryssjekkFeil, Unit> {
-    return when (tolket) {
-        is TolketUtbetaling.IngenUtbetaling -> {
-            if (!(
-                utbetaling is UtbetalingslinjePåTidslinje.Stans ||
-                    utbetaling is UtbetalingslinjePåTidslinje.Opphør ||
-                    utbetaling is UtbetalingslinjePåTidslinje.Ny && utbetaling.beløp == 0 ||
-                    utbetaling is UtbetalingslinjePåTidslinje.Reaktivering && utbetaling.beløp == 0
-                )
-            ) {
-                KryssjekkFeil.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
-                    periode = tolketPeriode,
-                    simulertType = tolket::class.toString(),
-                    tidslinjeType = utbetaling::class.toString(),
-                ).left()
-            } else {
-                Unit.right()
-            }
-        }
-        is TolketUtbetaling.Etterbetaling -> {
-            if (!(utbetaling is UtbetalingslinjePåTidslinje.Ny || utbetaling is UtbetalingslinjePåTidslinje.Reaktivering)) {
-                KryssjekkFeil.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
-                    periode = tolketPeriode,
-                    simulertType = tolket::class.toString(),
-                    tidslinjeType = utbetaling::class.toString(),
-                ).left()
-            } else {
-                Unit.right()
-            }
-        }
-        is TolketUtbetaling.Feilutbetaling -> {
-            if (utbetaling is UtbetalingslinjePåTidslinje.Stans) {
-                return KryssjekkFeil.StansMedFeilutbetaling.left()
-            }
-            if (!(utbetaling is UtbetalingslinjePåTidslinje.Ny || utbetaling is UtbetalingslinjePåTidslinje.Opphør)) {
-                KryssjekkFeil.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
-                    periode = tolketPeriode,
-                    simulertType = tolket::class.toString(),
-                    tidslinjeType = utbetaling::class.toString(),
-                ).left()
-            } else {
-                Unit.right()
-            }
-        }
-        is TolketUtbetaling.Ordinær -> {
-            if (!(utbetaling is UtbetalingslinjePåTidslinje.Ny || utbetaling is UtbetalingslinjePåTidslinje.Reaktivering)) {
-                KryssjekkFeil.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
-                    periode = tolketPeriode,
-                    simulertType = tolket::class.toString(),
-                    tidslinjeType = utbetaling::class.toString(),
-                ).left()
-            } else {
-                Unit.right()
-            }
-        }
-        is TolketUtbetaling.UendretUtbetaling -> {
-            if (!(utbetaling is UtbetalingslinjePåTidslinje.Ny || utbetaling is UtbetalingslinjePåTidslinje.Reaktivering)) {
-                KryssjekkFeil.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
-                    periode = tolketPeriode,
-                    simulertType = tolket::class.toString(),
-                    tidslinjeType = utbetaling::class.toString(),
-                ).left()
-            } else {
-                Unit.right()
-            }
-        }
-    }
-}
-
 private fun kryssjekkBeløp(
     tolketPeriode: Periode,
-    tolket: TolketUtbetaling,
-    utbetaling: UtbetalingslinjePåTidslinje,
+    simulertUtbetaling: Int,
+    beløpPåTidslinje: Int,
 ): Either<KryssjekkFeil.SimulertBeløpOgTidslinjeBeløpErForskjellig, Unit> {
-    return if (tolket.hentØnsketUtbetaling().sum() != utbetaling.beløp) {
+    return if (simulertUtbetaling != beløpPåTidslinje) {
         KryssjekkFeil.SimulertBeløpOgTidslinjeBeløpErForskjellig(
             periode = tolketPeriode,
-            simulertBeløp = tolket.hentØnsketUtbetaling().sum(),
-            tidslinjeBeløp = utbetaling.beløp,
+            simulertBeløp = simulertUtbetaling,
+            tidslinjeBeløp = beløpPåTidslinje,
         ).left()
     } else {
         Unit.right()

@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.application.Beløp
 import no.nav.su.se.bakover.common.application.MånedBeløp
 import no.nav.su.se.bakover.common.application.Månedsbeløp
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.tilMåned
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.sak.Saksnummer
@@ -47,7 +48,7 @@ data class Kravgrunnlag(
     ) {
 
         fun hentBeløpSkalTilbakekreves(): MånedBeløp {
-            return MånedBeløp(periode, Beløp(grunnlagsbeløp.sumOf { it.beløpSkalTilbakekreves.intValueExact() }))
+            return MånedBeløp(periode.tilMåned(), Beløp(grunnlagsbeløp.sumOf { it.beløpSkalTilbakekreves.intValueExact() }))
         }
 
         data class Grunnlagsbeløp(

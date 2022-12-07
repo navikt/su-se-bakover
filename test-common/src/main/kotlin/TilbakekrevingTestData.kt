@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.tilMåned
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -23,7 +23,7 @@ fun matchendeKravgrunnlag(
     utbetalingId: UUID30,
     clock: Clock,
 ): Kravgrunnlag {
-    return simulering.tolk().let {
+    return simulering.let {
         Kravgrunnlag(
             saksnummer = revurdering.saksnummer,
             kravgrunnlagId = "123456",
@@ -32,21 +32,17 @@ fun matchendeKravgrunnlag(
             status = Kravgrunnlag.KravgrunnlagStatus.NY,
             behandler = NavIdentBruker.Saksbehandler("K231B433"),
             utbetalingId = utbetalingId,
-            grunnlagsperioder = it.simulertePerioder
-                .filter { it.harFeilutbetalinger() }
-                .map { periode ->
+            grunnlagsperioder = it.hentFeilutbetalteBeløp()
+                .map { (periode, feilutbetaling) ->
                     Kravgrunnlag.Grunnlagsperiode(
-                        periode = Periode.create(
-                            fraOgMed = periode.periode.fraOgMed,
-                            tilOgMed = periode.periode.tilOgMed,
-                        ),
+                        periode = periode.tilMåned(),
                         beløpSkattMnd = BigDecimal(4395),
                         grunnlagsbeløp = listOf(
                             Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp(
                                 kode = KlasseKode.KL_KODE_FEIL_INNT,
                                 type = KlasseType.FEIL,
                                 beløpTidligereUtbetaling = BigDecimal.ZERO,
-                                beløpNyUtbetaling = BigDecimal(periode.hentFeilutbetalteBeløp().sum()),
+                                beløpNyUtbetaling = BigDecimal(feilutbetaling.sum()),
                                 beløpSkalTilbakekreves = BigDecimal.ZERO,
                                 beløpSkalIkkeTilbakekreves = BigDecimal.ZERO,
                                 skatteProsent = BigDecimal.ZERO,
@@ -54,9 +50,9 @@ fun matchendeKravgrunnlag(
                             Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp(
                                 kode = KlasseKode.SUUFORE,
                                 type = KlasseType.YTEL,
-                                beløpTidligereUtbetaling = BigDecimal(periode.hentUtbetaltBeløp().sum()),
-                                beløpNyUtbetaling = BigDecimal(periode.hentØnsketUtbetaling().sum()),
-                                beløpSkalTilbakekreves = BigDecimal(periode.hentFeilutbetalteBeløp().sum()),
+                                beløpTidligereUtbetaling = BigDecimal(it.hentUtbetalteBeløp(periode)!!.sum()),
+                                beløpNyUtbetaling = BigDecimal(it.hentUtbetalingSomSimuleres(periode)!!.sum()),
+                                beløpSkalTilbakekreves = BigDecimal(feilutbetaling.sum()),
                                 beløpSkalIkkeTilbakekreves = BigDecimal.ZERO,
                                 skatteProsent = BigDecimal("43.9983"),
                             ),

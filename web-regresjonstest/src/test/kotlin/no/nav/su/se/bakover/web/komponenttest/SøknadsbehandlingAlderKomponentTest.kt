@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
-import no.nav.su.se.bakover.domain.oppdrag.simulering.TolketUtbetaling
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.satser.Satskategori
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
@@ -283,8 +282,8 @@ internal class SøknadsbehandlingAlderKomponentTest {
                     saksbehandler = saksbehandler,
                 ),
             ).getOrFail().also {
-                it.simulering.bruttoYtelse() shouldBe 195188
-                it.simulering.tolk().simulertePerioder.all { it.utbetaling is TolketUtbetaling.Ordinær }
+                it.simulering.hentUtbetalingSomSimuleres().sum() shouldBe 195188
+                it.simulering.hentTilUtbetaling().sum() shouldBe 195188
             }
 
             appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilOpplysningspliktVilkår(

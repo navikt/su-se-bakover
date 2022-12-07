@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -15,6 +16,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
@@ -65,7 +67,13 @@ internal class LokalKvitteringJobTest {
             gjelderNavn = "ubrukt",
             datoBeregnet = LocalDate.now(fixedClock),
             nettoBeløp = 0,
-            periodeList = listOf(),
+            periodeList = listOf(
+                SimulertPeriode(
+                    fraOgMed = januar(2021).fraOgMed,
+                    tilOgMed = januar(2021).tilOgMed,
+                    utbetaling = emptyList(),
+                ),
+            ),
         ),
     ).toOversendtUtbetaling(
         oppdragsmelding = Utbetalingsrequest(value = ""),

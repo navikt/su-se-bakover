@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.common.application
 
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.Måned
 import java.text.NumberFormat
 import java.time.LocalDate
 import java.util.Locale
@@ -8,7 +8,7 @@ import kotlin.math.abs
 
 data class Månedsbeløp(
     val månedbeløp: List<MånedBeløp>,
-) {
+) : List<MånedBeløp> by månedbeløp {
     init {
         require(
             månedbeløp.none { a ->
@@ -24,16 +24,20 @@ data class Månedsbeløp(
     fun senesteDato(): LocalDate {
         return månedbeløp.maxOf { it.periode.tilOgMed }
     }
+
+    fun måneder(): List<Måned> {
+        return månedbeløp.map { it.periode }.distinct()
+    }
+
+    operator fun plus(other: Månedsbeløp): Månedsbeløp {
+        return Månedsbeløp(månedbeløp + other.månedbeløp)
+    }
 }
 
 data class MånedBeløp(
-    val periode: Periode,
+    val periode: Måned,
     val beløp: Beløp,
 ) {
-    init {
-        require(periode.getAntallMåneder() == 1) { "Periode kan kun være 1 måned lang" }
-    }
-
     fun sum(): Int {
         return beløp.sum()
     }

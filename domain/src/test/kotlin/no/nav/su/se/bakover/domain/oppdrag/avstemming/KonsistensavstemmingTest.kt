@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.fixedClock
@@ -970,7 +971,13 @@ internal class KonsistensavstemmingTest {
                 gjelderNavn = "navn",
                 datoBeregnet = idag(fixedClock),
                 nettoBeløp = 0,
-                periodeList = listOf(),
+                periodeList = listOf(
+                    SimulertPeriode(
+                        fraOgMed = utbetalingsLinjer.minOf { it.periode.fraOgMed },
+                        tilOgMed = utbetalingsLinjer.maxOf { it.periode.tilOgMed },
+                        utbetaling = listOf(),
+                    ),
+                ),
             ),
         ).toOversendtUtbetaling(
             oppdragsmelding = Utbetalingsrequest(value = ""),
