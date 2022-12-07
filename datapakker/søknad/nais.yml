@@ -3,7 +3,7 @@ kind: Naisjob
 metadata:
   labels:
     team: supstonad
-  name: datapakker-søknad
+  name: datapakker-soknad
   namespace: supstonad
 spec:
   schedule: '0 1 0 0 0'
