@@ -39,7 +39,8 @@ jobs:
       - name: Build and publish Docker image
         uses: docker/build-push-action@v3.2.0
         with:
-          context: ./datapakker/søknad/
+          context: .
+          file: ./datapakker/søknad/Dockerfile
           push: true
           pull: true
           tags: ${{env.IMAGE}}
