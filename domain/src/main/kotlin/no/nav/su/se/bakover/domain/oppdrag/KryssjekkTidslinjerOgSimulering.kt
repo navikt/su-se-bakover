@@ -158,13 +158,6 @@ private fun sjekkTidslinjeMotSimulering(
                 beløpPåTidslinje = tidslinje.gjeldendeForDato(månedsbeløp.periode.fraOgMed)!!.beløp,
             ).getOrHandle { feil.add(it) }
         }
-        simulering.hentDebetYtelse().forEach { månedsbeløp ->
-            kryssjekkBeløp(
-                tolketPeriode = månedsbeløp.periode,
-                simulertUtbetaling = månedsbeløp.beløp.sum(),
-                beløpPåTidslinje = tidslinje.gjeldendeForDato(månedsbeløp.periode.fraOgMed)!!.beløp,
-            ).getOrHandle { feil.add(it) }
-        }
     }
     return when (feil.isEmpty()) {
         true -> Unit.right()
