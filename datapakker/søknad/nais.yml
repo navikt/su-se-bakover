@@ -1,0 +1,10 @@
+apiVersion: nais.io/v1
+kind: Naisjob
+metadata:
+  labels:
+    team: supstonad
+  name: job
+  namespace: supstonad
+spec:
+  image: ghcr.io/navikt/myapp:mytag
+  schedule: "*/1 * * * *"
