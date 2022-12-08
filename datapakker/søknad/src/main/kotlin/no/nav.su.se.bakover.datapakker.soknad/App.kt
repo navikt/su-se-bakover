@@ -11,15 +11,7 @@ fun main() {
         jdbcUrl = "jdbc:postgresql://b27dbvl009.preprod.local:5432/supstonad-db-dev",
         vaultMountPath = "postgresql/preprod-fss/",
         databaseName = "supstonad-db-dev",
-    ).getDatasource(Postgres.Role.ReadOnly).let {
-        logger.info("""En connection ${it.dataSource.connection}""")
-    }
-
-    logger.info(
-        """
-        secret-env:${System.getProperty("secret-env")}
-        """.trimIndent(),
-    )
+    ).getDatasource(Postgres.Role.ReadOnly)
 
     logger.info("This is hello from ${logger.name}. Vi har vault=${!System.getProperty("bigquery", null).isNullOrEmpty()}")
 }
