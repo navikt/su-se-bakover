@@ -8,3 +8,7 @@ kubectl delete job -l app=navn --namespace=supstonad
 kubectl delete pod -l app=navn --namespace=supstonad
 ```
 
+Start en manuell cronjob (husk å slett dersom den feiler):
+```
+kubectl create job --namespace=supstonad --from=cronjobs/su-datapakke-soknad manuell-test-custom-name-here
+```
