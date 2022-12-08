@@ -7,6 +7,9 @@ import com.google.cloud.bigquery.QueryJobConfiguration
 import no.nav.su.se.bakover.database.Postgres
 import no.nav.su.se.bakover.database.VaultPostgres
 import org.slf4j.LoggerFactory
+import java.io.File
+import java.io.FileInputStream
+import java.io.InputStream
 
 private val logger = LoggerFactory.getLogger("DatapakkerSøknad")
 
@@ -20,16 +23,16 @@ fun main() {
     val bigqueryJsonKey = System.getenv("bigquery")
     logger.info("This is hello from ${logger.name}. Vi har vault=${!bigqueryJsonKey.isNullOrEmpty()}")
 
-    writeToBigQuery(bigqueryJsonKey)
+    writeToBigQuery()
 }
 
 fun writeToBigQuery(
-    jsonKey: String,
+    jsonKey: InputStream = FileInputStream(File("/var/run/secrets/nais.io/vault/bigquery")),
     project: String = "supstonad-dev-0e48",
     dataset: String = "test",
     table: String = "testtable",
 ) {
-    val credentials = GoogleCredentials.fromStream(jsonKey.byteInputStream())
+    val credentials = GoogleCredentials.fromStream(jsonKey)
 
     val bq: BigQuery =
         BigQueryOptions.newBuilder().setCredentials(credentials).setLocation("europe-north1").setProjectId(project)
