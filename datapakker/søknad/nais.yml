@@ -9,3 +9,8 @@ spec:
   schedule: '1 1 * * *'
   image: {{ image }}
   concurrencyPolicy: Replace
+  vault:
+    enabled: true
+    paths:
+      - mountPath: /var/run/secrets/nais.io/vault
+        kvPath: /secret/supstonad/{{ secret_env }}

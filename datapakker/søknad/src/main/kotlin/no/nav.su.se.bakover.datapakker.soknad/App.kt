@@ -5,5 +5,5 @@ import org.slf4j.LoggerFactory
 private val logger = LoggerFactory.getLogger("DatapakkerSøknad")
 
 fun main() {
-    logger.info("This is hello from ${logger.name}")
+    logger.info("This is hello from ${logger.name}. Vi har vault=${!System.getProperty("bigquery", null).isNullOrEmpty()}")
 }
