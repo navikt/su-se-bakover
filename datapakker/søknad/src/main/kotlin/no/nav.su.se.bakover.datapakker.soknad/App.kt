@@ -12,7 +12,7 @@ fun main() {
         vaultMountPath = "postgresql/preprod-fss/",
         databaseName = "supstonad-db-dev",
     ).getDatasource(Postgres.Role.ReadOnly).let {
-        it.getConnection(it.username, it.password)
+        logger.info("""En connection ${it.dataSource.connection}""")
     }
 
     logger.info(
