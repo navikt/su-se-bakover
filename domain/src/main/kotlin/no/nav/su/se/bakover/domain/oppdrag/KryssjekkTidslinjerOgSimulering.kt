@@ -111,7 +111,7 @@ private fun sjekkTidslinjeMotSimulering(
 ): Either<List<KryssjekkFeil>, Unit> {
     val feil = mutableListOf<KryssjekkFeil>()
 
-    if (simulering.erSimuleringUtenUtbetalinger()) {
+    if (simulering.erAlleMånederUtenUtbetaling()) {
         simulering.periode().also { periode ->
             periode.måneder().forEach {
                 val utbetaling = tidslinje.gjeldendeForDato(it.fraOgMed)!!

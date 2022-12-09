@@ -606,7 +606,7 @@ internal class SimuleringTest {
                             kreditMotpostFeilkonto = Kontobeløp.Kredit(0),
                         ),
                     )
-                    it.erSimuleringUtenUtbetalinger() shouldBe true
+                    it.erAlleMånederUtenUtbetaling() shouldBe true
                     it.hentUtbetalingSomSimuleres() shouldBe Månedsbeløp(emptyList())
                     it.hentFeilutbetalteBeløp() shouldBe Månedsbeløp(emptyList())
                     it.hentUtbetalteBeløp() shouldBe Månedsbeløp(emptyList())

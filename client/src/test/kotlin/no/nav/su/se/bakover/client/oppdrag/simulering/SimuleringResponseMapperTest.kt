@@ -83,7 +83,7 @@ internal class SimuleringResponseMapperTest {
                 ),
             ),
         ).also {
-            it.erSimuleringUtenUtbetalinger() shouldBe false
+            it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(
                 listOf(
                     MånedBeløp(april(2021), Beløp(20779)),
@@ -397,7 +397,7 @@ internal class SimuleringResponseMapperTest {
                 ),
             ),
         ).also {
-            it.erSimuleringUtenUtbetalinger() shouldBe false
+            it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(
                 listOf(
                     MånedBeløp(mars(2021), Beløp(10000)),
@@ -811,7 +811,7 @@ internal class SimuleringResponseMapperTest {
                 ),
             ),
         ).also {
-            it.erSimuleringUtenUtbetalinger() shouldBe false
+            it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(
                 listOf(
                     MånedBeløp(februar(2021), Beløp(9221)),
@@ -1265,7 +1265,7 @@ internal class SimuleringResponseMapperTest {
             SimulerBeregningResponse::class.java,
         )
         SimuleringResponseMapper(oppdragResponse = responseMedÅpenFeilkonto, clock = fixedClock).simulering.also {
-            it.erSimuleringUtenUtbetalinger() shouldBe false
+            it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(emptyList())
             it.hentUtbetalingSomSimuleres() shouldBe Månedsbeløp(
                 listOf(
@@ -1472,7 +1472,7 @@ internal class SimuleringResponseMapperTest {
             SimulerBeregningResponse::class.java,
         )
         SimuleringResponseMapper(oppdragResponse = responseMedÅpenFeilkonto, clock = fixedClock).simulering.also {
-            it.erSimuleringUtenUtbetalinger() shouldBe false
+            it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(
                 listOf(
                     MånedBeløp(august(2022), Beløp(1858)),
@@ -1704,7 +1704,7 @@ internal class SimuleringResponseMapperTest {
             SimulerBeregningResponse::class.java,
         )
         SimuleringResponseMapper(oppdragResponse = responseMedÅpenFeilkonto, clock = fixedClock).simulering.also {
-            it.erSimuleringUtenUtbetalinger() shouldBe false
+            it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(emptyList())
             it.hentUtbetalingSomSimuleres() shouldBe Månedsbeløp(
                 listOf(
