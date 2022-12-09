@@ -29,6 +29,6 @@ enum class DatapakkeSøknadstype {
 
 fun List<DatapakkeSøknad>.toCSV(): String {
     return this.joinToString(separator = "\n") {
-        "${it.id},${it.opprettet},${it.type}"
+        "${it.id},${it.opprettet},${it.type},${it.mottaksdato}"
     }
 }
