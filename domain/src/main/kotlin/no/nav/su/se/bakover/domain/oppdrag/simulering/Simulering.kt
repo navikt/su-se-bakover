@@ -79,6 +79,10 @@ data class Simulering(
         return tolkning.periode
     }
 
+    fun månederMedSimuleringsresultat(): List<Måned> {
+        return tolkning.månederMedSimuleringsresultat
+    }
+
     /**
      * Debet/kredit oppstilling av de ulike konti.
      */

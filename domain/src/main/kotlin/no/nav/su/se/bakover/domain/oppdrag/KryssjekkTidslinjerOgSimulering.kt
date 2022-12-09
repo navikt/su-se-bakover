@@ -133,21 +133,17 @@ private fun sjekkTidslinjeMotSimulering(
             }
         }
     } else {
-        simulering.periode().also { periode ->
-            periode.måneder().forEach {
-                val utbetaling = tidslinje.gjeldendeForDato(it.fraOgMed)!!
-                if (utbetaling is UtbetalingslinjePåTidslinje.Stans && simulering.harFeilutbetalinger()) {
-                    feil.add(KryssjekkFeil.StansMedFeilutbetaling)
-                }
+        simulering.månederMedSimuleringsresultat().forEach { måned ->
+            val utbetaling = tidslinje.gjeldendeForDato(måned.fraOgMed)!!
+            if (utbetaling is UtbetalingslinjePåTidslinje.Stans && simulering.harFeilutbetalinger()) {
+                feil.add(KryssjekkFeil.StansMedFeilutbetaling)
             }
         }
 
-        simulering.periode().also { periode ->
-            periode.måneder().forEach {
-                val utbetaling = tidslinje.gjeldendeForDato(it.fraOgMed)!!
-                if (utbetaling is UtbetalingslinjePåTidslinje.Reaktivering && simulering.harFeilutbetalinger()) {
-                    feil.add(KryssjekkFeil.GjenopptakMedFeilutbetaling)
-                }
+        simulering.månederMedSimuleringsresultat().forEach { måned ->
+            val utbetaling = tidslinje.gjeldendeForDato(måned.fraOgMed)!!
+            if (utbetaling is UtbetalingslinjePåTidslinje.Reaktivering && simulering.harFeilutbetalinger()) {
+                feil.add(KryssjekkFeil.GjenopptakMedFeilutbetaling)
             }
         }
 

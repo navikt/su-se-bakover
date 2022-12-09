@@ -35,6 +35,13 @@ internal data class TolketSimulering(
         }
     }.minAndMaxOf()
 
+    val månederMedSimuleringsresultat = tolketPerioder.mapNotNull {
+        when (it) {
+            is TolketPeriodeMedUtbetalinger -> it.måned
+            is TolketPeriodeUtenUtbetalinger -> null // inneholder aldri simuleringsresultat
+        }
+    }
+
     fun harFeilutbetalinger() = hentFeilutbetalteBeløp().sum() > 0
 
     /**
