@@ -39,6 +39,525 @@ internal class SimuleringResponseMapperTest {
     private val typeSats = "MND"
     private val suBeskrivelse = "Supplerende stønad Uføre"
 
+    val kjeks = """
+        {
+          "gjelderId": "05017315147",
+          "gjelderNavn": "LUO XIANG",
+          "nettoBeløp": 0,
+          "periodeList": [
+            {
+              "fraOgMed": "2022-04-01",
+              "tilOgMed": "2022-04-30",
+              "utbetaling": [
+                {
+                  "forfall": "2022-09-26",
+                  "detaljer": [
+                    {
+                      "sats": 0,
+                      "belop": 1800,
+                      "konto": "0630986",
+                      "typeSats": "",
+                      "uforegrad": 0,
+                      "antallSats": 0,
+                      "klasseType": "FEIL",
+                      "klassekode": "KL_KODE_FEIL_INNT",
+                      "tilbakeforing": false,
+                      "faktiskFraOgMed": "2022-04-01",
+                      "faktiskTilOgMed": "2022-04-30",
+                      "klassekodeBeskrivelse": "Feilutbetaling Inntektsytelser"
+                    },
+                    {
+                      "sats": 0,
+                      "belop": 1800,
+                      "konto": "4952000",
+                      "typeSats": "",
+                      "uforegrad": 0,
+                      "antallSats": 0,
+                      "klasseType": "YTEL",
+                      "klassekode": "SUUFORE",
+                      "tilbakeforing": false,
+                      "faktiskFraOgMed": "2022-04-01",
+                      "faktiskTilOgMed": "2022-04-30",
+                      "klassekodeBeskrivelse": "Supplerende stønad Uføre"
+                    },
+                    {
+                      "sats": 0,
+                      "belop": -1800,
+                      "konto": "4952000",
+                      "typeSats": "",
+                      "uforegrad": 50,
+                      "antallSats": 0,
+                      "klasseType": "YTEL",
+                      "klassekode": "SUUFORE",
+                      "tilbakeforing": true,
+                      "faktiskFraOgMed": "2022-04-01",
+                      "faktiskTilOgMed": "2022-04-30",
+                      "klassekodeBeskrivelse": "Supplerende stønad Uføre"
+                    }
+                  ],
+                  "feilkonto": true,
+                  "fagSystemId": "2178",
+                  "utbetalesTilId": "05017315147",
+                  "utbetalesTilNavn": "LUO XIANG"
+                }
+              ]
+            },
+            {
+              "fraOgMed": "2022-05-01",
+              "tilOgMed": "2022-05-31",
+              "utbetaling": [
+                {
+                  "forfall": "2022-09-26",
+                  "detaljer": [
+                    {
+                      "sats": 0,
+                      "belop": 1800,
+                      "konto": "0630986",
+                      "typeSats": "",
+                      "uforegrad": 0,
+                      "antallSats": 0,
+                      "klasseType": "FEIL",
+                      "klassekode": "KL_KODE_FEIL_INNT",
+                      "tilbakeforing": false,
+                      "faktiskFraOgMed": "2022-05-01",
+                      "faktiskTilOgMed": "2022-05-31",
+                      "klassekodeBeskrivelse": "Feilutbetaling Inntektsytelser"
+                    },
+                    {
+                      "sats": 0,
+                      "belop": 1800,
+                      "konto": "4952000",
+                      "typeSats": "",
+                      "uforegrad": 0,
+                      "antallSats": 0,
+                      "klasseType": "YTEL",
+                      "klassekode": "SUUFORE",
+                      "tilbakeforing": false,
+                      "faktiskFraOgMed": "2022-05-01",
+                      "faktiskTilOgMed": "2022-05-31",
+                      "klassekodeBeskrivelse": "Supplerende stønad Uføre"
+                    },
+                    {
+                      "sats": 0,
+                      "belop": -1800,
+                      "konto": "4952000",
+                      "typeSats": "",
+                      "uforegrad": 50,
+                      "antallSats": 0,
+                      "klasseType": "YTEL",
+                      "klassekode": "SUUFORE",
+                      "tilbakeforing": true,
+                      "faktiskFraOgMed": "2022-05-01",
+                      "faktiskTilOgMed": "2022-05-31",
+                      "klassekodeBeskrivelse": "Supplerende stønad Uføre"
+                    }
+                  ],
+                  "feilkonto": true,
+                  "fagSystemId": "2178",
+                  "utbetalesTilId": "05017315147",
+                  "utbetalesTilNavn": "LUO XIANG"
+                }
+              ]
+            },
+            {
+              "fraOgMed": "2022-07-01",
+              "tilOgMed": "2022-07-31",
+              "utbetaling": [
+                {
+                  "forfall": "2022-09-26",
+                  "detaljer": [
+                    {
+                      "sats": 0,
+                      "belop": 1800,
+                      "konto": "0630986",
+                      "typeSats": "",
+                      "uforegrad": 0,
+                      "antallSats": 0,
+                      "klasseType": "FEIL",
+                      "klassekode": "KL_KODE_FEIL_INNT",
+                      "tilbakeforing": false,
+                      "faktiskFraOgMed": "2022-07-01",
+                      "faktiskTilOgMed": "2022-07-31",
+                      "klassekodeBeskrivelse": "Feilutbetaling Inntektsytelser"
+                    },
+                    {
+                      "sats": 0,
+                      "belop": 1800,
+                      "konto": "4952000",
+                      "typeSats": "",
+                      "uforegrad": 0,
+                      "antallSats": 0,
+                      "klasseType": "YTEL",
+                      "klassekode": "SUUFORE",
+                      "tilbakeforing": false,
+                      "faktiskFraOgMed": "2022-07-01",
+                      "faktiskTilOgMed": "2022-07-31",
+                      "klassekodeBeskrivelse": "Supplerende stønad Uføre"
+                    },
+                    {
+                      "sats": 0,
+                      "belop": -1800,
+                      "konto": "4952000",
+                      "typeSats": "",
+                      "uforegrad": 50,
+                      "antallSats": 0,
+                      "klasseType": "YTEL",
+                      "klassekode": "SUUFORE",
+                      "tilbakeforing": true,
+                      "faktiskFraOgMed": "2022-07-01",
+                      "faktiskTilOgMed": "2022-07-31",
+                      "klassekodeBeskrivelse": "Supplerende stønad Uføre"
+                    }
+                  ],
+                  "feilkonto": true,
+                  "fagSystemId": "2178",
+                  "utbetalesTilId": "05017315147",
+                  "utbetalesTilNavn": "LUO XIANG"
+                }
+              ]
+            },
+            {
+              "fraOgMed": "2022-08-01",
+              "tilOgMed": "2022-08-31",
+              "utbetaling": [
+                {
+                  "forfall": "2022-09-26",
+                  "detaljer": [
+                    {
+                      "sats": 0,
+                      "belop": 1800,
+                      "konto": "0630986",
+                      "typeSats": "",
+                      "uforegrad": 0,
+                      "antallSats": 0,
+                      "klasseType": "FEIL",
+                      "klassekode": "KL_KODE_FEIL_INNT",
+                      "tilbakeforing": false,
+                      "faktiskFraOgMed": "2022-08-01",
+                      "faktiskTilOgMed": "2022-08-31",
+                      "klassekodeBeskrivelse": "Feilutbetaling Inntektsytelser"
+                    },
+                    {
+                      "sats": 0,
+                      "belop": 1800,
+                      "konto": "4952000",
+                      "typeSats": "",
+                      "uforegrad": 0,
+                      "antallSats": 0,
+                      "klasseType": "YTEL",
+                      "klassekode": "SUUFORE",
+                      "tilbakeforing": false,
+                      "faktiskFraOgMed": "2022-08-01",
+                      "faktiskTilOgMed": "2022-08-31",
+                      "klassekodeBeskrivelse": "Supplerende stønad Uføre"
+                    },
+                    {
+                      "sats": 0,
+                      "belop": -1800,
+                      "konto": "4952000",
+                      "typeSats": "",
+                      "uforegrad": 50,
+                      "antallSats": 0,
+                      "klasseType": "YTEL",
+                      "klassekode": "SUUFORE",
+                      "tilbakeforing": true,
+                      "faktiskFraOgMed": "2022-08-01",
+                      "faktiskTilOgMed": "2022-08-31",
+                      "klassekodeBeskrivelse": "Supplerende stønad Uføre"
+                    }
+                  ],
+                  "feilkonto": true,
+                  "fagSystemId": "2178",
+                  "utbetalesTilId": "05017315147",
+                  "utbetalesTilNavn": "LUO XIANG"
+                }
+              ]
+            }
+          ],
+          "datoBeregnet": "2022-09-26"
+        }
+    """.trimIndent()
+
+    val smeg = """
+        {
+            "gjelderId": "05017315147",
+            "gjelderNavn": "LUO XIANG",
+            "nettoBeløp": 3961,
+            "periodeList": [
+                {
+                    "fraOgMed": "2022-10-01",
+                    "tilOgMed": "2022-10-31",
+                    "utbetaling": []
+                }
+            ],
+            "datoBeregnet": "2022-10-06"
+        }
+    """.trimIndent()
+
+    val kok = """
+        {
+            "gjelderId": "05017315147",
+            "gjelderNavn": "LUO XIANG",
+            "nettoBeløp": 3961,
+            "periodeList": [
+                {
+                    "fraOgMed": "2022-04-01",
+                    "tilOgMed": "2022-04-30",
+                    "utbetaling": [
+                        {
+                            "forfall": "2022-09-26",
+                            "detaljer": [
+                                {
+                                    "sats": 0,
+                                    "belop": 1800,
+                                    "konto": "0630986",
+                                    "typeSats": "",
+                                    "uforegrad": 0,
+                                    "antallSats": 0,
+                                    "klasseType": "FEIL",
+                                    "klassekode": "KL_KODE_FEIL_INNT",
+                                    "tilbakeforing": false,
+                                    "faktiskFraOgMed": "2022-04-01",
+                                    "faktiskTilOgMed": "2022-04-30",
+                                    "klassekodeBeskrivelse": "Feilutbetaling Inntektsytelser"
+                                },
+                                {
+                                    "sats": 0,
+                                    "belop": 1800,
+                                    "konto": "4952000",
+                                    "typeSats": "",
+                                    "uforegrad": 0,
+                                    "antallSats": 0,
+                                    "klasseType": "YTEL",
+                                    "klassekode": "SUUFORE",
+                                    "tilbakeforing": false,
+                                    "faktiskFraOgMed": "2022-04-01",
+                                    "faktiskTilOgMed": "2022-04-30",
+                                    "klassekodeBeskrivelse": "Supplerende stønad Uføre"
+                                },
+                                {
+                                    "sats": 0,
+                                    "belop": -1800,
+                                    "konto": "4952000",
+                                    "typeSats": "",
+                                    "uforegrad": 50,
+                                    "antallSats": 0,
+                                    "klasseType": "YTEL",
+                                    "klassekode": "SUUFORE",
+                                    "tilbakeforing": true,
+                                    "faktiskFraOgMed": "2022-04-01",
+                                    "faktiskTilOgMed": "2022-04-30",
+                                    "klassekodeBeskrivelse": "Supplerende stønad Uføre"
+                                }
+                            ],
+                            "feilkonto": false,
+                            "fagSystemId": "2178",
+                            "utbetalesTilId": "05017315147",
+                            "utbetalesTilNavn": "LUO XIANG"
+                        }
+                    ]
+                },
+                {
+                    "fraOgMed": "2022-05-01",
+                    "tilOgMed": "2022-05-31",
+                    "utbetaling": [
+                        {
+                            "forfall": "2022-09-26",
+                            "detaljer": [
+                                {
+                                    "sats": 0,
+                                    "belop": 1800,
+                                    "konto": "0630986",
+                                    "typeSats": "",
+                                    "uforegrad": 0,
+                                    "antallSats": 0,
+                                    "klasseType": "FEIL",
+                                    "klassekode": "KL_KODE_FEIL_INNT",
+                                    "tilbakeforing": false,
+                                    "faktiskFraOgMed": "2022-05-01",
+                                    "faktiskTilOgMed": "2022-05-31",
+                                    "klassekodeBeskrivelse": "Feilutbetaling Inntektsytelser"
+                                },
+                                {
+                                    "sats": 0,
+                                    "belop": 1800,
+                                    "konto": "4952000",
+                                    "typeSats": "",
+                                    "uforegrad": 0,
+                                    "antallSats": 0,
+                                    "klasseType": "YTEL",
+                                    "klassekode": "SUUFORE",
+                                    "tilbakeforing": false,
+                                    "faktiskFraOgMed": "2022-05-01",
+                                    "faktiskTilOgMed": "2022-05-31",
+                                    "klassekodeBeskrivelse": "Supplerende stønad Uføre"
+                                },
+                                {
+                                    "sats": 0,
+                                    "belop": -1800,
+                                    "konto": "4952000",
+                                    "typeSats": "",
+                                    "uforegrad": 50,
+                                    "antallSats": 0,
+                                    "klasseType": "YTEL",
+                                    "klassekode": "SUUFORE",
+                                    "tilbakeforing": true,
+                                    "faktiskFraOgMed": "2022-05-01",
+                                    "faktiskTilOgMed": "2022-05-31",
+                                    "klassekodeBeskrivelse": "Supplerende stønad Uføre"
+                                }
+                            ],
+                            "feilkonto": false,
+                            "fagSystemId": "2178",
+                            "utbetalesTilId": "05017315147",
+                            "utbetalesTilNavn": "LUO XIANG"
+                        }
+                    ]
+                },
+                {
+                    "fraOgMed": "2022-07-01",
+                    "tilOgMed": "2022-07-31",
+                    "utbetaling": [
+                        {
+                            "forfall": "2022-09-26",
+                            "detaljer": [
+                                {
+                                    "sats": 0,
+                                    "belop": 1800,
+                                    "konto": "0630986",
+                                    "typeSats": "",
+                                    "uforegrad": 0,
+                                    "antallSats": 0,
+                                    "klasseType": "FEIL",
+                                    "klassekode": "KL_KODE_FEIL_INNT",
+                                    "tilbakeforing": false,
+                                    "faktiskFraOgMed": "2022-07-01",
+                                    "faktiskTilOgMed": "2022-07-31",
+                                    "klassekodeBeskrivelse": "Feilutbetaling Inntektsytelser"
+                                },
+                                {
+                                    "sats": 0,
+                                    "belop": 1800,
+                                    "konto": "4952000",
+                                    "typeSats": "",
+                                    "uforegrad": 0,
+                                    "antallSats": 0,
+                                    "klasseType": "YTEL",
+                                    "klassekode": "SUUFORE",
+                                    "tilbakeforing": false,
+                                    "faktiskFraOgMed": "2022-07-01",
+                                    "faktiskTilOgMed": "2022-07-31",
+                                    "klassekodeBeskrivelse": "Supplerende stønad Uføre"
+                                },
+                                {
+                                    "sats": 0,
+                                    "belop": -1800,
+                                    "konto": "4952000",
+                                    "typeSats": "",
+                                    "uforegrad": 50,
+                                    "antallSats": 0,
+                                    "klasseType": "YTEL",
+                                    "klassekode": "SUUFORE",
+                                    "tilbakeforing": true,
+                                    "faktiskFraOgMed": "2022-07-01",
+                                    "faktiskTilOgMed": "2022-07-31",
+                                    "klassekodeBeskrivelse": "Supplerende stønad Uføre"
+                                }
+                            ],
+                            "feilkonto": false,
+                            "fagSystemId": "2178",
+                            "utbetalesTilId": "05017315147",
+                            "utbetalesTilNavn": "LUO XIANG"
+                        }
+                    ]
+                },
+                {
+                    "fraOgMed": "2022-08-01",
+                    "tilOgMed": "2022-08-31",
+                    "utbetaling": [
+                        {
+                            "forfall": "2022-09-26",
+                            "detaljer": [
+                                {
+                                    "sats": 0,
+                                    "belop": 1800,
+                                    "konto": "0630986",
+                                    "typeSats": "",
+                                    "uforegrad": 0,
+                                    "antallSats": 0,
+                                    "klasseType": "FEIL",
+                                    "klassekode": "KL_KODE_FEIL_INNT",
+                                    "tilbakeforing": false,
+                                    "faktiskFraOgMed": "2022-08-01",
+                                    "faktiskTilOgMed": "2022-08-31",
+                                    "klassekodeBeskrivelse": "Feilutbetaling Inntektsytelser"
+                                },
+                                {
+                                    "sats": 0,
+                                    "belop": 1800,
+                                    "konto": "4952000",
+                                    "typeSats": "",
+                                    "uforegrad": 0,
+                                    "antallSats": 0,
+                                    "klasseType": "YTEL",
+                                    "klassekode": "SUUFORE",
+                                    "tilbakeforing": false,
+                                    "faktiskFraOgMed": "2022-08-01",
+                                    "faktiskTilOgMed": "2022-08-31",
+                                    "klassekodeBeskrivelse": "Supplerende stønad Uføre"
+                                },
+                                {
+                                    "sats": 0,
+                                    "belop": -1800,
+                                    "konto": "4952000",
+                                    "typeSats": "",
+                                    "uforegrad": 50,
+                                    "antallSats": 0,
+                                    "klasseType": "YTEL",
+                                    "klassekode": "SUUFORE",
+                                    "tilbakeforing": true,
+                                    "faktiskFraOgMed": "2022-08-01",
+                                    "faktiskTilOgMed": "2022-08-31",
+                                    "klassekodeBeskrivelse": "Supplerende stønad Uføre"
+                                }
+                            ],
+                            "feilkonto": false,
+                            "fagSystemId": "2178",
+                            "utbetalesTilId": "05017315147",
+                            "utbetalesTilNavn": "LUO XIANG"
+                        }
+                    ]
+                },
+                {
+                    "fraOgMed": "2022-10-01",
+                    "tilOgMed": "2022-10-31",
+                    "utbetaling": []
+                }
+            ],
+            "datoBeregnet": "2022-09-26"
+        }
+    """.trimIndent()
+
+    @Test
+    fun kdkd() {
+        val kek = objectMapper.readValue(
+            kjeks,
+            Simulering::class.java,
+        )
+
+        val dek = objectMapper.readValue(
+            smeg,
+            Simulering::class.java,
+        )
+
+        val tek = objectMapper.readValue(
+            kok,
+            Simulering::class.java,
+        )
+
+        println("""$kek $dek $tek""")
+    }
+
     @Test
     fun `mapper fremtidige simulerte utbetalinger`() {
         val responseMedFremtidigUtbetaling = XmlMapper.readValue(
@@ -83,7 +602,7 @@ internal class SimuleringResponseMapperTest {
                 ),
             ),
         ).also {
-            it.erSimuleringUtenUtbetalinger() shouldBe false
+            it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(
                 listOf(
                     MånedBeløp(april(2021), Beløp(20779)),
@@ -397,7 +916,7 @@ internal class SimuleringResponseMapperTest {
                 ),
             ),
         ).also {
-            it.erSimuleringUtenUtbetalinger() shouldBe false
+            it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(
                 listOf(
                     MånedBeløp(mars(2021), Beløp(10000)),
@@ -811,7 +1330,7 @@ internal class SimuleringResponseMapperTest {
                 ),
             ),
         ).also {
-            it.erSimuleringUtenUtbetalinger() shouldBe false
+            it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(
                 listOf(
                     MånedBeløp(februar(2021), Beløp(9221)),
@@ -1265,7 +1784,7 @@ internal class SimuleringResponseMapperTest {
             SimulerBeregningResponse::class.java,
         )
         SimuleringResponseMapper(oppdragResponse = responseMedÅpenFeilkonto, clock = fixedClock).simulering.also {
-            it.erSimuleringUtenUtbetalinger() shouldBe false
+            it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(emptyList())
             it.hentUtbetalingSomSimuleres() shouldBe Månedsbeløp(
                 listOf(
@@ -1472,7 +1991,7 @@ internal class SimuleringResponseMapperTest {
             SimulerBeregningResponse::class.java,
         )
         SimuleringResponseMapper(oppdragResponse = responseMedÅpenFeilkonto, clock = fixedClock).simulering.also {
-            it.erSimuleringUtenUtbetalinger() shouldBe false
+            it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(
                 listOf(
                     MånedBeløp(august(2022), Beløp(1858)),
@@ -1704,7 +2223,7 @@ internal class SimuleringResponseMapperTest {
             SimulerBeregningResponse::class.java,
         )
         SimuleringResponseMapper(oppdragResponse = responseMedÅpenFeilkonto, clock = fixedClock).simulering.also {
-            it.erSimuleringUtenUtbetalinger() shouldBe false
+            it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(emptyList())
             it.hentUtbetalingSomSimuleres() shouldBe Månedsbeløp(
                 listOf(

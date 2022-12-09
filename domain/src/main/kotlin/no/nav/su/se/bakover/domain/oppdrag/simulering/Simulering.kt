@@ -71,8 +71,8 @@ data class Simulering(
         return tolkning.hentTotalUtbetaling()
     }
 
-    fun erSimuleringUtenUtbetalinger(): Boolean {
-        return tolkning.erSimuleringUtenUtbetalinger()
+    fun erAlleMånederUtenUtbetaling(): Boolean {
+        return tolkning.erAlleMånederUtenUtbetaling()
     }
 
     fun periode(): Periode {

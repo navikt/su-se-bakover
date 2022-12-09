@@ -19,11 +19,10 @@ internal data class TolketSimulering(
     }
 
     private fun hentPerioderMedUtbetaling(): List<TolketPeriodeMedUtbetalinger> {
-        require(!erSimuleringUtenUtbetalinger()) { "Skal bare kalles hvis simulering inneholder utbetalinger" }
-        return tolketPerioder.map {
+        return tolketPerioder.mapNotNull {
             when (it) {
                 is TolketPeriodeMedUtbetalinger -> it
-                is TolketPeriodeUtenUtbetalinger -> throw IllegalStateException("Skal bare kalles hvis simulering inneholder utbetalinger")
+                is TolketPeriodeUtenUtbetalinger -> null
             }
         }
     }
@@ -35,12 +34,7 @@ internal data class TolketSimulering(
         }
     }.minAndMaxOf()
 
-    val månederMedSimuleringsresultat = tolketPerioder.mapNotNull {
-        when (it) {
-            is TolketPeriodeMedUtbetalinger -> it.måned
-            is TolketPeriodeUtenUtbetalinger -> null // inneholder aldri simuleringsresultat
-        }
-    }
+    val månederMedSimuleringsresultat = hentPerioderMedUtbetaling().map { it.måned }
 
     fun harFeilutbetalinger() = hentFeilutbetalteBeløp().sum() > 0
 
@@ -50,11 +44,11 @@ internal data class TolketSimulering(
      * satt til simuleringsperioden some er brukt, men denne vil ikke inneholde noen utbetalinger.
      * OBS - i motsetning til perioder med utbetalinger vil denne perioden kunne være lenger enn 1 mnd.
      */
-    fun erSimuleringUtenUtbetalinger(): Boolean {
-        return tolketPerioder.count() == 1 && tolketPerioder.all { it is TolketPeriodeUtenUtbetalinger }
+    fun erAlleMånederUtenUtbetaling(): Boolean {
+        return tolketPerioder.all { it is TolketPeriodeUtenUtbetalinger }
     }
     fun kontooppstilling(): Map<Periode, Kontooppstilling> {
-        return if (erSimuleringUtenUtbetalinger()) {
+        return if (erAlleMånederUtenUtbetaling()) {
             mapOf(
                 periode to Kontooppstilling(
                     simulertUtbetaling = Kontobeløp.Debet(0),
@@ -72,7 +66,7 @@ internal data class TolketSimulering(
     }
 
     fun hentUtbetalteBeløp(): Månedsbeløp {
-        return if (erSimuleringUtenUtbetalinger()) {
+        return if (erAlleMånederUtenUtbetaling()) {
             Månedsbeløp(emptyList())
         } else {
             return Månedsbeløp(
@@ -84,7 +78,7 @@ internal data class TolketSimulering(
     }
 
     fun hentFeilutbetalteBeløp(): Månedsbeløp {
-        return if (erSimuleringUtenUtbetalinger()) {
+        return if (erAlleMånederUtenUtbetaling()) {
             Månedsbeløp(emptyList())
         } else {
             Månedsbeløp(
@@ -96,7 +90,7 @@ internal data class TolketSimulering(
     }
 
     fun hentUtbetalingSomSimuleres(): Månedsbeløp {
-        return if (erSimuleringUtenUtbetalinger()) {
+        return if (erAlleMånederUtenUtbetaling()) {
             Månedsbeløp(emptyList())
         } else {
             Månedsbeløp(
@@ -108,7 +102,7 @@ internal data class TolketSimulering(
     }
 
     fun hentTilUtbetaling(): Månedsbeløp {
-        return if (erSimuleringUtenUtbetalinger()) {
+        return if (erAlleMånederUtenUtbetaling()) {
             Månedsbeløp(emptyList())
         } else {
             Månedsbeløp(
@@ -120,7 +114,7 @@ internal data class TolketSimulering(
     }
 
     fun hentTotalUtbetaling(): Månedsbeløp {
-        return if (erSimuleringUtenUtbetalinger()) {
+        return if (erAlleMånederUtenUtbetaling()) {
             Månedsbeløp(emptyList())
         } else {
             Månedsbeløp(
@@ -147,7 +141,7 @@ internal data class TolketSimulering(
     }
 
     fun periodeOppsummering(): List<PeriodeOppsummering> {
-        return if (erSimuleringUtenUtbetalinger()) {
+        return if (erAlleMånederUtenUtbetaling()) {
             listOf(
                 PeriodeOppsummering(
                     periode = periode,
