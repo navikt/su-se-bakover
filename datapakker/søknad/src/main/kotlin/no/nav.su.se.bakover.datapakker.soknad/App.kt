@@ -62,6 +62,7 @@ fun hentSøknader(datasource: DataSource): List<DatapakkeSøknad> {
                         ),
                     )
                 }
+                logger.info("totalt antall søknader: ${mutableList.size}")
                 mutableList.toList()
             }
         }
