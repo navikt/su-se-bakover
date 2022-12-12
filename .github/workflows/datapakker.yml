@@ -2,7 +2,11 @@
 on:
   push:
     branches:
+      - master
       - datapakker
+    paths:
+      - '.github/workflows/datapakker.yml'
+      - 'datapakker/**'
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}/datapakker/soknad:${{ github.sha }}

@@ -6,6 +6,9 @@ on:
   push:
     branches:
       - master
+    paths-ignore:
+      - '.github/workflows/datapakker.yml'
+      - 'datapakker/**'
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}/su-se-bakover:${{ github.sha }}

@@ -13,5 +13,5 @@ spec:
     enabled: true
     paths:
       - mountPath: /var/run/secrets/nais.io/vault
-        kvPath: /secret/supstonad/dev
+        kvPath: /secret/supstonad/{{ secret_env }}
   webproxy: true
