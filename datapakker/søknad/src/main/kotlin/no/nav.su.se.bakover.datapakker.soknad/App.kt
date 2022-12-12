@@ -5,7 +5,7 @@ import com.google.cloud.bigquery.BigQuery
 import com.google.cloud.bigquery.BigQueryOptions
 import com.google.cloud.bigquery.FormatOptions
 import com.google.cloud.bigquery.JobId
-import com.google.cloud.bigquery.JobStatistics.LoadStatistics
+import com.google.cloud.bigquery.JobStatistics
 import com.google.cloud.bigquery.TableId
 import com.google.cloud.bigquery.WriteChannelConfiguration
 import no.nav.su.se.bakover.common.toTidspunkt
@@ -25,13 +25,16 @@ private val logger = LoggerFactory.getLogger("DatapakkerSøknad")
 private const val location = "europe-north1"
 
 fun main() {
+    val databseUrl = System.getenv("DATABASE_JDBC_URL")
     val søknader = VaultPostgres(
-        jdbcUrl = "jdbc:postgresql://b27dbvl009.preprod.local:5432/supstonad-db-dev",
-        vaultMountPath = "postgresql/preprod-fss/",
-        databaseName = "supstonad-db-dev",
+        jdbcUrl = databseUrl,
+        vaultMountPath = System.getenv("VAULT_MOUNTPATH"),
+        databaseName = System.getenv("DATABASE_NAME"),
     ).getDatasource(Postgres.Role.ReadOnly).let {
+        logger.info("Startet database med url: $databseUrl")
         it.use { hentSøknader(it) }
     }
+
     writeToBigQuery(søknader = søknader)
 }
 
@@ -62,7 +65,6 @@ fun hentSøknader(datasource: DataSource): List<DatapakkeSøknad> {
                         ),
                     )
                 }
-                logger.info("totalt antall søknader: ${mutableList.size}")
                 mutableList.toList()
             }
         }
@@ -71,7 +73,7 @@ fun hentSøknader(datasource: DataSource): List<DatapakkeSøknad> {
 
 fun writeToBigQuery(
     jsonKey: InputStream = FileInputStream(File("/var/run/secrets/nais.io/vault/bigquery")),
-    project: String = "supstonad-dev-0e48",
+    project: String = System.getenv("gcp-project"),
     dataset: String = "soknad",
     table: String = "papirVsDigital",
     søknader: List<DatapakkeSøknad>,
@@ -97,5 +99,5 @@ fun writeToBigQuery(
         it.job.waitFor()
     }
 
-    println(job.getStatistics<LoadStatistics>().toString())
+    logger.info("job statistikk: ${job.getStatistics<JobStatistics.LoadStatistics>()}")
 }
