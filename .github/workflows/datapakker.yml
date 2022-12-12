@@ -52,7 +52,7 @@ jobs:
   deploy_to_dev:
     name: Deploy to dev
     needs: build
-    if: github.ref == 'refs/heads/datapakker'
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -64,9 +64,9 @@ jobs:
           VARS: datapakker/søknad/nais-dev.json
 
   deploy_to_prod:
-    name: Deploy to dev
+    name: Deploy to prod
     needs: build
-    if: github.ref == 'refs/heads/datapakker'
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
