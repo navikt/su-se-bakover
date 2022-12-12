@@ -74,7 +74,7 @@ fun hentSøknader(datasource: DataSource): List<DatapakkeSøknad> {
 
 fun deleteAndWriteToBigQuery(
     jsonKey: InputStream = FileInputStream(File("/var/run/secrets/nais.io/vault/bigquery")),
-    project: String = System.getenv("gcp-project"),
+    project: String = System.getenv("GCP_PROJECT"),
     dataset: String = "soknad",
     table: String = "papirVsDigital",
     søknader: List<DatapakkeSøknad>,

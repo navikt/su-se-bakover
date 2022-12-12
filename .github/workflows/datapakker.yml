@@ -61,3 +61,4 @@ jobs:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-fss
           RESOURCE: datapakker/søknad/nais.yml
+          VARS: datapakker/søknad/nais-dev.json
