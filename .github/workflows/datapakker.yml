@@ -62,3 +62,17 @@ jobs:
           CLUSTER: dev-fss
           RESOURCE: datapakker/søknad/nais.yml
           VARS: datapakker/søknad/nais-dev.json
+
+  deploy_to_prod:
+    name: Deploy to dev
+    needs: build
+    if: github.ref == 'refs/heads/datapakker'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: nais/deploy/actions/deploy@v1
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: prod-fss
+          RESOURCE: datapakker/søknad/nais.yml
+          VARS: datapakker/søknad/nais-prod.json
