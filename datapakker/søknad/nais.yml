@@ -16,7 +16,7 @@ spec:
         kvPath: /secret/supstonad/{{ secret_env }}
   webproxy: true
   env:
-    { { #each env}}
-        - name: {{@key } }
+    {{#each env}}
+       - name: {{@key}}
     value: "{{this}}"
     {{/each}}
