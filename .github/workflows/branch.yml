@@ -8,6 +8,9 @@ on:
       - '**'        # matches every branch
       - '!master'   # excludes master
       - '!main'     # excludes main (will probably replace master)
+    paths-ignore:
+      - '.github/workflows/datapakker.yml'
+      - 'datapakker/**'
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}/su-se-bakover:${{ github.sha }}
