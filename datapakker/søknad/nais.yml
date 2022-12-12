@@ -15,3 +15,8 @@ spec:
       - mountPath: /var/run/secrets/nais.io/vault
         kvPath: /secret/supstonad/{{ secret_env }}
   webproxy: true
+  env:
+    { { #each env}}
+        - name: {{@key } }
+    value: "{{this}}"
+    {{/each}}

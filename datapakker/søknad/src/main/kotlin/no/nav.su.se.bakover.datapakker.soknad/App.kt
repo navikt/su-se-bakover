@@ -26,13 +26,13 @@ private val logger = LoggerFactory.getLogger("DatapakkerSøknad")
 private const val location = "europe-north1"
 
 fun main() {
-    val databseUrl = System.getenv("DATABASE_JDBC_URL")
+    val databaseUrl = System.getenv("DATABASE_JDBC_URL")
     val søknader = VaultPostgres(
-        jdbcUrl = databseUrl,
+        jdbcUrl = databaseUrl,
         vaultMountPath = System.getenv("VAULT_MOUNTPATH"),
         databaseName = System.getenv("DATABASE_NAME"),
     ).getDatasource(Postgres.Role.ReadOnly).let {
-        logger.info("Startet database med url: $databseUrl")
+        logger.info("Startet database med url: $databaseUrl")
         it.use { hentSøknader(it) }
     }
 
