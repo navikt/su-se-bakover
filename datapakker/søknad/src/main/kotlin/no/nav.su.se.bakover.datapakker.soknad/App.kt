@@ -6,6 +6,7 @@ import com.google.cloud.bigquery.BigQueryOptions
 import com.google.cloud.bigquery.FormatOptions
 import com.google.cloud.bigquery.JobId
 import com.google.cloud.bigquery.JobStatistics
+import com.google.cloud.bigquery.QueryJobConfiguration
 import com.google.cloud.bigquery.TableId
 import com.google.cloud.bigquery.WriteChannelConfiguration
 import no.nav.su.se.bakover.common.toTidspunkt
@@ -35,7 +36,7 @@ fun main() {
         it.use { hentSøknader(it) }
     }
 
-    writeToBigQuery(søknader = søknader)
+    deleteAndWriteToBigQuery(søknader = søknader)
 }
 
 fun hentSøknader(datasource: DataSource): List<DatapakkeSøknad> {
@@ -71,7 +72,7 @@ fun hentSøknader(datasource: DataSource): List<DatapakkeSøknad> {
     }
 }
 
-fun writeToBigQuery(
+fun deleteAndWriteToBigQuery(
     jsonKey: InputStream = FileInputStream(File("/var/run/secrets/nais.io/vault/bigquery")),
     project: String = System.getenv("gcp-project"),
     dataset: String = "soknad",
@@ -80,9 +81,14 @@ fun writeToBigQuery(
 ) {
     val credentials = GoogleCredentials.fromStream(jsonKey)
 
-    val bq: BigQuery =
-        BigQueryOptions.newBuilder().setCredentials(credentials).setLocation(location).setProjectId(project)
-            .build().service
+    val bq = BigQueryOptions
+        .newBuilder()
+        .setCredentials(credentials)
+        .setLocation(location)
+        .setProjectId(project)
+        .build().service
+
+    deleteAll(bq)
 
     val jobId = JobId.newBuilder().setLocation(location).setJob(UUID.randomUUID().toString()).build()
 
@@ -100,4 +106,17 @@ fun writeToBigQuery(
     }
 
     logger.info("job statistikk: ${job.getStatistics<JobStatistics.LoadStatistics>()}")
+}
+
+fun deleteAll(
+    bq: BigQuery,
+    dataset: String = "soknad",
+    table: String = "papirVsDigital",
+) {
+    val query = QueryJobConfiguration.newBuilder(
+        "DELETE FROM `$dataset.$table` WHERE true",
+    ).setUseLegacySql(false).build()
+
+    val result = bq.query(query)
+    logger.info("slettet antall linjer ${result.totalRows}")
 }
