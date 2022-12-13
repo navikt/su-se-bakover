@@ -24,11 +24,14 @@ spec:
       for: 1s
       description: "su-se-bakover har fått en ny error i loggen siste 15 min"
       action: "Det er logget en melding i Kibana. Sjekk logger her: `{{LOGS_URL}}`"
-    - alert: su-se-bakover-ny-søknad-feilet
-      expr: '(2 * sum(ny_soknad_counter_total{type="PERSISTERT"}) - sum(ny_soknad_counter_total{type="OPPGAVE"}) - sum(ny_soknad_counter_total{type="JOURNALFØRT"})) > 0'
-      for: 1m
-      description: "Vi har sannsynligvis ikke klart å journalføre / lage oppgave for ny søknad."
-      action: "`Se: `https://logs.adeo.no`"
+    - alert: su-datapakke-soknad-error-logg
+      expr: 'sum(max_over_time(logd_messages_total{log_app="su-datapakke-soknad",log_level="Error"}[15m])
+              or vector(0)) -
+             sum(max_over_time(logd_messages_total{log_app="su-datapakke-soknad",log_level="Error"}[15m]
+             offset 15m) or vector(0)) > 0'
+      for: 1s
+      description: "su-datapakke-soknad har fått en ny error i loggen siste 15 min"
+      action: "Det er logget en melding i Kibana. Sjekk logger her: `{{LOGS_URL}}`"
     - alert: su-se-bakover-pods-available
       expr: sum(kube_deployment_status_replicas_available{deployment="su-se-bakover"}) < 1
       for: 1m
