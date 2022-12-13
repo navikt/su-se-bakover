@@ -11,7 +11,7 @@ import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
-internal class VedtakServiceImpl(
+class VedtakServiceImpl(
     private val vedtakRepo: VedtakRepo,
     private val clock: Clock,
 ) : VedtakService {

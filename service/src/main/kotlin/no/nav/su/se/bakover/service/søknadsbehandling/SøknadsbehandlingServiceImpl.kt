@@ -89,7 +89,7 @@ import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
 
-internal class SøknadsbehandlingServiceImpl(
+class SøknadsbehandlingServiceImpl(
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
     private val utbetalingService: UtbetalingService,
     private val personService: PersonService,

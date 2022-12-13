@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
 
-internal class LukkSøknadServiceImpl(
+class LukkSøknadServiceImpl(
     private val søknadService: SøknadService,
     private val sakService: SakService,
     private val brevService: BrevService,

@@ -29,7 +29,7 @@ interface FerdigstillVedtakService {
     ): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit>
 }
 
-internal class FerdigstillVedtakServiceImpl(
+class FerdigstillVedtakServiceImpl(
     private val brevService: BrevService,
     private val oppgaveService: OppgaveService,
     private val vedtakRepo: VedtakRepo,
