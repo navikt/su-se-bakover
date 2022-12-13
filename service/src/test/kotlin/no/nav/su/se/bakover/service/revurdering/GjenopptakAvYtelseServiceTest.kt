@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
@@ -222,9 +221,10 @@ internal class GjenopptakAvYtelseServiceTest {
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
             tilOgMed = år(2021).tilOgMed,
         )
+        val clock = tikkendeFixedClock()
         val (sak, revurderingGjenopptak) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
             periodeForStans = periode,
-            clock = tikkendeFixedClock,
+            clock = clock,
         )
 
         ServiceMocks(
@@ -237,12 +237,12 @@ internal class GjenopptakAvYtelseServiceTest {
                         sak,
                         invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
                         invocation.getArgument(1) as Periode,
-                        tikkendeFixedClock,
+                        clock,
                     )
                 }.whenever(it).simulerUtbetaling(any(), any())
                 on { klargjørUtbetaling(any(), any()) } doReturn UtbetalingFeilet.Protokollfeil.left()
             },
-            clock = tikkendeFixedClock,
+            clock = clock,
         ).let { serviceAndMocks ->
             val response = serviceAndMocks.revurderingService.iverksettGjenopptakAvYtelse(
                 revurderingId = revurderingGjenopptak.id,
@@ -424,16 +424,17 @@ internal class GjenopptakAvYtelseServiceTest {
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
             tilOgMed = år(2021).tilOgMed,
         )
+        val clock = tikkendeFixedClock()
         val (sak, simulertGjenopptak) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
             periodeForStans = periode,
-            clock = tikkendeFixedClock,
+            clock = clock,
         )
 
         val simulertUtbetaling = simulerGjenopptak(
             sak = sak,
             gjenopptak = simulertGjenopptak,
             behandler = NavIdentBruker.Attestant(simulertGjenopptak.saksbehandler.navIdent),
-            clock = tikkendeFixedClock,
+            clock = clock,
         ).getOrFail()
 
         val callback =
@@ -460,7 +461,7 @@ internal class GjenopptakAvYtelseServiceTest {
             revurderingRepo = mock {
                 doNothing().whenever(it).lagre(any(), any())
             },
-            clock = tikkendeFixedClock,
+            clock = clock,
         ).let { serviceAndMocks ->
             serviceAndMocks.revurderingService.addObserver(observerMock)
             val response = serviceAndMocks.revurderingService.iverksettGjenopptakAvYtelse(
@@ -491,7 +492,7 @@ internal class GjenopptakAvYtelseServiceTest {
             val expectedVedtak = VedtakSomKanRevurderes.from(
                 revurdering = response,
                 utbetalingId = simulertUtbetaling.id,
-                clock = tikkendeFixedClock,
+                clock = clock,
             )
             verify(serviceAndMocks.vedtakRepo).lagreITransaksjon(
                 vedtak = argThat { vedtak ->
@@ -513,7 +514,7 @@ internal class GjenopptakAvYtelseServiceTest {
                     VedtakSomKanRevurderes.from(
                         revurdering = response,
                         utbetalingId = simulertUtbetaling.id,
-                        clock = tikkendeFixedClock,
+                        clock = clock,
                     ),
                     VedtakSomKanRevurderes::id,
                     VedtakSomKanRevurderes::opprettet,

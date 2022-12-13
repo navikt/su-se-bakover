@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
@@ -188,7 +189,10 @@ internal class LagBrevutkastForRevurderingTest {
 
     @Test
     fun `kan ikke lage brev med status beregnet`() {
-        val beregnget = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
+        val clock = tikkendeFixedClock()
+        val beregnget = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+            clock = clock,
+        ).second
 
         assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {
             RevurderingServiceMocks(

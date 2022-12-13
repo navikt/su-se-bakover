@@ -81,7 +81,7 @@ internal class ReguleringServiceImplTest {
 
     @Test
     fun `regulerer alle saker`() {
-        val clock = tikkendeFixedClock
+        val clock = tikkendeFixedClock()
         val sak = vedtakSøknadsbehandlingIverksattInnvilget(
             clock = clock,
         ).first
@@ -462,7 +462,7 @@ internal class ReguleringServiceImplTest {
         sak: Sak,
         lagFeilutbetaling: Boolean = false,
         scrambleUtbetaling: Boolean = true,
-        clock: Clock = tikkendeFixedClock,
+        clock: Clock = tikkendeFixedClock(),
     ): ReguleringServiceImpl {
         val _sak = if (scrambleUtbetaling) {
             sak.copy(

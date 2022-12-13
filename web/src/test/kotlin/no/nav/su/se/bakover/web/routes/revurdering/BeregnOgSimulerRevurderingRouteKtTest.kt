@@ -21,13 +21,13 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.domain.revurdering.RevurderingService
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulerUtbetaling
+import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
@@ -83,7 +83,9 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
 
     @Test
     fun `kan opprette beregning og simulering for revurdering`() {
+        val clock = tikkendeFixedClock()
         val (sak, beregnetRevurdering) = opprettetRevurdering(
+            clock = clock,
             vilkårOverrides = listOf(
                 innvilgetUførevilkår(
                     forventetInntekt = 12000,
@@ -92,10 +94,10 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
         ).let { (sak, revurdering) ->
             sak to revurdering.beregn(
                 eksisterendeUtbetalinger = sak.utbetalinger,
-                clock = fixedClock,
+                clock = clock,
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
-                    clock = fixedClock,
+                    clock = clock,
                 ).getOrFail(),
                 satsFactory = satsFactoryTestPåDato(),
             ).getOrFail()
@@ -105,11 +107,12 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             is BeregnetRevurdering.Innvilget -> {
                 beregnetRevurdering.simuler(
                     saksbehandler = saksbehandler,
-                    clock = fixedClock,
+                    clock = clock,
                     simuler = { _, _ ->
                         simulerUtbetaling(
                             sak = sak,
                             revurdering = beregnetRevurdering,
+                            clock = clock,
                         ).map {
                             it.simulering
                         }

@@ -59,12 +59,13 @@ internal class StønadsstatistikkTest {
     @Test
     fun `Gjenopptak sender med riktig månedsbeløp`() {
         val periode = januar(2021)
+        val clock = tikkendeFixedClock()
         val (sak, vedtak) = vedtakIverksattGjenopptakAvYtelseFraIverksattStans(
             periode = periode,
             sakOgVedtakSomKanRevurderes = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
                 periode = periode,
                 sakOgVedtakSomKanRevurderes = iverksattSøknadsbehandlingUføre(
-                    clock = tikkendeFixedClock,
+                    clock = clock,
                     stønadsperiode = Stønadsperiode.create(periode),
                     customVilkår = listOf(
                         innvilgetUførevilkår(
@@ -74,9 +75,9 @@ internal class StønadsstatistikkTest {
                         ),
                     ),
                 ).let { Pair(it.first, it.third as VedtakSomKanRevurderes) },
-                clock = tikkendeFixedClock,
+                clock = clock,
             ),
-            clock = tikkendeFixedClock,
+            clock = clock,
         )
         assert(
             event = StatistikkEvent.Stønadsvedtak(vedtak) { sak },

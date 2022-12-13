@@ -129,7 +129,7 @@ class RevurderingSimulerTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-            clock = TikkendeKlokke(1.august(2021).fixedClock()),
+            clock = clock,
         ).let { (sak, beregnet) ->
             beregnet.shouldBeType<BeregnetRevurdering.Innvilget>().also {
                 it.simuler(
