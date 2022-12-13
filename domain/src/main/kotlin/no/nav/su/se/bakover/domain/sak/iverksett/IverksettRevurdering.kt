@@ -55,7 +55,7 @@ fun Sak.iverksettRevurdering(
 
 interface IverksettRevurderingResponse<out T : VedtakSomKanRevurderes.EndringIYtelse> {
     val sak: Sak
-    val vedtak: VedtakSomKanRevurderes.EndringIYtelse
+    val vedtak: T
     val utbetaling: Utbetaling.SimulertUtbetaling
     val statistikkhendelser: List<StatistikkEvent>
 
@@ -65,7 +65,7 @@ interface IverksettRevurderingResponse<out T : VedtakSomKanRevurderes.EndringIYt
     fun ferdigstillIverksettelseITransaksjon(
         sessionFactory: SessionFactory,
         klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
-        lagreVedtak: (vedtak: VedtakSomKanRevurderes.EndringIYtelse, tx: TransactionContext) -> Unit,
+        lagreVedtak: (vedtak: T, tx: TransactionContext) -> Unit,
         lagreRevurdering: (revurdering: IverksattRevurdering, tx: TransactionContext) -> Unit,
         annullerKontrollsamtale: (sakId: UUID, tx: TransactionContext) -> Either<UgyldigStatusovergang, Unit>,
         statistikkObservers: () -> List<StatistikkEventObserver>,
