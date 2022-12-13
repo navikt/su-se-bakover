@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service
+package no.nav.su.se.bakover.web.services
 
 import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
+import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeServiceImpl
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageServiceImpl

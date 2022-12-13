@@ -39,9 +39,6 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
-import no.nav.su.se.bakover.service.AccessCheckProxy
-import no.nav.su.se.bakover.service.ServiceBuilder
-import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
@@ -50,6 +47,9 @@ import no.nav.su.se.bakover.test.persistence.migratedDb
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.web.services.AccessCheckProxy
+import no.nav.su.se.bakover.web.services.ServiceBuilder
+import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.stubs.JwtStub
 import no.nav.su.se.bakover.web.stubs.asBearerToken
 import org.mockito.kotlin.mock

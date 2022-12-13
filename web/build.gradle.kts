@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":service"))
     implementation(project(":database"))
     implementation(project(":client"))
+    implementation(project(":statistikk"))
     implementation(project(":hendelse:domain"))
     implementation(project(":hendelse:infrastructure"))
     implementation(project(":utenlandsopphold:application"))

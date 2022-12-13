@@ -14,7 +14,7 @@ interface SendPåminnelserOmNyStønadsperiodeService {
     fun sendPåminnelser(): SendPåminnelseNyStønadsperiodeContext
 }
 
-internal class SendPåminnelserOmNyStønadsperiodeServiceImpl(
+class SendPåminnelserOmNyStønadsperiodeServiceImpl(
     private val clock: Clock,
     private val sakRepo: SakRepo,
     private val sessionFactory: SessionFactory,

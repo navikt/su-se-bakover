@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
 import java.time.Clock
 import java.time.LocalDate
 
-internal class AvstemmingServiceImpl(
+class AvstemmingServiceImpl(
     private val repo: AvstemmingRepo,
     private val publisher: AvstemmingPublisher,
     private val clock: Clock,

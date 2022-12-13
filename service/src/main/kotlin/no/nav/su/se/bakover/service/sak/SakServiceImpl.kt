@@ -39,7 +39,7 @@ import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
-internal class SakServiceImpl(
+class SakServiceImpl(
     private val sakRepo: SakRepo,
     private val clock: Clock,
     private val dokumentRepo: DokumentRepo,

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service
+package no.nav.su.se.bakover.web.services
 
 import no.nav.su.se.bakover.common.toggle.domain.ToggleClient
 import no.nav.su.se.bakover.domain.brev.BrevService
@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService

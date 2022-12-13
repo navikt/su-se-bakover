@@ -26,7 +26,7 @@ interface UtløptFristForKontrollsamtaleService {
     fun håndterUtløpsdato(dato: LocalDate): UtløptFristForKontrollsamtaleContext
 }
 
-internal class UtløptFristForKontrollsamtaleServiceImpl(
+class UtløptFristForKontrollsamtaleServiceImpl(
     private val sakService: SakService,
     private val journalpostClient: JournalpostClient,
     private val kontrollsamtaleRepo: KontrollsamtaleRepo,
