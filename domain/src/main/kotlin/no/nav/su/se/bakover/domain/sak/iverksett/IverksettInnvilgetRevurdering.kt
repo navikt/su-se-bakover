@@ -1,9 +1,11 @@
 package no.nav.su.se.bakover.domain.sak.iverksett
 
 import arrow.core.Either
+import arrow.core.Nel
 import arrow.core.flatMap
 import arrow.core.getOrHandle
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -38,6 +40,8 @@ internal fun Sak.iverksettInnvilgetRevurdering(
     clock: Clock,
     simuler: (utbetaling: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
 ): Either<KunneIkkeIverksetteRevurdering, IverksettInnvilgetRevurderingResponse> {
+    require(this.revurderinger.contains(revurdering))
+
     if (avventerKravgrunnlag()) {
         return KunneIkkeIverksetteRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving.left()
     }
@@ -62,6 +66,7 @@ internal fun Sak.iverksettInnvilgetRevurdering(
                 Sakstype.ALDER -> {
                     null
                 }
+
                 Sakstype.UFØRE -> {
                     iverksattRevurdering.vilkårsvurderinger.uføreVilkår()
                         .getOrHandle { throw IllegalStateException("Revurdering uføre: ${iverksattRevurdering.id} mangler uføregrunnlag") }
@@ -100,13 +105,14 @@ internal fun Sak.iverksettInnvilgetRevurdering(
         }
     }
 }
+
 data class IverksettInnvilgetRevurderingResponse(
     override val sak: Sak,
     override val vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering,
     override val utbetaling: Utbetaling.SimulertUtbetaling,
 
 ) : IverksettRevurderingResponse<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering> {
-    override val statistikkhendelser: List<StatistikkEvent> = listOf(
+    override val statistikkhendelser: Nel<StatistikkEvent> = nonEmptyListOf(
         StatistikkEvent.Stønadsvedtak(vedtak) { sak },
         StatistikkEvent.Behandling.Revurdering.Iverksatt.Innvilget(vedtak),
     )
@@ -114,7 +120,7 @@ data class IverksettInnvilgetRevurderingResponse(
     override fun ferdigstillIverksettelseITransaksjon(
         sessionFactory: SessionFactory,
         klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
-        lagreVedtak: (vedtak: VedtakSomKanRevurderes.EndringIYtelse, tx: TransactionContext) -> Unit,
+        lagreVedtak: (vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering, tx: TransactionContext) -> Unit,
         lagreRevurdering: (revurdering: IverksattRevurdering, tx: TransactionContext) -> Unit,
         annullerKontrollsamtale: (sakId: UUID, tx: TransactionContext) -> Either<UgyldigStatusovergang, Unit>,
         statistikkObservers: () -> List<StatistikkEventObserver>,
@@ -146,10 +152,7 @@ data class IverksettInnvilgetRevurderingResponse(
                             KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeUtbetale(feil),
                         )
                     }
-
-                statistikkhendelser.forEach {
-                    statistikkObservers().notify(it)
-                }
+                statistikkObservers().notify(statistikkhendelser)
 
                 vedtak.behandling
             }
@@ -159,6 +162,7 @@ data class IverksettInnvilgetRevurderingResponse(
                     log.error("Feil ved iverksetting av revurdering ${vedtak.behandling.id}", it)
                     it.feil
                 }
+
                 else -> {
                     log.error("Ukjent feil ved iverksetting av revurdering ${vedtak.behandling.id}", it)
                     KunneIkkeFerdigstilleIverksettelsestransaksjon.LagringFeilet
