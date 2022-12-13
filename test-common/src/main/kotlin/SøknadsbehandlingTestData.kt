@@ -87,10 +87,12 @@ fun søknadsbehandlingVilkårsvurdertInnvilget(
         stønadsperiode.periode,
     ),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    clock: Clock = fixedClock,
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Innvilget> {
     return søknadsbehandlingVilkårsvurdertUavklart(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
+        clock = clock,
     ).let { (sak, søknadsbehandling) ->
         søknadsbehandling.copy(
             grunnlagsdata = grunnlagsdata,
@@ -118,10 +120,12 @@ fun søknadsbehandlingVilkårsvurdertAvslag(
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    clock: Clock = fixedClock,
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Avslag> {
     return søknadsbehandlingVilkårsvurdertUavklart(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
+        clock = clock,
     ).let { (sak, søknadsbehandling) ->
         søknadsbehandling.copy(
             grunnlagsdata = grunnlagsdata,
@@ -216,7 +220,7 @@ fun søknadsbehandlingBeregnetAvslag(
 }
 
 fun søknadsbehandlingSimulert(
-    clock: Clock = tikkendeFixedClock,
+    clock: Clock = tikkendeFixedClock(),
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
@@ -316,6 +320,7 @@ fun søknadsbehandlingTilAttesteringAvslagMedBeregning(
         ),
     ),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    clock: Clock = fixedClock,
 ): Pair<Sak, Søknadsbehandling.TilAttestering.Avslag.MedBeregning> {
     return søknadsbehandlingBeregnetAvslag(
         saksnummer = saksnummer,
@@ -323,6 +328,7 @@ fun søknadsbehandlingTilAttesteringAvslagMedBeregning(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         saksbehandler = saksbehandler,
+        clock = clock,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling.tilAttestering(
             saksbehandler = saksbehandler,
@@ -937,7 +943,7 @@ fun simulertSøknadsbehandlingUføre(
 }
 
 fun simulertSøknadsbehandling(
-    clock: Clock = tikkendeFixedClock,
+    clock: Clock = tikkendeFixedClock(),
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
     customGrunnlag: List<Grunnlag> = emptyList(),
@@ -989,7 +995,7 @@ fun simulertSøknadsbehandling(
 }
 
 fun beregnetSøknadsbehandlingUføre(
-    clock: Clock = tikkendeFixedClock,
+    clock: Clock = tikkendeFixedClock(),
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
     customGrunnlag: List<Grunnlag> = emptyList(),

@@ -55,7 +55,7 @@ internal class TilbakekrevingConsumerTest {
     @Test
     fun `kaster exception dersom kravgrunnlag ikke stemmer overens med tilbakekrevingsbehandlingen`() {
         val (_, vedtak) = vedtakRevurdering(
-            clock = tikkendeFixedClock,
+            clock = tikkendeFixedClock(),
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt1000(periode = år(2021)),
             ),
@@ -84,7 +84,7 @@ internal class TilbakekrevingConsumerTest {
     @Test
     fun `happy path`() {
         val (_, vedtak) = vedtakRevurdering(
-            clock = tikkendeFixedClock,
+            clock = tikkendeFixedClock(),
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt1000(periode = år(2021)),
             ),

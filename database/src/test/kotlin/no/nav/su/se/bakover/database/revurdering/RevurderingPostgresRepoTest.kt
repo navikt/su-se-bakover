@@ -105,6 +105,7 @@ internal class RevurderingPostgresRepoTest {
 
                 val opprettet = opprettetRevurdering(
                     sakOgVedtakSomKanRevurderes = sak to vedtak as VedtakSomKanRevurderes.EndringIYtelse,
+                    clock = tdh.clock,
                 ).second.copy(id = revurderingId)
                 tdh.revurderingRepo.lagre(opprettet).also {
                     tdh.revurderingRepo.hent(revurderingId) shouldBe opprettet.also {
@@ -126,6 +127,7 @@ internal class RevurderingPostgresRepoTest {
                     vilkårOverrides = listOf(
                         utenlandsoppholdAvslag(),
                     ),
+                    clock = tdh.clock,
                 ).second.shouldBeType<BeregnetRevurdering.Opphørt>()
                 tdh.revurderingRepo.lagre(beregnetOpphørt).also {
                     tdh.revurderingRepo.hent(beregnetOpphørt.id) shouldBe beregnetOpphørt.also { revurdering ->
@@ -135,6 +137,7 @@ internal class RevurderingPostgresRepoTest {
 
                 val simulertInnvilget = simulertRevurdering(
                     sakOgVedtakSomKanRevurderes = sak to vedtak,
+                    clock = tdh.clock,
                 ).second.shouldBeType<SimulertRevurdering.Innvilget>()
                 tdh.revurderingRepo.lagre(simulertInnvilget).also {
                     tdh.revurderingRepo.hent(simulertInnvilget.id) shouldBe simulertInnvilget.also {
@@ -148,6 +151,7 @@ internal class RevurderingPostgresRepoTest {
                         utenlandsoppholdAvslag(),
                     ),
                     utbetalingerKjørtTilOgMed = 30.april(2021),
+                    clock = tdh.clock,
                 ).second.shouldBeType<SimulertRevurdering.Opphørt>()
                 tdh.revurderingRepo.lagre(simulertOpphørt).also {
                     tdh.revurderingRepo.hent(simulertOpphørt.id) shouldBe simulertOpphørt.also {
@@ -159,6 +163,7 @@ internal class RevurderingPostgresRepoTest {
 
                 val tilAttesteringInnvilget = revurderingTilAttestering(
                     sakOgVedtakSomKanRevurderes = sak to vedtak,
+                    clock = tdh.clock,
                 ).second.shouldBeType<RevurderingTilAttestering.Innvilget>()
                 tdh.revurderingRepo.lagre(tilAttesteringInnvilget).also {
                     tdh.revurderingRepo.hent(tilAttesteringInnvilget.id) shouldBe tilAttesteringInnvilget.also {
@@ -172,6 +177,7 @@ internal class RevurderingPostgresRepoTest {
                         utenlandsoppholdAvslag(),
                     ),
                     utbetalingerKjørtTilOgMed = 30.april(2021),
+                    clock = tdh.clock,
                 ).second.shouldBeType<RevurderingTilAttestering.Opphørt>()
                 tdh.revurderingRepo.lagre(tilAttesteringOpphørt).also {
                     tdh.revurderingRepo.hent(tilAttesteringOpphørt.id) shouldBe tilAttesteringOpphørt.also { revurdering ->
@@ -183,6 +189,7 @@ internal class RevurderingPostgresRepoTest {
 
                 val underkjentInnvilget = revurderingUnderkjent(
                     sakOgVedtakSomKanRevurderes = sak to vedtak,
+                    clock = tdh.clock,
                 ).second.shouldBeType<UnderkjentRevurdering.Innvilget>()
                 tdh.revurderingRepo.lagre(underkjentInnvilget).also {
                     tdh.revurderingRepo.hent(underkjentInnvilget.id) shouldBe underkjentInnvilget.also {
@@ -196,6 +203,7 @@ internal class RevurderingPostgresRepoTest {
                         utenlandsoppholdAvslag(),
                     ),
                     utbetalingerKjørtTilOgMed = 30.april(2021),
+                    clock = tdh.clock,
                 ).second.shouldBeType<UnderkjentRevurdering.Opphørt>()
                 tdh.revurderingRepo.lagre(underkjentOpphørt).also {
                     tdh.revurderingRepo.hent(underkjentOpphørt.id) shouldBe underkjentOpphørt.also { revurdering ->
@@ -207,6 +215,7 @@ internal class RevurderingPostgresRepoTest {
 
                 val iverksattInnvilget = iverksattRevurdering(
                     sakOgVedtakSomKanRevurderes = sak to vedtak,
+                    clock = tdh.clock,
                 ).second.shouldBeType<IverksattRevurdering.Innvilget>()
                 tdh.revurderingRepo.lagre(iverksattInnvilget).also {
                     tdh.revurderingRepo.hent(iverksattInnvilget.id) shouldBe iverksattInnvilget.also {
@@ -220,6 +229,7 @@ internal class RevurderingPostgresRepoTest {
                         utenlandsoppholdAvslag(),
                     ),
                     utbetalingerKjørtTilOgMed = 30.april(2021),
+                    clock = tdh.clock,
                 ).second.shouldBeType<IverksattRevurdering.Opphørt>()
                 tdh.revurderingRepo.lagre(iverksattOpphørt).also {
                     tdh.revurderingRepo.hent(iverksattOpphørt.id) shouldBe iverksattOpphørt.also { revurdering ->

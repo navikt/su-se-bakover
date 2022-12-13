@@ -63,8 +63,9 @@ internal class RevurderingBeregnOgSimulerTest {
 
     @Test
     fun `legger ved feilmeldinger for tilfeller som ikke støttes`() {
+        val clock = tikkendeFixedClock()
         val (sak, opprettet) = opprettetRevurdering(
-            clock = tikkendeFixedClock,
+            clock = clock,
             vilkårOverrides = listOf(
                 avslåttUførevilkårUtenGrunnlag(),
             ),
@@ -87,7 +88,7 @@ internal class RevurderingBeregnOgSimulerTest {
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
-            clock = tikkendeFixedClock,
+            clock = clock,
         )
 
         val response = serviceAndMocks.revurderingService.beregnOgSimuler(
@@ -102,7 +103,7 @@ internal class RevurderingBeregnOgSimulerTest {
 
     @Test
     fun `legger ved varsel dersom beløpsendring er mindre enn 10 prosent av gjeldende utbetaling`() {
-        val clock = tikkendeFixedClock
+        val clock = tikkendeFixedClock()
         val (sak, revurdering) = opprettetRevurdering(
             clock = clock,
         )
@@ -143,7 +144,7 @@ internal class RevurderingBeregnOgSimulerTest {
     @Test
     fun `legger ikke ved varsel dersom beløpsendring er mindre enn 10 prosent av gjeldende utbetaling, men opphør pga vilkår`() {
         val (sak, revurdering) = opprettetRevurdering(
-            clock = tikkendeFixedClock,
+            clock = tikkendeFixedClock(),
             vilkårOverrides = listOf(
                 avslåttUførevilkårUtenGrunnlag(
                     periode = år(2021),
@@ -165,7 +166,7 @@ internal class RevurderingBeregnOgSimulerTest {
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
-            clock = tikkendeFixedClock,
+            clock = tikkendeFixedClock(),
         ).let {
             val response = it.revurderingService.beregnOgSimuler(
                 revurderingId = revurdering.id,
@@ -180,7 +181,7 @@ internal class RevurderingBeregnOgSimulerTest {
 
     @Test
     fun `beregnOgSimuler - kan beregne og simulere`() {
-        val clock = tikkendeFixedClock
+        val clock = tikkendeFixedClock()
         val (sak, opprettetRevurdering) = opprettetRevurdering(
             clock = clock,
             grunnlagsdataOverrides = listOf(
@@ -313,7 +314,7 @@ internal class RevurderingBeregnOgSimulerTest {
 
     @Test
     fun `beregnOgSimuler - kan beregne og simuler underkjent revurdering på nytt`() {
-        val clock = tikkendeFixedClock
+        val clock = tikkendeFixedClock()
         val (sak, underkjent) = underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
             clock = clock,
         )
@@ -386,7 +387,7 @@ internal class RevurderingBeregnOgSimulerTest {
     @Test
     fun `hvis vilkår ikke er oppfylt, fører revurderingen til et opphør`() {
         val (sak, opprettet) = opprettetRevurdering(
-            clock = tikkendeFixedClock,
+            clock = tikkendeFixedClock(),
             vilkårOverrides = listOf(
                 avslåttUførevilkårUtenGrunnlag(),
             ),
@@ -406,7 +407,7 @@ internal class RevurderingBeregnOgSimulerTest {
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
-            clock = tikkendeFixedClock,
+            clock = tikkendeFixedClock(),
         )
         val actual = serviceAndMocks.revurderingService.beregnOgSimuler(
             revurderingId = opprettet.id,

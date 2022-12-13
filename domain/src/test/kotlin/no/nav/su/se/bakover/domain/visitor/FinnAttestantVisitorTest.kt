@@ -17,72 +17,100 @@ import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
+import no.nav.su.se.bakover.test.tikkendeFixedClock
 import org.junit.jupiter.api.Test
 
 internal class FinnAttestantVisitorTest {
 
     @Test
     fun `finner attestant for både søknadsbehandlinger og revurderinger`() {
+        val clock = tikkendeFixedClock()
         FinnAttestantVisitor().let {
-            søknadsbehandlingVilkårsvurdertUavklart().second.accept(it)
+            søknadsbehandlingVilkårsvurdertUavklart(
+                clock = clock,
+            ).second.accept(it)
             it.attestant shouldBe null
         }
         FinnAttestantVisitor().let {
-            opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second.accept(it)
+            opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+                clock = clock,
+            ).second.accept(it)
             it.attestant shouldBe null
         }
         FinnAttestantVisitor().let {
-            søknadsbehandlingVilkårsvurdertInnvilget().second.accept(it)
-            it.attestant shouldBe null
-        }
-
-        FinnAttestantVisitor().let {
-            søknadsbehandlingVilkårsvurdertAvslag().second.accept(it)
-            it.attestant shouldBe null
-        }
-
-        FinnAttestantVisitor().let {
-            beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second.accept(it)
+            søknadsbehandlingVilkårsvurdertInnvilget(
+                clock = clock,
+            ).second.accept(it)
             it.attestant shouldBe null
         }
 
         FinnAttestantVisitor().let {
-            søknadsbehandlingBeregnetAvslag().second.accept(it)
+            søknadsbehandlingVilkårsvurdertAvslag(
+                clock = clock,
+            ).second.accept(it)
             it.attestant shouldBe null
         }
 
         FinnAttestantVisitor().let {
-            søknadsbehandlingVilkårsvurdertInnvilget().second.accept(it)
+            beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+                clock = clock,
+            ).second.accept(it)
             it.attestant shouldBe null
         }
 
         FinnAttestantVisitor().let {
-            søknadsbehandlingSimulert().second.accept(it)
+            søknadsbehandlingBeregnetAvslag(
+                clock = clock,
+            ).second.accept(it)
             it.attestant shouldBe null
         }
 
         FinnAttestantVisitor().let {
-            simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second.accept(it)
+            søknadsbehandlingVilkårsvurdertInnvilget(
+                clock = clock,
+            ).second.accept(it)
             it.attestant shouldBe null
         }
 
         FinnAttestantVisitor().let {
-            søknadsbehandlingUnderkjentInnvilget().second.accept(it)
+            søknadsbehandlingSimulert(
+                clock = clock,
+            ).second.accept(it)
+            it.attestant shouldBe null
+        }
+
+        FinnAttestantVisitor().let {
+            simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+                clock = clock,
+            ).second.accept(it)
+            it.attestant shouldBe null
+        }
+
+        FinnAttestantVisitor().let {
+            søknadsbehandlingUnderkjentInnvilget(
+                clock = clock,
+            ).second.accept(it)
             it.attestant shouldBe attestant
         }
 
         FinnAttestantVisitor().let {
-            søknadsbehandlingTilAttesteringInnvilget().second.accept(it)
+            søknadsbehandlingTilAttesteringInnvilget(
+                clock = clock,
+            ).second.accept(it)
             it.attestant shouldBe null
         }
 
         FinnAttestantVisitor().let {
-            søknadsbehandlingTilAttesteringAvslagMedBeregning().second.accept(it)
+            søknadsbehandlingTilAttesteringAvslagMedBeregning(
+                clock = clock,
+            ).second.accept(it)
             it.attestant shouldBe null
         }
 
         FinnAttestantVisitor().let {
-            søknadsbehandlingTilAttesteringInnvilget().second
+            søknadsbehandlingTilAttesteringInnvilget(
+                clock = clock,
+            ).second
                 .tilUnderkjent(
                     Attestering.Underkjent(
                         attestant = attestant,
@@ -95,12 +123,16 @@ internal class FinnAttestantVisitorTest {
         }
 
         FinnAttestantVisitor().let {
-            søknadsbehandlingIverksattInnvilget().second.accept(it)
+            søknadsbehandlingIverksattInnvilget(
+                clock = clock,
+            ).second.accept(it)
             it.attestant shouldBe attestant
         }
 
         FinnAttestantVisitor().let {
-            søknadsbehandlingIverksattAvslagUtenBeregning().second.accept(it)
+            søknadsbehandlingIverksattAvslagUtenBeregning(
+                clock = clock,
+            ).second.accept(it)
             it.attestant shouldBe attestant
         }
     }

@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
+import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
@@ -74,7 +75,9 @@ internal class StansUtbetalingRouteKtTest {
 
     @Test
     fun `svarer med 400 ved forsøk å iverksetting av ugyldig revurdering`() {
-        val enRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
+        val enRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+            clock = tikkendeFixedClock(),
+        ).second
         val stansAvYtelseServiceMock = mock<StansYtelseService> {
             on {
                 iverksettStansAvYtelse(
@@ -104,7 +107,9 @@ internal class StansUtbetalingRouteKtTest {
 
     @Test
     fun `svarer med 500 hvis utbetaling feiler`() {
-        val enRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
+        val enRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+            clock = tikkendeFixedClock(),
+        ).second
         val stansAvYtelseServiceMock = mock<StansYtelseService> {
             on {
                 iverksettStansAvYtelse(

@@ -49,7 +49,7 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
         periode = stønadsperiode.periode,
         bosituasjon = grunnlagsdata.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }.toNonEmptyList(),
     ),
-    clock: Clock = tikkendeFixedClock,
+    clock: Clock = tikkendeFixedClock(),
 ): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling> {
     require(
         grunnlagsdata.bosituasjon.all { it is Grunnlag.Bosituasjon.Fullstendig },
@@ -159,7 +159,7 @@ fun vedtakSøknadsbehandlingIverksattAvslagUtenBeregning(
  * Ikke journalført eller distribuert brev
  */
 fun vedtakRevurderingIverksattInnvilget(
-    clock: Clock = tikkendeFixedClock,
+    clock: Clock = tikkendeFixedClock(),
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = år(2021),

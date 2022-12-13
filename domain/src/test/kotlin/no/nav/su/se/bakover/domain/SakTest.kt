@@ -171,10 +171,12 @@ internal class SakTest {
 
         @Test
         fun `henter stønadsperioder og justerer varigheten dersom de er delvis opphørt`() {
+            val clock = TikkendeKlokke(fixedClock)
             val (sak, _) = vedtakRevurdering(
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
-                sakOgVedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(),
+                sakOgVedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(clock = clock),
                 vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = Periode.create(1.mai(2021), 31.desember(2021)))),
+                clock = clock,
             )
 
             sak.hentPerioderMedLøpendeYtelse() shouldBe listOf(
@@ -296,8 +298,9 @@ internal class SakTest {
 
         @Test
         fun `henter stønadsperioder som har blitt revurdert`() {
+            val clock = tikkendeFixedClock()
             val (sakFørRevurdering, søknadsvedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
-                clock = tikkendeFixedClock,
+                clock = clock,
             )
 
             sakFørRevurdering.hentPerioderMedLøpendeYtelse() shouldBe listOf(
@@ -307,7 +310,7 @@ internal class SakTest {
             val (sakEtterStans, stans) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
                 periode = Periode.create(1.februar(2021), 31.desember(2021)),
                 sakOgVedtakSomKanRevurderes = sakFørRevurdering to søknadsvedtak,
-                clock = tikkendeFixedClock,
+                clock = clock,
             )
 
             sakEtterStans.hentPerioderMedLøpendeYtelse() shouldBe listOf(
@@ -317,7 +320,7 @@ internal class SakTest {
             val (sakEtterGjenopptak, gjenopptak) = vedtakIverksattGjenopptakAvYtelseFraIverksattStans(
                 periode = Periode.create(1.februar(2021), 31.desember(2021)),
                 sakOgVedtakSomKanRevurderes = sakEtterStans to stans,
-                clock = tikkendeFixedClock,
+                clock = clock,
             )
 
             sakEtterGjenopptak.hentPerioderMedLøpendeYtelse() shouldBe listOf(
@@ -327,7 +330,7 @@ internal class SakTest {
             val (sakEtterRevurdering, revurdering) = vedtakRevurderingIverksattInnvilget(
                 revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021)),
                 sakOgVedtakSomKanRevurderes = sakEtterGjenopptak to gjenopptak,
-                clock = tikkendeFixedClock,
+                clock = clock,
             )
 
             sakEtterRevurdering.hentPerioderMedLøpendeYtelse() shouldBe listOf(
@@ -712,12 +715,13 @@ internal class SakTest {
 
         @Test
         fun `henter gjeldende månedsberegninger fra tidligere vedtak hvis ytelse er stanset`() {
+            val clock = tikkendeFixedClock()
             iverksattSøknadsbehandlingUføre(
-                clock = tikkendeFixedClock,
+                clock = clock,
             ).also { (sak, _, vedtakSøknadsbehandling) ->
                 vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
                     sakOgVedtakSomKanRevurderes = sak to vedtakSøknadsbehandling as VedtakSomKanRevurderes,
-                    clock = tikkendeFixedClock,
+                    clock = clock,
                 ).also { (sak2, vedtakStans) ->
                     sak2.hentGjeldendeMånedsberegninger(
                         periode = mai(2021)..juli(2021),

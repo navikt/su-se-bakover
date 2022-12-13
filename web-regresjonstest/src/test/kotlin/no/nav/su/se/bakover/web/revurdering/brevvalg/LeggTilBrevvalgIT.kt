@@ -15,7 +15,7 @@ internal class LeggTilBrevvalgIT {
     @Test
     fun `oppdatering av brevvalg`() {
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb(
-            clock = tikkendeFixedClock,
+            clock = tikkendeFixedClock(),
         ) {
             opprettInnvilgetSøknadsbehandling(
                 fnr = fnr,

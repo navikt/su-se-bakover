@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
+import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import org.junit.jupiter.api.Test
@@ -178,13 +179,27 @@ internal class SakServiceImplTest {
         val saknr1 = Saksnummer(2021)
         val saknr2 = Saksnummer(2022)
 
-        val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(saknr1).second
-        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(saknr1).second
+        val clock = tikkendeFixedClock()
+
+        val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+            saksnummer = saknr1,
+            clock = clock,
+        ).second
+        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+            saksnummer = saknr1,
+            clock = clock,
+        ).second
 
         val underkjentInnvilgetRevurdering =
-            underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(saknr2).second
+            underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+                saksnummer = saknr2,
+                clock = clock,
+            ).second
         val tilAttesteringRevurdering =
-            tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(saknr2).second
+            tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+                saksnummer = saknr2,
+                clock = clock,
+            ).second
 
         val sakRepo: SakRepo = mock {
             on { hentÅpneBehandlinger() } doReturn listOf(

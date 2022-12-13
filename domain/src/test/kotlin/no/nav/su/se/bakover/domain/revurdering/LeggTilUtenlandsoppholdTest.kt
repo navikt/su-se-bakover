@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.periode.Periode
@@ -23,6 +24,7 @@ import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
@@ -69,17 +71,36 @@ class LeggTilUtenlandsoppholdTest {
 
     @Test
     fun `får bare lagt til opphold i utlandet for enkelte typer`() {
+        val clock = tikkendeFixedClock()
         listOf(
-            opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(),
-            beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(),
-            beregnetRevurdering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag())),
-            simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(),
-            simulertRevurdering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag())),
-            underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(),
+            opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+                clock = clock,
+            ),
+            beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+                clock = clock,
+            ),
+            beregnetRevurdering(
+                clock = clock,
+                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
+            ),
+            simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+                clock = clock,
+            ),
+            simulertRevurdering(
+                clock = clock,
+                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
+            ),
+            underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+                clock = clock,
+            ),
         ).map {
             it.second
         }.forEach {
-            it.oppdaterUtenlandsoppholdOgMarkerSomVurdert(utenlandsoppholdInnvilget()).let { oppdatert ->
+            it.oppdaterUtenlandsoppholdOgMarkerSomVurdert(
+                utenlandsoppholdInnvilget(
+                    opprettet = Tidspunkt.now(clock),
+                ),
+            ).let { oppdatert ->
                 oppdatert.isRight() shouldBe true
                 oppdatert.getOrFail() shouldBe beOfType<OpprettetRevurdering>()
             }
