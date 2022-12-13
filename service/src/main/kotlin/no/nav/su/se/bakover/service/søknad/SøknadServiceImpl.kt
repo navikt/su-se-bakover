@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
 
-internal class SøknadServiceImpl(
+class SøknadServiceImpl(
     private val søknadRepo: SøknadRepo,
     private val sakService: SakService,
     private val sakFactory: SakFactory,

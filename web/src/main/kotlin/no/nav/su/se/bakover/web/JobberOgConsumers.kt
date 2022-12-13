@@ -18,10 +18,10 @@ import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.DatabaseRepos
-import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.brev.DistribuerBrevService
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.web.services.SendPåminnelseNyStønadsperiodeJob
+import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.services.avstemming.GrensesnittsavstemingJob
 import no.nav.su.se.bakover.web.services.avstemming.KonsistensavstemmingJob
 import no.nav.su.se.bakover.web.services.dokument.DistribuerDokumentJob

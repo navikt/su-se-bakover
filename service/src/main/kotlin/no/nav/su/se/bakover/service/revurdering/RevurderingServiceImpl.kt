@@ -112,7 +112,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
 import java.util.UUID
 
-internal class RevurderingServiceImpl(
+class RevurderingServiceImpl(
     private val utbetalingService: UtbetalingService,
     private val revurderingRepo: RevurderingRepo,
     private val oppgaveService: OppgaveService,

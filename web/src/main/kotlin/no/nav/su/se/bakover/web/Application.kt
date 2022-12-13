@@ -52,10 +52,6 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
-import no.nav.su.se.bakover.service.AccessCheckProxy
-import no.nav.su.se.bakover.service.ServiceBuilder
-import no.nav.su.se.bakover.service.Services
-import no.nav.su.se.bakover.service.Tilgangssjekkfeil
 import no.nav.su.se.bakover.utenlandsopphold.application.annuller.AnnullerUtenlandsoppholdService
 import no.nav.su.se.bakover.utenlandsopphold.application.korriger.KorrigerUtenlandsoppholdService
 import no.nav.su.se.bakover.utenlandsopphold.application.registrer.RegistrerUtenlandsoppholdService
@@ -86,6 +82,10 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.overordnetSøknadsbeha
 import no.nav.su.se.bakover.web.routes.togglePaths
 import no.nav.su.se.bakover.web.routes.toggleRoutes
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.opplysningspliktRoutes
+import no.nav.su.se.bakover.web.services.AccessCheckProxy
+import no.nav.su.se.bakover.web.services.ServiceBuilder
+import no.nav.su.se.bakover.web.services.Services
+import no.nav.su.se.bakover.web.services.Tilgangssjekkfeil
 import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
 import org.slf4j.event.Level

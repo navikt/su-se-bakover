@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service
+package no.nav.su.se.bakover.web.services
 
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe

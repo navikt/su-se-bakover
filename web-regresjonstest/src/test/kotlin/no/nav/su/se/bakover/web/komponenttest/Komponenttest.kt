@@ -8,9 +8,6 @@ import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
-import no.nav.su.se.bakover.service.AccessCheckProxy
-import no.nav.su.se.bakover.service.ServiceBuilder
-import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
@@ -18,6 +15,9 @@ import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.web.Consumers
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.TestClientsBuilder
+import no.nav.su.se.bakover.web.services.AccessCheckProxy
+import no.nav.su.se.bakover.web.services.ServiceBuilder
+import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
 import no.nav.su.se.bakover.web.susebakover

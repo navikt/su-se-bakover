@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglende
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import java.time.Clock
 
-internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
+class AvslåSøknadManglendeDokumentasjonServiceImpl(
     private val clock: Clock,
     private val sakService: SakService,
     private val satsFactory: SatsFactory,

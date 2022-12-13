@@ -42,7 +42,7 @@ import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
-internal class StansYtelseServiceImpl(
+class StansYtelseServiceImpl(
     private val utbetalingService: UtbetalingService,
     private val revurderingRepo: RevurderingRepo,
     private val vedtakService: VedtakService,

@@ -14,12 +14,12 @@ import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.service.AccessCheckProxy
-import no.nav.su.se.bakover.service.ServiceBuilder
-import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.web.services.AccessCheckProxy
+import no.nav.su.se.bakover.web.services.ServiceBuilder
+import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.stubs.JwtStub
 import no.nav.su.se.bakover.web.stubs.asBearerToken
 import java.time.Clock

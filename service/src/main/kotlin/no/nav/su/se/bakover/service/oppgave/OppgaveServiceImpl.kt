@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 
-internal class OppgaveServiceImpl(
+class OppgaveServiceImpl(
     private val oppgaveClient: OppgaveClient,
 ) : OppgaveService {
 

@@ -24,7 +24,7 @@ import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
-internal class UtbetalingServiceImpl(
+class UtbetalingServiceImpl(
     private val utbetalingRepo: UtbetalingRepo,
     private val simuleringClient: SimuleringClient,
     private val utbetalingPublisher: UtbetalingPublisher,
