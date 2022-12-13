@@ -18,6 +18,7 @@ data class RegistrerUtenlandsoppholdJson(
     val journalposter: List<String>,
     val dokumentasjon: UtenlandsoppholdDokumentasjonJson,
     val saksversjon: Long,
+    val begrunnelse: String?,
 ) {
     fun toCommand(
         sakId: UUID,
@@ -29,6 +30,7 @@ data class RegistrerUtenlandsoppholdJson(
         periode = periode.toDatoIntervall(),
         dokumentasjon = dokumentasjon.toDomain(),
         journalposter = journalposter.map { JournalpostId(it) },
+        begrunnelse = begrunnelse,
         opprettetAv = opprettetAv,
         correlationId = correlationId,
         brukerroller = brukerroller,

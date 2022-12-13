@@ -17,6 +17,7 @@ data class RegistrerUtenlandsoppholdCommand(
     val dokumentasjon: UtenlandsoppholdDokumentasjon,
     val journalposter: List<JournalpostId>,
     val opprettetAv: NavIdentBruker.Saksbehandler,
+    val begrunnelse: String?,
     val correlationId: CorrelationId,
     val brukerroller: List<Brukerrolle>,
     val klientensSisteSaksversjon: Hendelsesversjon,
@@ -30,6 +31,7 @@ data class RegistrerUtenlandsoppholdCommand(
             periode = periode,
             dokumentasjon = dokumentasjon,
             journalposter = journalposter,
+            begrunnelse = begrunnelse,
             opprettetAv = opprettetAv,
             clock = clock,
             hendelseMetadata = HendelseMetadata(

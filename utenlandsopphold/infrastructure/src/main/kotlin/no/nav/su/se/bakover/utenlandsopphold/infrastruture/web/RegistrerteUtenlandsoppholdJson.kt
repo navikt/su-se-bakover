@@ -13,6 +13,7 @@ data class RegistrerteUtenlandsoppholdJson(
         val periode: PeriodeJson,
         val journalposter: List<String>,
         val dokumentasjon: UtenlandsoppholdDokumentasjonJson,
+        val begrunnelse: String?,
         val opprettetAv: String,
         val opprettetTidspunkt: String,
         val endretAv: String,
@@ -30,13 +31,13 @@ data class RegistrerteUtenlandsoppholdJson(
                     periode = it.periode.toJson(),
                     journalposter = it.journalposter.map { it.toString() },
                     dokumentasjon = it.dokumentasjon.toJson(),
+                    begrunnelse = it.begrunnelse,
                     opprettetAv = it.opprettetAv.toString(),
                     opprettetTidspunkt = it.opprettetTidspunkt.toString(),
                     endretAv = it.endretAv.toString(),
                     endretTidspunkt = it.endretTidspunkt.toString(),
                     antallDager = it.antallDager,
                     erAnnullert = it.erAnnullert,
-
                 )
             },
             antallDager = this.antallDager,

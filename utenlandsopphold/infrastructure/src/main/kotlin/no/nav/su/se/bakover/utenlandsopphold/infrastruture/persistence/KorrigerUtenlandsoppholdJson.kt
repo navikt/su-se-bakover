@@ -17,6 +17,7 @@ internal data class KorrigerUtenlandsoppholdJson(
     val periode: PeriodeJson,
     val dokumentasjon: UtenlandsoppholdDokumentasjonDatabaseJson,
     val journalposter: List<String>,
+    val begrunnelse: String?,
     val ident: IdentJson,
 ) {
     companion object {
@@ -27,6 +28,7 @@ internal data class KorrigerUtenlandsoppholdJson(
                 dokumentasjon = this.dokumentasjon.toJson(),
                 ident = this.utførtAv.toIdentJson(),
                 journalposter = journalposter.map { it.toString() },
+                begrunnelse = this.begrunnelse,
             ).let {
                 serialize(it)
             }
@@ -41,6 +43,7 @@ internal data class KorrigerUtenlandsoppholdJson(
                     periode = json.periode.toDatoIntervall(),
                     dokumentasjon = json.dokumentasjon.toDomain(),
                     journalposter = json.journalposter.map { JournalpostId(it) },
+                    begrunnelse = json.begrunnelse,
                     utførtAv = json.ident.toDomain() as NavIdentBruker.Saksbehandler,
                     hendelsestidspunkt = this.hendelsestidspunkt,
                     versjon = this.versjon,
