@@ -20,8 +20,8 @@ import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
-import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.vedtakIverksattAutomatiskRegulering
 import no.nav.su.se.bakover.test.vedtakIverksattGjenopptakAvYtelseFraIverksattStans
@@ -120,6 +120,12 @@ internal class StønadsstatistikkTest {
             sakOgVedtakSomKanRevurderes = sakOgVedtak,
             revurderingsperiode = Periode.create(1.februar(2021), 28.februar(2021)),
             clock = clock,
+            grunnlagsdataOverrides = listOf(
+                fradragsgrunnlagArbeidsinntekt(
+                    periode = Periode.create(1.februar(2021), 28.februar(2021)),
+                    arbeidsinntekt = 7500.0,
+                ),
+            ),
         )
         sakOgVedtak = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             sakOgVedtakSomKanRevurderes = sakOgVedtak,
@@ -173,7 +179,7 @@ internal class StønadsstatistikkTest {
                 }
             ]
             """.trimIndent(),
-            funksjonellTid = "2021-01-01T01:03:43.456789Z",
+            funksjonellTid = "2021-01-01T01:03:03.456789Z",
         )
     }
 
@@ -225,7 +231,7 @@ internal class StønadsstatistikkTest {
             ]
             """.trimIndent(),
             ytelseVirkningstidspunkt = januar(2021).fraOgMed,
-            funksjonellTid = "2021-01-01T01:02:43.456789Z",
+            funksjonellTid = "2021-01-01T01:02:42.456789Z",
         )
     }
 
@@ -288,6 +294,12 @@ internal class StønadsstatistikkTest {
                 periode = januar(2021),
             ),
             revurderingsperiode = januar(2021),
+            grunnlagsdataOverrides = listOf(
+                fradragsgrunnlagArbeidsinntekt(
+                    periode = januar(2021),
+                    arbeidsinntekt = 7500.0,
+                ),
+            ),
         )
         assert(
             event = StatistikkEvent.Stønadsvedtak(regulering) { sak },

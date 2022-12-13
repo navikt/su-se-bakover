@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.kvittering
 import no.nav.su.se.bakover.test.oversendtUtbetalingMedKvittering
+import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakIverksattGjenopptakAvYtelseFraIverksattStans
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
@@ -209,7 +210,9 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { hentForUtbetaling(any()) } doReturn vedtak
             },
         ) {
-            service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger[1] as Utbetaling.OversendtUtbetaling.MedKvittering)
+            service.ferdigstillVedtakEtterUtbetaling(
+                sak.utbetalinger.single { it.id == vedtak.utbetalingId }.shouldBeType<Utbetaling.OversendtUtbetaling.UtenKvittering>().toKvittertUtbetaling(kvittering()),
+            )
 
             inOrder(
                 *all(),

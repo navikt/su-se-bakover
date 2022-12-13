@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilUtenlandsopph
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
@@ -98,7 +98,7 @@ internal class RevurderingLeggTilUtenlandsoppholdTest {
 
     @Test
     fun `legg til utenlandsopphold vilkår ugyldig tilstand`() {
-        val opprettetRevurdering = iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
+        val opprettetRevurdering = iverksattRevurdering().second
 
         RevurderingServiceMocks(
             revurderingRepo = mock {
@@ -128,7 +128,7 @@ internal class RevurderingLeggTilUtenlandsoppholdTest {
 
     @Test
     fun `legg til utenlandsopphold finner ikke revurdering`() {
-        val opprettetRevurdering = iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
+        val opprettetRevurdering = opprettetRevurdering().second
 
         RevurderingServiceMocks(
             revurderingRepo = mock {
