@@ -21,6 +21,7 @@ data class KorrigerUtenlandsoppholdCommand(
     val periode: DatoIntervall,
     val dokumentasjon: UtenlandsoppholdDokumentasjon,
     val journalposter: List<JournalpostId>,
+    val begrunnelse: String?,
     val opprettetAv: NavIdentBruker.Saksbehandler,
     val correlationId: CorrelationId,
     val brukerroller: List<Brukerrolle>,
@@ -42,6 +43,7 @@ data class KorrigerUtenlandsoppholdCommand(
             periode = periode,
             dokumentasjon = dokumentasjon,
             journalposter = journalposter,
+            begrunnelse = begrunnelse,
             utførtAv = opprettetAv,
             clock = clock,
             hendelseMetadata = HendelseMetadata(

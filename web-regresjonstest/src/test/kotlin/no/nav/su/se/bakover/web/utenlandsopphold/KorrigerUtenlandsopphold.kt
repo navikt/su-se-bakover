@@ -17,6 +17,7 @@ fun ApplicationTestBuilder.korrigerUtenlandsopphold(
     tilOgMed: String = "2021-10-10",
     journalpostIder: String = "[1234567]",
     dokumentasjon: String = "Sannsynliggjort",
+    begrunnelse: String? = "Har sendt inn kopi av flybiletter. Se journalpost",
     saksversjon: Long = 2,
 ): String {
     val body = """
@@ -27,6 +28,7 @@ fun ApplicationTestBuilder.korrigerUtenlandsopphold(
         },
         "journalposter": $journalpostIder,
         "dokumentasjon": "$dokumentasjon",
+        "begrunnelse": "$begrunnelse",
         "saksversjon": $saksversjon
       }
     """.trimIndent()

@@ -100,6 +100,7 @@ fun RegistrertUtenlandsopphold.apply(hendelse: AnnullerUtenlandsoppholdHendelse)
         journalposter = this.journalposter,
         opprettetAv = this.opprettetAv,
         opprettetTidspunkt = this.opprettetTidspunkt,
+        begrunnelse = this.begrunnelse,
         endretAv = hendelse.utførtAv,
         endretTidspunkt = hendelse.hendelsestidspunkt,
         versjon = hendelse.versjon,

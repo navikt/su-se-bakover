@@ -17,6 +17,7 @@ data class KorrigerUtenlandsoppholdJson(
     val periode: PeriodeJson,
     val journalposter: List<String>,
     val dokumentasjon: UtenlandsoppholdDokumentasjonJson,
+    val begrunnelse: String?,
     val saksversjon: Long,
 ) {
     fun toCommand(
@@ -30,6 +31,7 @@ data class KorrigerUtenlandsoppholdJson(
         periode = periode.toDatoIntervall(),
         dokumentasjon = dokumentasjon.toDomain(),
         journalposter = journalposter.map { JournalpostId(it) },
+        begrunnelse = begrunnelse,
         opprettetAv = opprettetAv,
         correlationId = correlationId,
         brukerroller = brukerroller,
