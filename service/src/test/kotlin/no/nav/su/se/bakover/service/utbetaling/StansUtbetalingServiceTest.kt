@@ -77,7 +77,7 @@ internal class StansUtbetalingServiceTest {
         val tikkendeKlokke = TikkendeKlokke(1.januar(2022).fixedClock())
         val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
             stønadsperiode = stønadsperiode2022,
-            clock = tikkendeFixedClock,
+            clock = tikkendeFixedClock(),
         )
 
         UtbetalingServiceAndMocks(

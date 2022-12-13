@@ -216,7 +216,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
         assertThrows<AssertionError> {
             revurderingUnderkjent(
                 revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
-                clock = tikkendeFixedClock,
+                clock = tikkendeFixedClock(),
                 vilkårOverrides = listOf(
                     flyktningVilkårAvslått(),
                 ),

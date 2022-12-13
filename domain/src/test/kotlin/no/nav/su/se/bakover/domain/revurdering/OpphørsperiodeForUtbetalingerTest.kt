@@ -59,7 +59,7 @@ internal class OpphørsperiodeForUtbetalingerTest {
             simulertRevurdering(
                 revurderingsperiode = revurderingsperiode,
                 vilkårOverrides = listOf(utenlandsoppholdAvslag(periode = revurderingsperiode)),
-                clock = tikkendeFixedClock,
+                clock = tikkendeFixedClock(),
                 utbetalingerKjørtTilOgMed = 1.juli(2021),
             ).second as SimulertRevurdering.Opphørt
         }.also {

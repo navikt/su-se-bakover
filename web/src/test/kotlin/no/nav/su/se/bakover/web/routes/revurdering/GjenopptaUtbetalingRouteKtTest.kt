@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
+import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
@@ -74,7 +75,9 @@ internal class GjenopptaUtbetalingRouteKtTest {
 
     @Test
     fun `svarer med 400 ved forsøk å iverksetting av ugyldig revurdering`() {
-        val enRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
+        val enRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+            clock = tikkendeFixedClock(),
+        ).second
         testApplication {
             application {
                 testSusebakover(
@@ -105,7 +108,9 @@ internal class GjenopptaUtbetalingRouteKtTest {
 
     @Test
     fun `svarer med 500 hvis utbetaling feiler`() {
-        val enRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
+        val enRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+            clock = tikkendeFixedClock(),
+        ).second
         testApplication {
             application {
                 testSusebakover(

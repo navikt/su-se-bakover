@@ -124,7 +124,7 @@ import javax.sql.DataSource
 class TestDataHelper(
     val dataSource: DataSource,
     val dbMetrics: DbMetrics = dbMetricsStub,
-    val clock: Clock = tikkendeFixedClock,
+    val clock: Clock = tikkendeFixedClock(),
     satsFactory: SatsFactoryForSupplerendeStønad = satsFactoryTest,
 ) {
     val sessionFactory: PostgresSessionFactory =
@@ -418,7 +418,7 @@ class TestDataHelper(
 
     fun persisterReguleringOpprettet(
         startDato: LocalDate = 1.mai(2021),
-        clock: Clock = tikkendeFixedClock,
+        clock: Clock = tikkendeFixedClock(),
     ): Pair<Sak, Regulering.OpprettetRegulering> {
         return persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().first.let { sak ->
             sak.opprettEllerOppdaterRegulering(
@@ -435,7 +435,7 @@ class TestDataHelper(
 
     fun persisterReguleringIverksatt(
         startDato: LocalDate = 1.mai(2021),
-        clock: Clock = tikkendeFixedClock,
+        clock: Clock = tikkendeFixedClock(),
     ): Pair<Sak, Regulering.IverksattRegulering> {
         return persisterReguleringOpprettet(
             startDato = startDato,

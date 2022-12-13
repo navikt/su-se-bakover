@@ -78,11 +78,13 @@ fun opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = år(2021),
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    clock: Clock = tikkendeFixedClock(),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
+        clock = clock,
     ),
-    clock: Clock = tikkendeFixedClock,
+
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
         periode = revurderingsperiode,
         clock = clock,
@@ -129,7 +131,7 @@ fun opprettRevurderingFraSaksopplysninger(
     revurderingsperiode: Periode = år(2021),
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes>,
-    clock: Clock = tikkendeFixedClock,
+    clock: Clock = tikkendeFixedClock(),
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
@@ -196,12 +198,13 @@ fun opprettetRevurdering(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = år(2021),
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    clock: Clock = tikkendeFixedClock(),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
+        clock = clock,
     ),
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
-    clock: Clock = tikkendeFixedClock,
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
 ): Pair<Sak, OpprettetRevurdering> {
@@ -221,12 +224,13 @@ fun beregnetRevurdering(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = år(2021),
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    clock: Clock = tikkendeFixedClock(),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
+        clock = clock,
     ),
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
-    clock: Clock = tikkendeFixedClock,
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
 ): Pair<Sak, BeregnetRevurdering> {
@@ -262,12 +266,13 @@ fun simulertRevurdering(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = år(2021),
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    clock: Clock = tikkendeFixedClock(),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
+        clock = clock,
     ),
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
-    clock: Clock = tikkendeFixedClock,
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
@@ -335,12 +340,13 @@ fun revurderingTilAttestering(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = år(2021),
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    clock: Clock = tikkendeFixedClock(),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
+        clock = clock,
     ),
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
-    clock: Clock = tikkendeFixedClock,
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
@@ -387,7 +393,7 @@ fun revurderingUnderkjent(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = år(2021),
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-    clock: Clock = tikkendeFixedClock,
+    clock: Clock = tikkendeFixedClock(),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -444,7 +450,7 @@ private fun oppdaterTilbakekrevingsbehandling(revurdering: SimulertRevurdering):
 }
 
 fun iverksattRevurdering(
-    clock: Clock = tikkendeFixedClock,
+    clock: Clock = tikkendeFixedClock(),
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = år(2021),
@@ -517,7 +523,7 @@ fun iverksattRevurdering(
 }
 
 fun vedtakRevurdering(
-    clock: Clock = tikkendeFixedClock,
+    clock: Clock = tikkendeFixedClock(),
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = år(2021),
@@ -560,11 +566,12 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = år(2021),
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    clock: Clock = fixedClock,
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
+        clock = clock,
     ),
-    clock: Clock = fixedClock,
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = innvilgetGrunnlagsdataOgVilkårsvurderinger(
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         revurderingsperiode = revurderingsperiode,
@@ -650,11 +657,12 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = år(2021),
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    clock: Clock = tikkendeFixedClock(),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
+        clock = clock,
     ),
-    clock: Clock = tikkendeFixedClock,
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = innvilgetGrunnlagsdataOgVilkårsvurderinger(
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         revurderingsperiode = revurderingsperiode,
@@ -705,11 +713,12 @@ fun tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = år(2021),
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    clock: Clock = tikkendeFixedClock(),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
+        clock = clock,
     ),
-    clock: Clock = tikkendeFixedClock,
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = innvilgetGrunnlagsdataOgVilkårsvurderinger(
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         revurderingsperiode = revurderingsperiode,
@@ -748,11 +757,12 @@ fun underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = år(2021),
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    clock: Clock = tikkendeFixedClock(),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
+        clock = clock,
     ),
-    clock: Clock = tikkendeFixedClock,
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = innvilgetGrunnlagsdataOgVilkårsvurderinger(
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         revurderingsperiode = revurderingsperiode,
@@ -778,6 +788,7 @@ fun underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
         attesteringsoppgaveId = attesteringsoppgaveId,
         saksbehandler = saksbehandler,
         revurderingsårsak = revurderingsårsak,
+        clock = clock,
     ).let { (sak, revurdering) ->
         val underkjentRevurdering = revurdering.underkjenn(
             attestering = attestering,

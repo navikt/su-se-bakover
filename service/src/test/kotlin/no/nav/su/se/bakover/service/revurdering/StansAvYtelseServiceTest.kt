@@ -195,8 +195,9 @@ internal class StansAvYtelseServiceTest {
 
     @Test
     fun `svarer med feil dersom oversendelse av stans til oppdrag feiler teknisk`() {
+        val clock = tikkendeFixedClock()
         val (sak, simulertStans) = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-            clock = tikkendeFixedClock,
+            clock = clock,
         )
 
         ServiceMocks(
@@ -209,12 +210,12 @@ internal class StansAvYtelseServiceTest {
                         sak = sak,
                         utbetaling = invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
                         simuleringsperiode = invocation.getArgument(1) as Periode,
-                        clock = tikkendeFixedClock,
+                        clock = clock,
                     )
                 }.whenever(it).simulerUtbetaling(any(), any())
                 on { klargjørUtbetaling(any(), any()) } doReturn UtbetalingFeilet.Protokollfeil.left()
             },
-            clock = tikkendeFixedClock,
+            clock = clock,
         ).let { serviceAndMocks ->
             serviceAndMocks.stansYtelseService.iverksettStansAvYtelse(
                 revurderingId = simulertStans.id,

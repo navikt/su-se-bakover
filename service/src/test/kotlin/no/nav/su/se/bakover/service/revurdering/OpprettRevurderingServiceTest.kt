@@ -413,7 +413,7 @@ internal class OpprettRevurderingServiceTest {
     @Test
     fun `kan revurdere en periode med eksisterende revurdering`() {
         val (sak, revurderingVedtak) = vedtakRevurdering(
-            clock = tikkendeFixedClock,
+            clock = tikkendeFixedClock(),
         )
 
         RevurderingServiceMocks(

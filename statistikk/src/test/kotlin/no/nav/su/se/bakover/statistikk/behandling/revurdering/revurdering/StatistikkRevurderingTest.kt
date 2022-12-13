@@ -88,7 +88,7 @@ internal class StatistikkRevurderingTest {
     @Test
     fun `publiserer opphørt underkjent revurdering`() {
         val revurdering = revurderingUnderkjent(
-            clock = tikkendeFixedClock,
+            clock = tikkendeFixedClock(),
             vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
         ).second as UnderkjentRevurdering.Opphørt
         assert(
@@ -123,7 +123,7 @@ internal class StatistikkRevurderingTest {
     @Test
     fun `publiserer iverksatt opphørt revurdering`() {
         val (_, vedtak) = vedtakRevurdering(
-            clock = tikkendeFixedClock,
+            clock = tikkendeFixedClock(),
             vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
         ).let { (sak, vedtak) -> sak to vedtak as VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering }
         assert(
