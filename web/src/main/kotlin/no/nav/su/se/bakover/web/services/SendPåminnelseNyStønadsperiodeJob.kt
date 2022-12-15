@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.services
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.CorrelationId.Companion.withCorrelationId
 import no.nav.su.se.bakover.common.jobs.infrastructure.RunCheckFactory
 import no.nav.su.se.bakover.common.jobs.infrastructure.shouldRun
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
@@ -32,11 +33,13 @@ internal class SendPåminnelseNyStønadsperiodeJob(
             initialDelay = initialDelay.toMillis(),
         ) {
             Either.catch {
-                listOf(
-                    runCheckFactory.leaderPod(),
-                    runCheckFactory.unleashToggle(toggle),
-                ).shouldRun().ifTrue {
-                    sendPåminnelseService.sendPåminnelser()
+                withCorrelationId {
+                    listOf(
+                        runCheckFactory.leaderPod(),
+                        runCheckFactory.unleashToggle(toggle),
+                    ).shouldRun().ifTrue {
+                        sendPåminnelseService.sendPåminnelser()
+                    }
                 }
             }.mapLeft {
                 log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)
