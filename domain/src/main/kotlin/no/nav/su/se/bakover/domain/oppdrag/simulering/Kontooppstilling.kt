@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.oppdrag.simulering
 
 data class Kontooppstilling(
-    val simulertUtbetaling: Kontobeløp.Debet,
     val debetYtelse: Kontobeløp.Debet,
     val kreditYtelse: Kontobeløp.Kredit,
     val debetFeilkonto: Kontobeløp.Debet,

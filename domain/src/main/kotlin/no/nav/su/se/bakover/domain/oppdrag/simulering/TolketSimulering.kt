@@ -51,7 +51,6 @@ internal data class TolketSimulering(
         return if (erAlleMånederUtenUtbetaling()) {
             mapOf(
                 periode to Kontooppstilling(
-                    simulertUtbetaling = Kontobeløp.Debet(0),
                     debetYtelse = Kontobeløp.Debet(0),
                     kreditYtelse = Kontobeløp.Kredit(0),
                     debetFeilkonto = Kontobeløp.Debet(0),
@@ -84,18 +83,6 @@ internal data class TolketSimulering(
             Månedsbeløp(
                 hentPerioderMedUtbetaling()
                     .map { it.hentFeilutbetalteBeløp() }
-                    .filter { it.sum() > 0 },
-            )
-        }
-    }
-
-    fun hentUtbetalingSomSimuleres(): Månedsbeløp {
-        return if (erAlleMånederUtenUtbetaling()) {
-            Månedsbeløp(emptyList())
-        } else {
-            Månedsbeløp(
-                hentPerioderMedUtbetaling()
-                    .map { it.hentUtbetalingSomSimuleres() }
                     .filter { it.sum() > 0 },
             )
         }
@@ -184,10 +171,6 @@ internal data class TolketPeriodeMedUtbetalinger(
         return MånedBeløp(måned.tilMåned(), Beløp(utbetaling.kontoppstilling.kreditFeilkonto.sum()))
     }
 
-    fun hentUtbetalingSomSimuleres(): MånedBeløp {
-        return MånedBeløp(måned.tilMåned(), Beløp(utbetaling.kontoppstilling.simulertUtbetaling.sum()))
-    }
-
     fun hentTilUtbetaling(): MånedBeløp {
         return MånedBeløp(måned.tilMåned(), Beløp(max(utbetaling.kontoppstilling.sumUtbetaling.sum(), 0)))
     }
@@ -240,7 +223,6 @@ internal data class TolketUtbetaling(
 
     val kontoppstilling = Kontooppstilling(
         debetYtelse = hentDebetYtelse(),
-        simulertUtbetaling = hentUtbetalingSomSimuleres(),
         kreditYtelse = hentKreditYtelse(),
         debetFeilkonto = hentDebetFeilkonto(),
         kreditFeilkonto = hentKreditFeilkonto(),

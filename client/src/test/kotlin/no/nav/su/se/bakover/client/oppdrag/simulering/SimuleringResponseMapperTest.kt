@@ -89,7 +89,7 @@ internal class SimuleringResponseMapperTest {
                     MånedBeløp(april(2021), Beløp(20779)),
                 ),
             )
-            it.hentUtbetalingSomSimuleres() shouldBe Månedsbeløp(
+            it.hentTotalUtbetaling() shouldBe Månedsbeløp(
                 listOf(
                     MånedBeløp(april(2021), Beløp(20779)),
                 ),
@@ -99,7 +99,6 @@ internal class SimuleringResponseMapperTest {
             it.kontooppstilling() shouldBe mapOf(
                 april(2021) to Kontooppstilling(
                     debetYtelse = Kontobeløp.Debet(20779),
-                    simulertUtbetaling = Kontobeløp.Debet(20779),
                     kreditYtelse = Kontobeløp.Kredit(0),
                     debetFeilkonto = Kontobeløp.Debet(0),
                     kreditFeilkonto = Kontobeløp.Kredit(0),
@@ -166,7 +165,6 @@ internal class SimuleringResponseMapperTest {
             it.kontooppstilling() shouldBe mapOf(
                 april(2021) to Kontooppstilling(
                     debetYtelse = Kontobeløp.Debet(20779),
-                    simulertUtbetaling = Kontobeløp.Debet(20779),
                     kreditYtelse = Kontobeløp.Kredit(0),
                     debetFeilkonto = Kontobeløp.Debet(0),
                     kreditFeilkonto = Kontobeløp.Kredit(0),
@@ -403,7 +401,7 @@ internal class SimuleringResponseMapperTest {
                     MånedBeløp(mars(2021), Beløp(10000)),
                 ),
             )
-            it.hentUtbetalingSomSimuleres() shouldBe Månedsbeløp(
+            it.hentTotalUtbetaling() shouldBe Månedsbeløp(
                 listOf(
                     MånedBeløp(februar(2021), Beløp(10000)),
                     MånedBeløp(mars(2021), Beløp(10000)),
@@ -422,7 +420,6 @@ internal class SimuleringResponseMapperTest {
             it.kontooppstilling() shouldBe mapOf(
                 februar(2021).tilPeriode() to Kontooppstilling(
                     debetYtelse = Kontobeløp.Debet(20779),
-                    simulertUtbetaling = Kontobeløp.Debet(10000),
                     kreditYtelse = Kontobeløp.Kredit(20779),
                     debetFeilkonto = Kontobeløp.Debet(10779),
                     kreditFeilkonto = Kontobeløp.Kredit(0),
@@ -435,7 +432,6 @@ internal class SimuleringResponseMapperTest {
                 },
                 mars(2021).tilPeriode() to Kontooppstilling(
                     debetYtelse = Kontobeløp.Debet(10000),
-                    simulertUtbetaling = Kontobeløp.Debet(10000),
                     kreditYtelse = Kontobeløp.Kredit(0),
                     debetFeilkonto = Kontobeløp.Debet(0),
                     kreditFeilkonto = Kontobeløp.Kredit(0),
@@ -818,7 +814,7 @@ internal class SimuleringResponseMapperTest {
                     MånedBeløp(mars(2021), Beløp(30000)),
                 ),
             )
-            it.hentUtbetalingSomSimuleres() shouldBe Månedsbeløp(
+            it.hentTotalUtbetaling() shouldBe Månedsbeløp(
                 listOf(
                     MånedBeløp(februar(2021), Beløp(30000)),
                     MånedBeløp(mars(2021), Beløp(30000)),
@@ -833,7 +829,6 @@ internal class SimuleringResponseMapperTest {
             it.kontooppstilling() shouldBe mapOf(
                 februar(2021).tilPeriode() to Kontooppstilling(
                     debetYtelse = Kontobeløp.Debet(30000),
-                    simulertUtbetaling = Kontobeløp.Debet(30000),
                     kreditYtelse = Kontobeløp.Kredit(20779),
                     debetFeilkonto = Kontobeløp.Debet(0),
                     kreditFeilkonto = Kontobeløp.Kredit(0),
@@ -846,7 +841,6 @@ internal class SimuleringResponseMapperTest {
                 },
                 mars(2021).tilPeriode() to Kontooppstilling(
                     debetYtelse = Kontobeløp.Debet(30000),
-                    simulertUtbetaling = Kontobeløp.Debet(30000),
                     kreditYtelse = Kontobeløp.Kredit(0),
                     debetFeilkonto = Kontobeløp.Debet(0),
                     kreditFeilkonto = Kontobeløp.Kredit(0),
@@ -1130,7 +1124,6 @@ internal class SimuleringResponseMapperTest {
             it.kontooppstilling() shouldBe mapOf(
                 april(2021).tilPeriode() to Kontooppstilling(
                     debetYtelse = Kontobeløp.Debet(20779),
-                    simulertUtbetaling = Kontobeløp.Debet(20779),
                     kreditYtelse = Kontobeløp.Kredit(0),
                     debetFeilkonto = Kontobeløp.Debet(0),
                     kreditFeilkonto = Kontobeløp.Kredit(0),
@@ -1267,7 +1260,7 @@ internal class SimuleringResponseMapperTest {
         SimuleringResponseMapper(oppdragResponse = responseMedÅpenFeilkonto, clock = fixedClock).simulering.also {
             it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(emptyList())
-            it.hentUtbetalingSomSimuleres() shouldBe Månedsbeløp(
+            it.hentTotalUtbetaling() shouldBe Månedsbeløp(
                 listOf(
                     MånedBeløp(august(2022), Beløp(21181)),
                 ),
@@ -1281,7 +1274,6 @@ internal class SimuleringResponseMapperTest {
             it.kontooppstilling() shouldBe mapOf(
                 august(2022).tilPeriode() to Kontooppstilling(
                     debetYtelse = Kontobeløp.Debet(21181),
-                    simulertUtbetaling = Kontobeløp.Debet(21181),
                     kreditYtelse = Kontobeløp.Kredit(21181),
                     debetFeilkonto = Kontobeløp.Debet(0),
                     kreditFeilkonto = Kontobeløp.Kredit(21181),
@@ -1478,7 +1470,7 @@ internal class SimuleringResponseMapperTest {
                     MånedBeløp(august(2022), Beløp(1858)),
                 ),
             )
-            it.hentUtbetalingSomSimuleres() shouldBe Månedsbeløp(
+            it.hentTotalUtbetaling() shouldBe Månedsbeløp(
                 listOf(
                     MånedBeløp(august(2022), Beløp(23039)),
                 ),
@@ -1492,7 +1484,6 @@ internal class SimuleringResponseMapperTest {
             it.kontooppstilling() shouldBe mapOf(
                 august(2022).tilPeriode() to Kontooppstilling(
                     debetYtelse = Kontobeløp.Debet(23039),
-                    simulertUtbetaling = Kontobeløp.Debet(23039),
                     kreditYtelse = Kontobeløp.Kredit(21181),
                     debetFeilkonto = Kontobeløp.Debet(0),
                     kreditFeilkonto = Kontobeløp.Kredit(21181),
@@ -1706,7 +1697,7 @@ internal class SimuleringResponseMapperTest {
         SimuleringResponseMapper(oppdragResponse = responseMedÅpenFeilkonto, clock = fixedClock).simulering.also {
             it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(emptyList())
-            it.hentUtbetalingSomSimuleres() shouldBe Månedsbeløp(
+            it.hentTotalUtbetaling() shouldBe Månedsbeløp(
                 listOf(
                     MånedBeløp(januar(2022), Beløp(8989)),
                 ),
@@ -1720,7 +1711,6 @@ internal class SimuleringResponseMapperTest {
             it.kontooppstilling() shouldBe mapOf(
                 januar(2022).tilPeriode() to Kontooppstilling(
                     debetYtelse = Kontobeløp.Debet(8989),
-                    simulertUtbetaling = Kontobeløp.Debet(8989),
                     kreditYtelse = Kontobeløp.Kredit(8989),
                     debetFeilkonto = Kontobeløp.Debet(0),
                     kreditFeilkonto = Kontobeløp.Kredit(2000),

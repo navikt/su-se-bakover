@@ -71,7 +71,7 @@ internal class SimuleringTest {
                         ),
                     ),
                 ).let {
-                    it.hentUtbetalingSomSimuleres() shouldBe Månedsbeløp(
+                    it.hentTotalUtbetaling() shouldBe Månedsbeløp(
                         listOf(
                             MånedBeløp(januar(2021), Beløp(20779)),
                         ),
@@ -129,7 +129,7 @@ internal class SimuleringTest {
                         ),
                     ),
                 ).let {
-                    it.hentUtbetalingSomSimuleres() shouldBe Månedsbeløp(
+                    it.hentTotalUtbetaling() shouldBe Månedsbeløp(
                         listOf(
                             MånedBeløp(april(2021), Beløp(20779)),
                         ),
@@ -253,7 +253,7 @@ internal class SimuleringTest {
                         ),
                     ),
                 ).let {
-                    it.hentUtbetalingSomSimuleres() shouldBe Månedsbeløp(
+                    it.hentTotalUtbetaling() shouldBe Månedsbeløp(
                         listOf(
                             MånedBeløp(februar(2021), Beløp(10000)),
                             MånedBeløp(mars(2021), Beløp(10000)),
@@ -304,7 +304,7 @@ internal class SimuleringTest {
                                             faktiskFraOgMed = 1.januar(2021),
                                             faktiskTilOgMed = 31.januar(2021),
                                             konto = konto,
-                                            belop = 8946,
+                                            belop = 8949,
                                             tilbakeforing = false,
                                             sats = 0,
                                             typeSats = "",
@@ -348,7 +348,7 @@ internal class SimuleringTest {
                         ),
                     ),
                 ).let {
-                    it.hentUtbetalingSomSimuleres() shouldBe Månedsbeløp(emptyList())
+                    it.hentTotalUtbetaling() shouldBe Månedsbeløp(emptyList())
                     it.hentFeilutbetalteBeløp() shouldBe Månedsbeløp(
                         listOf(
                             MånedBeløp(januar(2021), Beløp(8949)),
@@ -449,7 +449,7 @@ internal class SimuleringTest {
                         ),
                     ),
                 ).let {
-                    it.hentUtbetalingSomSimuleres() shouldBe Månedsbeløp(
+                    it.hentTotalUtbetaling() shouldBe Månedsbeløp(
                         listOf(
                             MånedBeløp(februar(2021), Beløp(30000)),
                             MånedBeløp(mars(2021), Beløp(30000)),
@@ -556,7 +556,7 @@ internal class SimuleringTest {
                         ),
                     ),
                 ).let {
-                    it.hentUtbetalingSomSimuleres() shouldBe Månedsbeløp(
+                    it.hentTotalUtbetaling() shouldBe Månedsbeløp(
                         listOf(
                             MånedBeløp(februar(2021), Beløp(20779)),
                             MånedBeløp(mars(2021), Beløp(20779)),
@@ -597,7 +597,6 @@ internal class SimuleringTest {
                 ).let {
                     it.kontooppstilling() shouldBe mapOf(
                         år(2021) to Kontooppstilling(
-                            simulertUtbetaling = Kontobeløp.Debet(0),
                             debetYtelse = Kontobeløp.Debet(0),
                             kreditYtelse = Kontobeløp.Kredit(0),
                             debetFeilkonto = Kontobeløp.Debet(0),
@@ -607,7 +606,7 @@ internal class SimuleringTest {
                         ),
                     )
                     it.erAlleMånederUtenUtbetaling() shouldBe true
-                    it.hentUtbetalingSomSimuleres() shouldBe Månedsbeløp(emptyList())
+                    it.hentTotalUtbetaling() shouldBe Månedsbeløp(emptyList())
                     it.hentFeilutbetalteBeløp() shouldBe Månedsbeløp(emptyList())
                     it.hentUtbetalteBeløp() shouldBe Månedsbeløp(emptyList())
                 }
