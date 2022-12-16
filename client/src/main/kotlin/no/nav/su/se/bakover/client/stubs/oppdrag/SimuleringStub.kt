@@ -150,6 +150,12 @@ class SimuleringStub(
                                                 beløp = nyLinje.beløp,
                                                 sakstype = utbetaling.sakstype,
                                             ),
+                                            createOrdinær(
+                                                fraOgMed = måned.fraOgMed,
+                                                tilOgMed = måned.tilOgMed,
+                                                beløp = abs(diff),
+                                                sakstype = utbetaling.sakstype,
+                                            ),
                                             createFeilutbetaling(
                                                 fraOgMed = måned.fraOgMed,
                                                 tilOgMed = måned.tilOgMed,
@@ -252,6 +258,12 @@ class SimuleringStub(
                                     forfall = LocalDate.now(clock),
                                     feilkonto = feilutbetaling,
                                     detaljer = listOf(
+                                        createOrdinær(
+                                            fraOgMed = måned.fraOgMed,
+                                            tilOgMed = måned.tilOgMed,
+                                            beløp = abs(diff),
+                                            sakstype = utbetaling.sakstype,
+                                        ),
                                         createTidligereUtbetalt(
                                             fraOgMed = måned.fraOgMed,
                                             tilOgMed = måned.tilOgMed,
@@ -307,6 +319,12 @@ class SimuleringStub(
                                     forfall = LocalDate.now(clock),
                                     feilkonto = feilutbetaling,
                                     detaljer = listOf(
+                                        createOrdinær(
+                                            fraOgMed = måned.fraOgMed,
+                                            tilOgMed = måned.tilOgMed,
+                                            beløp = abs(diff),
+                                            sakstype = utbetaling.sakstype,
+                                        ),
                                         createTidligereUtbetalt(
                                             fraOgMed = måned.fraOgMed,
                                             tilOgMed = måned.tilOgMed,

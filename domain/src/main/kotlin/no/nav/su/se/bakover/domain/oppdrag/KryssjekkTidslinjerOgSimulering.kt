@@ -147,7 +147,7 @@ private fun sjekkTidslinjeMotSimulering(
             }
         }
 
-        simulering.hentUtbetalingSomSimuleres().forEach { månedsbeløp ->
+        simulering.hentTotalUtbetaling().forEach { månedsbeløp ->
             kryssjekkBeløp(
                 tolketPeriode = månedsbeløp.periode,
                 simulertUtbetaling = månedsbeløp.beløp.sum(),

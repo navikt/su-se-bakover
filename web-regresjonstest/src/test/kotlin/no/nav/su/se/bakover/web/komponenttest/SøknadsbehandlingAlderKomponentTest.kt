@@ -282,7 +282,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                     saksbehandler = saksbehandler,
                 ),
             ).getOrFail().also {
-                it.simulering.hentUtbetalingSomSimuleres().sum() shouldBe 195188
+                it.simulering.hentTotalUtbetaling().sum() shouldBe 195188
                 it.simulering.hentTilUtbetaling().sum() shouldBe 195188
             }
 

@@ -23,8 +23,7 @@ data class Simulering(
     }
 
     /**
-     * Kredit for ytelseskonto. Representerer tidligere utbetalte beløp ved endringer.
-     * Se sammenheng mellom hva som til slutt utbetales i [hentTotalUtbetaling]
+     * Beløp som tidligere har vært utbetalt for denne perioden.
      */
     fun hentUtbetalteBeløp(): Månedsbeløp {
         return tolkning.hentUtbetalteBeløp()
@@ -35,50 +34,52 @@ data class Simulering(
     }
 
     /**
-     * Beløp som vil bli utbetalt som en konsenvens av denne simuleringen.
-     * Typisk differansen mellom [hentUtbetalingSomSimuleres] - [hentUtbetalteBeløp] dersom denne er positiv.
-     * 0 dersom differansen er negativ.
+     * Beløpet som vil gå til utbetaling ved iverksettelse av behandling.
      */
     fun hentTilUtbetaling(): Månedsbeløp {
         return tolkning.hentTilUtbetaling()
     }
 
     /**
-     * Perioder hvor det vil forekomme debitering (økning) av feilkonto som følge av denne simuleringen.
+     * Økning av feilkonto ved iverksettelse av behandling.
      */
     fun hentFeilutbetalteBeløp(): Månedsbeløp {
         return tolkning.hentFeilutbetalteBeløp()
     }
 
     /**
-     * Beløpet vi har simulert utbetaling for i denne simuleringen.
-     */
-    fun hentUtbetalingSomSimuleres(): Månedsbeløp {
-        return tolkning.hentUtbetalingSomSimuleres()
-    }
-
-    fun hentUtbetalingSomSimuleres(måned: Måned): MånedBeløp? {
-        return tolkning.hentUtbetalingSomSimuleres().singleOrNull { it.periode == måned }
-    }
-
-    /**
-     * Total utbetaling som har eller vil bli utbetalt for perioden. Representerer debet for ytelse fratrukket feilkonto.
-     * I sin enkelste form tilsvarer beløpet brutto-beløpet som skal betales ut.
-     * Dersom ytelse tidligere har blitt betalt ut for en periode vil ny utbetaling/feilutbetaling ([hentTilUtbetaling])
-     * tilsvare differansen mellom [hentTotalUtbetaling] og [hentUtbetalteBeløp]
+     * Beløpet som til slutt vil/burde være utbetalt. Beløpet reduseres tilsvarende [hentFeilutbetalteBeløp] ved iverksettelse av behandling.
      */
     fun hentTotalUtbetaling(): Månedsbeløp {
         return tolkning.hentTotalUtbetaling()
+    }
+
+    fun hentTotalUtbetaling(måned: Måned): MånedBeløp? {
+        return tolkning.hentTotalUtbetaling().singleOrNull { it.periode == måned }
     }
 
     fun erAlleMånederUtenUtbetaling(): Boolean {
         return tolkning.erAlleMånederUtenUtbetaling()
     }
 
+    /**
+     * Periode tilsvarende tidligste fraOgMed-seneste tilOgMed for simuleringen.
+     *
+     * Dersom simuleringen vi mottar fra OS ikke inneholder et resultat (ingen posteringer)
+     * settes perioden til å være lik perioden som ble brukt ved simulering, se bruk av [SimulerUtbetalingRequest.simuleringsperiode] i [SimuleringClient.simulerUtbetaling].
+     *
+     * Dersom simuleringen vi mottar fra OS inneholder et resultat, settes perioden fil tidligste fraOgMed-seneste tilOgMed for månedeen med data.
+     * Merk at det ikke er noen garanti for at alle månedene i denne perioden inneholder resultat. For å være garantert resultat, se [månederMedSimuleringsresultat]
+     *
+     *
+     */
     fun periode(): Periode {
         return tolkning.periode
     }
 
+    /**
+     * Måneder hvor det foreligger et simuleringsresultat (postering mot en konto).
+     */
     fun månederMedSimuleringsresultat(): List<Måned> {
         return tolkning.månederMedSimuleringsresultat
     }

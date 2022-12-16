@@ -180,7 +180,7 @@ fun matchendeKravgrunnlag(
                                 kode = KlasseKode.SUUFORE,
                                 type = KlasseType.YTEL,
                                 beløpTidligereUtbetaling = BigDecimal(it.hentUtbetalteBeløp(periode)!!.sum()),
-                                beløpNyUtbetaling = BigDecimal(it.hentUtbetalingSomSimuleres(periode)!!.sum()),
+                                beløpNyUtbetaling = BigDecimal(it.hentTotalUtbetaling(periode)!!.sum()),
                                 beløpSkalTilbakekreves = BigDecimal(feilutbetaling.sum()),
                                 beløpSkalIkkeTilbakekreves = BigDecimal.ZERO,
                                 skatteProsent = BigDecimal("43.9983"),

@@ -32,11 +32,11 @@ class KryssjekkSaksbehandlersOgAttestantsSimulering(
             return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikFeilutbetaling.left()
         }
 
-        if (saksbehandlersSimulering.hentUtbetalingSomSimuleres().måneder() != attestantsSimulering.simulering.hentUtbetalingSomSimuleres().måneder()) {
+        if (saksbehandlersSimulering.hentTotalUtbetaling().måneder() != attestantsSimulering.simulering.hentTotalUtbetaling().måneder()) {
             return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikPeriode.left()
         }
 
-        if (saksbehandlersSimulering.hentUtbetalingSomSimuleres() != attestantsSimulering.simulering.hentUtbetalingSomSimuleres()) {
+        if (saksbehandlersSimulering.hentTotalUtbetaling() != attestantsSimulering.simulering.hentTotalUtbetaling()) {
             return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløp.left()
         }
 
