@@ -113,18 +113,6 @@ internal class SakTest {
         sakUtenÅpenBehandling.hentÅpneReguleringer().shouldBeLeft()
     }
 
-    @Test
-    fun `oppretter regulering dersom det ikke finnes eksisterende åpne behandlinger`() {
-        val sakUtenÅpenBehandling = (iverksattSøknadsbehandlingUføre()).first
-        sakUtenÅpenBehandling.opprettEllerOppdaterRegulering(1.mai(2020), fixedClock).shouldBeRight()
-
-        val sakMedÅpenSøknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().first
-        sakMedÅpenSøknadsbehandling.opprettEllerOppdaterRegulering(1.mai(2020), fixedClock).shouldBeLeft()
-
-        val sakMedÅpenRevurdering = opprettetRevurdering().first
-        sakMedÅpenRevurdering.opprettEllerOppdaterRegulering(1.mai(2020), fixedClock).shouldBeLeft()
-    }
-
     @Nested
     inner class HentPerioderMedLøpendeYtelse {
         @Test

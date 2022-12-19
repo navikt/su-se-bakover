@@ -60,7 +60,6 @@ import no.nav.su.se.bakover.domain.vedtak.hentBeregningForGjeldendeVedtak
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrerteUtenlandsopphold
-import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -85,8 +84,6 @@ data class Sak(
     val utenlandsopphold: RegistrerteUtenlandsopphold = RegistrerteUtenlandsopphold.empty(id),
     val versjon: Hendelsesversjon,
 ) {
-    private val log = LoggerFactory.getLogger(this::class.java)
-
     init {
         require(uteståendeAvkorting is Avkortingsvarsel.Ingen || uteståendeAvkorting is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes)
     }
@@ -329,69 +326,6 @@ data class Sak(
         object StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig : KunneIkkeOppretteEllerOppdatereRegulering
         object BleIkkeLagetReguleringDaDenneUansettMåRevurderes : KunneIkkeOppretteEllerOppdatereRegulering
         object HarÅpenBehandling : KunneIkkeOppretteEllerOppdatereRegulering
-    }
-
-    /**
-     * Iverksatte regulering vil ikke bli oppdatert
-     *
-     * @return Dersom Either.Left: Disse skal det ikke lages noen regulering for. Denne funksjonen har logget.
-     */
-    fun opprettEllerOppdaterRegulering(
-        // TODO jah: Bytt til YearMonth (Da slipper vi en unødvendig left)
-        startDato: LocalDate,
-        clock: Clock,
-    ): Either<KunneIkkeOppretteEllerOppdatereRegulering, Regulering.OpprettetRegulering> {
-        val (reguleringsId, opprettet, _startDato) = reguleringer.filterIsInstance<Regulering.OpprettetRegulering>()
-            .let { r ->
-                when (r.size) {
-                    0 -> Triple(UUID.randomUUID(), Tidspunkt.now(clock), startDato).also {
-                        if (!harIngenÅpneBehandlinger()) {
-                            return KunneIkkeOppretteEllerOppdatereRegulering.HarÅpenBehandling.left()
-                        }
-                    }
-
-                    1 -> Triple(r.first().id, r.first().opprettet, minOf(startDato, r.first().periode.fraOgMed)).also {
-                        if (harÅpenSøknadsbehandling() || harÅpenRevurdering()) {
-                            return KunneIkkeOppretteEllerOppdatereRegulering.HarÅpenBehandling.left()
-                        }
-                    }
-
-                    else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
-                }
-            }
-
-        val periode = vedtakstidslinje(
-            periode = Periode.create(
-                fraOgMed = _startDato,
-                tilOgMed = LocalDate.MAX,
-            ),
-        ).tidslinje.let { tidslinje ->
-            tidslinje.filterNot { it.erOpphør() }.map { vedtakUtenOpphør -> vedtakUtenOpphør.periode }
-                .minsteAntallSammenhengendePerioder().ifEmpty {
-                    log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere fra og med $_startDato")
-                    return KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
-                }
-        }.also {
-            if (it.count() != 1) return KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig.left()
-        }.single()
-
-        val gjeldendeVedtaksdata = this.hentGjeldendeVedtaksdata(periode = periode, clock = clock).getOrHandle { feil ->
-            log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere for perioden (${feil.fraOgMed}, ${feil.tilOgMed})")
-            return KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
-        }
-
-        return Regulering.opprettRegulering(
-            id = reguleringsId,
-            opprettet = opprettet,
-            sakId = id,
-            saksnummer = saksnummer,
-            fnr = fnr,
-            gjeldendeVedtaksdata = gjeldendeVedtaksdata,
-            clock = clock,
-            sakstype = type,
-        ).mapLeft {
-            KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes
-        }
     }
 
     fun hentSøknad(id: UUID): Either<FantIkkeSøknad, Søknad> {
