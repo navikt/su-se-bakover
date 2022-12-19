@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.behandling.finnesOverlappendeÅpenBehandling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
@@ -29,6 +30,10 @@ fun Sak.oppdaterStønadsperiodeForSøknadsbehandling(
     val søknadsbehandling = søknadsbehandlinger.singleOrNull {
         it.id == søknadsbehandlingId
     } ?: return Sak.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
+
+    if (finnesOverlappendeÅpenBehandling(stønadsperiode.periode, søknadsbehandlingId)) {
+        return Sak.KunneIkkeOppdatereStønadsperiode.FinnesOverlappendeÅpenBehandling.left()
+    }
 
     hentIkkeOpphørtePerioder().let { stønadsperioder ->
         if (stønadsperioder.any { it overlapper stønadsperiode.periode }) {

@@ -28,7 +28,7 @@ fun Sak.opprettEllerOppdaterRegulering(
         .let { r ->
             when (r.size) {
                 0 -> Triple(UUID.randomUUID(), Tidspunkt.now(clock), startDato).also {
-                    if (!harIngenÅpneBehandlinger()) {
+                    if (harÅpenBehandling()) {
                         return Sak.KunneIkkeOppretteEllerOppdatereRegulering.HarÅpenBehandling.left()
                     }
                 }

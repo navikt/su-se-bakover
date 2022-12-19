@@ -177,6 +177,10 @@ internal fun Route.søknadsbehandlingRoutes(
                                                         "stønadsperiode_inneholder_avkorting_utenlandsopphold",
                                                     )
                                                 }
+                                                is Sak.KunneIkkeOppdatereStønadsperiode.FinnesOverlappendeÅpenBehandling -> BadRequest.errorJson(
+                                                    "Stønadsperioden overlapper en annen åpen behandling.",
+                                                    "stønadsperiode_overlapper_åpen_behandling",
+                                                )
                                             }
                                         }
                                     },

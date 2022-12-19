@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain
 
 import arrow.core.Either
-import arrow.core.NonEmptyList
 import arrow.core.Tuple4
 import arrow.core.flatMap
 import arrow.core.getOrHandle
@@ -333,19 +332,9 @@ data class Sak(
         override fun toString() = this::class.simpleName!!
     }
 
-    fun hentÅpneSøknadsbehandlinger(): Either<IngenÅpneSøknadsbehandlinger, NonEmptyList<Søknadsbehandling>> {
-        return søknadsbehandlinger.filter { it.erÅpen() }.ifEmpty { return IngenÅpneSøknadsbehandlinger.left() }
-            .toNonEmptyList().right()
-    }
+    fun hentÅpneSøknadsbehandlinger(): List<Søknadsbehandling> = søknadsbehandlinger.filter { it.erÅpen() }
 
-    fun harÅpenSøknadsbehandling(): Boolean {
-        return hentÅpneSøknadsbehandlinger().fold(
-            { false },
-            { it.isNotEmpty() },
-        )
-    }
-
-    object IngenÅpneSøknadsbehandlinger
+    fun harÅpenSøknadsbehandling(): Boolean = hentÅpneSøknadsbehandlinger().isNotEmpty()
 
     fun hentUteståendeAvkortingForSøknadsbehandling(): Either<AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående, AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting> {
         return when (uteståendeAvkorting) {
@@ -405,6 +394,9 @@ data class Sak(
         object ErLukket : KunneIkkeOppretteSøknadsbehandling
         object ManglerOppgave : KunneIkkeOppretteSøknadsbehandling
         object FinnesAlleredeSøknadsehandlingForSøknad : KunneIkkeOppretteSøknadsbehandling
+
+        // TODO jah: Denne er tenkt erstatte HarÅpenBehandling når vi er ferdige med oppgaven: samtidige åpne behandlinger.
+        object HarÅpenSøknadsbehandling : KunneIkkeOppretteSøknadsbehandling
     }
 
     internal fun kontrollerAtUteståendeAvkortingRevurderes(
@@ -468,16 +460,14 @@ data class Sak(
         object UtenlandsoppholdSomFørerTilOpphørMåRevurderes : OpphørtVilkårMåRevurderes
     }
 
-    fun harÅpenRegulering() = hentÅpneReguleringer().isRight()
-    fun hentÅpneReguleringer(): Either<IngenÅpneReguleringer, NonEmptyList<Regulering>> =
-        reguleringer.filter { it.erÅpen() }.ifEmpty { return IngenÅpneReguleringer.left() }.toNonEmptyList().right()
+    fun harÅpenRegulering() = hentÅpneReguleringer().isNotEmpty()
+    fun hentÅpneReguleringer(): List<Regulering> = reguleringer.filter { it.erÅpen() }
 
-    fun harÅpenRevurdering() = hentÅpneRevurderinger().isRight()
-    fun hentÅpneRevurderinger(): Either<IngenÅpneRevurderinger, NonEmptyList<AbstraktRevurdering>> =
-        revurderinger.filter { it.erÅpen() }.ifEmpty { return IngenÅpneRevurderinger.left() }.toNonEmptyList().right()
+    fun harÅpenRevurdering() = hentÅpneRevurderinger().isNotEmpty()
+    fun hentÅpneRevurderinger(): List<AbstraktRevurdering> = revurderinger.filter { it.erÅpen() }
 
-    fun harIngenÅpneBehandlinger(): Boolean =
-        !harÅpenSøknadsbehandling() && !harÅpenRevurdering() && !harÅpenRegulering() && !harÅpenRevurderingForStansAvYtelse() && !harÅpenRevurderingForGjenopptakAvYtelse()
+    fun harÅpenBehandling(): Boolean =
+        harÅpenSøknadsbehandling() || harÅpenRevurdering() || harÅpenRegulering() || harÅpenRevurderingForStansAvYtelse() || harÅpenRevurderingForGjenopptakAvYtelse()
 
     /**
      * @return Den oppdaterte saken, søknaden som er lukket og dersom den fantes, den lukkede søknadsbehandlingen.
@@ -585,7 +575,6 @@ data class Sak(
         object IkkeLagBrevRequest
     }
 
-    object IngenÅpneRevurderinger
     object FantIkkeSøknadsbehandlingForSøknad
 
     sealed class KunneIkkeOppdatereStønadsperiode {
@@ -599,6 +588,9 @@ data class Sak(
             KunneIkkeOppdatereStønadsperiode()
 
         object StønadsperiodeInneholderAvkortingPgaUtenlandsopphold : KunneIkkeOppdatereStønadsperiode()
+
+        /** Dette kan være en søknadsbehandling, revurdering eller regulering. Kan utvides til en per dersom, dersom saksbehandlerne har behov for dette. */
+        object FinnesOverlappendeÅpenBehandling : KunneIkkeOppdatereStønadsperiode()
     }
 
     fun avventerKravgrunnlag(): Boolean {
@@ -606,8 +598,6 @@ data class Sak(
             .any { it.tilbakekrevingsbehandling.avventerKravgrunnlag() }
     }
 }
-
-object IngenÅpneReguleringer
 
 data class AlleredeGjeldendeSakForBruker(
     val uføre: BegrensetSakinfo,
