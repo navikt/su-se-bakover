@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 
-import no.nav.su.se.bakover.domain.søknadinnhold.HarSøktAlderspensjon
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.HarSøktAlderspensjon
 
 data class HarSøktAlderspensjonJson(
     val harSøktAlderspensjon: Boolean,

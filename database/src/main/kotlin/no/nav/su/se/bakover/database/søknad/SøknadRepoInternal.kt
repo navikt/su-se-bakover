@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.common.persistence.tidspunkt
 import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknad.Søknad
-import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import java.util.UUID
 
 internal object SøknadRepoInternal {

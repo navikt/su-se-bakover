@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 
-import no.nav.su.se.bakover.domain.søknadinnhold.Formue
-import no.nav.su.se.bakover.domain.søknadinnhold.Kjøretøy
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Formue
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Kjøretøy
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.KjøretøyJson.Companion.toKjøretøyJson
 
 data class FormueJson(

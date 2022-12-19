@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.domain.søknadinnhold
 import arrow.core.left
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvFormue
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Formue
 import org.junit.jupiter.api.Test
 
 internal class FormueTest {

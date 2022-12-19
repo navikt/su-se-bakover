@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 
-import no.nav.su.se.bakover.domain.søknadinnhold.Uførevedtak
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Uførevedtak
 
 data class UførevedtakJson(
     val harUførevedtak: Boolean,

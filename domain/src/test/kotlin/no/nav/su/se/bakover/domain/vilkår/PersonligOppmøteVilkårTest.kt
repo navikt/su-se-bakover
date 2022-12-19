@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteÅrsak
-import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

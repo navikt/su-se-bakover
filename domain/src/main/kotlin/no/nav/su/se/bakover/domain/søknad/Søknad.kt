@@ -18,10 +18,10 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
-import no.nav.su.se.bakover.domain.søknadinnhold.ForNav
-import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
-import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdAlder
-import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.ForNav
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdAlder
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID

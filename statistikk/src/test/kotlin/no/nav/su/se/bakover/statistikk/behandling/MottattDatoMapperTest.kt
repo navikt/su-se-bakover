@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.statistikk.behandling
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.domain.søknadinnhold.Personopplysninger
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.søknad.forNavDigitalSøknad

@@ -2,11 +2,11 @@ package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 
 import arrow.core.Either
 import arrow.core.left
-import no.nav.su.se.bakover.domain.søknadinnhold.Boforhold
-import no.nav.su.se.bakover.domain.søknadinnhold.EktefellePartnerSamboer
-import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvBoforhold
-import no.nav.su.se.bakover.domain.søknadinnhold.InnlagtPåInstitusjon
-import no.nav.su.se.bakover.domain.søknadinnhold.OppgittAdresse
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Boforhold
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.EktefellePartnerSamboer
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvBoforhold
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.InnlagtPåInstitusjon
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.OppgittAdresse
 
 data class BoforholdJson(
     val borOgOppholderSegINorge: Boolean,

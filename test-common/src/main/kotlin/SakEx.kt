@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import java.time.LocalDate
 

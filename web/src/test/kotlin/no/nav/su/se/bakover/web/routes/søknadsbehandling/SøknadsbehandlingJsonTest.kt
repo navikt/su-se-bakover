@@ -6,8 +6,8 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.test.TikkendeKlokke

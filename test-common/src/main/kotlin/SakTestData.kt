@@ -10,10 +10,10 @@ import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknad.Søknad
-import no.nav.su.se.bakover.domain.søknadinnhold.Personopplysninger
-import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
-import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdAlder
-import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdAlder
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.søknad.journalpostIdSøknad

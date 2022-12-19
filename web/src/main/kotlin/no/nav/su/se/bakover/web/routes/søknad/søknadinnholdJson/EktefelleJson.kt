@@ -4,8 +4,8 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.domain.søknadinnhold.Ektefelle
-import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvFormue
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Ektefelle
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvFormue
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FormueJson.Companion.toFormueJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InntektOgPensjonJson.Companion.toInntektOgPensjonJson
 

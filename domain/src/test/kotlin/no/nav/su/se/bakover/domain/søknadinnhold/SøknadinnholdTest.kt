@@ -3,6 +3,16 @@ package no.nav.su.se.bakover.domain.søknadinnhold
 import arrow.core.left
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Boforhold
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.EktefellePartnerSamboer
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvSøknadinnhold
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedValideringAvBoforholdOgEktefelle
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.HarSøktAlderspensjon
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.OppgittAdresse
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Oppholdstillatelse
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.OppholdstillatelseAlder
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdAlder
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.søknad.boforhold
 import no.nav.su.se.bakover.test.søknad.ektefelle

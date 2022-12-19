@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknad.Søknad
-import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import java.time.Clock
 import java.util.UUID
@@ -18,6 +17,7 @@ import java.util.UUID
  * Begrensninger for opprettelse av ny søknadsbehandling:
  * - Kun én søknadsbehandling per søknad. På sikt kan denne begrensningen løses litt opp. Eksempelvis ved omgjøring etter klage eller eget tiltak.
  * - Søknaden må være journalført, oppgave må ha vært opprettet og søknaden kan ikke være lukket.
+ * - Kun én åpen søknadsbehandling om gangen.
  *
  * Siden stønadsperioden velges etter man har opprettet søknadsbehandlingen, vil ikke stønadsperiodebegresningene gjelde for dette steget.
  */
@@ -27,7 +27,7 @@ fun Sak.opprettNySøknadsbehandling(
     saksbehandler: NavIdentBruker.Saksbehandler,
 ): Either<Sak.KunneIkkeOppretteSøknadsbehandling, Tuple4<Sak, NySøknadsbehandling, Søknadsbehandling.Vilkårsvurdert.Uavklart, StatistikkEvent.Behandling.Søknad.Opprettet>> {
     if (!harIngenÅpneBehandlinger()) {
-        // TODO jah: Fjern denne når de nye begrensningene er på plass for opprettelse og iverksettelse.
+        // TODO jah: Endre denne når de nye begrensningene er på plass for opprettelse og iverksettelse.
         return Sak.KunneIkkeOppretteSøknadsbehandling.HarÅpenBehandling.left()
     }
     val søknad = hentSøknad(søknadId).fold(

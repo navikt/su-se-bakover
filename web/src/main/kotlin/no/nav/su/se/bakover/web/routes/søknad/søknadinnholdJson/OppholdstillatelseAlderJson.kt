@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 
-import no.nav.su.se.bakover.domain.søknadinnhold.OppholdstillatelseAlder
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.OppholdstillatelseAlder
 
 data class OppholdstillatelseAlderJson(
     val eøsborger: Boolean?,

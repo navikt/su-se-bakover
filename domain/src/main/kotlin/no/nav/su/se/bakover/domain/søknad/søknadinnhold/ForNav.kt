@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.søknadinnhold
+package no.nav.su.se.bakover.domain.søknad.søknadinnhold
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo

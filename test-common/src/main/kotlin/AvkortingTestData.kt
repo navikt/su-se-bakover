@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.november
@@ -12,7 +11,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.sak.Saksnummer
-import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import java.time.Clock

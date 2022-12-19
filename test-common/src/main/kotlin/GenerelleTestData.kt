@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
-import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneOffset

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.NySøknadsbehandling
 import java.util.UUID
 
 interface SøknadsbehandlingRepo {

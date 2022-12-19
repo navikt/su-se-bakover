@@ -4,7 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.application.CopyArgs
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.mai
-import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårAvslag
 import no.nav.su.se.bakover.test.vurderingsperiode.vurderingsperiodeLovligOppholdInnvilget
 import org.junit.jupiter.api.Test

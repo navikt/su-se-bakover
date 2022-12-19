@@ -6,7 +6,7 @@ import io.ktor.server.application.ApplicationCall
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.enumContains
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
-import no.nav.su.se.bakover.domain.søknadinnhold.ForNav
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.ForNav
 import java.time.LocalDate
 
 @JsonTypeInfo(

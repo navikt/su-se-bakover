@@ -5,6 +5,11 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Boforhold
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.EktefellePartnerSamboer
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvBoforhold
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.InnlagtPåInstitusjon
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.OppgittAdresse
 import org.junit.jupiter.api.Test
 
 internal class BoforholdTest() {

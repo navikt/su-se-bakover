@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.søknadinnhold
+package no.nav.su.se.bakover.domain.søknad.søknadinnhold
 
 import no.nav.su.se.bakover.common.Fnr
 

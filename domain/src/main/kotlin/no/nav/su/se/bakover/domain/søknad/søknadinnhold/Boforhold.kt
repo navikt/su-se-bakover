@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.søknadinnhold
+package no.nav.su.se.bakover.domain.søknad.søknadinnhold
 
 import arrow.core.Either
 import arrow.core.left

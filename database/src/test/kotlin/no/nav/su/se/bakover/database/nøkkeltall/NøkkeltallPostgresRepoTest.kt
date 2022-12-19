@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.database.nøkkeltall
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
-import no.nav.su.se.bakover.domain.søknadinnhold.ForNav
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.ForNav
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb

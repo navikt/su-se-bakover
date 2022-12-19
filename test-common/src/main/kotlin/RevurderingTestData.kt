@@ -46,7 +46,7 @@ import no.nav.su.se.bakover.domain.sak.iverksett.IverksettInnvilgetRevurderingRe
 import no.nav.su.se.bakover.domain.sak.iverksett.IverksettOpphørtRevurderingResponse
 import no.nav.su.se.bakover.domain.sak.iverksett.IverksettRevurderingResponse
 import no.nav.su.se.bakover.domain.sak.iverksett.iverksettRevurdering
-import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import java.time.Clock

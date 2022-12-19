@@ -29,9 +29,9 @@ import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
-import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
-import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdAlder
-import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdAlder
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID

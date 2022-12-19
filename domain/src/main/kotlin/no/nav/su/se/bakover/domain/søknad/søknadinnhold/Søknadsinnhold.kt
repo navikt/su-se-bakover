@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.søknadinnhold
+package no.nav.su.se.bakover.domain.søknad.søknadinnhold
 
 import arrow.core.Either
 import arrow.core.left
@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.domain.sak.Sakstype
-import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold.Companion.validerBoforholdOgEktefelle
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold.Companion.validerBoforholdOgEktefelle
 
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,

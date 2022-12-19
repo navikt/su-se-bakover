@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 
-import no.nav.su.se.bakover.domain.søknadinnhold.Flyktningsstatus
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Flyktningsstatus
 
 data class FlyktningsstatusJson(
     val registrertFlyktning: Boolean,

@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.common.periode.minus
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import java.time.LocalDate
 
