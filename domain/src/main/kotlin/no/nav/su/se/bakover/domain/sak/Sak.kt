@@ -49,7 +49,6 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
@@ -538,54 +537,7 @@ data class Sak(
         object HarÅpenBehandling : KunneIkkeOppretteSøknadsbehandling
         object ErLukket : KunneIkkeOppretteSøknadsbehandling
         object ManglerOppgave : KunneIkkeOppretteSøknadsbehandling
-        object HarAlleredeBehandling : KunneIkkeOppretteSøknadsbehandling
-    }
-
-    fun opprettNySøknadsbehandling(
-        søknadId: UUID,
-        clock: Clock,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeOppretteSøknadsbehandling, Tuple4<Sak, NySøknadsbehandling, Søknadsbehandling.Vilkårsvurdert.Uavklart, StatistikkEvent.Behandling.Søknad.Opprettet>> {
-        if (!kanOppretteBehandling()) {
-            return KunneIkkeOppretteSøknadsbehandling.HarÅpenBehandling.left()
-        }
-        val søknad = hentSøknad(søknadId).fold(
-            ifLeft = { throw IllegalArgumentException("Fant ikke søknad $søknadId") },
-            ifRight = {
-                if (it is Søknad.Journalført.MedOppgave.Lukket) {
-                    return KunneIkkeOppretteSøknadsbehandling.ErLukket.left()
-                }
-                if (it !is Søknad.Journalført.MedOppgave) {
-                    // TODO Prøv å opprette oppgaven hvis den mangler? (systembruker blir kanskje mest riktig?)
-                    return KunneIkkeOppretteSøknadsbehandling.ManglerOppgave.left()
-                }
-                if (hentSøknadsbehandlingForSøknad(søknadId).isNotEmpty()) {
-                    return KunneIkkeOppretteSøknadsbehandling.HarAlleredeBehandling.left()
-                }
-                it
-            },
-        )
-        return NySøknadsbehandling(
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(clock),
-            sakId = this.id,
-            søknad = søknad,
-            oppgaveId = søknad.oppgaveId,
-            fnr = søknad.fnr,
-            avkorting = this.hentUteståendeAvkortingForSøknadsbehandling().fold({ it }, { it }).kanIkke(),
-            sakstype = søknad.type,
-            saksbehandler = saksbehandler,
-        ).let { nySøknadsbehandling ->
-            val søknadsbehandling = nySøknadsbehandling.toSøknadsbehandling(this.saksnummer)
-            Tuple4(
-                this.copy(
-                    søknadsbehandlinger = this.søknadsbehandlinger + søknadsbehandling,
-                ),
-                nySøknadsbehandling,
-                søknadsbehandling,
-                StatistikkEvent.Behandling.Søknad.Opprettet(søknadsbehandling, saksbehandler),
-            ).right()
-        }
+        object FinnesAlleredeSøknadsehandlingForSøknad : KunneIkkeOppretteSøknadsbehandling
     }
 
     internal fun kontrollerAtUteståendeAvkortingRevurderes(

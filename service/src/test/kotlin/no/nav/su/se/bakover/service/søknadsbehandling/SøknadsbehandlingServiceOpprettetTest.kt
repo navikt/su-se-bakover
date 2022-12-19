@@ -117,7 +117,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                     sakId = sak.id,
                     saksbehandler = saksbehandler,
                 ),
-            ) shouldBe Sak.KunneIkkeOppretteSøknadsbehandling.HarAlleredeBehandling.left()
+            ) shouldBe Sak.KunneIkkeOppretteSøknadsbehandling.FinnesAlleredeSøknadsehandlingForSøknad.left()
         }
     }
 

@@ -57,7 +57,6 @@ import no.nav.su.se.bakover.test.innvilgetSøknadsbehandlingMedÅpenRegulering
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
-import no.nav.su.se.bakover.test.nySakUføre
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
@@ -111,21 +110,6 @@ internal class SakTest {
 
         val sakUtenÅpenBehandling = innvilgetSøknadsbehandlingMedIverksattRegulering().first
         sakUtenÅpenBehandling.hentÅpneReguleringer().shouldBeLeft()
-    }
-
-    @Test
-    fun `oppretter søknadsbehandling dersom det ikke finnes eksisterende åpne behandlinger`() {
-        val (sakUtenÅpenBehandling, søknad) = nySakUføre()
-        sakUtenÅpenBehandling.opprettNySøknadsbehandling(søknad.id, fixedClock, saksbehandler).shouldBeRight()
-
-        val sakMedÅpenSøknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().first
-        sakMedÅpenSøknadsbehandling.opprettNySøknadsbehandling(søknad.id, fixedClock, saksbehandler).shouldBeLeft()
-
-        val sakMedÅpenRevurdering = opprettetRevurdering().first
-        sakMedÅpenRevurdering.opprettNySøknadsbehandling(søknad.id, fixedClock, saksbehandler).shouldBeLeft()
-
-        val sakMedÅpenRegulering = innvilgetSøknadsbehandlingMedÅpenRegulering(1.mai(2021)).first
-        sakMedÅpenRegulering.opprettNySøknadsbehandling(søknad.id, fixedClock, saksbehandler)
     }
 
     @Test

@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.domain.Sak
 
 internal fun Sak.KunneIkkeOppretteSøknadsbehandling.tilResultat() = when (this) {
     Sak.KunneIkkeOppretteSøknadsbehandling.ErLukket -> Feilresponser.søknadErLukket
-    Sak.KunneIkkeOppretteSøknadsbehandling.HarAlleredeBehandling -> Feilresponser.søknadHarBehandlingFraFør
+    Sak.KunneIkkeOppretteSøknadsbehandling.FinnesAlleredeSøknadsehandlingForSøknad -> Feilresponser.søknadHarBehandlingFraFør
     Sak.KunneIkkeOppretteSøknadsbehandling.HarÅpenBehandling -> Feilresponser.harAlleredeÅpenBehandling
     Sak.KunneIkkeOppretteSøknadsbehandling.ManglerOppgave -> Feilresponser.søknadManglerOppgave
 }
