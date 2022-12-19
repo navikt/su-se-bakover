@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
@@ -141,14 +142,14 @@ internal class SakTest {
                 type = Sakstype.UFØRE,
                 uteståendeAvkorting = Avkortingsvarsel.Ingen,
                 versjon = Hendelsesversjon(1),
-            ).hentPerioderMedLøpendeYtelse() shouldBe emptyList()
+            ).hentIkkeOpphørtePerioder() shouldBe emptyList()
         }
 
         @Test
         fun `henter en stønadsperiode`() {
             val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget()
 
-            sak.hentPerioderMedLøpendeYtelse() shouldBe listOf(
+            sak.hentIkkeOpphørtePerioder() shouldBe listOf(
                 år(2021),
             )
         }
@@ -163,7 +164,7 @@ internal class SakTest {
                 clock = clock,
             )
 
-            sak.hentPerioderMedLøpendeYtelse() shouldBe listOf(
+            sak.hentIkkeOpphørtePerioder() shouldBe listOf(
                 Periode.create(1.januar(2021), 30.april(2021)),
             )
         }
@@ -182,7 +183,7 @@ internal class SakTest {
                 vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = Periode.create(1.mai(2021), 31.desember(2021)))),
             )
 
-            sakEtterOpphør.hentPerioderMedLøpendeYtelse() shouldBe listOf(
+            sakEtterOpphør.hentIkkeOpphørtePerioder() shouldBe listOf(
                 Periode.create(1.januar(2021), 30.april(2021)),
             )
 
@@ -202,7 +203,7 @@ internal class SakTest {
             )
 
             sakEtterRevurdering.let {
-                it.hentPerioderMedLøpendeYtelse() shouldBe listOf(
+                it.hentIkkeOpphørtePerioder() shouldBe listOf(
                     Periode.create(1.januar(2021), 30.april(2021)),
                     Periode.create(1.juni(2021), 31.desember(2021)),
                 )
@@ -227,7 +228,7 @@ internal class SakTest {
                 søknadsbehandlinger = sak.søknadsbehandlinger + stønadsperiode2.behandling,
                 vedtakListe = sak.vedtakListe + stønadsperiode2,
             ).let {
-                it.hentPerioderMedLøpendeYtelse() shouldBe listOf(
+                it.hentIkkeOpphørtePerioder() shouldBe listOf(
                     år(2021),
                     år(2023),
                 )
@@ -267,7 +268,7 @@ internal class SakTest {
                 vedtakListe = sakRevurdering1.vedtakListe + sakRevurdering2.vedtakListe,
                 utbetalinger = sakRevurdering1.utbetalinger + sakRevurdering2.utbetalinger,
             ).let {
-                it.hentPerioderMedLøpendeYtelse() shouldBe listOf(
+                it.hentIkkeOpphørtePerioder() shouldBe listOf(
                     år(2021),
                     år(2023),
                 )
@@ -287,7 +288,7 @@ internal class SakTest {
                 clock = clock,
             )
 
-            sakFørRevurdering.hentPerioderMedLøpendeYtelse() shouldBe listOf(
+            sakFørRevurdering.hentIkkeOpphørtePerioder() shouldBe listOf(
                 år(2021),
             )
 
@@ -297,7 +298,7 @@ internal class SakTest {
                 clock = clock,
             )
 
-            sakEtterStans.hentPerioderMedLøpendeYtelse() shouldBe listOf(
+            sakEtterStans.hentIkkeOpphørtePerioder() shouldBe listOf(
                 år(2021),
             )
 
@@ -307,7 +308,7 @@ internal class SakTest {
                 clock = clock,
             )
 
-            sakEtterGjenopptak.hentPerioderMedLøpendeYtelse() shouldBe listOf(
+            sakEtterGjenopptak.hentIkkeOpphørtePerioder() shouldBe listOf(
                 år(2021),
             )
 
@@ -317,7 +318,7 @@ internal class SakTest {
                 clock = clock,
             )
 
-            sakEtterRevurdering.hentPerioderMedLøpendeYtelse() shouldBe listOf(
+            sakEtterRevurdering.hentIkkeOpphørtePerioder() shouldBe listOf(
                 år(2021),
             )
             sakEtterRevurdering.vedtakListe shouldContainAll listOf(
@@ -346,7 +347,7 @@ internal class SakTest {
                 vedtakListe = sakStønadsperiode1.vedtakListe + sakStønadsperiode2.vedtakListe,
                 utbetalinger = sakStønadsperiode1.utbetalinger + sakStønadsperiode2.utbetalinger,
             ).let {
-                it.hentPerioderMedLøpendeYtelse() shouldBe listOf(
+                it.hentIkkeOpphørtePerioder() shouldBe listOf(
                     Periode.create(1.januar(2021), 31.desember(2022)),
                 )
                 it.vedtakListe shouldContainAll listOf(

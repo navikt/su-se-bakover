@@ -49,7 +49,6 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
@@ -59,7 +58,6 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.beregningKanVæreGjeldende
 import no.nav.su.se.bakover.domain.vedtak.hentBeregningForGjeldendeVedtak
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
-import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrerteUtenlandsopphold
 import org.slf4j.LoggerFactory
@@ -234,11 +232,11 @@ data class Sak(
     }
 
     fun hentGjeldendeStønadsperiode(clock: Clock): Periode? =
-        hentPerioderMedLøpendeYtelse().filter { it.inneholder(LocalDate.now(clock)) }.maxByOrNull { it.tilOgMed }
+        hentIkkeOpphørtePerioder().filter { it.inneholder(LocalDate.now(clock)) }.maxByOrNull { it.tilOgMed }
 
     fun harGjeldendeEllerFremtidigStønadsperiode(clock: Clock): Boolean {
         val now = LocalDate.now(clock)
-        return hentPerioderMedLøpendeYtelse().any { it.inneholder(now) || it.starterEtter(now) }
+        return hentIkkeOpphørtePerioder().any { it.inneholder(now) || it.starterEtter(now) }
     }
 
     fun harÅpenRevurderingForStansAvYtelse(): Boolean {
@@ -260,7 +258,7 @@ data class Sak(
     /**
      * Identifiser alle perioder hvor ytelsen har vært eller vil være løpende.
      */
-    fun hentPerioderMedLøpendeYtelse(
+    fun hentIkkeOpphørtePerioder(
         periode: Periode = Periode.create(
             fraOgMed = LocalDate.MIN,
             tilOgMed = LocalDate.MAX,
@@ -320,68 +318,6 @@ data class Sak(
         return true
     }
 
-    fun oppdaterStønadsperiodeForSøknadsbehandling(
-        søknadsbehandlingId: UUID,
-        stønadsperiode: Stønadsperiode,
-        clock: Clock,
-        formuegrenserFactory: FormuegrenserFactory,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeOppdatereStønadsperiode, Pair<Sak, Søknadsbehandling.Vilkårsvurdert>> {
-        val søknadsbehandling = søknadsbehandlinger.singleOrNull {
-            it.id == søknadsbehandlingId
-        } ?: return KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
-
-        hentPerioderMedLøpendeYtelse().let { stønadsperioder ->
-            if (stønadsperioder.any { it overlapper stønadsperiode.periode }) {
-                return KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedLøpendeStønadsperiode.left()
-            }
-            if (stønadsperioder.any { it.starterSamtidigEllerSenere(stønadsperiode.periode) }) {
-                return KunneIkkeOppdatereStønadsperiode.StønadsperiodeForSenerePeriodeEksisterer.left()
-            }
-        }
-
-        hentGjeldendeVedtaksdata(
-            periode = stønadsperiode.periode,
-            clock = clock,
-        ).map {
-            if (it.inneholderOpphørsvedtakMedAvkortingUtenlandsopphold()) {
-                val alleUtbetalingerErOpphørt =
-                    utbetalingstidslinje(periode = stønadsperiode.periode).tidslinje.all { utbetalingslinjePåTidslinje ->
-                        utbetalingslinjePåTidslinje is UtbetalingslinjePåTidslinje.Opphør
-                    }
-
-                if (!alleUtbetalingerErOpphørt) {
-                    // Man kan ikke ha stønadsperioder over måneder med opphør som førte til eller ville ha ført til feilkonto, les: feilutbetalinger og avkortinger. Dersom man ønsker å endre disse månedene, må de revurderes.
-                    return KunneIkkeOppdatereStønadsperiode.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold.left()
-                }
-            }
-        }
-
-        return søknadsbehandling.oppdaterStønadsperiode(
-            oppdatertStønadsperiode = stønadsperiode,
-            formuegrenserFactory = formuegrenserFactory,
-            clock = clock,
-            saksbehandler = saksbehandler,
-        ).mapLeft {
-            when (it) {
-                is no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> {
-                    KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
-                }
-
-                is no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeOppdatereStønadsperiode.UgyldigTilstand -> {
-                    KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
-                }
-            }
-        }.map { søknadsbehandlingMedOppdatertStønadsperiode ->
-            Pair(
-                this.copy(
-                    søknadsbehandlinger = søknadsbehandlinger.filterNot { it.id == søknadsbehandlingMedOppdatertStønadsperiode.id } + søknadsbehandlingMedOppdatertStønadsperiode,
-                ),
-                søknadsbehandlingMedOppdatertStønadsperiode,
-            )
-        }
-    }
-
     fun ytelseUtløperVedUtløpAv(periode: Periode): Boolean {
         return vedtakstidslinje().tidslinje.lastOrNull()?.let {
             !it.erOpphør() && it.periode slutterSamtidig periode
@@ -409,7 +345,7 @@ data class Sak(
             .let { r ->
                 when (r.size) {
                     0 -> Triple(UUID.randomUUID(), Tidspunkt.now(clock), startDato).also {
-                        if (!kanOppretteBehandling()) {
+                        if (!harIngenÅpneBehandlinger()) {
                             return KunneIkkeOppretteEllerOppdatereRegulering.HarÅpenBehandling.left()
                         }
                     }
@@ -679,7 +615,7 @@ data class Sak(
     fun hentÅpneRevurderinger(): Either<IngenÅpneRevurderinger, NonEmptyList<AbstraktRevurdering>> =
         revurderinger.filter { it.erÅpen() }.ifEmpty { return IngenÅpneRevurderinger.left() }.toNonEmptyList().right()
 
-    fun kanOppretteBehandling(): Boolean =
+    fun harIngenÅpneBehandlinger(): Boolean =
         !harÅpenSøknadsbehandling() && !harÅpenRevurdering() && !harÅpenRegulering() && !harÅpenRevurderingForStansAvYtelse() && !harÅpenRevurderingForGjenopptakAvYtelse()
 
     /**

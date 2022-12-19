@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.test.nySakUføre
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
-import opprettNySøknadsbehandling
 import org.junit.jupiter.api.Test
 
 internal class OpprettNySøknadsbehandlingTest {

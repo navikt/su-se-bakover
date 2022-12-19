@@ -107,7 +107,7 @@ class StansYtelseServiceImpl(
                     sessionContext = transactionContext,
                 ).getOrHandle { throw KunneIkkeStanseYtelse.FantIkkeSak.exception() }
 
-                if (!sak.kanOppretteBehandling()) {
+                if (!sak.harIngenÅpneBehandlinger()) {
                     throw KunneIkkeStanseYtelse.SakHarÅpenBehandling.exception()
                 }
 

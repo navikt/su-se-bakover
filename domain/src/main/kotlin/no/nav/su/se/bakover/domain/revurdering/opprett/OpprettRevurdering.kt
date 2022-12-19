@@ -24,7 +24,7 @@ fun Sak.opprettRevurdering(
     command: OpprettRevurderingCommand,
     clock: Clock,
 ): Either<KunneIkkeOppretteRevurdering, OpprettRevurderingResultatUtenOppgaveId> {
-    if (!kanOppretteBehandling()) {
+    if (!harIngenÅpneBehandlinger()) {
         return KunneIkkeOppretteRevurdering.HarÅpenBehandling.left()
     }
 
