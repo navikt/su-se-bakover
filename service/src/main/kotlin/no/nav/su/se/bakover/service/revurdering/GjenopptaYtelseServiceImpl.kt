@@ -99,7 +99,7 @@ class GjenopptaYtelseServiceImpl(
                 }
 
                 is GjenopptaYtelseRequest.Opprett -> {
-                    if (!sak.harIngenÅpneBehandlinger()) {
+                    if (sak.harÅpenBehandling()) {
                         return KunneIkkeSimulereGjenopptakAvYtelse.SakHarÅpenBehandling.left()
                     }
 

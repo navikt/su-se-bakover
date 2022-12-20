@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.domain
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
-import io.kotest.assertions.arrow.core.shouldBeLeft
-import io.kotest.assertions.arrow.core.shouldBeRight
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainAll
+import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -87,30 +88,30 @@ internal class SakTest {
     @Test
     fun `henter åpne søknadsbehandlinger`() {
         val sakMedÅpenBehandling = søknadsbehandlingVilkårsvurdertUavklart().first
-        sakMedÅpenBehandling.hentÅpneSøknadsbehandlinger().shouldBeRight()
+        sakMedÅpenBehandling.hentÅpneSøknadsbehandlinger().shouldNotBeEmpty()
         sakMedÅpenBehandling.harÅpenSøknadsbehandling() shouldBe true
 
         val sakUtenÅpenBehandling = iverksattSøknadsbehandlingUføre().first
-        sakUtenÅpenBehandling.hentÅpneSøknadsbehandlinger().shouldBeLeft()
+        sakUtenÅpenBehandling.hentÅpneSøknadsbehandlinger().shouldBeEmpty()
         sakUtenÅpenBehandling.harÅpenSøknadsbehandling() shouldBe false
     }
 
     @Test
     fun `henter åpne revurderinger`() {
         val sakMedÅpenBehandling = opprettetRevurdering().first
-        sakMedÅpenBehandling.hentÅpneRevurderinger().shouldBeRight()
+        sakMedÅpenBehandling.hentÅpneRevurderinger().shouldNotBeEmpty()
 
         val sakUtenÅpenBehandling = iverksattRevurdering().first
-        sakUtenÅpenBehandling.hentÅpneRevurderinger().shouldBeLeft()
+        sakUtenÅpenBehandling.hentÅpneRevurderinger().shouldBeEmpty()
     }
 
     @Test
     fun `henter åpne reguleringer`() {
         val sakMedÅpenBehandling = innvilgetSøknadsbehandlingMedÅpenRegulering(1.mai(2021)).first
-        sakMedÅpenBehandling.hentÅpneReguleringer().shouldBeRight()
+        sakMedÅpenBehandling.hentÅpneReguleringer().shouldNotBeEmpty()
 
         val sakUtenÅpenBehandling = innvilgetSøknadsbehandlingMedIverksattRegulering().first
-        sakUtenÅpenBehandling.hentÅpneReguleringer().shouldBeLeft()
+        sakUtenÅpenBehandling.hentÅpneReguleringer().shouldBeEmpty()
     }
 
     @Nested
@@ -525,16 +526,17 @@ internal class SakTest {
                 utbetalingerKjørtTilOgMed = 1.juli(2021),
             )
 
-            val periode = år(2022)
-            val nyStønadsperiode = Stønadsperiode.create(periode)
+            val nyPeriode = år(2022)
+            val nyStønadsperiode = Stønadsperiode.create(nyPeriode)
             val (_, nySøknadsbehandling) = søknadsbehandlingVilkårsvurdertUavklart(
                 clock = tikkendeKlokke,
                 stønadsperiode = nyStønadsperiode,
             )
 
-            val nySøknadsbehandlingMedOpplysningsplikt = nySøknadsbehandling.copy(
-                vilkårsvurderinger = nySøknadsbehandling.vilkårsvurderinger.leggTil(tilstrekkeligDokumentert(periode = periode)),
-            )
+            val nySøknadsbehandlingMedOpplysningsplikt = nySøknadsbehandling.leggTilOpplysningspliktVilkår(
+                saksbehandler = nySøknadsbehandling.saksbehandler!!,
+                opplysningspliktVilkår = tilstrekkeligDokumentert(periode = nyPeriode),
+            ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Uavklart
 
             sakMedRevurderingOgSøknadVedtak.copy(
                 søknadsbehandlinger = sakMedRevurderingOgSøknadVedtak.søknadsbehandlinger + nySøknadsbehandling,
