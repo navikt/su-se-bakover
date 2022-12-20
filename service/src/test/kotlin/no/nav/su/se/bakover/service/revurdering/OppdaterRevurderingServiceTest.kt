@@ -29,7 +29,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
-import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingRequest
+import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingCommand
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -76,7 +76,7 @@ internal class OppdaterRevurderingServiceTest {
             },
         )
         val actual = mocks.revurderingService.oppdaterRevurdering(
-            OppdaterRevurderingRequest(
+            OppdaterRevurderingCommand(
                 revurderingId = revurderingId,
                 periode = år(2021),
                 årsak = "MELDING_FRA_BRUKER",
@@ -98,7 +98,7 @@ internal class OppdaterRevurderingServiceTest {
             },
         )
         val actual = mocks.revurderingService.oppdaterRevurdering(
-            OppdaterRevurderingRequest(
+            OppdaterRevurderingCommand(
                 revurderingId = revurderingId,
                 periode = år(2021),
                 årsak = "UGYLDIG_ÅRSAK",
@@ -121,7 +121,7 @@ internal class OppdaterRevurderingServiceTest {
             },
         ).also {
             it.revurderingService.oppdaterRevurdering(
-                OppdaterRevurderingRequest(
+                OppdaterRevurderingCommand(
                     revurderingId = revurderingId,
                     periode = år(2021),
                     årsak = "MELDING_FRA_BRUKER",
@@ -144,7 +144,7 @@ internal class OppdaterRevurderingServiceTest {
             },
         ).also {
             val actual = it.revurderingService.oppdaterRevurdering(
-                OppdaterRevurderingRequest(
+                OppdaterRevurderingCommand(
                     revurderingId = iverksatt.id,
                     periode = periodeNesteMånedOgTreMånederFram.fraOgMed.rangeTo(iverksatt.periode.tilOgMed)
                         .toPeriode(),
@@ -181,7 +181,7 @@ internal class OppdaterRevurderingServiceTest {
             )
             val actual = it.revurderingService.oppdaterRevurdering(
                 // Bruker andre verdier enn den opprinnelige revurderingen for å se at de faktisk forandrer seg
-                OppdaterRevurderingRequest(
+                OppdaterRevurderingCommand(
                     revurderingId = revurdering.id,
                     periode = oppdatertPeriode.fraOgMed.rangeTo(revurdering.periode.tilOgMed).toPeriode(),
                     årsak = "ANDRE_KILDER",
@@ -229,7 +229,7 @@ internal class OppdaterRevurderingServiceTest {
             },
         ).also {
             it.revurderingService.oppdaterRevurdering(
-                OppdaterRevurderingRequest(
+                OppdaterRevurderingCommand(
                     revurderingId = revurdering.id,
                     periode = periodeNesteMånedOgTreMånederFram.fraOgMed.rangeTo(revurdering.periode.tilOgMed)
                         .toPeriode(),
@@ -261,7 +261,7 @@ internal class OppdaterRevurderingServiceTest {
             revurderingRepo = mock(),
         ).also {
             val actual = it.revurderingService.oppdaterRevurdering(
-                OppdaterRevurderingRequest(
+                OppdaterRevurderingCommand(
                     revurderingId = revurdering.id,
                     periode = 1.mai(2021).rangeTo(revurdering.periode.tilOgMed).toPeriode(),
                     årsak = "REGULER_GRUNNBELØP",
@@ -317,7 +317,7 @@ internal class OppdaterRevurderingServiceTest {
         ).also {
             // fullstendig overlapp med hull mellom stønadsperiodene
             it.revurderingService.oppdaterRevurdering(
-                OppdaterRevurderingRequest(
+                OppdaterRevurderingCommand(
                     revurderingId = opprettetRevurdering.second.id,
                     periode = 1.mai(2021).rangeTo(sakMedNyStønadsperiode.second.periode.tilOgMed).toPeriode(),
                     årsak = "MELDING_FRA_BRUKER",
@@ -331,7 +331,7 @@ internal class OppdaterRevurderingServiceTest {
 
             // delvis overlapp med hull mellom stønadsperioder
             it.revurderingService.oppdaterRevurdering(
-                OppdaterRevurderingRequest(
+                OppdaterRevurderingCommand(
                     revurderingId = opprettetRevurdering.second.id,
                     periode = mai(2021).rangeTo(august(2021)),
                     årsak = "MELDING_FRA_BRUKER",
@@ -382,7 +382,7 @@ internal class OppdaterRevurderingServiceTest {
             },
         ).also {
             it.revurderingService.oppdaterRevurdering(
-                oppdaterRevurderingRequest = OppdaterRevurderingRequest(
+                command = OppdaterRevurderingCommand(
                     revurderingId = opprettetRevurdering.id,
                     periode = revurderingsperiode,
                     årsak = Revurderingsårsak.Årsak.ANDRE_KILDER.toString(),
@@ -423,7 +423,7 @@ internal class OppdaterRevurderingServiceTest {
             },
         ).let {
             it.revurderingService.oppdaterRevurdering(
-                OppdaterRevurderingRequest(
+                OppdaterRevurderingCommand(
                     revurderingId = nyRevurdering.id,
                     periode = nyRevurderingsperiode,
                     årsak = "MELDING_FRA_BRUKER",

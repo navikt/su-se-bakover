@@ -3,30 +3,40 @@ package no.nav.su.se.bakover.domain.revurdering.oppdater
 import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
-import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import java.time.Clock
-import java.util.UUID
 
 fun Sak.oppdaterRevurdering(
-    revurderingId: UUID,
-    periode: Periode,
-    saksbehandler: NavIdentBruker.Saksbehandler,
-    revurderingsårsak: Revurderingsårsak,
-    informasjonSomRevurderes: InformasjonSomRevurderes,
+    command: OppdaterRevurderingCommand,
     clock: Clock,
 ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
-    val revurdering = hentRevurdering(revurderingId).fold(
+    val revurderingsårsak = command.revurderingsårsak.getOrHandle {
+        return when (it) {
+            Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigBegrunnelse -> {
+                KunneIkkeOppdatereRevurdering.UgyldigBegrunnelse
+            }
+
+            Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigÅrsak -> {
+                KunneIkkeOppdatereRevurdering.UgyldigÅrsak
+            }
+        }.left()
+    }
+    val informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(
+        revurderingsteg = command.informasjonSomRevurderes,
+    ).getOrHandle {
+        return KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes.left()
+    }
+    val revurdering = hentRevurdering(command.revurderingId).fold(
         { return KunneIkkeOppdatereRevurdering.FantIkkeRevurdering.left() },
         {
             if (it is Revurdering) it else return KunneIkkeOppdatereRevurdering.FantIkkeRevurdering.left()
         },
     )
+    val periode = command.periode
 
     val gjeldendeVedtaksdata = hentGjeldendeVedtaksdataOgSjekkGyldighetForRevurderingsperiode(
         periode = periode,
@@ -62,6 +72,6 @@ fun Sak.oppdaterRevurdering(
         informasjonSomRevurderes = informasjonSomRevurderes,
         tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(dato = periode.fraOgMed)!!.id,
         avkorting = avkorting,
-        saksbehandler = saksbehandler,
+        saksbehandler = command.saksbehandler,
     )
 }

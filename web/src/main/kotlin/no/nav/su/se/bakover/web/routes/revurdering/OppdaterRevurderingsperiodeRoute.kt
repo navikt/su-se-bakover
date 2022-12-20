@@ -22,7 +22,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.revurdering.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
-import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingRequest
+import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingCommand
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.begrunnelseKanIkkeVæreTom
@@ -54,7 +54,7 @@ internal fun Route.oppdaterRevurderingRoute(
             call.withRevurderingId { revurderingId ->
                 call.withBody<Body> { body ->
                     revurderingService.oppdaterRevurdering(
-                        OppdaterRevurderingRequest(
+                        OppdaterRevurderingCommand(
                             revurderingId = revurderingId,
                             periode = Periode.create(
                                 fraOgMed = body.fraOgMed,

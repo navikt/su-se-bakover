@@ -103,7 +103,7 @@ import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeSimulereGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
-import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingRequest
+import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVedOpphørService
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
@@ -672,10 +672,10 @@ open class AccessCheckProxy(
                 }
 
                 override fun oppdaterRevurdering(
-                    oppdaterRevurderingRequest: OppdaterRevurderingRequest,
+                    command: OppdaterRevurderingCommand,
                 ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
-                    assertHarTilgangTilRevurdering(oppdaterRevurderingRequest.revurderingId)
-                    return services.revurdering.oppdaterRevurdering(oppdaterRevurderingRequest)
+                    assertHarTilgangTilRevurdering(command.revurderingId)
+                    return services.revurdering.oppdaterRevurdering(command)
                 }
 
                 override fun beregnOgSimuler(

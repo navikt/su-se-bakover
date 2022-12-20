@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import java.util.UUID
 
-data class OppdaterRevurderingRequest(
+data class OppdaterRevurderingCommand(
     val revurderingId: UUID,
     val periode: Periode,
     val årsak: String,

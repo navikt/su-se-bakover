@@ -37,7 +37,6 @@ import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IdentifiserRevurderingsopphørSomIkkeStøttes
-import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeBeregneOgSimulereRevurdering
@@ -64,7 +63,6 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingOgFeilmeldingerRespons
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SendTilAttesteringRequest
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
@@ -72,7 +70,7 @@ import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Varselmelding
 import no.nav.su.se.bakover.domain.revurdering.VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
-import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingRequest
+import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.oppdater.oppdaterRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVedOpphørService
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
@@ -445,29 +443,11 @@ class RevurderingServiceImpl(
     }
 
     override fun oppdaterRevurdering(
-        oppdaterRevurderingRequest: OppdaterRevurderingRequest,
+        command: OppdaterRevurderingCommand,
     ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
-        return sakService.hentSakForRevurdering(oppdaterRevurderingRequest.revurderingId)
+        return sakService.hentSakForRevurdering(command.revurderingId)
             .oppdaterRevurdering(
-                revurderingId = oppdaterRevurderingRequest.revurderingId,
-                periode = oppdaterRevurderingRequest.periode,
-                saksbehandler = oppdaterRevurderingRequest.saksbehandler,
-                revurderingsårsak = oppdaterRevurderingRequest.revurderingsårsak.getOrHandle {
-                    return when (it) {
-                        Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigBegrunnelse -> {
-                            KunneIkkeOppdatereRevurdering.UgyldigBegrunnelse
-                        }
-
-                        Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigÅrsak -> {
-                            KunneIkkeOppdatereRevurdering.UgyldigÅrsak
-                        }
-                    }.left()
-                },
-                informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(
-                    revurderingsteg = oppdaterRevurderingRequest.informasjonSomRevurderes,
-                ).getOrHandle {
-                    return KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes.left()
-                },
+                command = command,
                 clock = clock,
             ).map {
                 revurderingRepo.lagre(it)
