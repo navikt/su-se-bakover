@@ -14,12 +14,10 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingService
+import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -116,7 +114,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
     @Test
     fun `fant ikke revurdering`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeOppdatereRevurdering.FeilVedOppdateringAvRevurdering(Sak.KunneIkkeOppdatereRevurdering.FantIkkeRevurdering),
+            error = KunneIkkeOppdatereRevurdering.FantIkkeRevurdering,
             expectedStatusCode = HttpStatusCode.NotFound,
             expectedJsonResponse = """
                 {
@@ -131,13 +129,9 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
     @Test
     fun `ugyldig tilstand`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeOppdatereRevurdering.FeilVedOppdateringAvRevurdering(
-                Sak.KunneIkkeOppdatereRevurdering.KunneIkkeOppdatere(
-                    Revurdering.KunneIkkeOppdatereRevurdering.UgyldigTilstand(
-                        fra = IverksattRevurdering::class,
-                        til = OpprettetRevurdering::class,
-                    ),
-                ),
+            error = KunneIkkeOppdatereRevurdering.UgyldigTilstand(
+                fra = IverksattRevurdering::class,
+                til = OpprettetRevurdering::class,
             ),
             expectedStatusCode = HttpStatusCode.BadRequest,
             expectedJsonResponse = """

@@ -19,10 +19,9 @@ import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeOppdatereRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
+import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingRequest
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.features.authorize
@@ -94,43 +93,35 @@ private fun KunneIkkeOppdatereRevurdering.tilResultat(): Resultat {
             måVelgeInformasjonSomRevurderes
         }
 
-        is KunneIkkeOppdatereRevurdering.FeilVedOppdateringAvRevurdering -> {
-            when (val inner = this.feil) {
-                Sak.KunneIkkeOppdatereRevurdering.FantIkkeRevurdering -> {
-                    fantIkkeRevurdering
-                }
+        KunneIkkeOppdatereRevurdering.FantIkkeRevurdering -> {
+            fantIkkeRevurdering
+        }
 
-                Sak.KunneIkkeOppdatereRevurdering.FantIkkeSak -> {
-                    fantIkkeSak
-                }
+        KunneIkkeOppdatereRevurdering.FantIkkeSak -> {
+            fantIkkeSak
+        }
 
-                is Sak.KunneIkkeOppdatereRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes -> {
-                    inner.feil.tilResultat()
-                }
+        is KunneIkkeOppdatereRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes -> {
+            this.underliggende.tilResultat()
+        }
 
-                is Sak.KunneIkkeOppdatereRevurdering.KunneIkkeOppdatere -> {
-                    when (val nested = inner.feil) {
-                        Revurdering.KunneIkkeOppdatereRevurdering.KanIkkeEndreÅrsakTilReguleringVedForhåndsvarsletRevurdering -> {
-                            HttpStatusCode.BadRequest.errorJson(
-                                "Kan ikke oppdatere revurdering med årsak `REGULER_GRUNNBELØP` som er forhåndsvarslet",
-                                "kan_ikke_oppdatere_revurdering_med_årsak_reguler_grunnbeløp_som_er_forhåndsvarslet",
-                            )
-                        }
+        is KunneIkkeOppdatereRevurdering.KanIkkeEndreÅrsakTilReguleringVedForhåndsvarsletRevurdering -> {
+            HttpStatusCode.BadRequest.errorJson(
+                "Kan ikke oppdatere revurdering med årsak `REGULER_GRUNNBELØP` som er forhåndsvarslet",
+                "kan_ikke_oppdatere_revurdering_med_årsak_reguler_grunnbeløp_som_er_forhåndsvarslet",
+            )
+        }
 
-                        is Revurdering.KunneIkkeOppdatereRevurdering.UgyldigTilstand -> {
-                            Feilresponser.ugyldigTilstand(nested.fra, nested.til)
-                        }
-                    }
-                }
+        is KunneIkkeOppdatereRevurdering.UgyldigTilstand -> {
+            Feilresponser.ugyldigTilstand(this.fra, this.til)
+        }
 
-                is Sak.KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode -> {
-                    uteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(inner.periode)
-                }
+        is KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode -> {
+            uteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(this.avkortingsvarselperiode)
+        }
 
-                is Sak.KunneIkkeOppdatereRevurdering.OpphørteVilkårMåRevurderes -> {
-                    inner.feil.tilResultat()
-                }
-            }
+        is KunneIkkeOppdatereRevurdering.OpphørteVilkårMåRevurderes -> {
+            this.underliggende.tilResultat()
         }
     }
 }

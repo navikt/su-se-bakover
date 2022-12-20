@@ -24,12 +24,11 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
+import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingRequest
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
@@ -130,7 +129,7 @@ internal class OppdaterRevurderingServiceTest {
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
                 ),
-            ) shouldBe KunneIkkeOppdatereRevurdering.FeilVedOppdateringAvRevurdering(Sak.KunneIkkeOppdatereRevurdering.FantIkkeRevurdering)
+            ) shouldBe KunneIkkeOppdatereRevurdering.FantIkkeRevurdering
                 .left()
         }
     }
@@ -155,13 +154,9 @@ internal class OppdaterRevurderingServiceTest {
                     informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
                 ),
             )
-            actual shouldBe KunneIkkeOppdatereRevurdering.FeilVedOppdateringAvRevurdering(
-                Sak.KunneIkkeOppdatereRevurdering.KunneIkkeOppdatere(
-                    Revurdering.KunneIkkeOppdatereRevurdering.UgyldigTilstand(
-                        IverksattRevurdering.Innvilget::class,
-                        OpprettetRevurdering::class,
-                    ),
-                ),
+            actual shouldBe KunneIkkeOppdatereRevurdering.UgyldigTilstand(
+                IverksattRevurdering.Innvilget::class,
+                OpprettetRevurdering::class,
             ).left()
             verify(it.sakService).hentSakForRevurdering(iverksatt.id)
             it.verifyNoMoreInteractions()
@@ -330,10 +325,8 @@ internal class OppdaterRevurderingServiceTest {
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
                 ),
-            ) shouldBe KunneIkkeOppdatereRevurdering.FeilVedOppdateringAvRevurdering(
-                Sak.KunneIkkeOppdatereRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes(
-                    Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.HeleRevurderingsperiodenInneholderIkkeVedtak,
-                ),
+            ) shouldBe KunneIkkeOppdatereRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes(
+                Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.HeleRevurderingsperiodenInneholderIkkeVedtak,
             ).left()
 
             // delvis overlapp med hull mellom stønadsperioder
@@ -346,10 +339,8 @@ internal class OppdaterRevurderingServiceTest {
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
                 ),
-            ) shouldBe KunneIkkeOppdatereRevurdering.FeilVedOppdateringAvRevurdering(
-                Sak.KunneIkkeOppdatereRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes(
-                    Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.HeleRevurderingsperiodenInneholderIkkeVedtak,
-                ),
+            ) shouldBe KunneIkkeOppdatereRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes(
+                Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.HeleRevurderingsperiodenInneholderIkkeVedtak,
             ).left()
         }
     }
@@ -440,8 +431,8 @@ internal class OppdaterRevurderingServiceTest {
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Utenlandsopphold),
                 ),
-            ) shouldBe KunneIkkeOppdatereRevurdering.FeilVedOppdateringAvRevurdering(
-                Sak.KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(juni(2021)),
+            ) shouldBe KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
+                juni(2021),
             ).left()
         }
     }

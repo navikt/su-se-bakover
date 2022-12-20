@@ -45,6 +45,7 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.tilbakekrevingErVurder
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.revurdering.beregning.BeregnRevurderingStrategyDecider
+import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
@@ -213,15 +214,6 @@ sealed class Revurdering :
             sakinfo = sakinfo,
             brevvalgRevurdering = brevvalgRevurdering,
         ).right()
-    }
-
-    sealed class KunneIkkeOppdatereRevurdering {
-        data class UgyldigTilstand(
-            val fra: KClass<out Revurdering>,
-            val til: KClass<out Revurdering>,
-        ) : KunneIkkeOppdatereRevurdering()
-
-        object KanIkkeEndreÅrsakTilReguleringVedForhåndsvarsletRevurdering : KunneIkkeOppdatereRevurdering()
     }
 
     open fun oppdaterUføreOgMarkerSomVurdert(uføre: UføreVilkår.Vurdert): Either<UgyldigTilstand, OpprettetRevurdering> =

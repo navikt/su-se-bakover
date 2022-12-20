@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -19,6 +18,7 @@ import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
+import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingRequest
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
@@ -188,17 +188,9 @@ sealed interface Varselmelding {
 object FantIkkeRevurdering
 
 data class SendTilAttesteringRequest(
-    val revurderingId: java.util.UUID,
-    val saksbehandler: no.nav.su.se.bakover.common.NavIdentBruker.Saksbehandler,
+    val revurderingId: UUID,
+    val saksbehandler: NavIdentBruker.Saksbehandler,
 )
-
-sealed class KunneIkkeOppdatereRevurdering {
-    object MåVelgeInformasjonSomSkalRevurderes : KunneIkkeOppdatereRevurdering()
-    object UgyldigÅrsak : KunneIkkeOppdatereRevurdering()
-    object UgyldigBegrunnelse : KunneIkkeOppdatereRevurdering()
-    data class FeilVedOppdateringAvRevurdering(val feil: Sak.KunneIkkeOppdatereRevurdering) :
-        KunneIkkeOppdatereRevurdering()
-}
 
 sealed class KunneIkkeBeregneOgSimulereRevurdering {
     object FantIkkeRevurdering : KunneIkkeBeregneOgSimulereRevurdering()

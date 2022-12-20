@@ -52,7 +52,6 @@ import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilFormuegrunnlag
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilUføreVilkår
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilUtenlandsopphold
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeOppdatereTilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeUnderkjenneRevurdering
@@ -72,7 +71,9 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Varselmelding
 import no.nav.su.se.bakover.domain.revurdering.VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling
+import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingRequest
+import no.nav.su.se.bakover.domain.revurdering.oppdater.oppdaterRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVedOpphørService
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
@@ -468,9 +469,7 @@ class RevurderingServiceImpl(
                     return KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes.left()
                 },
                 clock = clock,
-            ).mapLeft {
-                KunneIkkeOppdatereRevurdering.FeilVedOppdateringAvRevurdering(it)
-            }.map {
+            ).map {
                 revurderingRepo.lagre(it)
                 it
             }
