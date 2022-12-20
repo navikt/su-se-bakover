@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
 import no.nav.su.se.bakover.domain.grunnlag.erGyldigTilstand
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
@@ -33,7 +32,6 @@ import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
 import java.time.Clock
 import java.util.UUID
-import kotlin.reflect.KClass
 
 fun Regulering.inneholderAvslag(): Boolean =
     this.grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.vurdering is Vilkårsvurderingsresultat.Avslag
@@ -102,8 +100,6 @@ sealed interface Regulering : Reguleringsfelter {
 
     sealed interface KunneIkkeBeregne {
         data class BeregningFeilet(val feil: Throwable) : KunneIkkeBeregne
-        data class IkkeLovÅBeregneIDenneStatusen(val status: KClass<out Regulering>) :
-            KunneIkkeBeregne
     }
 
     sealed interface KunneIkkeSimulere {

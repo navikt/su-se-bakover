@@ -75,10 +75,6 @@ class ReguleringServiceImpl(
                 is Regulering.KunneIkkeBeregne.BeregningFeilet -> {
                     throw RuntimeException("Regulering for saksnummer ${regulering.saksnummer}: Vi klarte ikke å beregne. Underliggende grunn ${it.feil}")
                 }
-
-                is Regulering.KunneIkkeBeregne.IkkeLovÅBeregneIDenneStatusen -> {
-                    throw RuntimeException("Regulering for saksnummer ${regulering.saksnummer}: Vi klarte ikke å beregne. Feil status")
-                }
             }
         }
 
@@ -229,10 +225,6 @@ class ReguleringServiceImpl(
                         "Regulering for saksnummer ${regulering.saksnummer}: Feilet. Beregning feilet.",
                         kunneikkeBeregne.feil,
                     )
-                }
-
-                is Regulering.KunneIkkeBeregne.IkkeLovÅBeregneIDenneStatusen -> {
-                    log.error("Regulering for saksnummer ${regulering.saksnummer}: Feilet. Beregning feilet. Ikke lov å beregne i denne statusen")
                 }
             }
             KunneIkkeFerdigstilleOgIverksette.KunneIkkeBeregne
