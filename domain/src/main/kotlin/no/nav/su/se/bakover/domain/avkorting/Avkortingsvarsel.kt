@@ -32,6 +32,9 @@ sealed interface Avkortingsvarsel {
         val revurderingId: UUID
         val opprettet: Tidspunkt
         val simulering: Simulering
+        fun periode(): Periode {
+            return simulering.periode()
+        }
 
         fun hentUtbetalteBeløp(): Månedsbeløp {
             return simulering.hentUtbetalteBeløp()
@@ -81,12 +84,6 @@ sealed interface Avkortingsvarsel {
                     .sumOf { it.månedsbeløp }
                     .toInt()
                 return beløpSkalAvkortes == fradragAvkorting
-            }
-
-            fun periode(): Periode = simulering.hentUtbetalteBeløp().månedbeløp.map {
-                it.periode
-            }.let {
-                Periode.create(it.minOf { it.fraOgMed }, it.maxOf { it.tilOgMed })
             }
         }
 

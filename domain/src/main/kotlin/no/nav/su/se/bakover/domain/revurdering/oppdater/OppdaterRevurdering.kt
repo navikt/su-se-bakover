@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.revurdering.opprett.unngåRevurderingAvPeriodeDetErPågåendeAvkortingFor
 import java.time.Clock
 
 fun Sak.oppdaterRevurdering(
@@ -63,6 +64,12 @@ fun Sak.oppdaterRevurdering(
             }
         },
     )
+
+    this.unngåRevurderingAvPeriodeDetErPågåendeAvkortingFor(periode)
+        .getOrHandle {
+            return KunneIkkeOppdatereRevurdering.PågåendeAvkortingForPeriode(it.periode, it.pågåendeAvkortingVedtakId)
+                .left()
+        }
 
     return revurdering.oppdater(
         periode = periode,

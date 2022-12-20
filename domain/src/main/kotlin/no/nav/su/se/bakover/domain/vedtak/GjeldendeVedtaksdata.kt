@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.vedtak
 
 import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
@@ -115,6 +116,10 @@ data class GjeldendeVedtaksdata(
 
     fun gjeldendeVedtakPåDato(dato: LocalDate): VedtakSomKanRevurderes? =
         tidslinje.gjeldendeForDato(dato)?.originaltVedtak
+
+    fun gjeldendeVedtak(): Map<Måned, VedtakSomKanRevurderes?> {
+        return periode.måneder().map { it to gjeldendeVedtakPåDato(it.fraOgMed) }.toMap()
+    }
 
     fun tidslinjeForVedtakErSammenhengende(): Boolean {
         return vedtaksperioder().minsteAntallSammenhengendePerioder().count() == 1

@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.revurdering.oppdater
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import java.util.UUID
 import kotlin.reflect.KClass
 
 sealed interface KunneIkkeOppdatereRevurdering {
@@ -27,4 +28,5 @@ sealed interface KunneIkkeOppdatereRevurdering {
     ) : KunneIkkeOppdatereRevurdering
 
     object KanIkkeEndreÅrsakTilReguleringVedForhåndsvarsletRevurdering : KunneIkkeOppdatereRevurdering
+    data class PågåendeAvkortingForPeriode(val periode: Periode, val vedtakId: UUID) : KunneIkkeOppdatereRevurdering
 }

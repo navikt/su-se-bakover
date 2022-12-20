@@ -6,15 +6,22 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.inneholderAlle
+import no.nav.su.se.bakover.common.periode.måneder
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.grunnlag.periode
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import java.time.Clock
+import java.util.UUID
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent.Behandling.Revurdering.Opprettet as StatistikkEvent
 
 /**
@@ -56,6 +63,11 @@ fun Sak.opprettRevurdering(
             }
         },
     )
+
+    unngåRevurderingAvPeriodeDetErPågåendeAvkortingFor(command.periode)
+        .getOrHandle {
+            return KunneIkkeOppretteRevurdering.PågåendeAvkorting(it.periode, it.pågåendeAvkortingVedtakId).left()
+        }
 
     val revurderingsårsak = command.revurderingsårsak.getOrHandle {
         return KunneIkkeOppretteRevurdering.UgyldigRevurderingsårsak(it).left()
@@ -117,4 +129,40 @@ sealed interface KunneIkkeOppretteRevurdering {
     data class FantIkkeAktørId(val feil: KunneIkkeHentePerson) : KunneIkkeOppretteRevurdering
 
     data class KunneIkkeOppretteOppgave(val feil: OppgaveFeil.KunneIkkeOppretteOppgave) : KunneIkkeOppretteRevurdering
+
+    data class PågåendeAvkorting(val periode: Periode, val vedtakId: UUID) : KunneIkkeOppretteRevurdering
 }
+
+/**
+ * Unngå at man kan revurdere en periode dersom perioden tidligere har produsert et [no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel]
+ * og en stønadsperiode har påbegynt avkortingen av dette. Tillater tilfeller hvor det ikke er overlapp mellom [periode] og avkortingsvarselet, samt tilfeller hvor
+ * [periode] dekker både det aktuelle avkortingsvarsel og alle periodene med fradrag for avkorting i den nye stønadsperioden.
+ */
+fun Sak.unngåRevurderingAvPeriodeDetErPågåendeAvkortingFor(periode: Periode): Either<PågåendeAvkortingForPeriode, Unit> {
+    val pågåendeAvkorting: List<Pair<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående>> = vedtakstidslinje()
+        .tidslinje
+        .map { it.originaltVedtak }
+        .filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>()
+        .map { it to it.behandling.avkorting }
+        .filter { (_, avkorting) -> avkorting is AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående }
+        .filterIsInstance<Pair<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående>>()
+
+    return if (pågåendeAvkorting.isEmpty()) {
+        Unit.right()
+    } else {
+        pågåendeAvkorting.forEach { (vedtak, pågåendeAvkorting) ->
+            if (periode.overlapper(pågåendeAvkorting.avkortingsvarsel.periode())) {
+                val periodeSomMåOverlappes = (pågåendeAvkorting.avkortingsvarsel.periode().måneder() + vedtak.behandling.grunnlagsdata.fradragsgrunnlag.filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }.periode()).distinct().måneder()
+                if (!periode.inneholderAlle(periodeSomMåOverlappes)) {
+                    return PågåendeAvkortingForPeriode(
+                        periode = periode,
+                        pågåendeAvkortingVedtakId = vedtak.id,
+                    ).left()
+                }
+            }
+        }
+        Unit.right()
+    }
+}
+
+data class PågåendeAvkortingForPeriode(val periode: Periode, val pågåendeAvkortingVedtakId: UUID)
