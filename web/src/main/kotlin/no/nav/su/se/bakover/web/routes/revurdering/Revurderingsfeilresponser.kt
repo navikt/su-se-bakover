@@ -75,6 +75,11 @@ internal object Revurderingsfeilresponser {
             "Saken har en utestående avkorting som enten må avkortes i ny stønadsperiode eller revurderes i sin helhet. Vennligst inkluder ${periode.fraOgMed}-${periode.tilOgMed} i revurderingsperioden eller avkort i ny stønadsperiode.",
             "utestående_avkorting_må_revurderes_eller_avkortes_i_ny_periode",
         )
+
+        fun pågåendeAvkortingForPeriode(periode: Periode, vedtakId: String) = BadRequest.errorJson(
+            "Pågående avkorting for periode:$periode i vedtak:$vedtakId. Hele perioden for opprinnelig avkortingsvarsel og eventuelle fradrag for avkorting må inkluderes, eller behandlingen må deles opp.",
+            "pågende_avkorting_for_periode",
+        )
     }
 
     object Brev {
