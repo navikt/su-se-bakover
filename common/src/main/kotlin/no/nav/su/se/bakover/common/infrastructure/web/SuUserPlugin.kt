@@ -7,8 +7,10 @@ import io.ktor.server.application.createRouteScopedPlugin
 import io.ktor.server.application.install
 import io.ktor.server.application.isHandled
 import io.ktor.server.auth.AuthenticationChecked
+import io.ktor.server.auth.Principal
 import io.ktor.server.auth.UnauthorizedResponse
-import io.ktor.server.auth.authentication
+import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.principal
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RouteSelector
@@ -20,11 +22,11 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.log
 
 class SuUserContext(val call: ApplicationCall, applicationConfig: ApplicationConfig) {
-    val navIdent: String = getNAVidentFromJwt(applicationConfig, call.authentication.principal)
+    val navIdent: String = getNAVidentFromJwt(applicationConfig, call.principal())
     val saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(navIdent)
     val attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant(navIdent)
-    val navn: String = getNavnFromJwt(applicationConfig, call.authentication.principal)
-    val grupper = getGroupsFromJWT(applicationConfig, call.authentication.principal)
+    val navn: String = getNavnFromJwt(applicationConfig, call.principal())
+    val grupper = getGroupsFromJWT(applicationConfig, call.principal<JWTPrincipal>()!!)
     val roller = grupper.mapNotNull {
         AzureGroupMapper(applicationConfig.azure.groups).fromAzureGroup(it)
     }
@@ -67,7 +69,7 @@ private fun brukerinfoPlugin(
                 call.isHandled -> {
                     /** En annen plugin i pipelinen har allerede gitt en respons på kallet, ikke gjør noe. */
                 }
-                call.authentication.principal == null -> {
+                call.principal<Principal>() == null -> {
                     /**
                      * Krev at autentiseringen er gjennomført før vi henter ut brukerinfo fra token.
                      * Rekkefølgen her er viktig, og styres pt av hvor i route-hierarkiet man kaller på [withUser]

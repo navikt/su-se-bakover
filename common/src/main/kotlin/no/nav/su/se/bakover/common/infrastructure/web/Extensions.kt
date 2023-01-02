@@ -46,8 +46,8 @@ fun ApplicationCall.audit(
     )
 }
 
-fun getGroupsFromJWT(applicationConfig: ApplicationConfig, principal: Principal?): List<String> =
-    getGroupsFromJWT(applicationConfig, (principal as JWTPrincipal).payload)
+fun getGroupsFromJWT(applicationConfig: ApplicationConfig, principal: JWTPrincipal): List<String> =
+    getGroupsFromJWT(applicationConfig, principal.payload)
 
 fun getGroupsFromJWT(applicationConfig: ApplicationConfig, credential: JWTCredential): List<String> =
     getGroupsFromJWT(applicationConfig, credential.payload)
