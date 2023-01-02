@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.common.stubs
 
 import java.security.KeyPairGenerator
+import java.security.SecureRandom
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
 
@@ -13,7 +14,7 @@ object AuthStubCommonConfig {
 
     private fun generateKeypair(): Pair<RSAPublicKey, RSAPrivateKey> {
         val keyPairGenerator = KeyPairGenerator.getInstance("RSA")
-        keyPairGenerator.initialize(512)
+        keyPairGenerator.initialize(2048, SecureRandom())
         val keypair = keyPairGenerator.genKeyPair()
         return keypair.public as RSAPublicKey to keypair.private as RSAPrivateKey
     }
