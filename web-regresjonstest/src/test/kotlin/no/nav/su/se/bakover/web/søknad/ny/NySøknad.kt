@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.søknad.ny
 
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
+import io.ktor.client.HttpClient
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
@@ -22,20 +23,23 @@ import org.skyscreamer.jsonassert.comparator.CustomComparator
 /**
  * Dersom det allerede finnes en sak knyttet til [fnr] opprettes det en ny søknad på den eksisterende saken
  */
-fun ApplicationTestBuilder.nyDigitalSøknad(
+fun nyDigitalSøknad(
     fnr: String = SharedRegressionTestData.fnr,
+    client: HttpClient,
 ): String {
     return nySøknad(
         requestJson = NySøknadJson.Request.nyDigitalSøknad(
             fnr = fnr,
         ),
         brukerrolle = Brukerrolle.Veileder,
+        client = client,
     )
 }
 
-fun ApplicationTestBuilder.nyDigitalAlderssøknad(
+fun nyDigitalAlderssøknad(
     brukerFnr: String = SharedRegressionTestData.fnr,
     epsFnr: String = SharedRegressionTestData.epsFnr,
+    client: HttpClient,
 ): String {
     return nyAlderssøknad(
         requestJson = NySøknadJson.Request.nyDigitalAlderssøknad(
@@ -43,6 +47,7 @@ fun ApplicationTestBuilder.nyDigitalAlderssøknad(
             epsFnr = epsFnr,
         ),
         brukerrolle = Brukerrolle.Veileder,
+        client = client,
     )
 }
 
@@ -96,6 +101,7 @@ private fun ApplicationTestBuilder.nySøknadOgVerifiser(
     return nySøknad(
         requestJson = requestJson,
         brukerrolle = brukerrolle,
+        client = this.client,
     ).also {
         JSONAssert.assertEquals(
             expectedResponseJson,
@@ -116,15 +122,17 @@ private fun ApplicationTestBuilder.nySøknadOgVerifiser(
 /**
  * Ny søknad har en deterministisk respons, så vi gjør bare assertingen inline.
  */
-private fun ApplicationTestBuilder.nySøknad(
+private fun nySøknad(
     requestJson: String,
     brukerrolle: Brukerrolle, // TODO jah: Ref Auth; Åpne for å teste kode 6/7/egen ansatt.
+    client: HttpClient,
 ): String {
     return runBlocking {
         defaultRequest(
             HttpMethod.Post,
-            "soknad/ufore",
+            "/soknad/ufore",
             listOf(brukerrolle),
+            client = client,
         ) {
             setBody(requestJson)
         }.apply {
@@ -136,15 +144,17 @@ private fun ApplicationTestBuilder.nySøknad(
     }
 }
 
-private fun ApplicationTestBuilder.nyAlderssøknad(
+private fun nyAlderssøknad(
     requestJson: String,
     brukerrolle: Brukerrolle, // TODO jah: Ref Auth; Åpne for å teste kode 6/7/egen ansatt.
+    client: HttpClient,
 ): String {
     return runBlocking {
         defaultRequest(
             HttpMethod.Post,
-            "soknad/alder",
+            "/soknad/alder",
             listOf(brukerrolle),
+            client = client,
         ) {
             setBody(requestJson)
         }.apply {

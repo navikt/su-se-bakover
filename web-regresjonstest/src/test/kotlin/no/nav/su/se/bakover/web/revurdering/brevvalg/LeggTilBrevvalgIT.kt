@@ -21,6 +21,7 @@ internal class LeggTilBrevvalgIT {
                 fnr = fnr,
                 fraOgMed = "2022-01-01",
                 tilOgMed = "2022-12-31",
+                client = this.client,
             ).let { søknadsbehandlingJson ->
 
                 val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)
@@ -32,6 +33,7 @@ internal class LeggTilBrevvalgIT {
                     leggTilBrevvalg = { _, _ -> SKIP_STEP },
                     sendTilAttestering = { _, _ -> SKIP_STEP },
                     iverksett = { _, _ -> SKIP_STEP },
+                    client = this.client,
                 ).let { revurderingJson ->
                     val revurderingId = RevurderingJson.hentRevurderingId(revurderingJson)
                     // default satt til send brev av systemet
@@ -53,6 +55,7 @@ internal class LeggTilBrevvalgIT {
                         behandlingId = revurderingId,
                         fritekst = "befriende tekst",
                         begrunnelse = "godt begrunnet",
+                        client = this.client,
                     ).let {
                         JSONAssert.assertEquals(
                             """
@@ -72,6 +75,7 @@ internal class LeggTilBrevvalgIT {
                         sakId = sakId,
                         behandlingId = revurderingId,
                         begrunnelse = "ikke behov likevel",
+                        client = this.client,
                     ).let {
                         JSONAssert.assertEquals(
                             """

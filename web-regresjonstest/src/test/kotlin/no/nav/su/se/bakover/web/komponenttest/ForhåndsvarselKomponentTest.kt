@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.web.komponenttest
 
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import io.ktor.server.testing.ApplicationTestBuilder
+import io.ktor.client.HttpClient
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.fixedClock
@@ -31,16 +31,18 @@ class ForhåndsvarselKomponentTest {
         withKomptestApplication(
             clock = TikkendeKlokke(1.oktober(2021).fixedClock()),
         ) { appComponents ->
-            val (sakid, revurderingId) = simulertRevurdering()
+            val (sakid, revurderingId) = simulertRevurdering(this.client)
 
             sendForhåndsvarsel(
                 sakId = sakid,
                 behandlingId = revurderingId,
+                client = this.client,
             )
 
             sendForhåndsvarsel(
                 sakId = sakid,
                 behandlingId = revurderingId,
+                client = this.client,
             )
 
             appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Revurdering(UUID.fromString(revurderingId))).let {
@@ -58,11 +60,12 @@ class ForhåndsvarselKomponentTest {
         }
     }
 
-    private fun ApplicationTestBuilder.simulertRevurdering(): Pair<String, String> {
+    private fun simulertRevurdering(client: HttpClient): Pair<String, String> {
         return opprettInnvilgetSøknadsbehandling(
             fnr = Fnr.generer().toString(),
             fraOgMed = 1.januar(2021).toString(),
             tilOgMed = 31.desember(2021).toString(),
+            client = client,
         ).let { søknadsbehandlingJson ->
             val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)
 
@@ -70,12 +73,14 @@ class ForhåndsvarselKomponentTest {
                 sakId = sakId,
                 fraOgMed = 1.mai(2021).toString(),
                 tilOgMed = 31.desember(2021).toString(),
+                client = client,
             ).let {
                 RevurderingJson.hentRevurderingId(it)
             }
             beregnOgSimuler(
                 sakId = sakId,
                 behandlingId = revurderingId,
+                client = client,
             )
             sakId to revurderingId
         }

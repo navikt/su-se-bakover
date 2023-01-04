@@ -41,7 +41,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
     @Test
     fun `kan avslå pga manglende dokumentasjon for søknader uten behandling`() {
         withKomptestApplication { appComponents ->
-            val søknadJson = nyDigitalSøknad(Fnr.generer().toString())
+            val søknadJson = nyDigitalSøknad(Fnr.generer().toString(), this.client)
             val søknadId = UUID.fromString(NySøknadJson.Response.hentSøknadId(søknadJson))
 
             appComponents.services.avslåSøknadManglendeDokumentasjonService.avslå(
@@ -102,13 +102,14 @@ class AvslagManglendeDokumentasjonKomponentTest {
     @Test
     fun `kan avslå pga manglende dokumentasjon for søknader med påbegynt behandling`() {
         withKomptestApplication { appComponents ->
-            val søknadJson = nyDigitalSøknad(Fnr.generer().toString())
+            val søknadJson = nyDigitalSøknad(Fnr.generer().toString(), client = this.client)
             val sakId = NySøknadJson.Response.hentSakId(søknadJson)
             val søknadId = NySøknadJson.Response.hentSøknadId(søknadJson)
 
             val søknadsbehandlingJson = nySøknadsbehandling(
                 sakId = sakId,
                 søknadId = søknadId,
+                client = this.client,
             )
             val behandlingId = BehandlingJson.hentBehandlingId(søknadsbehandlingJson)
             val fraOgMed = 1.mai(2021)
@@ -119,12 +120,14 @@ class AvslagManglendeDokumentasjonKomponentTest {
                 behandlingId = behandlingId,
                 fraOgMed = fraOgMed.toString(),
                 tilOgMed = tilOgMed.toString(),
+                client = this.client,
             )
             leggTilUføregrunnlag(
                 sakId = sakId,
                 behandlingId = behandlingId,
                 fraOgMed = fraOgMed.toString(),
                 tilOgMed = tilOgMed.toString(),
+                client = this.client,
             )
 
             appComponents.services.avslåSøknadManglendeDokumentasjonService.avslå(

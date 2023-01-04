@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.søknadsbehandling
 
-import io.ktor.server.testing.ApplicationTestBuilder
+import io.ktor.client.HttpClient
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.startOfMonth
@@ -34,16 +34,18 @@ internal val SKIP_STEP = "SKIP_STEP" // verdi som signaliserer at kallet skal ho
  * @param fnr Dersom det finnes en sak for dette fødselsnumret fra før, vil det knyttes til den eksisterende saken.
  * @return Den nylig opprettede søknadsbehandlingen
  */
-internal fun ApplicationTestBuilder.opprettInnvilgetSøknadsbehandling(
+internal fun opprettInnvilgetSøknadsbehandling(
     fnr: String = Fnr.generer().toString(),
     fraOgMed: String = fixedLocalDate.startOfMonth().toString(),
     tilOgMed: String = fixedLocalDate.startOfMonth().plusMonths(11).endOfMonth().toString(),
+    client: HttpClient,
     leggTilVirkningstidspunkt: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
         leggTilVirkningstidspunkt(
             sakId = sakId,
             behandlingId = behandlingId,
             fraOgMed = fraOgMed,
             tilOgMed = tilOgMed,
+            client = client,
         )
     },
     leggTilOpplysningsplikt: (behandlingId: String) -> String = { behandlingId ->
@@ -52,6 +54,7 @@ internal fun ApplicationTestBuilder.opprettInnvilgetSøknadsbehandling(
             type = "SØKNADSBEHANDLING",
             fraOgMed = fraOgMed,
             tilOgMed = tilOgMed,
+            client = client,
         )
     },
     leggTilUføregrunnlag: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
@@ -60,6 +63,7 @@ internal fun ApplicationTestBuilder.opprettInnvilgetSøknadsbehandling(
             behandlingId = behandlingId,
             fraOgMed = fraOgMed,
             tilOgMed = tilOgMed,
+            client = client,
         )
     },
     leggTilFlyktningVilkår: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
@@ -67,6 +71,7 @@ internal fun ApplicationTestBuilder.opprettInnvilgetSøknadsbehandling(
             sakId = sakId,
             behandlingId = behandlingId,
             body = { innvilgetFlyktningVilkårJson(fraOgMed, tilOgMed) },
+            client = client,
         )
     },
     leggTilLovligOppholdINorge: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
@@ -75,6 +80,7 @@ internal fun ApplicationTestBuilder.opprettInnvilgetSøknadsbehandling(
             behandlingId = behandlingId,
             fraOgMed = fraOgMed,
             tilOgMed = tilOgMed,
+            client = client,
         )
     },
     leggTilFastOppholdINorge: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
@@ -83,6 +89,7 @@ internal fun ApplicationTestBuilder.opprettInnvilgetSøknadsbehandling(
             behandlingId = behandlingId,
             fraOgMed = fraOgMed,
             tilOgMed = tilOgMed,
+            client = client,
         )
     },
     leggTilInstitusjonsopphold: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
@@ -91,6 +98,7 @@ internal fun ApplicationTestBuilder.opprettInnvilgetSøknadsbehandling(
             behandlingId = behandlingId,
             fraOgMed = fraOgMed,
             tilOgMed = tilOgMed,
+            client = client,
         )
     },
     leggTilUtenlandsopphold: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
@@ -99,12 +107,14 @@ internal fun ApplicationTestBuilder.opprettInnvilgetSøknadsbehandling(
             behandlingId = behandlingId,
             fraOgMed = fraOgMed,
             tilOgMed = tilOgMed,
+            client = client,
         )
     },
     taStillingTilEps: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
         taStillingTilEps(
             sakId = sakId,
             behandlingId = behandlingId,
+            client = client,
         )
     },
     leggTilFormue: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
@@ -113,6 +123,7 @@ internal fun ApplicationTestBuilder.opprettInnvilgetSøknadsbehandling(
             behandlingId = behandlingId,
             fraOgMed = fraOgMed,
             tilOgMed = tilOgMed,
+            client = client,
         )
     },
     leggTilPersonligOppmøte: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
@@ -121,47 +132,55 @@ internal fun ApplicationTestBuilder.opprettInnvilgetSøknadsbehandling(
             behandlingId = behandlingId,
             fraOgMed = fraOgMed,
             tilOgMed = tilOgMed,
+            client = client,
         )
     },
     fullførBosituasjon: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
         fullførBosituasjon(
             sakId = sakId,
             behandlingId = behandlingId,
+            client = client,
         )
     },
     beregn: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
         beregn(
             sakId = sakId,
             behandlingId = behandlingId,
+            client = client,
         )
     },
     simuler: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
         simuler(
             sakId = sakId,
             behandlingId = behandlingId,
+            client = client,
         )
     },
     sendTilAttestering: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
         sendTilAttestering(
             sakId = sakId,
             behandlingId = behandlingId,
+            client = client,
         )
     },
     iverksett: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
         iverksett(
             sakId = sakId,
             behandlingId = behandlingId,
+            client = client,
         )
     },
 ): String {
     val søknadResponseJson = nyDigitalSøknad(
         fnr = fnr,
+        client = client,
     )
     val sakId = NySøknadJson.Response.hentSakId(søknadResponseJson)
     val søknadId = NySøknadJson.Response.hentSøknadId(søknadResponseJson)
     val nySøknadsbehandlingResponseJson = nySøknadsbehandling(
         sakId = sakId,
         søknadId = søknadId,
+        client = client,
     )
     val behandlingId = BehandlingJson.hentBehandlingId(nySøknadsbehandlingResponseJson)
 

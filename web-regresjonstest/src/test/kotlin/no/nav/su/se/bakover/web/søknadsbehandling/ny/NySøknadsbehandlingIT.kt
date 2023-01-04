@@ -26,6 +26,7 @@ internal class NySøknadsbehandlingIT {
                 sakId = sakId,
                 søknadId = søknadId,
                 brukerrolle = Brukerrolle.Saksbehandler,
+                client = this.client,
             ).also { actual ->
                 assertSøknadsbehandlingJson(
                     actualSøknadsbehandlingJson = actual,

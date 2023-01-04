@@ -17,7 +17,7 @@ internal class LeggTilFastOppholdINorgeIT {
     @Test
     fun `legg til fast opphold`() {
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb {
-            nyDigitalSøknad().also { nySøknadResponse ->
+            nyDigitalSøknad(client = this.client).also { nySøknadResponse ->
                 val sakId = NySøknadJson.Response.hentSakId(nySøknadResponse)
                 val søknadId = NySøknadJson.Response.hentSøknadId(nySøknadResponse)
 
@@ -25,6 +25,7 @@ internal class LeggTilFastOppholdINorgeIT {
                     sakId = sakId,
                     søknadId = søknadId,
                     brukerrolle = Brukerrolle.Saksbehandler,
+                    client = this.client,
                 ).also { nyBehandlingResponse ->
                     val behandlingId = BehandlingJson.hentBehandlingId(nyBehandlingResponse)
                     val fraOgMed: String = 1.januar(2022).toString()
@@ -35,6 +36,7 @@ internal class LeggTilFastOppholdINorgeIT {
                         behandlingId = behandlingId,
                         fraOgMed = fraOgMed,
                         tilOgMed = tilOgMed,
+                        client = this.client,
                     )
 
                     leggTilFastOppholdINorge(
@@ -45,6 +47,7 @@ internal class LeggTilFastOppholdINorgeIT {
                         body = { innvilgetFastOppholdJson(fraOgMed, tilOgMed) },
                         brukerrolle = Brukerrolle.Saksbehandler,
                         url = "/saker/$sakId/behandlinger/$behandlingId/fastopphold",
+                        client = this.client,
                     ).also {
                         JSONAssert.assertEquals(
                             JSONObject(BehandlingJson.hentFastOppholdVilkår(it)).toString(),
@@ -75,6 +78,7 @@ internal class LeggTilFastOppholdINorgeIT {
                         body = { avslåttFastOppholdJson(fraOgMed, tilOgMed) },
                         brukerrolle = Brukerrolle.Saksbehandler,
                         url = "/saker/$sakId/behandlinger/$behandlingId/fastopphold",
+                        client = this.client,
                     ).also {
                         JSONAssert.assertEquals(
                             JSONObject(BehandlingJson.hentFastOppholdVilkår(it)).toString(),

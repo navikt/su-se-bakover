@@ -13,6 +13,7 @@ dependencies {
     testImplementation(project(":kontrollsamtale:application"))
     testImplementation(project(":kontrollsamtale:infrastructure"))
 
+    testImplementation("io.ktor:ktor-client-java:$ktorVersion")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion") {
         exclude(group = "junit")
         exclude(group = "org.eclipse.jetty") // conflicts with WireMock

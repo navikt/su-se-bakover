@@ -10,6 +10,6 @@ import no.nav.su.se.bakover.web.SharedRegressionTestData
 fun main() {
     System.setProperty(ClassicConstants.CONFIG_FILE_PROPERTY, "logback-local.xml")
     SharedRegressionTestData.withTestApplicationAndDockerDb {
-        nyDigitalSøknad()
+        nyDigitalSøknad(client = this.client)
     }
 }

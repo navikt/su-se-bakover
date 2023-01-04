@@ -17,7 +17,7 @@ internal class LeggTilPersonligOppmøteIT {
     @Test
     fun `legg til personlig oppmøte`() {
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb {
-            nyDigitalSøknad().also { nySøknadResponse ->
+            nyDigitalSøknad(client = this.client).also { nySøknadResponse ->
                 val sakId = NySøknadJson.Response.hentSakId(nySøknadResponse)
                 val søknadId = NySøknadJson.Response.hentSøknadId(nySøknadResponse)
 
@@ -25,6 +25,7 @@ internal class LeggTilPersonligOppmøteIT {
                     sakId = sakId,
                     søknadId = søknadId,
                     brukerrolle = Brukerrolle.Saksbehandler,
+                    client = this.client,
                 ).also { nyBehandlingResponse ->
                     val behandlingId = BehandlingJson.hentBehandlingId(nyBehandlingResponse)
                     val fraOgMed: String = 1.mai(2022).toString()
@@ -35,6 +36,7 @@ internal class LeggTilPersonligOppmøteIT {
                         behandlingId = behandlingId,
                         fraOgMed = fraOgMed,
                         tilOgMed = tilOgMed,
+                        client = this.client,
                     )
 
                     leggTilPersonligOppmøte(
@@ -45,6 +47,7 @@ internal class LeggTilPersonligOppmøteIT {
                         body = { innvilgetPersonligOppmøteJson(fraOgMed, tilOgMed) },
                         brukerrolle = Brukerrolle.Saksbehandler,
                         url = "/saker/$sakId/behandlinger/$behandlingId/personligoppmøte",
+                        client = this.client,
                     ).also { søknadsbehandlingJson ->
                         JSONAssert.assertEquals(
                             JSONObject(BehandlingJson.hentPersonligOppmøteVilkår(søknadsbehandlingJson)).toString(),
@@ -76,6 +79,7 @@ internal class LeggTilPersonligOppmøteIT {
                         body = { avslåttPersonligOppmøteJson(fraOgMed, tilOgMed) },
                         brukerrolle = Brukerrolle.Saksbehandler,
                         url = "/saker/$sakId/behandlinger/$behandlingId/personligoppmøte",
+                        client = this.client,
                     ).also { søknadsbehandlingJson ->
                         JSONAssert.assertEquals(
                             JSONObject(BehandlingJson.hentPersonligOppmøteVilkår(søknadsbehandlingJson)).toString(),

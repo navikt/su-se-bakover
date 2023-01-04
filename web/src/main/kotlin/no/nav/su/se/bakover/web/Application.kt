@@ -158,6 +158,7 @@ fun Application.susebakover(
             clock = clock,
         ),
     ),
+    extraRoutes: Route.(services: Services) -> Unit = {},
 ) {
     val satsFactoryIDag = satsFactory.gjeldende(LocalDate.now(clock))
     install(StatusPages) {
@@ -260,6 +261,7 @@ fun Application.susebakover(
                 withAccessProtectedServices(
                     accessCheckProxy,
                 ) { accessProtectedServices ->
+                    extraRoutes(this, services)
                     personRoutes(accessProtectedServices.person, clock)
                     sakRoutes(accessProtectedServices.sak, clock, satsFactoryIDag)
                     søknadRoutes(
@@ -269,7 +271,12 @@ fun Application.susebakover(
                         clock = clock,
                         satsFactoryIDag,
                     )
-                    overordnetSøknadsbehandligRoutes(accessProtectedServices.søknadsbehandling, clock, satsFactoryIDag)
+                    overordnetSøknadsbehandligRoutes(
+                        accessProtectedServices.søknadsbehandling,
+                        clock,
+                        satsFactoryIDag,
+                        applicationConfig,
+                    )
                     avstemmingRoutes(accessProtectedServices.avstemming, clock)
                     driftRoutes(accessProtectedServices.søknad)
                     revurderingRoutes(

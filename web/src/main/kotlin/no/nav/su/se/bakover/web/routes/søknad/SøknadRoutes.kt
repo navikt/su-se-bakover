@@ -53,11 +53,11 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.iverksett.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.opprett.tilResultat
 import java.time.Clock
 
-internal enum class Søknadstype(val value: String) {
+enum class Søknadstype(val value: String) {
     ALDER("alder"), UFØRE("ufore")
 }
 
-private const val søknadPath = "/soknad"
+const val søknadPath = "/soknad"
 
 internal fun Route.søknadRoutes(
     søknadService: SøknadService,
@@ -248,7 +248,7 @@ internal fun Route.søknadRoutes(
     }
 }
 
-private fun KunneIkkeOppretteSøknad.tilResultat(type: String) = when (this) {
+fun KunneIkkeOppretteSøknad.tilResultat(type: String) = when (this) {
     KunneIkkeOppretteSøknad.FantIkkePerson -> Feilresponser.fantIkkePerson
     KunneIkkeOppretteSøknad.SøknadsinnsendingIkkeTillatt -> Forbidden.errorJson(
         "Innsending av type søknad $type, er ikke tillatt",

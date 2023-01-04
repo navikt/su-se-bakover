@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.web.sak.hent
 
 import io.kotest.matchers.shouldBe
+import io.ktor.client.HttpClient
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.ApplicationTestBuilder
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
@@ -15,12 +15,13 @@ import org.json.JSONObject
  *  Denne skal f.eks. kun være tilgjengelig for saksbehandler/attestant.
  *  I tillegg er visse personer/saker beskyttet. Kode 6/7/Egen ansatt.
  */
-internal fun ApplicationTestBuilder.hentSak(sakId: String): String {
+internal fun hentSak(sakId: String, client: HttpClient): String {
     return runBlocking {
         defaultRequest(
             HttpMethod.Get,
             "/saker/$sakId",
             listOf(Brukerrolle.Saksbehandler),
+            client = client,
         ).apply {
             status shouldBe HttpStatusCode.OK
         }.bodyAsText()

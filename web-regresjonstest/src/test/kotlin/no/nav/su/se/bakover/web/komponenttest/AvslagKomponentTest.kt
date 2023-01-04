@@ -28,6 +28,7 @@ class AvslagKomponentTest {
 
             val sakId = opprettAvslåttSøknadsbehandling(
                 fnr = fnr.toString(),
+                client = this.client,
             ).let { søknadsbehandlingJson ->
                 val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)
                 UUID.fromString(sakId)

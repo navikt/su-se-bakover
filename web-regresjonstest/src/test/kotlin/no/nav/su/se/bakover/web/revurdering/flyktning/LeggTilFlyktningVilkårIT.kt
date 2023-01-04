@@ -26,6 +26,7 @@ internal class LeggTilFlyktningVilkårIT {
                 fnr = fnr.toString(),
                 fraOgMed = 1.januar(2022).toString(),
                 tilOgMed = 31.desember(2022).toString(),
+                client = this.client,
             ).let { søknadsbehandlingJson ->
 
                 val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)
@@ -36,6 +37,7 @@ internal class LeggTilFlyktningVilkårIT {
                     sakId = sakId,
                     fraOgMed = fraOgMed,
                     tilOgMed = tilOgMed,
+                    client = this.client,
                 ).let {
                     val revurderingId = hentRevurderingId(it)
 
@@ -47,6 +49,7 @@ internal class LeggTilFlyktningVilkårIT {
                         body = { innvilgetFlyktningVilkårJson(fraOgMed, tilOgMed) },
                         brukerrolle = Brukerrolle.Saksbehandler,
                         url = "/saker/$sakId/revurderinger/$revurderingId/flyktning",
+                        client = this.client,
                     ).also { revurderingJson ->
                         JSONAssert.assertEquals(
                             JSONObject(RevurderingJson.hentFlyktningVilkår(revurderingJson)).toString(),
@@ -77,6 +80,7 @@ internal class LeggTilFlyktningVilkårIT {
                         body = { avslåttFlyktningVilkårJson(fraOgMed, tilOgMed) },
                         brukerrolle = Brukerrolle.Saksbehandler,
                         url = "/saker/$sakId/revurderinger/$revurderingId/flyktning",
+                        client = this.client,
                     ).also { revurderingJson ->
                         JSONAssert.assertEquals(
                             JSONObject(RevurderingJson.hentFlyktningVilkår(revurderingJson)).toString(),

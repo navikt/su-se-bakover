@@ -4,6 +4,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.patch
+import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -31,12 +32,17 @@ internal fun Route.iverksettSøknadsbehandlingRoute(
     service: IverksettSøknadsbehandlingService,
     satsFactory: SatsFactory,
     clock: Clock,
+    applicationConfig: ApplicationConfig,
 ) {
     patch("$behandlingPath/{behandlingId}/iverksett") {
         authorize(Brukerrolle.Attestant) {
             call.withBehandlingId { behandlingId ->
 
-                val navIdent = call.suUserContext.navIdent
+                val navIdent = if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
+                    "attestant"
+                } else {
+                    call.suUserContext.navIdent
+                }
 
                 service.iverksett(
                     IverksettSøknadsbehandlingCommand(

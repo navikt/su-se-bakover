@@ -7,7 +7,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
-import io.ktor.server.testing.ApplicationTestBuilder
+import io.ktor.client.HttpClient
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
@@ -78,11 +78,13 @@ internal class KontrollsamtaleKomponentTest {
         withKomptestApplication(
             clock = tikkendeKlokke,
         ) { appComponents ->
-            val kontrollsamtaleService = appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService as KontrollsamtaleServiceImpl
+            val kontrollsamtaleService =
+                appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService as KontrollsamtaleServiceImpl
 
             val sakId = innvilgSøknad(
                 fraOgMed = stønadStart,
                 tilOgMed = stønadSlutt,
+                client = this.client,
             )
 
             val førstePlanlagteKontrollsamtale = kontrollsamtaleService.hentForSak(sakId = sakId).first()
@@ -109,8 +111,10 @@ internal class KontrollsamtaleKomponentTest {
                         fraOgMed = fraOgMed,
                         tilOgMed = tilOgMed,
                         vurdering = UtenlandsoppholdStatus.SkalVæreMerEnn90DagerIUtlandet.toString(),
+                        client = this.client,
                     )
                 },
+                client = this.client,
             )
 
             kontrollsamtaleService.hentForSak(sakId)
@@ -197,61 +201,72 @@ internal class KontrollsamtaleKomponentTest {
                 }
             },
         ) { appComponents ->
-            val kontrollsamtaleService = appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService as KontrollsamtaleServiceImpl
+            val kontrollsamtaleService =
+                appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService as KontrollsamtaleServiceImpl
             val jobContextPostgresRepo = JobContextPostgresRepo(
                 sessionFactory = appComponents.databaseRepos.sessionFactory as PostgresSessionFactory,
             )
             val kontrollsamtaleJobRepo = KontrollsamtaleJobPostgresRepo(
                 repo = jobContextPostgresRepo,
             )
-            val utløptFristForKontrollsamtaleService = appComponents.services.kontrollsamtaleSetup.utløptFristForKontrollsamtaleService
+            val utløptFristForKontrollsamtaleService =
+                appComponents.services.kontrollsamtaleSetup.utløptFristForKontrollsamtaleService
 
             val sakIds = listOf(
                 innvilgSøknad(
                     // ikke møtt - iverksatt stans ok
                     fraOgMed = stønadStart,
                     tilOgMed = stønadSlutt,
+                    client = this.client,
                 ),
                 innvilgSøknad(
                     // møtt - oppdater kontrollsamtale med journalpost
                     fraOgMed = stønadStart,
                     tilOgMed = stønadSlutt,
+                    client = this.client,
                 ),
                 innvilgSøknad(
                     // møtt - oppdater kontrollsamtale med journalpost
                     fraOgMed = stønadStart,
                     tilOgMed = stønadSlutt,
+                    client = this.client,
                 ),
                 innvilgSøknad(
                     // ikke møtt - utbetaling feiler ved første kjøring - iverksatt stans ok ved andre kjøring
                     fraOgMed = stønadStart,
                     tilOgMed = stønadSlutt,
+                    client = this.client,
                 ),
                 innvilgSøknad(
                     // ikke møtt - utbetaling feiler ved første og andre og andre kjøring - iverksatt stans ok ved tredje kjøring
                     fraOgMed = stønadStart,
                     tilOgMed = stønadSlutt,
+                    client = this.client,
                 ),
                 innvilgSøknad(
                     // ikke møtt - opprettelse av stans feiler ved alle kjøringer
                     fraOgMed = stønadStart,
                     tilOgMed = stønadSlutt,
+                    client = this.client,
                 ).also {
                     opprettRevurdering(
                         sakId = it.toString(),
                         fraOgMed = stønadStart.toString(),
                         tilOgMed = stønadSlutt.toString(),
+                        client = this.client,
                     )
                 },
                 innvilgSøknad(
                     // ikke møtt - opprettelse av stans feiler ved alle kjøringer, opprettelse av oppgave feiler
                     fraOgMed = stønadStart,
                     tilOgMed = stønadSlutt,
+                    client = this.client,
                 ).also {
                     opprettRevurdering(
                         sakId = it.toString(),
                         fraOgMed = stønadStart.toString(),
                         tilOgMed = stønadSlutt.toString(),
+                        client = this.client,
                     )
                 },
             )
@@ -446,16 +461,18 @@ internal class KontrollsamtaleKomponentTest {
         }
     }
 
-    private fun ApplicationTestBuilder.innvilgSøknad(
+    private fun innvilgSøknad(
         fraOgMed: LocalDate,
         tilOgMed: LocalDate,
+        client: HttpClient,
     ): UUID {
         return opprettInnvilgetSøknadsbehandling(
             fnr = Fnr.generer().toString(),
             fraOgMed = fraOgMed.toString(),
             tilOgMed = tilOgMed.toString(),
+            client = client,
         ).let {
-            hentSak(BehandlingJson.hentSakId(it)).let { sakJson ->
+            hentSak(BehandlingJson.hentSakId(it), client = client).let { sakJson ->
                 UUID.fromString(hentSakId(sakJson))
             }
         }

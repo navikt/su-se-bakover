@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.web.utenlandsopphold
 
 import io.kotest.matchers.shouldBe
+import io.ktor.client.HttpClient
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
@@ -24,8 +24,8 @@ internal class RegistrerUtenlandsoppholdIT {
             )
             val sakId = NySøknadJson.Response.hentSakId(nySøknadResponseJson)
 
-            registrer(sakId)
-            korriger(sakId)
+            registrer(sakId, client = this.client)
+            korriger(sakId, client = this.client)
             registrer(
                 sakId = sakId,
                 versjon = 3,
@@ -51,8 +51,9 @@ internal class RegistrerUtenlandsoppholdIT {
                         ),
                     ),
                 ),
+                client = this.client,
             )
-            annuller(sakId)
+            annuller(sakId, client = this.client)
             annuller(
                 versjon = 4,
                 nesteVersjon = 4,
@@ -79,6 +80,7 @@ internal class RegistrerUtenlandsoppholdIT {
                         ),
                     ),
                 ),
+                client = this.client,
             )
             registrer(
                 sakId = sakId,
@@ -98,11 +100,12 @@ internal class RegistrerUtenlandsoppholdIT {
                         UtenlandsResponseJsonData(versjon = 5),
                     ),
                 ),
+                client = this.client,
             )
         }
     }
 
-    private fun ApplicationTestBuilder.annuller(
+    private fun annuller(
         sakId: String,
         versjon: Long = 3,
         nesteVersjon: Long = versjon + 1,
@@ -123,18 +126,20 @@ internal class RegistrerUtenlandsoppholdIT {
             ),
         ),
         expectedSakResponse: String = expectedAnnullerResponse,
+        client: HttpClient,
     ) {
         JSONAssert.assertEquals(
             expectedAnnullerResponse,
-            this.annullerUtenlandsopphold(
+            annullerUtenlandsopphold(
                 sakId = sakId,
                 saksversjon = versjon,
                 annullererVersjon = versjon,
                 expectedHttpStatusCode = expectedHttpStatusCode,
+                client = client,
             ),
             true,
         )
-        hentSak(sakId).also { sakJson ->
+        hentSak(sakId, client = client).also { sakJson ->
             JSONAssert.assertEquals(
                 expectedSakResponse,
                 JSONObject(sakJson).getJSONObject("utenlandsopphold"),
@@ -144,7 +149,7 @@ internal class RegistrerUtenlandsoppholdIT {
         }
     }
 
-    private fun ApplicationTestBuilder.korriger(sakId: String) {
+    private fun korriger(sakId: String, client: HttpClient) {
         val expectedKorrigerResponse = utenlandsoppholdResponseJson(
             antallDagerTotal = 159,
             elements = listOf(
@@ -161,7 +166,7 @@ internal class RegistrerUtenlandsoppholdIT {
         )
         JSONAssert.assertEquals(
             expectedKorrigerResponse,
-            this.korrigerUtenlandsopphold(
+            korrigerUtenlandsopphold(
                 sakId = sakId,
                 fraOgMed = "2021-05-04",
                 tilOgMed = "2021-10-11",
@@ -170,10 +175,11 @@ internal class RegistrerUtenlandsoppholdIT {
                 begrunnelse = "Linket til feil journalpost. Utenlandsoppholdet er udokumentert",
                 saksversjon = 2,
                 korrigererVersjon = 2,
+                client = client,
             ),
             true,
         )
-        hentSak(sakId).also { sakJson ->
+        hentSak(sakId, client).also { sakJson ->
             JSONAssert.assertEquals(
                 expectedKorrigerResponse,
                 JSONObject(sakJson).getJSONObject("utenlandsopphold"),
@@ -183,10 +189,11 @@ internal class RegistrerUtenlandsoppholdIT {
         }
     }
 
-    private fun ApplicationTestBuilder.registrer(
+    private fun registrer(
         sakId: String,
         versjon: Long = 1,
         nesteVersjon: Long = versjon + 1,
+        client: HttpClient,
         expectedRegistrertResponse: String = utenlandsoppholdResponseJson(
             elements = listOf(UtenlandsResponseJsonData(versjon = nesteVersjon)),
         ),
@@ -195,14 +202,15 @@ internal class RegistrerUtenlandsoppholdIT {
     ) {
         JSONAssert.assertEquals(
             expectedRegistrertResponse,
-            this.nyttUtenlandsopphold(
+            nyttUtenlandsopphold(
                 sakId = sakId,
                 saksversjon = versjon,
                 expectedHttpStatusCode = expectedHttpStatusCode,
+                client = client,
             ),
             true,
         )
-        hentSak(sakId).also { sakJson ->
+        hentSak(sakId, client = client).also { sakJson ->
             JSONAssert.assertEquals(
                 expectedSakResponse,
                 JSONObject(sakJson).getJSONObject("utenlandsopphold"),

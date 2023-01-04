@@ -43,7 +43,7 @@ internal fun Application.naisRoutes(collectorRegistry: CollectorRegistry) {
     }
 }
 
-internal fun Application.installMetrics(prometheusMeterRegistry: PrometheusMeterRegistry) {
+fun Application.installMetrics(prometheusMeterRegistry: PrometheusMeterRegistry) {
     install(MicrometerMetrics) {
         registry = prometheusMeterRegistry
         meterBinders = listOf(

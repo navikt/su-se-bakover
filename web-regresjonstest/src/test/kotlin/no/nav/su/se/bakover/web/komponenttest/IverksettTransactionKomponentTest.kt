@@ -74,8 +74,9 @@ internal class IverksettTransactionKomponentTest {
                 fraOgMed = start.toString(),
                 tilOgMed = slutt.toString(),
                 iverksett = { _, _ -> SKIP_STEP },
+                client = this.client,
             ).let { søknadsbehandling ->
-                val (sakId, behandlingId) = hentSak(BehandlingJson.hentSakId(søknadsbehandling)).let { sakJson ->
+                val (sakId, behandlingId) = hentSak(BehandlingJson.hentSakId(søknadsbehandling), client = this.client).let { sakJson ->
                     hentSakId(sakJson) to BehandlingJson.hentBehandlingId(søknadsbehandling)
                 }
 
@@ -83,6 +84,7 @@ internal class IverksettTransactionKomponentTest {
                     sakId = sakId,
                     behandlingId = behandlingId,
                     assertResponse = false,
+                    client = this.client,
                 ).let {
                     JSONObject(it).getString("code") shouldBe "ukjent_feil"
                 }
@@ -131,19 +133,22 @@ internal class IverksettTransactionKomponentTest {
                 fnr = Fnr.generer().toString(),
                 fraOgMed = start.toString(),
                 tilOgMed = slutt.toString(),
+                client = this.client,
             ).let { søknadsbehandling ->
-                val sakId = hentSakId(hentSak(BehandlingJson.hentSakId(søknadsbehandling)))
+                val sakId = hentSakId(hentSak(BehandlingJson.hentSakId(søknadsbehandling), client = this.client))
 
                 opprettIverksattRevurdering(
                     sakid = sakId,
                     fraogmed = start.plusMonths(4).startOfMonth().toString(),
                     tilogmed = start.plusMonths(6).endOfMonth().toString(),
                     iverksett = { _, _ -> SKIP_STEP },
+                    client = this.client,
                 ).let {
                     iverksettRevurdering(
                         sakId = sakId,
                         behandlingId = RevurderingJson.hentRevurderingId(it),
                         assertResponse = false,
+                        client = this.client,
                     ).let {
                         JSONObject(it).getString("code") shouldBe "kunne_ikke_utbetale"
                     }
@@ -194,8 +199,9 @@ internal class IverksettTransactionKomponentTest {
                 fnr = Fnr.generer().toString(),
                 fraOgMed = start.toString(),
                 tilOgMed = slutt.toString(),
+                client = this.client,
             ).let { søknadsbehandling ->
-                val sakId = hentSakId(hentSak(BehandlingJson.hentSakId(søknadsbehandling)))
+                val sakId = hentSakId(hentSak(BehandlingJson.hentSakId(søknadsbehandling), client = this.client))
 
                 opprettIverksattRevurdering(
                     sakid = sakId,
@@ -209,14 +215,17 @@ internal class IverksettTransactionKomponentTest {
                             tilOgMed = tilOgMed,
                             body = { avslåttFlyktningVilkårJson(fraOgMed, tilOgMed) },
                             url = url,
+                            client = this.client,
                         )
                     },
                     iverksett = { _, _ -> SKIP_STEP },
+                    client = this.client,
                 ).let {
                     iverksettRevurdering(
                         sakId = sakId,
                         behandlingId = RevurderingJson.hentRevurderingId(it),
                         assertResponse = false,
+                        client = this.client,
                     ).let {
                         JSONObject(it).getString("code") shouldBe "kunne_ikke_utbetale"
                     }
@@ -267,17 +276,20 @@ internal class IverksettTransactionKomponentTest {
                 fnr = Fnr.generer().toString(),
                 fraOgMed = start.toString(),
                 tilOgMed = slutt.toString(),
+                client = this.client,
             ).let { søknadsbehandling ->
-                val sakId = hentSakId(hentSak(BehandlingJson.hentSakId(søknadsbehandling)))
+                val sakId = hentSakId(hentSak(BehandlingJson.hentSakId(søknadsbehandling), client = this.client))
 
                 val stansId = opprettStans(
                     sakId,
                     start.toString(),
+                    client = this.client,
                 ).let { RevurderingJson.hentRevurderingId(it) }
                 iverksettStans(
                     sakId = sakId,
                     behandlingId = stansId,
                     assertResponse = false,
+                    client = this.client,
                 )
 
                 appComponents.services.sak.hentSak(UUID.fromString(sakId)).getOrFail().also { sak ->
@@ -332,16 +344,18 @@ internal class IverksettTransactionKomponentTest {
                 fnr = Fnr.generer().toString(),
                 fraOgMed = start.toString(),
                 tilOgMed = slutt.toString(),
+                client = this.client,
             ).let { søknadsbehandling ->
-                val sakId = hentSakId(hentSak(BehandlingJson.hentSakId(søknadsbehandling)))
+                val sakId = hentSakId(hentSak(BehandlingJson.hentSakId(søknadsbehandling), client = this.client))
 
-                val stansId = opprettStans(sakId, start.toString()).let { RevurderingJson.hentRevurderingId(it) }
-                iverksettStans(sakId, stansId)
-                val gjenopptakId = opprettGjenopptak(sakId).let { RevurderingJson.hentRevurderingId(it) }
+                val stansId = opprettStans(sakId, start.toString(), client = this.client).let { RevurderingJson.hentRevurderingId(it) }
+                iverksettStans(sakId, stansId, client = this.client)
+                val gjenopptakId = opprettGjenopptak(sakId, client = this.client).let { RevurderingJson.hentRevurderingId(it) }
                 iverksettGjenopptak(
                     sakId = sakId,
                     behandlingId = gjenopptakId,
                     assertResponse = false,
+                    client = this.client,
                 ).let {
                     JSONObject(it).getString("code") shouldBe "kunne_ikke_utbetale"
                 }

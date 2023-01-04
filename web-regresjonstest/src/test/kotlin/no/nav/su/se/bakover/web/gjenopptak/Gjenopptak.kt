@@ -1,23 +1,24 @@
 package no.nav.su.se.bakover.web.revurdering.gjenopptak
 
 import io.kotest.matchers.shouldBe
+import io.ktor.client.HttpClient
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.server.testing.ApplicationTestBuilder
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 
-internal fun ApplicationTestBuilder.opprettGjenopptak(
+internal fun opprettGjenopptak(
     sakId: String,
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
     revurderingsårsak: String = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
     begrunnelse: String = "Begrunnelse",
+    client: HttpClient,
 ): String {
     return runBlocking {
         defaultRequest(
@@ -25,6 +26,7 @@ internal fun ApplicationTestBuilder.opprettGjenopptak(
             "/saker/$sakId/revurderinger/gjenoppta",
             listOf(brukerrolle),
             "automatiskOpprettetGjenopptak",
+            client = client,
         ) {
             setBody(
                 """
@@ -41,11 +43,12 @@ internal fun ApplicationTestBuilder.opprettGjenopptak(
     }
 }
 
-internal fun ApplicationTestBuilder.iverksettGjenopptak(
+internal fun iverksettGjenopptak(
     sakId: String,
     behandlingId: String,
     brukerrolle: Brukerrolle = Brukerrolle.Attestant,
     assertResponse: Boolean = true,
+    client: HttpClient,
 ): String {
     return runBlocking {
         defaultRequest(
@@ -53,6 +56,7 @@ internal fun ApplicationTestBuilder.iverksettGjenopptak(
             "/saker/$sakId/revurderinger/gjenoppta/$behandlingId/iverksett",
             listOf(brukerrolle),
             "automatiskIverksattGjenopptak",
+            client = client,
         ).apply {
             if (assertResponse) {
                 status shouldBe HttpStatusCode.OK

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web
 
+import io.ktor.client.HttpClient
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.headers
 import io.ktor.client.request.request
@@ -53,6 +54,7 @@ import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.stubs.JwtStub
 import no.nav.su.se.bakover.web.stubs.asBearerToken
 import org.mockito.kotlin.mock
+import org.slf4j.MDC
 import java.time.Clock
 import java.time.LocalDate
 import javax.sql.DataSource
@@ -70,7 +72,8 @@ internal object SharedRegressionTestData {
     private val applicationConfig = applicationConfig()
     private val jwtStub = JwtStub(applicationConfig.azure)
 
-    internal const val dokumentData = "JVBERi0xLjAKICAgICAgICAgICAgICAgIDEgMCBvYmo8PC9UeXBlL0NhdGFsb2cvUGFnZXMgMiAwIFI+PmVuZG9iaiAyIDAgb2JqPDwvVHlwZS9QYWdlcy9LaWRzWzMgMCBSXS9Db3VudCAxPj5lbmRvYmogMyAwIG9iajw8L1R5cGUvUGFnZS9NZWRpYUJveFswIDAgMyAzXT4+ZW5kb2JqCiAgICAgICAgICAgICAgICB4cmVmCiAgICAgICAgICAgICAgICAwIDQKICAgICAgICAgICAgICAgIDAwMDAwMDAwMDAgNjU1MzUgZgogICAgICAgICAgICAgICAgMDAwMDAwMDAxMCAwMDAwMCBuCiAgICAgICAgICAgICAgICAwMDAwMDAwMDUzIDAwMDAwIG4KICAgICAgICAgICAgICAgIDAwMDAwMDAxMDIgMDAwMDAgbgogICAgICAgICAgICAgICAgdHJhaWxlcjw8L1NpemUgNC9Sb290IDEgMCBSPj4KICAgICAgICAgICAgICAgIHN0YXJ0eHJlZgogICAgICAgICAgICAgICAgMTQ5CiAgICAgICAgICAgICAgICAlRU9G"
+    internal const val dokumentData =
+        "JVBERi0xLjAKICAgICAgICAgICAgICAgIDEgMCBvYmo8PC9UeXBlL0NhdGFsb2cvUGFnZXMgMiAwIFI+PmVuZG9iaiAyIDAgb2JqPDwvVHlwZS9QYWdlcy9LaWRzWzMgMCBSXS9Db3VudCAxPj5lbmRvYmogMyAwIG9iajw8L1R5cGUvUGFnZS9NZWRpYUJveFswIDAgMyAzXT4+ZW5kb2JqCiAgICAgICAgICAgICAgICB4cmVmCiAgICAgICAgICAgICAgICAwIDQKICAgICAgICAgICAgICAgIDAwMDAwMDAwMDAgNjU1MzUgZgogICAgICAgICAgICAgICAgMDAwMDAwMDAxMCAwMDAwMCBuCiAgICAgICAgICAgICAgICAwMDAwMDAwMDUzIDAwMDAwIG4KICAgICAgICAgICAgICAgIDAwMDAwMDAxMDIgMDAwMDAgbgogICAgICAgICAgICAgICAgdHJhaWxlcjw8L1NpemUgNC9Sb290IDEgMCBSPj4KICAgICAgICAgICAgICAgIHN0YXJ0eHJlZgogICAgICAgICAgICAgICAgMTQ5CiAgICAgICAgICAgICAgICAlRU9G"
     internal val pdf = """%PDF-1.0
                 1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 3 3]>>endobj
                 xref
@@ -175,22 +178,22 @@ internal object SharedRegressionTestData {
         )
     }
 
-    fun ApplicationTestBuilder.defaultRequest(
+    fun defaultRequest(
         method: HttpMethod,
         uri: String,
         roller: List<Brukerrolle> = emptyList(),
         navIdent: String = "Z990Lokal",
+        client: HttpClient,
         setup: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return runBlocking {
             client.request(uri) {
+                val auth: String? = MDC.get("Authorization")
+                val bearerToken = auth ?: jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken()
                 this.method = method
                 this.headers {
                     append(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
-                    append(
-                        HttpHeaders.Authorization,
-                        jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken(),
-                    )
+                    append(HttpHeaders.Authorization, bearerToken)
                 }
                 setup()
             }

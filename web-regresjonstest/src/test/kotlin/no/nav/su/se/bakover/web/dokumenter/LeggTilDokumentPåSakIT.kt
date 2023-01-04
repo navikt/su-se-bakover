@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.dokumenter
 
 import io.kotest.matchers.shouldBe
-import io.ktor.server.testing.ApplicationTestBuilder
+import io.ktor.client.HttpClient
 import no.nav.su.se.bakover.test.jsonAssertEquals
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
@@ -25,6 +25,7 @@ internal class LeggTilDokumentPåSakIT {
             opprettFritekstDokument(
                 sakId = sakId,
                 expectedOpprettResponse = SharedRegressionTestData.pdf,
+                this.client,
             )
 
             lagreOgSendFritekstDokument(
@@ -40,21 +41,24 @@ internal class LeggTilDokumentPåSakIT {
                               "brevErBestilt":false
                             }
                 """.trimIndent(),
+                this.client,
             ).let { JSONObject(it).get("id").toString() }
         }
     }
 
-    private fun ApplicationTestBuilder.opprettFritekstDokument(
+    private fun opprettFritekstDokument(
         sakId: String,
         expectedOpprettResponse: String,
-    ) = this.opprettFritekstDokument(sakId = sakId).also {
+        client: HttpClient,
+    ) = no.nav.su.se.bakover.web.dokumenter.opprettFritekstDokument(sakId = sakId, client = client).also {
         it shouldBe expectedOpprettResponse
     }
 
-    private fun ApplicationTestBuilder.lagreOgSendFritekstDokument(
+    private fun lagreOgSendFritekstDokument(
         sakId: String,
         expectedLagreOgSendResponse: String,
-    ) = this.lagreOgSendFritekstDokument(sakId = sakId).also {
+        client: HttpClient,
+    ) = no.nav.su.se.bakover.web.dokumenter.lagreOgSendFritekstDokument(sakId = sakId, client = client).also {
         jsonAssertEquals(
             expectedLagreOgSendResponse,
             it,
