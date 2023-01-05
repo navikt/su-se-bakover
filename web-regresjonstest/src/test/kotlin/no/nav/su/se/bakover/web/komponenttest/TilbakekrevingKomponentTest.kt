@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.web.komponenttest
 import arrow.core.left
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.ktor.server.testing.ApplicationTestBuilder
+import io.ktor.client.HttpClient
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
@@ -55,7 +55,10 @@ class TilbakekrevingKomponentTest {
         withKomptestApplication(
             clock = TikkendeKlokke(1.oktober(2021).fixedClock()),
         ) { appComponents ->
-            val (sakid, revurderingId) = vedtakMedTilbakekreving(avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV)
+            val (sakid, revurderingId) = vedtakMedTilbakekreving(
+                avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV,
+                client = this.client,
+            )
 
             val vedtak = appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
                 .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>().let { revurdering ->
@@ -141,7 +144,10 @@ class TilbakekrevingKomponentTest {
         withKomptestApplication(
             clock = TikkendeKlokke(1.oktober(2021).fixedClock()),
         ) { appComponents ->
-            val (sakid, revurderingId) = vedtakMedTilbakekreving(avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.IKKE_TILBAKEKREV)
+            val (sakid, revurderingId) = vedtakMedTilbakekreving(
+                avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.IKKE_TILBAKEKREV,
+                client = this.client,
+            )
 
             val vedtak = appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
                 .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>().let { revurdering ->
@@ -215,7 +221,10 @@ class TilbakekrevingKomponentTest {
         withKomptestApplication(
             clock = TikkendeKlokke(1.oktober(2021).fixedClock()),
         ) { appComponents ->
-            val (_, revurderingId) = vedtakMedTilbakekreving(avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV)
+            val (_, revurderingId) = vedtakMedTilbakekreving(
+                avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV,
+                client = this.client,
+            )
 
             val vedtak =
                 appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!! as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering
@@ -246,7 +255,10 @@ class TilbakekrevingKomponentTest {
         withKomptestApplication(
             clock = TikkendeKlokke(1.oktober(2021).fixedClock()),
         ) { appComponents ->
-            val (_, revurderingId) = vedtakMedTilbakekreving(avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV)
+            val (_, revurderingId) = vedtakMedTilbakekreving(
+                avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV,
+                client = this.client,
+            )
 
             val vedtak =
                 appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!! as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering
@@ -276,7 +288,10 @@ class TilbakekrevingKomponentTest {
         withKomptestApplication(
             clock = TikkendeKlokke(1.oktober(2021).fixedClock()),
         ) { appComponents ->
-            val (_, revurderingId) = vedtakMedTilbakekreving(avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV)
+            val (_, revurderingId) = vedtakMedTilbakekreving(
+                avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV,
+                client = this.client,
+            )
 
             val vedtak =
                 appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!! as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering
@@ -317,7 +332,10 @@ class TilbakekrevingKomponentTest {
                 )
             },
         ) { appComponents ->
-            val (_, revurderingId) = vedtakMedTilbakekreving(avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV)
+            val (_, revurderingId) = vedtakMedTilbakekreving(
+                avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV,
+                client = this.client,
+            )
 
             val vedtak = appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
                 .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>().also {
@@ -370,8 +388,10 @@ class TilbakekrevingKomponentTest {
                     velgIkkeSendBrev(
                         sakId = sakId,
                         behandlingId = revurderingId,
+                        client = this.client,
                     )
                 },
+                client = this.client,
             )
 
             val vedtak = appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
@@ -402,12 +422,14 @@ class TilbakekrevingKomponentTest {
         }
     }
 
-    private fun ApplicationTestBuilder.vedtakMedTilbakekreving(
+    private fun vedtakMedTilbakekreving(
         avgjørelse: TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson,
+        client: HttpClient,
         brevvalg: (sakId: String, revurderingId: String) -> String = { sakId, revurderingId ->
             velgSendBrev(
                 sakId = sakId,
                 behandlingId = revurderingId,
+                client = client,
             )
         },
     ): Pair<String, String> {
@@ -415,6 +437,7 @@ class TilbakekrevingKomponentTest {
             fnr = Fnr.generer().toString(),
             fraOgMed = 1.januar(2021).toString(),
             tilOgMed = 31.desember(2021).toString(),
+            client = client,
         ).let { søknadsbehandlingJson ->
             val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)
 
@@ -422,6 +445,7 @@ class TilbakekrevingKomponentTest {
                 sakId = sakId,
                 fraOgMed = 1.mai(2021).toString(),
                 tilOgMed = 31.desember(2021).toString(),
+                client = client,
             ).let {
                 RevurderingJson.hentRevurderingId(it)
             }
@@ -448,10 +472,12 @@ class TilbakekrevingKomponentTest {
                         }
                         """
                 },
+                client = client,
             )
             beregnOgSimuler(
                 sakId = sakId,
                 behandlingId = revurderingId,
+                client = client,
             )
             brevvalg(
                 sakId,
@@ -461,14 +487,17 @@ class TilbakekrevingKomponentTest {
                 sakId = sakId,
                 behandlingId = revurderingId,
                 avgjørelse = { """{"avgjørelse":"$avgjørelse"}""" },
+                client = client,
             )
             sendTilAttestering(
                 sakId = sakId,
                 behandlingId = revurderingId,
+                client = client,
             )
             iverksett(
                 sakId = sakId,
                 behandlingId = revurderingId,
+                client = client,
             )
 
             sakId to revurderingId

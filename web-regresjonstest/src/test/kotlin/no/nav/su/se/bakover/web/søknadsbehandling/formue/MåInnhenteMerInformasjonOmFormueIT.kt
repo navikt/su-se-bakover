@@ -26,12 +26,13 @@ internal class MåInnhenteMerInformasjonOmFormueIT {
             val fraOgMed = "2021-01-01"
             val tilOgMed = "2021-12-31"
             val fnr = Fnr.generer().toString()
-            val søknadResponseJson = nyDigitalSøknad(fnr = fnr)
+            val søknadResponseJson = nyDigitalSøknad(fnr = fnr, client = this.client)
             val sakId = NySøknadJson.Response.hentSakId(søknadResponseJson)
             val søknadId = NySøknadJson.Response.hentSøknadId(søknadResponseJson)
             val nySøknadsbehandlingResponseJson = nySøknadsbehandling(
                 sakId = sakId,
                 søknadId = søknadId,
+                client = this.client,
             )
             val behandlingId = BehandlingJson.hentBehandlingId(nySøknadsbehandlingResponseJson)
 
@@ -40,10 +41,12 @@ internal class MåInnhenteMerInformasjonOmFormueIT {
                 behandlingId = behandlingId,
                 fraOgMed = fraOgMed,
                 tilOgMed = tilOgMed,
+                client = this.client,
             )
             taStillingTilEps(
                 sakId = sakId,
                 behandlingId = behandlingId,
+                client = this.client,
             )
             leggTilFormue(
                 sakId = sakId,
@@ -51,6 +54,7 @@ internal class MåInnhenteMerInformasjonOmFormueIT {
                 fraOgMed = fraOgMed,
                 tilOgMed = tilOgMed,
                 måInnhenteMerInformasjon = true,
+                client = this.client,
             )
 
             //language=JSON
@@ -89,7 +93,7 @@ internal class MåInnhenteMerInformasjonOmFormueIT {
               "resultat":"MåInnhenteMerInformasjon"
             }
             """.trimIndent()
-            val actual = hentFormueVilkår(hentSøknadsbehandling(sakId, behandlingId))
+            val actual = hentFormueVilkår(hentSøknadsbehandling(sakId, behandlingId, client = this.client))
             JSONAssert.assertEquals(
                 exptected,
                 actual,

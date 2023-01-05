@@ -21,9 +21,9 @@ internal class LeggTilFlyktningVilkårIT {
     @Test
     fun `legg til flyktningvilkår`() {
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb {
-            nyDigitalSøknad().also { nySøknadResponse ->
+            nyDigitalSøknad(client = this.client).also { nySøknadResponse ->
                 val sakId = NySøknadJson.Response.hentSakId(nySøknadResponse)
-                val sakJson = hentSak(sakId)
+                val sakJson = hentSak(sakId, this.client)
                 val søknadId = NySøknadJson.Response.hentSøknadId(nySøknadResponse)
 
                 assertSakJson(
@@ -42,6 +42,7 @@ internal class LeggTilFlyktningVilkårIT {
                     sakId = sakId,
                     søknadId = søknadId,
                     brukerrolle = Brukerrolle.Saksbehandler,
+                    client = this.client,
                 ).also { nyBehandlingResponse ->
                     val behandlingId = BehandlingJson.hentBehandlingId(nyBehandlingResponse)
                     val fraOgMed: String = 1.januar(2022).toString()
@@ -52,6 +53,7 @@ internal class LeggTilFlyktningVilkårIT {
                         behandlingId = behandlingId,
                         fraOgMed = fraOgMed,
                         tilOgMed = tilOgMed,
+                        client = this.client,
                     )
 
                     leggTilFlyktningVilkår(
@@ -62,6 +64,7 @@ internal class LeggTilFlyktningVilkårIT {
                         body = { innvilgetFlyktningVilkårJson(fraOgMed, tilOgMed) },
                         brukerrolle = Brukerrolle.Saksbehandler,
                         url = "/saker/$sakId/behandlinger/$behandlingId/flyktning",
+                        client = this.client,
                     ).also { behandlingJson ->
                         JSONAssert.assertEquals(
                             JSONObject(BehandlingJson.hentFlyktningVilkår(behandlingJson)).toString(),
@@ -93,6 +96,7 @@ internal class LeggTilFlyktningVilkårIT {
                         body = { avslåttFlyktningVilkårJson(fraOgMed, tilOgMed) },
                         brukerrolle = Brukerrolle.Saksbehandler,
                         url = "/saker/$sakId/behandlinger/$behandlingId/flyktning",
+                        client = this.client,
                     ).also { behandlingJson ->
                         JSONAssert.assertEquals(
                             JSONObject(BehandlingJson.hentFlyktningVilkår(behandlingJson)).toString(),

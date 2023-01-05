@@ -26,6 +26,7 @@ internal class LeggTilPersonligOppmøteIT {
                 fnr = fnr,
                 fraOgMed = 1.januar(2022).toString(),
                 tilOgMed = 31.desember(2022).toString(),
+                client = this.client,
             ).let { søknadsbehandlingJson ->
 
                 val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)
@@ -36,6 +37,7 @@ internal class LeggTilPersonligOppmøteIT {
                     sakId = sakId,
                     fraOgMed = fraOgMed,
                     tilOgMed = tilOgMed,
+                    client = this.client,
                 ).let {
                     val revurderingId = hentRevurderingId(it)
 
@@ -47,6 +49,7 @@ internal class LeggTilPersonligOppmøteIT {
                         body = { innvilgetPersonligOppmøteJson(fraOgMed, tilOgMed) },
                         brukerrolle = Brukerrolle.Saksbehandler,
                         url = "/saker/$sakId/revurderinger/$revurderingId/personligoppmøte",
+                        client = this.client,
                     ).also { revurderingJson ->
                         JSONAssert.assertEquals(
                             JSONObject(RevurderingJson.hentPersonligOppmøteVilkår(revurderingJson)).toString(),
@@ -78,6 +81,7 @@ internal class LeggTilPersonligOppmøteIT {
                         body = { avslåttPersonligOppmøteJson(fraOgMed, tilOgMed) },
                         brukerrolle = Brukerrolle.Saksbehandler,
                         url = "/saker/$sakId/revurderinger/$revurderingId/personligoppmøte",
+                        client = this.client,
                     ).also { revurderingJson ->
                         JSONAssert.assertEquals(
                             JSONObject(RevurderingJson.hentPersonligOppmøteVilkår(revurderingJson)).toString(),

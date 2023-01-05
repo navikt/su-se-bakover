@@ -25,9 +25,9 @@ internal class LeggTilPensjonsVilkårIT {
     @Test
     fun `legg til pensjonsvilkår`() {
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb {
-            nyDigitalAlderssøknad().also { nySøknadResponse ->
+            nyDigitalAlderssøknad(client = this.client).also { nySøknadResponse ->
                 val sakId = NySøknadJson.Response.hentSakId(nySøknadResponse)
-                val sakJson = hentSak(sakId)
+                val sakJson = hentSak(sakId, this.client)
                 val søknadId = NySøknadJson.Response.hentSøknadId(nySøknadResponse)
 
                 assertSakJson(
@@ -46,6 +46,7 @@ internal class LeggTilPensjonsVilkårIT {
                     sakId = sakId,
                     søknadId = søknadId,
                     brukerrolle = Brukerrolle.Saksbehandler,
+                    client = this.client,
                 ).also { nyBehandlingResponse ->
                     val behandlingId = BehandlingJson.hentBehandlingId(nyBehandlingResponse)
 
@@ -66,6 +67,7 @@ internal class LeggTilPensjonsVilkårIT {
                         behandlingId = behandlingId,
                         fraOgMed = fraOgMed,
                         tilOgMed = tilOgMed,
+                        client = this.client,
                     )
 
                     leggTilPensjonsVilkår(
@@ -75,6 +77,7 @@ internal class LeggTilPensjonsVilkårIT {
                         tilOgMed = tilOgMed,
                         body = { innvilgetPensjonsvilkårJson(fraOgMed, tilOgMed) },
                         brukerrolle = Brukerrolle.Saksbehandler,
+                        client = this.client,
                     ).also {
                         JSONAssert.assertEquals(
                             JSONObject(BehandlingJson.hentPensjonsVilkår(it)).toString(),
@@ -109,6 +112,7 @@ internal class LeggTilPensjonsVilkårIT {
                         tilOgMed = tilOgMed,
                         body = { avslåttPensjonsvilkårJson(fraOgMed, tilOgMed) },
                         brukerrolle = Brukerrolle.Saksbehandler,
+                        client = this.client,
                     ).also {
                         JSONAssert.assertEquals(
                             JSONObject(BehandlingJson.hentPensjonsVilkår(it)).toString(),

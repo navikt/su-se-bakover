@@ -20,7 +20,7 @@ internal class NySøknadKomponentTest {
         withKomptestApplication(
             clock = fixedClock,
         ) { appComponents ->
-            val (sakId, søknadId) = nyDigitalSøknad().let {
+            val (sakId, søknadId) = nyDigitalSøknad(client = this.client).let {
                 UUID.fromString(NySøknadJson.Response.hentSakId(it)) to UUID.fromString(NySøknadJson.Response.hentSøknadId(it))
             }
             val sak = appComponents.services.sak.hentSak(sakId).getOrFail()

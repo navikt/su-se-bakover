@@ -1,16 +1,16 @@
 package no.nav.su.se.bakover.web.utenlandsopphold
 
 import io.kotest.matchers.shouldBe
+import io.ktor.client.HttpClient
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.ApplicationTestBuilder
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 
-fun ApplicationTestBuilder.nyttUtenlandsopphold(
+fun nyttUtenlandsopphold(
     sakId: String,
     fraOgMed: String = "2021-05-05",
     tilOgMed: String = "2021-10-10",
@@ -19,6 +19,7 @@ fun ApplicationTestBuilder.nyttUtenlandsopphold(
     begrunnelse: String = "Har sendt inn kopi av flybiletter. Se journalpost",
     saksversjon: Long = 1,
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
+    client: HttpClient,
 ): String {
     val body = """
       {
@@ -37,6 +38,7 @@ fun ApplicationTestBuilder.nyttUtenlandsopphold(
             HttpMethod.Post,
             "/saker/$sakId/utenlandsopphold",
             listOf(Brukerrolle.Saksbehandler),
+            client = client,
         ) { setBody(body) }.apply {
             status shouldBe expectedHttpStatusCode
         }.bodyAsText()

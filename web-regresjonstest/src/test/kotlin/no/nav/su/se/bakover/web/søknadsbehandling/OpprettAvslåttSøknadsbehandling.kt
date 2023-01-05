@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.søknadsbehandling
 
-import io.ktor.server.testing.ApplicationTestBuilder
+import io.ktor.client.HttpClient
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.startOfMonth
@@ -21,19 +21,22 @@ import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilVir
  * @param fnr Dersom det finnes en sak for dette fødselsnumret fra før, vil det knyttes til den eksisterende saken.
  * @return Den nylig opprettede søknadsbehandlingen
  */
-internal fun ApplicationTestBuilder.opprettAvslåttSøknadsbehandling(
+internal fun opprettAvslåttSøknadsbehandling(
     fnr: String = Fnr.generer().toString(),
     fraOgMed: String = fixedLocalDate.startOfMonth().toString(),
     tilOgMed: String = fixedLocalDate.startOfMonth().plusMonths(11).endOfMonth().toString(),
+    client: HttpClient,
 ): String {
     val søknadResponseJson = nyDigitalSøknad(
         fnr = fnr,
+        client = client,
     )
     return opprettAvslåttSøknadsbehandling(
         sakId = NySøknadJson.Response.hentSakId(søknadResponseJson),
         søknadId = NySøknadJson.Response.hentSøknadId(søknadResponseJson),
         fraOgMed = fraOgMed,
         tilOgMed = tilOgMed,
+        client = client,
     )
 }
 
@@ -41,15 +44,17 @@ internal fun ApplicationTestBuilder.opprettAvslåttSøknadsbehandling(
  * Oppretter en innvilget søknadbehandling på en eksisterende sak og søknad
  * @return Den nylig opprettede søknadsbehandlingen
  */
-internal fun ApplicationTestBuilder.opprettAvslåttSøknadsbehandling(
+internal fun opprettAvslåttSøknadsbehandling(
     sakId: String,
     søknadId: String,
     fraOgMed: String = fixedLocalDate.startOfMonth().toString(),
     tilOgMed: String = fixedLocalDate.startOfMonth().plusMonths(11).endOfMonth().toString(),
+    client: HttpClient,
 ): String {
     val nySøknadsbehandlingResponseJson = nySøknadsbehandling(
         sakId = sakId,
         søknadId = søknadId,
+        client = client,
     )
     val behandlingId = BehandlingJson.hentBehandlingId(nySøknadsbehandlingResponseJson)
 
@@ -58,6 +63,7 @@ internal fun ApplicationTestBuilder.opprettAvslåttSøknadsbehandling(
         behandlingId = behandlingId,
         fraOgMed = fraOgMed,
         tilOgMed = tilOgMed,
+        client = client,
     )
     leggTilUføregrunnlag(
         sakId = sakId,
@@ -65,18 +71,22 @@ internal fun ApplicationTestBuilder.opprettAvslåttSøknadsbehandling(
         resultat = "VilkårIkkeOppfylt",
         fraOgMed = fraOgMed,
         tilOgMed = tilOgMed,
+        client = client,
     )
     leggTilFlyktningVilkår(
         sakId = sakId,
         body = { avslåttFlyktningVilkårJson(fraOgMed, tilOgMed) },
         behandlingId = behandlingId,
+        client = client,
     )
     sendTilAttestering(
         sakId = sakId,
         behandlingId = behandlingId,
+        client = client,
     )
     return iverksett(
         sakId = sakId,
         behandlingId = behandlingId,
+        client = client,
     )
 }

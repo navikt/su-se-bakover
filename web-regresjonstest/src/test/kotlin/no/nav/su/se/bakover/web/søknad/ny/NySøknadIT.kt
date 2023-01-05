@@ -27,6 +27,7 @@ internal class NySøknadIT {
             val sakId = NySøknadJson.Response.hentSakId(actualResponseJson)
             val actualSakJson = hentSak(
                 sakId = sakId,
+                client = this.client,
             )
             assertSakJson(
                 actualSakJson = actualSakJson,
@@ -48,6 +49,7 @@ internal class NySøknadIT {
             val sakId = NySøknadJson.Response.hentSakId(actualResponseJson)
             val actualSakJson = hentSak(
                 sakId = sakId,
+                client = this.client,
             )
             assertSakJson(
                 actualSakJson = actualSakJson,

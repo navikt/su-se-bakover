@@ -53,6 +53,7 @@ class AvkortingKomponentTest {
                 fnr = fnr,
                 fraOgMed = behandlingStartDato.toString(),
                 tilOgMed = behandlingSluttDato.toString(),
+                client = this.client,
             ).let { søknadsbehandlingJson ->
                 val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)
 
@@ -67,8 +68,10 @@ class AvkortingKomponentTest {
                             fraOgMed = fraOgMed,
                             tilOgMed = tilOgMed,
                             vurdering = UtenlandsoppholdStatus.SkalVæreMerEnn90DagerIUtlandet.toString(),
+                            client = this.client,
                         )
                     },
+                    client = this.client,
                 )
                 UUID.fromString(sakId)
             }
@@ -80,6 +83,7 @@ class AvkortingKomponentTest {
                 fnr = fnr,
                 fraOgMed = nyBehandlingStartDato.toString(),
                 tilOgMed = nyBehandlingSluttDato.toString(),
+                client = this.client,
             ).let {
                 BehandlingJson.hentBehandlingId(it)
             }

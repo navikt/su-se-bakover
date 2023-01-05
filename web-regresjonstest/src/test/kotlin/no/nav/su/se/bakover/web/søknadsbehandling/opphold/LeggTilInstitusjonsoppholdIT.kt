@@ -17,7 +17,7 @@ internal class LeggTilInstitusjonsoppholdIT {
     @Test
     fun `legg institusjonsopphold til søknadsbehandling`() {
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb {
-            nyDigitalSøknad().also { nySøknadResponse ->
+            nyDigitalSøknad(client = this.client).also { nySøknadResponse ->
                 val sakId = NySøknadJson.Response.hentSakId(nySøknadResponse)
                 val søknadId = NySøknadJson.Response.hentSøknadId(nySøknadResponse)
 
@@ -25,6 +25,7 @@ internal class LeggTilInstitusjonsoppholdIT {
                     sakId = sakId,
                     søknadId = søknadId,
                     brukerrolle = Brukerrolle.Saksbehandler,
+                    client = this.client,
                 ).also { nyBehandlingResponse ->
                     val behandlingId = BehandlingJson.hentBehandlingId(nyBehandlingResponse)
                     val fraOgMed: String = 1.mai(2022).toString()
@@ -35,6 +36,7 @@ internal class LeggTilInstitusjonsoppholdIT {
                         behandlingId = behandlingId,
                         fraOgMed = fraOgMed,
                         tilOgMed = tilOgMed,
+                        client = this.client,
                     )
 
                     leggTilInstitusjonsopphold(
@@ -44,6 +46,7 @@ internal class LeggTilInstitusjonsoppholdIT {
                         tilOgMed = tilOgMed,
                         vurdering = "VilkårOppfylt",
                         brukerrolle = Brukerrolle.Saksbehandler,
+                        client = this.client,
                     ).also { søknadsbehandlingJson ->
                         JSONAssert.assertEquals(
                             JSONObject(BehandlingJson.hentInstitusjonsoppholdVilkår(søknadsbehandlingJson)).toString(),
@@ -73,6 +76,7 @@ internal class LeggTilInstitusjonsoppholdIT {
                         tilOgMed = tilOgMed,
                         vurdering = "VilkårIkkeOppfylt",
                         brukerrolle = Brukerrolle.Saksbehandler,
+                        client = this.client,
                     ).also { revurderingJson ->
                         JSONAssert.assertEquals(
                             JSONObject(BehandlingJson.hentInstitusjonsoppholdVilkår(revurderingJson)).toString(),

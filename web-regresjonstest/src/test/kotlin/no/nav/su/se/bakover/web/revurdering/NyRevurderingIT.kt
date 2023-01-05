@@ -30,6 +30,7 @@ internal class NyRevurderingIT {
                 fnr = fnr,
                 fraOgMed = stønadStart.toString(),
                 tilOgMed = stønadSlutt.toString(),
+                client = this.client,
             ).let { søknadsbehandlingJson ->
 
                 val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)
@@ -38,8 +39,9 @@ internal class NyRevurderingIT {
                     sakid = sakId,
                     fraogmed = 1.mai(2021).toString(),
                     tilogmed = 31.juli(2021).toString(),
+                    client = this.client,
                 ).let { revurderingJson ->
-                    hentSak(sakId).also {
+                    hentSak(sakId, client = this.client).also {
                         assertSakJson(
                             actualSakJson = it,
                             expectedFnr = fnr,

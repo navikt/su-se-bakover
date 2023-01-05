@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
 import io.ktor.server.routing.Route
+import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.iverksett.iverksettSøknadsbehandlingRoute
@@ -12,6 +13,7 @@ internal fun Route.overordnetSøknadsbehandligRoutes(
     søknadsbehandlingServices: SøknadsbehandlingServices,
     clock: Clock,
     satsFactory: SatsFactory,
+    applicationConfig: ApplicationConfig,
 ) {
     søknadsbehandlingRoutes(søknadsbehandlingServices.søknadsbehandlingService, clock, satsFactory)
 
@@ -39,5 +41,10 @@ internal fun Route.overordnetSøknadsbehandligRoutes(
 
     institusjonsoppholdRoutes(søknadsbehandlingServices.søknadsbehandlingService, satsFactory, clock)
 
-    iverksettSøknadsbehandlingRoute(søknadsbehandlingServices.iverksettSøknadsbehandlingService, satsFactory, clock)
+    iverksettSøknadsbehandlingRoute(
+        søknadsbehandlingServices.iverksettSøknadsbehandlingService,
+        satsFactory,
+        clock,
+        applicationConfig,
+    )
 }

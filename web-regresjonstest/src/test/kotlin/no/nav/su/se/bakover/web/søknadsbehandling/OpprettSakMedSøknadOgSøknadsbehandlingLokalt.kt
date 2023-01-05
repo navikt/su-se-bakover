@@ -19,6 +19,7 @@ fun main() {
         opprettInnvilgetSøknadsbehandling(
             fraOgMed = now.with(firstDayOfYear()).toString(),
             tilOgMed = now.with(lastDayOfYear()).toString(),
+            client = this.client,
         )
     }
 }

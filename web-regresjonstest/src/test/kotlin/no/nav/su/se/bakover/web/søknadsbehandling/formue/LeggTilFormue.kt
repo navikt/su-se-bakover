@@ -2,18 +2,18 @@ package no.nav.su.se.bakover.web.søknadsbehandling.formue
 
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
+import io.ktor.client.HttpClient
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.server.testing.ApplicationTestBuilder
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 
-internal fun ApplicationTestBuilder.leggTilFormue(
+internal fun leggTilFormue(
     sakId: String,
     behandlingId: String,
     begrunnelse: String = "Vurdering av formue er lagt til automatisk av LeggTilFormue.kt",
@@ -21,12 +21,14 @@ internal fun ApplicationTestBuilder.leggTilFormue(
     fraOgMed: String,
     tilOgMed: String,
     måInnhenteMerInformasjon: Boolean = false,
+    client: HttpClient,
 ): String {
     return runBlocking {
         defaultRequest(
             HttpMethod.Post,
             "/saker/$sakId/behandlinger/$behandlingId/formuegrunnlag",
             listOf(brukerrolle),
+            client = client,
         ) {
             setBody(
                 //language=JSON
