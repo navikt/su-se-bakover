@@ -27,6 +27,7 @@ internal data class VedtakJson(
     val fnr: String,
     val periode: PeriodeJson?,
     val type: String,
+    val harDokument: Boolean,
 )
 
 internal enum class VedtakTypeJson(private val beskrivelse: String) {
@@ -68,6 +69,7 @@ internal fun Avslagsvedtak.AvslagVilkår.toJson(): VedtakJson = VedtakJson(
     fnr = behandling.fnr.toString(),
     periode = periode.toJson(),
     type = VedtakTypeJson.AVSLAG.toString(),
+    harDokument = this.skalSendeBrev(),
 )
 
 internal fun Avslagsvedtak.AvslagBeregning.toJson(): VedtakJson = VedtakJson(
@@ -84,6 +86,7 @@ internal fun Avslagsvedtak.AvslagBeregning.toJson(): VedtakJson = VedtakJson(
     fnr = behandling.fnr.toString(),
     periode = periode.toJson(),
     type = VedtakTypeJson.AVSLAG.toString(),
+    harDokument = this.skalSendeBrev(),
 )
 
 internal fun VedtakSomKanRevurderes.EndringIYtelse.toJson(): VedtakJson = VedtakJson(
@@ -114,6 +117,7 @@ internal fun VedtakSomKanRevurderes.EndringIYtelse.toJson(): VedtakJson = Vedtak
         is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> VedtakTypeJson.STANS_AV_YTELSE.toString()
         is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> VedtakTypeJson.REGULERING.toString()
     },
+    harDokument = this.skalSendeBrev(),
 )
 
 internal fun Klagevedtak.toJson(): VedtakJson = VedtakJson(
@@ -130,6 +134,7 @@ internal fun Klagevedtak.toJson(): VedtakJson = VedtakJson(
     fnr = klage.fnr.toString(),
     periode = null,
     type = VedtakTypeJson.AVVIST_KLAGE.toString(),
+    harDokument = harDokument(),
 )
 
 internal fun VedtakSomKanRevurderes.toJson(): VedtakJson = when (this) {

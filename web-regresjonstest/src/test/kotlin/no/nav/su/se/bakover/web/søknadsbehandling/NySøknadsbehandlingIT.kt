@@ -62,7 +62,8 @@ internal class NySøknadsbehandlingIT {
                               "fraOgMed":"2021-01-01",
                               "tilOgMed":"2021-12-31"
                             },
-                            "type":"SØKNAD"
+                            "type":"SØKNAD",
+                            "harDokument": true
                         }
                     ]
                 """.trimIndent(),

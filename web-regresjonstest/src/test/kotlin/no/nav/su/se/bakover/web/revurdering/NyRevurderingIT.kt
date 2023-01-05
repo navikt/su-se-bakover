@@ -92,7 +92,8 @@ internal class NyRevurderingIT {
                                           "fraOgMed":"2021-01-01",
                                           "tilOgMed":"2021-12-31"
                                         },
-                                        "type":"SØKNAD"
+                                        "type":"SØKNAD",
+                                        "harDokument": true
                                     },
                                     {
                                         "id":"ignore-me",
@@ -110,7 +111,8 @@ internal class NyRevurderingIT {
                                           "fraOgMed":"2021-05-01",
                                           "tilOgMed":"2021-07-31"
                                         },
-                                        "type":"ENDRING"
+                                        "type":"ENDRING",
+                                        "harDokument": true
                                     },
                             ]
                             """.trimIndent(),

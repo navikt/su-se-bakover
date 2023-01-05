@@ -11,6 +11,11 @@ import java.util.UUID
 sealed interface Klagevedtak : Vedtak {
     val klage: Klage
 
+    /**
+     * Ved avvisning og oversending sendes det brev
+     */
+    fun harDokument(): Boolean = true
+
     data class Avvist(
         override val id: UUID,
         override val opprettet: Tidspunkt,
