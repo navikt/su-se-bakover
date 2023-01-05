@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.førsteINesteMåned
 import no.nav.su.se.bakover.common.log
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -42,7 +43,7 @@ object KryssjekkTidslinjerOgSimulering {
             tidslinje = tidslinjeEksisterendeOgUnderArbeid,
             simulering = simulertUtbetaling.simulering,
         ).getOrHandle {
-            log.error("Feil ved kryssjekk av tidslinje og simulering. Se sikkerlogg for detaljer")
+            log.error("Feil (${it.map { it::class.simpleName }}) ved kryssjekk av tidslinje og simulering. Se sikkerlogg for detaljer")
             sikkerLogg.error("Feil: $it ved kryssjekk av tidslinje: $tidslinjeEksisterendeOgUnderArbeid og simulering: ${simulertUtbetaling.simulering}")
             return KryssjekkAvTidslinjeOgSimuleringFeilet.KryssjekkFeilet(it.first()).left()
         }
@@ -68,7 +69,7 @@ object KryssjekkTidslinjerOgSimulering {
                 return KryssjekkAvTidslinjeOgSimuleringFeilet.KunneIkkeGenerereTidslinje.left()
             }
             if (!tidslinjeUnderArbeid.ekvivalentMed(tidslinje = tidslinjeEksisterende, periode = rekonstruertPeriode)) {
-                log.error("Feil ved kryssjekk av tidslinje og simulering. Se sikkerlogg for detaljer")
+                log.error("Feil ved kryssjekk av tidslinje og simulering. Tidslinje for ny utbetaling er ulik eksisterende. Se sikkerlogg for detaljer")
                 sikkerLogg.error("Feil ved kryssjekk av tidslinje: Tidslinje for ny utbetaling:$tidslinjeUnderArbeid er ulik eksisterende:$tidslinjeEksisterende for rekonstruert periode:$rekonstruertPeriode")
                 return KryssjekkAvTidslinjeOgSimuleringFeilet.RekonstruertUtbetalingsperiodeErUlikOpprinnelig.left()
             }
@@ -87,15 +88,15 @@ sealed interface KryssjekkAvTidslinjeOgSimuleringFeilet {
 }
 
 sealed class KryssjekkFeil(val prioritet: Int) : Comparable<KryssjekkFeil> {
-    object StansMedFeilutbetaling : KryssjekkFeil(prioritet = 1)
-    object GjenopptakMedFeilutbetaling : KryssjekkFeil(prioritet = 1)
+    data class StansMedFeilutbetaling(val måned: Måned) : KryssjekkFeil(prioritet = 1)
+    data class GjenopptakMedFeilutbetaling(val måned: Måned) : KryssjekkFeil(prioritet = 1)
     data class KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
-        val periode: Periode,
+        val periode: Måned,
         val simulertType: String,
         val tidslinjeType: String,
     ) : KryssjekkFeil(prioritet = 2)
     data class SimulertBeløpOgTidslinjeBeløpErForskjellig(
-        val periode: Periode,
+        val periode: Måned,
         val simulertBeløp: Int,
         val tidslinjeBeløp: Int,
     ) : KryssjekkFeil(prioritet = 2)
@@ -136,14 +137,14 @@ private fun sjekkTidslinjeMotSimulering(
         simulering.månederMedSimuleringsresultat().forEach { måned ->
             val utbetaling = tidslinje.gjeldendeForDato(måned.fraOgMed)!!
             if (utbetaling is UtbetalingslinjePåTidslinje.Stans && simulering.harFeilutbetalinger()) {
-                feil.add(KryssjekkFeil.StansMedFeilutbetaling)
+                feil.add(KryssjekkFeil.StansMedFeilutbetaling(måned))
             }
         }
 
         simulering.månederMedSimuleringsresultat().forEach { måned ->
             val utbetaling = tidslinje.gjeldendeForDato(måned.fraOgMed)!!
             if (utbetaling is UtbetalingslinjePåTidslinje.Reaktivering && simulering.harFeilutbetalinger()) {
-                feil.add(KryssjekkFeil.GjenopptakMedFeilutbetaling)
+                feil.add(KryssjekkFeil.GjenopptakMedFeilutbetaling(måned))
             }
         }
 
@@ -162,7 +163,7 @@ private fun sjekkTidslinjeMotSimulering(
 }
 
 private fun kryssjekkBeløp(
-    tolketPeriode: Periode,
+    tolketPeriode: Måned,
     simulertUtbetaling: Int,
     beløpPåTidslinje: Int,
 ): Either<KryssjekkFeil.SimulertBeløpOgTidslinjeBeløpErForskjellig, Unit> {

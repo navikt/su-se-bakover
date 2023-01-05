@@ -386,7 +386,7 @@ internal class GjenopptakAvYtelseServiceTest {
                     SimulerGjenopptakFeil.KunneIkkeSimulere(
                         SimulerUtbetalingFeilet.FeilVedKryssjekkAvTidslinjeOgSimulering(
                             KryssjekkAvTidslinjeOgSimuleringFeilet.KryssjekkFeilet(
-                                KryssjekkFeil.GjenopptakMedFeilutbetaling,
+                                KryssjekkFeil.GjenopptakMedFeilutbetaling(mai(2021)),
                             ),
                         ),
                     ),

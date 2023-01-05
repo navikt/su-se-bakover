@@ -134,14 +134,14 @@ internal fun KryssjekkAvTidslinjeOgSimuleringFeilet.tilResultat(): Resultat {
                 is KryssjekkFeil.SimulertBeløpOgTidslinjeBeløpErForskjellig -> {
                     Feilresponser.kryssjekkTidslinjeSimuleringFeilet
                 }
-                KryssjekkFeil.StansMedFeilutbetaling -> {
+                is KryssjekkFeil.StansMedFeilutbetaling -> {
                     HttpStatusCode.BadRequest.errorJson(
                         "Stans vil føre til feilutbetalinger",
                         "stans_fører_til_feilutbetaling",
                     )
                 }
 
-                KryssjekkFeil.GjenopptakMedFeilutbetaling -> {
+                is KryssjekkFeil.GjenopptakMedFeilutbetaling -> {
                     HttpStatusCode.InternalServerError.errorJson(
                         "Gjenopptat fører til feilutbetaling",
                         "gjenopptak_fører_til_feilutbetaling",

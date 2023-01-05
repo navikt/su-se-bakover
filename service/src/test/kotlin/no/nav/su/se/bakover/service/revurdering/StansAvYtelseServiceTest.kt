@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.mars
@@ -463,7 +464,12 @@ internal class StansAvYtelseServiceTest {
                 UtbetalStansFeil.KunneIkkeSimulere(
                     SimulerStansFeilet.KunneIkkeSimulere(
                         SimulerUtbetalingFeilet.FeilVedKryssjekkAvTidslinjeOgSimulering(
-                            KryssjekkAvTidslinjeOgSimuleringFeilet.KryssjekkFeilet(KryssjekkFeil.StansMedFeilutbetaling),
+                            KryssjekkAvTidslinjeOgSimuleringFeilet.KryssjekkFeilet(
+                                KryssjekkFeil.StansMedFeilutbetaling(
+                                    // Algoritmen velger den første feilen i en sortert, prioritert liste.
+                                    februar(2022),
+                                ),
+                            ),
                         ),
                     ),
                 ),

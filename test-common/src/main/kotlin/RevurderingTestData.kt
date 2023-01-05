@@ -826,6 +826,10 @@ fun avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     }
 }
 
+/**
+ * @param clock Defaulter til 2021-01-01
+ * @param periode Defaulter til 11 måneder, fra måneden etter clock.
+ */
 fun simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
     clock: Clock = TikkendeKlokke(1.januar(2021).fixedClock()),
     periode: Periode = Periode.create(
