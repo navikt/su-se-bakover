@@ -1,16 +1,20 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.innvilg
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
+import arrow.core.continuations.either
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
@@ -27,17 +31,34 @@ import java.time.Clock
 
 private val log = LoggerFactory.getLogger("IverksettInnvilgetSøknadsbehandling.kt")
 
+/**
+ * Innvilger søknadsbehandlingen uten sideeffekter.
+ * IO: Utbetalingen simules.
+ *
+ * Begrensninger:
+ * - Det kan ikke finnes åpne kravgrunnlag på saken.
+ * - Dersom det finnes uhåndterte avkortingsvarsler på saken, må disse håndteres av denne behandlingen i sin helhet.
+ * - Kan ikke føre til feilutbetaling (verifiseres vha. simulering og kontrollsimulering)
+ * - Stønadsperioden kan ikke overlappe tidligere stønadsperioder, med noen unntak:
+ *     - Opphørte måneder som ikke har ført til utbetaling kan "overskrives".
+ *     - Opphørte måneder med feilutbetaling som har blitt 100% tilbakekrevet kan "overskrives".
+ */
 internal fun Sak.iverksettInnvilgetSøknadsbehandling(
     søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget,
     attestering: Attestering.Iverksatt,
     clock: Clock,
     simulerUtbetaling: (utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
 ): Either<KunneIkkeIverksetteSøknadsbehandling, IverksattInnvilgetSøknadsbehandlingResponse> {
-    if (avventerKravgrunnlag()) {
-        return KunneIkkeIverksetteSøknadsbehandling.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving.left()
-    }
+    require(this.søknadsbehandlinger.any { it == søknadsbehandling })
 
-    søknadsbehandling.kastHvisFeilutbetalinger()
+    either.eager {
+        validerKravgrunnlag().bind()
+        validerAvkorting(søknadsbehandling).bind()
+        validerFeilutbetalinger(søknadsbehandling).bind()
+        // TODO jah: Her må vi ha en tilsvarende sjekk som ved oppdatering av stønadsperioden. validerGjeldendeVedtak(søknadsbehandling).bind()
+    }.tapLeft {
+        return it.left()
+    }
 
     val iverksattBehandling = søknadsbehandling.tilIverksatt(attestering)
 
@@ -46,16 +67,7 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
         beregning = iverksattBehandling.beregning,
         clock = clock,
         utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-        uføregrunnlag = when (iverksattBehandling.sakstype) {
-            Sakstype.ALDER -> {
-                null
-            }
-
-            Sakstype.UFØRE -> {
-                iverksattBehandling.vilkårsvurderinger.uføreVilkår()
-                    .getOrHandle { throw IllegalStateException("Søknadsbehandling uføre: ${iverksattBehandling.id} mangler uføregrunnlag") }.grunnlag.toNonEmptyList()
-            }
-        },
+        uføregrunnlag = hentUføregrunnlag(iverksattBehandling),
     ).let {
         this.simulerUtbetaling(
             utbetalingForSimulering = it,
@@ -96,8 +108,78 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
     ).right()
 }
 
-private fun Søknadsbehandling.TilAttestering.Innvilget.kastHvisFeilutbetalinger() {
-    if (this.simulering.harFeilutbetalinger()) {
-        throw IllegalStateException("Kan ikke iverksette søknadsbehandling hvor simulering inneholder feilutbetalinger. Dette er kun en nødbrems for tilfeller som i utgangspunktet skal være håndtert og forhindret av andre mekanismer.")
+// TODO jah: impl
+// private fun Sak.validerGjeldendeVedtak(søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget): Either<KunneIkkeIverksetteSøknadsbehandling.,Unit> {
+//
+// }
+
+private fun hentUføregrunnlag(iverksattBehandling: Søknadsbehandling.Iverksatt.Innvilget): NonEmptyList<Grunnlag.Uføregrunnlag>? {
+    return when (iverksattBehandling.sakstype) {
+        Sakstype.ALDER -> {
+            null
+        }
+
+        Sakstype.UFØRE -> {
+            iverksattBehandling.vilkårsvurderinger.uføreVilkår()
+                .getOrHandle { throw IllegalStateException("Søknadsbehandling uføre: ${iverksattBehandling.id} mangler uføregrunnlag") }.grunnlag.toNonEmptyList()
+        }
+    }
+}
+
+/**
+ * Sjekker kun saksbehandlers simulering.
+ */
+private fun validerFeilutbetalinger(søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget): Either<KunneIkkeIverksetteSøknadsbehandling.SimuleringFørerTilFeilutbetaling, Unit> {
+    if (søknadsbehandling.simulering.harFeilutbetalinger()) {
+        log.warn("Kan ikke iverksette søknadsbehandling ${søknadsbehandling.id} hvor simulering inneholder feilutbetalinger. Dette er kun en nødbrems for tilfeller som i utgangspunktet skal være håndtert og forhindret av andre mekanismer. Se sikkerlogg for simuleringsdetaljer.")
+        sikkerLogg.warn("Kan ikke iverksette søknadsbehandling ${søknadsbehandling.id} hvor simulering inneholder feilutbetalinger. Dette er kun en nødbrems for tilfeller som i utgangspunktet skal være håndtert og forhindret av andre mekanismer. Simulering: ${søknadsbehandling.simulering}")
+        return KunneIkkeIverksetteSøknadsbehandling.SimuleringFørerTilFeilutbetaling.left()
+    }
+    return Unit.right()
+}
+
+private fun Sak.validerKravgrunnlag(): Either<KunneIkkeIverksetteSøknadsbehandling.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving, Unit> {
+    return if (avventerKravgrunnlag()) {
+        KunneIkkeIverksetteSøknadsbehandling.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving.left()
+    } else {
+        Unit.right()
+    }
+}
+
+private fun Sak.validerAvkorting(
+    søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget,
+): Either<KunneIkkeIverksetteSøknadsbehandling.AvkortingErUfullstendig, Unit> {
+    val uteståendeAvkortingPåSak = if (uteståendeAvkorting is Avkortingsvarsel.Ingen) {
+        null
+    } else {
+        uteståendeAvkorting as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes
+    }
+    // TODO jah: Mulig å flytte den biten som kun angår behandlingen inn i [Søknadsbehandling.TilAttestering.Innvilget.tilIverksatt], mens det saksnære bør ligge her (som f.eks. at tilstander og IDer er like)
+    return when (val a = søknadsbehandling.avkorting) {
+        is AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående -> {
+            val avkortingsvarselPåBehandling = a.avkortingsvarsel
+            if (uteståendeAvkortingPåSak == null) {
+                throw IllegalStateException("Prøver å iverksette søknadsbehandling ${søknadsbehandling.id} med utestående avkorting uten at det finnes noe å avkorte på saken for avkortingsvarsel ${avkortingsvarselPåBehandling.id}")
+            }
+            if (avkortingsvarselPåBehandling != uteståendeAvkortingPåSak) {
+                throw IllegalStateException("Prøver å iverksette søknadsbehandling ${søknadsbehandling.id} hvor søknadsbehandlingens avkorting ${avkortingsvarselPåBehandling.id} er forskjellig fra sakens avkorting ${uteståendeAvkortingPåSak.id}")
+            }
+            if (!avkortingsvarselPåBehandling.fullstendigAvkortetAv(søknadsbehandling.beregning)) {
+                KunneIkkeIverksetteSøknadsbehandling.AvkortingErUfullstendig.left()
+            } else {
+                Unit.right()
+            }
+        }
+
+        is AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående -> {
+            if (uteståendeAvkortingPåSak != null) {
+                throw IllegalStateException("Prøver å iverksette søknadsbehandling ${søknadsbehandling.id} uten å håndtere utestående avkorting for sak $id")
+            }
+            Unit.right()
+        }
+
+        is AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere -> {
+            throw IllegalStateException("Søknadsbehandling ${søknadsbehandling.id} i tilstand ${søknadsbehandling::class} skulle hatt håndtert eventuell avkorting.")
+        }
     }
 }

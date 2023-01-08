@@ -6,8 +6,6 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
@@ -20,29 +18,30 @@ import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 
+/**
+ * Iverksetter søknadsbehandlingen uten sideeffekter.
+ * IO: Dersom iverksettingen fører til avslag og det er bestilt brev, genereres brevet.
+ * IO: Dersom iverksettingen fører til innvilgelse simuleres utbetalingen.
+ *
+ * Begrensninger:
+ * - Saken må inneholde søknadsbehandlings IDen som angis.
+ * - Tilstanden til søknadsbehandlingen må være [Søknadsbehandling.TilAttestering]
+ * - Dersom dette er en manuell iverksetting (unntak: manglende dokumentasjon), kan ikke saksbehandler og attestant være den samme.
+ * - Ved innvilgelse: Det kan ikke finnes åpne kravgrunnlag på saken.
+ * - Ved innvilgelse: Dersom det finnes uhåndterte avkortingsvarsler på saken, må disse håndteres av denne behandlingen i sin helhet.
+ * - Stønadsperioden kan ikke overlappe tidligere stønadsperioder, med noen unntak:
+ *     - Opphørte måneder som ikke har ført til utbetaling kan "overskrives".
+ *     - Opphørte måneder med feilutbetaling som har blitt 100% tilbakekrevet kan "overskrives".
+ */
 fun Sak.iverksettSøknadsbehandling(
     command: IverksettSøknadsbehandlingCommand,
     lagDokument: (visitable: Visitable<LagBrevRequestVisitor>) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
     simulerUtbetaling: (utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
     clock: Clock,
 ): Either<KunneIkkeIverksetteSøknadsbehandling, IverksattSøknadsbehandlingResponse<out Søknadsbehandling.Iverksatt>> {
-    val søknadsbehandling = hentSøknadsbehandling(command.behandlingId).getOrHandle {
-        throw IllegalArgumentException("Fant ikke behandling ${command.behandlingId} for sak $id")
-    }.let {
-        (it as? Søknadsbehandling.TilAttestering)
-            ?: throw IllegalArgumentException("Prøvde iverksette søknadsbehandling som ikke var til attestering. Sak $id, søknadsbehandling ${it.id} og status ${it::class.simpleName}")
-    }
+    val søknadsbehandling = hentSøknadsbehandlingEllerKast(command)
 
-    if (
-        command.saksbehandlerOgAttestantKanIkkeVæreDenSamme && saksbehandlerOgAttestantErLike(
-            søknadsbehandling = søknadsbehandling,
-            attestering = command.attestering,
-        )
-    ) {
-        return KunneIkkeIverksetteSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
-    }
-
-    validerAvkorting(søknadsbehandling).tapLeft {
+    validerTotrinnskontroll(command, søknadsbehandling).tapLeft {
         return it.left()
     }
     return when (søknadsbehandling) {
@@ -62,42 +61,27 @@ fun Sak.iverksettSøknadsbehandling(
     }
 }
 
-private fun Sak.validerAvkorting(søknadsbehandling: Søknadsbehandling.TilAttestering): Either<KunneIkkeIverksetteSøknadsbehandling.AvkortingErUfullstendig, Unit> {
-    // Skal ikke håndtere avkorting ved avslag.
-    if (søknadsbehandling !is Søknadsbehandling.TilAttestering.Innvilget) return Unit.right()
-
-    val uteståendeAvkortingPåSak = if (uteståendeAvkorting is Avkortingsvarsel.Ingen) {
-        null
-    } else {
-        uteståendeAvkorting as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes
+private fun Sak.hentSøknadsbehandlingEllerKast(command: IverksettSøknadsbehandlingCommand): Søknadsbehandling.TilAttestering {
+    return hentSøknadsbehandling(command.behandlingId).getOrHandle {
+        throw IllegalArgumentException("Fant ikke behandling ${command.behandlingId} for sak $id")
+    }.let {
+        (it as? Søknadsbehandling.TilAttestering)
+            ?: throw IllegalArgumentException("Prøvde iverksette søknadsbehandling som ikke var til attestering. Sak $id, søknadsbehandling ${it.id} og status ${it::class.simpleName}")
     }
-    // TODO jah: Mulig å flytte den biten som kun angår behandlingen inn i [Søknadsbehandling.TilAttestering.Innvilget.tilIverksatt], mens det saksnære bør ligge her (som f.eks. at tilstander og IDer er like)
-    return when (val a = søknadsbehandling.avkorting) {
-        is AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående -> {
-            val avkortingsvarselPåBehandling = a.avkortingsvarsel
-            if (uteståendeAvkortingPåSak == null) {
-                throw IllegalStateException("Prøver å iverksette søknadsbehandling ${søknadsbehandling.id} med utestående avkorting uten at det finnes noe å avkorte på saken for avkortingsvarsel ${avkortingsvarselPåBehandling.id}")
-            }
-            if (avkortingsvarselPåBehandling != uteståendeAvkortingPåSak) {
-                throw IllegalStateException("Prøver å iverksette søknadsbehandling ${søknadsbehandling.id} hvor søknadsbehandlingens avkorting ${avkortingsvarselPåBehandling.id} er forskjellig fra sakens avkorting ${uteståendeAvkortingPåSak.id}")
-            }
-            if (!avkortingsvarselPåBehandling.fullstendigAvkortetAv(søknadsbehandling.beregning)) {
-                KunneIkkeIverksetteSøknadsbehandling.AvkortingErUfullstendig.left()
-            } else {
-                Unit.right()
-            }
-        }
+}
 
-        is AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående -> {
-            if (uteståendeAvkortingPåSak != null) {
-                throw IllegalStateException("Prøver å iverksette søknadsbehandling ${søknadsbehandling.id} uten å håndtere utestående avkorting for sak $id")
-            }
-            Unit.right()
-        }
-
-        is AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere -> {
-            throw IllegalStateException("Søknadsbehandling ${søknadsbehandling.id} i tilstand ${søknadsbehandling::class} skulle hatt håndtert eventuell avkorting.")
-        }
+private fun validerTotrinnskontroll(
+    command: IverksettSøknadsbehandlingCommand,
+    søknadsbehandling: Søknadsbehandling.TilAttestering,
+): Either<KunneIkkeIverksetteSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Unit> {
+    return if (command.saksbehandlerOgAttestantKanIkkeVæreDenSamme && saksbehandlerOgAttestantErLike(
+            søknadsbehandling = søknadsbehandling,
+            attestering = command.attestering,
+        )
+    ) {
+        KunneIkkeIverksetteSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+    } else {
+        Unit.right()
     }
 }
 

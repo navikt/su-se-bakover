@@ -75,7 +75,7 @@ sealed interface Stønadsvedtak : Vedtak, Visitable<VedtakVisitor> {
 
 /**
  * Per tidspunkt støtter vi ikke å revurdere Søknadsbehandlinger som førte til Avslag.
- * Når vi kan revurderer Avslag, kan man fjerne wrapperen `sealed interface VedtakSomKanRevurderes`
+ * Når vi kan revurderer Avslag, må man passe på distinksjonen mellom vedtak som fører til endring i ytelsen når man finner gjeldende vedtak og tidslinjer.
  */
 sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
     override val id: UUID
@@ -420,6 +420,13 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
     }
 }
 
+/**
+ * Et avslagsvedtak fører ikke til endring i ytelsen.
+ * Derfor vil et avslagsvedtak sin "stønadsperiode" kunne overlappe tidligere avslagsvedtak og andre vedtak som påvirker ytelsen.<br>
+ *
+ * [GjeldendeVedtaksdata] tar ikke hensyn til avslagsvedtak per tidspunkt, siden de ikke påvirker selve ytelsen.
+ * Så hvis vi på et tidspunkt skal kunne revurdere/omgjøre disse vedtakene, så kan man ikke blindt arve [VedtakSomKanRevurderes].
+ */
 sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvslag {
     override val periode: Periode
     override val behandling: Søknadsbehandling.Iverksatt.Avslag

@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
@@ -73,5 +74,13 @@ internal fun KunneIkkeIverksetteSøknadsbehandling.tilResultat(): Resultat {
         is KunneIkkeIverksetteSøknadsbehandling.KunneIkkeGenerereVedtaksbrev -> Feilresponser.Brev.kunneIkkeGenerereBrev
         KunneIkkeIverksetteSøknadsbehandling.AvkortingErUfullstendig -> Feilresponser.avkortingErUfullstendig
         KunneIkkeIverksetteSøknadsbehandling.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving -> Feilresponser.sakAvventerKravgrunnlagForTilbakekreving
+        KunneIkkeIverksetteSøknadsbehandling.OverskriverVedtak -> HttpStatusCode.InternalServerError.errorJson(
+            message = "Overskriver andre vedtak som førte til utbetaling eller vil føre til utbetaling",
+            code = "kan_ikke_overskrive_utbetalinger",
+        )
+        KunneIkkeIverksetteSøknadsbehandling.SimuleringFørerTilFeilutbetaling -> HttpStatusCode.BadRequest.errorJson(
+            message = "Simulering fører til feilutbetaling.",
+            code = "simulering_fører_til_feilutbetaling",
+        )
     }
 }
