@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.domain.Sak
 import java.util.UUID
 
 /**
- * Typisk brukt ved opprettelse av behandling, i.e.:
+ * Typisk brukt ved opprettelse/oppdatering av perioden til en behandling, i.e.:
  * - [no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling]
  * - [no.nav.su.se.bakover.domain.revurdering.Revurdering]
  * - [no.nav.su.se.bakover.domain.regulering.Regulering]

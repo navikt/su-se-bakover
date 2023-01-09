@@ -16,6 +16,13 @@ import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 
+/**
+ *  Avslår søknadsbehandlingen uten sideeffekter.
+ *  IO: Genererer vedtaksbrev.
+ *
+ * Et avslagsvedtak fører ikke til endring i ytelsen.
+ * Derfor vil et avslagsvedtak sin "stønadsperiode" kunne overlappe tidligere avslagsvedtak og andre vedtak som påvirker ytelsen.
+ */
 internal fun Sak.iverksettAvslagSøknadsbehandling(
     søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag,
     attestering: Attestering.Iverksatt,
@@ -23,6 +30,8 @@ internal fun Sak.iverksettAvslagSøknadsbehandling(
     // TODO jah: Burde kunne lage en brevrequest uten å gå via service-funksjon
     lagDokument: (visitable: Visitable<LagBrevRequestVisitor>) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
 ): Either<KunneIkkeIverksetteSøknadsbehandling, IverksattAvslåttSøknadsbehandlingResponse> {
+    require(this.søknadsbehandlinger.any { it == søknadsbehandling })
+
     val iverksattBehandling = søknadsbehandling.iverksett(attestering)
     val vedtak: Avslagsvedtak = opprettAvslagsvedtak(iverksattBehandling, clock)
 
