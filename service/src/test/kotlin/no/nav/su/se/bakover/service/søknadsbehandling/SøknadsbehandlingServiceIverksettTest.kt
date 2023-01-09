@@ -63,6 +63,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.tilAttesteringSøknadsbehandling
 import no.nav.su.se.bakover.test.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakRevurdering
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -615,6 +616,8 @@ internal class SøknadsbehandlingServiceIverksettTest {
         }
     }
 
+    // TODO jah: Denne kan tilpasses og enables etter vi har åpnet for parallelle behandlinger.
+    @Disabled("Dette er ikke et case vi kan provosere frem lenger, siden oppdaterStønadsperiode(...) vil stoppe oss.")
     @Test
     fun `feil ved åpent kravgrunnlag`() {
         val clock: Clock = TikkendeKlokke()

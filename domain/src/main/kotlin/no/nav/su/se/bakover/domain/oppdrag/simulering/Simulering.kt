@@ -22,6 +22,10 @@ data class Simulering(
         return tolkning.harFeilutbetalinger()
     }
 
+    fun harFeilutbetalinger(periode: Periode): Boolean {
+        return tolkning.harFeilutbetalinger(periode)
+    }
+
     /**
      * Beløp som tidligere har vært utbetalt for denne perioden.
      */

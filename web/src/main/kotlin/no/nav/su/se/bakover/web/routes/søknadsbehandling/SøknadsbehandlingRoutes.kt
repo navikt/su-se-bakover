@@ -150,20 +150,6 @@ internal fun Route.søknadsbehandlingRoutes(
                                                     )
                                                 }
 
-                                                Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeForSenerePeriodeEksisterer -> {
-                                                    BadRequest.errorJson(
-                                                        "Kan ikke legge til ny stønadsperiode forut for eksisterende stønadsperioder",
-                                                        "senere_stønadsperioder_eksisterer",
-                                                    )
-                                                }
-
-                                                Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedLøpendeStønadsperiode -> {
-                                                    BadRequest.errorJson(
-                                                        "Stønadsperioden overlapper med eksisterende stønadsperiode",
-                                                        "stønadsperioden_overlapper_med_eksisterende_søknadsbehandling",
-                                                    )
-                                                }
-
                                                 is Sak.KunneIkkeOppdatereStønadsperiode.KunneIkkeHenteGjeldendeVedtaksdata -> {
                                                     InternalServerError.errorJson(
                                                         "Kunne ikke hente gjeldende vedtaksdata",
@@ -171,16 +157,11 @@ internal fun Route.søknadsbehandlingRoutes(
                                                     )
                                                 }
 
-                                                Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold -> {
-                                                    BadRequest.errorJson(
-                                                        "Stønadsperioden inneholder utbetalinger som skal avkortes pga utenlandsopphold. Dette støttes ikke.",
-                                                        "stønadsperiode_inneholder_avkorting_utenlandsopphold",
-                                                    )
-                                                }
                                                 is Sak.KunneIkkeOppdatereStønadsperiode.FinnesOverlappendeÅpenBehandling -> BadRequest.errorJson(
                                                     "Stønadsperioden overlapper en annen åpen behandling.",
                                                     "stønadsperiode_overlapper_åpen_behandling",
                                                 )
+                                                is Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode -> feil.feil.tilResultat()
                                             }
                                         }
                                     },

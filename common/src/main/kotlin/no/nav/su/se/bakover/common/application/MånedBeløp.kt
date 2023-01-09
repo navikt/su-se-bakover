@@ -35,6 +35,7 @@ data class Månedsbeløp(
 }
 
 data class MånedBeløp(
+    /** TODO jah; Burde vært renamet til 'måned', men usikker på om den serialiseres til json i database etc. */
     val periode: Måned,
     val beløp: Beløp,
 ) {

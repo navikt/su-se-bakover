@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeSimulereBehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.StøtterIkkeOverlappendeStønadsperioder
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 
 internal fun UtbetalingFeilet.tilResultat(): Resultat {
@@ -165,4 +166,23 @@ internal fun KryssjekkAvTidslinjeOgSimuleringFeilet.tilResultat(): Resultat {
             this.feil.tilResultat()
         }
     }
+}
+
+internal fun StøtterIkkeOverlappendeStønadsperioder.tilResultat() = when (this) {
+    StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeForSenerePeriodeEksisterer -> HttpStatusCode.BadRequest.errorJson(
+        message = "Kan ikke opprette stønadsperiode som er før en tidligere stønadsperiode.",
+        code = "senere_stønadsperiode",
+    )
+    StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeOverlapperMedIkkeOpphørtStønadsperiode -> HttpStatusCode.BadRequest.errorJson(
+        message = "Kan ikke overlappe med tidligere utbetalte stønadsperioder eller ikke-opphørte stønadsperioder.",
+        code = "overlappende_stønadsperiode",
+    )
+    StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold -> HttpStatusCode.BadRequest.errorJson(
+        message = "Kan ikke overlappe med stønadsmåned som har blitt opphørt og ført til avkortingsvarsel.",
+        code = "overlappende_stønadsperiode",
+    )
+    StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeInneholderFeilutbetaling -> HttpStatusCode.BadRequest.errorJson(
+        message = "Kan ikke overlappe med stønadsmåned som har blitt opphørt og ført til feilutbetaling.",
+        code = "overlappende_stønadsperiode",
+    )
 }

@@ -38,6 +38,10 @@ internal data class TolketSimulering(
 
     fun harFeilutbetalinger() = hentFeilutbetalteBeløp().sum() > 0
 
+    fun harFeilutbetalinger(periode: Periode): Boolean {
+        return hentFeilutbetalteBeløp().filter { periode.overlapper(it.periode) }.sumOf { it.beløp.sum() } > 0
+    }
+
     /**
      * Sjekk for spesialtilfelle hvor vi har mottatt tom respons (indikerer ingen posteringer/utbetalinger).
      * Her vil [no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringResponseMapper] lage en "fiktiv" periode

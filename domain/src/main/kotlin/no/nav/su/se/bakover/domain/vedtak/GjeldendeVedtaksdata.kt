@@ -131,11 +131,16 @@ data class GjeldendeVedtaksdata(
             periode == garantertSammenhengendePeriode()
     }
 
+    /** Tar kun høyde for månedene i [periode]. */
     fun inneholderOpphørsvedtakMedAvkortingUtenlandsopphold(): Boolean {
-        return periode.måneder()
-            .mapNotNull { gjeldendeVedtakPåDato(it.fraOgMed) }
-            .filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()
-            .any { it.harIdentifisertBehovForFremtidigAvkorting() }
+        return tidslinje.tidslinje.map { it.originaltVedtak }.filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()
+            .any { it.harIdentifisertBehovForFremtidigAvkorting(periode) }
+    }
+
+    /** Tar kun høyde for månedene i [periode]. */
+    fun inneholderOpphørsvedtakMedFeilutbetaling(): Boolean {
+        return tidslinje.tidslinje.map { it.originaltVedtak }.filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()
+            .any { it.førteTilFeilutbetaling(periode) }
     }
 
     fun vedtaksperioder(): List<Periode> {

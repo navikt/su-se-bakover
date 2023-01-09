@@ -33,4 +33,6 @@ class TikkendeKlokke(
         } while (nextInstant < dato.startOfDay(zone).instant)
         return nextInstant
     }
+
+    fun copy(): TikkendeKlokke = TikkendeKlokke(initialClock)
 }

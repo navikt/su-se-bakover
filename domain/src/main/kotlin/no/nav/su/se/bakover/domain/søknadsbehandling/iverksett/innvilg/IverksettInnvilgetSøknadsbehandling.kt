@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.validerOverlappendeStønadsperioder
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -55,7 +56,7 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
         validerKravgrunnlag().bind()
         validerAvkorting(søknadsbehandling).bind()
         validerFeilutbetalinger(søknadsbehandling).bind()
-        // TODO jah: Her må vi ha en tilsvarende sjekk som ved oppdatering av stønadsperioden. validerGjeldendeVedtak(søknadsbehandling).bind()
+        validerGjeldendeVedtak(søknadsbehandling, clock).bind()
     }.tapLeft {
         return it.left()
     }
@@ -108,20 +109,27 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
     ).right()
 }
 
-// TODO jah: impl
-// private fun Sak.validerGjeldendeVedtak(søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget): Either<KunneIkkeIverksetteSøknadsbehandling.,Unit> {
-//
-// }
+private fun Sak.validerGjeldendeVedtak(
+    søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget,
+    clock: Clock,
+): Either<KunneIkkeIverksetteSøknadsbehandling.OverlappendeStønadsperiode, Unit> {
+    return this.validerOverlappendeStønadsperioder(søknadsbehandling.periode, clock).mapLeft {
+        KunneIkkeIverksetteSøknadsbehandling.OverlappendeStønadsperiode(it)
+    }
+}
 
-private fun hentUføregrunnlag(iverksattBehandling: Søknadsbehandling.Iverksatt.Innvilget): NonEmptyList<Grunnlag.Uføregrunnlag>? {
+private fun hentUføregrunnlag(
+    iverksattBehandling: Søknadsbehandling.Iverksatt.Innvilget,
+): NonEmptyList<Grunnlag.Uføregrunnlag>? {
     return when (iverksattBehandling.sakstype) {
         Sakstype.ALDER -> {
             null
         }
 
         Sakstype.UFØRE -> {
-            iverksattBehandling.vilkårsvurderinger.uføreVilkår()
-                .getOrHandle { throw IllegalStateException("Søknadsbehandling uføre: ${iverksattBehandling.id} mangler uføregrunnlag") }.grunnlag.toNonEmptyList()
+            iverksattBehandling.vilkårsvurderinger.uføreVilkår().getOrHandle {
+                throw IllegalStateException("Søknadsbehandling uføre: ${iverksattBehandling.id} mangler uføregrunnlag")
+            }.grunnlag.toNonEmptyList()
         }
     }
 }
