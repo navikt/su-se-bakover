@@ -45,6 +45,7 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.StøtterIkkeOverlappendeStønadsperioder
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
@@ -249,7 +250,7 @@ data class Sak(
     }
 
     /**
-     * Identifiser alle perioder hvor ytelsen har vært eller vil være løpende.
+     * Henter minste antall sammenhengende perioder hvor vedtakene ikke er av typen opphør.
      */
     fun hentIkkeOpphørtePerioder(
         periode: Periode = Periode.create(
@@ -577,20 +578,21 @@ data class Sak(
 
     object FantIkkeSøknadsbehandlingForSøknad
 
-    sealed class KunneIkkeOppdatereStønadsperiode {
-        object FantIkkeBehandling : KunneIkkeOppdatereStønadsperiode()
-        object StønadsperiodeOverlapperMedLøpendeStønadsperiode : KunneIkkeOppdatereStønadsperiode()
-        object StønadsperiodeForSenerePeriodeEksisterer : KunneIkkeOppdatereStønadsperiode()
-        data class KunneIkkeOppdatereGrunnlagsdata(val feil: no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeOppdatereStønadsperiode) :
-            KunneIkkeOppdatereStønadsperiode()
+    sealed interface KunneIkkeOppdatereStønadsperiode {
+        object FantIkkeBehandling : KunneIkkeOppdatereStønadsperiode
 
-        data class KunneIkkeHenteGjeldendeVedtaksdata(val feil: Sak.KunneIkkeHenteGjeldendeVedtaksdata) :
-            KunneIkkeOppdatereStønadsperiode()
+        data class KunneIkkeOppdatereGrunnlagsdata(
+            val feil: no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeOppdatereStønadsperiode,
+        ) : KunneIkkeOppdatereStønadsperiode
 
-        object StønadsperiodeInneholderAvkortingPgaUtenlandsopphold : KunneIkkeOppdatereStønadsperiode()
+        data class KunneIkkeHenteGjeldendeVedtaksdata(
+            val feil: Sak.KunneIkkeHenteGjeldendeVedtaksdata,
+        ) : KunneIkkeOppdatereStønadsperiode
 
         /** Dette kan være en søknadsbehandling, revurdering eller regulering. Kan utvides til en per dersom, dersom saksbehandlerne har behov for dette. */
-        object FinnesOverlappendeÅpenBehandling : KunneIkkeOppdatereStønadsperiode()
+        object FinnesOverlappendeÅpenBehandling : KunneIkkeOppdatereStønadsperiode
+
+        data class OverlappendeStønadsperiode(val feil: StøtterIkkeOverlappendeStønadsperioder) : KunneIkkeOppdatereStønadsperiode
     }
 
     fun avventerKravgrunnlag(): Boolean {

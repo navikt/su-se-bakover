@@ -270,6 +270,12 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override fun harIdentifisertBehovForFremtidigAvkorting() =
                 behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel
 
+            fun harIdentifisertBehovForFremtidigAvkorting(periode: Periode) =
+                behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel && behandling.avkorting.periode().overlapper(periode)
+
+            /** Sjekker både saksbehandlers og attestants simulering. */
+            fun førteTilFeilutbetaling(periode: Periode): Boolean = behandling.simulering.harFeilutbetalinger(periode) || simulering.harFeilutbetalinger(periode)
+
             override fun accept(visitor: VedtakVisitor) {
                 visitor.visit(this)
             }

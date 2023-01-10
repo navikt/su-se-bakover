@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.test.avvisSøknadUtenBrev
 import no.nav.su.se.bakover.test.bortfallSøknad
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.trekkSøknad
 import no.nav.su.se.bakover.test.veileder
@@ -251,10 +252,14 @@ fun nySøknadJournalført(
     ).journalfør(journalpostIdSøknad)
 }
 
+/**
+ * @param fnr brukes kun dersom [søknadInnhold] ikke sendes inn.
+ */
 fun nySøknadJournalførtMedOppgave(
     clock: Clock = fixedClock,
     sakId: UUID,
-    søknadInnhold: SøknadInnhold,
+    fnr: Fnr = Fnr.generer(),
+    søknadInnhold: SøknadInnhold = søknadinnholdUføre(personopplysninger = personopplysninger(fnr)),
     søknadId: UUID = UUID.randomUUID(),
     søknadInnsendtAv: NavIdentBruker = veileder,
 ): Søknad.Journalført.MedOppgave.IkkeLukket {

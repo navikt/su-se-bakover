@@ -5,8 +5,8 @@ import arrow.core.left
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.finnesOverlappendeÅpenBehandling
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.validerOverlappendeStønadsperioder
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import java.time.Clock
 import java.util.UUID
@@ -35,31 +35,8 @@ fun Sak.oppdaterStønadsperiodeForSøknadsbehandling(
         return Sak.KunneIkkeOppdatereStønadsperiode.FinnesOverlappendeÅpenBehandling.left()
     }
 
-    hentIkkeOpphørtePerioder().let { stønadsperioder ->
-        if (stønadsperioder.any { it overlapper stønadsperiode.periode }) {
-            return Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedLøpendeStønadsperiode.left()
-        }
-        if (stønadsperioder.any { it.starterSamtidigEllerSenere(stønadsperiode.periode) }) {
-            return Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeForSenerePeriodeEksisterer.left()
-        }
-    }
-
-    hentGjeldendeVedtaksdata(
-        periode = stønadsperiode.periode,
-        clock = clock,
-    ).map {
-        if (it.inneholderOpphørsvedtakMedAvkortingUtenlandsopphold()) {
-            // TODO jah: Trenger vi gjøre den neste sjekken her? Vi har identifisert at stønadsperioden har tidligere revurderte, opphørte måneder som laget avkortingsvarsel.
-            val alleUtbetalingerErOpphørt =
-                utbetalingstidslinje(periode = stønadsperiode.periode).tidslinje.all { utbetalingslinjePåTidslinje ->
-                    utbetalingslinjePåTidslinje is UtbetalingslinjePåTidslinje.Opphør
-                }
-
-            if (!alleUtbetalingerErOpphørt) {
-                // Man kan ikke ha stønadsperioder over måneder med opphør som førte til eller ville ha ført til feilkonto, les: feilutbetalinger og avkortinger. Dersom man ønsker å endre disse månedene, må de revurderes.
-                return Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold.left()
-            }
-        }
+    validerOverlappendeStønadsperioder(stønadsperiode.periode, clock).tapLeft {
+        return Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode(it).left()
     }
 
     return søknadsbehandling.oppdaterStønadsperiode(
