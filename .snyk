@@ -21,9 +21,8 @@ ignore:
   'SNYK-JAVA-IONETTY-1042268':
     - io.ktor:ktor-server-netty:
         reason: https://github.com/netty/netty/issues/11213 and https://github.com/netty/netty/issues/8537#issuecomment-829878258 denne angår egentlig ikke oss da vi nås via en reverse proxy over http.
-        expires: 2023-01-01T00:00:00Z
+        expires: 2024-01-01T00:00:00Z
   'SNYK-JAVA-ORGJETBRAINSKOTLIN-2393744':
-    - '*':
+    - '*' :
         reason: Low Severity and No upgrade or patch available
-        expires: 2022-04-01T00:00:00Z
-
+        expires: 2023-03-01T00:00:00Z

@@ -93,40 +93,47 @@ subprojects {
         }
 
         constraints {
-            implementation("commons-collections:commons-collections") {
-                because("org.apache.cxf:cxf-rt-ws-security@3.4.4 -> https://app.snyk.io/vuln/SNYK-JAVA-COMMONSCOLLECTIONS-30078 and https://snyk.io/vuln/SNYK-JAVA-COMMONSCOLLECTIONS-472711")
+            implementation("io.netty:netty-codec") {
+                because("introduced by io.ktor:ktor-server-netty@2.2.1 -> https://security.snyk.io/vuln/SNYK-JAVA-IONETTY-3167773")
                 version {
-                    require("3.2.2")
+                    require("4.1.86.Final")
                 }
             }
-            implementation("io.netty:netty-codec-http2") {
-                because("io.netty:netty-codec@4.1.63.Final and io.ktor:ktor-server-netty@1.6.4 -> https://snyk.io/vuln/SNYK-JAVA-IONETTY-2314893")
+            implementation("org.eclipse.jetty:jetty-http") {
+                because("introduced by no.nav:kafka-embedded-env@3.1.6 - https://security.snyk.io/vuln/SNYK-JAVA-ORGECLIPSEJETTY-2945452")
                 version {
-                    require("4.1.71.Final")
+                    require("9.4.50.v20221201")
                 }
             }
-            implementation("com.google.code.gson:gson") {
-                because("no.finn.unleash:unleash-client-java@4.4.1 -> https://security.snyk.io/vuln/SNYK-JAVA-COMGOOGLECODEGSON-1730327")
+            implementation("org.eclipse.jetty:jetty-client") {
+                because("introduced by no.nav:kafka-embedded-env@3.1.6 -> https://security.snyk.io/vuln/SNYK-JAVA-ORGECLIPSEJETTY-2945453")
                 version {
-                    require("2.8.9")
+                    require("9.4.50.v20221201")
                 }
             }
-            implementation("org.postgresql:postgresql") {
-                because("io.zonky.test:embedded-postgres@1.3.1 -> https://snyk.io/vuln/SNYK-JAVA-ORGPOSTGRESQL-2390459")
+            implementation("org.eclipse.jetty.http2:http2-server") {
+                because("introduced by no.nav:kafka-embedded-env@3.1.6 -> https://security.snyk.io/vuln/SNYK-JAVA-ORGECLIPSEJETTYHTTP2-2945451")
                 version {
-                    require("42.3.2")
-                }
-            }
-            implementation("com.google.protobuf:protobuf-java") {
-                because("no.nav:kafka-embedded-env@2.8.1 -> https://snyk.io/vuln/SNYK-JAVA-COMGOOGLEPROTOBUF-2331703")
-                version {
-                    require("3.19.2")
+                    require("9.4.50.v20221201")
                 }
             }
             implementation("org.glassfish:jakarta.el") {
-                because("no.nav:kafka-embedded-env@2.8.1 -> https://snyk.io/vuln/SNYK-JAVA-ORGGLASSFISH-1297098")
+                because("introduced by no.nav:kafka-embedded-env@3.1.6 -> https://security.snyk.io/vuln/SNYK-JAVA-ORGGLASSFISH-1297098")
                 version {
                     require("3.0.4")
+                }
+            }
+            implementation("org.scala-lang:scala-library") {
+                because("introduced by no.nav:kafka-embedded-env@3.1.6 -> https://security.snyk.io/vuln/SNYK-JAVA-ORGGLASSFISH-1297098")
+                version {
+                    require("2.13.9")
+                }
+            }
+
+            implementation("commons-collections:commons-collections") {
+                because("introduced by org.apache.cxf:cxf-rt-ws-security@3.5.5  -> https://security.snyk.io/vuln/SNYK-JAVA-COMMONSCOLLECTIONS-30078 and https://security.snyk.io/vuln/SNYK-JAVA-COMMONSCOLLECTIONS-472711")
+                version {
+                    require("3.2.2")
                 }
             }
         }

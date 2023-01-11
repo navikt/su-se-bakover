@@ -14,5 +14,6 @@ dependencies {
         exclude(group = "log4j") // module = "log4j"
         exclude(group = "io.netty") // module = "netty-handler"
         exclude(group = "io.grpc") // module = "grpc-core"
+        exclude(group = "io.swagger.core.v3") // module = "swwagger-core"
     }
 }

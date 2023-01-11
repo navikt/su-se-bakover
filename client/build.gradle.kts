@@ -18,7 +18,10 @@ dependencies {
     implementation("org.apache.cxf:cxf-rt-features-logging:$cxfVersion")
     implementation("org.apache.cxf:cxf-rt-frontend-jaxws:$cxfVersion")
     implementation("org.apache.cxf:cxf-rt-transports-http:$cxfVersion")
-    implementation("org.apache.cxf:cxf-rt-ws-security:$cxfVersion")
+    implementation("org.apache.cxf:cxf-rt-ws-security:$cxfVersion") {
+        // https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHEVELOCITY-3116414
+        exclude(group = "org.apache.velocity")
+    }
     implementation("javax.xml.ws:jaxws-api:2.3.1")
     implementation("javax.jws:javax.jws-api:1.1")
     // Fails to find SAAJMetaFactoryImpl when either missing or if you upgrade to 2.0.0
