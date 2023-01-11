@@ -1,6 +1,6 @@
 val fuelVersion = "2.3.1"
 val tjenestespesifikasjonVersion = "2608.668f35c"
-val cxfVersion = "3.5.5"
+val cxfVersion = "4.0.0"
 
 dependencies {
     implementation(project(":common"))
