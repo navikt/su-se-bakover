@@ -45,7 +45,7 @@ subprojects {
         implementation("io.confluent:kafka-avro-serializer:7.1.3")
         implementation("org.apache.avro:avro:1.11.1")
         implementation("com.github.ben-manes.caffeine:caffeine:3.1.2")
-        implementation("io.micrometer:micrometer-core:1.10.2")
+        implementation("io.micrometer:micrometer-core:1.10.3")
         implementation("io.micrometer:micrometer-registry-prometheus:1.10.2")
         implementation("com.github.seratch:kotliquery:1.9.0")
         implementation("org.flywaydb:flyway-core:9.11.0")
