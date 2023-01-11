@@ -5,7 +5,7 @@ dependencies {
     testImplementation(project(":service"))
     testImplementation(project(":web"))
 
-    testImplementation("no.nav:kafka-embedded-env:3.1.6") {
+    testImplementation("no.nav:kafka-embedded-env:3.2.1") {
         // Breaks build: exclude(group = "org.glassfish.jersey.ext", module = "jersey-bean-validation")
         // Breaks build: exclude(group = "org.glassfish", module = "jakarta.el")
         // Breaks build: exclude(group = "org.eclipse.jetty", module = "jetty-server")
