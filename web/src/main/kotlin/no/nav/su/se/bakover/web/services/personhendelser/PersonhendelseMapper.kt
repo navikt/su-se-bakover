@@ -27,15 +27,7 @@ internal object PersonhendelseMapper {
     internal fun map(
         message: ConsumerRecord<String, EksternPersonhendelse>,
     ): Either<KunneIkkeMappePersonhendelse, Personhendelse.IkkeTilknyttetSak> {
-        val key: String? = message.key()
         val personhendelse: EksternPersonhendelse = message.value()
-        if (key == null) {
-            // Vi har sett tilfeller av dette i preprod
-            return KunneIkkeMappePersonhendelse.KunneIkkeHenteAktørId(
-                personhendelse.getHendelseId(),
-                personhendelse.getOpplysningstype(),
-            ).left()
-        }
 
         return when (personhendelse.getOpplysningstype()) {
             Opplysningstype.DØDSFALL.value -> {

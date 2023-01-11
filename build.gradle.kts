@@ -21,6 +21,7 @@ subprojects {
     val kotestVersion = "5.5.4"
     val jacksonVersion = "2.14.1"
     val kotlinVersion: String by this
+    val confluentVersion = "7.3.1"
     dependencies {
         implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
         implementation("org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion")
@@ -37,12 +38,28 @@ subprojects {
         implementation("ch.qos.logback:logback-classic:1.4.5")
         implementation("net.logstash.logback:logstash-logback-encoder:7.2")
         implementation("io.github.cdimascio:dotenv-kotlin:6.4.0")
-        implementation("org.apache.kafka:kafka-clients:3.3.1")
         implementation("com.networknt:json-schema-validator:1.0.76")
         implementation("io.getunleash:unleash-client-java:7.0.0")
-
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.3.1.0")
-        implementation("io.confluent:kafka-avro-serializer:7.1.3")
+        implementation("org.apache.kafka:kafka-clients:3.3.1") {
+            exclude("org.apache.kafka","kafka-raft")
+            exclude("org.apache.kafka","kafka-server-common")
+            exclude("org.apache.kafka","kafka-storage")
+            exclude("org.apache.kafka","kafka-storage-api")
+            exclude("org.apache.kafka","kafka-streams")
+        }
+        implementation("io.confluent:kafka-avro-serializer:$confluentVersion") {
+            exclude("org.apache.kafka","kafka-clients")
+            exclude("io.confluent", "common-utils")
+            exclude("io.confluent", "logredactor")
+            exclude("org.apache.avro", "avro")
+            exclude("org.apache.commons","commons-compress")
+            exclude("com.google.errorprone")
+            exclude("org.checkerframework")
+            exclude("com.google.j2objc")
+            exclude("com.google.code.findbugs")
+            exclude("io.swagger.core.v3")
+        }
         implementation("org.apache.avro:avro:1.11.1")
         implementation("com.github.ben-manes.caffeine:caffeine:3.1.2")
         implementation("io.micrometer:micrometer-core:1.10.3")

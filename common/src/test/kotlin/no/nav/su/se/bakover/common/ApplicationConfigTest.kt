@@ -134,7 +134,7 @@ class ApplicationConfigTest {
                     "ssl.key.password" to "credstorePwd",
                     "auto.offset.reset" to "earliest",
                     "specific.avro.reader" to true,
-                    "key.deserializer" to KafkaAvroDeserializer::class.java,
+                    "key.deserializer" to StringDeserializer::class.java,
                     "value.deserializer" to KafkaAvroDeserializer::class.java,
                     "basic.auth.credentials.source" to "USER_INFO",
                     "basic.auth.user.info" to "usr:pwd",

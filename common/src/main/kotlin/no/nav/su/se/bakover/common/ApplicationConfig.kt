@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.EnvironmentConfig.getEnvironmentVariableOrThr
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
-import org.apache.kafka.common.config.SaslConfigs
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.security.auth.SecurityProtocol
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -543,7 +542,8 @@ data class ApplicationConfig(
                 consumerCfg = ConsumerCfg(
                     CommonAivenKafkaConfig().configure() +
                         commonConsumerConfig(
-                            deserializer = KafkaAvroDeserializer::class.java,
+                            keyDeserializer = StringDeserializer::class.java,
+                            valueDeserializer = KafkaAvroDeserializer::class.java,
                             clientIdConfig = getEnvironmentVariableOrThrow("HOSTNAME"),
                         ) +
                         mapOf(
@@ -601,22 +601,6 @@ data class ApplicationConfig(
                 SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG to credstorePwd,
                 SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG to keystorePath,
                 SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG to credstorePwd,
-                SslConfigs.SSL_KEY_PASSWORD_CONFIG to credstorePwd,
-            )
-        }
-
-        private data class SaslConfig(
-            val truststorePath: String = getEnvironmentVariableOrDefault("NAV_TRUSTSTORE_PATH", "truststorePath"),
-            val credstorePwd: String = getEnvironmentVariableOrDefault("NAV_TRUSTSTORE_PASSWORD", "credstorePwd"),
-            val username: String = getEnvironmentVariableOrDefault("username", "not-a-real-srvuser"),
-            val password: String = getEnvironmentVariableOrDefault("password", "not-a-real-srvpassword"),
-        ) {
-            fun configure(): Map<String, String> = mapOf(
-                CommonClientConfigs.SECURITY_PROTOCOL_CONFIG to SecurityProtocol.SASL_SSL.name,
-                SaslConfigs.SASL_MECHANISM to "PLAIN",
-                SaslConfigs.SASL_JAAS_CONFIG to "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"$username\" password=\"$password\";",
-                SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG to truststorePath,
-                SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG to credstorePwd,
                 SslConfigs.SSL_KEY_PASSWORD_CONFIG to credstorePwd,
             )
         }
@@ -691,7 +675,8 @@ data class ApplicationConfig(
             fun createFromEnvironmentVariables() = KabalKafkaConfig(
                 kafkaConfig = KafkaConfig.CommonAivenKafkaConfig().configure() +
                     commonConsumerConfig(
-                        deserializer = StringDeserializer::class.java,
+                        keyDeserializer = StringDeserializer::class.java,
+                        valueDeserializer = StringDeserializer::class.java,
                         clientIdConfig = getEnvironmentVariableOrThrow("HOSTNAME"),
                     ),
             )
@@ -703,13 +688,14 @@ data class ApplicationConfig(
     }
 }
 
-fun <T> commonConsumerConfig(
+fun commonConsumerConfig(
     groupIdConfig: String = "su-se-bakover",
     maxPollRecordsConfig: Int = 100,
     enableAutoCommitConfig: Boolean = false,
     clientIdConfig: String,
     autoOffsetResetConfig: String = "earliest",
-    deserializer: Class<T>,
+    keyDeserializer: Class<*>,
+    valueDeserializer: Class<*>,
 ): Map<String, Any> {
     return mapOf(
         ConsumerConfig.GROUP_ID_CONFIG to groupIdConfig,
@@ -717,7 +703,7 @@ fun <T> commonConsumerConfig(
         ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to enableAutoCommitConfig.toString(),
         ConsumerConfig.CLIENT_ID_CONFIG to clientIdConfig,
         ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to autoOffsetResetConfig,
-        ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to deserializer,
-        ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to deserializer,
+        ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to keyDeserializer,
+        ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to valueDeserializer,
     )
 }
