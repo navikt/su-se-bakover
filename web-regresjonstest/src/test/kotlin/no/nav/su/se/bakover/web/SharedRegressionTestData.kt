@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.web
 
+import io.getunleash.FakeUnleash
+import io.getunleash.Unleash
 import io.ktor.client.HttpClient
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.headers
@@ -11,8 +13,6 @@ import io.ktor.server.application.Application
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import kotlinx.coroutines.runBlocking
-import no.finn.unleash.FakeUnleash
-import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ClientsBuilder
 import no.nav.su.se.bakover.client.journalpost.JournalpostClientStub

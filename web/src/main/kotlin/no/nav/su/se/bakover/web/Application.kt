@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web
 
 import ch.qos.logback.classic.ClassicConstants
+import io.getunleash.Unleash
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -22,7 +23,6 @@ import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.routing
-import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ProdClientsBuilder
 import no.nav.su.se.bakover.client.StubClientsBuilder

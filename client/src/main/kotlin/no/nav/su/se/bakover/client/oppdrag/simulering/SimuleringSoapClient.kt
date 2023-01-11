@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.ctc.wstx.exc.WstxEOFException
-import no.finn.unleash.Unleash
+import io.getunleash.Unleash
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingRequest

@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.client
 
-import no.finn.unleash.DefaultUnleash
-import no.finn.unleash.FakeUnleash
-import no.finn.unleash.Unleash
-import no.finn.unleash.strategy.Strategy
-import no.finn.unleash.util.UnleashConfig
+import io.getunleash.DefaultUnleash
+import io.getunleash.FakeUnleash
+import io.getunleash.Unleash
+import io.getunleash.strategy.Strategy
+import io.getunleash.util.UnleashConfig
 import no.nav.su.se.bakover.common.ApplicationConfig
 import org.slf4j.LoggerFactory
 

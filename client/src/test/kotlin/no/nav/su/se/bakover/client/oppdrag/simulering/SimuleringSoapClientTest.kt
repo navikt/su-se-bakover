@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.client.oppdrag.simulering
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.getunleash.FakeUnleash
 import io.kotest.matchers.shouldBe
-import no.finn.unleash.FakeUnleash
 import no.nav.su.se.bakover.client.oppdrag.XmlMapper
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar

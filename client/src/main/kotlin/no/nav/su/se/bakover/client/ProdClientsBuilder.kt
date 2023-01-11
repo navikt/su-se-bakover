@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.client
 
-import no.finn.unleash.Unleash
+import io.getunleash.Unleash
 import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.dokarkiv.DokArkivClient
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordelingClient

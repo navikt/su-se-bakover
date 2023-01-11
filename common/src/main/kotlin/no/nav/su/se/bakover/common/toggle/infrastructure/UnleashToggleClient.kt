@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.common.toggle.infrastructure
 
-import no.finn.unleash.Unleash
+import io.getunleash.Unleash
 import no.nav.su.se.bakover.common.toggle.domain.ToggleClient
 
 class UnleashToggleClient(
