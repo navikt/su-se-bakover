@@ -84,7 +84,7 @@ subprojects {
         testImplementation("io.zonky.test:embedded-postgres:2.0.2")
         // Legger til manglende binaries for nye Mac's med M1 cpuer.
         testImplementation("io.zonky.test.postgres:embedded-postgres-binaries-darwin-arm64v8")
-        testImplementation("org.xmlunit:xmlunit-matchers:2.9.0")
+        testImplementation("org.xmlunit:xmlunit-matchers:2.9.1")
         testImplementation("io.ktor:ktor-server-test-host:$ktorVersion") {
             exclude(group = "junit")
             exclude(group = "org.eclipse.jetty") // conflicts with WireMock
