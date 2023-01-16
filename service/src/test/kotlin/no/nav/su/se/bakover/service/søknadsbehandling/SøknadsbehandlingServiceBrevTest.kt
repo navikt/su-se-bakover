@@ -30,7 +30,7 @@ internal class SøknadsbehandlingServiceBrevTest {
 
     @Test
     fun `svarer med feil hvis vi ikke finner person`() {
-        val brevServiceMock = mock<BrevService>() {
+        val brevServiceMock = mock<BrevService> {
             on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeHentePerson.left()
         }
 
@@ -49,7 +49,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             on { hentPerson(any()) } doReturn person(fnr, aktørId).right()
         }
 
-        val brevServiceMock = mock<BrevService>() {
+        val brevServiceMock = mock<BrevService> {
             on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
         }
 
@@ -69,7 +69,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             on { hentPerson(any()) } doReturn person(fnr, aktørId).right()
         }
 
-        val brevServiceMock = mock<BrevService>() {
+        val brevServiceMock = mock<BrevService> {
             on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
         }
 
@@ -112,12 +112,12 @@ internal class SøknadsbehandlingServiceBrevTest {
     @Test
     fun `kaster exception hvis det ikke er mulig å opprette brev for aktuell behandling`() {
         val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doThrow LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(
+            on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doThrow LagBrevRequestVisitor.KanIkkeLageBrevrequestForInstans(
                 uavklart::class,
             )
         }
 
-        assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {
+        assertThrows<LagBrevRequestVisitor.KanIkkeLageBrevrequestForInstans> {
             SøknadsbehandlingServiceAndMocks(
                 brevService = brevServiceMock,
             ).søknadsbehandlingService.brev(

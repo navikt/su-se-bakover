@@ -16,10 +16,10 @@ import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.domain.visitor.KunneIkkeLageBrevRequest
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import org.slf4j.LoggerFactory
 import java.time.Clock
 
 /**
@@ -36,8 +36,6 @@ class BrevServiceImpl(
     private val clock: Clock,
     private val satsFactory: SatsFactory,
 ) : BrevService {
-
-    private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun lagBrev(request: LagBrevRequest): Either<KunneIkkeLageBrev, ByteArray> {
         return lagPdf(request.brevInnhold)
@@ -82,37 +80,37 @@ class BrevServiceImpl(
     override fun lagDokument(visitable: Visitable<LagBrevRequestVisitor>): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
         return lagBrevRequest(visitable).mapLeft {
             when (it) {
-                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling
-                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
-                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson -> KunneIkkeLageDokument.KunneIkkeHentePerson
-                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.SkalIkkeSendeBrev -> KunneIkkeLageDokument.DetSkalIkkeSendesBrev
+                is KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling
+                is KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
+                is KunneIkkeLageBrevRequest.KunneIkkeHentePerson -> KunneIkkeLageDokument.KunneIkkeHentePerson
+                is KunneIkkeLageBrevRequest.SkalIkkeSendeBrev -> KunneIkkeLageDokument.DetSkalIkkeSendesBrev
             }
         }.flatMap { lagBrevRequest ->
             lagDokument(lagBrevRequest)
         }
     }
 
-    override fun lagBrevRequest(visitable: Visitable<LagBrevRequestVisitor>): Either<LagBrevRequestVisitor.KunneIkkeLageBrevRequest, LagBrevRequest> {
-        return LagBrevRequestVisitor().apply {
+    override fun lagBrevRequest(visitable: Visitable<LagBrevRequestVisitor>): Either<KunneIkkeLageBrevRequest, LagBrevRequest> {
+        return lagBrevRequestVisitor().apply {
             visitable.accept(this)
         }.brevRequest
     }
 
-    private fun LagBrevRequestVisitor() =
+    private fun lagBrevRequestVisitor() =
         LagBrevRequestVisitor(
             hentPerson = { fnr ->
                 /** [no.nav.su.se.bakover.web.services.AccessCheckProxy] bør allerede ha sjekket om vi har tilgang til personen */
                 personService.hentPersonMedSystembruker(fnr)
-                    .mapLeft { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson }
+                    .mapLeft { KunneIkkeLageBrevRequest.KunneIkkeHentePerson }
             },
             hentNavn = { ident ->
                 microsoftGraphApiOppslag.hentNavnForNavIdent(ident)
-                    .mapLeft { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant }
+                    .mapLeft { KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(it) }
             },
             hentGjeldendeUtbetaling = { sakId, forDato ->
                 utbetalingService.hentGjeldendeUtbetaling(sakId, forDato)
                     .bimap(
-                        { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling },
+                        { KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling },
                         { it.beløp },
                     )
             },

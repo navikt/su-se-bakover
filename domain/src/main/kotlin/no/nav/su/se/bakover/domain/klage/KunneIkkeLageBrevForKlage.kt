@@ -8,5 +8,5 @@ sealed interface KunneIkkeLageBrevForKlage {
     object FantIkkeVedtakKnyttetTilKlagen : KunneIkkeLageBrevForKlage
     object KunneIkkeGenererePDF : KunneIkkeLageBrevForKlage
     data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeLageBrevForKlage
-    data class FeilVedBrevRequest(val feil: KunneIkkeLageBrevRequest) : KunneIkkeLageBrevForKlage
+    data class FeilVedBrevRequest(val feil: KunneIkkeLageBrevRequestForKlage) : KunneIkkeLageBrevForKlage
 }

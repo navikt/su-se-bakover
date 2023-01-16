@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.visitor
 
 import arrow.core.Either
-import arrow.core.getOrElse
+import arrow.core.continuations.either
 import arrow.core.getOrHandle
 import arrow.core.left
 import no.nav.su.se.bakover.common.Fnr
@@ -61,11 +61,11 @@ class LagBrevRequestVisitor(
     lateinit var brevRequest: Either<KunneIkkeLageBrevRequest, LagBrevRequest>
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart) {
-        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(søknadsbehandling::class)
+        throw KanIkkeLageBrevrequestForInstans(søknadsbehandling::class)
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget) {
-        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(søknadsbehandling::class)
+        throw KanIkkeLageBrevrequestForInstans(søknadsbehandling::class)
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {
@@ -172,15 +172,15 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(revurdering: OpprettetRevurdering) {
-        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(revurdering::class)
+        throw KanIkkeLageBrevrequestForInstans(revurdering::class)
     }
 
     override fun visit(revurdering: BeregnetRevurdering.Innvilget) {
-        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(revurdering::class)
+        throw KanIkkeLageBrevrequestForInstans(revurdering::class)
     }
 
     override fun visit(revurdering: BeregnetRevurdering.Opphørt) {
-        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(revurdering::class)
+        throw KanIkkeLageBrevrequestForInstans(revurdering::class)
     }
 
     override fun visit(revurdering: SimulertRevurdering.Innvilget) {
@@ -267,7 +267,7 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering) {
-        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(vedtak::class)
+        throw KanIkkeLageBrevrequestForInstans(vedtak::class)
     }
 
     override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering) {
@@ -318,11 +318,11 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse) {
-        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(vedtak::class)
+        throw KanIkkeLageBrevrequestForInstans(vedtak::class)
     }
 
     override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse) {
-        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(vedtak::class)
+        throw KanIkkeLageBrevrequestForInstans(vedtak::class)
     }
 
     private fun hentPersonOgNavn(
@@ -330,22 +330,21 @@ class LagBrevRequestVisitor(
         saksbehandler: NavIdentBruker.Saksbehandler?,
         attestant: NavIdentBruker.Attestant?,
     ): Either<KunneIkkeLageBrevRequest, PersonOgNavn> {
-        return hentPerson(fnr)
-            .map { person ->
-                PersonOgNavn(
-                    person = person,
-                    saksbehandlerNavn = saksbehandler?.let { saksbehandler ->
-                        hentNavn(saksbehandler).getOrElse {
-                            return KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
-                        }
-                    } ?: "-",
-                    attestantNavn = attestant?.let { attestant ->
-                        hentNavn(attestant).getOrElse {
-                            return KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
-                        }
-                    } ?: "-",
-                )
-            }
+        return either.eager {
+            val person = hentPerson(fnr).bind()
+            val saksbehandlerNavn = saksbehandler?.let {
+                hentNavn(it).bind()
+            } ?: "-"
+
+            val attestantNavn = attestant?.let {
+                hentNavn(it).bind()
+            } ?: "-"
+            PersonOgNavn(
+                person = person,
+                saksbehandlerNavn = saksbehandlerNavn,
+                attestantNavn = attestantNavn,
+            )
+        }
     }
 
     private fun avslåttSøknadsbehandling(
@@ -422,7 +421,8 @@ class LagBrevRequestVisitor(
                 saksbehandlerNavn = it.saksbehandlerNavn,
                 attestantNavn = it.attestantNavn,
                 revurdertBeregning = beregning,
-                fritekst = revurdering.skalSendeBrev().getOrHandle { return KunneIkkeLageBrevRequest.SkalIkkeSendeBrev.left() }.fritekst ?: "",
+                fritekst = revurdering.skalSendeBrev()
+                    .getOrHandle { return KunneIkkeLageBrevRequest.SkalIkkeSendeBrev.left() }.fritekst ?: "",
                 // TODO("flere_satser denne må endres til å støtte flere")
                 harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEPS(),
                 forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.uføreVilkår()
@@ -600,7 +600,8 @@ class LagBrevRequestVisitor(
                 person = personOgNavn.person,
                 harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEPS(),
                 beregning = beregning,
-                fritekst = revurdering.skalSendeBrev().getOrHandle { return KunneIkkeLageBrevRequest.SkalIkkeSendeBrev.left() }.fritekst ?: "",
+                fritekst = revurdering.skalSendeBrev()
+                    .getOrHandle { return KunneIkkeLageBrevRequest.SkalIkkeSendeBrev.left() }.fritekst ?: "",
                 saksbehandlerNavn = personOgNavn.saksbehandlerNavn,
                 attestantNavn = personOgNavn.attestantNavn,
                 forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.hentUføregrunnlag()
@@ -696,18 +697,10 @@ class LagBrevRequestVisitor(
         val attestantNavn: String,
     )
 
-    sealed class KunneIkkeLageBrevRequest {
-        object KunneIkkeHentePerson : KunneIkkeLageBrevRequest()
-        object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeLageBrevRequest()
-        object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeLageBrevRequest()
-
-        object SkalIkkeSendeBrev : KunneIkkeLageBrevRequest()
-
-        data class KanIkkeLageBrevrequestForInstans(
-            val instans: KClass<*>,
-            val msg: String = "Kan ikke lage brevrequest for instans av typen: ${instans.qualifiedName}",
-        ) : RuntimeException(msg)
-    }
+    data class KanIkkeLageBrevrequestForInstans(
+        val instans: KClass<*>,
+        val msg: String = "Kan ikke lage brevrequest for instans av typen: ${instans.qualifiedName}",
+    ) : RuntimeException(msg)
 }
 
 private fun FormueVilkår.hentFormueGrunnlagForSøknadsbehandling(avslagsgrunner: List<Avslagsgrunn>): Formuegrunnlag? {

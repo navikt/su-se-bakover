@@ -165,13 +165,13 @@ internal class LagBrevutkastForRevurderingTest {
             sakinfo = tilRevurdering.sakinfo(),
         )
 
-        assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {
+        assertThrows<LagBrevRequestVisitor.KanIkkeLageBrevrequestForInstans> {
             RevurderingServiceMocks(
                 revurderingRepo = mock {
                     on { hent(any()) } doReturn opprettetRevurdering
                 },
                 brevService = mock {
-                    on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doThrow LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(
+                    on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doThrow LagBrevRequestVisitor.KanIkkeLageBrevrequestForInstans(
                         opprettetRevurdering::class,
                     )
                 },
@@ -194,13 +194,13 @@ internal class LagBrevutkastForRevurderingTest {
             clock = clock,
         ).second
 
-        assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {
+        assertThrows<LagBrevRequestVisitor.KanIkkeLageBrevrequestForInstans> {
             RevurderingServiceMocks(
                 revurderingRepo = mock {
                     on { hent(any()) } doReturn beregnget
                 },
                 brevService = mock {
-                    on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doThrow LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(
+                    on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doThrow LagBrevRequestVisitor.KanIkkeLageBrevrequestForInstans(
                         beregnget::class,
                     )
                 },

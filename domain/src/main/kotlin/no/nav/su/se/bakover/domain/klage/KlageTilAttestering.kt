@@ -41,14 +41,14 @@ sealed interface KlageTilAttestering : Klage, KlageTilAttesteringFelter {
             hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
             hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
             clock: Clock,
-        ): Either<KunneIkkeLageBrevRequest, LagBrevRequest.Klage> {
+        ): Either<KunneIkkeLageBrevRequestForKlage, LagBrevRequest.Klage> {
             return LagBrevRequest.Klage.Avvist(
                 person = hentPerson(this.fnr).getOrHandle {
-                    return KunneIkkeLageBrevRequest.FeilVedHentingAvPerson(it).left()
+                    return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvPerson(it).left()
                 },
                 dagensDato = LocalDate.now(clock),
                 saksbehandlerNavn = hentNavnForNavIdent(this.saksbehandler).getOrHandle {
-                    return KunneIkkeLageBrevRequest.FeilVedHentingAvSaksbehandlernavn(it).left()
+                    return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvSaksbehandlernavn(it).left()
                 },
                 fritekst = this.fritekstTilVedtaksbrev,
                 saksnummer = this.saksnummer,
@@ -107,20 +107,20 @@ sealed interface KlageTilAttestering : Klage, KlageTilAttesteringFelter {
             hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
             hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
             clock: Clock,
-        ): Either<KunneIkkeLageBrevRequest, LagBrevRequest.Klage> {
+        ): Either<KunneIkkeLageBrevRequestForKlage, LagBrevRequest.Klage> {
             return LagBrevRequest.Klage.Oppretthold(
                 person = hentPerson(this.fnr).getOrHandle {
-                    return KunneIkkeLageBrevRequest.FeilVedHentingAvPerson(it).left()
+                    return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvPerson(it).left()
                 },
                 dagensDato = LocalDate.now(clock),
                 saksbehandlerNavn = hentNavnForNavIdent(this.saksbehandler).getOrHandle {
-                    return KunneIkkeLageBrevRequest.FeilVedHentingAvSaksbehandlernavn(it).left()
+                    return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvSaksbehandlernavn(it).left()
                 },
                 fritekst = this.vurderinger.fritekstTilOversendelsesbrev,
                 saksnummer = this.saksnummer,
                 klageDato = this.datoKlageMottatt,
                 vedtaksbrevDato = hentVedtaksbrevDato(this.id)
-                    ?: return KunneIkkeLageBrevRequest.FeilVedHentingAvVedtaksbrevDato.left(),
+                    ?: return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvVedtaksbrevDato.left(),
             ).right()
         }
 

@@ -33,14 +33,14 @@ data class IverksattAvvistKlage(
         hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
         hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
         clock: Clock,
-    ): Either<KunneIkkeLageBrevRequest, LagBrevRequest.Klage> {
+    ): Either<KunneIkkeLageBrevRequestForKlage, LagBrevRequest.Klage> {
         return LagBrevRequest.Klage.Avvist(
             person = hentPerson(this.fnr).getOrHandle {
-                return KunneIkkeLageBrevRequest.FeilVedHentingAvPerson(it).left()
+                return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvPerson(it).left()
             },
             dagensDato = LocalDate.now(clock),
             saksbehandlerNavn = hentNavnForNavIdent(this.saksbehandler).getOrHandle {
-                return KunneIkkeLageBrevRequest.FeilVedHentingAvSaksbehandlernavn(it).left()
+                return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvSaksbehandlernavn(it).left()
             },
             fritekst = this.fritekstTilVedtaksbrev,
             saksnummer = this.saksnummer,
@@ -64,6 +64,6 @@ sealed interface KunneIkkeIverksetteAvvistKlage {
     }
 
     data class KunneIkkeLageBrev(val feil: KunneIkkeLageBrevForKlage) : KunneIkkeIverksetteAvvistKlage
-    data class KunneIkkeLageBrevRequest(val feil: no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequest) :
+    data class KunneIkkeLageBrevRequest(val feil: no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequestForKlage) :
         KunneIkkeIverksetteAvvistKlage
 }

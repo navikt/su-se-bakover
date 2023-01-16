@@ -4,6 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
+import no.nav.su.se.bakover.domain.visitor.KunneIkkeLageBrevRequest
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.util.UUID
@@ -15,7 +16,7 @@ interface BrevService {
     fun lagreDokument(dokument: Dokument.MedMetadata, transactionContext: TransactionContext)
     fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): List<Dokument>
     fun lagDokument(visitable: Visitable<LagBrevRequestVisitor>): Either<KunneIkkeLageDokument, Dokument.UtenMetadata>
-    fun lagBrevRequest(visitable: Visitable<LagBrevRequestVisitor>): Either<LagBrevRequestVisitor.KunneIkkeLageBrevRequest, LagBrevRequest>
+    fun lagBrevRequest(visitable: Visitable<LagBrevRequestVisitor>): Either<KunneIkkeLageBrevRequest, LagBrevRequest>
 }
 
 /**

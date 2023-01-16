@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.client.person
 
 import arrow.core.Either
 import arrow.core.flatMap
-import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -13,6 +12,7 @@ import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.client.fromResult
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import org.slf4j.Logger
@@ -47,24 +47,6 @@ internal class MicrosoftGraphApiClient(
         return hentBrukerinformasjonForNavIdent(navIdent).map { it.displayName }
     }
 
-    private fun hentBrukerinformasjon(userToken: String): Either<KunneIkkeHenteNavnForNavIdent, MicrosoftGraphResponse> {
-        val onBehalfOfToken = Either.catch {
-            exchange.onBehalfOfToken(userToken, graphApiAppId)
-        }.getOrHandle {
-            return KunneIkkeHenteNavnForNavIdent.FeilVedHentingAvOnBehalfOfToken.left()
-        }
-
-        return doReq(
-            "$baseUrl/me".httpGet(
-                listOf(
-                    "\$select" to userFields,
-                ),
-            )
-                .authentication()
-                .bearer(onBehalfOfToken),
-        )
-    }
-
     private fun hentBrukerinformasjonForNavIdent(navIdent: NavIdentBruker): Either<KunneIkkeHenteNavnForNavIdent, MicrosoftGraphResponse> {
         val token = exchange.getSystemToken(graphApiAppId)
 
@@ -79,6 +61,10 @@ internal class MicrosoftGraphApiClient(
                 .bearer(token),
         ).flatMap {
             if (it.value.size != 1) {
+                log.error("Fant ingen eller flere brukere for navIdent $navIdent: ${it.value.size}. Se sikker logg dersom vi fant flere.")
+                if (it.value.isNotEmpty()) {
+                    sikkerLogg.error("Fant ingen eller flere brukere for navIdent $navIdent: ${it.value}")
+                }
                 KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent.left()
             } else {
                 it.value.first().right()
