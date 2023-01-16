@@ -45,7 +45,7 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
-import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequest
+import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequestForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
@@ -501,13 +501,13 @@ private fun KunneIkkeLageBrevForKlage.toErrorJson(): Resultat {
     }
 }
 
-private fun KunneIkkeLageBrevRequest.toErrorJson(): Resultat {
+private fun KunneIkkeLageBrevRequestForKlage.toErrorJson(): Resultat {
     return when (this) {
-        is KunneIkkeLageBrevRequest.FeilVedHentingAvPerson -> this.personFeil.tilResultat()
-        is KunneIkkeLageBrevRequest.FeilVedHentingAvSaksbehandlernavn -> feilVedHentingAvSaksbehandlerNavn
-        KunneIkkeLageBrevRequest.FeilVedHentingAvVedtaksbrevDato,
+        is KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvPerson -> this.personFeil.tilResultat()
+        is KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvSaksbehandlernavn -> feilVedHentingAvSaksbehandlerNavn
+        KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvVedtaksbrevDato,
         -> feilVedHentingAvVedtakDato
-        is KunneIkkeLageBrevRequest.UgyldigTilstand -> BadRequest.errorJson(
+        is KunneIkkeLageBrevRequestForKlage.UgyldigTilstand -> BadRequest.errorJson(
             "Kan ikke gå fra tilstanden ${fra.simpleName}",
             "ugyldig_tilstand",
         )

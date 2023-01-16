@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.common.application.MånedBeløp
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.juli
-import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.periode.august
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.juni
@@ -39,6 +38,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harEPS
 import no.nav.su.se.bakover.domain.grunnlag.firstOrThrowIfMultipleOrEmpty
+import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent.KallTilMicrosoftGraphApiFeilet
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.sak.Sakstype
@@ -84,13 +84,13 @@ internal class LagBrevRequestVisitorTest {
             customVilkår = listOf(institusjonsoppholdvilkårAvslag()),
         ).second.let { søknadsbehandling ->
             LagBrevRequestVisitor(
-                hentPerson = { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson.left() },
+                hentPerson = { KunneIkkeLageBrevRequest.KunneIkkeHentePerson.left() },
                 hentNavn = { hentNavn(it) },
                 hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
             ).apply { søknadsbehandling.accept(this) }.let {
-                it.brevRequest shouldBe LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson.left()
+                it.brevRequest shouldBe KunneIkkeLageBrevRequest.KunneIkkeHentePerson.left()
             }
         }
     }
@@ -100,19 +100,27 @@ internal class LagBrevRequestVisitorTest {
         søknadsbehandlingIverksattInnvilget().second.let { søknadsbehandling ->
             LagBrevRequestVisitor(
                 hentPerson = { person.right() },
-                hentNavn = { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left() },
+                hentNavn = {
+                    KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(
+                        KallTilMicrosoftGraphApiFeilet,
+                    )
+                        .left()
+                },
                 hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
             ).apply { søknadsbehandling.accept(this) }.let {
-                it.brevRequest shouldBe LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
+                it.brevRequest shouldBe KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(
+                    KallTilMicrosoftGraphApiFeilet,
+                )
+                    .left()
             }
         }
     }
 
     @Test
     fun `responderer med feil dersom det ikke er mulig å lage brev for aktuell søknadsbehandling`() {
-        assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {
+        assertThrows<LagBrevRequestVisitor.KanIkkeLageBrevrequestForInstans> {
             vilkårsvurdertSøknadsbehandling().second.let {
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
@@ -124,7 +132,7 @@ internal class LagBrevRequestVisitorTest {
             }
         }
 
-        assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {
+        assertThrows<LagBrevRequestVisitor.KanIkkeLageBrevrequestForInstans> {
             nySøknadsbehandlingUtenStønadsperiode().second
                 .let {
                     LagBrevRequestVisitor(
@@ -1229,7 +1237,7 @@ internal class LagBrevRequestVisitorTest {
     private val attestant = NavIdentBruker.Attestant("Z321")
     private val attestantNavn = "attestant"
 
-    private fun hentNavn(navIdentBruker: NavIdentBruker): Either<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant, String> =
+    private fun hentNavn(navIdentBruker: NavIdentBruker): Either<KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant, String> =
         when (navIdentBruker) {
             is NavIdentBruker.Attestant -> attestantNavn.right()
             is NavIdentBruker.Saksbehandler -> saksbehandlerNavn.right()

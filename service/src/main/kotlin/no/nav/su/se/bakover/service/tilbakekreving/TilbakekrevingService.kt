@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingClient
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingRepo
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
-import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
+import no.nav.su.se.bakover.domain.visitor.KunneIkkeLageBrevRequest
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -64,13 +64,13 @@ class TilbakekrevingServiceImpl(
                 val dokument = brevService.lagBrevRequest(vedtak).fold(
                     {
                         when (it) {
-                            LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling,
-                            LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant,
-                            LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson,
+                            is KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling,
+                            is KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant,
+                            is KunneIkkeLageBrevRequest.KunneIkkeHentePerson,
                             -> {
                                 throw RuntimeException("Kunne ikke lage brev, feil: $it")
                             }
-                            LagBrevRequestVisitor.KunneIkkeLageBrevRequest.SkalIkkeSendeBrev -> {
+                            is KunneIkkeLageBrevRequest.SkalIkkeSendeBrev -> {
                                 log.info("Det er valgt å ikke sende ut brev for vedtak: ${vedtak.id}, hopper over.")
                                 null
                             }

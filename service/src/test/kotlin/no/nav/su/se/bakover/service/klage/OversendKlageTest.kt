@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
-import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequest
+import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequestForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeTilKlageinstans
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
@@ -119,7 +119,7 @@ internal class OversendKlageTest {
             attestant = attestant,
         ) shouldBe
             KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest(
-                KunneIkkeLageBrevRequest.FeilVedHentingAvSaksbehandlernavn(
+                KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvSaksbehandlernavn(
                     KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent,
                 ),
             ).left()

@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.visitor.KunneIkkeLageBrevRequest
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.attestant
@@ -309,8 +310,8 @@ class BrevForTilbakekrevingTest {
     }
 
     private fun lagVisitor(
-        hentPerson: (fnr: Fnr) -> Either<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson, Person> = { person.right() },
-        hentNavn: (navIdentBruker: NavIdentBruker) -> Either<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant, String> = { "kjell".right() },
+        hentPerson: (fnr: Fnr) -> Either<KunneIkkeLageBrevRequest.KunneIkkeHentePerson, Person> = { person.right() },
+        hentNavn: (navIdentBruker: NavIdentBruker) -> Either<KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant, String> = { "kjell".right() },
         sak: Sak,
         clock: Clock = fixedClock,
     ): LagBrevRequestVisitor {

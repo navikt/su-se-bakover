@@ -73,8 +73,8 @@ sealed interface Klage : Klagefelter {
         hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
         hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
         clock: Clock,
-    ): Either<KunneIkkeLageBrevRequest, LagBrevRequest.Klage> {
-        return KunneIkkeLageBrevRequest.UgyldigTilstand(this::class).left()
+    ): Either<KunneIkkeLageBrevRequestForKlage, LagBrevRequest.Klage> {
+        return KunneIkkeLageBrevRequestForKlage.UgyldigTilstand(this::class).left()
     }
 
     /**
@@ -187,11 +187,11 @@ interface Klagefelter {
     val saksbehandler: NavIdentBruker.Saksbehandler
 }
 
-sealed interface KunneIkkeLageBrevRequest {
-    object FeilVedHentingAvVedtaksbrevDato : KunneIkkeLageBrevRequest
-    data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeLageBrevRequest
-    data class FeilVedHentingAvPerson(val personFeil: KunneIkkeHentePerson) : KunneIkkeLageBrevRequest
-    data class FeilVedHentingAvSaksbehandlernavn(val feil: KunneIkkeHenteNavnForNavIdent) : KunneIkkeLageBrevRequest
+sealed interface KunneIkkeLageBrevRequestForKlage {
+    object FeilVedHentingAvVedtaksbrevDato : KunneIkkeLageBrevRequestForKlage
+    data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeLageBrevRequestForKlage
+    data class FeilVedHentingAvPerson(val personFeil: KunneIkkeHentePerson) : KunneIkkeLageBrevRequestForKlage
+    data class FeilVedHentingAvSaksbehandlernavn(val feil: KunneIkkeHenteNavnForNavIdent) : KunneIkkeLageBrevRequestForKlage
 }
 
 sealed interface KunneIkkeHenteFritekstTilBrev {

@@ -11,10 +11,3 @@ interface PersonOppslag {
     fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId>
     fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit>
 }
-
-sealed class KunneIkkeHentePerson {
-    override fun toString() = this::class.simpleName!!
-    object FantIkkePerson : KunneIkkeHentePerson()
-    object IkkeTilgangTilPerson : KunneIkkeHentePerson()
-    object Ukjent : KunneIkkeHentePerson()
-}

@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
-import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequest
+import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequestForKlage
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
@@ -79,7 +79,7 @@ internal class HentBrevutkastTest {
         mocks.service.brevutkast(
             klageId = klage.id,
             saksbehandler = saksbehandler,
-        ) shouldBe KunneIkkeLageBrevutkast.FeilVedBrevRequest(KunneIkkeLageBrevRequest.FeilVedHentingAvVedtaksbrevDato)
+        ) shouldBe KunneIkkeLageBrevutkast.FeilVedBrevRequest(KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvVedtaksbrevDato)
             .left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
@@ -111,7 +111,7 @@ internal class HentBrevutkastTest {
             klageId = klage.id,
             saksbehandler = saksbehandler,
         ) shouldBe KunneIkkeLageBrevutkast.FeilVedBrevRequest(
-            KunneIkkeLageBrevRequest.FeilVedHentingAvSaksbehandlernavn(
+            KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvSaksbehandlernavn(
                 KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent,
             ),
         )
@@ -145,7 +145,7 @@ internal class HentBrevutkastTest {
         mocks.service.brevutkast(
             klageId = klage.id,
             saksbehandler = saksbehandler,
-        ) shouldBe KunneIkkeLageBrevutkast.FeilVedBrevRequest(KunneIkkeLageBrevRequest.FeilVedHentingAvPerson(KunneIkkeHentePerson.FantIkkePerson)).left()
+        ) shouldBe KunneIkkeLageBrevutkast.FeilVedBrevRequest(KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvPerson(KunneIkkeHentePerson.FantIkkePerson)).left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
@@ -350,7 +350,7 @@ internal class HentBrevutkastTest {
         mocks.service.brevutkast(
             klageId = klage.id,
             saksbehandler = klage.saksbehandler,
-        ) shouldBe KunneIkkeLageBrevutkast.FeilVedBrevRequest(KunneIkkeLageBrevRequest.UgyldigTilstand(klage::class)).left()
+        ) shouldBe KunneIkkeLageBrevutkast.FeilVedBrevRequest(KunneIkkeLageBrevRequestForKlage.UgyldigTilstand(klage::class)).left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         mocks.verifyNoMoreInteractions()
