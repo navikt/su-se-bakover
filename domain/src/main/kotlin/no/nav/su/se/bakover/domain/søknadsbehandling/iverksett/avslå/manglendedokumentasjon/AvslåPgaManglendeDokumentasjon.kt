@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
@@ -98,6 +99,7 @@ private fun avslå(
             saksbehandler = request.saksbehandler,
             clock = clock,
             satsFactory = satsFactory,
+            avkorting = sak.hentUteståendeAvkortingForSøknadsbehandling().fold({ it }, { it }).kanIkke(),
         )
         .avslåPgaManglendeDokumentasjon(request.saksbehandler)
         .tilAttestering(
@@ -121,6 +123,7 @@ private fun Søknadsbehandling.leggTilStønadsperiodeHvisNull(
     saksbehandler: NavIdentBruker.Saksbehandler,
     clock: Clock,
     satsFactory: SatsFactory,
+    avkorting: AvkortingVedSøknadsbehandling,
 ): Søknadsbehandling {
     if (stønadsperiode != null) return this
 
@@ -134,6 +137,7 @@ private fun Søknadsbehandling.leggTilStønadsperiodeHvisNull(
         formuegrenserFactory = satsFactory.formuegrenserFactory,
         clock = clock,
         saksbehandler = saksbehandler,
+        avkorting = avkorting,
     ).getOrHandle { throw IllegalArgumentException(it.toString()) }
 }
 

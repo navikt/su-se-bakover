@@ -44,6 +44,7 @@ fun Sak.oppdaterStønadsperiodeForSøknadsbehandling(
         formuegrenserFactory = formuegrenserFactory,
         clock = clock,
         saksbehandler = saksbehandler,
+        avkorting = this.hentUteståendeAvkortingForSøknadsbehandling().fold({ it }, { it }).kanIkke(),
     ).mapLeft {
         when (it) {
             is no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> {
