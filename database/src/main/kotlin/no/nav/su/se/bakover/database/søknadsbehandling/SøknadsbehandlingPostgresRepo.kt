@@ -258,7 +258,7 @@ internal class SøknadsbehandlingPostgresRepo(
         }
     }
 
-    fun Søknadsbehandling.toBase(): BaseSøknadsbehandlingDb {
+    private fun Søknadsbehandling.toBase(): BaseSøknadsbehandlingDb {
         return BaseSøknadsbehandlingDb(
             id = this.id,
             opprettet = this.opprettet,
@@ -488,7 +488,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 attesteringer = attesteringer,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
                 sakstype = sakstype,
-                saksbehandler = saksbehandler,
+                saksbehandler = saksbehandler!!,
             )
             SøknadsbehandlingStatusDB.BEREGNET_INNVILGET -> Søknadsbehandling.Beregnet.Innvilget(
                 id = behandlingId,
@@ -506,7 +506,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 attesteringer = attesteringer,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert,
                 sakstype = sakstype,
-                saksbehandler = saksbehandler,
+                saksbehandler = saksbehandler!!,
             )
             SøknadsbehandlingStatusDB.BEREGNET_AVSLAG -> Søknadsbehandling.Beregnet.Avslag(
                 id = behandlingId,
@@ -524,7 +524,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 attesteringer = attesteringer,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
                 sakstype = sakstype,
-                saksbehandler = saksbehandler,
+                saksbehandler = saksbehandler!!,
             )
             SøknadsbehandlingStatusDB.SIMULERT -> Søknadsbehandling.Simulert(
                 id = behandlingId,
@@ -543,7 +543,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 attesteringer = attesteringer,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert,
                 sakstype = sakstype,
-                saksbehandler = saksbehandler,
+                saksbehandler = saksbehandler!!,
             )
             SøknadsbehandlingStatusDB.TIL_ATTESTERING_INNVILGET -> Søknadsbehandling.TilAttestering.Innvilget(
                 id = behandlingId,

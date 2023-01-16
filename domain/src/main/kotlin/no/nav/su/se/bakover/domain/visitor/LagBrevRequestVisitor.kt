@@ -36,7 +36,6 @@ import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.domain.søknadsbehandling.FinnSaksbehandlerVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingVisitor
@@ -355,10 +354,7 @@ class LagBrevRequestVisitor(
     ) =
         hentPersonOgNavn(
             fnr = søknadsbehandling.fnr,
-            saksbehandler = FinnSaksbehandlerVisitor().let {
-                søknadsbehandling.accept(it)
-                it.saksbehandler
-            },
+            saksbehandler = søknadsbehandling.saksbehandler,
             attestant = FinnAttestantVisitor().let {
                 søknadsbehandling.accept(it)
                 it.attestant
@@ -382,10 +378,7 @@ class LagBrevRequestVisitor(
     private fun innvilgetSøknadsbehandling(søknadsbehandling: Søknadsbehandling, beregning: Beregning) =
         hentPersonOgNavn(
             fnr = søknadsbehandling.fnr,
-            saksbehandler = FinnSaksbehandlerVisitor().let {
-                søknadsbehandling.accept(it)
-                it.saksbehandler
-            },
+            saksbehandler = søknadsbehandling.saksbehandler,
             attestant = FinnAttestantVisitor().let {
                 søknadsbehandling.accept(it)
                 it.attestant
