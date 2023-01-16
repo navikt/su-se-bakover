@@ -101,7 +101,7 @@ class BrevServiceImpl(
     private fun LagBrevRequestVisitor() =
         LagBrevRequestVisitor(
             hentPerson = { fnr ->
-                /** [no.nav.su.se.bakover.service.AccessCheckProxy] bør allerede ha sjekket om vi har tilgang til personen */
+                /** [no.nav.su.se.bakover.web.services.AccessCheckProxy] bør allerede ha sjekket om vi har tilgang til personen */
                 personService.hentPersonMedSystembruker(fnr)
                     .mapLeft { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson }
             },
