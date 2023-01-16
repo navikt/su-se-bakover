@@ -30,7 +30,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
             søknad = søknad.toJson(),
             status = status().toString(),
             attesteringer = attesteringer.toJson(),
-            saksbehandler = saksbehandler?.toString(),
+            saksbehandler = saksbehandler.toString(),
             beregning = null,
             simulering = null,
             stønadsperiode = stønadsperiode?.toJson(),

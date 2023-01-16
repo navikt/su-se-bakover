@@ -62,7 +62,7 @@ internal data class BaseSøknadsbehandlingDb(
     val avkorting: AvkortingVedSøknadsbehandling,
     val sakstype: Sakstype,
     val status: SøknadsbehandlingStatusDB,
-    val saksbehandler: String?,
+    val saksbehandler: String,
 )
 internal data class SøknadsbehandlingDb(
     val base: BaseSøknadsbehandlingDb,
@@ -273,7 +273,7 @@ internal class SøknadsbehandlingPostgresRepo(
             avkorting = this.avkorting,
             sakstype = this.sakstype,
             status = this.status(),
-            saksbehandler = this.saksbehandler?.toString(),
+            saksbehandler = this.saksbehandler.toString(),
         )
     }
 
@@ -424,7 +424,7 @@ internal class SøknadsbehandlingPostgresRepo(
         )
         val simulering = deserializeNullable<Simulering>(stringOrNull("simulering"))
         val attesteringer = Attesteringshistorikk.create(deserializeList((string("attestering"))))
-        val saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) }
+        val saksbehandler = NavIdentBruker.Saksbehandler(string("saksbehandler"))
         val saksnummer = Saksnummer(long("saksnummer"))
         val fritekstTilBrev = stringOrNull("fritekstTilBrev") ?: ""
         val stønadsperiode = deserializeNullable<Stønadsperiode>(stringOrNull("stønadsperiode"))
@@ -488,7 +488,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 attesteringer = attesteringer,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
                 sakstype = sakstype,
-                saksbehandler = saksbehandler!!,
+                saksbehandler = saksbehandler,
             )
             SøknadsbehandlingStatusDB.BEREGNET_INNVILGET -> Søknadsbehandling.Beregnet.Innvilget(
                 id = behandlingId,
@@ -506,7 +506,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 attesteringer = attesteringer,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert,
                 sakstype = sakstype,
-                saksbehandler = saksbehandler!!,
+                saksbehandler = saksbehandler,
             )
             SøknadsbehandlingStatusDB.BEREGNET_AVSLAG -> Søknadsbehandling.Beregnet.Avslag(
                 id = behandlingId,
@@ -524,7 +524,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 attesteringer = attesteringer,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
                 sakstype = sakstype,
-                saksbehandler = saksbehandler!!,
+                saksbehandler = saksbehandler,
             )
             SøknadsbehandlingStatusDB.SIMULERT -> Søknadsbehandling.Simulert(
                 id = behandlingId,
@@ -543,7 +543,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 attesteringer = attesteringer,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert,
                 sakstype = sakstype,
-                saksbehandler = saksbehandler!!,
+                saksbehandler = saksbehandler,
             )
             SøknadsbehandlingStatusDB.TIL_ATTESTERING_INNVILGET -> Søknadsbehandling.TilAttestering.Innvilget(
                 id = behandlingId,
@@ -555,7 +555,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 fnr = fnr,
                 beregning = beregning!!,
                 simulering = simulering!!,
-                saksbehandler = saksbehandler!!,
+                saksbehandler = saksbehandler,
                 fritekstTilBrev = fritekstTilBrev,
                 stønadsperiode = stønadsperiode!!,
                 grunnlagsdata = grunnlagsdata,
@@ -573,7 +573,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     søknad = søknad,
                     oppgaveId = oppgaveId,
                     fnr = fnr,
-                    saksbehandler = saksbehandler!!,
+                    saksbehandler = saksbehandler,
                     fritekstTilBrev = fritekstTilBrev,
                     stønadsperiode = stønadsperiode!!,
                     grunnlagsdata = grunnlagsdata,
@@ -591,7 +591,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     oppgaveId = oppgaveId,
                     fnr = fnr,
                     beregning = beregning,
-                    saksbehandler = saksbehandler!!,
+                    saksbehandler = saksbehandler,
                     fritekstTilBrev = fritekstTilBrev,
                     stønadsperiode = stønadsperiode!!,
                     grunnlagsdata = grunnlagsdata,
@@ -611,7 +611,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 fnr = fnr,
                 beregning = beregning!!,
                 simulering = simulering!!,
-                saksbehandler = saksbehandler!!,
+                saksbehandler = saksbehandler,
                 attesteringer = attesteringer,
                 fritekstTilBrev = fritekstTilBrev,
                 stønadsperiode = stønadsperiode!!,
@@ -629,7 +629,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     søknad = søknad,
                     oppgaveId = oppgaveId,
                     fnr = fnr,
-                    saksbehandler = saksbehandler!!,
+                    saksbehandler = saksbehandler,
                     attesteringer = attesteringer,
                     fritekstTilBrev = fritekstTilBrev,
                     stønadsperiode = stønadsperiode!!,
@@ -647,7 +647,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     oppgaveId = oppgaveId,
                     fnr = fnr,
                     beregning = beregning,
-                    saksbehandler = saksbehandler!!,
+                    saksbehandler = saksbehandler,
                     attesteringer = attesteringer,
                     fritekstTilBrev = fritekstTilBrev,
                     stønadsperiode = stønadsperiode!!,
@@ -668,7 +668,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     fnr = fnr,
                     beregning = beregning!!,
                     simulering = simulering!!,
-                    saksbehandler = saksbehandler!!,
+                    saksbehandler = saksbehandler,
                     attesteringer = attesteringer,
                     fritekstTilBrev = fritekstTilBrev,
                     stønadsperiode = stønadsperiode!!,
@@ -688,7 +688,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         søknad = søknad,
                         oppgaveId = oppgaveId,
                         fnr = fnr,
-                        saksbehandler = saksbehandler!!,
+                        saksbehandler = saksbehandler,
                         attesteringer = attesteringer,
                         fritekstTilBrev = fritekstTilBrev,
                         stønadsperiode = stønadsperiode!!,
@@ -706,7 +706,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         oppgaveId = oppgaveId,
                         fnr = fnr,
                         beregning = beregning,
-                        saksbehandler = saksbehandler!!,
+                        saksbehandler = saksbehandler,
                         attesteringer = attesteringer,
                         fritekstTilBrev = fritekstTilBrev,
                         stønadsperiode = stønadsperiode!!,

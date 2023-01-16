@@ -80,8 +80,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     val erIverksatt: Boolean by lazy { this is Iverksatt.Avslag || this is Iverksatt.Innvilget }
     val erLukket: Boolean by lazy { this is LukketSøknadsbehandling }
 
-    // TODO jah: Det finnes noen lukket behandlinger i produksjon som mangler denne. Vi lager et kort på å fylle de inn manuelt, slik at vi kan endre denne til non-nullable.
-    abstract val saksbehandler: NavIdentBruker.Saksbehandler?
+    abstract val saksbehandler: NavIdentBruker.Saksbehandler
     abstract val beregning: Beregning?
     abstract val simulering: Simulering?
 
@@ -899,7 +898,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val attesteringer: Attesteringshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
             override val sakstype: Sakstype,
-            override val saksbehandler: NavIdentBruker.Saksbehandler?,
+            override val saksbehandler: NavIdentBruker.Saksbehandler,
         ) : Vilkårsvurdert(), KanBeregnes {
             override val periode: Periode = stønadsperiode.periode
 
@@ -1015,7 +1014,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val attesteringer: Attesteringshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
             override val sakstype: Sakstype,
-            override val saksbehandler: NavIdentBruker.Saksbehandler?,
+            override val saksbehandler: NavIdentBruker.Saksbehandler,
         ) : Vilkårsvurdert() {
 
             override val beregning = null

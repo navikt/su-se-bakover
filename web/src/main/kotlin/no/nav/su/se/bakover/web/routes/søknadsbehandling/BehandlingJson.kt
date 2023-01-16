@@ -14,7 +14,7 @@ internal data class BehandlingJson(
     val simulering: SimuleringJson?,
     val opprettet: String,
     val attesteringer: List<AttesteringJson>,
-    val saksbehandler: String?,
+    val saksbehandler: String,
     val fritekstTilBrev: String,
     val sakId: UUID,
     val stønadsperiode: StønadsperiodeJson?,

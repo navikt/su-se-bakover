@@ -44,8 +44,11 @@ data class LukketSøknadsbehandling private constructor(
     }
     override val sakstype: Sakstype = underliggendeSøknadsbehandling.sakstype
 
-    // TODO jah: Denne bør overstyres av saksbehandler som avsluttet søknadsbehandlingen.
-    override val saksbehandler: NavIdentBruker.Saksbehandler? = underliggendeSøknadsbehandling.saksbehandler
+    /**
+     * Saksbehandler som lukket søknadsbehandling og søknad.
+     * For siste handling før dette; se saksbehandler på [underliggendeSøknadsbehandling].
+     */
+    override val saksbehandler: NavIdentBruker.Saksbehandler = søknad.lukketAv
 
     val lukketTidspunkt = søknad.lukketTidspunkt
     val lukketAv = søknad.lukketAv
