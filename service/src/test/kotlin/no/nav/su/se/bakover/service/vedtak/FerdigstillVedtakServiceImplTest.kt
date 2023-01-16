@@ -117,7 +117,7 @@ internal class FerdigstillVedtakServiceImplTest {
         ) {
             val feil =
                 service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
-            feil shouldBe KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev.left()
+            feil shouldBe KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev(KunneIkkeLageDokument.KunneIkkeHentePerson).left()
 
             verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
             verify(brevService).lagDokument(vedtak)
@@ -138,7 +138,7 @@ internal class FerdigstillVedtakServiceImplTest {
         ) {
             val feil =
                 service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
-            feil shouldBe KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev.left()
+            feil shouldBe KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev(KunneIkkeLageDokument.KunneIkkeGenererePDF).left()
 
             inOrder(
                 *all(),

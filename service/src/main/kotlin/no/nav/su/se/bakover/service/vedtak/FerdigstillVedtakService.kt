@@ -75,7 +75,7 @@ class FerdigstillVedtakServiceImpl(
 
     fun lagreDokument(vedtak: VedtakSomKanRevurderes): Either<KunneIkkeFerdigstilleVedtak, VedtakSomKanRevurderes> {
         return brevService.lagDokument(vedtak).mapLeft {
-            KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev
+            KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev(it)
         }.map {
             brevService.lagreDokument(
                 it.leggTilMetadata(
