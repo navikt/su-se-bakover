@@ -80,6 +80,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     val erIverksatt: Boolean by lazy { this is Iverksatt.Avslag || this is Iverksatt.Innvilget }
     val erLukket: Boolean by lazy { this is LukketSøknadsbehandling }
 
+    // TODO jah: Det finnes noen lukket behandlinger i produksjon som mangler denne. Vi lager et kort på å fylle de inn manuelt, slik at vi kan endre denne til non-nullable.
     abstract val saksbehandler: NavIdentBruker.Saksbehandler?
     abstract val beregning: Beregning?
     abstract val simulering: Simulering?
@@ -941,7 +942,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val attesteringer: Attesteringshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
             override val sakstype: Sakstype,
-            override val saksbehandler: NavIdentBruker.Saksbehandler?,
+            override val saksbehandler: NavIdentBruker.Saksbehandler,
         ) : Vilkårsvurdert(), ErAvslag {
 
             override val beregning = null
@@ -1053,6 +1054,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         abstract override val beregning: Beregning
         abstract override val stønadsperiode: Stønadsperiode
         abstract override val avkorting: AvkortingVedSøknadsbehandling.Håndtert
+        abstract override val saksbehandler: NavIdentBruker.Saksbehandler
 
         override fun simuler(
             saksbehandler: NavIdentBruker.Saksbehandler,
@@ -1113,7 +1115,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val attesteringer: Attesteringshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
             override val sakstype: Sakstype,
-            override val saksbehandler: NavIdentBruker.Saksbehandler?,
+            override val saksbehandler: NavIdentBruker.Saksbehandler,
         ) : Beregnet() {
             override val periode: Periode = stønadsperiode.periode
             override val simulering: Simulering? = null
@@ -1155,7 +1157,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val attesteringer: Attesteringshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
             override val sakstype: Sakstype,
-            override val saksbehandler: NavIdentBruker.Saksbehandler?,
+            override val saksbehandler: NavIdentBruker.Saksbehandler,
         ) : Beregnet(), ErAvslag {
             override val periode: Periode = stønadsperiode.periode
             override val simulering: Simulering? = null
@@ -1235,7 +1237,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
         override val sakstype: Sakstype,
-        override val saksbehandler: NavIdentBruker.Saksbehandler?,
+        override val saksbehandler: NavIdentBruker.Saksbehandler,
     ) : Søknadsbehandling(), KanOppdaterePeriodeGrunnlagVilkår {
         override val periode: Periode = stønadsperiode.periode
 
