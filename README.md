@@ -143,6 +143,18 @@ prod: https://alertmanager.prod-fss.nais.io
 * Set team-namespace as default: `kubectl config set-context --current --namespace=supstonad`
 * Describe pod: `kubectl describe pod su-se-bakover`
 
+## IBM MQ (oppdrag/utbetaling/simulering)
+Dersom man ønsker å inspisere meldingene i preprod-miljøet:
+* Via VmWare (utvikler image): http://a34drvw006.devillo.no:8000/ navn på hostname/lø ligger i `nais-dev.json`.
+
+I preprod: Dersom man ønsker å slette/endre/legge til meldinger eller flytte fra backoff til hovedkø, kan man bruke https://github.com/jmstoolbox/jmstoolbox
+* Finn hostname/kø i `nais-dev.json`.
+* Ping hostname for å få IP `10.53.17.118`
+* Finn username/password i vault: https://vault.adeo.no/ui/vault/secrets/serviceuser/show/dev/srvsupstonad
+* Legg inn channel: `Q1_SU_SE_BAKOVER`
+* Legg inn queueManager `MQLS02`
+* Finn en passende Ibm mq jar: https://github.com/jmstoolbox/jmstoolbox/wiki/2.1-Setup-for-IBM-MQ
+
 ## Dependabot
 
 Vi bruker Github sin innebygde dependabot: https://github.com/navikt/su-se-bakover/network/updates
