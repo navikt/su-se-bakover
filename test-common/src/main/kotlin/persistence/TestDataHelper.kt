@@ -877,8 +877,8 @@ class TestDataHelper(
             )
         },
     ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
-        return persisterSøknadsbehandlingVilkårsvurdert(sakOgSøknad) { søknadsbehandling(it) }.let { (sak, revurdering) ->
-            sak to revurdering as Søknadsbehandling.Vilkårsvurdert.Uavklart
+        return persisterSøknadsbehandlingVilkårsvurdert(sakOgSøknad) { søknadsbehandling(it) }.let { (sak, vilkårsvurdertSøknadsbehandling) ->
+            sak to vilkårsvurdertSøknadsbehandling as Søknadsbehandling.Vilkårsvurdert.Uavklart
         }
     }
 

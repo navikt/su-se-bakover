@@ -62,15 +62,16 @@ internal class OppdaterStønadsperiodeTest {
 
     @Test
     fun `oppdaterer perioden riktig`() {
-        val (_, vilkårsvurdert) = søknadsbehandlingVilkårsvurdertInnvilget()
+        val (sak, vilkårsvurdert) = søknadsbehandlingVilkårsvurdertInnvilget()
 
         val nyPeriode = Periode.create(1.februar(2022), 31.mars(2022))
-        val actual = vilkårsvurdert.oppdaterStønadsperiode(
-            oppdatertStønadsperiode = Stønadsperiode.create(nyPeriode),
+        val actual = sak.oppdaterStønadsperiodeForSøknadsbehandling(
+            søknadsbehandlingId = vilkårsvurdert.id,
+            stønadsperiode = Stønadsperiode.create(nyPeriode),
             formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             clock = fixedClock,
             saksbehandler = saksbehandler,
-        ).getOrFail()
+        ).getOrFail().second
 
         vilkårsvurdert.periode shouldNotBe nyPeriode
         actual.periode shouldBe nyPeriode

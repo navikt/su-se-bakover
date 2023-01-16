@@ -64,8 +64,6 @@ internal class StatusovergangTest {
 
     private val opprettet = sakOgUavklart.second
 
-    private val attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), fixedTidspunkt)
-
     private val fritekstTilBrev: String = "Fritekst til brev"
 
     private val vilkårsvurdertInnvilget: Søknadsbehandling.Vilkårsvurdert.Innvilget =
@@ -837,6 +835,7 @@ internal class StatusovergangTest {
     }
 
     @Nested
+    // TODO jah: Denne bør egentlig flyttes til [OppdaterStønadsperiodeTest], men det vil kreve en del omskriving på setup-koden. Bør og gå via sak.
     inner class OppdaterStønadsperiode {
         @Test
         fun `lovlige overganger`() {
@@ -856,6 +855,7 @@ internal class StatusovergangTest {
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                     clock = fixedClock,
                     saksbehandler = saksbehandler,
+                    avkorting = it.avkorting,
                 ).isRight() shouldBe true
             }
         }
@@ -876,6 +876,7 @@ internal class StatusovergangTest {
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                     clock = fixedClock,
                     saksbehandler = saksbehandler,
+                    avkorting = it.avkorting,
                 ).isLeft() shouldBe true
             }
         }

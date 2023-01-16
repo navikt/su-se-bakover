@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.enUkeEtterFixedClock
@@ -131,7 +132,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.søknadsbehandlingRepo
 
-            val (_, vilkårsvurdert) = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart { (sak, søknad) ->
+            val (sak, vilkårsvurdert) = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart { (sak, søknad) ->
                 nySøknadsbehandlingMedStønadsperiode(
                     sakOgSøknad = sak to søknad,
                     stønadsperiode = Stønadsperiode.create(periode = januar(2021)),
@@ -139,12 +140,13 @@ internal class SøknadsbehandlingPostgresRepoTest {
             }
 
             repo.lagre(
-                vilkårsvurdert.oppdaterStønadsperiode(
-                    oppdatertStønadsperiode = stønadsperiode2021,
+                sak.oppdaterStønadsperiodeForSøknadsbehandling(
+                    søknadsbehandlingId = vilkårsvurdert.id,
+                    stønadsperiode = stønadsperiode2021,
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(fixedLocalDate),
                     clock = fixedClock,
                     saksbehandler = saksbehandler,
-                ).getOrFail(),
+                ).getOrFail().second,
             )
 
             repo.hent(vilkårsvurdert.id).also {

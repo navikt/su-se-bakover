@@ -140,6 +140,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilFradragsgrunnlag(
                     fradragsgrunnlag,
                 ),
+                avkorting = avkorting,
             ).vilkårsvurder(saksbehandler) as Vilkårsvurdert.Innvilget // TODO cast
         }
 
@@ -162,16 +163,17 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         saksbehandler: NavIdentBruker.Saksbehandler,
         bosituasjon: Grunnlag.Bosituasjon,
     ) = grunnlagsdataOgVilkårsvurderinger.oppdaterBosituasjon(listOf(bosituasjon)).let {
-        copyInternal(grunnlagsdataOgVilkårsvurderinger = it).vilkårsvurder(saksbehandler)
+        copyInternal(grunnlagsdataOgVilkårsvurderinger = it, avkorting = avkorting).vilkårsvurder(saksbehandler)
     }
 
     /**
      * Eksponerer deler av subklassenes copy-konstruktør slik at vi kan eliminere behovet for duplikate implementasjoner i hver subklasse.
      */
-    protected open fun copyInternal(
+    protected abstract fun copyInternal(
         stønadsperiode: Stønadsperiode = this.stønadsperiode!!,
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling = this.grunnlagsdataOgVilkårsvurderinger,
-    ) = this
+        avkorting: AvkortingVedSøknadsbehandling = this.avkorting,
+    ): Søknadsbehandling
 
     fun leggTilUtenlandsopphold(
         saksbehandler: NavIdentBruker.Saksbehandler,
@@ -192,6 +194,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         .map {
             copyInternal(
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
+                avkorting = avkorting,
             ).vilkårsvurder(saksbehandler)
         }
 
@@ -236,6 +239,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         .map {
             copyInternal(
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuevilkår(vilkår),
+                avkorting = avkorting,
             ).vilkårsvurder(saksbehandler)
         }
 
@@ -244,8 +248,15 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         oppdatertStønadsperiode: Stønadsperiode,
         formuegrenserFactory: FormuegrenserFactory,
         clock: Clock,
+        avkorting: AvkortingVedSøknadsbehandling,
     ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> = if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-        oppdaterStønadsperiodeInternal(saksbehandler, oppdatertStønadsperiode, formuegrenserFactory, clock)
+        oppdaterStønadsperiodeInternal(
+            saksbehandler = saksbehandler,
+            oppdatertStønadsperiode = oppdatertStønadsperiode,
+            formuegrenserFactory = formuegrenserFactory,
+            clock = clock,
+            avkorting = avkorting,
+        )
     } else {
         KunneIkkeOppdatereStønadsperiode.UgyldigTilstand(this::class).left()
     }
@@ -255,6 +266,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         oppdatertStønadsperiode: Stønadsperiode,
         formuegrenserFactory: FormuegrenserFactory,
         clock: Clock,
+        avkorting: AvkortingVedSøknadsbehandling,
     ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
         return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
             stønadsperiode = oppdatertStønadsperiode,
@@ -266,6 +278,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             copyInternal(
                 stønadsperiode = oppdatertStønadsperiode,
                 grunnlagsdataOgVilkårsvurderinger = it,
+                avkorting = avkorting,
             ).vilkårsvurder(saksbehandler)
         }
     }
@@ -289,6 +302,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             .map {
                 copyInternal(
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
+                    avkorting = avkorting,
                 ).vilkårsvurder(saksbehandler)
             }
     }
@@ -312,6 +326,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             .map {
                 copyInternal(
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
+                    avkorting = avkorting,
                 ).vilkårsvurder(saksbehandler)
             }
     }
@@ -338,6 +353,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             .map {
                 copyInternal(
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
+                    avkorting = avkorting,
                 ).vilkårsvurder(saksbehandler)
             }
     }
@@ -360,6 +376,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     ) = valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold>(lovligOppholdVilkår).map {
         copyInternal(
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(lovligOppholdVilkår),
+            avkorting = avkorting,
         ).vilkårsvurder(saksbehandler)
     }
 
@@ -411,6 +428,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
             copyInternal(
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
+                avkorting = avkorting,
             ).vilkårsvurder(saksbehandler).right()
         } else {
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilInstitusjonsoppholdVilkår.UgyldigTilstand(this::class).left()
@@ -486,6 +504,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             .map {
                 copyInternal(
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
+                    avkorting = avkorting,
                 ).vilkårsvurder(saksbehandler)
             }
     }
@@ -512,6 +531,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             .map {
                 copyInternal(
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
+                    avkorting = avkorting,
                 ).vilkårsvurder(saksbehandler)
             }
     }
@@ -536,6 +556,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFlyktningVilkår, Vilkårsvurdert> {
         return copyInternal(
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
+            avkorting = avkorting,
         ).vilkårsvurder(saksbehandler).right()
     }
 
@@ -559,6 +580,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFastOppholdINorgeVilkår, Vilkårsvurdert> {
         return copyInternal(
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
+            avkorting = avkorting,
         ).vilkårsvurder(saksbehandler).right()
     }
 
@@ -894,6 +916,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+                avkorting: AvkortingVedSøknadsbehandling,
             ): Vilkårsvurdert {
                 return copy(
                     stønadsperiode = stønadsperiode,
@@ -927,6 +950,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+                avkorting: AvkortingVedSøknadsbehandling,
             ): Avslag {
                 return copy(
                     stønadsperiode = stønadsperiode,
@@ -999,6 +1023,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+                avkorting: AvkortingVedSøknadsbehandling,
             ): Uavklart {
                 return copy(
                     stønadsperiode = stønadsperiode,
@@ -1104,6 +1129,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+                avkorting: AvkortingVedSøknadsbehandling,
             ): Innvilget {
                 return copy(
                     stønadsperiode = stønadsperiode,
@@ -1147,6 +1173,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+                avkorting: AvkortingVedSøknadsbehandling,
             ): Avslag {
                 return copy(
                     stønadsperiode = stønadsperiode,
@@ -1223,6 +1250,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         override fun copyInternal(
             stønadsperiode: Stønadsperiode,
             grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+            avkorting: AvkortingVedSøknadsbehandling,
         ): Simulert {
             return copy(
                 stønadsperiode = stønadsperiode,
@@ -1337,6 +1365,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+                avkorting: AvkortingVedSøknadsbehandling,
             ): TilAttestering {
                 return copy(
                     stønadsperiode = stønadsperiode,
@@ -1479,6 +1508,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override fun copyInternal(
                     stønadsperiode: Stønadsperiode,
                     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+                    avkorting: AvkortingVedSøknadsbehandling,
                 ): UtenBeregning {
                     return copy(
                         stønadsperiode = stønadsperiode,
@@ -1581,6 +1611,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override fun copyInternal(
                     stønadsperiode: Stønadsperiode,
                     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+                    avkorting: AvkortingVedSøknadsbehandling,
                 ): MedBeregning {
                     return copy(
                         stønadsperiode = stønadsperiode,
@@ -1665,6 +1696,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+                avkorting: AvkortingVedSøknadsbehandling,
             ): Innvilget {
                 return copy(
                     stønadsperiode = stønadsperiode,
@@ -1784,6 +1816,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override fun copyInternal(
                     stønadsperiode: Stønadsperiode,
                     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+                    avkorting: AvkortingVedSøknadsbehandling,
                 ): MedBeregning {
                     return copy(
                         stønadsperiode = stønadsperiode,
@@ -1852,6 +1885,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override fun copyInternal(
                     stønadsperiode: Stønadsperiode,
                     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+                    avkorting: AvkortingVedSøknadsbehandling,
                 ): UtenBeregning {
                     return copy(
                         stønadsperiode = stønadsperiode,
@@ -1916,6 +1950,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         abstract override val stønadsperiode: Stønadsperiode
         abstract override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt
 
+        override fun copyInternal(
+            stønadsperiode: Stønadsperiode,
+            grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+            avkorting: AvkortingVedSøknadsbehandling,
+        ) = throw UnsupportedOperationException("Kan ikke kalle copyInternal på en iverksatt søknadsbehandling.")
+
         data class Innvilget(
             override val id: UUID,
             override val opprettet: Tidspunkt,
@@ -1935,6 +1975,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt,
             override val sakstype: Sakstype,
         ) : Iverksatt() {
+
             override val periode: Periode = stønadsperiode.periode
 
             init {
