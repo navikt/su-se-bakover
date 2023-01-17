@@ -55,10 +55,6 @@ internal fun Route.oppdaterTilbakekrevingsbehandlingRoute(
 
 internal fun KunneIkkeOppdatereTilbakekrevingsbehandling.tilResultat(): Resultat {
     return when (this) {
-        is KunneIkkeOppdatereTilbakekrevingsbehandling.FantIkkeRevurdering -> {
-            Revurderingsfeilresponser.fantIkkeRevurdering
-        }
-
         is KunneIkkeOppdatereTilbakekrevingsbehandling.UgyldigTilstand -> {
             HttpStatusCode.BadRequest.errorJson(
                 "Ugyldig tilstand for oppdatering av tilbakekrevingsbehandling",

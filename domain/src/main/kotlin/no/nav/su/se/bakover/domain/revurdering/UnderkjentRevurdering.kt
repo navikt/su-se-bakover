@@ -54,6 +54,8 @@ sealed class UnderkjentRevurdering : Revurdering() {
         return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
     }
 
+    abstract fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling): UnderkjentRevurdering
+
     override fun skalSendeBrev() = !årsakErGRegulering() && brevvalgRevurdering.skalSendeBrev().isRight()
 
     override fun oppdaterUføreOgMarkerSomVurdert(
@@ -152,6 +154,10 @@ sealed class UnderkjentRevurdering : Revurdering() {
             visitor.visit(this)
         }
 
+        override fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling): Innvilget {
+            return copy(tilbakekrevingsbehandling = tilbakekrevingsbehandling)
+        }
+
         fun tilAttestering(
             oppgaveId: OppgaveId,
             saksbehandler: NavIdentBruker.Saksbehandler,
@@ -233,6 +239,10 @@ sealed class UnderkjentRevurdering : Revurdering() {
 
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
+        }
+
+        override fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling): Opphørt {
+            return copy(tilbakekrevingsbehandling = tilbakekrevingsbehandling)
         }
 
         fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> {

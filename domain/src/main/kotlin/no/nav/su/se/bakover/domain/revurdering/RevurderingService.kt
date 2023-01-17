@@ -80,7 +80,7 @@ interface RevurderingService {
 
     fun oppdaterTilbakekrevingsbehandling(
         request: OppdaterTilbakekrevingsbehandlingRequest,
-    ): Either<KunneIkkeOppdatereTilbakekrevingsbehandling, SimulertRevurdering>
+    ): Either<KunneIkkeOppdatereTilbakekrevingsbehandling, Revurdering>
 
     fun leggTilBrevvalg(
         request: LeggTilBrevvalgRequest,
@@ -222,8 +222,12 @@ sealed class KunneIkkeForhåndsvarsle {
 }
 
 sealed class KunneIkkeSendeRevurderingTilAttestering {
-    data class FeilInnvilget(val feil: SimulertRevurdering.KunneIkkeSendeInnvilgetRevurderingTilAttestering) : KunneIkkeSendeRevurderingTilAttestering()
-    data class FeilOpphørt(val feil: SimulertRevurdering.Opphørt.KanIkkeSendeOpphørtRevurderingTilAttestering) : KunneIkkeSendeRevurderingTilAttestering()
+    data class FeilInnvilget(val feil: SimulertRevurdering.KunneIkkeSendeInnvilgetRevurderingTilAttestering) :
+        KunneIkkeSendeRevurderingTilAttestering()
+
+    data class FeilOpphørt(val feil: SimulertRevurdering.Opphørt.KanIkkeSendeOpphørtRevurderingTilAttestering) :
+        KunneIkkeSendeRevurderingTilAttestering()
+
     object FantIkkeRevurdering : KunneIkkeSendeRevurderingTilAttestering()
     object FantIkkeAktørId : KunneIkkeSendeRevurderingTilAttestering()
     object KunneIkkeOppretteOppgave : KunneIkkeSendeRevurderingTilAttestering()
@@ -241,8 +245,11 @@ sealed class KunneIkkeSendeRevurderingTilAttestering {
 }
 
 sealed interface KunneIkkeIverksetteRevurdering {
-    data class IverksettelsestransaksjonFeilet(val feil: KunneIkkeFerdigstilleIverksettelsestransaksjon) : KunneIkkeIverksetteRevurdering
-    data class FeilVedIverksettelse(val feil: no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeIverksetteRevurdering) : KunneIkkeIverksetteRevurdering
+    data class IverksettelsestransaksjonFeilet(val feil: KunneIkkeFerdigstilleIverksettelsestransaksjon) :
+        KunneIkkeIverksetteRevurdering
+
+    data class FeilVedIverksettelse(val feil: no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeIverksetteRevurdering) :
+        KunneIkkeIverksetteRevurdering
 }
 
 sealed class KunneIkkeLageBrevutkastForRevurdering {
@@ -443,7 +450,6 @@ data class LeggTilBosituasjonRequest(
 }
 
 sealed interface KunneIkkeOppdatereTilbakekrevingsbehandling {
-    object FantIkkeRevurdering : KunneIkkeOppdatereTilbakekrevingsbehandling
     data class UgyldigTilstand(
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering> = SimulertRevurdering::class,
@@ -488,7 +494,9 @@ data class LeggTilBrevvalgRequest(
                     begrunnelse = begrunnelse,
                     bestemtAv = BrevvalgRevurdering.BestemtAv.Behandler(saksbehandler.navIdent),
                 )
-            } Valg.IKKE_SEND -> {
+            }
+
+            Valg.IKKE_SEND -> {
                 BrevvalgRevurdering.Valgt.IkkeSendBrev(
                     begrunnelse = begrunnelse,
                     bestemtAv = BrevvalgRevurdering.BestemtAv.Behandler(saksbehandler.navIdent),

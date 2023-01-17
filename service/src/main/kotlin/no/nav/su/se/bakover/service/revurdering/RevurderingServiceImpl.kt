@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -72,6 +71,7 @@ import no.nav.su.se.bakover.domain.revurdering.VurderOmBeløpsendringErStørreEn
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.oppdater.oppdaterRevurdering
+import no.nav.su.se.bakover.domain.revurdering.oppdaterTilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVedOpphørService
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
@@ -731,37 +731,13 @@ class RevurderingServiceImpl(
         }
     }
 
-    override fun oppdaterTilbakekrevingsbehandling(request: OppdaterTilbakekrevingsbehandlingRequest): Either<KunneIkkeOppdatereTilbakekrevingsbehandling, SimulertRevurdering> {
+    override fun oppdaterTilbakekrevingsbehandling(request: OppdaterTilbakekrevingsbehandlingRequest): Either<KunneIkkeOppdatereTilbakekrevingsbehandling, Revurdering> {
         val revurdering =
-            hent(request.revurderingId).getOrHandle { return KunneIkkeOppdatereTilbakekrevingsbehandling.FantIkkeRevurdering.left() }
+            hent(request.revurderingId).getOrHandle { throw IllegalArgumentException("Fant ikke revurdering ${request.revurderingId}") }
 
-        if (revurdering !is SimulertRevurdering) {
-            return KunneIkkeOppdatereTilbakekrevingsbehandling.UgyldigTilstand(fra = revurdering::class).left()
+        return revurdering.oppdaterTilbakekrevingsbehandling(request, clock).tap {
+            revurderingRepo.lagre(it)
         }
-
-        val ikkeAvgjort = IkkeAvgjort(
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(clock),
-            sakId = revurdering.sakId,
-            revurderingId = revurdering.id,
-            periode = revurdering.periode,
-        )
-
-        val oppdatert = revurdering.oppdaterTilbakekrevingsbehandling(
-            when (request.avgjørelse) {
-                OppdaterTilbakekrevingsbehandlingRequest.Avgjørelse.TILBAKEKREV -> {
-                    ikkeAvgjort.tilbakekrev()
-                }
-
-                OppdaterTilbakekrevingsbehandlingRequest.Avgjørelse.IKKE_TILBAKEKREV -> {
-                    ikkeAvgjort.ikkeTilbakekrev()
-                }
-            },
-        )
-
-        revurderingRepo.lagre(oppdatert)
-
-        return oppdatert.right()
     }
 
     override fun sendTilAttestering(
@@ -903,6 +879,7 @@ class RevurderingServiceImpl(
                     KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
                 }
             }
+
             else -> KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand(
                 fra = revurdering::class,
                 til = RevurderingTilAttestering::class,

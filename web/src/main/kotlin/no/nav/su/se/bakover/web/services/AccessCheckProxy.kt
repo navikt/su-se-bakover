@@ -95,7 +95,6 @@ import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.domain.revurdering.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.SendTilAttesteringRequest
-import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseRequest
@@ -717,7 +716,7 @@ open class AccessCheckProxy(
                     return services.revurdering.sendTilAttestering(request)
                 }
 
-                override fun oppdaterTilbakekrevingsbehandling(request: OppdaterTilbakekrevingsbehandlingRequest): Either<KunneIkkeOppdatereTilbakekrevingsbehandling, SimulertRevurdering> {
+                override fun oppdaterTilbakekrevingsbehandling(request: OppdaterTilbakekrevingsbehandlingRequest): Either<KunneIkkeOppdatereTilbakekrevingsbehandling, Revurdering> {
                     assertHarTilgangTilRevurdering(request.revurderingId)
                     return services.revurdering.oppdaterTilbakekrevingsbehandling(request)
                 }

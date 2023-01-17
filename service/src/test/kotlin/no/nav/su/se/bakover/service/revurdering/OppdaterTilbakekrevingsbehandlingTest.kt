@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeTilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeOppdatereTilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.revurdering.OppdaterTilbakekrevingsbehandlingRequest
+import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
@@ -24,23 +25,6 @@ import org.mockito.kotlin.mock
 import java.util.UUID
 
 internal class OppdaterTilbakekrevingsbehandlingTest {
-    @Test
-    fun `fant ikke revurdering`() {
-        RevurderingServiceMocks(
-            revurderingRepo = mock {
-                on { hent(any()) } doReturn null
-            },
-        ).let {
-            it.revurderingService.oppdaterTilbakekrevingsbehandling(
-                request = OppdaterTilbakekrevingsbehandlingRequest(
-                    revurderingId = UUID.randomUUID(),
-                    avgjørelse = OppdaterTilbakekrevingsbehandlingRequest.Avgjørelse.TILBAKEKREV,
-                    saksbehandler = saksbehandler,
-                ),
-            ) shouldBe KunneIkkeOppdatereTilbakekrevingsbehandling.FantIkkeRevurdering.left()
-        }
-    }
-
     @Test
     fun `ugyldig tilstand`() {
         listOf(
@@ -89,7 +73,7 @@ internal class OppdaterTilbakekrevingsbehandlingTest {
                     saksbehandler = saksbehandler,
                 ),
             ).getOrFail().let { oppdatert ->
-                oppdatert.tilbakekrevingsbehandling shouldBe beOfType<Tilbakekrev>()
+                (oppdatert as SimulertRevurdering).tilbakekrevingsbehandling shouldBe beOfType<Tilbakekrev>()
             }
 
             it.revurderingService.oppdaterTilbakekrevingsbehandling(
@@ -99,7 +83,7 @@ internal class OppdaterTilbakekrevingsbehandlingTest {
                     saksbehandler = saksbehandler,
                 ),
             ).getOrFail().let { oppdatert ->
-                oppdatert.tilbakekrevingsbehandling shouldBe beOfType<IkkeTilbakekrev>()
+                (oppdatert as SimulertRevurdering).tilbakekrevingsbehandling shouldBe beOfType<IkkeTilbakekrev>()
             }
         }
     }
