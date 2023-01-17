@@ -35,13 +35,12 @@ private data class ListOfMicrosoftGraphResponse(
 
 internal class MicrosoftGraphApiClient(
     private val exchange: AzureAd,
+    private val baseUrl: String = "https://graph.microsoft.com/v1.0",
+    private val graphApiAppId: String = "https://graph.microsoft.com",
+    private val selectFields: String = "onPremisesSamAccountName,displayName,givenName,mail,officeLocation,surname,userPrincipalName,id,jobTitle",
+    private val equalityCheckFilterField: String = "onPremisesSamAccountName",
 ) : IdentClient {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
-
-    private val graphApiAppId = "https://graph.microsoft.com"
-    private val userFields =
-        "onPremisesSamAccountName,displayName,givenName,mail,officeLocation,surname,userPrincipalName,id,jobTitle"
-    private val baseUrl = "https://graph.microsoft.com/v1.0"
 
     override fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<KunneIkkeHenteNavnForNavIdent, String> {
         return hentBrukerinformasjonForNavIdent(navIdent).map { it.displayName }
@@ -53,12 +52,14 @@ internal class MicrosoftGraphApiClient(
         return doReq<ListOfMicrosoftGraphResponse>(
             "$baseUrl/users".httpGet(
                 listOf(
-                    "\$select" to userFields,
-                    "\$filter" to "mailNickname eq '$navIdent'",
+                    "\$select" to selectFields,
+                    "\$filter" to "$equalityCheckFilterField eq '$navIdent'",
+                    "\$count" to "true",
                 ),
             )
                 .authentication()
-                .bearer(token),
+                .bearer(token)
+                .header("ConsistencyLevel", "eventual"),
         ).flatMap {
             if (it.value.size != 1) {
                 log.error("Fant ingen eller flere brukere for navIdent $navIdent: ${it.value.size}. Se sikker logg dersom vi fant flere.")
