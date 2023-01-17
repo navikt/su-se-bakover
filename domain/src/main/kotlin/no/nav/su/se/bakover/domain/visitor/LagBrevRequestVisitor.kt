@@ -421,8 +421,6 @@ class LagBrevRequestVisitor(
                 } else {
                     return KunneIkkeLageBrevRequest.SkalIkkeSendeBrev.left()
                 },
-                // fritekst = revurdering.skalSendeBrev()
-                    .getOrHandle { return KunneIkkeLageBrevRequest.SkalIkkeSendeBrev.left() }.fritekst ?: "",
                 // TODO("flere_satser denne må endres til å støtte flere")
                 harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEPS(),
                 forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.uføreVilkår()
