@@ -414,8 +414,13 @@ class LagBrevRequestVisitor(
                 saksbehandlerNavn = it.saksbehandlerNavn,
                 attestantNavn = it.attestantNavn,
                 revurdertBeregning = beregning,
-                fritekst = revurdering.skalSendeBrev()
-                    .getOrHandle { return KunneIkkeLageBrevRequest.SkalIkkeSendeBrev.left() }.fritekst ?: "",
+                fritekst = if (revurdering.skalSendeBrev()) {
+                    revurdering.brevvalgRevurdering.skalSendeBrev()
+                        .getOrHandle { throw IllegalStateException("context mismatch: Revurderingen skal sende brev, men brevvalg skal ikke sendes. ${revurdering.id}") }.fritekst
+                        ?: ""
+                } else {
+                    return KunneIkkeLageBrevRequest.SkalIkkeSendeBrev.left()
+                },
                 // TODO("flere_satser denne må endres til å støtte flere")
                 harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEPS(),
                 forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.uføreVilkår()
@@ -593,8 +598,13 @@ class LagBrevRequestVisitor(
                 person = personOgNavn.person,
                 harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEPS(),
                 beregning = beregning,
-                fritekst = revurdering.skalSendeBrev()
-                    .getOrHandle { return KunneIkkeLageBrevRequest.SkalIkkeSendeBrev.left() }.fritekst ?: "",
+                fritekst = if (revurdering.skalSendeBrev()) {
+                    revurdering.brevvalgRevurdering.skalSendeBrev()
+                        .getOrHandle { throw IllegalStateException("context mismatch: Revurderingen skal sende brev, men brevvalg skal ikke sendes. ${revurdering.id}") }.fritekst
+                        ?: ""
+                } else {
+                    return KunneIkkeLageBrevRequest.SkalIkkeSendeBrev.left()
+                },
                 saksbehandlerNavn = personOgNavn.saksbehandlerNavn,
                 attestantNavn = personOgNavn.attestantNavn,
                 forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.hentUføregrunnlag()

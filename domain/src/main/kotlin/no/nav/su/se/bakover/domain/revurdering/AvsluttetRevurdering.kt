@@ -88,6 +88,10 @@ data class AvsluttetRevurdering private constructor(
         -> throw IllegalStateException("Skal ikke kunne instansiere en AvsluttetRevurdering med ${underliggendeRevurdering::class}. Sjekk tryCreate om du får denne feilen. id: $id")
     }
 
+    override fun skalSendeBrev(): Boolean {
+        return skalSendeAvslutningsbrev()
+    }
+
     override fun accept(visitor: RevurderingVisitor) {
         visitor.visit(this)
     }

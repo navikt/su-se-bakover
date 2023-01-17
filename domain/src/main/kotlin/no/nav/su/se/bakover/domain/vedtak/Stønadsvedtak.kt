@@ -33,7 +33,6 @@ import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.domain.visitor.SkalSendeBrevVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 import java.util.UUID
@@ -51,12 +50,7 @@ sealed interface Stønadsvedtak : Vedtak, Visitable<VedtakVisitor> {
     fun erStans() = this is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse
     fun erGjenopptak() = this is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse
 
-    fun skalSendeBrev(): Boolean {
-        return SkalSendeBrevVisitor().let {
-            this.accept(it)
-            it.sendBrev
-        }
-    }
+    fun skalSendeBrev(): Boolean
 
     /**
      * Dersom grunnlaget inneholder fradrag av typen [Fradragstype.AvkortingUtenlandsopphold] vet vi at vedtaket
@@ -210,6 +204,10 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                 behandling.grunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget()
             }
 
+            override fun skalSendeBrev(): Boolean {
+                return true
+            }
+
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
             override fun accept(visitor: VedtakVisitor) {
@@ -228,6 +226,16 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
+
+            /**
+             *  Dersom dette er en tilbakekreving som avventer kravvgrunnlag, så ønsker vi ikke å sende brev før vi mottar kravgrunnlaget
+             *  Brevutsending skjer i [no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService.sendTilbakekrevingsvedtak]
+             *  TODO: Er det mulig å flytte denne logikken til ut fra vedtaks-biten til en felles plass?
+             */
+            override fun skalSendeBrev(): Boolean {
+                return behandling.skalSendeBrev() && behandling.tilbakekrevingErVurdert().isLeft()
+            }
+
             override fun harIdentifisertBehovForFremtidigAvkorting() =
                 behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel
 
@@ -247,6 +255,10 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
+            override fun skalSendeBrev(): Boolean {
+                return false
+            }
+
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
             override fun accept(visitor: VedtakVisitor) {
@@ -267,14 +279,25 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         ) : EndringIYtelse {
             fun utledOpphørsgrunner(clock: Clock) = behandling.utledOpphørsgrunner(clock)
 
+            /**
+             *  Dersom dette er en tilbakekreving som avventer kravvgrunnlag, så ønsker vi ikke å sende brev før vi mottar kravgrunnlaget
+             *  Brevutsending skjer i [no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService.sendTilbakekrevingsvedtak]
+             *  TODO: Er det mulig å flytte denne logikken til ut fra vedtaks-biten til en felles plass?
+             */
+            override fun skalSendeBrev(): Boolean {
+                return behandling.skalSendeBrev() && behandling.tilbakekrevingErVurdert().isLeft()
+            }
+
             override fun harIdentifisertBehovForFremtidigAvkorting() =
                 behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel
 
             fun harIdentifisertBehovForFremtidigAvkorting(periode: Periode) =
-                behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel && behandling.avkorting.periode().overlapper(periode)
+                behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel && behandling.avkorting.periode()
+                    .overlapper(periode)
 
             /** Sjekker både saksbehandlers og attestants simulering. */
-            fun førteTilFeilutbetaling(periode: Periode): Boolean = behandling.simulering.harFeilutbetalinger(periode) || simulering.harFeilutbetalinger(periode)
+            fun førteTilFeilutbetaling(periode: Periode): Boolean =
+                behandling.simulering.harFeilutbetalinger(periode) || simulering.harFeilutbetalinger(periode)
 
             override fun accept(visitor: VedtakVisitor) {
                 visitor.visit(this)
@@ -291,6 +314,10 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
+            override fun skalSendeBrev(): Boolean {
+                return false
+            }
+
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
             override fun accept(visitor: VedtakVisitor) {
@@ -308,6 +335,10 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
+            override fun skalSendeBrev(): Boolean {
+                return false
+            }
+
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
             override fun accept(visitor: VedtakVisitor) {
@@ -358,6 +389,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                         originaltVedtak = originaltVedtak,
                     )
                 }
+
                 is CopyArgs.Tidslinje.NyPeriode -> {
                     copy(
                         periode = args.periode,
@@ -375,6 +407,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                         originaltVedtak = originaltVedtak,
                     )
                 }
+
                 is CopyArgs.Tidslinje.Maskert -> {
                     copy(args.args).copy(opprettet = opprettet.plusUnits(1))
                 }
@@ -481,6 +514,10 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
             behandling.grunnlagsdataOgVilkårsvurderinger.krevMinstEttAvslag()
         }
 
+        override fun skalSendeBrev(): Boolean {
+            return true
+        }
+
         override fun harIdentifisertBehovForFremtidigAvkorting() = false
         override fun accept(visitor: VedtakVisitor) {
             visitor.visit(this)
@@ -499,6 +536,10 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
     ) : Avslagsvedtak {
         init {
             behandling.grunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget()
+        }
+
+        override fun skalSendeBrev(): Boolean {
+            return true
         }
 
         override fun harIdentifisertBehovForFremtidigAvkorting() = false
