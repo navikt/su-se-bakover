@@ -86,7 +86,6 @@ import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerReques
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
@@ -212,15 +211,10 @@ class SøknadsbehandlingServiceImpl(
                 søknadsbehandling = it,
                 statusovergang = Statusovergang.TilAttestering(request.saksbehandler, request.fritekstTilBrev),
             )
-        } ?: return KunneIkkeSendeTilAttestering.FantIkkeBehandling.left()
-
-        tilbakekrevingService.hentAvventerKravgrunnlag(søknadsbehandling.sakId)
-            .ifNotEmpty {
-                return KunneIkkeSendeTilAttestering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving.left()
-            }
+        } ?: throw IllegalArgumentException("Søknadsbehandling send til attestering: Fant ikke søknadsbehandling ${request.behandlingId}")
 
         val aktørId = personService.hentAktørId(søknadsbehandling.fnr).getOrElse {
-            log.error("Fant ikke aktør-id med for fødselsnummer : ${søknadsbehandling.fnr}")
+            log.error("Søknadsbehandling send til attestering: Fant ikke aktør-id knyttet til fødselsnummer for søknadsbehandling ${request.behandlingId}")
             return KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId.left()
         }
         val eksisterendeOppgaveId: OppgaveId = søknadsbehandling.oppgaveId
@@ -235,7 +229,7 @@ class SøknadsbehandlingServiceImpl(
                 clock = clock,
             ),
         ).getOrElse {
-            log.error("Kunne ikke opprette Attesteringsoppgave. Avbryter handlingen.")
+            log.error("Søknadsbehandling send til attestering: Kunne ikke opprette Attesteringsoppgave for søknadsbehandling ${request.behandlingId}. Avbryter handlingen.")
             return KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave.left()
         }
 
@@ -248,7 +242,7 @@ class SøknadsbehandlingServiceImpl(
         oppgaveService.lukkOppgave(eksisterendeOppgaveId).map {
             behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.LUKKET_OPPGAVE)
         }.mapLeft {
-            log.error("Klarte ikke å lukke oppgave. kall til oppgave for oppgaveId ${søknadsbehandling.oppgaveId} feilet")
+            log.error("Søknadsbehandling send til attestering: Klarte ikke å lukke oppgave ${søknadsbehandling.oppgaveId} for søknadsbehandling ${request.behandlingId}.")
         }
         behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.PERSISTERT)
         behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.OPPRETTET_OPPGAVE)
