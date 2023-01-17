@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.left
 import arrow.core.right
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
@@ -25,7 +25,6 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulertSøknadsbehandlingUføre
-import no.nav.su.se.bakover.test.søknadsbehandlingSimulert
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -35,7 +34,7 @@ import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
-import java.util.UUID
+import java.lang.IllegalArgumentException
 
 class SøknadsbehandlingServiceAttesteringTest {
 
@@ -116,20 +115,20 @@ class SøknadsbehandlingServiceAttesteringTest {
         val oppgaveServiceMock: OppgaveService = mock()
         val eventObserver: StatistikkEventObserver = mock()
 
-        val actual = createSøknadsbehandlingService(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            oppgaveService = oppgaveServiceMock,
-            personService = personServiceMock,
-            observer = eventObserver,
-        ).sendTilAttestering(
-            SøknadsbehandlingService.SendTilAttesteringRequest(
-                simulertBehandling.id,
-                saksbehandler,
-                "",
-            ),
-        )
-
-        actual shouldBe SøknadsbehandlingService.KunneIkkeSendeTilAttestering.FantIkkeBehandling.left()
+        shouldThrow<IllegalArgumentException> {
+            createSøknadsbehandlingService(
+                søknadsbehandlingRepo = søknadsbehandlingRepoMock,
+                oppgaveService = oppgaveServiceMock,
+                personService = personServiceMock,
+                observer = eventObserver,
+            ).sendTilAttestering(
+                SøknadsbehandlingService.SendTilAttesteringRequest(
+                    simulertBehandling.id,
+                    saksbehandler,
+                    "",
+                ),
+            )
+        }.message shouldBe "Søknadsbehandling send til attestering: Fant ikke søknadsbehandling ${simulertBehandling.id}"
 
         verify(søknadsbehandlingRepoMock).hent(simulertBehandling.id)
 
@@ -274,28 +273,5 @@ class SøknadsbehandlingServiceAttesteringTest {
             )
         }
         verifyNoMoreInteractions(søknadsbehandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver)
-    }
-
-    @Test
-    fun `får ikke sendt til attestering dersom det eksisterer revurderinger som avventer kravgrunnlag`() {
-        val søknadsbehandling = søknadsbehandlingSimulert().second
-        val mock = mock<AvventerKravgrunnlag>()
-
-        SøknadsbehandlingServiceAndMocks(
-            søknadsbehandlingRepo = mock {
-                on { hent(any()) } doReturn søknadsbehandling
-            },
-            tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn listOf(mock)
-            },
-        ).let {
-            it.søknadsbehandlingService.sendTilAttestering(
-                SøknadsbehandlingService.SendTilAttesteringRequest(
-                    behandlingId = søknadsbehandling.id,
-                    saksbehandler = saksbehandler,
-                    fritekstTilBrev = "nei",
-                ),
-            ) shouldBe SøknadsbehandlingService.KunneIkkeSendeTilAttestering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving.left()
-        }
     }
 }

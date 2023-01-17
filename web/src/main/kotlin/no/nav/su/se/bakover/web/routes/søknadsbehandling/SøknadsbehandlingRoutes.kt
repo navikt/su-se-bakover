@@ -337,14 +337,6 @@ internal fun Route.søknadsbehandlingRoutes(
                                     KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId -> {
                                         Feilresponser.fantIkkeAktørId
                                     }
-
-                                    KunneIkkeSendeTilAttestering.FantIkkeBehandling -> {
-                                        fantIkkeBehandling
-                                    }
-
-                                    KunneIkkeSendeTilAttestering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving -> {
-                                        Feilresponser.sakAvventerKravgrunnlagForTilbakekreving
-                                    }
                                 }
                                 call.svar(resultat)
                             },

@@ -163,10 +163,8 @@ interface SøknadsbehandlingService {
     )
 
     sealed class KunneIkkeSendeTilAttestering {
-        object FantIkkeBehandling : KunneIkkeSendeTilAttestering()
         object KunneIkkeFinneAktørId : KunneIkkeSendeTilAttestering()
         object KunneIkkeOppretteOppgave : KunneIkkeSendeTilAttestering()
-        object SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving : KunneIkkeSendeTilAttestering()
     }
 
     data class UnderkjennRequest(
