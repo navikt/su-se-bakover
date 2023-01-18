@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -638,7 +638,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     saksbehandler = nySaksbehandler,
                     begrunnelse = begrunnelse,
                     beregningStrategyFactory = beregningStrategyFactory,
-                ).getOrHandle { return it.left() }
+                ).getOrElse { return it.left() }
             }
 
             is AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere -> {
@@ -652,7 +652,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     begrunnelse = begrunnelse,
                     clock = clock,
                     beregningStrategyFactory = beregningStrategyFactory,
-                ).getOrHandle { return it.left() }
+                ).getOrElse { return it.left() }
             }
         }.let { (behandling, beregning) ->
             when (VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
@@ -711,7 +711,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         return leggTilFradragsgrunnlag(
             saksbehandler,
             fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold },
-        ).getOrHandle {
+        ).getOrElse {
             return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left()
         }.let {
             it to gjørBeregning(
@@ -746,7 +746,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     feilutbetaltBeløp = avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum(),
                     beregning = beregningUtenAvkorting,
                     clock = clock,
-                ).lagFradrag().getOrHandle {
+                ).lagFradrag().getOrElse {
                     return when (it) {
                         Avkortingsplan.KunneIkkeLageAvkortingsplan.AvkortingErUfullstendig -> {
                             KunneIkkeBeregne.AvkortingErUfullstendig.left()
@@ -757,7 +757,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 val medAvkorting = utenAvkorting.leggTilFradragsgrunnlag(
                     saksbehandler = saksbehandler,
                     fradragsgrunnlag = utenAvkorting.grunnlagsdata.fradragsgrunnlag + fradragForAvkorting,
-                ).getOrHandle { return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left() }
+                ).getOrElse { return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left() }
 
                 medAvkorting to gjørBeregning(
                     søknadsbehandling = medAvkorting,
@@ -813,7 +813,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                                         ),
                                     ),
                                 ),
-                            ).getOrHandle { throw IllegalArgumentException(it.toString()) },
+                            ).getOrElse { throw IllegalArgumentException(it.toString()) },
                         )
                     } else {
                         it
@@ -1068,7 +1068,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
                     Sakstype.UFØRE -> {
                         vilkårsvurderinger.uføreVilkår()
-                            .getOrHandle { throw IllegalStateException("Søknadsbehandling uføre: $id mangler uføregrunnlag") }
+                            .getOrElse { throw IllegalStateException("Søknadsbehandling uføre: $id mangler uføregrunnlag") }
                             .grunnlag
                             .toNonEmptyList()
                     }
@@ -1273,7 +1273,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
                     Sakstype.UFØRE -> {
                         vilkårsvurderinger.uføreVilkår()
-                            .getOrHandle { throw IllegalStateException("Søknadsbehandling uføre: $id mangler uføregrunnlag") }
+                            .getOrElse { throw IllegalStateException("Søknadsbehandling uføre: $id mangler uføregrunnlag") }
                             .grunnlag
                             .toNonEmptyList()
                     }
@@ -1723,7 +1723,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
                         Sakstype.UFØRE -> {
                             vilkårsvurderinger.uføreVilkår()
-                                .getOrHandle { throw IllegalStateException("Søknadsbehandling uføre: $id mangler uføregrunnlag") }
+                                .getOrElse { throw IllegalStateException("Søknadsbehandling uføre: $id mangler uføregrunnlag") }
                                 .grunnlag
                                 .toNonEmptyList()
                         }

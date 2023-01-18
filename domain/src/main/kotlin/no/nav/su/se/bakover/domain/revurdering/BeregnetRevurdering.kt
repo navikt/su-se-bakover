@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
@@ -165,7 +165,7 @@ sealed class BeregnetRevurdering : Revurdering() {
 
                     Sakstype.UFØRE -> {
                         vilkårsvurderinger.uføreVilkår()
-                            .getOrHandle { throw IllegalStateException("Revurdering uføre: $id mangler uføregrunnlag") }
+                            .getOrElse { throw IllegalStateException("Revurdering uføre: $id mangler uføregrunnlag") }
                             .grunnlag
                             .toNonEmptyList()
                     }
@@ -238,7 +238,7 @@ sealed class BeregnetRevurdering : Revurdering() {
             simuler: (opphørsperiode: Periode, saksbehandler: NavIdentBruker.Saksbehandler) -> Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling>,
         ): Either<SimulerUtbetalingFeilet, SimulertRevurdering.Opphørt> {
             val (simulertUtbetaling, håndtertAvkorting) = simuler(periode, saksbehandler)
-                .getOrHandle { return it.left() }
+                .getOrElse { return it.left() }
                 .let { simulering ->
                     when (val avkortingsvarsel = lagAvkortingsvarsel(simulering, clock)) {
                         is Avkortingsvarsel.Ingen -> {
@@ -261,9 +261,9 @@ sealed class BeregnetRevurdering : Revurdering() {
                             val nyOpphørsperiode = OpphørsperiodeForUtbetalinger(
                                 revurdering = this,
                                 avkortingsvarsel = avkortingsvarsel,
-                            ).getOrHandle { return SimulerUtbetalingFeilet.Avkorting(it).left() }.value
+                            ).getOrElse { return SimulerUtbetalingFeilet.Avkorting(it).left() }.value
                             val simuleringMedNyOpphørsdato = simuler(nyOpphørsperiode, saksbehandler)
-                                .getOrHandle { return it.left() }
+                                .getOrElse { return it.left() }
 
                             if (simuleringMedNyOpphørsdato.simulering.harFeilutbetalinger()) {
                                 sikkerLogg.error(

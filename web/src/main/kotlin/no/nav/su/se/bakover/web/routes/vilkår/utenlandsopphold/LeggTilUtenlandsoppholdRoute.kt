@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.vilkår.utenlandsopphold
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.ktor.http.HttpStatusCode
@@ -107,7 +107,7 @@ internal data class UtenlandsoppholdBody(
             request = vurderinger.map {
                 LeggTilUtenlandsoppholdRequest(
                     behandlingId = revurderingId,
-                    periode = it.periode.toPeriodeOrResultat().getOrHandle { return it.left() },
+                    periode = it.periode.toPeriodeOrResultat().getOrElse { return it.left() },
                     status = it.status,
                 )
             }.toNonEmptyList(),

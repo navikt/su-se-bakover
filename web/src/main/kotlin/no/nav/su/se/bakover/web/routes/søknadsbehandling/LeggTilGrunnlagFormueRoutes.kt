@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.ktor.http.HttpStatusCode
@@ -73,13 +73,13 @@ private data class FormueBody(
                 formuegrunnlag = this.map { formueBody ->
                     LeggTilFormuevilkårRequest.Grunnlag.Søknadsbehandling(
                         periode = formueBody.periode.toPeriodeOrResultat()
-                            .getOrHandle { return it.left() },
+                            .getOrElse { return it.left() },
                         epsFormue = formueBody.epsFormue?.let {
-                            lagFormuegrunnlag(formueBody.epsFormue).getOrHandle {
+                            lagFormuegrunnlag(formueBody.epsFormue).getOrElse {
                                 return it.tilResultat().left()
                             }
                         },
-                        søkersFormue = lagFormuegrunnlag(formueBody.søkersFormue).getOrHandle {
+                        søkersFormue = lagFormuegrunnlag(formueBody.søkersFormue).getOrElse {
                             return it.tilResultat().left()
                         },
                         begrunnelse = formueBody.begrunnelse,

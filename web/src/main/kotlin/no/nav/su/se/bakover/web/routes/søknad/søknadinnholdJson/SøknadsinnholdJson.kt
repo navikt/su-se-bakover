@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonSubTypes
@@ -78,22 +78,22 @@ data class SøknadsinnholdAlderJson(
             harSøktAlderspensjon = harSøktAlderspensjon.toHarSøktAlderspensjon(),
             oppholdstillatelseAlder = oppholdstillatelseAlder.toOppholdstillatelseAlder(),
             personopplysninger = personopplysninger.toPersonopplysninger(),
-            boforhold = boforhold.toBoforhold().getOrHandle {
+            boforhold = boforhold.toBoforhold().getOrElse {
                 return KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvBoforholdWeb(it).left()
             },
             utenlandsopphold = utenlandsopphold.toUtenlandsopphold(),
-            oppholdstillatelse = oppholdstillatelse.toOppholdstillatelse().getOrHandle {
+            oppholdstillatelse = oppholdstillatelse.toOppholdstillatelse().getOrElse {
                 return KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvOppholdstillatelseWeb(it).left()
             },
             inntektOgPensjon = inntektOgPensjon.toInntektOgPensjon(),
-            formue = formue.toFormue().getOrHandle {
+            formue = formue.toFormue().getOrElse {
                 return KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvFormueWeb(it).left()
             },
             forNav = forNav.toForNav(),
-            ektefelle = ektefelle?.toEktefelle()?.getOrHandle {
+            ektefelle = ektefelle?.toEktefelle()?.getOrElse {
                 return KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvEktefelleWeb(it).left()
             },
-        ).getOrHandle {
+        ).getOrElse {
             return KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvSøknadinnholdWeb(it).left()
         }.right()
 
@@ -131,22 +131,22 @@ data class SøknadsinnholdUføreJson(
             uførevedtak = uførevedtak.toUførevedtak(),
             personopplysninger = personopplysninger.toPersonopplysninger(),
             flyktningsstatus = flyktningsstatus.toFlyktningsstatus(),
-            boforhold = boforhold.toBoforhold().getOrHandle {
+            boforhold = boforhold.toBoforhold().getOrElse {
                 return KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvBoforholdWeb(it).left()
             },
             utenlandsopphold = utenlandsopphold.toUtenlandsopphold(),
-            oppholdstillatelse = oppholdstillatelse.toOppholdstillatelse().getOrHandle {
+            oppholdstillatelse = oppholdstillatelse.toOppholdstillatelse().getOrElse {
                 return KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvOppholdstillatelseWeb(it).left()
             },
             inntektOgPensjon = inntektOgPensjon.toInntektOgPensjon(),
-            formue = formue.toFormue().getOrHandle {
+            formue = formue.toFormue().getOrElse {
                 return KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvFormueWeb(it).left()
             },
             forNav = forNav.toForNav(),
-            ektefelle = ektefelle?.toEktefelle()?.getOrHandle {
+            ektefelle = ektefelle?.toEktefelle()?.getOrElse {
                 return KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvEktefelleWeb(it).left()
             },
-        ).getOrHandle {
+        ).getOrElse {
             return KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvSøknadinnholdWeb(it).left()
         }.right()
 

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.test
 
 import arrow.core.Nel
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -29,7 +29,7 @@ fun UføreVilkår.Vurdert.Companion.create(
     vurderingsperioder: Nel<VurderingsperiodeUføre>,
 ): UføreVilkår.Vurdert {
     return tryCreate(vurderingsperioder)
-        .getOrHandle { throw IllegalArgumentException(it.toString()) }
+        .getOrElse { throw IllegalArgumentException(it.toString()) }
 }
 
 /**
@@ -41,7 +41,7 @@ fun FormueVilkår.Vurdert.Companion.createFromGrunnlag(
     tryCreateFromGrunnlag(
         grunnlag = grunnlag.map { false to it },
         formuegrenserFactory = formuegrenserFactoryTestPåDato(),
-    ).getOrHandle { throw IllegalArgumentException(it.toString()) }
+    ).getOrElse { throw IllegalArgumentException(it.toString()) }
 
 fun Formuegrunnlag.Companion.create(
     id: UUID = UUID.randomUUID(),
@@ -59,7 +59,7 @@ fun Formuegrunnlag.Companion.create(
     søkersFormue = søkersFormue,
     bosituasjon = listOf(*bosituasjon),
     behandlingsPeriode = behandlingsPeriode,
-).getOrHandle { throw IllegalArgumentException("Kunne ikke instansiere Formuegrunnlag. Underliggende grunn: $it") }
+).getOrElse { throw IllegalArgumentException("Kunne ikke instansiere Formuegrunnlag. Underliggende grunn: $it") }
 
 fun Formuegrunnlag.Companion.create(
     id: UUID = UUID.randomUUID(),
@@ -77,7 +77,7 @@ fun Formuegrunnlag.Companion.create(
     søkersFormue = søkersFormue,
     bosituasjon = listOf(bosituasjon),
     behandlingsPeriode = behandlingsPeriode,
-).getOrHandle { throw IllegalArgumentException("Kunne ikke instansiere Formuegrunnlag. Underliggende grunn: $it") }
+).getOrElse { throw IllegalArgumentException("Kunne ikke instansiere Formuegrunnlag. Underliggende grunn: $it") }
 
 fun Formuegrunnlag.Companion.create(
     id: UUID = UUID.randomUUID(),
@@ -95,7 +95,7 @@ fun Formuegrunnlag.Companion.create(
     søkersFormue = søkersFormue,
     bosituasjon = bosituasjon,
     behandlingsPeriode = behandlingsPeriode,
-).getOrHandle { throw IllegalArgumentException("Kunne ikke instansiere Formuegrunnlag. Underliggende grunn: $it") }
+).getOrElse { throw IllegalArgumentException("Kunne ikke instansiere Formuegrunnlag. Underliggende grunn: $it") }
 
 fun Formuegrunnlag.Verdier.Companion.empty() = create(
     verdiIkkePrimærbolig = 0,

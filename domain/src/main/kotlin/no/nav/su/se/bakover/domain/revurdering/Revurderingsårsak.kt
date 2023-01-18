@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.Either
 import arrow.core.getOrElse
-import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 
@@ -55,7 +54,7 @@ data class Revurderingsårsak(
             return tryCreate(
                 årsak = årsak,
                 begrunnelse = begrunnelse,
-            ).getOrHandle { throw IllegalArgumentException("Ugyldig revurderingsårsak: $it") }
+            ).getOrElse { throw IllegalArgumentException("Ugyldig revurderingsårsak: $it") }
         }
     }
 
@@ -73,7 +72,7 @@ data class Revurderingsårsak(
             }
 
             fun create(value: String): Begrunnelse {
-                return tryCreate(value).getOrHandle { throw IllegalArgumentException("Begrunnelse kan ikke være tom: $value") }
+                return tryCreate(value).getOrElse { throw IllegalArgumentException("Begrunnelse kan ikke være tom: $value") }
             }
 
             val MIGRERT = Begrunnelse("MIGRERT")

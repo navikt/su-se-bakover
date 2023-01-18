@@ -67,12 +67,12 @@ internal class KafkaStatistikkEventObserver(
     }
 
     private fun publiserEllerLoggFeil(melding: Either<Set<ValidationMessage>, ValidertStatistikkJsonMelding>) {
-        melding.tap {
+        melding.onRight {
             publisher.publiser(
                 topic = it.topic,
                 melding = it.validertJsonMelding,
             )
-        }.tapLeft {
+        }.onLeft {
             log.error("Skjemavalidering av statistikkmelding feilet: $it")
         }
     }

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.common.persistence
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import kotliquery.using
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
@@ -62,7 +62,7 @@ open class PostgresSessionContext(
      */
     override fun isClosed(): Boolean {
         if (session == null) return true
-        return Either.catch { session!!.connection.underlying.isClosed }.getOrHandle {
+        return Either.catch { session!!.connection.underlying.isClosed }.getOrElse {
             log.error("En feil skjedde når vi prøvde å sjekke om sesjonen var lukket", it)
             true
         }

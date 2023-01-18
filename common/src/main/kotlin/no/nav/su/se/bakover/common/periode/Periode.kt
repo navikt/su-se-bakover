@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.common.periode
 import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.NonEmptyList
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonIgnore
@@ -105,7 +105,7 @@ open class Periode protected constructor(
     companion object {
 
         fun create(fraOgMed: LocalDate, tilOgMed: LocalDate): Periode {
-            return tryCreate(fraOgMed, tilOgMed).getOrHandle { throw IllegalArgumentException(it.toString()) }
+            return tryCreate(fraOgMed, tilOgMed).getOrElse { throw IllegalArgumentException(it.toString()) }
         }
 
         fun tryCreate(fraOgMed: LocalDate, tilOgMed: LocalDate): Either<UgyldigPeriode, Periode> {
@@ -116,7 +116,7 @@ open class Periode protected constructor(
 
         @JvmStatic
         protected fun validateOrThrow(fraOgMed: LocalDate, tilOgMed: LocalDate) {
-            validate(fraOgMed, tilOgMed).tapLeft {
+            validate(fraOgMed, tilOgMed).onLeft {
                 throw IllegalArgumentException(it.toString())
             }
         }
@@ -181,7 +181,7 @@ fun List<Periode>.minsteAntallSammenhengendePerioder(): List<Periode> {
             slåttSammen.add(periode)
         } else if (slåttSammen.last().slåSammen(periode).isRight()) {
             val last = slåttSammen.removeLast()
-            slåttSammen.add(last.slåSammen(periode).getOrHandle { throw IllegalStateException("Skulle gått bra") })
+            slåttSammen.add(last.slåSammen(periode).getOrElse { throw IllegalStateException("Skulle gått bra") })
         } else {
             slåttSammen.add(periode)
         }
@@ -190,9 +190,7 @@ fun List<Periode>.minsteAntallSammenhengendePerioder(): List<Periode> {
 }
 
 fun Nel<Periode>.minsteAntallSammenhengendePerioder(): Nel<Periode> {
-    return (this as List<Periode>).minsteAntallSammenhengendePerioder().let {
-        it.toNonEmptyList()
-    }
+    return (this as List<Periode>).minsteAntallSammenhengendePerioder().toNonEmptyList()
 }
 
 /**

@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
@@ -51,7 +51,7 @@ internal class LeggTilFradragsgrunnlagTest {
 
             val actual = it.revurderingService.leggTilFradragsgrunnlag(
                 request,
-            ).getOrHandle { fail("Feilet med $it") }
+            ).getOrElse { fail("Feilet med $it") }
 
             inOrder(
                 it.revurderingRepo,

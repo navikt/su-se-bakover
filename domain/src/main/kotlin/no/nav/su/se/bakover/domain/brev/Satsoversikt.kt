@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.brev
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.common.ddMMyyyyFormatter
 import no.nav.su.se.bakover.common.periode.Periode
@@ -41,7 +41,7 @@ data class Satsoversikt(
 
         fun slåSammen(other: Satsperiode): Satsperiode {
             if (!tilstøterOgErLik(other)) throw IllegalArgumentException()
-            val nyPeriode = periode.slåSammen(other.periode).getOrHandle { throw IllegalArgumentException() }
+            val nyPeriode = periode.slåSammen(other.periode).getOrElse { throw IllegalArgumentException() }
             return Satsperiode(
                 fraOgMed = nyPeriode.fraOgMed.ddMMyyyy(),
                 tilOgMed = nyPeriode.tilOgMed.ddMMyyyy(),

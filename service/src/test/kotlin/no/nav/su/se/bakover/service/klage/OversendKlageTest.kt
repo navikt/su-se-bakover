@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.service.klage
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.kotest.assertions.fail
@@ -490,7 +490,7 @@ internal class OversendKlageTest {
         mocks.service.oversend(
             klageId = klage.id,
             attestant = attestant,
-        ).getOrHandle { fail(it.toString()) }.also {
+        ).getOrElse { fail(it.toString()) }.also {
             expectedKlage = OversendtKlage(
                 forrigeSteg = klage,
                 attesteringer = Attesteringshistorikk.create(

@@ -71,7 +71,7 @@ class RevurderingSimulerTest {
                                 clock = clock,
                             )
                         },
-                    ).tap {
+                    ).onRight {
                         it.simulering.harFeilutbetalinger() shouldBe true
                     }
                 }.getOrFail()

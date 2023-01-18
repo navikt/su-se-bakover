@@ -775,7 +775,7 @@ internal class KlagePostgresRepo(
             override fun toDomain(): VurderingerTilKlage.Vedtaksvurdering {
                 return VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
                     hjemler = hjemler.map { Hjemmel.fromString(it).toDomain() },
-                ).orNull()!!
+                ).getOrNull()!!
             }
         }
 

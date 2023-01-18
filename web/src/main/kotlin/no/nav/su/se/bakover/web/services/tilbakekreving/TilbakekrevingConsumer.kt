@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.services.tilbakekreving
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -21,7 +21,7 @@ class TilbakekrevingConsumer(
     fun onMessage(xmlMessage: String) {
         CorrelationId.withCorrelationId {
             val mottattMelding = TilbakekrevingsmeldingMapper.toDto(xmlMessage)
-                .getOrHandle { throw it }
+                .getOrElse { throw it }
 
             when (mottattMelding) {
                 is KravgrunnlagRootDto -> {
@@ -37,7 +37,7 @@ class TilbakekrevingConsumer(
                                 revurderingService.hentRevurdering(revurderingId) as IverksattRevurdering
                             },
                             kravgrunnlagMapper = { råttKravgrunnlag ->
-                                TilbakekrevingsmeldingMapper.toKravgrunnlg(råttKravgrunnlag).getOrHandle { throw it }
+                                TilbakekrevingsmeldingMapper.toKravgrunnlg(råttKravgrunnlag).getOrElse { throw it }
                             },
                         ).let {
                             tilbakekrevingService.lagre(it)

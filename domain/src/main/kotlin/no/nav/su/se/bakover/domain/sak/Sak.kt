@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain
 import arrow.core.Either
 import arrow.core.Tuple4
 import arrow.core.flatMap
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Fnr
@@ -415,7 +415,7 @@ data class Sak(
         return hentGjeldendeVedtaksdata(
             periode = periode,
             clock = clock,
-        ).getOrHandle {
+        ).getOrElse {
             return GjeldendeVedtaksdataErUgyldigForRevurdering.FantIngenVedtakSomKanRevurderes.left()
         }.let {
             if (!it.harVedtakIHelePerioden()) {
@@ -486,7 +486,7 @@ data class Sak(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): LukkSøknadOgSøknadsbehandlingResponse {
         val søknadId = lukkSøknadCommand.søknadId
-        val søknad = hentSøknad(søknadId).getOrHandle {
+        val søknad = hentSøknad(søknadId).getOrElse {
             throw IllegalArgumentException("Kunne ikke lukke søknad og søknadsbehandling. Fant ikke søknad for sak $id og søknad $søknadId. Underliggende feil: $it")
         }
         return hentSøknadsbehandlingForSøknad(søknadId).fold(
@@ -508,7 +508,7 @@ data class Sak(
                 // Finnes søknadsbehandling. Lukker søknadsbehandlingen, som i sin tur lukker søknaden.
                 søknadsbehandlingSomSkalLukkes.lukkSøknadsbehandlingOgSøknad(
                     lukkSøknadCommand = lukkSøknadCommand,
-                ).getOrHandle {
+                ).getOrElse {
                     throw IllegalArgumentException("Kunne ikke lukke søknad ${lukkSøknadCommand.søknadId} og søknadsbehandling. Underliggende feil: $it")
                 }.let { lukketSøknadsbehandling ->
                     Tuple4(
@@ -527,13 +527,13 @@ data class Sak(
         ).let { (sak, søknad, søknadsbehandling, statistikkhendelse) ->
             val lagBrevRequest = søknad.toBrevRequest(
                 hentPerson = {
-                    hentPerson().getOrHandle {
+                    hentPerson().getOrElse {
                         throw IllegalStateException("Kunne ikke lukke søknad ${lukkSøknadCommand.søknadId} og søknadsbehandling. Underliggende grunn: $it")
                     }
                 },
                 clock = clock,
                 hentSaksbehandlerNavn = {
-                    hentSaksbehandlerNavn(it).getOrHandle {
+                    hentSaksbehandlerNavn(it).getOrElse {
                         throw IllegalStateException("Kunne ikke lukke søknad ${lukkSøknadCommand.søknadId} og søknadsbehandling. Underliggende grunn: $it")
                     }
                 },
@@ -564,10 +564,10 @@ data class Sak(
             require(
                 hendelse is StatistikkEvent.Behandling.Søknad.Lukket || hendelse is StatistikkEvent.Søknad.Lukket,
             )
-            lagBrevRequest.tap {
+            lagBrevRequest.onRight {
                 require(it.saksnummer == sak.saksnummer)
             }
-            require(sak.hentSøknad(søknad.id).orNull()!! == søknad)
+            require(sak.hentSøknad(søknad.id).getOrNull()!! == søknad)
             søknadsbehandling?.also {
                 require(sak.søknadsbehandlinger.contains(søknadsbehandling))
                 require(søknadsbehandling.søknad == søknad)

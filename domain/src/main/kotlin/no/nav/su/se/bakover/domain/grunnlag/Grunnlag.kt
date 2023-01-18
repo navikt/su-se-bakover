@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.grunnlag
 
 import arrow.core.Either
 import arrow.core.flatMap
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import arrow.core.sequence
@@ -140,7 +140,7 @@ sealed class Grunnlag {
         }
 
         override fun copy(args: CopyArgs.Snitt): Fradragsgrunnlag? {
-            return copyInternal(args).getOrHandle { throw IllegalArgumentException(it.toString()) }
+            return copyInternal(args).getOrElse { throw IllegalArgumentException(it.toString()) }
         }
 
         private fun copyInternal(args: CopyArgs.Snitt): Either<UgyldigFradragsgrunnlag, Fradragsgrunnlag?> {
@@ -149,7 +149,7 @@ sealed class Grunnlag {
                     id = UUID.randomUUID(),
                     opprettet = this.opprettet,
                     fradrag = it,
-                ).getOrHandle { return it.left() }
+                ).getOrElse { return it.left() }
             }.right()
         }
 
@@ -170,7 +170,7 @@ sealed class Grunnlag {
                 id: UUID = UUID.randomUUID(),
                 opprettet: Tidspunkt,
                 fradrag: Fradrag,
-            ) = tryCreate(id, opprettet, fradrag).getOrHandle { throw IllegalArgumentException(it.toString()) }
+            ) = tryCreate(id, opprettet, fradrag).getOrElse { throw IllegalArgumentException(it.toString()) }
 
             fun tryCreate(
                 id: UUID = UUID.randomUUID(),
@@ -193,7 +193,9 @@ sealed class Grunnlag {
             }
 
             fun List<Fradragsgrunnlag>.harEpsInntekt() = this.any { it.fradrag.tilhørerEps() }
-            fun List<Fradragsgrunnlag>.perioder(): List<Periode> = map { it.periode }.minsteAntallSammenhengendePerioder()
+            fun List<Fradragsgrunnlag>.perioder(): List<Periode> =
+                map { it.periode }.minsteAntallSammenhengendePerioder()
+
             fun List<Fradragsgrunnlag>.allePerioderMedEPS(): List<Periode> {
                 return filter { it.tilhørerEps() }.map { it.periode }.minsteAntallSammenhengendePerioder()
             }
@@ -222,7 +224,7 @@ sealed class Grunnlag {
                                 utenlandskInntekt = it.first().utenlandskInntekt,
                                 tilhører = it.first().tilhører,
                             ),
-                        ).getOrHandle { throw IllegalStateException(it.toString()) }
+                        ).getOrElse { throw IllegalStateException(it.toString()) }
                     }
             }
 

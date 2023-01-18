@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.periode.Periode
@@ -56,7 +56,8 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             fradragsgrunnlag = fradragsgrunnlag,
         )
 
-        val actual = søknadsbehandlingService.leggTilFradragsgrunnlag(request, saksbehandler = saksbehandler).getOrHandle { fail { "uventet respons" } }
+        val actual = søknadsbehandlingService.leggTilFradragsgrunnlag(request, saksbehandler = saksbehandler)
+            .getOrElse { fail { "uventet respons" } }
 
         actual shouldBe Søknadsbehandling.Vilkårsvurdert.Innvilget(
             id = behandling.id,

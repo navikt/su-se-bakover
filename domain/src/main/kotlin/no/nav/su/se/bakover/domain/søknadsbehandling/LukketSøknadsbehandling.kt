@@ -29,19 +29,20 @@ data class LukketSøknadsbehandling private constructor(
 
     // Så vi kan initialiseres uten at periode er satt (typisk ved ny søknadsbehandling)
     override val periode by lazy { underliggendeSøknadsbehandling.periode }
-    override val avkorting: AvkortingVedSøknadsbehandling = when (val avkorting = underliggendeSøknadsbehandling.avkorting) {
-        is AvkortingVedSøknadsbehandling.Håndtert -> {
-            avkorting.kanIkke()
-        }
+    override val avkorting: AvkortingVedSøknadsbehandling =
+        when (val avkorting = underliggendeSøknadsbehandling.avkorting) {
+            is AvkortingVedSøknadsbehandling.Håndtert -> {
+                avkorting.kanIkke()
+            }
 
-        is AvkortingVedSøknadsbehandling.Iverksatt -> {
-            throw IllegalStateException("Kan ikke lukke iverksatt")
-        }
+            is AvkortingVedSøknadsbehandling.Iverksatt -> {
+                throw IllegalStateException("Kan ikke lukke iverksatt")
+            }
 
-        is AvkortingVedSøknadsbehandling.Uhåndtert -> {
-            avkorting.kanIkke()
+            is AvkortingVedSøknadsbehandling.Uhåndtert -> {
+                avkorting.kanIkke()
+            }
         }
-    }
     override val sakstype: Sakstype = underliggendeSøknadsbehandling.sakstype
 
     /**
@@ -91,7 +92,7 @@ data class LukketSøknadsbehandling private constructor(
 
     init {
         kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
-        validateState(this.underliggendeSøknadsbehandling).tapLeft {
+        validateState(this.underliggendeSøknadsbehandling).onLeft {
             throw IllegalArgumentException("Ugyldig tilstand. Underliggende feil: $it")
         }
     }
@@ -107,7 +108,7 @@ data class LukketSøknadsbehandling private constructor(
             søknadsbehandlingSomSkalLukkes: Søknadsbehandling,
             lukkSøknadCommand: LukkSøknadCommand,
         ): Either<KunneIkkeLukkeSøknadsbehandling, LukketSøknadsbehandling> {
-            validateState(søknadsbehandlingSomSkalLukkes).tapLeft {
+            validateState(søknadsbehandlingSomSkalLukkes).onLeft {
                 return it.left()
             }
             return when (val søknad = søknadsbehandlingSomSkalLukkes.søknad) {
@@ -130,7 +131,7 @@ data class LukketSøknadsbehandling private constructor(
             søknadsbehandling: Søknadsbehandling,
             søknad: Søknad.Journalført.MedOppgave.Lukket = søknadsbehandling.søknad as Søknad.Journalført.MedOppgave.Lukket,
         ): LukketSøknadsbehandling {
-            validateState(søknadsbehandling).tapLeft {
+            validateState(søknadsbehandling).onLeft {
                 throw IllegalArgumentException("Ugyldig tilstand. Underliggende feil: $it")
             }
             return LukketSøknadsbehandling(

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.services.klage.klageinstans
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -20,12 +20,12 @@ internal object KlageinstanshendelseMapper {
         val value = message.value()
 
         val kilde = Either.catch { JSONObject(value).getString("kilde") }
-            .getOrHandle { return KunneIkkeMappeKlageinstanshendelse.FantIkkeKilde.left() }
+            .getOrElse { return KunneIkkeMappeKlageinstanshendelse.FantIkkeKilde.left() }
 
         if (kilde != "SUPSTONAD") return KunneIkkeMappeKlageinstanshendelse.IkkeAktuellOpplysningstype(kilde).left()
 
         val eventId = Either.catch { JSONObject(value).getString("eventId") }
-            .getOrHandle { return KunneIkkeMappeKlageinstanshendelse.FantIkkeEventId.left() }
+            .getOrElse { return KunneIkkeMappeKlageinstanshendelse.FantIkkeEventId.left() }
 
         return no.nav.su.se.bakover.domain.klage.UprosessertKlageinstanshendelse(
             id = UUID.randomUUID(),

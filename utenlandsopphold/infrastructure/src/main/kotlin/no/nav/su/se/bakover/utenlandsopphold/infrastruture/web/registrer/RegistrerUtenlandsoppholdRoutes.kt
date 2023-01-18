@@ -36,9 +36,9 @@ fun Route.registerUtenlandsoppholdRoute(
                             correlationId = getOrCreateCorrelationIdFromThreadLocal(),
                             brukerroller = call.suUserContext.roller,
                         ),
-                    ).tap {
+                    ).onRight {
                         call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson())))
-                    }.tapLeft {
+                    }.onLeft {
                         call.svar(
                             when (it) {
                                 OverlappendePeriode -> overlappendePerioder

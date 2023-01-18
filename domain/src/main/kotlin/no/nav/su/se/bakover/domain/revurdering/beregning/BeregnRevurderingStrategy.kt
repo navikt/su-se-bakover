@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering.beregning
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsplan
@@ -43,13 +43,13 @@ internal class VidereførAvkorting(
                 .roundToInt(),
             beregning = beregningUtenAvkorting,
             clock = clock,
-        ).lagFradrag().getOrHandle {
+        ).lagFradrag().getOrElse {
             return Revurdering.KunneIkkeBeregneRevurdering.AvkortingErUfullstendig.left()
         }
 
         return utenAvkorting.oppdaterFradrag(
             fradragsgrunnlag = utenAvkorting.grunnlagsdata.fradragsgrunnlag + fradragForAvkorting,
-        ).getOrHandle {
+        ).getOrElse {
             throw IllegalStateException(
                 Revurdering.KunneIkkeLeggeTilFradrag.UgyldigTilstand(utenAvkorting::class).toString(),
             )
@@ -74,7 +74,7 @@ private fun beregnUtenAvkorting(
 ): Pair<OpprettetRevurdering, Beregning> {
     return revurdering.oppdaterFradrag(
         fradragsgrunnlag = revurdering.grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold },
-    ).getOrHandle {
+    ).getOrElse {
         throw IllegalStateException(Revurdering.KunneIkkeLeggeTilFradrag.UgyldigTilstand(revurdering::class).toString())
     }.let {
         it to gjørBeregning(it, beregningStrategyFactory)

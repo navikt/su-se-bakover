@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.routes.klage
 
 import arrow.core.Either
 import arrow.core.getOrElse
-import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import io.ktor.http.ContentType
@@ -103,18 +102,20 @@ internal fun Route.klageRoutes(
                     ).map {
                         call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
                         Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))
-                    }.getOrHandle {
+                    }.getOrElse {
                         when (it) {
                             KunneIkkeOppretteKlage.FantIkkeSak -> fantIkkeSak
                             KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage -> BadRequest.errorJson(
                                 "Det finnes allerede en åpen klage",
                                 "finnes_allerede_en_åpen_klage",
                             )
+
                             KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
                             KunneIkkeOppretteKlage.UgyldigMottattDato -> BadRequest.errorJson(
                                 "Mottatt dato kan ikke være frem i tid",
                                 "ugyldig_mottatt_dato",
                             )
+
                             is KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost -> it.feil.toErrorJson()
                         }
                     }
@@ -152,7 +153,7 @@ internal fun Route.klageRoutes(
                                 Svarord.NEI -> VilkårsvurderingerTilKlage.Svarord.NEI
                                 null -> null
                             },
-                            /**
+                            /*
                              * https://trello.com/c/XPMsIuNe/1168-klages-formkrav-fjerne-begrunnelsesfeltet
                              * Usikre om det blir behov for begrunnelse videre, eller om det endres til andre ting.
                              * Per nå er begrunnelse fjernet helt fra frontend
@@ -162,7 +163,7 @@ internal fun Route.klageRoutes(
                     ).map {
                         call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                         Resultat.json(OK, serialize(it.toJson()))
-                    }.getOrHandle {
+                    }.getOrElse {
                         when (it) {
                             KunneIkkeVilkårsvurdereKlage.FantIkkeKlage -> fantIkkeKlage
                             KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak -> fantIkkeVedtak
@@ -188,8 +189,8 @@ internal fun Route.klageRoutes(
                 ).map {
                     call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                     Resultat.json(OK, serialize(it.toJson()))
-                }.getOrHandle {
-                    return@getOrHandle when (it) {
+                }.getOrElse {
+                    return@getOrElse when (it) {
                         KunneIkkeBekrefteKlagesteg.FantIkkeKlage -> fantIkkeKlage
                         is KunneIkkeBekrefteKlagesteg.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
                     }
@@ -295,7 +296,7 @@ internal fun Route.klageRoutes(
                     ).map { vurdertKlage ->
                         call.audit(vurdertKlage.fnr, AuditLogEvent.Action.UPDATE, vurdertKlage.id)
                         Resultat.json(OK, serialize(vurdertKlage.toJson()))
-                    }.getOrHandle { error ->
+                    }.getOrElse { error ->
                         error.tilResultat()
                     }
                     call.svar(resultat)

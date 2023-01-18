@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.services.tilbakekreving
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.NavIdentBruker
@@ -135,7 +135,7 @@ internal class LokalMottaKravgrunnlagJob(
                     },
                 ),
             ),
-        ).getOrHandle { throw it }
+        ).getOrElse { throw it }
     }
 }
 

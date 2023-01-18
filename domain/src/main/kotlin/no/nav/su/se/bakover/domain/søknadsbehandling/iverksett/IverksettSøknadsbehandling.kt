@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
@@ -41,7 +41,7 @@ fun Sak.iverksettSøknadsbehandling(
 ): Either<KunneIkkeIverksetteSøknadsbehandling, IverksattSøknadsbehandlingResponse<out Søknadsbehandling.Iverksatt>> {
     val søknadsbehandling = hentSøknadsbehandlingEllerKast(command)
 
-    validerTotrinnskontroll(command, søknadsbehandling).tapLeft {
+    validerTotrinnskontroll(command, søknadsbehandling).onLeft {
         return it.left()
     }
     return when (søknadsbehandling) {
@@ -62,7 +62,7 @@ fun Sak.iverksettSøknadsbehandling(
 }
 
 private fun Sak.hentSøknadsbehandlingEllerKast(command: IverksettSøknadsbehandlingCommand): Søknadsbehandling.TilAttestering {
-    return hentSøknadsbehandling(command.behandlingId).getOrHandle {
+    return hentSøknadsbehandling(command.behandlingId).getOrElse {
         throw IllegalArgumentException("Fant ikke behandling ${command.behandlingId} for sak $id")
     }.let {
         (it as? Søknadsbehandling.TilAttestering)

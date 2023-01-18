@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.NavIdentBruker
@@ -50,7 +50,7 @@ fun Sak.avslåSøknadPgaManglendeDokumentasjon(
                 søknadId = command.søknadId,
                 clock = clock,
                 saksbehandler = command.saksbehandler,
-            ).getOrHandle { return KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling(it).left() }.let {
+            ).getOrElse { return KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling(it).left() }.let {
                 Pair(it.first, it.third)
             }
         },
@@ -138,7 +138,7 @@ private fun Søknadsbehandling.leggTilStønadsperiodeHvisNull(
         clock = clock,
         saksbehandler = saksbehandler,
         avkorting = avkorting,
-    ).getOrHandle { throw IllegalArgumentException(it.toString()) }
+    ).getOrElse { throw IllegalArgumentException(it.toString()) }
 }
 
 private fun Søknadsbehandling.avslåPgaManglendeDokumentasjon(
@@ -159,7 +159,7 @@ private fun Søknadsbehandling.avslåPgaManglendeDokumentasjon(
                     ),
                 ),
             ),
-        ).getOrHandle { throw IllegalArgumentException(it.toString()) },
+        ).getOrElse { throw IllegalArgumentException(it.toString()) },
         saksbehandler = saksbehandler,
-    ).getOrHandle { throw IllegalArgumentException(it.toString()) } as Søknadsbehandling.Vilkårsvurdert.Avslag
+    ).getOrElse { throw IllegalArgumentException(it.toString()) } as Søknadsbehandling.Vilkårsvurdert.Avslag
 }

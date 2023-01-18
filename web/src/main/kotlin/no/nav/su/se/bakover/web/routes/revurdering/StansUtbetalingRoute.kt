@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
@@ -49,7 +49,7 @@ internal fun Route.stansUtbetaling(
                     val revurderingsårsak = Revurderingsårsak.tryCreate(
                         årsak = body.årsak,
                         begrunnelse = body.begrunnelse,
-                    ).getOrHandle { return@withSakId call.svar(it.tilResultat()) }
+                    ).getOrElse { return@withSakId call.svar(it.tilResultat()) }
 
                     val request = StansYtelseRequest.Opprett(
                         sakId = sakId,
@@ -79,7 +79,7 @@ internal fun Route.stansUtbetaling(
                         val revurderingsårsak = Revurderingsårsak.tryCreate(
                             årsak = body.årsak,
                             begrunnelse = body.begrunnelse,
-                        ).getOrHandle { return@withRevurderingId call.svar(it.tilResultat()) }
+                        ).getOrElse { return@withRevurderingId call.svar(it.tilResultat()) }
 
                         val request = StansYtelseRequest.Oppdater(
                             sakId = sakId,

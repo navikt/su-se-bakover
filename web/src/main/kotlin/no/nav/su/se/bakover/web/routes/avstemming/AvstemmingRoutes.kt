@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.avstemming
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
@@ -41,48 +41,44 @@ internal fun Route.avstemmingRoutes(
             val tilOgMed = call.parameters["tilOgMed"] // YYYY-MM-DD
             val fagområdeString = call.parameters["fagomrade"]
 
-            val periode: Either<Unit, Pair<LocalDate, LocalDate>> =
-                when {
-                    erBeggeNullOrEmpty(fraOgMed, tilOgMed) ->
-                        Either.Left(Unit)
-                    erIngenNullOrEmpty(fraOgMed, tilOgMed) ->
-                        Either.catch {
-                            Pair(
-                                fraOgMed,
-                                tilOgMed,
-                            ).mapBoth { LocalDate.parse(it, DateTimeFormatter.ISO_DATE) }
-                        }
-                            .mapLeft {
-                                return@authorize call.svar(
-                                    HttpStatusCode.BadRequest.errorJson(
-                                        message = "Ugyldig(e) dato(er). Må være på ${DateTimeFormatter.ISO_DATE}",
-                                        code = "ugyldig_datoformat",
-                                    ),
-                                )
-                            }
-                            .map {
-                                if (!isValidAvstemmingsperiode(it, clock)) {
-                                    return@authorize call.svar(
-                                        HttpStatusCode.BadRequest.errorJson(
-                                            message = "fraOgMed må være <= tilOgMed. Og tilOgMed må være tidligere enn dagens dato!",
-                                            code = "ugyldig_dato",
-                                        ),
-                                    )
-                                }
-                                it
-                            }
-                    else ->
+            val periode: Either<Unit, Pair<LocalDate, LocalDate>> = when {
+                erBeggeNullOrEmpty(fraOgMed, tilOgMed) -> Either.Left(Unit)
+
+                erIngenNullOrEmpty(fraOgMed, tilOgMed) -> Either.catch {
+                    Pair(
+                        fraOgMed,
+                        tilOgMed,
+                    ).mapBoth { LocalDate.parse(it, DateTimeFormatter.ISO_DATE) }
+                }.mapLeft {
+                    return@authorize call.svar(
+                        HttpStatusCode.BadRequest.errorJson(
+                            message = "Ugyldig(e) dato(er). Må være på ${DateTimeFormatter.ISO_DATE}",
+                            code = "ugyldig_datoformat",
+                        ),
+                    )
+                }.map {
+                    if (!isValidAvstemmingsperiode(it, clock)) {
                         return@authorize call.svar(
                             HttpStatusCode.BadRequest.errorJson(
-                                "Ugyldige parametere",
-                                "",
+                                message = "fraOgMed må være <= tilOgMed. Og tilOgMed må være tidligere enn dagens dato!",
+                                code = "ugyldig_dato",
                             ),
                         )
+                    }
+                    it
                 }
+
+                else -> return@authorize call.svar(
+                    HttpStatusCode.BadRequest.errorJson(
+                        "Ugyldige parametere",
+                        "",
+                    ),
+                )
+            }
 
             val fagområde = Either.catch {
                 fagområdeString?.toFagområde()
-            }.getOrHandle {
+            }.getOrElse {
                 return@authorize call.svar(
                     HttpStatusCode.BadRequest.errorJson(
                         message = "${it.message}",
@@ -133,7 +129,7 @@ internal fun Route.avstemmingRoutes(
 
             val fagområde = Either.catch {
                 fagområdeString?.toFagområde()
-            }.getOrHandle {
+            }.getOrElse {
                 return@authorize call.svar(
                     HttpStatusCode.BadRequest.errorJson(
                         message = "${it.message}",
@@ -142,25 +138,21 @@ internal fun Route.avstemmingRoutes(
                 )
             }!!
 
-            service.konsistensavstemming(LocalDate.parse(fraOgMed, DateTimeFormatter.ISO_DATE), fagområde)
-                .bimap(
-                    {
-                        call.svar(
-                            HttpStatusCode.InternalServerError.errorJson(
-                                message = "Avstemming feilet",
-                                code = "avstemming_feilet",
-                            ),
-                        )
-                    },
-                    {
-                        call.svar(
-                            Resultat.json(
-                                httpCode = HttpStatusCode.OK,
-                                json = """{"message":"Konsistensavstemming fullført for fagområde:$fagområde, tidspunkt:${it.løpendeFraOgMed} for utbetalinger opprettet tilOgMed:${it.opprettetTilOgMed}"}""",
-                            ),
-                        )
-                    },
+            service.konsistensavstemming(LocalDate.parse(fraOgMed, DateTimeFormatter.ISO_DATE), fagområde).map {
+                call.svar(
+                    Resultat.json(
+                        httpCode = HttpStatusCode.OK,
+                        json = """{"message":"Konsistensavstemming fullført for fagområde:$fagområde, tidspunkt:${it.løpendeFraOgMed} for utbetalinger opprettet tilOgMed:${it.opprettetTilOgMed}"}""",
+                    ),
                 )
+            }.mapLeft {
+                call.svar(
+                    HttpStatusCode.InternalServerError.errorJson(
+                        message = "Avstemming feilet",
+                        code = "avstemming_feilet",
+                    ),
+                )
+            }
         }
     }
 }

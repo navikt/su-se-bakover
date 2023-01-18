@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.vilkår
 
 import arrow.core.Either
 import arrow.core.Nel
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -99,7 +99,7 @@ sealed class LovligOppholdVilkår : Vilkår() {
 
             fun createFromVilkårsvurderinger(
                 vurderingsperioder: Nel<VurderingsperiodeLovligOpphold>,
-            ) = tryCreate(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
+            ) = tryCreate(vurderingsperioder).getOrElse { throw IllegalArgumentException(it.toString()) }
         }
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): LovligOppholdVilkår {

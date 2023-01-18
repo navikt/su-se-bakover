@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.førsteINesteMåned
@@ -27,14 +27,14 @@ object KryssjekkTidslinjerOgSimulering {
             tilOgMed = underArbeid.senesteDato(),
         )
         val simulertUtbetaling = simuler(underArbeid, periode)
-            .getOrHandle {
+            .getOrElse {
                 log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke simulere: $it")
                 return KryssjekkAvTidslinjeOgSimuleringFeilet.KunneIkkeSimulere(it).left()
             }
 
         val tidslinjeEksisterendeOgUnderArbeid = (eksisterende + underArbeid)
             .tidslinje(periode = periode, clock = clock)
-            .getOrHandle {
+            .getOrElse {
                 log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke generere tidslinjer: $it")
                 return KryssjekkAvTidslinjeOgSimuleringFeilet.KunneIkkeGenerereTidslinje.left()
             }
@@ -42,7 +42,7 @@ object KryssjekkTidslinjerOgSimulering {
         sjekkTidslinjeMotSimulering(
             tidslinje = tidslinjeEksisterendeOgUnderArbeid,
             simulering = simulertUtbetaling.simulering,
-        ).getOrHandle {
+        ).getOrElse {
             log.error("Feil (${it.map { it::class.simpleName }}) ved kryssjekk av tidslinje og simulering. Se sikkerlogg for detaljer")
             sikkerLogg.error("Feil: $it ved kryssjekk av tidslinje: $tidslinjeEksisterendeOgUnderArbeid og simulering: ${simulertUtbetaling.simulering}")
             return KryssjekkAvTidslinjeOgSimuleringFeilet.KryssjekkFeilet(it.first()).left()
@@ -56,7 +56,7 @@ object KryssjekkTidslinjerOgSimulering {
             val tidslinjeUnderArbeid = listOf(underArbeid).tidslinje(
                 periode = rekonstruertPeriode,
                 clock = clock,
-            ).getOrHandle {
+            ).getOrElse {
                 log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke generere tidslinjer: $it")
                 return KryssjekkAvTidslinjeOgSimuleringFeilet.KunneIkkeGenerereTidslinje.left()
             }
@@ -64,7 +64,7 @@ object KryssjekkTidslinjerOgSimulering {
             val tidslinjeEksisterende = eksisterende.tidslinje(
                 periode = rekonstruertPeriode,
                 clock = clock,
-            ).getOrHandle {
+            ).getOrElse {
                 log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke generere tidslinjer: $it")
                 return KryssjekkAvTidslinjeOgSimuleringFeilet.KunneIkkeGenerereTidslinje.left()
             }
@@ -153,7 +153,7 @@ private fun sjekkTidslinjeMotSimulering(
                 tolketPeriode = månedsbeløp.periode,
                 simulertUtbetaling = månedsbeløp.beløp.sum(),
                 beløpPåTidslinje = tidslinje.gjeldendeForDato(månedsbeløp.periode.fraOgMed)!!.beløp,
-            ).getOrHandle { feil.add(it) }
+            ).getOrElse { feil.add(it) }
         }
     }
     return when (feil.isEmpty()) {

@@ -265,7 +265,7 @@ internal class BekreftVilkårsvurdertKlageTest {
                 attesteringer = attesteringer,
                 datoKlageMottatt = 1.desember(2021),
                 klageinstanshendelser = Klageinstanshendelser.empty(),
-                fritekstTilBrev = klage.getFritekstTilBrev().orNull(),
+                fritekstTilBrev = klage.getFritekstTilBrev().getOrNull(),
             )
             it shouldBe expectedKlage
         }

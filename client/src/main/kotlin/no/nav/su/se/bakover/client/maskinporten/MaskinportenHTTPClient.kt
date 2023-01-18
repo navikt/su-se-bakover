@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.client.maskinporten
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import com.nimbusds.jose.JOSEObjectType
@@ -73,7 +73,7 @@ class MaskinportenHTTPClient(private val maskinportenConfig: ApplicationConfig.C
                     return ExpiringTokenResponse(JSONObject(response.body()), clock).right()
                 }
             }
-        }.getOrHandle { exception -> return KunneIkkeHenteToken.Nettverksfeil(exception).left() }
+        }.getOrElse { exception -> return KunneIkkeHenteToken.Nettverksfeil(exception).left() }
     }
 }
 

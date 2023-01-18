@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.revurdering.beregning
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -24,7 +24,7 @@ internal class BeregnRevurderingStrategyDecider(
          * Lurer typesystemet til å snevre inn valgmulighetene for avkorting ved å forsøke en vanlig beregning først.
          */
         val avkorting = Normal(revurdering, beregningStrategyFactory).beregn()
-            .getOrHandle { throw IllegalStateException(it.toString()) }.first.avkorting
+            .getOrElse { throw IllegalStateException(it.toString()) }.first.avkorting
 
         val avkortingsgrunnlag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag.filter {
             it.fradragstype == Fradragstype.AvkortingUtenlandsopphold

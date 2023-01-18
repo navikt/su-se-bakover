@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.vilkår.uføre
 
 import arrow.core.Either
 import arrow.core.Nel
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.toNonEmptyList
@@ -29,17 +29,20 @@ data class LeggTilUførevurderingerRequest(
         clock: Clock,
     ): Either<UgyldigUførevurdering, UføreVilkår.Vurdert> {
         return vurderinger.map { vurdering ->
-            vurdering.toVurderingsperiode(clock).getOrHandle {
+            vurdering.toVurderingsperiode(clock).getOrElse {
                 return when (it) {
                     LeggTilUførevilkårRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> {
                         UgyldigUførevurdering.UføregradOgForventetInntektMangler
                     }
+
                     LeggTilUførevilkårRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> {
                         UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig
                     }
+
                     LeggTilUførevilkårRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> {
                         UgyldigUførevurdering.OverlappendeVurderingsperioder
                     }
+
                     LeggTilUførevilkårRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> {
                         UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden
                     }

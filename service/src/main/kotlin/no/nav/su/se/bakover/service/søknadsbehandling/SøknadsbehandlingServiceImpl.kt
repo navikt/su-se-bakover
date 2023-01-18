@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.Either
 import arrow.core.getOrElse
-import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
@@ -127,7 +126,7 @@ class SøknadsbehandlingServiceImpl(
     ): Either<Sak.KunneIkkeOppretteSøknadsbehandling, Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart>> {
         val sakId = request.sakId
         val sak = hentSak?.let { it() } ?: sakService.hentSak(sakId)
-            .getOrHandle { throw IllegalArgumentException("Fant ikke sak $sakId") }
+            .getOrElse { throw IllegalArgumentException("Fant ikke sak $sakId") }
 
         require(sak.id == sakId) { "sak.id ${sak.id} må være lik request.sakId $sakId" }
 
@@ -175,7 +174,7 @@ class SøknadsbehandlingServiceImpl(
         val sak = sakService.hentSakForSøknadsbehandling(request.behandlingId)
 
         val søknadsbehandling = sak.hentSøknadsbehandling(request.behandlingId)
-            .getOrHandle { return KunneIkkeSimulereBehandling.FantIkkeBehandling.left() }
+            .getOrElse { return KunneIkkeSimulereBehandling.FantIkkeBehandling.left() }
 
         return søknadsbehandling.simuler(
             saksbehandler = request.saksbehandler,
@@ -351,7 +350,7 @@ class SøknadsbehandlingServiceImpl(
 
     override fun oppdaterStønadsperiode(request: OppdaterStønadsperiodeRequest): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling> {
         val sak = sakService.hentSak(request.sakId)
-            .getOrHandle { return KunneIkkeOppdatereStønadsperiode.FantIkkeSak.left() }
+            .getOrElse { return KunneIkkeOppdatereStønadsperiode.FantIkkeSak.left() }
 
         return sak.oppdaterStønadsperiodeForSøknadsbehandling(
             søknadsbehandlingId = request.behandlingId,
@@ -377,12 +376,12 @@ class SøknadsbehandlingServiceImpl(
         val vilkår = request.toVilkår(
             behandlingsperiode = søknadsbehandling.periode,
             clock = clock,
-        ).getOrHandle {
+        ).getOrElse {
             return KunneIkkeLeggeTilUføreVilkår.UgyldigInput(it).left()
         }
 
         val vilkårsvurdert = søknadsbehandling.leggTilUførevilkår(saksbehandler, vilkår)
-            .getOrHandle {
+            .getOrElse {
                 return when (it) {
                     is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.UgyldigTilstand -> {
                         KunneIkkeLeggeTilUføreVilkår.UgyldigTilstand(fra = it.fra, til = it.til)
@@ -405,7 +404,7 @@ class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggetilLovligOppholdVilkår.FantIkkeBehandling.left()
 
-        val vilkår = request.toVilkår(clock).getOrHandle {
+        val vilkår = request.toVilkår(clock).getOrElse {
             return KunneIkkeLeggetilLovligOppholdVilkår.UgyldigLovligOppholdVilkår(it).left()
         }
 
@@ -414,7 +413,7 @@ class SøknadsbehandlingServiceImpl(
             saksbehandler = saksbehandler,
         ).mapLeft {
             KunneIkkeLeggetilLovligOppholdVilkår.FeilVedSøknadsbehandling(it)
-        }.tap {
+        }.onRight {
             søknadsbehandlingRepo.lagre(it)
         }
     }
@@ -429,7 +428,7 @@ class SøknadsbehandlingServiceImpl(
         val familiegjenforeningVilkår = request.toVilkår(
             clock = clock,
             stønadsperiode = søknadsbehandling.stønadsperiode?.periode,
-        ).getOrHandle {
+        ).getOrElse {
             return KunneIkkeLeggeTilFamiliegjenforeningVilkårService.UgyldigFamiliegjenforeningVilkårService(it)
                 .left()
         }
@@ -440,7 +439,7 @@ class SøknadsbehandlingServiceImpl(
             saksbehandler = saksbehandler,
         ).mapLeft {
             it.tilKunneIkkeLeggeTilFamiliegjenforeningVilkårService()
-        }.tap {
+        }.onRight {
             søknadsbehandlingRepo.lagre(it)
         }
     }
@@ -465,7 +464,7 @@ class SøknadsbehandlingServiceImpl(
                     true.right()
                 },
             )
-        }.getOrHandle {
+        }.getOrElse {
             return it.left()
         }
 
@@ -485,13 +484,13 @@ class SøknadsbehandlingServiceImpl(
             ?: return KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling.left()
 
         val bosituasjon =
-            request.toBosituasjon(søknadsbehandling.grunnlagsdata.bosituasjon.singleOrThrow(), clock).getOrHandle {
+            request.toBosituasjon(søknadsbehandling.grunnlagsdata.bosituasjon.singleOrThrow(), clock).getOrElse {
                 return KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeLagreBosituasjon.left()
             }
 
         return søknadsbehandling.oppdaterBosituasjon(saksbehandler, bosituasjon).mapLeft {
             KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(it)
-        }.tap {
+        }.onRight {
             søknadsbehandlingRepo.lagre(it)
         }
     }
@@ -508,7 +507,7 @@ class SøknadsbehandlingServiceImpl(
          * Vi ønsker gradvis å gå over til sistenevnte måte å gjøre det på.
          */
         val oppdatertBehandling =
-            behandling.leggTilFradragsgrunnlag(saksbehandler, request.fradragsgrunnlag).getOrHandle {
+            behandling.leggTilFradragsgrunnlag(saksbehandler, request.fradragsgrunnlag).getOrElse {
                 return it.toService().left()
             }
 
@@ -547,7 +546,7 @@ class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling.left()
 
-        val vilkår = request.tilVilkår(clock).getOrHandle {
+        val vilkår = request.tilVilkår(clock).getOrElse {
             when (it) {
                 LeggTilFlereUtenlandsoppholdRequest.UgyldigUtenlandsopphold.OverlappendeVurderingsperioder -> throw IllegalStateException(
                     "$it Skal ikke kunne forekomme for søknadsbehandling",
@@ -560,7 +559,7 @@ class SøknadsbehandlingServiceImpl(
         }
 
         val vilkårsvurdert = søknadsbehandling.leggTilUtenlandsopphold(saksbehandler, vilkår)
-            .getOrHandle {
+            .getOrElse {
                 return it.tilService().left()
             }
 
@@ -659,10 +658,10 @@ class SøknadsbehandlingServiceImpl(
                 behandlingsperiode = søknadsbehandling.periode,
                 clock = clock,
                 formuegrenserFactory = formuegrenserFactory,
-            ).getOrHandle {
+            ).getOrElse {
                 return KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet(it).left()
             },
-        ).tap {
+        ).onRight {
             søknadsbehandlingRepo.lagre(it)
         }.mapLeft {
             KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeLeggeTilFormuegrunnlagTilSøknadsbehandling(it)

@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.innvilg
 
 import arrow.core.Either
 import arrow.core.Nel
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Sak
@@ -52,7 +52,7 @@ data class IverksattInnvilgetSøknadsbehandlingResponse(
              */
             lagreSøknadsbehandling(søknadsbehandling, tx)
             val nyUtbetaling = klargjørUtbetaling(utbetaling, tx)
-                .getOrHandle { feil ->
+                .getOrElse { feil ->
                     throw RuntimeException(
                         "Kunne ikke innvilge søknadsbehandling ${søknadsbehandling.id}. Underliggende feil:$feil.",
                     )
@@ -61,7 +61,7 @@ data class IverksattInnvilgetSøknadsbehandlingResponse(
 
             // Så fremt denne ikke kaster ønsker vi å gå igjennom med iverksettingen.
             opprettPlanlagtKontrollsamtale(vedtak, tx)
-            nyUtbetaling.sendUtbetaling().getOrHandle { feil ->
+            nyUtbetaling.sendUtbetaling().getOrElse { feil ->
                 throw RuntimeException(
                     "Kunne ikke innvilge søknadsbehandling ${søknadsbehandling.id}. Underliggende feil: $feil.",
                 )

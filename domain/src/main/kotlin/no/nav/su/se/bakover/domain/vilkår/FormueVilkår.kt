@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.vilkår
 
 import arrow.core.Either
 import arrow.core.Nel
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
@@ -172,7 +172,7 @@ sealed class FormueVilkår : Vilkår() {
             fun createFromVilkårsvurderinger(
                 vurderingsperioder: Nel<VurderingsperiodeFormue>,
             ): Vurdert =
-                fromVurderingsperioder(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
+                fromVurderingsperioder(vurderingsperioder).getOrElse { throw IllegalArgumentException(it.toString()) }
 
             private fun fromVurderingsperioder(
                 vurderingsperioder: Nel<VurderingsperiodeFormue>,

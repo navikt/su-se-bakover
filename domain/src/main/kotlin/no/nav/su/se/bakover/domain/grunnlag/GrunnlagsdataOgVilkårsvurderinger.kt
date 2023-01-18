@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
@@ -60,24 +60,24 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
         oppdaterGrunnlagsdata: (fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>, bosituasjon: List<Grunnlag.Bosituasjon>) -> Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata>,
     ): GrunnlagsdataOgVilkårsvurderinger {
         val grunnlagsdataJustertForEPS = oppdaterGrunnlagsdata(
-            /**
+            /*
              * Hvis vi går fra "eps" til "ingen eps" må vi fjerne fradragene for EPS for alle periodene
              * hvor det eksiterer fradrag for EPS. Ved endring fra "ingen eps" til "eps" er det umulig for
              * oss å vite om det skal eksistere fradrag, caset er derfor uhåndtert (opp til saksbehandler).
              */
             grunnlagsdata.fradragsgrunnlag.fjernFradragEPS(bosituasjon.perioderUtenEPS()),
             bosituasjon,
-        ).getOrHandle {
+        ).getOrElse {
             throw IllegalStateException(it.toString())
         }
 
         val formueJustertForEPS = vilkårsvurderinger.formue
-            /**
+            /*
              * Hvis vi går fra "ingen eps" til "eps" må vi fylle på med tomme verdier for EPS formue for
              * periodene hvor vi tidligere ikke hadde eps.
              */
             .leggTilTomEPSFormueHvisDetMangler(bosituasjon.perioderMedEPS())
-            /**
+            /*
              * Hvis vi går fra "eps" til "ingen eps" må vi fjerne formue for alle periodene hvor vi
              * ikke lenger har eps.
              */
@@ -91,6 +91,7 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
                     vilkårsvurderinger = vilkårsvurderinger.leggTil(formueJustertForEPS),
                 )
             }
+
             is Søknadsbehandling -> {
                 Søknadsbehandling(
                     grunnlagsdata = grunnlagsdataJustertForEPS,
@@ -144,7 +145,7 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
                 grunnlagsdata = Grunnlagsdata.tryCreate(
                     fradragsgrunnlag = grunnlag,
                     bosituasjon = grunnlagsdata.bosituasjon,
-                ).getOrHandle { throw IllegalArgumentException(it.toString()) },
+                ).getOrElse { throw IllegalArgumentException(it.toString()) },
             )
         }
 
@@ -161,7 +162,7 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
                 grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
                     oppdatertPeriode = stønadsperiode.periode,
                     clock = clock,
-                ).getOrHandle { return it.left() },
+                ).getOrElse { return it.left() },
                 vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
                     stønadsperiode = stønadsperiode,
                     formuegrenserFactory = formuegrenserFactory,
@@ -187,7 +188,7 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
             SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
                 bosituasjon = grunnlagsdata.bosituasjon,
                 formue = vilkår.grunnlag,
-            ).resultat.tapLeft { alleFeil ->
+            ).resultat.onLeft { alleFeil ->
                 alleFeil.forEach { konsistensproblem ->
                     when (konsistensproblem) {
                         Konsistensproblem.BosituasjonOgFormue.FormueForEPSManglerForBosituasjonsperiode,
@@ -197,6 +198,7 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
                         -> throw IllegalArgumentException(
                             "Konsistenssjekk mellom bosituasjon og formue feilet: $konsistensproblem",
                         )
+
                         is Konsistensproblem.BosituasjonOgFormue.UgyldigBosituasjon -> konsistensproblem.feil.forEach {
                             when (it) {
                                 Konsistensproblem.Bosituasjon.Mangler,
@@ -204,6 +206,7 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
                                 -> throw IllegalArgumentException(
                                     "Konsistenssjekk mellom bosituasjon og formue feilet: $it",
                                 )
+
                                 Konsistensproblem.Bosituasjon.Ufullstendig -> Unit // Bosituasjon trenger ikke være fullstendig på dette tidspunktet.
                             }
                         }

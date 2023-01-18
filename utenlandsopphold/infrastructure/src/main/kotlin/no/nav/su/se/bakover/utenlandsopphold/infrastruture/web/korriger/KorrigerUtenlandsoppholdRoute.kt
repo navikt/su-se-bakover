@@ -39,9 +39,9 @@ fun Route.korrigerUtenlandsoppholdRoute(
                                 brukerroller = call.suUserContext.roller,
                                 korrigererVersjon = versjon,
                             ),
-                        ).tap {
+                        ).onRight {
                             call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
-                        }.tapLeft {
+                        }.onLeft {
                             call.svar(
                                 when (it) {
                                     OverlappendePeriode -> overlappendePerioder

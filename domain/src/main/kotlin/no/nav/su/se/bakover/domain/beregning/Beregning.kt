@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.beregning
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -42,7 +42,7 @@ interface Beregning : PeriodisertInformasjon {
 
 fun Beregning.harAlleMånederMerknadForAvslag(): Boolean {
     return finnMånederMedMerknadForAvslag()
-        .getOrHandle { return false }
+        .getOrElse { return false }
         .count() == getMånedsberegninger().count()
 }
 
@@ -61,12 +61,12 @@ object BeregningUtenMerknader {
 
 fun Beregning.finnMånederMedMerknadForAvslag(): Either<IngenMerknaderForAvslag, NonEmptyList<Pair<Månedsberegning, Merknad.Beregning>>> {
     return finnMånederMedMerknad()
-        .getOrHandle { return IngenMerknaderForAvslag.left() }
+        .getOrElse { return IngenMerknaderForAvslag.left() }
         .map { (månedsberegning, _) ->
             månedsberegning.finnMerknadForAvslag()
                 .mapLeft { IngenMerknaderForAvslag }
                 .map { månedsberegning to it }
-                .getOrHandle { IngenMerknaderForAvslag }
+                .getOrElse { IngenMerknaderForAvslag }
         }
         .filterIsInstance<Pair<Månedsberegning, Merknad.Beregning>>()
         .ifEmpty { return IngenMerknaderForAvslag.left() }
@@ -79,7 +79,7 @@ object IngenMerknaderForAvslag
 
 fun Beregning.finnFørsteMånedMedMerknadForAvslag(): Either<IngenMerknaderForAvslag, Pair<Månedsberegning, Merknad.Beregning>> {
     return finnMånederMedMerknadForAvslag()
-        .getOrHandle { return IngenMerknaderForAvslag.left() }
+        .getOrElse { return IngenMerknaderForAvslag.left() }
         .minByOrNull { (månedsberegning, _) -> månedsberegning.periode.fraOgMed }!!
         .right()
 }

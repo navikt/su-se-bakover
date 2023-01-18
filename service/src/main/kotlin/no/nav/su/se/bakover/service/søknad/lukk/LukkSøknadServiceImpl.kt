@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.service.søknad.lukk
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
@@ -45,7 +45,7 @@ class LukkSøknadServiceImpl(
         command: LukkSøknadCommand,
     ): Sak {
         val søknadId = command.søknadId
-        val sak = sakService.hentSakForSøknad(søknadId).getOrHandle {
+        val sak = sakService.hentSakForSøknad(søknadId).getOrElse {
             throw IllegalArgumentException("Fant ikke sak for søknadId $søknadId")
         }
         return sessionFactory.withTransactionContext { tx ->
@@ -56,7 +56,7 @@ class LukkSøknadServiceImpl(
                 hentSaksbehandlerNavn = { identClient.hentNavnForNavIdent(it) },
                 saksbehandler = command.saksbehandler,
             ).let {
-                it.lagBrevRequest.tap { lagBrevRequest ->
+                it.lagBrevRequest.onRight { lagBrevRequest ->
                     persisterBrevKlartForSending(
                         tx = tx,
                         brev = lagBrevRequest,
@@ -68,7 +68,7 @@ class LukkSøknadServiceImpl(
                 it.søknadsbehandling?.also {
                     søknadsbehandlingService.persisterSøknadsbehandling(it, tx)
                 }
-                oppgaveService.lukkOppgave(it.søknad.oppgaveId).tapLeft { feil ->
+                oppgaveService.lukkOppgave(it.søknad.oppgaveId).onLeft { feil ->
                     // Fire and forget. De som følger med på alerts kan evt. gi beskjed til saksbehandlerene.
                     log.error("Kunne ikke lukke oppgave knyttet til søknad/søknadsbehandling med søknadId ${it.søknad.id} og oppgaveId ${it.søknad.oppgaveId}. Underliggende feil: $feil")
                 }
@@ -92,7 +92,7 @@ class LukkSøknadServiceImpl(
                 log.error("Kunne ikke konvertere LagBrevRequest til dokument ved lukking av søknad $søknadId og søknadsbehandling. Underliggende grunn: $it")
                 LagBrevRequest.KunneIkkeGenererePdf
             }
-        }.getOrHandle {
+        }.getOrElse {
             throw IllegalArgumentException("Kunne ikke konvertere LagBrevRequest til dokument ved lukking av søknad $søknadId og søknadsbehandling. Underliggende grunn: $it")
         }.let {
             brevService.lagreDokument(
@@ -112,7 +112,7 @@ class LukkSøknadServiceImpl(
         command: LukkSøknadCommand,
     ): Pair<Fnr, ByteArray> {
         val søknadId = command.søknadId
-        val søknad = søknadService.hentSøknad(søknadId).getOrHandle {
+        val søknad = søknadService.hentSøknad(søknadId).getOrElse {
             throw IllegalArgumentException("Kunne ikke lage brevutkast for lukk søknad med søknadId $søknadId - Fant ikke sak. Underliggende feil: $it")
         } as? Søknad.Journalført.MedOppgave.IkkeLukket
             ?: throw IllegalArgumentException("Kunne ikke lage brevutkast for lukk søknad med søknadId $søknadId - Søknad i feil tilstand.")
@@ -120,21 +120,21 @@ class LukkSøknadServiceImpl(
         val brevRequest = søknad.toBrevRequest(
             lukkSøknadCommand = command,
             hentPerson = {
-                personService.hentPerson(fnr).getOrHandle {
+                personService.hentPerson(fnr).getOrElse {
                     throw RuntimeException("Kunne ikke lage brevutkast for lukk søknad med søknadId $søknadId - fant ikke person. Underliggende feil: $it")
                 }
             },
             clock = clock,
-            hentSaksbehandlerNavn = { identClient.hentNavnForNavIdent(it).getOrHandle { "" } },
+            hentSaksbehandlerNavn = { identClient.hentNavnForNavIdent(it).getOrElse { "" } },
             hentSaksnummer = {
-                sakService.hentSakidOgSaksnummer(fnr).getOrHandle {
+                sakService.hentSakidOgSaksnummer(fnr).getOrElse {
                     throw RuntimeException("Kunne ikke lage brevutkast for lukk søknad med søknadId $søknadId - fant ikke saksnummer. Underliggende feil: $it")
                 }.saksnummer
             },
-        ).getOrHandle {
+        ).getOrElse {
             throw IllegalArgumentException("Kunne ikke lage brevutkast for lukk søknad med søknadId $søknadId - kan ikke lages brev i denne tilstanden. Underliggende feil: $it")
         }
-        return brevService.lagBrev(brevRequest).getOrHandle {
+        return brevService.lagBrev(brevRequest).getOrElse {
             throw IllegalArgumentException("Kunne ikke lage brevutkast for lukk søknad med søknadId $søknadId - feil ved generering av brev. Underliggende feil: $it")
         }.let {
             Pair(fnr, it)

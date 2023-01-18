@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import arrow.core.sequence
@@ -391,7 +391,7 @@ data class LeggTilBosituasjonRequest(
         }
 
         if (epsFnr != null) {
-            val eps = hentPerson(Fnr(epsFnr)).getOrHandle {
+            val eps = hentPerson(Fnr(epsFnr)).getOrElse {
                 return KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeSlåOppEPS.left()
             }
 

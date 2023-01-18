@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.toNonEmptyList
@@ -46,7 +46,7 @@ sealed interface Hjemler : List<Hjemmel> {
              * Kun ment å brukes fra databaselaget og tester
              */
             fun create(hjemler: NonEmptyList<Hjemmel>): Utfylt {
-                return tryCreate(hjemler).getOrHandle {
+                return tryCreate(hjemler).getOrElse {
                     throw IllegalStateException(it.toString())
                 }
             }

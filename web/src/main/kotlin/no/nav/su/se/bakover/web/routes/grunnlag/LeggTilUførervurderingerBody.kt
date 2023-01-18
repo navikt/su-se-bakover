@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.routes.grunnlag
 
 import arrow.core.Either
 import arrow.core.getOrElse
-import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import io.ktor.http.HttpStatusCode
@@ -32,7 +31,7 @@ internal data class LeggTilUførervurderingerBody(val vurderinger: List<Uførevu
             vurderinger = (
                 vurderinger.toNonEmptyList()
                 ).map { vurdering ->
-                vurdering.toServiceCommand(behandlingId).getOrHandle {
+                vurdering.toServiceCommand(behandlingId).getOrElse {
                     return it.left()
                 }
             },
@@ -49,7 +48,7 @@ internal data class LeggTilUførervurderingerBody(val vurderinger: List<Uførevu
     ) {
 
         fun toServiceCommand(revurderingId: UUID): Either<Resultat, LeggTilUførevilkårRequest> {
-            val periode = periode.toPeriodeOrResultat().getOrHandle {
+            val periode = periode.toPeriodeOrResultat().getOrElse {
                 return it.left()
             }
             val validUføregrad = uføregrad?.let {

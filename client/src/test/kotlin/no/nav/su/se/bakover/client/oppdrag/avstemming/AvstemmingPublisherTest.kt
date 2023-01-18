@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.client.oppdrag.avstemming
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -124,7 +124,7 @@ class AvstemmingPublisherTest {
 
         val res = AvstemmingMqPublisher(mqPublisher = client)
             .publish(konsistensavstemming)
-            .getOrHandle { fail { "Burde gått fint" } }
+            .getOrElse { fail { "Burde gått fint" } }
 
         res.avstemmingXmlRequest shouldNotBe null
 

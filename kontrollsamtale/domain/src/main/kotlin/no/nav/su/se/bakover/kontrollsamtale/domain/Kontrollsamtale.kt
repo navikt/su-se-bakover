@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.kontrollsamtale.domain
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import arrow.core.rightIfNotNull
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.between
@@ -45,6 +44,7 @@ data class Kontrollsamtale(
             //  Logikken finnes kanskje en annen plass nå, men bør bo nærmere domenet.
             Kontrollsamtalestatus.INNKALT,
             -> this.copy(status = Kontrollsamtalestatus.ANNULLERT).right()
+
             Kontrollsamtalestatus.GJENNOMFØRT,
             // TODO jah: idempotent? Kan kanskje bare returnere `this`her? Evt. en custom left som wrapper this. Eller en Ior.
             Kontrollsamtalestatus.ANNULLERT,
@@ -58,7 +58,8 @@ data class Kontrollsamtale(
     fun endreDato(innkallingsdato: LocalDate): Either<KunneIkkeEndreDato, Kontrollsamtale> {
         if (this.status != Kontrollsamtalestatus.PLANLAGT_INNKALLING) return KunneIkkeEndreDato.UgyldigStatusovergang.left()
         if (!innkallingsdato.erFørsteDagIMåned()) return KunneIkkeEndreDato.DatoErIkkeFørsteIMåned.left()
-        return this.copy(innkallingsdato = innkallingsdato, frist = regnUtFristFraInnkallingsdato(innkallingsdato)).right()
+        return this.copy(innkallingsdato = innkallingsdato, frist = regnUtFristFraInnkallingsdato(innkallingsdato))
+            .right()
     }
 
     fun settGjennomført(journalpostId: JournalpostId): Either<UgyldigStatusovergang, Kontrollsamtale> {
@@ -90,18 +91,20 @@ data class Kontrollsamtale(
             vedtak: VedtakSomKanRevurderes.EndringIYtelse,
             clock: Clock,
         ): Either<SkalIkkeOppretteKontrollsamtale, Kontrollsamtale> =
-            regnUtInnkallingsdato(vedtak.periode, vedtak.opprettet.toLocalDate(zoneIdOslo), clock).rightIfNotNull {
-                SkalIkkeOppretteKontrollsamtale
-            }.map {
+            regnUtInnkallingsdato(
+                vedtak.periode,
+                vedtak.opprettet.toLocalDate(zoneIdOslo),
+                clock,
+            )?.let { innkallingsdato ->
                 Kontrollsamtale(
                     sakId = vedtak.behandling.sakId,
-                    innkallingsdato = it,
+                    innkallingsdato = innkallingsdato,
                     status = Kontrollsamtalestatus.PLANLAGT_INNKALLING,
                     dokumentId = null,
                     opprettet = Tidspunkt.now(clock),
                     journalpostIdKontrollnotat = null,
-                )
-            }
+                ).right()
+            } ?: SkalIkkeOppretteKontrollsamtale.left()
 
         fun opprettNyKontrollsamtale(
             sakId: UUID,
@@ -121,9 +124,7 @@ data class Kontrollsamtale(
             sakId: UUID,
             clock: Clock,
         ): Either<SkalIkkeOppretteKontrollsamtale, Kontrollsamtale> =
-            regnUtInnkallingsdatoOm4Mnd(gjeldendeStønadsperiode.tilOgMed, LocalDate.now(clock)).rightIfNotNull {
-                SkalIkkeOppretteKontrollsamtale
-            }.map {
+            regnUtInnkallingsdatoOm4Mnd(gjeldendeStønadsperiode.tilOgMed, LocalDate.now(clock))?.let {
                 Kontrollsamtale(
                     sakId = sakId,
                     innkallingsdato = it,
@@ -131,8 +132,8 @@ data class Kontrollsamtale(
                     dokumentId = null,
                     opprettet = Tidspunkt.now(clock),
                     journalpostIdKontrollnotat = null,
-                )
-            }
+                ).right()
+            } ?: SkalIkkeOppretteKontrollsamtale.left()
     }
 }
 
@@ -158,6 +159,7 @@ internal fun regnUtInnkallingsdato(periode: Periode, vedtaksdato: LocalDate, clo
                 val nineMonthsDate = eightMonthsDate.plusMonths(1)
                 if (stønadsslutt.erMindreEnnEnMånedSenere(nineMonthsDate)) null else nineMonthsDate
             }
+
             else -> eightMonthsDate
         }
     } else if (fourMonthsDate.isAfter(today)) {
@@ -167,6 +169,7 @@ internal fun regnUtInnkallingsdato(periode: Periode, vedtaksdato: LocalDate, clo
                 val fiveMonthsDate = fourMonthsDate.plusMonths(1)
                 if (stønadsslutt.erMindreEnnEnMånedSenere(fiveMonthsDate)) null else fiveMonthsDate
             }
+
             else -> fourMonthsDate
         }
     } else {

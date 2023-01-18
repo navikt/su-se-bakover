@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.service.regulering
 
 import arrow.core.Either
 import arrow.core.flatMap
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
@@ -70,7 +70,7 @@ class ReguleringServiceImpl(
             satsFactory = satsFactory,
             begrunnelse = null,
             clock = clock,
-        ).getOrHandle {
+        ).getOrElse {
             when (it) {
                 is Regulering.KunneIkkeBeregne.BeregningFeilet -> {
                     throw RuntimeException("Regulering for saksnummer ${regulering.saksnummer}: Vi klarte ikke å beregne. Underliggende grunn ${it.feil}")
@@ -101,7 +101,7 @@ class ReguleringServiceImpl(
                             RuntimeException("Inkluderer stacktrace"),
                         )
                     }
-            }.getOrHandle {
+            }.getOrElse {
                 log.error("Regulering for saksnummer $saksnummer: Klarte ikke hente sak", it)
                 return@map KunneIkkeOppretteRegulering.FantIkkeSak.left()
             }
@@ -109,7 +109,7 @@ class ReguleringServiceImpl(
             val regulering = sak.opprettEllerOppdaterRegulering(
                 startDato = startDato,
                 clock = clock,
-            ).getOrHandle { feil ->
+            ).getOrElse { feil ->
                 // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
                 when (feil) {
                     Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode -> log.info(
@@ -139,7 +139,7 @@ class ReguleringServiceImpl(
                     log.info("Regulering for saksnummer $saksnummer: Kan ikke sende oppdragslinjer mens vi venter på et kravgrunnlag, siden det kan annulere nåværende kravgrunnlag. Setter reguleringen til manuell.")
                     return@map regulering.copy(
                         reguleringstype = Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.AvventerKravgrunnlag)),
-                    ).right().tap {
+                    ).right().onRight {
                         reguleringRepo.lagre(it)
                     }
                 }
@@ -148,7 +148,7 @@ class ReguleringServiceImpl(
 
             if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
                 ferdigstillOgIverksettRegulering(regulering, sak)
-                    .tap { log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen ble ferdigstilt automatisk") }
+                    .onRight { log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen ble ferdigstilt automatisk") }
                     .mapLeft { feil -> KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(feil = feil) }
             } else {
                 log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen må behandles manuelt.")
@@ -181,7 +181,7 @@ class ReguleringServiceImpl(
             fraOgMed = regulering.periode.fraOgMed,
             clock = clock,
         )
-            .getOrHandle { throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it") }
+            .getOrElse { throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it") }
 
         if (gjeldendeVedtaksdata.harStans()) {
             return KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
@@ -262,7 +262,7 @@ class ReguleringServiceImpl(
             }
             .map { simulertRegulering -> simulertRegulering.tilIverksatt() }
             .flatMap { lagVedtakOgUtbetal(it, sak) }
-            .tapLeft {
+            .onLeft {
                 reguleringRepo.lagre(
                     regulering.copy(
                         reguleringstype = Reguleringstype.MANUELL(
@@ -285,7 +285,7 @@ class ReguleringServiceImpl(
                             ) { sakRepo.hentSak(sak.id)!! },
                         )
                     }
-                }.tapLeft {
+                }.onLeft {
                     log.error(
                         "Regulering for saksnummer ${iverksattRegulering.saksnummer}: Utsending av stønadsstatistikk feilet under automatisk regulering.",
                         it,
@@ -337,9 +337,10 @@ class ReguleringServiceImpl(
                     Sakstype.ALDER -> {
                         null
                     }
+
                     Sakstype.UFØRE -> {
                         regulering.vilkårsvurderinger.uføreVilkår()
-                            .getOrHandle { throw IllegalStateException("Regulering uføre: ${regulering.id} mangler uføregrunnlag") }
+                            .getOrElse { throw IllegalStateException("Regulering uføre: ${regulering.id} mangler uføregrunnlag") }
                             .grunnlag
                             .toNonEmptyList()
                     }
@@ -352,14 +353,14 @@ class ReguleringServiceImpl(
                     kontrollerMotTidligereSimulering = regulering.simulering,
                     clock = clock,
                 )
-            }.getOrHandle { feil ->
+            }.getOrElse { feil ->
                 throw KunneIkkeSendeTilUtbetalingException(UtbetalingFeilet.KunneIkkeSimulere(feil))
             }
             sessionFactory.withTransactionContext { tx ->
                 val nyUtbetaling = utbetalingService.klargjørUtbetaling(
                     utbetaling = utbetaling,
                     transactionContext = tx,
-                ).getOrHandle {
+                ).getOrElse {
                     throw KunneIkkeSendeTilUtbetalingException(it)
                 }
 
@@ -378,7 +379,7 @@ class ReguleringServiceImpl(
                     sessionContext = tx,
                 )
                 nyUtbetaling.sendUtbetaling()
-                    .getOrHandle { throw KunneIkkeSendeTilUtbetalingException(it) }
+                    .getOrElse { throw KunneIkkeSendeTilUtbetalingException(it) }
 
                 vedtak
             }

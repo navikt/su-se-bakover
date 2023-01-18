@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.service.brev
 
 import arrow.core.Either
 import arrow.core.flatMap
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
@@ -42,7 +42,7 @@ class DistribuerBrevService(
     fun journalførOgDistribuerUtgåendeDokumenter() {
         dokumentRepo.hentDokumenterForDistribusjon()
             .map { dokumentdistribusjon ->
-                val sak = sakService.hentSakInfo(dokumentdistribusjon.dokument.metadata.sakId).getOrHandle {
+                val sak = sakService.hentSakInfo(dokumentdistribusjon.dokument.metadata.sakId).getOrElse {
                     throw IllegalStateException("Fant ikke sak. Her burde vi egentlig sak finnes. sakId ${dokumentdistribusjon.dokument.metadata.sakId}")
                 }
                 journalførDokument(dokumentdistribusjon, sak.saksnummer, sak.type, sak.fnr)
@@ -119,7 +119,7 @@ class DistribuerBrevService(
         fnr: Fnr,
     ): Either<KunneIkkeJournalføreDokument, Dokumentdistribusjon> {
         val person = personService.hentPersonMedSystembruker(fnr)
-            .getOrHandle { return KunneIkkeJournalføreDokument.KunneIkkeFinnePerson.left() }
+            .getOrElse { return KunneIkkeJournalføreDokument.KunneIkkeFinnePerson.left() }
 
         return dokumentdistribusjon.journalfør {
             journalfør(

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Fnr
@@ -41,11 +41,11 @@ data class OversendtKlage(
         clock: Clock,
     ): Either<KunneIkkeLageBrevRequestForKlage, LagBrevRequest.Klage> {
         return LagBrevRequest.Klage.Oppretthold(
-            person = hentPerson(this.fnr).getOrHandle {
+            person = hentPerson(this.fnr).getOrElse {
                 return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvPerson(it).left()
             },
             dagensDato = LocalDate.now(clock),
-            saksbehandlerNavn = hentNavnForNavIdent(this.saksbehandler).getOrHandle {
+            saksbehandlerNavn = hentNavnForNavIdent(this.saksbehandler).getOrElse {
                 return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvSaksbehandlernavn(it).left()
             },
             fritekst = this.vurderinger.fritekstTilOversendelsesbrev,

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import arrow.core.sequence
@@ -51,14 +51,14 @@ internal data class FradragRequestJson(
     val tilhører: String,
 ) {
     internal fun toFradrag(beregningsperiode: Periode): Either<Resultat, Fradrag> {
-        val utenlandskInntekt: UtenlandskInntekt? = this.utenlandskInntekt?.toUtenlandskInntekt()?.getOrHandle {
+        val utenlandskInntekt: UtenlandskInntekt? = this.utenlandskInntekt?.toUtenlandskInntekt()?.getOrElse {
             return it.left()
         }
-        val periode: Periode = this.periode?.toPeriodeOrResultat()?.getOrHandle {
+        val periode: Periode = this.periode?.toPeriodeOrResultat()?.getOrElse {
             return it.left()
         } ?: beregningsperiode
         return FradragFactory.nyFradragsperiode(
-            fradragstype = Fradragstype.tryParse(type, beskrivelse).getOrHandle { return it.tilResultat().left() },
+            fradragstype = Fradragstype.tryParse(type, beskrivelse).getOrElse { return it.tilResultat().left() },
             månedsbeløp = beløp,
             periode = periode,
             utenlandskInntekt = utenlandskInntekt,
@@ -73,7 +73,7 @@ internal data class FradragRequestJson(
                 "fradrag_mangler_periode",
             ).left()
         } else {
-            toFradrag(this.periode.toPeriodeOrResultat().getOrHandle { return it.left() })
+            toFradrag(this.periode.toPeriodeOrResultat().getOrElse { return it.left() })
         }
     }
 

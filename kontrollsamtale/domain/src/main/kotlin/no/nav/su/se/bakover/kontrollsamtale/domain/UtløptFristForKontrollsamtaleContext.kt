@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.kontrollsamtale.domain
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -142,7 +142,7 @@ data class UtløptFristForKontrollsamtaleContext(
         opprettOppgave: (oppgaveConfig: OppgaveConfig) -> Either<KunneIkkeHåndtereUtløptKontrollsamtale, OppgaveId>,
     ): UtløptFristForKontrollsamtaleContext {
         val sakInfo = hentSakInfo(kontrollsamtale.sakId)
-            .getOrHandle { throw FeilVedProsesseringAvKontrollsamtaleException(msg = it.feil) }
+            .getOrElse { throw FeilVedProsesseringAvKontrollsamtaleException(msg = it.feil) }
 
         return Either.catch {
             hentKontrollnotatMottatt(
@@ -165,6 +165,7 @@ data class UtløptFristForKontrollsamtaleContext(
                                     lagreContext = lagreContext,
                                 )
                             }
+
                             is ErKontrollNotatMottatt.Nei -> {
                                 håndterIkkeMøttTilKontrollsamtale(
                                     kontrollsamtale = kontrollsamtale,
@@ -198,11 +199,17 @@ data class UtløptFristForKontrollsamtaleContext(
                     }
                 }.fold(
                     {
-                        logger.error("Feil: ${it.message} ved håndtering av feilet kontrollsamtale: ${kontrollsamtale.id}", it)
+                        logger.error(
+                            "Feil: ${it.message} ved håndtering av feilet kontrollsamtale: ${kontrollsamtale.id}",
+                            it,
+                        )
                         this
                     },
                     {
-                        logger.info("Feil: ${error.message} ved prosessering av kontrollsamtale: ${kontrollsamtale.id}", it)
+                        logger.info(
+                            "Feil: ${error.message} ved prosessering av kontrollsamtale: ${kontrollsamtale.id}",
+                            it,
+                        )
                         it
                     },
                 )
@@ -251,7 +258,7 @@ data class UtløptFristForKontrollsamtaleContext(
                                     tx,
                                 )
                                 iverksettCallback.sendUtbetalingCallback()
-                                    .getOrHandle {
+                                    .getOrElse {
                                         throw FeilVedProsesseringAvKontrollsamtaleException(msg = it::class.java.toString())
                                     }
                                 opprettCallback.sendStatistikkCallback()
@@ -311,7 +318,7 @@ data class UtløptFristForKontrollsamtaleContext(
         ).let { ctx ->
             if (retryLimitReached(kontrollsamtale.id)) {
                 val aktørId = hentAktørId(sakInfo.fnr)
-                    .getOrHandle { throw FeilVedProsesseringAvKontrollsamtaleException(msg = it.feil) }
+                    .getOrElse { throw FeilVedProsesseringAvKontrollsamtaleException(msg = it.feil) }
                 val oppgaveId = opprettOppgave(
                     OppgaveConfig.KlarteIkkeÅStanseYtelseVedUtløpAvFristForKontrollsamtale(
                         saksnummer = sakInfo.saksnummer,
@@ -319,7 +326,7 @@ data class UtløptFristForKontrollsamtaleContext(
                         aktørId = aktørId,
                         clock = clock,
                     ),
-                ).getOrHandle { throw FeilVedProsesseringAvKontrollsamtaleException(msg = it.feil) }
+                ).getOrElse { throw FeilVedProsesseringAvKontrollsamtaleException(msg = it.feil) }
 
                 prosessertMedFeil(
                     kontrollsamtale.id,

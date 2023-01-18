@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
@@ -40,7 +40,7 @@ data class Grunnlagsdata private constructor(
     ): Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata> {
         return tryCreateTillatUfullstendigBosituasjon(
             fradragsgrunnlag = fradragsgrunnlag.oppdaterFradragsperiode(oppdatertPeriode, clock)
-                .getOrHandle { return KunneIkkeLageGrunnlagsdata.UgyldigFradragsgrunnlag(it).left() },
+                .getOrElse { return KunneIkkeLageGrunnlagsdata.UgyldigFradragsgrunnlag(it).left() },
             bosituasjon = bosituasjon.oppdaterBosituasjonsperiode(oppdatertPeriode),
         )
     }
@@ -61,12 +61,15 @@ data class Grunnlagsdata private constructor(
         fun create(
             fradragsgrunnlag: List<Fradragsgrunnlag> = emptyList(),
             bosituasjon: List<Bosituasjon> = emptyList(),
-        ) = tryCreate(fradragsgrunnlag, bosituasjon).getOrHandle { throw IllegalStateException(it.toString()) }
+        ) = tryCreate(fradragsgrunnlag, bosituasjon).getOrElse { throw IllegalStateException(it.toString()) }
 
         fun createTillatUfullstendigBosituasjon(
             fradragsgrunnlag: List<Fradragsgrunnlag> = emptyList(),
             bosituasjon: List<Bosituasjon> = emptyList(),
-        ) = tryCreateTillatUfullstendigBosituasjon(fradragsgrunnlag, bosituasjon).getOrHandle { throw IllegalStateException(it.toString()) }
+        ) = tryCreateTillatUfullstendigBosituasjon(
+            fradragsgrunnlag,
+            bosituasjon,
+        ).getOrElse { throw IllegalStateException(it.toString()) }
 
         fun tryCreate(
             fradragsgrunnlag: List<Fradragsgrunnlag>,
@@ -108,6 +111,7 @@ data class Grunnlagsdata private constructor(
                             ).right()
                         }
                     }
+
                     else -> {
                         KunneIkkeLageGrunnlagsdata.Konsistenssjekk(feil)
                     }

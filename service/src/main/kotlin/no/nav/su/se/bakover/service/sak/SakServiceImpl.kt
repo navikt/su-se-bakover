@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.service.sak
 
 import arrow.core.Either
 import arrow.core.flatMap
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -133,11 +133,11 @@ class SakServiceImpl(
         val sak = sakRepo.hentSak(request.sakId)
             ?: throw IllegalStateException("Fant ikke sak ved opprettFritekstDokument. sakid ${request.sakId}")
 
-        val person = personService.hentPerson(sak.fnr).getOrHandle {
+        val person = personService.hentPerson(sak.fnr).getOrElse {
             throw IllegalStateException("Fant ikke person ved opprettFritekstDokument. sakid ${request.sakId}, fnr ${sak.fnr}")
         }
 
-        val saksbehandlerNavn = identClient.hentNavnForNavIdent(request.saksbehandler).getOrHandle {
+        val saksbehandlerNavn = identClient.hentNavnForNavIdent(request.saksbehandler).getOrElse {
             return KunneIkkeOppretteDokument.FeilVedHentingAvSaksbehandlernavn(it).left()
         }
 
@@ -163,7 +163,7 @@ class SakServiceImpl(
                     bestillBrev = true,
                 ),
             )
-        }.tap {
+        }.onRight {
             dokumentRepo.lagre(it)
         }
     }

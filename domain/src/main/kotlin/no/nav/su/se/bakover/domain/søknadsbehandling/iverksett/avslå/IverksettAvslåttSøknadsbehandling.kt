@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.domain.Sak
@@ -36,7 +36,7 @@ internal fun Sak.iverksettAvslagSøknadsbehandling(
     val vedtak: Avslagsvedtak = opprettAvslagsvedtak(iverksattBehandling, clock)
 
     val dokument = lagDokument(vedtak)
-        .getOrHandle { return KunneIkkeIverksetteSøknadsbehandling.KunneIkkeGenerereVedtaksbrev(it).left() }
+        .getOrElse { return KunneIkkeIverksetteSøknadsbehandling.KunneIkkeGenerereVedtaksbrev(it).left() }
         .leggTilMetadata(
             Dokument.Metadata(
                 sakId = vedtak.behandling.sakId,

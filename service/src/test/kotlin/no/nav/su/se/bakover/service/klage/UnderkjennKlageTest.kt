@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.service.klage
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
@@ -281,7 +281,7 @@ internal class UnderkjennKlageTest {
             grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
             kommentar = "underkjennelseskommentar",
         )
-        mocks.service.underkjenn(request).getOrHandle { throw RuntimeException(it.toString()) }.also {
+        mocks.service.underkjenn(request).getOrElse { throw RuntimeException(it.toString()) }.also {
             expectedKlage = VurdertKlage.Bekreftet(
                 forrigeSteg = utfyltVurdertKlage(id = klage.id, vedtakId = klage.vilkårsvurderinger.vedtakId).second,
                 oppgaveId = OppgaveId("nyOppgaveId"),
@@ -301,7 +301,10 @@ internal class UnderkjennKlageTest {
         }
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).defaultTransactionContext()
-        verify(mocks.klageRepoMock).lagre(argThat { it shouldBe expectedKlage }, argThat { it shouldBe TestSessionFactory.transactionContext })
+        verify(mocks.klageRepoMock).lagre(
+            argThat { it shouldBe expectedKlage },
+            argThat { it shouldBe TestSessionFactory.transactionContext },
+        )
         verify(mocks.oppgaveService).opprettOppgave(
             argThat {
                 it shouldBe OppgaveConfig.Klage.Saksbehandler(
@@ -342,7 +345,7 @@ internal class UnderkjennKlageTest {
             grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
             kommentar = "underkjennelseskommentar",
         )
-        mocks.service.underkjenn(request).getOrHandle { throw RuntimeException(it.toString()) }.also {
+        mocks.service.underkjenn(request).getOrElse { throw RuntimeException(it.toString()) }.also {
             it.saksbehandler shouldBe NavIdentBruker.Saksbehandler("saksbehandler")
             (it as AvvistKlage).fritekstTilVedtaksbrev shouldBe "dette er en fritekst med person opplysninger"
         }

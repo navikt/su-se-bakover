@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.database.grunnlag
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.periode.Periode
@@ -70,13 +70,13 @@ internal class FradragsgrunnlagPostgresRepo(
                 fradragstype = Fradragstype.tryParse(
                     value = string("fradragstype"),
                     beskrivelse = stringOrNull("beskrivelse"),
-                ).getOrHandle { throw IllegalArgumentException("$it") },
+                ).getOrElse { throw IllegalArgumentException("$it") },
                 månedsbeløp = double("månedsbeløp"),
                 utenlandskInntekt = stringOrNull("utenlandskInntekt")?.let { deserialize(it) },
                 periode = Periode.create(fraOgMed = localDate("fraOgMed"), tilOgMed = localDate("tilOgMed")),
                 tilhører = FradragTilhører.valueOf(string("tilhører")),
             ),
-        ).orNull()!!
+        ).getOrNull()!!
     }
 
     private fun lagre(fradragsgrunnlag: Grunnlag.Fradragsgrunnlag, behandlingId: UUID, tx: TransactionalSession) {

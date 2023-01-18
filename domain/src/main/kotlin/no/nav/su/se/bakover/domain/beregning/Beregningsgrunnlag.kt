@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.beregning
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
@@ -28,7 +28,7 @@ data class Beregningsgrunnlag private constructor(
                 beregningsperiode,
                 uføregrunnlag,
                 fradragFraSaksbehandler,
-            ).getOrHandle { throw IllegalArgumentException(it.toString()) }
+            ).getOrElse { throw IllegalArgumentException(it.toString()) }
         }
 
         fun tryCreate(

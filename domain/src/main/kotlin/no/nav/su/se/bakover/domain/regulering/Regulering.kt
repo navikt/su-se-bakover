@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Fnr
@@ -145,7 +145,7 @@ sealed interface Regulering : Reguleringsfelter {
                     grunnlagsdata = Grunnlagsdata.tryCreate(
                         bosituasjon = grunnlagsdata.bosituasjon,
                         fradragsgrunnlag = fradragsgrunnlag,
-                    ).getOrHandle { throw IllegalStateException("") },
+                    ).getOrElse { throw IllegalStateException("") },
                     vilkårsvurderinger = vilkårsvurderinger,
                 ),
             )
@@ -162,9 +162,9 @@ sealed interface Regulering : Reguleringsfelter {
                                     vurdering = Vurdering.Innvilget,
                                     grunnlag = it,
                                     vurderingsperiode = it.periode,
-                                ).getOrHandle { throw RuntimeException("$it") }
+                                ).getOrElse { throw RuntimeException("$it") }
                             }.toNonEmptyList(),
-                        ).getOrHandle { throw RuntimeException("$it") },
+                        ).getOrElse { throw RuntimeException("$it") },
                     ),
                 ),
             )
@@ -197,7 +197,7 @@ sealed interface Regulering : Reguleringsfelter {
                     }
                     Sakstype.UFØRE -> {
                         vilkårsvurderinger.uføreVilkår()
-                            .getOrHandle { throw IllegalStateException("Regulering uføre: $id mangler uføregrunnlag") }
+                            .getOrElse { throw IllegalStateException("Regulering uføre: $id mangler uføregrunnlag") }
                             .grunnlag
                             .toNonEmptyList()
                     }

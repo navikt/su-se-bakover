@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.database.grunnlag
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import kotliquery.Row
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.DbMetrics
@@ -103,9 +103,10 @@ internal class UføreVilkårsvurderingPostgresRepo(
                             vurderingsperioder = it.toNonEmptyList(),
 
                         )
-                            .getOrHandle {
+                            .getOrElse {
                                 throw IllegalArgumentException("Kunne ikke instansiere ${UføreVilkår.Vurdert::class.simpleName}. Melding: $it")
                             }
+
                         false -> UføreVilkår.IkkeVurdert
                     }
                 }

@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.client.kabal
 
 import arrow.core.Either
 import arrow.core.flatten
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.azure.AzureAd
@@ -57,7 +57,7 @@ class KabalHttpClient(
         klage: OversendtKlage,
         journalpostIdForVedtak: JournalpostId,
     ): Either<KunneIkkeOversendeTilKlageinstans, Unit> {
-        val token = hentToken().getOrHandle { return it.left() }
+        val token = hentToken().getOrElse { return it.left() }
         val requestBody = objectMapper.writeValueAsString(
             KabalRequestMapper.map(
                 klage = klage,

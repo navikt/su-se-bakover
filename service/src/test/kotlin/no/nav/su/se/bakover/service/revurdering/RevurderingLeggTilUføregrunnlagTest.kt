@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
@@ -53,7 +53,7 @@ internal class RevurderingLeggTilUføregrunnlagTest {
                         ),
                     ),
                 ),
-            ).getOrHandle { throw IllegalStateException(it.toString()) }
+            ).getOrElse { throw IllegalStateException(it.toString()) }
 
             actual.feilmeldinger.shouldContain(RevurderingsutfallSomIkkeStøttes.OpphørAvFlereVilkår)
 
