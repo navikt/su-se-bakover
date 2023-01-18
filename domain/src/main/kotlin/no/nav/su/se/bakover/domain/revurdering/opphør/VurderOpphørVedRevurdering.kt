@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.revurdering
+package no.nav.su.se.bakover.domain.revurdering.opphør
 
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.startOfMonth

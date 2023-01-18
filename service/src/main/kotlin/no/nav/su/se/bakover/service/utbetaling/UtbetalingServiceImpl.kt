@@ -34,18 +34,18 @@ class UtbetalingServiceImpl(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun hentUtbetaling(utbetalingId: UUID30): Either<FantIkkeUtbetaling, Utbetaling> {
-        return utbetalingRepo.hentUtbetaling(utbetalingId)?.right() ?: FantIkkeUtbetaling.left()
+        return utbetalingRepo.hentOversendtUtbetalingForUtbetalingId(utbetalingId)?.right() ?: FantIkkeUtbetaling.left()
     }
 
     override fun hentUtbetalingerForSakId(sakId: UUID): List<Utbetaling> {
-        return utbetalingRepo.hentUtbetalinger(sakId)
+        return utbetalingRepo.hentOversendteUtbetalinger(sakId)
     }
 
     override fun oppdaterMedKvittering(
         utbetalingId: UUID30,
         kvittering: Kvittering,
     ): Either<FantIkkeUtbetaling, Utbetaling.OversendtUtbetaling.MedKvittering> {
-        return utbetalingRepo.hentUtbetaling(utbetalingId)
+        return utbetalingRepo.hentOversendtUtbetalingForUtbetalingId(utbetalingId)
             ?.let { utbetaling ->
                 when (utbetaling) {
                     is Utbetaling.OversendtUtbetaling.MedKvittering -> {

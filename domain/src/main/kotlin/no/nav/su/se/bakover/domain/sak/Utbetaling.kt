@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalin
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørMedAvkortingManglerMånedSomKanSendesTilOppdrag
 import java.time.Clock
 import java.time.LocalDate
 
@@ -186,4 +187,5 @@ sealed interface SimulerUtbetalingFeilet {
     data class FeilVedSimulering(val feil: SimuleringFeilet) : SimulerUtbetalingFeilet
     data class FeilVedKryssjekkAvTidslinjeOgSimulering(val feil: KryssjekkAvTidslinjeOgSimuleringFeilet) : SimulerUtbetalingFeilet
     data class FeilVedKryssjekkAvSaksbehandlerOgAttestantsSimulering(val feil: KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet) : SimulerUtbetalingFeilet
+    data class Avkorting(val feil: OpphørMedAvkortingManglerMånedSomKanSendesTilOppdrag) : SimulerUtbetalingFeilet
 }

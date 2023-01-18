@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.domain.sak.Sakstype
 import java.util.UUID
 
 internal object UtbetalingInternalRepo {
-    fun hentUtbetalingInternal(utbetalingId: UUID30, session: Session): Utbetaling.OversendtUtbetaling? =
+    fun hentOversendtUtbetaling(utbetalingId: UUID30, session: Session): Utbetaling.OversendtUtbetaling? =
         "select u.*, s.saksnummer, s.type as sakstype from utbetaling u inner join sak s on s.id = u.sakId where u.id = :id".hent(
             mapOf(
                 "id" to utbetalingId,
@@ -34,7 +34,7 @@ internal object UtbetalingInternalRepo {
             session,
         ) { it.toUtbetaling(session) }
 
-    fun hentUtbetalinger(sakId: UUID, session: Session): List<Utbetaling.OversendtUtbetaling> =
+    fun hentOversendteUtbetalinger(sakId: UUID, session: Session): List<Utbetaling.OversendtUtbetaling> =
         "select u.*, s.saksnummer, s.type as sakstype from utbetaling u inner join sak s on s.id = u.sakId where s.id = :id".hentListe(
             mapOf(
                 "id" to sakId,
@@ -91,7 +91,7 @@ internal fun Row.toUtbetaling(session: Session): Utbetaling.OversendtUtbetaling 
     ).map()
 }
 
-internal fun Row.toUtbetalingslinje(): Utbetalingslinje {
+private fun Row.toUtbetalingslinje(): Utbetalingslinje {
     val status = stringOrNull("status")
     val statusFraOgMed = localDateOrNull("statusFraOgMed")
     val statusTilOgMed = localDateOrNull("statusTilOgMed")

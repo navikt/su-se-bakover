@@ -12,7 +12,9 @@ import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
+import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørsperiodeForUtbetalinger
 import no.nav.su.se.bakover.test.TikkendeKlokke
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nåtidForSimuleringStub
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.tikkendeFixedClock
@@ -33,7 +35,7 @@ internal class OpphørsperiodeForUtbetalingerTest {
             vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = revurderingsperiode)),
         ).second as SimulertRevurdering.Opphørt
 
-        OpphørsperiodeForUtbetalinger(simulert).value shouldBe revurderingsperiode
+        OpphørsperiodeForUtbetalinger(simulert).getOrFail().value shouldBe revurderingsperiode
         simulert.avkorting shouldBe beOfType<AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående>()
     }
 
@@ -45,7 +47,7 @@ internal class OpphørsperiodeForUtbetalingerTest {
             clock = TikkendeKlokke(1.august(2021).fixedClock()),
             utbetalingerKjørtTilOgMed = tidligsteFraOgMedSomIkkeErUtbetalt,
         ).second as SimulertRevurdering.Opphørt
-        OpphørsperiodeForUtbetalinger(simulert).value shouldBe Periode.create(
+        OpphørsperiodeForUtbetalinger(simulert).getOrFail().value shouldBe Periode.create(
             tidligsteFraOgMedSomIkkeErUtbetalt,
             simulert.periode.tilOgMed,
         )
@@ -53,8 +55,8 @@ internal class OpphørsperiodeForUtbetalingerTest {
     }
 
     @Test
-    fun `kaster exception hvis opphørsdato for utbetalinger er utenfor revurderingsperioden`() {
-        assertThrows<IllegalStateException> {
+    fun `kaster exception hvis tidligsteIkkeUtbetalteMånedEtterAvkortingsperiode er utenfor revurderingsperioden`() {
+        assertThrows<AssertionError> {
             val revurderingsperiode = Periode.create(1.januar(2021), 31.mars(2021))
             simulertRevurdering(
                 revurderingsperiode = revurderingsperiode,
@@ -63,7 +65,9 @@ internal class OpphørsperiodeForUtbetalingerTest {
                 utbetalingerKjørtTilOgMed = 1.juli(2021),
             ).second as SimulertRevurdering.Opphørt
         }.also {
-            it.message shouldContain "Opphørsdato er utenfor revurderingsperioden"
+            it.message shouldContain "OpphørMedAvkortingManglerMånedSomKanSendesTilOppdrag"
+            it.message shouldContain "Periode(fraOgMed=2021-01-01, tilOgMed=2021-03-31)"
+            it.message shouldContain "tidligsteIkkeUtbetalteMånedEtterAvkortingsperiode=2021-04-01"
         }
     }
 }

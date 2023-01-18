@@ -287,7 +287,7 @@ internal class SakPostgresRepo(
                 fnr = Fnr(string("fnr")),
                 søknader = SøknadRepoInternal.hentSøknaderInternal(sakId, session),
                 søknadsbehandlinger = søknadsbehandlingRepo.hentForSak(sakId, sessionContext),
-                utbetalinger = UtbetalingInternalRepo.hentUtbetalinger(sakId, session),
+                utbetalinger = UtbetalingInternalRepo.hentOversendteUtbetalinger(sakId, session),
                 revurderinger = revurderingRepo.hentRevurderingerForSak(sakId, session),
                 vedtakListe = vedtakPostgresRepo.hentForSakId(sakId, session),
                 klager = klageRepo.hentKlager(sakId, sessionContext),

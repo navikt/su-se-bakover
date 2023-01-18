@@ -841,7 +841,7 @@ fun oversendtUtbetaling(
         fradrag = listOf(),
         clock = clock,
     ),
-    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
+    eksisterendeUtbetalinger: List<Utbetaling.OversendtUtbetaling> = emptyList(),
     utbetalingsrequest: Utbetalingsrequest = Utbetalingsrequest(""),
 ): Utbetaling.OversendtUtbetaling.UtenKvittering {
     return nyUtbetaling(
@@ -875,7 +875,7 @@ fun kvittertUtbetaling(
         fradrag = listOf(),
         clock = clock,
     ),
-    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
+    eksisterendeUtbetalinger: List<Utbetaling.OversendtUtbetaling> = emptyList(),
     utbetalingsrequest: Utbetalingsrequest = Utbetalingsrequest(""),
     kvittering: Kvittering = Kvittering(
         Kvittering.Utbetalingsstatus.OK,

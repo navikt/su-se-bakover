@@ -35,9 +35,9 @@ import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
-import no.nav.su.se.bakover.domain.revurdering.VurderOmVilkårGirOpphørVedRevurdering
+import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
+import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOmVilkårGirOpphørVedRevurdering
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
@@ -71,6 +71,7 @@ data class Sak(
     val fnr: Fnr,
     val søknader: List<Søknad> = emptyList(),
     val søknadsbehandlinger: List<Søknadsbehandling> = emptyList(),
+    // TODO jah: Bytt til [Oversendt
     val utbetalinger: List<Utbetaling>,
     val revurderinger: List<AbstraktRevurdering> = emptyList(),
     val vedtakListe: List<Vedtak> = emptyList(),

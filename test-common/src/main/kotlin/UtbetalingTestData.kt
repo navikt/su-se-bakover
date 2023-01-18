@@ -134,7 +134,7 @@ fun oversendtUtbetalingUtenKvittering(
             periode = søknadsbehandling.periode,
         ),
     ),
-    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
+    eksisterendeUtbetalinger: List<Utbetaling.OversendtUtbetaling> = emptyList(),
 ) = oversendtUtbetalingUtenKvittering(
     id = id,
     periode = søknadsbehandling.periode,
@@ -160,7 +160,7 @@ fun oversendtUtbetalingUtenKvittering(
             periode = periode,
         ),
     ),
-    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
+    eksisterendeUtbetalinger: List<Utbetaling.OversendtUtbetaling> = emptyList(),
 ) = oversendtUtbetalingUtenKvittering(
     id = id,
     fnr = revurdering.fnr,
@@ -186,7 +186,7 @@ fun oversendtUtbetalingUtenKvittering(
         ),
     ),
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
-    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
+    eksisterendeUtbetalinger: List<Utbetaling.OversendtUtbetaling> = emptyList(),
     beregning: Beregning = beregning(periode),
 ): Utbetaling.OversendtUtbetaling.UtenKvittering {
     return Utbetaling.UtbetalingForSimulering(
@@ -227,7 +227,7 @@ fun simulertUtbetaling(
         ),
     ),
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
-    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
+    eksisterendeUtbetalinger: List<Utbetaling.OversendtUtbetaling> = emptyList(),
 ): Utbetaling.SimulertUtbetaling {
     return Utbetaling.UtbetalingForSimulering(
         id = id,
@@ -261,7 +261,7 @@ fun oversendtUtbetalingMedKvittering(
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
-    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
+    eksisterendeUtbetalinger: List<Utbetaling.OversendtUtbetaling> = emptyList(),
     clock: Clock = fixedClock,
 ): Utbetaling.OversendtUtbetaling.MedKvittering {
     return oversendtUtbetalingUtenKvittering(

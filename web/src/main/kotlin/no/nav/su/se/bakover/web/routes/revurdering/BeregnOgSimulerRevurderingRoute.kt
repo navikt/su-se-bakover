@@ -27,8 +27,8 @@ import no.nav.su.se.bakover.domain.revurdering.KunneIkkeBeregneOgSimulereRevurde
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand
 import no.nav.su.se.bakover.domain.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.domain.revurdering.RevurderingService
-import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.Varselmelding
+import no.nav.su.se.bakover.domain.revurdering.opphør.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering

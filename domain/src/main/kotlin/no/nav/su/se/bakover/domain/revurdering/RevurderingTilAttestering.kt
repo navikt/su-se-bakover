@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.Either
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
@@ -18,6 +19,9 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.tilbakekrevingErVurdert
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
+import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørsperiodeForUtbetalinger
+import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOpphørVedRevurdering
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -134,7 +138,8 @@ sealed class RevurderingTilAttestering : Revurdering() {
             visitor.visit(this)
         }
 
-        val opphørsperiodeForUtbetalinger = OpphørsperiodeForUtbetalinger(this).value
+        // Det er ikke i dette steget revurderingsperioden og simuleringen kjøres/lagres, så denne feilen bør ikke inntreffe.
+        val opphørsperiodeForUtbetalinger = OpphørsperiodeForUtbetalinger(this).getOrHandle { throw IllegalArgumentException(it.toString()) }.value
 
         fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> {
             return when (

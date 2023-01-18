@@ -22,10 +22,12 @@ internal class UtbetalingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
 ) : UtbetalingRepo {
-    override fun hentUtbetaling(utbetalingId: UUID30): Utbetaling.OversendtUtbetaling? {
+    override fun hentOversendtUtbetalingForUtbetalingId(
+        utbetalingId: UUID30,
+    ): Utbetaling.OversendtUtbetaling? {
         return dbMetrics.timeQuery("hentUtbetalingForId") {
             sessionFactory.withSession { session ->
-                UtbetalingInternalRepo.hentUtbetalingInternal(
+                UtbetalingInternalRepo.hentOversendtUtbetaling(
                     utbetalingId,
                     session,
                 )
@@ -33,7 +35,9 @@ internal class UtbetalingPostgresRepo(
         }
     }
 
-    override fun hentUtbetaling(avstemmingsnøkkel: Avstemmingsnøkkel): Utbetaling.OversendtUtbetaling? {
+    override fun hentOversendtUtbetalingForAvstemmingsnøkkel(
+        avstemmingsnøkkel: Avstemmingsnøkkel,
+    ): Utbetaling.OversendtUtbetaling? {
         return dbMetrics.timeQuery("hentUtbetalingForAvstemmingsnøkkel") {
             sessionFactory.withSession { session ->
                 "select u.*, s.saksnummer, s.type as sakstype from utbetaling u left join sak s on s.id = u.sakId where u.avstemmingsnøkkel ->> 'nøkkel' = :nokkel".hent(
@@ -46,9 +50,9 @@ internal class UtbetalingPostgresRepo(
         }
     }
 
-    override fun hentUtbetalinger(sakId: UUID): List<Utbetaling> {
+    override fun hentOversendteUtbetalinger(sakId: UUID): List<Utbetaling.OversendtUtbetaling> {
         return dbMetrics.timeQuery("hentUtbetalingerForSakId") {
-            sessionFactory.withSession { session -> UtbetalingInternalRepo.hentUtbetalinger(sakId, session) }
+            sessionFactory.withSession { session -> UtbetalingInternalRepo.hentOversendteUtbetalinger(sakId, session) }
         }
     }
 
@@ -76,7 +80,10 @@ internal class UtbetalingPostgresRepo(
         }
     }
 
-    override fun opprettUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering, transactionContext: TransactionContext) {
+    override fun opprettUtbetaling(
+        utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering,
+        transactionContext: TransactionContext,
+    ) {
         dbMetrics.timeQuery("opprettUtbetaling") {
             transactionContext.withTransaction { session ->
                 """
