@@ -35,6 +35,7 @@ sealed class Fradragstype {
         OffentligPensjon,
         PrivatPensjon,
         Sosialstønad,
+        StatensLånekasse,
         SupplerendeStønad,
         Sykepenger,
         Tiltakspenger,
@@ -142,6 +143,11 @@ sealed class Fradragstype {
         override val måJusteresManueltVedGEndring: Boolean = false
     }
 
+    object StatensLånekasse : Fradragstype() {
+        override val kategori: Kategori = Kategori.StatensLånekasse
+        override val måJusteresManueltVedGEndring: Boolean = false
+    }
+
     object SupplerendeStønad : Fradragstype() {
         override val kategori: Kategori = Kategori.SupplerendeStønad
         override val måJusteresManueltVedGEndring: Boolean = true
@@ -194,9 +200,11 @@ sealed class Fradragstype {
                     kategori == Kategori.Annet && beskrivelse == null -> {
                         UgyldigFradragstype.UspesifisertKategoriUtenBeskrivelse.left()
                     }
+
                     kategori != Kategori.Annet && beskrivelse != null -> {
                         UgyldigFradragstype.SpesifisertKategoriMedBeskrivelse.left()
                     }
+
                     else -> {
                         if (kategori == Kategori.Annet) {
                             Annet(beskrivelse!!)
