@@ -130,8 +130,16 @@ sealed class Dokument {
         }
     }
 
+    /**
+     * Du skal bruke en, og bare en knyttning til vedtak eller behandling
+     * Dersom du har behov for å knytte et dokument til flere, da kreves det en del omskrivning
+     */
     data class Metadata(
         val sakId: UUID,
+        /**
+         * Denne er for selve søknaden, og ikke behandlingen.
+         * Dokumenter for behandlingen baserer seg bare på utkast. Deretter når dem gjøres om til vedtak, brukes vedtakId
+         */
         val søknadId: UUID? = null,
         val vedtakId: UUID? = null,
         val revurderingId: UUID? = null,
