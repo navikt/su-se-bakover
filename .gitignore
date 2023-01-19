@@ -6,6 +6,9 @@ build
 
 *.iml
 .idea/
+!.idea/codeStyles/codeStyleConfig.xml
+!.idea/codeStyles/Project.xml
+!.idea/inspectionProfiles/Project_Default.xml
 out/
 
 *.DS_STORE
