@@ -1,5 +1,5 @@
 val confluentVersion = "7.3.1"
-val kafkaVersion = "3.3.1"
+val kafkaVersion = "3.3.2"
 
 dependencies {
     testImplementation(project(":common"))
