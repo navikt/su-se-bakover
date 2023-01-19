@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBre
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
@@ -218,12 +219,13 @@ fun vedtakIverksattAutomatiskRegulering(
     ).let { (sak, _) ->
         val regulering = iverksattAutomatiskRegulering(sakId = sak.id, reguleringsperiode = regulerFraOgMed)
 
+        @Suppress("UNCHECKED_CAST")
         val utbetaling = oversendtUtbetalingMedKvittering(
             id = utbetalingId,
             fnr = fnr,
             sakId = sakId,
             saksnummer = saksnummer,
-            eksisterendeUtbetalinger = sak.utbetalinger,
+            eksisterendeUtbetalinger = sak.utbetalinger as List<Utbetaling.OversendtUtbetaling>,
             clock = clock,
         )
         val vedtak = VedtakSomKanRevurderes.from(

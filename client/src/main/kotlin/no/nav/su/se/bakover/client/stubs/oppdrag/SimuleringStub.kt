@@ -35,7 +35,7 @@ class SimuleringStub(
     private fun simulerUtbetalinger(request: SimulerUtbetalingRequest): Simulering {
         val utbetaling = request.utbetaling
         val simuleringsperiode = request.simuleringsperiode
-        val tidslinjeEksisterendeUtbetalinger = utbetalingRepo.hentUtbetalinger(utbetaling.sakId)
+        val tidslinjeEksisterendeUtbetalinger = utbetalingRepo.hentOversendteUtbetalinger(utbetaling.sakId)
             .tidslinje(
                 periode = simuleringsperiode,
                 clock = clock,
@@ -54,7 +54,7 @@ class SimuleringStub(
          * [no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger].
          */
         fun finnBeløpVedReaktivering(måned: Måned): Int {
-            return (utbetalingRepo.hentUtbetalinger(utbetaling.sakId) + utbetaling)
+            return (utbetalingRepo.hentOversendteUtbetalinger(utbetaling.sakId) + utbetaling)
                 .tidslinje(
                     periode = simuleringsperiode,
                     clock = clock,

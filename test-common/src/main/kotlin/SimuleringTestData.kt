@@ -50,17 +50,17 @@ import java.util.UUID
 import kotlin.math.roundToInt
 
 private data class UtbetalingRepoMock(
-    private val eksisterendeUtbetalinger: List<Utbetaling>,
+    private val eksisterendeUtbetalinger: List<Utbetaling.OversendtUtbetaling>,
 ) : UtbetalingRepo {
-    override fun hentUtbetaling(utbetalingId: UUID30): Utbetaling.OversendtUtbetaling? {
+    override fun hentOversendtUtbetalingForUtbetalingId(utbetalingId: UUID30): Utbetaling.OversendtUtbetaling? {
         TODO("Not yet implemented")
     }
 
-    override fun hentUtbetaling(avstemmingsnøkkel: Avstemmingsnøkkel): Utbetaling.OversendtUtbetaling? {
+    override fun hentOversendtUtbetalingForAvstemmingsnøkkel(avstemmingsnøkkel: Avstemmingsnøkkel): Utbetaling.OversendtUtbetaling? {
         TODO("Not yet implemented")
     }
 
-    override fun hentUtbetalinger(sakId: UUID): List<Utbetaling> {
+    override fun hentOversendteUtbetalinger(sakId: UUID): List<Utbetaling.OversendtUtbetaling> {
         return eksisterendeUtbetalinger
     }
 
@@ -105,10 +105,11 @@ fun simulerUtbetaling(
     clock: Clock = nåtidForSimuleringStub,
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
 ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+    @Suppress("UNCHECKED_CAST")
     return SimuleringStub(
         clock = clock,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
-        utbetalingRepo = UtbetalingRepoMock(sak.utbetalinger),
+        utbetalingRepo = UtbetalingRepoMock(sak.utbetalinger as List<Utbetaling.OversendtUtbetaling>),
     ).simulerUtbetaling(
         SimulerUtbetalingForPeriode(
             utbetaling = utbetaling,
@@ -346,7 +347,7 @@ fun simuler(
  */
 fun simuleringNy(
     beregning: Beregning = beregning(periode = år(2021)),
-    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
+    eksisterendeUtbetalinger: List<Utbetaling.OversendtUtbetaling> = emptyList(),
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
@@ -388,7 +389,7 @@ fun simuleringNy(
 
 fun simuleringOpphørt(
     opphørsperiode: Periode,
-    eksisterendeUtbetalinger: List<Utbetaling>,
+    eksisterendeUtbetalinger: List<Utbetaling.OversendtUtbetaling>,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,

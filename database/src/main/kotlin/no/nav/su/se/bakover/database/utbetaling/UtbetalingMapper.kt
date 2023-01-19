@@ -15,7 +15,10 @@ import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import java.util.UUID
 
-data class UtbetalingMapper(
+/**
+ * Brukes for å mappe en utbetaling fra databasen til en [Utbetaling.OversendtUtbetaling]
+ */
+internal data class UtbetalingMapper(
     val id: UUID30,
     val opprettet: Tidspunkt,
     val sakId: UUID,

@@ -93,6 +93,7 @@ internal fun Sak.iverksettInnvilgetRevurdering(
                     sak = copy(
                         revurderinger = revurderinger.filterNot { it.id == revurdering.id } + iverksattRevurdering,
                         vedtakListe = vedtakListe.filterNot { it.id == vedtak.id } + vedtak,
+                        // TODO jah: Her legger vi til en [SimulertUtbetaling] istedenfor en [OversendtUtbetaling] det kan i første omgang klusse til testdataene.
                         utbetalinger = utbetalinger.filterNot { it.id == simulertUtbetaling.id } + simulertUtbetaling,
                     ).oppdaterUteståendeAvkortingVedIverksettelse(
                         behandletAvkorting = vedtak.behandling.avkorting,

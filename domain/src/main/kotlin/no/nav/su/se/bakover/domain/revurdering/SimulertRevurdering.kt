@@ -23,6 +23,8 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.tilbakekrevingErVurder
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
+import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
+import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOpphørVedRevurdering
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår

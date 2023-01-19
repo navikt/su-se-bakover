@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.revurdering
 
+import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.client.statement.bodyAsText
@@ -25,7 +26,9 @@ internal fun beregnOgSimuler(
             listOf(brukerrolle),
             client = client,
         ).apply {
-            status shouldBe HttpStatusCode.Created
+            withClue("body=${this.bodyAsText()}") {
+                status shouldBe HttpStatusCode.Created
+            }
             contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
         }.bodyAsText()
     }

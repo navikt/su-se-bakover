@@ -38,8 +38,8 @@ class AvkortingKomponentTest {
         //             |-- Behandling som bruker avkorting -|
 
         val fnr = Fnr.generer().toString()
-        val tisdpunktForRevurdering: Clock = 21.mai(2021).fixedClock()
-        val clock = TikkendeKlokke(tisdpunktForRevurdering)
+        val tidspunktForRevurdering: Clock = 21.mai(2021).fixedClock()
+        val clock = TikkendeKlokke(tidspunktForRevurdering)
         val behandlingStartDato = 1.januar(2021)
         val behandlingSluttDato = 31.desember(2021)
         val opphørStartDato = 1.april(2021)

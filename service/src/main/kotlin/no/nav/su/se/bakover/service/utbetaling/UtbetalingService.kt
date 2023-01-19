@@ -37,7 +37,6 @@ interface UtbetalingService {
      * i tillegg til [UtbetalingKlargjortForOversendelse.callback] for å publisere utbetalingen på kø mot OS. Kall til denne funksjonen bør gjennomføres
      * som det siste steget i [transactionContext], slik at eventuelle feil her kan rulle tilbake hele transaksjonen.
      */
-
     fun klargjørUtbetaling(
         utbetaling: Utbetaling.SimulertUtbetaling,
         transactionContext: TransactionContext,

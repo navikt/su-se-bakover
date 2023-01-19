@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
@@ -30,7 +31,7 @@ internal class UtbetalingServiceImplTest {
     fun `hent utbetaling - ikke funnet`() {
         UtbetalingServiceAndMocks(
             utbetalingRepo = mock {
-                on { hentUtbetaling(any<UUID30>()) } doReturn null
+                on { hentOversendtUtbetalingForUtbetalingId(any<UUID30>()) } doReturn null
             },
         ).let {
             it.service.hentUtbetaling(UUID30.randomUUID()) shouldBe FantIkkeUtbetaling.left()
@@ -41,7 +42,7 @@ internal class UtbetalingServiceImplTest {
     fun `oppdater med kvittering - ikke funnet`() {
         UtbetalingServiceAndMocks(
             utbetalingRepo = mock {
-                on { hentUtbetaling(any<Avstemmingsnøkkel>()) } doReturn null
+                on { hentOversendtUtbetalingForAvstemmingsnøkkel(any<Avstemmingsnøkkel>()) } doReturn null
             },
         ).let {
             it.service.oppdaterMedKvittering(
@@ -58,7 +59,7 @@ internal class UtbetalingServiceImplTest {
 
         UtbetalingServiceAndMocks(
             utbetalingRepo = mock {
-                on { hentUtbetaling(any<UUID30>()) } doReturn utbetalingUtenKvittering
+                on { hentOversendtUtbetalingForUtbetalingId(any<UUID30>()) } doReturn utbetalingUtenKvittering
             },
         ).let {
             it.service.oppdaterMedKvittering(
@@ -76,7 +77,7 @@ internal class UtbetalingServiceImplTest {
 
         UtbetalingServiceAndMocks(
             utbetalingRepo = mock {
-                on { hentUtbetaling(any<UUID30>()) } doReturn utbetalingMedKvittering
+                on { hentOversendtUtbetalingForUtbetalingId(any<UUID30>()) } doReturn utbetalingMedKvittering
             },
         ).let {
             it.service.oppdaterMedKvittering(
@@ -111,7 +112,8 @@ internal class UtbetalingServiceImplTest {
 
             UtbetalingServiceAndMocks(
                 utbetalingRepo = mock {
-                    on { hentUtbetalinger(any()) } doReturn sak.utbetalinger
+                    @Suppress("UNCHECKED_CAST")
+                    on { hentOversendteUtbetalinger(any()) } doReturn sak.utbetalinger as List<Utbetaling.OversendtUtbetaling>
                 },
             ).also {
                 it.service.hentGjeldendeUtbetaling(

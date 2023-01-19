@@ -31,6 +31,10 @@ internal fun SimulerUtbetalingFeilet.tilResultat(): Resultat {
         is SimulerUtbetalingFeilet.FeilVedKryssjekkAvSaksbehandlerOgAttestantsSimulering -> tilResultat()
         is SimulerUtbetalingFeilet.FeilVedKryssjekkAvTidslinjeOgSimulering -> tilResultat()
         is SimulerUtbetalingFeilet.FeilVedSimulering -> tilResultat()
+        is SimulerUtbetalingFeilet.Avkorting -> HttpStatusCode.BadRequest.errorJson(
+            "Opphør med avkorting: Siste måned i revurderingsperioden kan ikke være utbetalt.",
+            "siste_måned_i_revurderingsperiode_kan_ikke_være_utbetalt_ved_opphør_avkorting",
+        )
     }
 }
 

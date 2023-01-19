@@ -106,6 +106,7 @@ sealed class Utbetalingsstrategi {
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
+                // TODO jah + jm: Jacob mener denne kan endres til å bruke [Utbetalingshistorikk] som f.eks. opphør
                 utbetalingslinjer = nonEmptyListOf(
                     Utbetalingslinje.Endring.Stans(
                         utbetalingslinje = sisteOversendteUtbetalingslinje,
@@ -348,6 +349,7 @@ sealed class Utbetalingsstrategi {
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
+                // TODO jah + jm: Jacob mener denne kan endres til å bruke [Utbetalingshistorikk] som f.eks. opphør
                 utbetalingslinjer = nonEmptyListOf(
                     Utbetalingslinje.Endring.Reaktivering(
                         utbetalingslinje = sisteOversendteUtbetalingslinje,

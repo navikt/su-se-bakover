@@ -257,7 +257,7 @@ internal class AvstemmingPostgresRepo(
             tilOgMed = tilOgMed,
             utbetalinger = stringOrNull("utbetalinger")?.let {
                 it.deserializeList<String>().map { utbetalingId ->
-                    UtbetalingInternalRepo.hentUtbetalingInternal(
+                    UtbetalingInternalRepo.hentOversendtUtbetaling(
                         UUID30(utbetalingId),
                         session,
                     )!!

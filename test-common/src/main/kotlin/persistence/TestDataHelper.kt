@@ -323,7 +323,7 @@ class TestDataHelper(
     ): Triple<Sak, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, Utbetaling.OversendtUtbetaling.MedKvittering> {
         return persisterSøknadsbehandlingIverksatt(sakOgSøknad) { søknadsbehandling(it) }.let { (sak, _, vedtak) ->
             (vedtak as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling).let {
-                databaseRepos.utbetaling.hentUtbetaling(vedtak.utbetalingId).let { utbetalingUtenKvittering ->
+                databaseRepos.utbetaling.hentOversendtUtbetalingForUtbetalingId(vedtak.utbetalingId).let { utbetalingUtenKvittering ->
                     (utbetalingUtenKvittering as Utbetaling.OversendtUtbetaling.UtenKvittering).toKvittertUtbetaling(kvittering()).let { utbetalingMedKvittering ->
                         databaseRepos.utbetaling.oppdaterMedKvittering(utbetalingMedKvittering)
                         databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
