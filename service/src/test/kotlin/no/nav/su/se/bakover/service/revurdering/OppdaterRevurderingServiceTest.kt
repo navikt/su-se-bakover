@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.left
 import arrow.core.right
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
@@ -24,14 +25,15 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.toPeriode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
-import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
-import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
+import no.nav.su.se.bakover.domain.revurdering.avkorting.KanIkkeRevurderePgaAvkorting
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingCommand
+import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
+import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
+import no.nav.su.se.bakover.domain.revurdering.steg.Vurderingstatus
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -119,17 +121,19 @@ internal class OppdaterRevurderingServiceTest {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
         ).also {
-            it.revurderingService.oppdaterRevurdering(
-                OppdaterRevurderingCommand(
-                    revurderingId = revurderingId,
-                    periode = år(2021),
-                    årsak = "MELDING_FRA_BRUKER",
-                    begrunnelse = "gyldig begrunnelse",
-                    saksbehandler = saksbehandler,
-                    informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
-                ),
-            ) shouldBe KunneIkkeOppdatereRevurdering.FantIkkeRevurdering
-                .left()
+            val command = OppdaterRevurderingCommand(
+                revurderingId = revurderingId,
+                periode = år(2021),
+                årsak = "MELDING_FRA_BRUKER",
+                begrunnelse = "gyldig begrunnelse",
+                saksbehandler = saksbehandler,
+                informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
+            )
+            shouldThrow<IllegalArgumentException> {
+                it.revurderingService.oppdaterRevurdering(
+                    command,
+                )
+            }.message shouldBe "Fant ikke revurdering med id ${command.revurderingId}"
         }
     }
 
@@ -429,8 +433,10 @@ internal class OppdaterRevurderingServiceTest {
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Utenlandsopphold),
                 ),
-            ) shouldBe KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
-                juni(2021)..juli(2021),
+            ) shouldBe KunneIkkeOppdatereRevurdering.Avkorting(
+                KanIkkeRevurderePgaAvkorting.UteståendeAvkortingMåRevurderesISinHelhet(
+                    juni(2021)..juli(2021),
+                ),
             ).left()
         }
     }

@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.database.brev
 
-import no.nav.su.se.bakover.domain.revurdering.BrevvalgRevurdering
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 
 internal data class BrevvalgRevurderingDbJson(
     val type: BrevvalgRevurderingDbType,

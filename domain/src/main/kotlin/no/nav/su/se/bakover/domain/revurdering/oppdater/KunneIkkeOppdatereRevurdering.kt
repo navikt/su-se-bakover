@@ -1,18 +1,11 @@
 package no.nav.su.se.bakover.domain.revurdering.oppdater
 
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
-import java.util.UUID
+import no.nav.su.se.bakover.domain.revurdering.avkorting.KanIkkeRevurderePgaAvkorting
 import kotlin.reflect.KClass
 
 sealed interface KunneIkkeOppdatereRevurdering {
-    object FantIkkeSak : KunneIkkeOppdatereRevurdering
-    object FantIkkeRevurdering : KunneIkkeOppdatereRevurdering
-
-    data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
-        val avkortingsvarselperiode: Periode,
-    ) : KunneIkkeOppdatereRevurdering
 
     data class GjeldendeVedtaksdataKanIkkeRevurderes(
         val underliggende: Sak.GjeldendeVedtaksdataErUgyldigForRevurdering,
@@ -27,6 +20,5 @@ sealed interface KunneIkkeOppdatereRevurdering {
         val til: KClass<out Revurdering>,
     ) : KunneIkkeOppdatereRevurdering
 
-    object KanIkkeEndreÅrsakTilReguleringVedForhåndsvarsletRevurdering : KunneIkkeOppdatereRevurdering
-    data class PågåendeAvkortingForPeriode(val periode: Periode, val vedtakId: UUID) : KunneIkkeOppdatereRevurdering
+    data class Avkorting(val underliggende: KanIkkeRevurderePgaAvkorting) : KunneIkkeOppdatereRevurdering
 }

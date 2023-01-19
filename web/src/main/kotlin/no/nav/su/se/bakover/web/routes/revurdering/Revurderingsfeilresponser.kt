@@ -12,9 +12,10 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeForhåndsvarsle
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLageBrevutkastForRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.revurdering.avkorting.KanIkkeRevurderePgaAvkorting
+import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeForhåndsvarsle
+import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForRevurdering
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.brevvalgIkkeTillatt
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.fantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.navneoppslagSaksbehandlerAttesttantFeilet
@@ -183,6 +184,20 @@ internal object Revurderingsfeilresponser {
 
         is Sak.KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> {
             ugyldigPeriode(this.feil)
+        }
+    }
+
+    internal fun KanIkkeRevurderePgaAvkorting.tilResultat(): Resultat {
+        return when (this) {
+            is KanIkkeRevurderePgaAvkorting.PågåendeAvkortingForPeriode -> {
+                OpprettelseOgOppdateringAvRevurdering.pågåendeAvkortingForPeriode(
+                    periode = periode,
+                    vedtakId = vedtakId.toString(),
+                )
+            }
+            is KanIkkeRevurderePgaAvkorting.UteståendeAvkortingMåRevurderesISinHelhet -> {
+                OpprettelseOgOppdateringAvRevurdering.uteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(periode)
+            }
         }
     }
 }

@@ -226,14 +226,9 @@ object Feilresponser {
         "avkorting_er_ufullstendig",
     )
 
-    val avkortingErAlleredeAvkortet = InternalServerError.errorJson(
-        "Avkortingen er allerede avkortet",
-        "avkorting_er_allerede_avkortet",
-    )
-
-    val avkortingErAlleredeAnnullert = InternalServerError.errorJson(
-        "Avkortingen er allerede annullert",
-        "avkorting_er_allerede_annullert",
+    val avkortingsfeil = InternalServerError.errorJson(
+        "Kunne ikke iverksette pga. avkorting. Dersom dette er en revurdering, prøv å oppdater revurderingen for å hente nye data fra saken.",
+        "avkortingsfeil",
     )
 
     val opphørAvYtelseSomSkalAvkortes = InternalServerError.errorJson(
@@ -315,6 +310,11 @@ object Feilresponser {
     val sakAvventerKravgrunnlagForTilbakekreving = BadRequest.errorJson(
         message = "Saken avventer kravgrunnlag for tilbakekreving. Nye utbetalinger kan ikke håndteres før kravgrunnlaget er ferdigbehandlet.",
         code = "åpent_kravgrunnlag_må_håndteres_før_ny_søknadsbehandling",
+    )
+
+    val detHarKommetNyeOverlappendeVedtak = BadRequest.errorJson(
+        message = "Det har kommet nye vedtak i denne revurderingsperioden etter at denne revurderingen ble opprettet eller oppdatert.",
+        code = "nye_overlappende_vedtak",
     )
 
     object Brev {

@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
 import io.ktor.server.routing.Route
-import no.nav.su.se.bakover.domain.revurdering.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
+import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.satser.SatsFactory

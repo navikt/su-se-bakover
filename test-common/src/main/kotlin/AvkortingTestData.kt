@@ -3,13 +3,15 @@ package no.nav.su.se.bakover.test
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.november
 import no.nav.su.se.bakover.common.periode.oktober
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
+import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
+import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -17,6 +19,29 @@ import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
+
+fun uhåndtertUteståendeAvkorting(
+    vararg perioder: Periode = listOf(juni(2021)).toTypedArray(),
+    id: UUID = UUID.randomUUID(),
+    opprettet: Tidspunkt = fixedTidspunkt,
+    sakId: UUID = UUID.randomUUID(),
+    revurderingId: UUID = UUID.randomUUID(),
+    simulering: Simulering = simuleringFeilutbetaling(
+        perioder = perioder,
+    ),
+): AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting {
+    return AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(
+        Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
+            Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                id = id,
+                sakId = sakId,
+                revurderingId = revurderingId,
+                opprettet = opprettet,
+                simulering = simulering,
+            ),
+        ),
+    )
+}
 
 fun avkortingsvarselUtenlandsopphold(
     id: UUID = UUID.randomUUID(),

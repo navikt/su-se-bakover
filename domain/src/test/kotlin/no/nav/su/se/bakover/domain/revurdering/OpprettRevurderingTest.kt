@@ -16,12 +16,15 @@ import no.nav.su.se.bakover.common.periode.september
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
+import no.nav.su.se.bakover.domain.revurdering.avkorting.KanIkkeRevurderePgaAvkorting
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.oppdater.oppdaterRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.opprett.opprettRevurdering
+import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.enUkeEtterFixedClock
 import no.nav.su.se.bakover.test.fixedClock
@@ -160,9 +163,11 @@ internal class OpprettRevurderingTest {
                     informasjonSomRevurderes = listOf(Revurderingsteg.PersonligOppmøte),
                 ),
                 clock = clock,
-            ) shouldBe KunneIkkeOppdatereRevurdering.PågåendeAvkortingForPeriode(
-                periode = ulovligPeriode,
-                vedtakId = søknadsbehandlingMedPåbegyntAvkorting.id,
+            ) shouldBe KunneIkkeOppdatereRevurdering.Avkorting(
+                KanIkkeRevurderePgaAvkorting.PågåendeAvkortingForPeriode(
+                    periode = ulovligPeriode,
+                    vedtakId = søknadsbehandlingMedPåbegyntAvkorting.id,
+                ),
             ).left()
         }
 

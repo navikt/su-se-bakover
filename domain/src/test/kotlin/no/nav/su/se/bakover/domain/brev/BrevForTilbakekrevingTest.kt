@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.domain.visitor.KunneIkkeLageBrevRequest
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.attestant
@@ -163,7 +162,7 @@ class BrevForTilbakekrevingTest {
                     saksbehandler = saksbehandler,
                 ).getOrFail().tilIverksatt(
                     attestant = attestant,
-                    hentOpprinneligAvkorting = { null },
+                    uteståendeAvkortingPåSak = null,
                     clock = fixedClock,
                 ).getOrFail()
             }.let { (sak, revurdering) ->
@@ -257,7 +256,7 @@ class BrevForTilbakekrevingTest {
                     saksbehandler = saksbehandler,
                 ).getOrFail().tilIverksatt(
                     attestant = attestant,
-                    hentOpprinneligAvkorting = { null },
+                    uteståendeAvkortingPåSak = null,
                     clock = fixedClock,
                 ).getOrFail()
             }.let { (sak, revurdering) ->

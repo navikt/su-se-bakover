@@ -2,6 +2,9 @@ package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.left
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
+import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
+import no.nav.su.se.bakover.domain.revurdering.steg.Vurderingstatus
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 

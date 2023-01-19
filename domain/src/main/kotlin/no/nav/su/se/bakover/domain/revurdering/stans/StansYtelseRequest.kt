@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering.stans
 
 import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import java.time.LocalDate
 import java.util.UUID
 
