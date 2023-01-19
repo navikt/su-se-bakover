@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.regulering
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import arrow.core.separateEither
@@ -64,8 +64,8 @@ internal fun Route.reguler(
                     call.withBody<Body> { body ->
                         reguleringService.regulerManuelt(
                             reguleringId = id,
-                            uføregrunnlag = body.uføre.toDomain(clock).getOrHandle { return@authorize call.svar(it) },
-                            fradrag = body.fradrag.toDomain(clock).getOrHandle { return@authorize call.svar(it) },
+                            uføregrunnlag = body.uføre.toDomain(clock).getOrElse { return@authorize call.svar(it) },
+                            fradrag = body.fradrag.toDomain(clock).getOrElse { return@authorize call.svar(it) },
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                         ).fold(
                             ifLeft = {
@@ -166,7 +166,7 @@ private fun List<FradragRequestJson>.toDomain(clock: Clock): Either<Resultat, Li
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
             fradrag = it,
-        ).getOrHandle {
+        ).getOrElse {
             return HttpStatusCode.BadRequest.errorJson(
                 message = "Kunne ikke lage fradrag",
                 code = "kunne_ikke_lage_fradrag",
@@ -182,7 +182,7 @@ private fun List<UføregrunnlagJson>.toDomain(clock: Clock): Either<Resultat, Li
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
             periode = it.periode.toPeriode(),
-            uføregrad = Uføregrad.tryParse(it.uføregrad).getOrHandle {
+            uføregrad = Uføregrad.tryParse(it.uføregrad).getOrElse {
                 return Feilresponser.Uføre.uføregradMåVæreMellomEnOgHundre.left()
             },
             forventetInntekt = it.forventetInntekt,

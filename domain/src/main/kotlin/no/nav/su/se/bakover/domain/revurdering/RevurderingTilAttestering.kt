@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
@@ -139,7 +139,9 @@ sealed class RevurderingTilAttestering : Revurdering() {
         }
 
         // Det er ikke i dette steget revurderingsperioden og simuleringen kjøres/lagres, så denne feilen bør ikke inntreffe.
-        val opphørsperiodeForUtbetalinger = OpphørsperiodeForUtbetalinger(this).getOrHandle { throw IllegalArgumentException(it.toString()) }.value
+        val opphørsperiodeForUtbetalinger = OpphørsperiodeForUtbetalinger(this).getOrElse {
+            throw IllegalArgumentException(it.toString())
+        }.value
 
         fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> {
             return when (

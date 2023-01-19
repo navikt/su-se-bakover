@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.visitor
 
 import arrow.core.Either
 import arrow.core.continuations.either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
@@ -416,7 +416,7 @@ class LagBrevRequestVisitor(
                 revurdertBeregning = beregning,
                 fritekst = if (revurdering.skalSendeBrev()) {
                     revurdering.brevvalgRevurdering.skalSendeBrev()
-                        .getOrHandle { throw IllegalStateException("context mismatch: Revurderingen skal sende brev, men brevvalg skal ikke sendes. ${revurdering.id}") }.fritekst
+                        .getOrElse { throw IllegalStateException("context mismatch: Revurderingen skal sende brev, men brevvalg skal ikke sendes. ${revurdering.id}") }.fritekst
                         ?: ""
                 } else {
                     return KunneIkkeLageBrevRequest.SkalIkkeSendeBrev.left()
@@ -600,7 +600,7 @@ class LagBrevRequestVisitor(
                 beregning = beregning,
                 fritekst = if (revurdering.skalSendeBrev()) {
                     revurdering.brevvalgRevurdering.skalSendeBrev()
-                        .getOrHandle { throw IllegalStateException("context mismatch: Revurderingen skal sende brev, men brevvalg skal ikke sendes. ${revurdering.id}") }.fritekst
+                        .getOrElse { throw IllegalStateException("context mismatch: Revurderingen skal sende brev, men brevvalg skal ikke sendes. ${revurdering.id}") }.fritekst
                         ?: ""
                 } else {
                     return KunneIkkeLageBrevRequest.SkalIkkeSendeBrev.left()
@@ -628,7 +628,7 @@ class LagBrevRequestVisitor(
                             revurdering = revurdering,
                             beregning = beregning,
                             simulering = simulering,
-                        ).getOrHandle { throw RuntimeException(it.toString()) }
+                        ).getOrElse { throw RuntimeException(it.toString()) }
                     },
                 )
             }

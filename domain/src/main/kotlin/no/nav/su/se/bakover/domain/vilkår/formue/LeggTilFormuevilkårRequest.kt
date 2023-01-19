@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.vilkår.formue
 
 import arrow.core.Either
 import arrow.core.Nel
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
@@ -33,11 +33,12 @@ data class LeggTilFormuevilkårRequest(
                     søkersFormue = element.søkersFormue,
                     bosituasjon = bosituasjon,
                     behandlingsPeriode = behandlingsperiode,
-                ).getOrHandle {
+                ).getOrElse {
                     return when (it) {
                         KunneIkkeLageFormueGrunnlag.FormuePeriodeErUtenforBehandlingsperioden -> {
                             KunneIkkeMappeTilDomenet.FormuePeriodeErUtenforBehandlingsperioden
                         }
+
                         is KunneIkkeLageFormueGrunnlag.Konsistenssjekk -> {
                             KunneIkkeMappeTilDomenet.Konsistenssjekk(it.feil)
                         }
@@ -74,11 +75,12 @@ data class LeggTilFormuevilkårRequest(
                     søkersFormue = element.søkersFormue,
                     bosituasjon = bosituasjon,
                     behandlingsPeriode = behandlingsperiode,
-                ).getOrHandle {
+                ).getOrElse {
                     return when (it) {
                         KunneIkkeLageFormueGrunnlag.FormuePeriodeErUtenforBehandlingsperioden -> {
                             KunneIkkeMappeTilDomenet.FormuePeriodeErUtenforBehandlingsperioden
                         }
+
                         is KunneIkkeLageFormueGrunnlag.Konsistenssjekk -> {
                             KunneIkkeMappeTilDomenet.Konsistenssjekk(it.feil)
                         }

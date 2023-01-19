@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.sak.iverksett
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.periode.Periode
@@ -27,7 +27,7 @@ fun Sak.iverksettRevurdering(
     simuler: (utbetaling: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
 ): Either<KunneIkkeIverksetteRevurdering, IverksettRevurderingResponse<VedtakSomKanRevurderes.EndringIYtelse>> {
     val revurdering = hentRevurdering(revurderingId)
-        .getOrHandle { return KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left() }
+        .getOrElse { return KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left() }
         .let {
             (it as? RevurderingTilAttestering)
                 ?: return KunneIkkeIverksetteRevurdering.UgyldigTilstand(
@@ -43,6 +43,7 @@ fun Sak.iverksettRevurdering(
             clock = clock,
             simuler = simuler,
         )
+
         is RevurderingTilAttestering.Opphørt -> iverksettOpphørtRevurdering(
             revurdering = revurdering,
             attestant = attestant,

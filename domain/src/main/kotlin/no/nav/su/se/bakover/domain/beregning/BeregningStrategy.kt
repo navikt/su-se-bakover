@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.beregning
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
@@ -89,18 +89,21 @@ class BeregningStrategyFactory(
                         is Vilkårsvurderinger.Revurdering.Uføre -> {
                             vilkårsvurderinger.uføre.grunnlag
                         }
+
                         is Vilkårsvurderinger.Søknadsbehandling.Uføre -> {
                             vilkårsvurderinger.uføre.grunnlag
                         }
+
                         is Vilkårsvurderinger.Revurdering.Alder -> {
                             throw IllegalStateException("Uføresak med vilkårsvurderinger for alder!")
                         }
+
                         is Vilkårsvurderinger.Søknadsbehandling.Alder -> {
                             throw IllegalStateException("Uføresak med vilkårsvurderinger for alder!")
                         }
                     },
                     fradragFraSaksbehandler = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag,
-                ).getOrHandle {
+                ).getOrElse {
                     // TODO jah: Kan vurdere å legge på en left her (KanIkkeBeregne.UgyldigBeregningsgrunnlag
                     throw IllegalArgumentException(it.toString())
                 }.fradrag

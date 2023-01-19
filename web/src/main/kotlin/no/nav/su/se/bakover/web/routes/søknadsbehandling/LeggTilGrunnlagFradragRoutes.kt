@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
 import arrow.core.Either
 import arrow.core.flatMap
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.ktor.http.HttpStatusCode
@@ -57,22 +57,22 @@ internal fun Route.leggTilGrunnlagFradrag(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(clock),
                         fradrag = FradragFactory.nyFradragsperiode(
-                            periode = fradrag.periode.toPeriodeOrResultat().getOrHandle { feilResultat ->
+                            periode = fradrag.periode.toPeriodeOrResultat().getOrElse { feilResultat ->
                                 return feilResultat.left()
                             },
                             fradragstype = fradrag.type.let {
-                                Fradragstype.tryParse(it, fradrag.beskrivelse).getOrHandle {
+                                Fradragstype.tryParse(it, fradrag.beskrivelse).getOrElse {
                                     return Behandlingsfeilresponser.ugyldigFradragstype.left()
                                 }
                             },
                             månedsbeløp = fradrag.beløp,
                             utenlandskInntekt = fradrag.utenlandskInntekt?.toUtenlandskInntekt()
-                                ?.getOrHandle { feilResultat ->
+                                ?.getOrElse { feilResultat ->
                                     return feilResultat.left()
                                 },
                             tilhører = fradrag.tilhører.let { FradragTilhører.valueOf(it) },
                         ),
-                    ).getOrHandle {
+                    ).getOrElse {
                         return when (it) {
                             Grunnlag.Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> Behandlingsfeilresponser.ugyldigFradragstype.left()
                         }
@@ -88,14 +88,17 @@ internal fun Route.leggTilGrunnlagFradrag(
                     call.withBody<Body> { body ->
                         call.svar(
                             body.toCommand(behandlingId, clock).flatMap { command ->
-                                behandlingService.leggTilFradragsgrunnlag(command, saksbehandler = call.suUserContext.saksbehandler)
+                                behandlingService.leggTilFradragsgrunnlag(
+                                    command,
+                                    saksbehandler = call.suUserContext.saksbehandler,
+                                )
                                     .mapLeft { it.tilResultat() }
                                     .map {
                                         call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                                         call.sikkerlogg("Lagret fradrag for behandling $behandlingId på $sakId")
                                         Resultat.json(HttpStatusCode.Created, serialize(it.toJson(satsFactory)))
                                     }
-                            }.getOrHandle { it },
+                            }.getOrElse { it },
                         )
                     }
                 }

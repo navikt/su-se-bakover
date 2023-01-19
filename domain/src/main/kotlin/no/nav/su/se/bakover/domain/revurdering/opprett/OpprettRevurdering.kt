@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering.opprett
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -36,15 +36,15 @@ fun Sak.opprettRevurdering(
     }
 
     val informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(command.informasjonSomRevurderes)
-        .getOrHandle { return KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
+        .getOrElse { return KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
 
     val gjeldendeVedtaksdata = hentGjeldendeVedtaksdataOgSjekkGyldighetForRevurderingsperiode(
         periode = command.periode,
         clock = clock,
-    ).getOrHandle { return KunneIkkeOppretteRevurdering.VedtakInnenforValgtPeriodeKanIkkeRevurderes(it).left() }
+    ).getOrElse { return KunneIkkeOppretteRevurdering.VedtakInnenforValgtPeriodeKanIkkeRevurderes(it).left() }
 
     informasjonSomRevurderes.sjekkAtOpphørteVilkårRevurderes(gjeldendeVedtaksdata)
-        .getOrHandle { return KunneIkkeOppretteRevurdering.OpphørteVilkårMåRevurderes(it).left() }
+        .getOrElse { return KunneIkkeOppretteRevurdering.OpphørteVilkårMåRevurderes(it).left() }
 
     val uteståendeAvkorting = hentUteståendeAvkortingForRevurdering().fold(
         {
@@ -56,7 +56,7 @@ fun Sak.opprettRevurdering(
             kontrollerAtUteståendeAvkortingRevurderes(
                 periode = command.periode,
                 uteståendeAvkorting = uteståendeAvkorting,
-            ).getOrHandle {
+            ).getOrElse {
                 return KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
                     periode = uteståendeAvkorting.avkortingsvarsel.periode(),
                 ).left()
@@ -65,11 +65,11 @@ fun Sak.opprettRevurdering(
     )
 
     unngåRevurderingAvPeriodeDetErPågåendeAvkortingFor(command.periode)
-        .getOrHandle {
+        .getOrElse {
             return KunneIkkeOppretteRevurdering.PågåendeAvkorting(it.periode, it.pågåendeAvkortingVedtakId).left()
         }
 
-    val revurderingsårsak = command.revurderingsårsak.getOrHandle {
+    val revurderingsårsak = command.revurderingsårsak.getOrElse {
         return KunneIkkeOppretteRevurdering.UgyldigRevurderingsårsak(it).left()
     }
 
@@ -139,20 +139,25 @@ sealed interface KunneIkkeOppretteRevurdering {
  * [periode] dekker både det aktuelle avkortingsvarsel og alle periodene med fradrag for avkorting i den nye stønadsperioden.
  */
 fun Sak.unngåRevurderingAvPeriodeDetErPågåendeAvkortingFor(periode: Periode): Either<PågåendeAvkortingForPeriode, Unit> {
-    val pågåendeAvkorting: List<Pair<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående>> = vedtakstidslinje()
-        .tidslinje
-        .map { it.originaltVedtak }
-        .filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>()
-        .map { it to it.behandling.avkorting }
-        .filter { (_, avkorting) -> avkorting is AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående }
-        .filterIsInstance<Pair<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående>>()
+    val pågåendeAvkorting: List<Pair<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående>> =
+        vedtakstidslinje()
+            .tidslinje
+            .map { it.originaltVedtak }
+            .filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>()
+            .map { it to it.behandling.avkorting }
+            .filter { (_, avkorting) -> avkorting is AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående }
+            .filterIsInstance<Pair<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående>>()
 
     return if (pågåendeAvkorting.isEmpty()) {
         Unit.right()
     } else {
         pågåendeAvkorting.forEach { (vedtak, pågåendeAvkorting) ->
             if (periode.overlapper(pågåendeAvkorting.avkortingsvarsel.periode())) {
-                val periodeSomMåOverlappes = (pågåendeAvkorting.avkortingsvarsel.periode().måneder() + vedtak.behandling.grunnlagsdata.fradragsgrunnlag.filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }.periode()).distinct().måneder()
+                val periodeSomMåOverlappes = (
+                    pågåendeAvkorting.avkortingsvarsel.periode()
+                        .måneder() + vedtak.behandling.grunnlagsdata.fradragsgrunnlag.filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
+                        .periode()
+                    ).distinct().måneder()
                 if (!periode.inneholderAlle(periodeSomMåOverlappes)) {
                     return PågåendeAvkortingForPeriode(
                         periode = periode,

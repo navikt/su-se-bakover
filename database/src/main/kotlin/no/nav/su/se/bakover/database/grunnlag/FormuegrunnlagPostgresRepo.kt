@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.database.grunnlag
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.periode.Periode
@@ -130,7 +130,7 @@ private data class FormueverdierJson(
             pengerSkyldt = pengerSkyldt,
             kontanter = kontanter,
             depositumskonto = depositumskonto,
-        ).getOrHandle {
+        ).getOrElse {
             throw IllegalArgumentException(it.toString())
         }
     }

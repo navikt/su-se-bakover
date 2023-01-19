@@ -35,7 +35,7 @@ fun Sak.oppdaterStønadsperiodeForSøknadsbehandling(
         return Sak.KunneIkkeOppdatereStønadsperiode.FinnesOverlappendeÅpenBehandling.left()
     }
 
-    validerOverlappendeStønadsperioder(stønadsperiode.periode, clock).tapLeft {
+    validerOverlappendeStønadsperioder(stønadsperiode.periode, clock).onLeft {
         return Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode(it).left()
     }
 

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
@@ -41,7 +41,7 @@ internal fun Route.opplysningspliktRoutes(
             call.withBody<LeggTilOpplysningspliktVilkårBody> { body ->
 
                 val request = body.toDomain(saksbehandler = call.suUserContext.saksbehandler, clock = clock)
-                    .getOrHandle { return@authorize call.svar(it.tilResultat()) }
+                    .getOrElse { return@authorize call.svar(it.tilResultat()) }
 
                 call.svar(
                     when (request) {

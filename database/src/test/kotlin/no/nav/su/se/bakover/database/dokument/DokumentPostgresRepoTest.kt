@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.database.dokument
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.right
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
@@ -93,7 +93,7 @@ internal class DokumentPostgresRepoTest {
             dokumentdistribusjon.journalføringOgBrevdistribusjon shouldBe JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
 
             dokumentRepo.oppdaterDokumentdistribusjon(
-                dokumentdistribusjon.journalfør { JournalpostId("jp").right() }.getOrHandle {
+                dokumentdistribusjon.journalfør { JournalpostId("jp").right() }.getOrElse {
                     fail { "Skulle fått journalført" }
                 },
             )
@@ -105,7 +105,7 @@ internal class DokumentPostgresRepoTest {
             )
 
             dokumentRepo.oppdaterDokumentdistribusjon(
-                journalført.distribuerBrev { BrevbestillingId("brev").right() }.getOrHandle {
+                journalført.distribuerBrev { BrevbestillingId("brev").right() }.getOrElse {
                     fail { "Skulle fått bestilt brev" }
                 },
             )
@@ -147,9 +147,9 @@ internal class DokumentPostgresRepoTest {
 
             val journalført = dokumentRepo.hentDokumenterForDistribusjon().first()
             dokumentRepo.oppdaterDokumentdistribusjon(
-                journalført.journalfør { JournalpostId("jp").right() }.getOrHandle {
+                journalført.journalfør { JournalpostId("jp").right() }.getOrElse {
                     fail { "Skulle fått journalført" }
-                }.distribuerBrev { BrevbestillingId("brev").right() }.getOrHandle {
+                }.distribuerBrev { BrevbestillingId("brev").right() }.getOrElse {
                     fail { "Skulle fått bestilt brev" }
                 },
             )

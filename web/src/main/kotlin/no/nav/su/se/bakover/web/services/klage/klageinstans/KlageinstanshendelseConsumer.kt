@@ -58,11 +58,11 @@ class KlageinstanshendelseConsumer(
 
         run breakable@{
             messages.forEach { message ->
-                KlageinstanshendelseMapper.map(message, topicName, clock).tap {
+                KlageinstanshendelseMapper.map(message, topicName, clock).onRight {
                     klageinstanshendelseService.lagre(it)
                     offsets[TopicPartition(message.topic(), message.partition())] =
                         OffsetAndMetadata(message.offset() + 1)
-                }.tapLeft {
+                }.onLeft {
                     when (it) {
                         KunneIkkeMappeKlageinstanshendelse.FantIkkeEventId,
                         KunneIkkeMappeKlageinstanshendelse.FantIkkeKilde,

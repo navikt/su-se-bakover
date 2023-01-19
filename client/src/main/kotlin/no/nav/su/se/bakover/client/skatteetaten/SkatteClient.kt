@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.client.skatteetaten
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.JsonMappingException
@@ -51,11 +51,11 @@ class SkatteClient(private val skatteetatenConfig: SkatteetatenConfig, private v
                     objectMapper.readValue(response.body(), SkattedataFeilrespons::class.java).let {
                         log.warn(
                             """
-                            Mappet feilmelding fra skatteetaten.
-                            Feilkode: ${it.kode.name}
-                            Http kode: ${it.kode.httpKode}
-                            Beskrivelse: ${it.kode.beskrivelse}
-                            Korrelasjonsid: ${it.korrelasjonsid}
+                                Mappet feilmelding fra skatteetaten.
+                                Feilkode: ${it.kode.name}
+                                Http kode: ${it.kode.httpKode}
+                                Beskrivelse: ${it.kode.beskrivelse}
+                                Korrelasjonsid: ${it.korrelasjonsid}
                             """.trimIndent(),
                         )
                         val mappedFeil = when (it.kode) {
@@ -70,14 +70,14 @@ class SkatteClient(private val skatteetatenConfig: SkatteetatenConfig, private v
                 } else {
                     return objectMapper.readValue(response.body(), SamletSkattegrunnlag::class.java)
                         .toDomain(clock)
-                        .tapLeft {
+                        .onLeft {
                             log.error("Feil skjedde under mapping av data fra skatteetaten.")
                             sikkerLogg.error("Feil skjedde under mapping av data fra skatteetaten.", it)
                         }
                         .mapLeft { SkatteoppslagFeil.MappingFeil }
                 }
             }
-        }.getOrHandle {
+        }.getOrElse {
             if (it is JsonMappingException || it is JsonProcessingException) {
                 log.error("Feilet under deserializering i henting av data fra skatteetaten. Melding: ${it.message}")
                 sikkerLogg.error("Feilet under deserializering i henting av data fra skatteetaten.", it)
@@ -97,11 +97,12 @@ class SkatteClient(private val skatteetatenConfig: SkatteetatenConfig, private v
 }
 
 private data class SkattedataFeilrespons(val kode: Feilkode, val melding: String, val korrelasjonsid: String) {
+
+    /* ktlint-disable enum-entry-name-case */
     /**
      * Docs: https://skatteetaten.github.io/datasamarbeid-api-dokumentasjon/reference_summertskattegrunnlag.html
      */
     enum class Feilkode(val httpKode: Int, val beskrivelse: String) {
-        /* ktlint-disable enum-entry-name-case */
         `SSG-001`(500, "Uventet feil på tjenesten"),
         `SSG-002`(500, "Uventet feil i et bakenforliggende system"),
         `SSG-003`(404, "Ukjent url benyttet"),
@@ -112,6 +113,6 @@ private data class SkattedataFeilrespons(val kode: Feilkode, val melding: String
         `SSG-008`(404, "Ingen summert skattegrunnlag funnet på oppgitt personidentifikator og inntektsår"),
         `SSG-009`(406, "Feil tilknyttet dataformat. Kun json eller xml er støttet"),
         `SSG-010`(410, "Skattegrunnlag finnes ikke lenger"),
-        /* ktlint-enable enum-entry-name-case */
     }
+    /* ktlint-enable enum-entry-name-case */
 }

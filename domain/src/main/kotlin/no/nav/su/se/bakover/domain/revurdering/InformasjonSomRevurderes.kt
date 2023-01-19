@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import org.jetbrains.kotlin.utils.keysToMap
@@ -29,7 +29,7 @@ data class InformasjonSomRevurderes private constructor(
 
     companion object {
         fun create(revurderingsteg: List<Revurderingsteg>): InformasjonSomRevurderes {
-            return tryCreate(revurderingsteg).getOrHandle { throw IllegalArgumentException(it.toString()) }
+            return tryCreate(revurderingsteg).getOrElse { throw IllegalArgumentException(it.toString()) }
         }
 
         fun tryCreate(revurderingsteg: List<Revurderingsteg>): Either<MåRevurdereMinstEnTing, InformasjonSomRevurderes> {
@@ -38,7 +38,7 @@ data class InformasjonSomRevurderes private constructor(
         }
 
         fun create(revurderingsteg: Map<Revurderingsteg, Vurderingstatus>): InformasjonSomRevurderes {
-            return tryCreate(revurderingsteg).getOrHandle { throw IllegalArgumentException(it.toString()) }
+            return tryCreate(revurderingsteg).getOrElse { throw IllegalArgumentException(it.toString()) }
         }
 
         fun tryCreate(revurderingsteg: Map<Revurderingsteg, Vurderingstatus>): Either<MåRevurdereMinstEnTing, InformasjonSomRevurderes> {

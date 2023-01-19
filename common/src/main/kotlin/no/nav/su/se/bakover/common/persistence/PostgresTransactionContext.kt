@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.common.persistence
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import kotliquery.using
 import no.nav.su.se.bakover.common.persistence.PostgresTransactionContext.Companion.withTransaction
 import org.slf4j.LoggerFactory
@@ -79,7 +79,7 @@ class PostgresTransactionContext(
      */
     override fun isClosed(): Boolean {
         if (transactionalSession == null) return true
-        return Either.catch { transactionalSession!!.connection.underlying.isClosed }.getOrHandle {
+        return Either.catch { transactionalSession!!.connection.underlying.isClosed }.getOrElse {
             log.error("En feil skjedde når vi prøvde å sjekke om den den transaksjonelle sesjonen var lukket", it)
             true
         }

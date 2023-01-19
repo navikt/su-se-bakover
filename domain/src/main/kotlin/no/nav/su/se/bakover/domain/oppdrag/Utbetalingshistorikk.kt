@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
 import arrow.core.NonEmptyList
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
@@ -128,12 +128,12 @@ class Utbetalingshistorikk(
                 val tidslinjeGammel = sorterteEksisterendeUtbetalingslinjer.tidslinje(
                     clock = clock,
                     periode = periode,
-                ).getOrHandle { throw RuntimeException("Kunne ikke generere tidslinje: $it") }
+                ).getOrElse { throw RuntimeException("Kunne ikke generere tidslinje: $it") }
 
                 val tidslinjeNy = tidslinje(
                     clock = clock,
                     periode = periode,
-                ).getOrHandle { throw RuntimeException("Kunne ikke generere tidslinje: $it") }
+                ).getOrElse { throw RuntimeException("Kunne ikke generere tidslinje: $it") }
 
                 check(tidslinjeGammel.ekvivalentMed(tidslinjeNy)) { "Rekonstuert tidslinje: $tidslinjeNy er ulik original: $tidslinjeGammel" }
             }

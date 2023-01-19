@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
@@ -18,7 +18,7 @@ data class Stønadsperiode private constructor(
 
         @TestOnly
         fun create(periode: Periode): Stønadsperiode {
-            return tryCreate(periode).getOrHandle { throw IllegalArgumentException(it.toString()) }
+            return tryCreate(periode).getOrElse { throw IllegalArgumentException(it.toString()) }
         }
 
         fun tryCreate(periode: Periode): Either<UgyldigStønadsperiode, Stønadsperiode> {

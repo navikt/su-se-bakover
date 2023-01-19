@@ -188,7 +188,7 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
         )
 
         setupClient().also { client ->
-            client.kontrollnotatMotatt(Saksnummer(10002027), september(2022)).tapLeft {
+            client.kontrollnotatMotatt(Saksnummer(10002027), september(2022)).onLeft {
                 it.feil.shouldBeType<JournalpostHttpClient.GraphQLApiFeil.HttpFeil.Ukjent>()
             }
         }
@@ -202,7 +202,7 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
         )
 
         setupClient().also { client ->
-            client.kontrollnotatMotatt(Saksnummer(10002027), september(2022)).tapLeft {
+            client.kontrollnotatMotatt(Saksnummer(10002027), september(2022)).onLeft {
                 it.feil.shouldBeType<JournalpostHttpClient.GraphQLApiFeil.HttpFeil.Ukjent>()
             }
         }

@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.arrow.core.shouldHaveSize
@@ -148,7 +148,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                         ),
                     ).toNonEmptyList(),
                 ),
-            ).getOrHandle {
+            ).getOrElse {
                 it shouldBe KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet(
                     LeggTilFormuevilkårRequest.KunneIkkeMappeTilDomenet.Konsistenssjekk(
                         Konsistensproblem.BosituasjonOgFormue.KombinasjonAvBosituasjonOgFormueErUyldig,
@@ -186,7 +186,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                         ),
                     ).toNonEmptyList(),
                 ),
-            ).getOrHandle {
+            ).getOrElse {
                 it shouldBe KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet(LeggTilFormuevilkårRequest.KunneIkkeMappeTilDomenet.FormuePeriodeErUtenforBehandlingsperioden)
             }
 
@@ -220,7 +220,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                         ),
                     ).toNonEmptyList(),
                 ),
-            ).getOrHandle {
+            ).getOrElse {
                 it shouldBe KunneIkkeLeggeTilFormuegrunnlag.Konsistenssjekk(
                     Konsistensproblem.BosituasjonOgFormue.IngenFormueForBosituasjonsperiode,
                 )
@@ -269,7 +269,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                         ),
                     ).toNonEmptyList(),
                 ),
-            ).getOrHandle {
+            ).getOrElse {
                 it shouldBe KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet(LeggTilFormuevilkårRequest.KunneIkkeMappeTilDomenet.IkkeLovMedOverlappendePerioder)
             }
 
@@ -301,7 +301,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                         ),
                     ).toNonEmptyList(),
                 ),
-            ).getOrHandle {
+            ).getOrElse {
                 it shouldBe KunneIkkeLeggeTilFormuegrunnlag.FantIkkeRevurdering
             }
         }

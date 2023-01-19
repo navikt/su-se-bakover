@@ -73,7 +73,7 @@ open class Session(
 
     private fun PreparedStatement.setParam(idx: Int, v: Any?) {
         val customMapper = queryParameterMappers.mapNotNull {
-            it.tryMap(idx, v).orNull()
+            it.tryMap(idx, v).getOrNull()
         }.let {
             when (it.size) {
                 0 -> null

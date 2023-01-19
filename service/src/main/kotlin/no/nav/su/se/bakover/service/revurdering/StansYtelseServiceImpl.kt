@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.Either
 import arrow.core.flatMap
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
@@ -65,24 +65,24 @@ class StansYtelseServiceImpl(
                 val sak = sakService.hentSak(
                     sakId = request.sakId,
                     sessionContext = transactionContext,
-                ).getOrHandle { throw KunneIkkeStanseYtelse.FantIkkeSak.exception() }
+                ).getOrElse { throw KunneIkkeStanseYtelse.FantIkkeSak.exception() }
 
                 val eksisterende = sak.hentRevurdering(request.revurderingId)
-                    .getOrHandle { throw KunneIkkeStanseYtelse.FantIkkeRevurdering.exception() }
+                    .getOrElse { throw KunneIkkeStanseYtelse.FantIkkeRevurdering.exception() }
 
                 when (eksisterende) {
                     is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {
                         val gjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(
                             sak = sak,
                             fraOgMed = request.fraOgMed,
-                        ).getOrHandle { throw it.exception() }
+                        ).getOrElse { throw it.exception() }
 
                         val simulertUtbetaling = simulerStans(
                             sak = sak,
                             stans = null,
                             stansdato = request.fraOgMed,
                             behandler = request.saksbehandler,
-                        ).getOrHandle {
+                        ).getOrElse {
                             throw KunneIkkeStanseYtelse.SimuleringAvStansFeilet(it).exception()
                         }
 
@@ -105,7 +105,7 @@ class StansYtelseServiceImpl(
                 val sak = sakService.hentSak(
                     sakId = request.sakId,
                     sessionContext = transactionContext,
-                ).getOrHandle { throw KunneIkkeStanseYtelse.FantIkkeSak.exception() }
+                ).getOrElse { throw KunneIkkeStanseYtelse.FantIkkeSak.exception() }
 
                 if (sak.harÅpenBehandling()) {
                     throw KunneIkkeStanseYtelse.SakHarÅpenBehandling.exception()
@@ -114,14 +114,14 @@ class StansYtelseServiceImpl(
                 val gjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(
                     sak = sak,
                     fraOgMed = request.fraOgMed,
-                ).getOrHandle { throw it.exception() }
+                ).getOrElse { throw it.exception() }
 
                 val simulertUtbetaling = simulerStans(
                     sak = sak,
                     stans = null,
                     stansdato = request.fraOgMed,
                     behandler = request.saksbehandler,
-                ).getOrHandle {
+                ).getOrElse {
                     throw KunneIkkeStanseYtelse.SimuleringAvStansFeilet(it).exception()
                 }
 
@@ -191,8 +191,9 @@ class StansYtelseServiceImpl(
                     transactionContext = tx,
                 ).also { response ->
                     response.sendUtbetalingCallback()
-                        .getOrHandle {
-                            throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(UtbetalStansFeil.KunneIkkeUtbetale(it)).exception()
+                        .getOrElse {
+                            throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(UtbetalStansFeil.KunneIkkeUtbetale(it))
+                                .exception()
                         }
                     response.sendStatistikkCallback()
                 }
@@ -221,7 +222,8 @@ class StansYtelseServiceImpl(
             sessionContext = transactionContext,
         )
 
-        val revurdering = sak.hentRevurdering(revurderingId).getOrHandle { throw KunneIkkeIverksetteStansYtelse.FantIkkeRevurdering.exception() }
+        val revurdering = sak.hentRevurdering(revurderingId)
+            .getOrElse { throw KunneIkkeIverksetteStansYtelse.FantIkkeRevurdering.exception() }
 
         return when (revurdering) {
             is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {
@@ -230,7 +232,7 @@ class StansYtelseServiceImpl(
                         attestant = attestant,
                         opprettet = Tidspunkt.now(clock),
                     ),
-                ).getOrHandle {
+                ).getOrElse {
                     throw KunneIkkeIverksetteStansYtelse.SimuleringIndikererFeilutbetaling.exception()
                 }
 
@@ -239,15 +241,17 @@ class StansYtelseServiceImpl(
                     stans = iverksattRevurdering,
                     stansdato = iverksattRevurdering.periode.fraOgMed,
                     behandler = iverksattRevurdering.attesteringer.hentSisteAttestering().attestant,
-                ).getOrHandle {
-                    throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(UtbetalStansFeil.KunneIkkeSimulere(it)).exception()
+                ).getOrElse {
+                    throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(UtbetalStansFeil.KunneIkkeSimulere(it))
+                        .exception()
                 }
 
                 val stansUtbetaling = utbetalingService.klargjørUtbetaling(
                     utbetaling = simulertUtbetaling,
                     transactionContext = transactionContext,
-                ).getOrHandle {
-                    throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(UtbetalStansFeil.KunneIkkeUtbetale(it)).exception()
+                ).getOrElse {
+                    throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(UtbetalStansFeil.KunneIkkeUtbetale(it))
+                        .exception()
                 }
 
                 val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, stansUtbetaling.utbetaling.id, clock)
@@ -271,7 +275,7 @@ class StansYtelseServiceImpl(
                         observers.notify(
                             StatistikkEvent.Stønadsvedtak(
                                 vedtak,
-                            ) { sakService.hentSak(sak.id, transactionContext).orNull()!! },
+                            ) { sakService.hentSak(sak.id, transactionContext).getOrNull()!! },
                         )
                     },
                 )
@@ -318,7 +322,7 @@ class StansYtelseServiceImpl(
         return sak.kopierGjeldendeVedtaksdata(
             fraOgMed = fraOgMed,
             clock = clock,
-        ).getOrHandle {
+        ).getOrElse {
             log.error("Kunne ikke opprette revurdering for stans av ytelse, årsak: $it")
             return KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering.left()
         }.also {

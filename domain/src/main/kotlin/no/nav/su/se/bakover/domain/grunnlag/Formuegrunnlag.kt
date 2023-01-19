@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -88,7 +88,7 @@ data class Formuegrunnlag private constructor(
                 pengerSkyldt = pengerSkyldt,
                 kontanter = kontanter,
                 depositumskonto = depositumskonto,
-            ).getOrHandle { throw IllegalArgumentException(it.toString()) }
+            ).getOrElse { throw IllegalArgumentException(it.toString()) }
 
             fun tryCreate(
                 verdiIkkePrimærbolig: Int,
@@ -163,12 +163,12 @@ data class Formuegrunnlag private constructor(
             }
 
             konsistenssjekk(
-                /**
+                /*
                  * Mismatch å sjekke 1 fradragsgrunnlag mot mange bosituasjoner, men gir mening innenfor samme periode.
                  */
                 bosituasjon = bosituasjon.lagTidslinje(periode),
                 formuegrunnlag = listOf(formuegrunnlag),
-            ).getOrHandle { return it.left() }
+            ).getOrElse { return it.left() }
 
             return formuegrunnlag.right()
         }
@@ -199,7 +199,7 @@ data class Formuegrunnlag private constructor(
             konsistenssjekk(
                 bosituasjon = bosituasjon,
                 formuegrunnlag = listOf(formuegrunnlag),
-            ).getOrHandle {
+            ).getOrElse {
                 when (it) {
                     is KunneIkkeLageFormueGrunnlag.Konsistenssjekk -> {
                         // TODO("flere_satser fritar denne fra å ha fullstendig bosituasjon - det er midlertidig gyldig på søknadsbehandling)
@@ -209,9 +209,11 @@ data class Formuegrunnlag private constructor(
                                     Unit.right()
                                 } ?: it.left()
                             }
+
                             else -> it.left()
                         }
                     }
+
                     else -> it.left()
                 }
             }

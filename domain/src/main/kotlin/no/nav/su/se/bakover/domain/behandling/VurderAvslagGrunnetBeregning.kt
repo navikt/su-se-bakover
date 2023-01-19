@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.behandling
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.finnFørsteMånedMedMerknadForAvslag
@@ -13,7 +13,7 @@ object VurderAvslagGrunnetBeregning {
         AvslagGrunnetBeregning.Nei
     } else {
         beregning.finnFørsteMånedMedMerknadForAvslag()
-            .getOrHandle { return AvslagGrunnetBeregning.Nei }
+            .getOrElse { return AvslagGrunnetBeregning.Nei }
             .let { (_, merknad) -> AvslagGrunnetBeregning.Ja(grunn = merknad.tilAvslagsgrunn()) }
     }
 }

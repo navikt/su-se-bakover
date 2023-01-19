@@ -24,7 +24,7 @@ class KorrigerUtenlandsoppholdService(
         command: KorrigerUtenlandsoppholdCommand,
     ): Either<KunneIkkeKorrigereUtenlandsopphold, RegistrerteUtenlandsopphold> {
         return sakRepo.hentSak(command.sakId)!!.also {
-            personService.sjekkTilgangTilPerson(it.fnr).tapLeft {
+            personService.sjekkTilgangTilPerson(it.fnr).onLeft {
                 throw IllegalArgumentException("Tilgangssjekk feilet ved korringering av utenlandsopphold. Underliggende feil: $it")
             }
         }.korrigerUtenlandsopphold(

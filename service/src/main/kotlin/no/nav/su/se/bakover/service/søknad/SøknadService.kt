@@ -37,8 +37,8 @@ data class OpprettManglendeJournalpostOgOppgaveResultat(
     val journalpostResultat: List<Either<KunneIkkeOppretteJournalpost, Søknad.Journalført.UtenOppgave>>,
     val oppgaveResultat: List<Either<KunneIkkeOppretteOppgave, Søknad.Journalført.MedOppgave>>,
 ) {
-    fun harFeil(): Boolean = journalpostResultat.mapNotNull { it.swap().orNull() }.isNotEmpty() ||
-        oppgaveResultat.mapNotNull { it.swap().orNull() }.isNotEmpty()
+    fun harFeil(): Boolean = journalpostResultat.mapNotNull { it.swap().getOrNull() }.isNotEmpty() ||
+        oppgaveResultat.mapNotNull { it.swap().getOrNull() }.isNotEmpty()
 }
 data class KunneIkkeOppretteJournalpost(val sakId: UUID, val søknadId: UUID, val grunn: String)
 data class KunneIkkeOppretteOppgave(val sakId: UUID, val søknadId: UUID, val journalpostId: JournalpostId, val grunn: String)

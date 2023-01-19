@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.vilkår.bosituasjon
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Fnr
@@ -58,13 +58,13 @@ data class FullførBosituasjonRequest(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(clock),
                 periode = ufullstendigBosituasjon.periode,
-                fnr = hentFnrForUnder67(ufullstendigBosituasjon).getOrHandle { return it.left() },
+                fnr = hentFnrForUnder67(ufullstendigBosituasjon).getOrElse { return it.left() },
             )
             BosituasjonValg.EPS_IKKE_UFØR_FLYKTNING -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(clock),
                 periode = ufullstendigBosituasjon.periode,
-                fnr = hentFnrForUnder67(ufullstendigBosituasjon).getOrHandle { return it.left() },
+                fnr = hentFnrForUnder67(ufullstendigBosituasjon).getOrElse { return it.left() },
             )
             BosituasjonValg.EPS_67_ELLER_OVER -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
                 id = UUID.randomUUID(),

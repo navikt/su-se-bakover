@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.sak
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.periode.Periode
@@ -168,14 +168,14 @@ fun Sak.simulerUtbetaling(
                 eksisterende = utbetalinger,
                 simuler = simuler,
                 clock = clock,
-            ).getOrHandle {
+            ).getOrElse {
                 return SimulerUtbetalingFeilet.FeilVedKryssjekkAvTidslinjeOgSimulering(it).left()
             }
             if (kontrollerMotTidligereSimulering != null) {
                 KryssjekkSaksbehandlersOgAttestantsSimulering(
                     saksbehandlersSimulering = kontrollerMotTidligereSimulering,
                     attestantsSimulering = simulertUtbetaling,
-                ).sjekk().getOrHandle {
+                ).sjekk().getOrElse {
                     return SimulerUtbetalingFeilet.FeilVedKryssjekkAvSaksbehandlerOgAttestantsSimulering(it).left()
                 }
             }

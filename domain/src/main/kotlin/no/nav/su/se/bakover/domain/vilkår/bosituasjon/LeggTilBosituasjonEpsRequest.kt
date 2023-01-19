@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.vilkår.bosituasjon
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Fnr
@@ -27,7 +27,7 @@ data class LeggTilBosituasjonEpsRequest(
                 periode = periode,
             )
         } else {
-            harTilgangTilPerson(epsFnr).getOrHandle {
+            harTilgangTilPerson(epsFnr).getOrElse {
                 return it.left()
             }
             Grunnlag.Bosituasjon.Ufullstendig.HarEps(

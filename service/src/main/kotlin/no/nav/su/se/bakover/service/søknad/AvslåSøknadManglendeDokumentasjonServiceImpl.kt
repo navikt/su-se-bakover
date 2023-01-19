@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.søknad
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.BrevService
@@ -39,7 +39,7 @@ class AvslåSøknadManglendeDokumentasjonServiceImpl(
 
     private fun lagAvslg(command: AvslåManglendeDokumentasjonCommand): Either<KunneIkkeAvslåSøknad, IverksattAvslåttSøknadsbehandlingResponse> {
         return sakService.hentSakForSøknad(command.søknadId)
-            .getOrHandle { throw IllegalArgumentException("Fant ikke søknad ${command.søknadId}. Kan ikke avslå søknad pgr. manglende dokumentasjon.") }
+            .getOrElse { throw IllegalArgumentException("Fant ikke søknad ${command.søknadId}. Kan ikke avslå søknad pgr. manglende dokumentasjon.") }
             .avslåSøknadPgaManglendeDokumentasjon(
                 command = command,
                 clock = clock,

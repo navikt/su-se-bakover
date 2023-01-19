@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service.søknad
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.getOrElse
-import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
@@ -55,14 +54,17 @@ class SøknadServiceImpl(
 
     fun getObservers(): List<StatistikkEventObserver> = observers.toList()
 
-    override fun nySøknad(søknadInnhold: SøknadInnhold, identBruker: NavIdentBruker): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad.Ny>> {
+    override fun nySøknad(
+        søknadInnhold: SøknadInnhold,
+        identBruker: NavIdentBruker,
+    ): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad.Ny>> {
         val innsendtFødselsnummer: Fnr = søknadInnhold.personopplysninger.fnr
 
         if (!søknadInnhold.kanSendeInnSøknad()) {
             return KunneIkkeOppretteSøknad.SøknadsinnsendingIkkeTillatt.left()
         }
 
-        val person = personService.hentPerson(innsendtFødselsnummer).getOrHandle {
+        val person = personService.hentPerson(innsendtFødselsnummer).getOrElse {
             // Dette bør ikke skje i normal flyt, siden vi allerede har gjort en tilgangssjekk mot PDL (kode6/7).
             log.error("Ny søknad: Fant ikke person med gitt fødselsnummer. Originalfeil: $it")
             return KunneIkkeOppretteSøknad.FantIkkePerson.left()
@@ -187,7 +189,7 @@ class SøknadServiceImpl(
                 søknadInnhold = søknad.søknadInnhold,
                 clock = clock,
             ),
-        ).getOrHandle {
+        ).getOrElse {
             log.error("Ny søknad: Kunne ikke generere PDF. Originalfeil: $it")
             return KunneIkkeOppretteJournalpost(søknad.sakId, søknad.id, "Kunne ikke generere PDF").left()
         }
@@ -200,7 +202,7 @@ class SøknadServiceImpl(
                 saksnummer = saksnummer,
                 person = person,
             ),
-        ).getOrHandle {
+        ).getOrElse {
             log.error("Ny søknad: Kunne ikke opprette journalpost. Originalfeil: $it")
             return KunneIkkeOppretteJournalpost(søknad.sakId, søknad.id, "Kunne ikke opprette journalpost").left()
         }

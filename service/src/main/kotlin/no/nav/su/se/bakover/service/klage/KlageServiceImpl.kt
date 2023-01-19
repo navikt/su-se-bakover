@@ -3,10 +3,8 @@ package no.nav.su.se.bakover.service.klage
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.getOrElse
-import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import arrow.core.rightIfNotNull
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -40,6 +38,7 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage.FantIkkeKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
@@ -82,7 +81,7 @@ class KlageServiceImpl(
     fun getObservers(): List<StatistikkEventObserver> = observers.toList()
 
     override fun opprett(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, OpprettetKlage> {
-        request.validate().getOrHandle { return it.left() }
+        request.validate().getOrElse { return it.left() }
         val sak = sakRepo.hentSak(request.sakId) ?: return KunneIkkeOppretteKlage.FantIkkeSak.left()
 
         if (!sak.kanOppretteKlage()) {
@@ -99,8 +98,10 @@ class KlageServiceImpl(
                     ErTilknyttetSak.Ja -> {
                         /*sjekk ok, trenger ikke gjøre noe mer*/
                     }
+
                     ErTilknyttetSak.Nei -> {
-                        return KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost(KunneIkkeSjekkeTilknytningTilSak.JournalpostIkkeKnyttetTilSak).left()
+                        return KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost(KunneIkkeSjekkeTilknytningTilSak.JournalpostIkkeKnyttetTilSak)
+                            .left()
                     }
                 }
             },
@@ -117,7 +118,7 @@ class KlageServiceImpl(
                 tilordnetRessurs = null,
                 clock = clock,
             ),
-        ).getOrHandle {
+        ).getOrElse {
             return KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave.left()
         }
         // Dette er greit så lenge toKlage ikke kan feile. På det tidspunktet må vi gjøre om rekkefølgen.
@@ -144,7 +145,7 @@ class KlageServiceImpl(
                 saksbehandler = it.saksbehandler,
                 vilkårsvurderinger = it.vilkårsvurderinger,
             )
-        }.tap {
+        }.onRight {
             klageRepo.lagre(it)
         }
     }
@@ -157,15 +158,18 @@ class KlageServiceImpl(
 
         return klage.bekreftVilkårsvurderinger(
             saksbehandler = saksbehandler,
-        ).tap {
+        ).onRight {
             klageRepo.lagre(it)
         }
     }
 
     override fun vurder(request: KlageVurderingerRequest): Either<KunneIkkeVurdereKlage, VurdertKlage> {
         return request.toDomain().flatMap { r ->
-            klageRepo.hentKlage(r.klageId)
-                .rightIfNotNull { KunneIkkeVurdereKlage.FantIkkeKlage }
+            (
+                klageRepo.hentKlage(r.klageId)
+                    ?.right()
+                    ?: FantIkkeKlage.left()
+                )
                 .flatMap {
                     (it as? KlageSomKanVurderes)
                         ?.right()
@@ -185,8 +189,11 @@ class KlageServiceImpl(
         klageId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeBekrefteKlagesteg, VurdertKlage.Bekreftet> {
-        return klageRepo.hentKlage(klageId)
-            .rightIfNotNull { KunneIkkeBekrefteKlagesteg.FantIkkeKlage }
+        return (
+            klageRepo.hentKlage(klageId)
+                ?.right()
+                ?: KunneIkkeBekrefteKlagesteg.FantIkkeKlage.left()
+            )
             .flatMap {
                 (it as? KanBekrefteKlagevurdering)
                     ?.right()
@@ -205,8 +212,11 @@ class KlageServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
         fritekst: String,
     ): Either<KunneIkkeLeggeTilFritekstForAvvist, AvvistKlage> {
-        return klageRepo.hentKlage(klageId)
-            .rightIfNotNull { KunneIkkeLeggeTilFritekstForAvvist.FantIkkeKlage }
+        return (
+            klageRepo.hentKlage(klageId)
+                ?.right()
+                ?: KunneIkkeLeggeTilFritekstForAvvist.FantIkkeKlage.left()
+            )
             .flatMap {
                 (it as? KanLeggeTilFritekstTilAvvistBrev)
                     ?.right()
@@ -249,7 +259,7 @@ class KlageServiceImpl(
             }.mapLeft {
                 KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave
             }
-        }.tap {
+        }.onRight {
             klageRepo.lagre(it)
             oppgaveService.lukkOppgave(oppgaveIdSomSkalLukkes)
         }
@@ -279,7 +289,7 @@ class KlageServiceImpl(
             }.mapLeft {
                 KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave
             }
-        }.tap {
+        }.onRight {
             klageRepo.lagre(it)
             oppgaveService.lukkOppgave(oppgaveIdSomSkalLukkes)
         }
@@ -299,7 +309,7 @@ class KlageServiceImpl(
                 attestant = attestant,
                 opprettet = Tidspunkt.now(clock),
             ),
-        ).getOrHandle { return it.left() }
+        ).getOrElse { return it.left() }
 
         val dokument = klage.lagBrevRequest(
             hentNavnForNavIdent = { identClient.hentNavnForNavIdent(klage.saksbehandler) },
@@ -324,12 +334,12 @@ class KlageServiceImpl(
                     ),
                 )
             }
-        }.getOrHandle {
+        }.getOrElse {
             return KunneIkkeOversendeKlage.KunneIkkeLageBrev(it).left()
         }
 
         val journalpostIdForVedtak = vedtakService.hentJournalpostId(oversendtKlage.vilkårsvurderinger.vedtakId)
-            ?: return KunneIkkeOversendeKlage.FantIkkeJournalpostIdKnyttetTilVedtaket.left().tapLeft {
+            ?: return KunneIkkeOversendeKlage.FantIkkeJournalpostIdKnyttetTilVedtaket.left().onLeft {
                 log.error("Kunne ikke iverksette klage ${oversendtKlage.id} fordi vi ikke fant journalpostId til vedtak ${oversendtKlage.vilkårsvurderinger.vedtakId} (kan tyde på at klagen er knyttet til et vedtak vi ikke har laget brev for eller at databasen er i en ugyldig tilstand.)")
             }
 
@@ -342,7 +352,7 @@ class KlageServiceImpl(
                 klageClient.sendTilKlageinstans(
                     klage = oversendtKlage,
                     journalpostIdForVedtak = journalpostIdForVedtak,
-                ).getOrHandle { throw KunneIkkeOversendeTilKlageinstansEx() }
+                ).getOrElse { throw KunneIkkeOversendeTilKlageinstansEx() }
             }
         } catch (_: KunneIkkeOversendeTilKlageinstansEx) {
             return KunneIkkeOversendeKlage.KunneIkkeOversendeTilKlageinstans.left()
@@ -369,7 +379,7 @@ class KlageServiceImpl(
                 attestant = attestant,
                 opprettet = Tidspunkt.now(clock),
             ),
-        ).getOrHandle {
+        ).getOrElse {
             return it.left()
         }
 
@@ -398,7 +408,7 @@ class KlageServiceImpl(
                     ),
                 )
             }
-        }.getOrHandle {
+        }.getOrElse {
             return KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrev(it).left()
         }
 
@@ -456,7 +466,7 @@ class KlageServiceImpl(
             saksbehandler = saksbehandler,
             begrunnelse = begrunnelse,
             tidspunktAvsluttet = Tidspunkt.now(clock),
-        ).tap {
+        ).onRight {
             klageRepo.lagre(it)
             oppgaveService.lukkOppgave(it.oppgaveId)
             observers.notify(StatistikkEvent.Behandling.Klage.Avsluttet(it))

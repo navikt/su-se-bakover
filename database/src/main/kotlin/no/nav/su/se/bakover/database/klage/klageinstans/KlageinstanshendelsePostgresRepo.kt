@@ -51,7 +51,7 @@ internal class KlageinstanshendelsePostgresRepo(
                             session = session,
                         )
                 }
-            }.tapLeft {
+            }.onLeft {
                 if (it is PSQLException && it.message!!.contains("duplicate key value violates unique constraint \"klagevedtak_metadata_hendelseid_idx\"")) {
                     // Swallowing this duplicate (part of the dedup routine)
                     // Can't use expression indexes as constraints, so we can't use on conflict ... do nothing: https://stackoverflow.com/questions/16236365/postgresql-conditionally-unique-constraint

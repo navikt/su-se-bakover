@@ -45,7 +45,7 @@ fun Sak.opprettNySøknadsbehandling(
                 // TODO Prøv å opprette oppgaven hvis den mangler? (systembruker blir kanskje mest riktig?)
                 return Sak.KunneIkkeOppretteSøknadsbehandling.ManglerOppgave.left()
             }
-            if (hentSøknadsbehandlingForSøknad(søknadId).isNotEmpty()) {
+            if (hentSøknadsbehandlingForSøknad(søknadId).isRight()) {
                 return Sak.KunneIkkeOppretteSøknadsbehandling.FinnesAlleredeSøknadsehandlingForSøknad.left()
             }
             it

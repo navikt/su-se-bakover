@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.Either
 import arrow.core.flatMap
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import arrow.core.sequence
@@ -59,7 +59,7 @@ private data class JsonBody(
 ) {
     fun toService(): Either<Resultat, LeggTilBosituasjonRequest> {
         val periode = periode.toPeriodeOrResultat()
-            .getOrHandle { return it.left() }
+            .getOrElse { return it.left() }
 
         return LeggTilBosituasjonRequest(
             periode = periode,
@@ -94,7 +94,7 @@ internal fun Route.LeggTilBosituasjonRevurderingRoute(
                                             call.sikkerlogg("Lagret bosituasjon for revudering $revurderingId på $sakId")
                                             Resultat.json(HttpStatusCode.OK, serialize(respons.toJson(satsFactory)))
                                         }
-                                }.getOrHandle { it },
+                                }.getOrElse { it },
                         )
                     }
                 }

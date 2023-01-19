@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.services
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
@@ -1136,7 +1136,7 @@ open class AccessCheckProxy(
         throw IllegalStateException("This should only be called from another service")
 
     private fun assertHarTilgangTilPerson(fnr: Fnr) {
-        services.person.sjekkTilgangTilPerson(fnr).getOrHandle {
+        services.person.sjekkTilgangTilPerson(fnr).getOrElse {
             throw Tilgangssjekkfeil(it, fnr)
         }
     }

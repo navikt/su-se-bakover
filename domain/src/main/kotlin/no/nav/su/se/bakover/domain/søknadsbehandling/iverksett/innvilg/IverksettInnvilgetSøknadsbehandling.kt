@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.innvilg
 import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.continuations.either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -57,7 +57,7 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
         validerAvkorting(søknadsbehandling).bind()
         validerFeilutbetalinger(søknadsbehandling).bind()
         validerGjeldendeVedtak(søknadsbehandling, clock).bind()
-    }.tapLeft {
+    }.onLeft {
         return it.left()
     }
 
@@ -77,7 +77,7 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
             kontrollerMotTidligereSimulering = iverksattBehandling.simulering,
             clock = clock,
         )
-    }.getOrHandle {
+    }.getOrElse {
         log.error("Kunne ikke iverksette innvilget søknadsbehandling ${iverksattBehandling.id}. Underliggende feil:$it.")
         return KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale(UtbetalingFeilet.KunneIkkeSimulere(it)).left()
     }
@@ -127,7 +127,7 @@ private fun hentUføregrunnlag(
         }
 
         Sakstype.UFØRE -> {
-            iverksattBehandling.vilkårsvurderinger.uføreVilkår().getOrHandle {
+            iverksattBehandling.vilkårsvurderinger.uføreVilkår().getOrElse {
                 throw IllegalStateException("Søknadsbehandling uføre: ${iverksattBehandling.id} mangler uføregrunnlag")
             }.grunnlag.toNonEmptyList()
         }

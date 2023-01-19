@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 
@@ -16,7 +16,7 @@ data class UtenlandskInntekt private constructor(
                 beløpIUtenlandskValuta,
                 valuta,
                 kurs,
-            ).getOrHandle { throw IllegalArgumentException(it.toString()) }
+            ).getOrElse { throw IllegalArgumentException(it.toString()) }
         }
 
         fun tryCreate(

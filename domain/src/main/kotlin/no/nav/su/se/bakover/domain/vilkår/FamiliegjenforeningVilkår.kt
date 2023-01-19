@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.vilkår
 
 import arrow.core.Nel
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
@@ -73,7 +73,7 @@ sealed class FamiliegjenforeningVilkår : Vilkår() {
 
             fun createFromVilkårsvurderinger(
                 vurderingsperioder: Nel<VurderingsperiodeFamiliegjenforening>,
-            ) = create(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
+            ) = create(vurderingsperioder).getOrElse { throw IllegalArgumentException(it.toString()) }
         }
     }
 }

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.vedtak
 
 import arrow.core.NonEmptyList
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
@@ -187,7 +187,7 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.uføreVilkår(): Uf�
                 vurderingsperioder = it.toNonEmptyList(),
 
             )
-                .getOrHandle { throw IllegalArgumentException("Kunne ikke instansiere ${UføreVilkår.Vurdert::class.simpleName}. Melding: $it") }
+                .getOrElse { throw IllegalArgumentException("Kunne ikke instansiere ${UføreVilkår.Vurdert::class.simpleName}. Melding: $it") }
                 .slåSammenLikePerioder()
         } else {
             UføreVilkår.IkkeVurdert
@@ -345,7 +345,7 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.fastOppholdINorgeVil
                 FastOppholdINorgeVilkår.Vurdert.tryCreate(
                     vurderingsperioder.toNonEmptyList(),
                 )
-                    .getOrHandle { throw IllegalArgumentException(it.toString()) }
+                    .getOrElse { throw IllegalArgumentException(it.toString()) }
                     .slåSammenLikePerioder()
             } else {
                 FastOppholdINorgeVilkår.IkkeVurdert

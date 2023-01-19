@@ -37,14 +37,14 @@ data class FixSøknaderResponseJson(
     companion object {
         fun OpprettManglendeJournalpostOgOppgaveResultat.toJson() = FixSøknaderResponseJson(
             journalposteringer = Journalposteringer(
-                ok = this.journalpostResultat.mapNotNull { it.orNull() }.map {
+                ok = this.journalpostResultat.mapNotNull { it.getOrNull() }.map {
                     Journalpost(
                         sakId = it.sakId.toString(),
                         søknadId = it.id.toString(),
                         journalpostId = it.journalpostId.toString(),
                     )
                 },
-                feilet = this.journalpostResultat.mapNotNull { it.swap().orNull() }.map {
+                feilet = this.journalpostResultat.mapNotNull { it.swap().getOrNull() }.map {
                     Feilet(
                         it.sakId.toString(),
                         søknadId = it.søknadId.toString(),
@@ -53,14 +53,14 @@ data class FixSøknaderResponseJson(
                 },
             ),
             oppgaver = Oppgaver(
-                ok = this.oppgaveResultat.mapNotNull { it.orNull() }.map {
+                ok = this.oppgaveResultat.mapNotNull { it.getOrNull() }.map {
                     Oppgave(
                         it.sakId.toString(),
                         søknadId = it.id.toString(),
                         oppgaveId = it.oppgaveId.toString(),
                     )
                 },
-                feilet = this.oppgaveResultat.mapNotNull { it.swap().orNull() }.map {
+                feilet = this.oppgaveResultat.mapNotNull { it.swap().getOrNull() }.map {
                     Feilet(
                         it.sakId.toString(),
                         søknadId = it.søknadId.toString(),

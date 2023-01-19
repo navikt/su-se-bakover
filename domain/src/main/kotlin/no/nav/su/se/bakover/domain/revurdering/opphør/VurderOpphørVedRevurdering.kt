@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.revurdering.opphør
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -78,7 +78,7 @@ data class VurderOmBeregningGirOpphørVedRevurdering(
     private fun beregningGirOpphør(): OpphørVedRevurdering {
         return if (beregning.harAlleMånederMerknadForAvslag()) {
             beregning.finnFørsteMånedMedMerknadForAvslag()
-                .getOrHandle { throw IllegalStateException("Skal eksistere minste én måned med avslag.") }
+                .getOrElse { throw IllegalStateException("Skal eksistere minste én måned med avslag.") }
                 .let { (månedsberegning, merknad) ->
                     OpphørVedRevurdering.Ja(
                         opphørsgrunner = listOf(element = merknad.tilOpphørsgrunn()),
@@ -88,7 +88,7 @@ data class VurderOmBeregningGirOpphørVedRevurdering(
         } else {
             val førsteDagInneværendeMåned = LocalDate.now(clock).startOfMonth()
             beregning.finnMånederMedMerknadForAvslag()
-                .getOrHandle { return OpphørVedRevurdering.Nei }
+                .getOrElse { return OpphørVedRevurdering.Nei }
                 .firstOrNull { (månedsberegning, _) -> månedsberegning.periode.fraOgMed >= førsteDagInneværendeMåned }
                 ?.let { (månedsberegning, merknad) ->
                     OpphørVedRevurdering.Ja(

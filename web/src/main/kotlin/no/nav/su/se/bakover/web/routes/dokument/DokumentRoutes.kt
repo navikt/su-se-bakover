@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.dokument
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.ktor.http.HttpStatusCode
@@ -29,7 +29,7 @@ internal fun Route.dokumentRoutes(
     get("/dokumenter") {
         authorize(Brukerrolle.Saksbehandler) {
             val id = call.parameter(idParameter)
-                .getOrHandle {
+                .getOrElse {
                     return@authorize call.svar(
                         HttpStatusCode.BadRequest.errorJson(
                             "Parameter '$idParameter' mangler",
@@ -38,7 +38,7 @@ internal fun Route.dokumentRoutes(
                     )
                 }
             val type = call.parameter(idTypeParameter)
-                .getOrHandle {
+                .getOrElse {
                     return@authorize call.svar(
                         HttpStatusCode.BadRequest.errorJson(
                             "Parameter '$idTypeParameter' mangler",
@@ -48,7 +48,7 @@ internal fun Route.dokumentRoutes(
                 }
 
             val parameters = HentDokumentParameters.tryCreate(id, type)
-                .getOrHandle { error ->
+                .getOrElse { error ->
                     return@authorize when (error) {
                         HentDokumentParameters.Companion.UgyldigParameter.UgyldigType -> {
                             call.svar(
@@ -91,9 +91,9 @@ private data class HentDokumentParameters(
         fun tryCreate(id: String, type: String): Either<UgyldigParameter, HentDokumentParameters> {
             return HentDokumentParameters(
                 id = id.toUUID()
-                    .getOrHandle { return UgyldigParameter.UgyldigUUID.left() },
+                    .getOrElse { return UgyldigParameter.UgyldigUUID.left() },
                 idType = Either.catch { IdType.valueOf(type.uppercase()) }
-                    .getOrHandle { return UgyldigParameter.UgyldigType.left() },
+                    .getOrElse { return UgyldigParameter.UgyldigType.left() },
             ).right()
         }
 

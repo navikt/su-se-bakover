@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.Either
 import arrow.core.flatMap
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker.Saksbehandler
@@ -451,7 +451,7 @@ sealed class Revurdering :
     }
 
     protected fun oppdaterFradragOgMarkerSomVurdertInternal(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> {
-        return oppdaterFradragInternal(fradragsgrunnlag).getOrHandle { return it.left() }
+        return oppdaterFradragInternal(fradragsgrunnlag).getOrElse { return it.left() }
             .oppdaterInformasjonSomRevurderes(
                 informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(
                     Revurderingsteg.Inntekt,
@@ -629,7 +629,7 @@ sealed class Revurdering :
                 clock = clock,
                 satsFactory = satsFactory,
             ),
-        ).decide().beregn().getOrHandle { return it.left() }
+        ).decide().beregn().getOrElse { return it.left() }
 
         fun opphør(revurdering: OpprettetRevurdering, revurdertBeregning: Beregning): BeregnetRevurdering.Opphørt =
             BeregnetRevurdering.Opphørt(
@@ -697,7 +697,7 @@ sealed class Revurdering :
 
         // TODO jm: sjekk av vilkår og verifisering av dette bør sannsynligvis legges til et tidspunkt før selve beregningen finner sted. Snarvei inntil videre, da vi mangeler "infrastruktur" for dette pt.  Bør være en tydeligere del av modellen for revurdering.
         if (VurderOmVilkårGirOpphørVedRevurdering(revurdering.vilkårsvurderinger).resultat is OpphørVedRevurdering.Ja) {
-            kontrollerOpphørAvFremtidigAvkorting().getOrHandle {
+            kontrollerOpphørAvFremtidigAvkorting().getOrElse {
                 return it.left()
             }
             return opphør(revurdering, beregning).right()
@@ -710,7 +710,7 @@ sealed class Revurdering :
             ).resultat
         ) {
             is OpphørVedRevurdering.Ja -> {
-                kontrollerOpphørAvFremtidigAvkorting().getOrHandle {
+                kontrollerOpphørAvFremtidigAvkorting().getOrElse {
                     return it.left()
                 }
                 opphør(revurdering, beregning)

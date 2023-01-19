@@ -114,7 +114,7 @@ data class SjekkOmGrunnlagErKonsistent(
             if (fradrag.isEmpty()) return Unit.right()
 
             mutableSetOf<Konsistensproblem.BosituasjonOgFradrag>().apply {
-                Bosituasjon(bosituasjon).resultat.tapLeft {
+                Bosituasjon(bosituasjon).resultat.onLeft {
                     add(Konsistensproblem.BosituasjonOgFradrag.UgyldigBosituasjon(it))
                 }
                 if (!gyldigKombinasjonAvBosituasjonOgFradrag()) {
@@ -150,10 +150,10 @@ data class SjekkOmGrunnlagErKonsistent(
             if (formue.isEmpty()) return Unit.right()
 
             mutableSetOf<Konsistensproblem.BosituasjonOgFormue>().apply {
-                Bosituasjon(bosituasjon).resultat.tapLeft {
+                Bosituasjon(bosituasjon).resultat.onLeft {
                     add(Konsistensproblem.BosituasjonOgFormue.UgyldigBosituasjon(it))
                 }
-                Formue(formue).resultat.tapLeft {
+                Formue(formue).resultat.onLeft {
                     add(Konsistensproblem.BosituasjonOgFormue.UgyldigFormue(it))
                 }
                 if (!gyldigKombinasjonAvBosituasjonOgFormue()) {

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknad.lukk
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
@@ -71,7 +71,7 @@ internal object LukkSøknadInputHandler {
             return UgyldigLukkSøknadRequest.left()
         }
 
-        val bodyAsJson = deserializeBody(body).getOrHandle {
+        val bodyAsJson = deserializeBody(body).getOrElse {
             return it.left()
         }
 

@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.vilkår.utenlandsopphold
 
 import arrow.core.Either
 import arrow.core.Nel
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -28,13 +28,13 @@ data class LeggTilFlereUtenlandsoppholdRequest(
             request.map {
                 it.tilVurderingsperiode(
                     clock = clock,
-                ).getOrHandle { feil ->
+                ).getOrElse { feil ->
                     return when (feil) {
                         LeggTilUtenlandsoppholdRequest.UgyldigUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig -> UgyldigUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig.left()
                     }
                 }
             },
-        ).getOrHandle {
+        ).getOrElse {
             return when (it) {
                 UtenlandsoppholdVilkår.Vurdert.UgyldigUtenlandsoppholdVilkår.OverlappendeVurderingsperioder -> UgyldigUtenlandsopphold.OverlappendeVurderingsperioder.left()
             }
@@ -64,7 +64,7 @@ data class LeggTilUtenlandsoppholdRequest(
                 lagVurderingsperiode(
                     vurdering = Vurdering.Avslag,
                     clock = clock,
-                ).getOrHandle {
+                ).getOrElse {
                     return it.left()
                 }
             }
@@ -73,7 +73,7 @@ data class LeggTilUtenlandsoppholdRequest(
                 lagVurderingsperiode(
                     vurdering = Vurdering.Innvilget,
                     clock = clock,
-                ).getOrHandle {
+                ).getOrElse {
                     return it.left()
                 }
             }
@@ -82,7 +82,7 @@ data class LeggTilUtenlandsoppholdRequest(
                 lagVurderingsperiode(
                     vurdering = Vurdering.Uavklart,
                     clock = clock,
-                ).getOrHandle {
+                ).getOrElse {
                     return it.left()
                 }
             }
@@ -98,7 +98,7 @@ data class LeggTilUtenlandsoppholdRequest(
             vurdering = vurdering,
             grunnlag = null,
             vurderingsperiode = periode,
-        ).getOrHandle {
+        ).getOrElse {
             return when (it) {
                 VurderingsperiodeUtenlandsopphold.UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig -> UgyldigUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig.left()
             }

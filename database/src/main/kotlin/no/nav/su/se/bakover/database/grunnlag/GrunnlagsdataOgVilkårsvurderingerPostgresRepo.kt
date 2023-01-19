@@ -32,7 +32,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
     ) {
         dbMetrics.timeQuery("lagreGrunnlagsdataOgVilkårsvurderinger") {
             grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.uføreVilkår()
-                .tap {
+                .onRight {
                     uføreVilkårsvurderingPostgresRepo.lagre(
                         behandlingId = behandlingId,
                         vilkår = it,
@@ -73,7 +73,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                 tx = tx,
             )
             grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.pensjonsVilkår()
-                .tap {
+                .onRight {
                     pensjonVilkårsvurderingPostgresRepo.lagre(
                         behandlingId = behandlingId,
                         vilkår = it,
@@ -84,7 +84,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                 familiegjenforeningVilkårsvurderingPostgresRepo.lagre(behandlingId = behandlingId, vilkår = it, tx = tx)
             }
             grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.flyktningVilkår()
-                .tap {
+                .onRight {
                     flyktningVilkårsvurderingPostgresRepo.lagre(
                         behandlingId = behandlingId,
                         vilkår = it,

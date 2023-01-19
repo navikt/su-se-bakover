@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.sak.iverksett
 import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.flatMap
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.NavIdentBruker
@@ -119,7 +119,7 @@ data class IverksettOpphørtRevurderingResponse(
                 val nyUtbetaling = klargjørUtbetaling(
                     utbetaling,
                     tx,
-                ).getOrHandle {
+                ).getOrElse {
                     throw IverksettTransactionException(
                         "Kunne ikke opprette utbetaling. Underliggende feil:$it.",
                         KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeUtbetale(it),
@@ -131,7 +131,7 @@ data class IverksettOpphørtRevurderingResponse(
                 lagreRevurdering(vedtak.behandling, tx)
 
                 nyUtbetaling.sendUtbetaling()
-                    .getOrHandle { feil ->
+                    .getOrElse { feil ->
                         throw IverksettTransactionException(
                             "Kunne ikke publisere utbetaling på køen. Underliggende feil: $feil.",
                             KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeUtbetale(feil),

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.vedtak
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
@@ -24,7 +24,7 @@ sealed interface Vedtak {
  * ##NB! Kaster hvis beregnignen ikke kan være gjeldende.
  */
 fun VedtakSomKanRevurderes.hentBeregningForGjeldendeVedtak(): Beregning {
-    return beregningKanVæreGjeldende().getOrHandle { throw IllegalStateException("${this::class} har ikke beregning") }
+    return beregningKanVæreGjeldende().getOrElse { throw IllegalStateException("${this::class} har ikke beregning") }
         .let {
             when (it) {
                 is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> it.beregning

@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.database.grunnlag
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import kotliquery.Row
 import no.nav.su.se.bakover.common.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.Session
@@ -107,9 +107,10 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepo(
                             vurderingsperioder = it.toNonEmptyList(),
 
                         )
-                            .getOrHandle { feil ->
+                            .getOrElse { feil ->
                                 throw IllegalStateException("Kunne ikke instansiere ${UtenlandsoppholdVilkår.Vurdert::class.simpleName}. Melding: $feil")
                             }
+
                         false -> UtenlandsoppholdVilkår.IkkeVurdert
                     }
                 }

@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.test.søknad
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
@@ -59,7 +59,7 @@ fun boforhold(
     ektefellePartnerSamboer = ektefellePartnerSamboer,
     innlagtPåInstitusjon = innlagtPåInstitusjon,
     oppgittAdresse = oppgittAdresse,
-).getOrHandle { throw IllegalArgumentException("Feil ved oppsett av test-data") }
+).getOrElse { throw IllegalArgumentException("Feil ved oppsett av test-data") }
 
 fun utenlandsopphold(
     registrertePerioder: List<UtenlandsoppholdPeriode>? = listOf(
@@ -95,7 +95,7 @@ fun oppholdstillatelse(
     oppholdstillatelseType = oppholdstillatelseType,
     statsborgerskapAndreLand = statsborgerskapAndreLand,
     statsborgerskapAndreLandFritekst = statsborgerskapAndreLandFritekst,
-).getOrHandle { throw IllegalArgumentException("Feil ved opprettelse av test data") }
+).getOrElse { throw IllegalArgumentException("Feil ved opprettelse av test data") }
 
 fun inntektOgPensjon() = InntektOgPensjon(
     forventetInntekt = 2500,
@@ -130,7 +130,7 @@ fun formue() = Formue.tryCreate(
     verdipapirBeløp = 25000,
     skylderNoenMegPengerBeløp = 25000,
     kontanterBeløp = 25000,
-).getOrHandle { throw IllegalArgumentException("Feil ved oppsett av test-data") }
+).getOrElse { throw IllegalArgumentException("Feil ved oppsett av test-data") }
 
 fun ektefelle() = Ektefelle(
     formue = Formue.tryCreate(
@@ -146,7 +146,7 @@ fun ektefelle() = Ektefelle(
         verdipapirBeløp = 0,
         skylderNoenMegPengerBeløp = 0,
         kontanterBeløp = 0,
-    ).getOrHandle { throw IllegalStateException("Feil ved oppsett av test-data") },
+    ).getOrElse { throw IllegalStateException("Feil ved oppsett av test-data") },
     inntektOgPensjon = InntektOgPensjon(
         forventetInntekt = null,
         andreYtelserINav = null,
@@ -196,7 +196,7 @@ fun søknadsinnholdAlder(
     formue = formue,
     forNav = forNav,
     ektefelle = ektefelle,
-).getOrHandle { throw IllegalArgumentException("Feil ved oppsett av test data - $it") }
+).getOrElse { throw IllegalArgumentException("Feil ved oppsett av test data - $it") }
 
 fun søknadinnholdUføre(
     uførevedtak: Uførevedtak = Uførevedtak(true),
@@ -222,4 +222,4 @@ fun søknadinnholdUføre(
     formue = formue,
     forNav = forNav,
     ektefelle = ektefelle,
-).getOrHandle { throw IllegalArgumentException("Feil ved oppsett av test data - $it") }
+).getOrElse { throw IllegalArgumentException("Feil ved oppsett av test data - $it") }

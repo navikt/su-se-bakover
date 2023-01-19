@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.services.tilbakekreving
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.CorrelationId.Companion.withCorrelationId
 import no.nav.su.se.bakover.common.jobs.infrastructure.RunCheckFactory
 import no.nav.su.se.bakover.common.jobs.infrastructure.shouldRun
@@ -38,7 +38,7 @@ internal class TilbakekrevingJob(
                     withCorrelationId {
                         tilbakekrevingService.sendTilbakekrevingsvedtak() { råttKravgrunnlag ->
                             TilbakekrevingsmeldingMapper.toKravgrunnlg(råttKravgrunnlag)
-                                .getOrHandle { throw it }
+                                .getOrElse { throw it }
                         }
                     }
                 }.mapLeft {

@@ -78,7 +78,7 @@ fun <T> statusovergang(
     statusovergang: Statusovergang<Nothing, T>,
 ): T {
     // Kan aldri være Either.Left<Nothing>
-    return forsøkStatusovergang(søknadsbehandling, statusovergang).orNull()!!
+    return forsøkStatusovergang(søknadsbehandling, statusovergang).getOrNull()!!
 }
 
 fun <L, T> forsøkStatusovergang(

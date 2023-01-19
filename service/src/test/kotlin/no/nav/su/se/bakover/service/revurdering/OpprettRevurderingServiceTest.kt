@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.kotest.assertions.throwables.shouldThrow
@@ -164,7 +164,8 @@ internal class OpprettRevurderingServiceTest {
             val actual = it.revurderingService.opprettRevurdering(
                 OpprettRevurderingCommand(
                     sakId = sakId,
-                    periode = periodeNesteMånedOgTreMånederFram.fraOgMed.rangeTo(søknadsvedtak.periode.tilOgMed).toPeriode(),
+                    periode = periodeNesteMånedOgTreMånederFram.fraOgMed.rangeTo(søknadsvedtak.periode.tilOgMed)
+                        .toPeriode(),
                     årsak = "REGULER_GRUNNBELØP",
                     begrunnelse = "g-regulering",
                     saksbehandler = saksbehandler,
@@ -172,7 +173,7 @@ internal class OpprettRevurderingServiceTest {
                         Revurderingsteg.Inntekt,
                     ),
                 ),
-            ).getOrHandle {
+            ).getOrElse {
                 throw RuntimeException("$it")
             }
 

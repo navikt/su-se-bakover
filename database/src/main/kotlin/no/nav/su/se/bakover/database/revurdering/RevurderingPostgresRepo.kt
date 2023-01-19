@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.database.revurdering
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker.Saksbehandler
@@ -591,24 +591,26 @@ internal class RevurderingPostgresRepo(
                     gjenopptakAvYtelseRevurdering = revurdering,
                     begrunnelse = avsluttet.begrunnelse,
                     tidspunktAvsluttet = avsluttet.tidspunktAvsluttet,
-                ).getOrHandle {
+                ).getOrElse {
                     throw IllegalStateException("Kunne ikke lage en avsluttet gjenoppta revurdering. Se innhold i databasen. revurderingsId $id")
                 }
+
                 is Revurdering -> {
                     return AvsluttetRevurdering.tryCreate(
                         underliggendeRevurdering = revurdering,
                         begrunnelse = avsluttet.begrunnelse,
                         brevvalg = avsluttet.brevvalg?.toDomain(),
                         tidspunktAvsluttet = avsluttet.tidspunktAvsluttet,
-                    ).getOrHandle {
+                    ).getOrElse {
                         throw IllegalStateException("Kunne ikke lage en avsluttet revurdering. Se innhold i databasen. revurderingsId $id")
                     }
                 }
+
                 is StansAvYtelseRevurdering -> StansAvYtelseRevurdering.AvsluttetStansAvYtelse.tryCreate(
                     stansAvYtelseRevurdering = revurdering,
                     begrunnelse = avsluttet.begrunnelse,
                     tidspunktAvsluttet = avsluttet.tidspunktAvsluttet,
-                ).getOrHandle {
+                ).getOrElse {
                     throw IllegalStateException("Kunne ikke lage en avsluttet stans av ytelse. Se innhold i databasen. revurderingsId $id")
                 }
             }

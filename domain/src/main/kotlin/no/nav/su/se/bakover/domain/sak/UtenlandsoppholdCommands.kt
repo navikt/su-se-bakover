@@ -42,7 +42,7 @@ fun Sak.registrerUtenlandsopphold(
     validerJournalposter(
         journalposter = command.journalposter,
         validerJournalpost = validerJournalpost,
-    ).tapLeft {
+    ).onLeft {
         return KunneIkkeRegistereUtenlandsopphold.KunneIkkeValidereJournalposter(it).left()
     }
     val nesteVersjon = versjon.inc()
@@ -77,7 +77,7 @@ fun Sak.korrigerUtenlandsopphold(
         return KunneIkkeKorrigereUtenlandsopphold.UtdatertSaksversjon.left()
     }
     val tidligereValiderteJournalposter = utenlandsopphold.flatMap { it.journalposter }.toSet()
-    validerJournalposter(command.journalposter.minus(tidligereValiderteJournalposter), validerJournalpost).tapLeft {
+    validerJournalposter(command.journalposter.minus(tidligereValiderteJournalposter), validerJournalpost).onLeft {
         return KunneIkkeKorrigereUtenlandsopphold.KunneIkkeBekrefteJournalposter(it).left()
     }
     val nesteVersjon = versjon.inc()
@@ -126,6 +126,7 @@ fun Sak.annullerUtenlandsopphold(
         )
     }
 }
+
 private val log = LoggerFactory.getLogger("UtenlandsoppholdCommands")
 private fun Sak.validerJournalposter(
     journalposter: List<JournalpostId>,
@@ -139,10 +140,11 @@ private fun Sak.validerJournalposter(
         }.awaitAll().mapNotNull {
             when (val r = it.second) {
                 is Either.Left -> it.first.also {
-                    if (r.swap().orNull()!! !is KunneIkkeSjekkeTilknytningTilSak.FantIkkeJournalpost) {
+                    if (r.swap().getOrNull()!! !is KunneIkkeSjekkeTilknytningTilSak.FantIkkeJournalpost) {
                         log.error("Kunne ikke validere journalpost til utenlandsopphold for sakId $id og journalpostId $it. Underliggende feil: ${r.value}")
                     }
                 }
+
                 is Either.Right -> when (r.value) {
                     ErTilknyttetSak.Ja -> null
                     ErTilknyttetSak.Nei -> it.first

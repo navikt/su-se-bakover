@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.vilkår
 
 import arrow.core.Either
 import arrow.core.Nel
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -130,7 +130,7 @@ data class VurderingsperiodeFormue private constructor(
                 vurdering = vurdering,
                 grunnlag = grunnlag,
                 vurderingsperiode = periode,
-            ).getOrHandle {
+            ).getOrElse {
                 throw IllegalArgumentException(it.toString())
             }
         }

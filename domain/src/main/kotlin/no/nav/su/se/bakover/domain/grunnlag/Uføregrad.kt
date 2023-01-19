@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 
@@ -17,7 +17,7 @@ data class Uføregrad private constructor(
         }
 
         fun parse(uføregrad: Int): Uføregrad {
-            return tryParse(uføregrad).getOrHandle {
+            return tryParse(uføregrad).getOrElse {
                 throw IllegalArgumentException(it::class.simpleName)
             }
         }

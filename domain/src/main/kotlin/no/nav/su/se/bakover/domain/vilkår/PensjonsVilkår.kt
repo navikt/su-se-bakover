@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.vilkår
 
 import arrow.core.Either
 import arrow.core.Nel
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -98,7 +98,7 @@ sealed class PensjonsVilkår : Vilkår() {
             fun createFromVilkårsvurderinger(
                 vurderingsperioder: Nel<VurderingsperiodePensjon>,
             ): Vurdert =
-                tryCreateFromVurderingsperioder(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
+                tryCreateFromVurderingsperioder(vurderingsperioder).getOrElse { throw IllegalArgumentException(it.toString()) }
 
             fun tryCreateFromVurderingsperioder(
                 vurderingsperioder: Nel<VurderingsperiodePensjon>,
@@ -182,7 +182,7 @@ data class VurderingsperiodePensjon private constructor(
             periode: Periode,
             grunnlag: Pensjonsgrunnlag,
         ): VurderingsperiodePensjon {
-            return tryCreate(id, opprettet, periode, grunnlag).getOrHandle {
+            return tryCreate(id, opprettet, periode, grunnlag).getOrElse {
                 throw IllegalArgumentException(it.toString())
             }
         }

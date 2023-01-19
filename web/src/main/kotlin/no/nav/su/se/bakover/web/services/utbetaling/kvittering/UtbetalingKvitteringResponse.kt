@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.services.utbetaling.kvittering
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
@@ -75,7 +75,7 @@ data class UtbetalingKvitteringResponse(
             .let {
                 Either.catch {
                     xmlMapper.readValue<UtbetalingKvitteringResponse>(it)
-                }.getOrHandle {
+                }.getOrElse {
                     // TODO metric og sikkerlogg
                     throw it
                 }

@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.web.routes.revurdering
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.getOrElse
-import arrow.core.getOrHandle
 import arrow.core.left
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -86,7 +85,7 @@ internal fun Route.leggTilFradragRevurdering(
                                     call.sikkerlogg("Lagret fradrag for revudering $revurderingId på $sakId")
                                     Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory)))
                                 }
-                            }.getOrHandle { it },
+                            }.getOrElse { it },
                         )
                     }
                 }

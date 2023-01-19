@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -96,7 +96,7 @@ internal class RevurderingSendTilAttesteringTest {
                     revurderingId = simulertRevurdering.id,
                     saksbehandler = saksbehandler,
                 ),
-            ).getOrHandle { throw RuntimeException(it.toString()) }
+            ).getOrElse { throw RuntimeException(it.toString()) }
 
             inOrder(it.revurderingRepo, it.personService, it.oppgaveService, it.observer) {
                 verify(it.revurderingRepo).hent(argThat { it shouldBe simulertRevurdering.id })

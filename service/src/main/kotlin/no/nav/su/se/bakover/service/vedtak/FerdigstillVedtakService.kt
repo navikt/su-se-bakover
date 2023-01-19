@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.vedtak
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.domain.behandling.Behandling
@@ -64,7 +64,7 @@ class FerdigstillVedtakServiceImpl(
     private fun ferdigstillVedtak(vedtak: VedtakSomKanRevurderes): Either<KunneIkkeFerdigstilleVedtak, VedtakSomKanRevurderes> {
         // TODO jm: sjekk om vi allerede har distribuert?
         return if (vedtak.skalSendeBrev()) {
-            lagreDokument(vedtak).getOrHandle { return it.left() }
+            lagreDokument(vedtak).getOrElse { return it.left() }
             lukkOppgaveMedSystembruker(vedtak.behandling)
             vedtak.right()
         } else {

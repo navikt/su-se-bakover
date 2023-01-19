@@ -168,16 +168,16 @@ suspend fun ApplicationCall.withDokumentId(ifRight: suspend (UUID) -> Unit) {
 
 suspend inline fun <reified T> ApplicationCall.withBody(ifRight: (T) -> Unit) {
     Either.catch { this.receiveTextUTF8() }
-        .tapLeft {
+        .onLeft {
             log.error("Feil ved transformering av json-body til UTF-8 inn mot web-laget, se sikkerlogg for detaljer.")
             sikkerLogg.error("Feil ved transformering av json-body til UTF-8.", it)
             this.svar(Feilresponser.ugyldigBody)
         }.map { body ->
             Either.catch { deserialize<T>(body) }
-                .tapLeft {
+                .onLeft {
                     log.error("Feil ved deserialisering av json-body inn mot web-laget, se sikkerlogg for detaljer.")
                     sikkerLogg.error("Feil ved deserialisering av json-body: $body", it)
                     this.svar(Feilresponser.ugyldigBody)
-                }.tap(ifRight)
+                }.onRight(ifRight)
         }
 }

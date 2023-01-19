@@ -36,9 +36,9 @@ fun Route.annullerUtenlandsoppholdRoute(
                                 brukerroller = call.suUserContext.roller,
                                 annullererVersjon = versjon,
                             ),
-                        ).tap {
+                        ).onRight {
                             call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
-                        }.tapLeft {
+                        }.onLeft {
                             call.svar(
                                 when (it) {
                                     KunneIkkeAnnullereUtenlandsopphold.UtdatertSaksversjon -> utdatertSaksversjon

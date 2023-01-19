@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.brev
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -44,7 +44,7 @@ interface LagBrevRequest {
     ): Either<KunneIkkeGenererePdf, Triple<String, ByteArray, String>> {
         return Triple(
             first = brevInnhold.brevTemplate.tittel(),
-            second = genererPdf(this).getOrHandle { return KunneIkkeGenererePdf.left() },
+            second = genererPdf(this).getOrElse { return KunneIkkeGenererePdf.left() },
             third = brevInnhold.toJson(),
         ).right()
     }

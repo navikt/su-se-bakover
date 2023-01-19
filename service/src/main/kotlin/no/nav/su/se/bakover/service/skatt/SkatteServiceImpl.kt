@@ -24,7 +24,7 @@ class SkatteServiceImpl(
             return maskinportenToken!!.right()
         }
         return maskinportenClient.hentNyttToken()
-            .tap { maskinportenToken = it }
+            .onRight { maskinportenToken = it }
     }
 
     override fun hentSamletSkattegrunnlag(fnr: Fnr): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag> {

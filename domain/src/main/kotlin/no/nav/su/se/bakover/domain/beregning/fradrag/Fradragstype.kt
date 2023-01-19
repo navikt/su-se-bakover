@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 
@@ -217,7 +217,7 @@ sealed class Fradragstype {
         }
 
         fun from(kategori: Kategori, beskrivelse: String?): Fradragstype {
-            return tryParse(kategori.name, beskrivelse).getOrHandle { throw IllegalArgumentException("$it") }
+            return tryParse(kategori.name, beskrivelse).getOrElse { throw IllegalArgumentException("$it") }
         }
 
         sealed interface UgyldigFradragstype {

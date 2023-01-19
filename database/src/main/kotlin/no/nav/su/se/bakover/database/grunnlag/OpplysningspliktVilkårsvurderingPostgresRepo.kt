@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.database.grunnlag
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import kotliquery.Row
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.DbMetrics
@@ -111,9 +111,10 @@ internal class OpplysningspliktVilkårsvurderingPostgresRepo(
                             vurderingsperioder = it.toNonEmptyList(),
 
                         )
-                            .getOrHandle { feil ->
+                            .getOrElse { feil ->
                                 throw IllegalStateException("Kunne ikke instansiere ${OpplysningspliktVilkår.Vurdert::class.simpleName}. Melding: $feil")
                             }
+
                         false -> OpplysningspliktVilkår.IkkeVurdert
                     }
                 }

@@ -53,14 +53,14 @@ class KlageinstanshendelseServiceImpl(
                 uprosessertKlageinstanshendelse.opprettet,
                 uprosessertKlageinstanshendelse.metadata.value,
             )
-                .tapLeft {
+                .onLeft {
                     log.error(
                         "Deserialisering av hendelse fra Klageinstans feilet for hendelseId: ${uprosessertKlageinstanshendelse.metadata.hendelseId}",
                         it,
                     )
                     klageinstanshendelseRepo.markerSomFeil(uprosessertKlageinstanshendelse.id)
                 }
-                .tap { prosesserTolketKlageinstanshendelse(it) }
+                .onRight { prosesserTolketKlageinstanshendelse(it) }
         }
     }
 
@@ -84,18 +84,18 @@ class KlageinstanshendelseServiceImpl(
                 journalpostIDer = hendelse.journalpostIDer,
                 avsluttetTidspunkt = hendelse.avsluttetTidspunkt,
             )
-        }.tapLeft {
+        }.onLeft {
             when (it) {
                 Klage.KunneIkkeLeggeTilNyKlageinstansHendelse.KunneIkkeHenteAktørId -> log.error("Feil skjedde i prosessering av klageinstanshendelse: Kunne ikke hente aktørId for id ${hendelse.id}")
                 is Klage.KunneIkkeLeggeTilNyKlageinstansHendelse.KunneIkkeLageOppgave -> log.error("Feil skjedde i prosessering av klageinstanshendelse: Kall mot oppgave feilet for id ${hendelse.id}")
                 is Klage.KunneIkkeLeggeTilNyKlageinstansHendelse.MåVæreEnOversendtKlage -> log.error("Feil skjedde i prosessering av klageinstanshendelse: Må være i tilstand ${OversendtKlage::class.java.name} men var ${it.menVar.java.name} for id ${hendelse.id}")
             }
-            /** Disse lagres som FEIL i databasen uten videre håndtering. Tanken er at vi får håndtere
+            /* Disse lagres som FEIL i databasen uten videre håndtering. Tanken er at vi får håndtere
              * de casene som intreffer og så må vi manuellt putte de til 'UPROSSESERT' vid senere tidspunkt.
              */
             klageinstanshendelseRepo.markerSomFeil(hendelse.id)
         }
-            .tap {
+            .onRight {
                 when (it) {
                     is OpprettetKlage,
                     is VilkårsvurdertKlage,
@@ -113,6 +113,7 @@ class KlageinstanshendelseServiceImpl(
                         klageRepo.lagre(it, tx)
                         klageinstanshendelseRepo.lagre(it.klageinstanshendelser.last(), tx)
                     }
+
                     is OversendtKlage -> sessionFactory.withTransactionContext { tx ->
                         klageRepo.lagre(it, tx)
                         klageinstanshendelseRepo.lagre(it.klageinstanshendelser.last(), tx)
@@ -143,6 +144,7 @@ class KlageinstanshendelseServiceImpl(
                     avsluttetTidspunkt = avsluttetTidspunkt,
                     journalpostIDer = journalpostIDer,
                 )
+
                 KlageinstansUtfall.RETUR,
                 KlageinstansUtfall.OPPHEVET,
                 KlageinstansUtfall.MEDHOLD,

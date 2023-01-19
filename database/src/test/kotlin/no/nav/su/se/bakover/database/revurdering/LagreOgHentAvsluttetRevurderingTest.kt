@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.database.revurdering
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
@@ -20,7 +20,8 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val repo = testDataHelper.revurderingRepo
 
             val (_, revurdering) = testDataHelper.persisterRevurderingOpprettet(
-                sakOgVedtak = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { it.first to it.second },
+                sakOgVedtak = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
+                    .let { it.first to it.second },
             )
 
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
@@ -28,7 +29,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
                 begrunnelse = "avslutter denne revurderingen",
                 brevvalg = null,
                 tidspunktAvsluttet = fixedTidspunkt,
-            ).getOrHandle { fail("$it") }
+            ).getOrElse { fail("$it") }
 
             repo.lagre(avsluttetRevurdering)
             repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
@@ -54,7 +55,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
                 begrunnelse = "avslutter denne revurderingen",
                 brevvalg = null,
                 tidspunktAvsluttet = fixedTidspunkt,
-            ).getOrHandle { fail("$it") }
+            ).getOrElse { fail("$it") }
 
             repo.lagre(avsluttetRevurdering)
             repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
@@ -81,7 +82,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
                 begrunnelse = "avslutter denne revurderingen",
                 brevvalg = null,
                 tidspunktAvsluttet = fixedTidspunkt,
-            ).getOrHandle { fail("$it") }
+            ).getOrElse { fail("$it") }
 
             repo.lagre(avsluttetRevurdering)
             repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
@@ -107,7 +108,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
                 begrunnelse = "avslutter denne revurderingen",
                 brevvalg = null,
                 tidspunktAvsluttet = fixedTidspunkt,
-            ).getOrHandle { fail("$it") }
+            ).getOrElse { fail("$it") }
 
             repo.lagre(avsluttetRevurdering)
             repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
@@ -133,7 +134,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
                 begrunnelse = "avslutter denne revurderingen",
                 brevvalg = null,
                 tidspunktAvsluttet = fixedTidspunkt,
-            ).getOrHandle { fail("$it") }
+            ).getOrElse { fail("$it") }
 
             repo.lagre(avsluttetRevurdering)
             repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
@@ -159,7 +160,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
                 begrunnelse = "avslutter denne revurderingen",
                 brevvalg = null,
                 tidspunktAvsluttet = fixedTidspunkt,
-            ).getOrHandle { fail("$it") }
+            ).getOrElse { fail("$it") }
 
             repo.lagre(avsluttetRevurdering)
             repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(

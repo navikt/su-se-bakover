@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.vilkår
 
 import arrow.core.Either
 import arrow.core.Nel
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -98,7 +98,7 @@ sealed class UtenlandsoppholdVilkår : Vilkår() {
             fun createFromVilkårsvurderinger(
                 vurderingsperioder: Nel<VurderingsperiodeUtenlandsopphold>,
             ): Vurdert =
-                tryCreateFromVurderingsperioder(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
+                tryCreateFromVurderingsperioder(vurderingsperioder).getOrElse { throw IllegalArgumentException(it.toString()) }
 
             fun tryCreateFromVurderingsperioder(
                 vurderingsperioder: Nel<VurderingsperiodeUtenlandsopphold>,
@@ -184,7 +184,7 @@ data class VurderingsperiodeUtenlandsopphold private constructor(
             grunnlag: Utenlandsoppholdgrunnlag?,
             periode: Periode,
         ): VurderingsperiodeUtenlandsopphold {
-            return tryCreate(id, opprettet, vurdering, grunnlag, periode).getOrHandle {
+            return tryCreate(id, opprettet, vurdering, grunnlag, periode).getOrElse {
                 throw IllegalArgumentException(it.toString())
             }
         }

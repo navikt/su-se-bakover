@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
@@ -50,7 +50,7 @@ internal fun Route.gjenopptaUtbetaling(
                     val revurderingsårsak = Revurderingsårsak.tryCreate(
                         årsak = body.årsak,
                         begrunnelse = body.begrunnelse,
-                    ).getOrHandle { return@withSakId call.svar(it.tilResultat()) }
+                    ).getOrElse { return@withSakId call.svar(it.tilResultat()) }
 
                     val request = GjenopptaYtelseRequest.Opprett(
                         sakId = sakId,
@@ -81,7 +81,7 @@ internal fun Route.gjenopptaUtbetaling(
                         val revurderingsårsak = Revurderingsårsak.tryCreate(
                             årsak = body.årsak,
                             begrunnelse = body.begrunnelse,
-                        ).getOrHandle { return@withRevurderingId call.svar(it.tilResultat()) }
+                        ).getOrElse { return@withRevurderingId call.svar(it.tilResultat()) }
 
                         val request = GjenopptaYtelseRequest.Oppdater(
                             sakId = sakId,

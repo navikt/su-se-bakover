@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Ektefelle
@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InntektOgPensj
 
 data class EktefelleJson(val formue: FormueJson, val inntektOgPensjon: InntektOgPensjonJson) {
     fun toEktefelle(): Either<FeilVedOpprettelseAvEktefelleJson, Ektefelle> = Ektefelle(
-        formue = formue.toFormue().getOrHandle {
+        formue = formue.toFormue().getOrElse {
             return FeilVedOpprettelseAvEktefelleJson.FeilVedOpprettelseAvFormueEktefelle(it).left()
         },
         inntektOgPensjon = inntektOgPensjon.toInntektOgPensjon(),

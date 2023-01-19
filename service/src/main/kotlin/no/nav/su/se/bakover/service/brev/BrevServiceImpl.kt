@@ -72,9 +72,7 @@ class BrevServiceImpl(
     }
 
     private fun lagPdf(brevInnhold: BrevInnhold): Either<KunneIkkeLageBrev, ByteArray> {
-        return pdfGenerator.genererPdf(brevInnhold)
-            .mapLeft { KunneIkkeLageBrev.KunneIkkeGenererePDF }
-            .map { it }
+        return pdfGenerator.genererPdf(brevInnhold).mapLeft { KunneIkkeLageBrev.KunneIkkeGenererePDF }.map { it }
     }
 
     override fun lagDokument(visitable: Visitable<LagBrevRequestVisitor>): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
@@ -96,25 +94,21 @@ class BrevServiceImpl(
         }.brevRequest
     }
 
-    private fun lagBrevRequestVisitor() =
-        LagBrevRequestVisitor(
-            hentPerson = { fnr ->
-                /** [no.nav.su.se.bakover.web.services.AccessCheckProxy] bør allerede ha sjekket om vi har tilgang til personen */
-                personService.hentPersonMedSystembruker(fnr)
-                    .mapLeft { KunneIkkeLageBrevRequest.KunneIkkeHentePerson }
-            },
-            hentNavn = { ident ->
-                microsoftGraphApiOppslag.hentNavnForNavIdent(ident)
-                    .mapLeft { KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(it) }
-            },
-            hentGjeldendeUtbetaling = { sakId, forDato ->
-                utbetalingService.hentGjeldendeUtbetaling(sakId, forDato)
-                    .bimap(
-                        { KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling },
-                        { it.beløp },
-                    )
-            },
-            clock = clock,
-            satsFactory = satsFactory,
-        )
+    private fun lagBrevRequestVisitor() = LagBrevRequestVisitor(
+        hentPerson = { fnr ->
+            /** [no.nav.su.se.bakover.web.services.AccessCheckProxy] bør allerede ha sjekket om vi har tilgang til personen */
+            personService.hentPersonMedSystembruker(fnr).mapLeft { KunneIkkeLageBrevRequest.KunneIkkeHentePerson }
+        },
+        hentNavn = { ident ->
+            microsoftGraphApiOppslag.hentNavnForNavIdent(ident)
+                .mapLeft { KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(it) }
+        },
+        hentGjeldendeUtbetaling = { sakId, forDato ->
+            utbetalingService.hentGjeldendeUtbetaling(sakId, forDato)
+                .map { it.beløp }
+                .mapLeft { KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling }
+        },
+        clock = clock,
+        satsFactory = satsFactory,
+    )
 }

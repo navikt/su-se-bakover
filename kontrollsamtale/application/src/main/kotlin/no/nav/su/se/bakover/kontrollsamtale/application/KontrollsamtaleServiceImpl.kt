@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import arrow.core.rightIfNotNull
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.persistence.SessionContext
@@ -50,10 +49,10 @@ class KontrollsamtaleServiceImpl(
             return KunneIkkeKalleInnTilKontrollsamtale.FantIkkeSak.left()
         }
 
-        val gjeldendeStønadsperiode = sak.hentGjeldendeStønadsperiode(clock).rightIfNotNull { }.getOrElse {
-            log.error("Fant ingen gjeldende stønadsperiode på sakId $sakId")
-            return KunneIkkeKalleInnTilKontrollsamtale.FantIkkeGjeldendeStønadsperiode.left()
-        }
+        val gjeldendeStønadsperiode = sak.hentGjeldendeStønadsperiode(clock)
+            ?: return KunneIkkeKalleInnTilKontrollsamtale.FantIkkeGjeldendeStønadsperiode.left().also {
+                log.error("Fant ingen gjeldende stønadsperiode på sakId $sakId")
+            }
 
         val person = personService.hentPersonMedSystembruker(sak.fnr).getOrElse {
             log.error("Fant ikke person for fnr: ${sak.fnr}")
@@ -181,6 +180,7 @@ class KontrollsamtaleServiceImpl(
             )
         }
     }
+
     override fun defaultSessionContext(): SessionContext = sessionFactory.newSessionContext()
 
     /**

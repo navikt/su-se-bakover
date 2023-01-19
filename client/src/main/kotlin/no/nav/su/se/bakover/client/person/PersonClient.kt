@@ -43,7 +43,7 @@ internal class PersonClient(
         key: FnrCacheKey,
         mappingFunction: () -> Either<Error, Value>,
     ): Either<Error, Value> {
-        return this.getIfPresent(key)?.right() ?: mappingFunction().tap {
+        return this.getIfPresent(key)?.right() ?: mappingFunction().onRight {
             this.put(key, it)
             if (key.second is JwtToken.BrukerToken) {
                 // Dersom dette ble trigget av et brukertoken, ønsker vi å cache det for SystemToken også; men ikke andre veien.
@@ -131,12 +131,12 @@ internal class PersonClient(
 
     private fun toPoststed(postnummer: String) = Person.Poststed(
         postnummer = postnummer,
-        poststed = config.kodeverk.hentPoststed(postnummer).orNull(),
+        poststed = config.kodeverk.hentPoststed(postnummer).getOrNull(),
     )
 
     private fun toKommune(kommunenummer: String) = Person.Kommune(
         kommunenummer = kommunenummer,
-        kommunenavn = config.kodeverk.hentKommunenavn(kommunenummer).orNull(),
+        kommunenavn = config.kodeverk.hentKommunenavn(kommunenummer).getOrNull(),
     )
 
     private fun kontaktinfo(fnr: Fnr): Person.Kontaktinfo? {

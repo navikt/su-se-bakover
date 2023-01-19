@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.service.klage
 
 import arrow.core.Either
 import arrow.core.flatMap
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
@@ -27,8 +27,8 @@ data class KlageVurderingerRequest(
 
         fun toDomain(): Either<KunneIkkeVurdereKlage, VurderingerTilKlage.Vedtaksvurdering> {
             return VurderingerTilKlage.Vedtaksvurdering.createOmgjør(
-                årsak = årsak?.let { årsakToDomain(it) }?.getOrHandle { return it.left() },
-                utfall = utfall?.let { utfallToDomain(it) }?.getOrHandle { return it.left() },
+                årsak = årsak?.let { årsakToDomain(it) }?.getOrElse { return it.left() },
+                utfall = utfall?.let { utfallToDomain(it) }?.getOrElse { return it.left() },
             ).right()
         }
 
@@ -90,7 +90,7 @@ data class KlageVurderingerRequest(
                 if (it.isEmpty()) return Hjemler.empty().right()
                 Hjemler.tryCreate(
                     it.toNonEmptyList(),
-                ).getOrHandle {
+                ).getOrElse {
                     return KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler.left()
                 }.right()
             }
@@ -114,7 +114,7 @@ data class KlageVurderingerRequest(
             klageId = klageId,
             vurderinger = VurderingerTilKlage.create(
                 fritekstTilOversendelsesbrev = fritekstTilBrev,
-                vedtaksvurdering = toVedtaksvurdering().getOrHandle { return it.left() },
+                vedtaksvurdering = toVedtaksvurdering().getOrElse { return it.left() },
             ),
             saksbehandler = saksbehandler,
         ).right()
