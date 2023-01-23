@@ -87,6 +87,7 @@ fun Sak.opprettRevurdering(
             OpprettetRevurdering(
                 periode = command.periode,
                 opprettet = Tidspunkt.now(clock),
+                oppdatert = Tidspunkt.now(clock),
                 tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(dato = command.periode.fraOgMed)!!.id,
                 saksbehandler = command.saksbehandler,
                 oppgaveId = oppgaveId,

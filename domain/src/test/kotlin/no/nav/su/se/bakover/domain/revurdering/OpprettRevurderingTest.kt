@@ -4,6 +4,8 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.januar
@@ -21,6 +23,7 @@ import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurder
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.test.enUkeEtterFixedClock
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetSøknadsbehandlingMedÅpenRegulering
@@ -182,5 +185,29 @@ internal class OpprettRevurderingTest {
                 it.periode shouldBe lovligPeriode
             }
         }
+    }
+
+    @Test
+    fun `oppdatert tidspunkt er lik opprettet ved opprettelse - oppdatert skal være ulik opprettet ved oppdatering`() {
+        val opprettetRevurdering = opprettetRevurdering().second
+        opprettetRevurdering.opprettet shouldBe opprettetRevurdering.oppdatert
+
+        val oppdatertRevurdering = opprettetRevurdering.oppdater(
+            clock = enUkeEtterFixedClock,
+            periode = opprettetRevurdering.periode,
+            revurderingsårsak = Revurderingsårsak(
+                årsak = Revurderingsårsak.Årsak.DØDSFALL,
+                begrunnelse = Revurderingsårsak.Begrunnelse.create("Oppdaterer med ny årsak. Oppdatert tidspunktet skal være endret, og ikke lik opprettet"),
+            ),
+            grunnlagsdata = opprettetRevurdering.grunnlagsdata,
+            vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
+            informasjonSomRevurderes = opprettetRevurdering.informasjonSomRevurderes,
+            tilRevurdering = opprettetRevurdering.tilRevurdering,
+            avkorting = opprettetRevurdering.avkorting,
+            saksbehandler = opprettetRevurdering.saksbehandler,
+        ).getOrFail()
+
+        oppdatertRevurdering.oppdatert shouldNotBe oppdatertRevurdering.opprettet
+        oppdatertRevurdering.oppdatert shouldBe Tidspunkt.now(enUkeEtterFixedClock)
     }
 }

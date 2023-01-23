@@ -72,6 +72,7 @@ fun Sak.oppdaterRevurdering(
         }
 
     return revurdering.oppdater(
+        clock = clock,
         periode = periode,
         revurderingsårsak = revurderingsårsak,
         grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,

@@ -154,6 +154,7 @@ internal class LagBrevutkastForRevurderingTest {
             id = UUID.randomUUID(),
             periode = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram,
             opprettet = fixedTidspunkt,
+            oppdatert = fixedTidspunkt,
             tilRevurdering = tilRevurdering.id,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveid"),

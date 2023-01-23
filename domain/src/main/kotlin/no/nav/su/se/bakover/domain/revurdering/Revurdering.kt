@@ -107,6 +107,11 @@ sealed class Revurdering :
     abstract val beregning: Beregning?
     abstract val simulering: Simulering?
 
+    /**
+     * Tidspunktet referer til når selve revurderingen ble oppdatert. For eksempel ved endring av periode, årsak, hva som revurderes, eller begrunnelse
+     */
+    abstract val oppdatert: Tidspunkt
+
     fun årsakErGRegulering(): Boolean {
         return revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
     }
@@ -161,6 +166,7 @@ sealed class Revurdering :
     }
 
     open fun oppdater(
+        clock: Clock,
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
         grunnlagsdata: Grunnlagsdata,
@@ -177,6 +183,7 @@ sealed class Revurdering :
     }
 
     protected fun oppdaterInternal(
+        clock: Clock,
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
         grunnlagsdata: Grunnlagsdata,
@@ -190,6 +197,7 @@ sealed class Revurdering :
             id = id,
             periode = periode,
             opprettet = opprettet,
+            oppdatert = Tidspunkt.now(clock),
             tilRevurdering = tilRevurdering,
             saksbehandler = saksbehandler,
             oppgaveId = oppgaveId,
@@ -546,6 +554,7 @@ sealed class Revurdering :
             id = id,
             periode = periode,
             opprettet = opprettet,
+            oppdatert = oppdatert,
             tilRevurdering = tilRevurdering,
             saksbehandler = saksbehandler,
             oppgaveId = oppgaveId,
@@ -583,6 +592,7 @@ sealed class Revurdering :
             id = id,
             periode = periode,
             opprettet = opprettet,
+            oppdatert = oppdatert,
             tilRevurdering = tilRevurdering,
             saksbehandler = saksbehandler,
             oppgaveId = oppgaveId,
@@ -637,6 +647,7 @@ sealed class Revurdering :
                 id = revurdering.id,
                 periode = revurdering.periode,
                 opprettet = revurdering.opprettet,
+                oppdatert = revurdering.oppdatert,
                 beregning = revurdertBeregning,
                 saksbehandler = revurdering.saksbehandler,
                 oppgaveId = revurdering.oppgaveId,
@@ -655,6 +666,7 @@ sealed class Revurdering :
                 id = revurdering.id,
                 periode = revurdering.periode,
                 opprettet = revurdering.opprettet,
+                oppdatert = revurdering.oppdatert,
                 tilRevurdering = revurdering.tilRevurdering,
                 saksbehandler = revurdering.saksbehandler,
                 beregning = revurdertBeregning,
