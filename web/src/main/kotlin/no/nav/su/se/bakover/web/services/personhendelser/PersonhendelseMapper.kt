@@ -91,7 +91,7 @@ internal object PersonhendelseMapper {
                     offset = message.offset(),
                     partisjon = message.partition(),
                     master = personhendelse.getMaster(),
-                    key = message.key().removeUnicodeNullcharacter(),
+                    key = message.key().removeUnwantedJsonCharacters(),
                 ),
             )
         }
@@ -111,15 +111,4 @@ internal sealed class KunneIkkeMappePersonhendelse {
         val hendelseId: String,
         val opplysningstype: String,
     ) : KunneIkkeMappePersonhendelse()
-}
-
-/**
- * PDL avro-serialiserer key-strengen (fødselsnummer eller aktørId) som prepender den med en null-byte.
- * Dette smeller i postgres.
- * https://en.wikipedia.org/wiki/Null_character
- */
-internal fun String.removeUnicodeNullcharacter(): String {
-    return this
-        .replace("\u0000", "")
-        .replace("\\u0000", "")
 }
