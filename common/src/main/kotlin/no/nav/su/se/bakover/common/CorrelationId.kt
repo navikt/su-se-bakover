@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.common
 
+import arrow.core.Either
+import kotlinx.coroutines.runBlocking
 import org.slf4j.MDC
 import java.util.UUID
 
@@ -39,12 +41,22 @@ value class CorrelationId(val value: String) {
          * Fjerner keyen etter body() har kjørt ferdig.
          */
         infix fun withCorrelationId(body: (CorrelationId) -> Unit) {
+            runBlocking {
+                withCorrelationIdSuspend(body)
+            }
+        }
+
+        suspend infix fun withCorrelationIdSuspend(body: suspend (CorrelationId) -> Unit) {
             val correlationId = generate()
             try {
                 MDC.put(CorrelationIdHeader, correlationId.toString())
                 body(correlationId)
             } finally {
-                MDC.remove(CorrelationIdHeader)
+                Either.catch {
+                    MDC.remove(CorrelationIdHeader)
+                }.onLeft {
+                    log.error("En ukjent feil skjedde når vi prøvde fjerne $CorrelationIdHeader fra MDC.", it)
+                }
             }
         }
     }
