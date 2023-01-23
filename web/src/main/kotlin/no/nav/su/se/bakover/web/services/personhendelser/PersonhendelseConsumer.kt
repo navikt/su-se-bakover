@@ -45,8 +45,9 @@ class PersonhendelseConsumer(
                     }
                 }.mapLeft {
                     // Dette vil føre til en timeout, siden vi ikke gjør noen commit. Da vil vi ikke få noen meldinger i mellomtiden.
-                    log.error("Personhendelse: Ukjent feil ved konsumering av personhendelser.", it)
-                    delay(5.seconds)
+                    log.error("Personhendelse: Ukjent feil ved konsumering av personhendelser. Utfører en rebalance (melder oss ut) og venter 60 sekunder før vi melder oss inn og prøver igjen. Se stack-trace for mer informasjon.", it)
+                    consumer.enforceRebalance()
+                    delay(60.seconds)
                 }
             }
         }
