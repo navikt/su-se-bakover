@@ -62,6 +62,7 @@ class PersonhendelseConsumer(
         )
         run processMessages@{
             messages.forEach { message ->
+                val key = message.key().removeUnicodeNullcharacter()
                 PersonhendelseMapper.map(message).fold(
                     ifLeft = {
                         when (it) {
@@ -74,12 +75,12 @@ class PersonhendelseConsumer(
                             is KunneIkkeMappePersonhendelse.KunneIkkeHenteAktørId -> {
                                 if (ApplicationConfig.isNotProd()) {
                                     log.warn("Personhendelse: Feil skjedde ved henting av aktørId for hendelse ${it.opplysningstype} med hendelsesid ${it.hendelseId}, offset ${message.offset()}, partisjon ${message.partition()}. Vi ignorerer disse hendelsene i preprod.")
-                                    sikkerLogg.warn("Personhendelse: Feil skjedde ved henting av aktørId for key=${message.key()}, value=${message.value()}, offset ${message.offset()}, partisjon ${message.partition()}. Vi ignorerer disse hendelsene i preprod.")
+                                    sikkerLogg.warn("Personhendelse: Feil skjedde ved henting av aktørId for key=$key, value=${message.value()}, offset ${message.offset()}, partisjon ${message.partition()}. Vi ignorerer disse hendelsene i preprod.")
                                     processedMessages[TopicPartition(message.topic(), message.partition())] =
                                         OffsetAndMetadata(message.offset() + 1)
                                 } else {
                                     log.error("Personhendelse: Feil skjedde ved henting av aktørId for hendelse ${it.opplysningstype} med hendelsesid ${it.hendelseId}, offset ${message.offset()}, partisjon ${message.partition()}.")
-                                    sikkerLogg.error("Personhendelse: Feil skjedde ved henting av aktørId for key=${message.key()}, value=${message.value()}, offset ${message.offset()}, partisjon ${message.partition()}.")
+                                    sikkerLogg.error("Personhendelse: Feil skjedde ved henting av aktørId for key=$key, value=${message.value()}, offset ${message.offset()}, partisjon ${message.partition()}.")
                                     consumer.commitSync(processedMessages)
                                     // Kafka tar ikke hensyn til offsetten vi comitter før det skjer en Rebalance.
                                     // Vi kan tvinge en rebalance eller gjøre en seek, dersom vi ikke ønsker neste event (som kan føre til at vi comitter lengre frem enn vi faktisk er)
@@ -96,7 +97,7 @@ class PersonhendelseConsumer(
                             // Har observert flere annulerte utflyttingshendelser som ikke har utflyttingsdato i produksjon.
                             // TODO jah: Finn ut hvorfor disse ikke kommer med når vi legger inn datoen i Dolly.
                             log.info("Personhendelse: Mottok en utflytting fra norge hendelse ${it.metadata.hendelseId} uten utflyttingsdato. Se sikkerlogg for mer informasjon.")
-                            sikkerLogg.info("Personhendelse: Mottok en utflytting fra norge hendelse key=${message.key()}, value=${message.value()}, offset ${message.offset()}, partisjon ${message.partition()}.")
+                            sikkerLogg.info("Personhendelse: Mottok en utflytting fra norge hendelse key=$key, value=${message.value()}, offset ${message.offset()}, partisjon ${message.partition()}.")
                         }
                         personhendelseService.prosesserNyHendelse(it)
                         processedMessages[TopicPartition(message.topic(), message.partition())] =

@@ -37,6 +37,7 @@ internal object PersonhendelseMapper {
                     }.orNull(),
                 ).right()
             }
+
             Opplysningstype.UTFLYTTING_FRA_NORGE.value -> {
                 Personhendelse.Hendelse.UtflyttingFraNorge(
                     utflyttingsdato = personhendelse.getUtflyttingFraNorge().flatMap {
@@ -44,6 +45,7 @@ internal object PersonhendelseMapper {
                     }.orNull(),
                 ).right()
             }
+
             Opplysningstype.SIVILSTAND.value -> {
                 (
                     personhendelse.getSivilstand().map {
@@ -71,6 +73,7 @@ internal object PersonhendelseMapper {
                     }.orNull() ?: Personhendelse.Hendelse.Sivilstand.EMPTY
                     ).right()
             }
+
             Opplysningstype.BOSTEDSADRESSE.value -> Personhendelse.Hendelse.Bostedsadresse.right()
             Opplysningstype.KONTAKTADRESSE.value -> Personhendelse.Hendelse.Kontaktadresse.right()
             else -> {
@@ -88,7 +91,7 @@ internal object PersonhendelseMapper {
                     offset = message.offset(),
                     partisjon = message.partition(),
                     master = personhendelse.getMaster(),
-                    key = message.key(),
+                    key = message.key().removeUnicodeNullcharacter(),
                 ),
             )
         }
@@ -113,4 +116,15 @@ internal sealed class KunneIkkeMappePersonhendelse {
         val hendelseId: String,
         val opplysningstype: String,
     ) : KunneIkkeMappePersonhendelse()
+}
+
+/**
+ * PDL avro-serialiserer key-strengen (fødselsnummer eller aktørId) som prepender den med en null-byte.
+ * Dette smeller i postgres.
+ * https://en.wikipedia.org/wiki/Null_character
+ */
+internal fun String.removeUnicodeNullcharacter(): String {
+    return this
+        .replace("\u0000", "")
+        .replace("\\u0000", "")
 }

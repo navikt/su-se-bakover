@@ -238,7 +238,7 @@ internal class PersonhendelseMapperTest {
     }
 
     @Test
-    fun `støtter prepend i key`() {
+    fun `fjerner prepend i key`() {
         val personhendelse = EksternPersonhendelse(
             "hendelseId",
             listOf(fnr, aktørId),
@@ -266,7 +266,7 @@ internal class PersonhendelseMapperTest {
                 offset = OFFSET,
                 partisjon = PARTITION,
                 master = "FREG",
-                key = "\u0000$aktørId",
+                key = aktørId,
             ),
         ).right()
     }
