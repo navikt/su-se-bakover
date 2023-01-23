@@ -111,11 +111,6 @@ internal sealed class KunneIkkeMappePersonhendelse {
         val hendelseId: String,
         val opplysningstype: String,
     ) : KunneIkkeMappePersonhendelse()
-
-    data class KunneIkkeHenteAktørId(
-        val hendelseId: String,
-        val opplysningstype: String,
-    ) : KunneIkkeMappePersonhendelse()
 }
 
 /**
