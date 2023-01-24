@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.tilbakekrevingErVurdert
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
@@ -52,9 +51,9 @@ sealed class UnderkjentRevurdering : Revurdering() {
 
     abstract override fun accept(visitor: RevurderingVisitor)
 
-    fun tilbakekrevingErVurdert(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
-        return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
-    }
+    override fun erÅpen() = true
+
+    override fun skalTilbakekreve() = tilbakekrevingsbehandling.skalTilbakekreve().isRight()
 
     abstract fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling): UnderkjentRevurdering
 

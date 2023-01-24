@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harEP
 import no.nav.su.se.bakover.domain.grunnlag.firstOrThrowIfMultipleOrEmpty
 import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -436,18 +435,15 @@ class LagBrevRequestVisitor(
                 saksnummer = revurdering.saksnummer,
                 satsoversikt = Satsoversikt.fra(revurdering, satsFactory),
             ).let { innvilgetRevurdering ->
-                revurdering.skalTilbakekreve().fold(
-                    {
-                        innvilgetRevurdering
-                    },
-                    {
-                        LagBrevRequest.TilbakekrevingAvPenger(
-                            ordinærtRevurderingBrev = innvilgetRevurdering,
-                            tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp().månedbeløp),
-                            satsoversikt = Satsoversikt.fra(revurdering, satsFactory),
-                        )
-                    },
-                )
+                if (revurdering.skalTilbakekreve()) {
+                    LagBrevRequest.TilbakekrevingAvPenger(
+                        ordinærtRevurderingBrev = innvilgetRevurdering,
+                        tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp().månedbeløp),
+                        satsoversikt = Satsoversikt.fra(revurdering, satsFactory),
+                    )
+                } else {
+                    innvilgetRevurdering
+                }
             }
         }
     }
@@ -619,18 +615,15 @@ class LagBrevRequestVisitor(
                 halvtGrunnbeløp = satsFactory.grunnbeløp(revurdering.periode.fraOgMed)
                     .halvtGrunnbeløpPerÅrAvrundet(),
             ).let { opphørsvedtak ->
-                revurdering.skalTilbakekreve().fold(
-                    {
-                        opphørsvedtak
-                    },
-                    {
-                        innvilgetRevurdering(
-                            revurdering = revurdering,
-                            beregning = beregning,
-                            simulering = simulering,
-                        ).getOrElse { throw RuntimeException(it.toString()) }
-                    },
-                )
+                if (revurdering.skalTilbakekreve()) {
+                    innvilgetRevurdering(
+                        revurdering = revurdering,
+                        beregning = beregning,
+                        simulering = simulering,
+                    ).getOrElse { throw RuntimeException(it.toString()) }
+                } else {
+                    opphørsvedtak
+                }
             }
         }
     }
@@ -711,22 +704,5 @@ private fun FormueVilkår.hentFormueGrunnlagForSøknadsbehandling(avslagsgrunner
         is FormueVilkår.IkkeVurdert -> null
         // TODO(satsfactory_formue) jah: jeg har ikke endret funksjonaliteten i Sats-omskrivningsrunden, men hvorfor sjekker vi avslagsgrunn for å avgjøre dette? De burde jo uansett henge sammen.
         is FormueVilkår.Vurdert -> if (avslagsgrunner.contains(Avslagsgrunn.FORMUE)) this.grunnlag.firstOrThrowIfMultipleOrEmpty() else null
-    }
-}
-
-private fun Revurdering.skalTilbakekreve(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
-    return when (this) {
-        is AvsluttetRevurdering -> Unit.left()
-        is BeregnetRevurdering.Innvilget -> Unit.left()
-        is BeregnetRevurdering.Opphørt -> Unit.left()
-        is IverksattRevurdering.Innvilget -> tilbakekrevingsbehandling.skalTilbakekreve()
-        is IverksattRevurdering.Opphørt -> tilbakekrevingsbehandling.skalTilbakekreve()
-        is OpprettetRevurdering -> Unit.left()
-        is RevurderingTilAttestering.Innvilget -> tilbakekrevingsbehandling.skalTilbakekreve()
-        is RevurderingTilAttestering.Opphørt -> tilbakekrevingsbehandling.skalTilbakekreve()
-        is SimulertRevurdering.Innvilget -> tilbakekrevingsbehandling.skalTilbakekreve()
-        is SimulertRevurdering.Opphørt -> tilbakekrevingsbehandling.skalTilbakekreve()
-        is UnderkjentRevurdering.Innvilget -> tilbakekrevingsbehandling.skalTilbakekreve()
-        is UnderkjentRevurdering.Opphørt -> tilbakekrevingsbehandling.skalTilbakekreve()
     }
 }

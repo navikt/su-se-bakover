@@ -54,6 +54,8 @@ sealed class BeregnetRevurdering : Revurdering() {
     abstract override val beregning: Beregning
     abstract override val avkorting: AvkortingVedRevurdering.DelvisHåndtert
 
+    override fun skalTilbakekreve() = false
+
     override fun oppdaterUføreOgMarkerSomVurdert(
         uføre: UføreVilkår.Vurdert,
     ) = oppdaterUføreOgMarkerSomVurdertInternal(uføre)
@@ -102,6 +104,8 @@ sealed class BeregnetRevurdering : Revurdering() {
     override fun oppdaterInstitusjonsoppholdOgMarkerSomVurdert(institusjonsoppholdVilkår: InstitusjonsoppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, OpprettetRevurdering> {
         return oppdaterInstitusjonsoppholdOgMarkerSomVurdertInternal(institusjonsoppholdVilkår)
     }
+
+    override fun erÅpen() = true
 
     override fun oppdater(
         clock: Clock,

@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeTilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.tilbakekrevingErVurdert
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
@@ -49,11 +48,9 @@ sealed class SimulertRevurdering : Revurdering() {
     abstract override val grunnlagsdata: Grunnlagsdata
     abstract val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling
 
-    fun tilbakekrevingErVurdert(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
-        return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
-    }
-
     abstract override fun accept(visitor: RevurderingVisitor)
+
+    override fun erÅpen() = true
 
     override fun lagForhåndsvarsel(
         person: Person,
@@ -197,6 +194,8 @@ sealed class SimulertRevurdering : Revurdering() {
             return copy(tilbakekrevingsbehandling = tilbakekrevingsbehandling)
         }
 
+        override fun skalTilbakekreve() = tilbakekrevingsbehandling.skalTilbakekreve().isRight()
+
         fun tilAttestering(
             attesteringsoppgaveId: OppgaveId,
             saksbehandler: NavIdentBruker.Saksbehandler,
@@ -270,6 +269,8 @@ sealed class SimulertRevurdering : Revurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
         }
+
+        override fun skalTilbakekreve() = tilbakekrevingsbehandling.skalTilbakekreve().isRight()
 
         fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> {
             return when (

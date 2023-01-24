@@ -57,6 +57,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
         fun skalSendeAvslutningsbrev(): Boolean {
             return false
         }
+        override fun erÅpen() = false
 
         companion object {
             fun tryCreate(
@@ -94,6 +95,9 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
         ),
     ) : GjenopptaYtelseRevurdering() {
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
+
+        override fun erÅpen() = true
+
         fun iverksett(attestering: Attestering): Either<KunneIkkeIverksetteGjenopptakAvYtelse, IverksattGjenopptakAvYtelse> {
             if (simulering.harFeilutbetalinger()) {
                 return KunneIkkeIverksetteGjenopptakAvYtelse.SimuleringIndikererFeilutbetaling.left()
@@ -130,5 +134,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
             begrunnelse = null,
             bestemtAv = BrevvalgRevurdering.BestemtAv.Systembruker,
         ),
-    ) : GjenopptaYtelseRevurdering(), BehandlingMedAttestering
+    ) : GjenopptaYtelseRevurdering(), BehandlingMedAttestering {
+        override fun erÅpen() = false
+    }
 }

@@ -71,25 +71,7 @@ sealed class AbstraktRevurdering : Behandling {
     override val sakstype: Sakstype by lazy { sakinfo.type }
 
     abstract override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
-    fun erÅpen(): Boolean = when (this) {
-        is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse,
-        is BeregnetRevurdering,
-        is OpprettetRevurdering,
-        is RevurderingTilAttestering,
-        is SimulertRevurdering,
-        is UnderkjentRevurdering,
-        is StansAvYtelseRevurdering.SimulertStansAvYtelse,
-        -> true
-
-        is AvsluttetRevurdering,
-        is IverksattRevurdering.Innvilget,
-        is IverksattRevurdering.Opphørt,
-        is GjenopptaYtelseRevurdering.AvsluttetGjenoppta,
-        is GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse,
-        is StansAvYtelseRevurdering.AvsluttetStansAvYtelse,
-        is StansAvYtelseRevurdering.IverksattStansAvYtelse,
-        -> false
-    }
+    abstract fun erÅpen(): Boolean
 
     abstract val brevvalgRevurdering: BrevvalgRevurdering
 }
@@ -113,6 +95,11 @@ sealed class Revurdering :
      * Basert på det den endrer vil den hente ny relevant data fra saken og populere felter som grunnlag, vilkår og avkorting.
      */
     abstract val oppdatert: Tidspunkt
+
+    /**
+     * Har saksbehandler vurdert saken dithen at penger skal tilbakekreves?
+     */
+    abstract fun skalTilbakekreve(): Boolean
 
     fun årsakErGRegulering(): Boolean {
         return revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP

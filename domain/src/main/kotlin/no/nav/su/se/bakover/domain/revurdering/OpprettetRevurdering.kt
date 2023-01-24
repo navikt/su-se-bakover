@@ -53,6 +53,10 @@ data class OpprettetRevurdering(
         visitor.visit(this)
     }
 
+    override fun erÅpen() = true
+
+    override fun skalTilbakekreve() = false
+
     override fun oppdaterUføreOgMarkerSomVurdert(
         uføre: UføreVilkår.Vurdert,
     ) = oppdaterUføreOgMarkerSomVurdertInternal(uføre)
