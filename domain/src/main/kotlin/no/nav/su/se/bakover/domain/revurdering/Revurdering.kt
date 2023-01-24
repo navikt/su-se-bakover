@@ -108,7 +108,9 @@ sealed class Revurdering :
     abstract val simulering: Simulering?
 
     /**
-     * Tidspunktet referer til når selve revurderingen ble oppdatert. For eksempel ved endring av periode, årsak, hva som revurderes, eller begrunnelse
+     * Tidspunktet referer til enten når revurderinger ble opprettet, eller dersom den senere har blitt oppdatert.
+     * En oppdatering gjøres i en operasjon og kan endre perioden, årsaken, hva som revurderes, begrunnelsen.
+     * Basert på det den endrer vil den hente ny relevant data fra saken og populere felter som grunnlag, vilkår og avkorting.
      */
     abstract val oppdatert: Tidspunkt
 

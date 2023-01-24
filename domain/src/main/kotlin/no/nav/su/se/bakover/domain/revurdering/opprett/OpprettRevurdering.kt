@@ -73,6 +73,7 @@ fun Sak.opprettRevurdering(
         return KunneIkkeOppretteRevurdering.UgyldigRevurderingsårsak(it).left()
     }
 
+    val tidspunkt = Tidspunkt.now(clock)
     return OpprettRevurderingResultatUtenOppgaveId(
         fnr = fnr,
         oppgaveConfig = {
@@ -86,8 +87,8 @@ fun Sak.opprettRevurdering(
         opprettRevurdering = { oppgaveId ->
             OpprettetRevurdering(
                 periode = command.periode,
-                opprettet = Tidspunkt.now(clock),
-                oppdatert = Tidspunkt.now(clock),
+                opprettet = tidspunkt,
+                oppdatert = tidspunkt,
                 tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(dato = command.periode.fraOgMed)!!.id,
                 saksbehandler = command.saksbehandler,
                 oppgaveId = oppgaveId,
