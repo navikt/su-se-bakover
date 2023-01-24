@@ -107,6 +107,7 @@ fun opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
         id = revurderingId,
         periode = revurderingsperiode,
         opprettet = fixedTidspunkt,
+        oppdatert = fixedTidspunkt,
         tilRevurdering = sakOgVedtakSomKanRevurderes.second.id,
         saksbehandler = saksbehandler,
         oppgaveId = oppgaveIdRevurdering,
@@ -169,10 +170,12 @@ fun opprettRevurderingFraSaksopplysninger(
         )
     }
     // TODO refaktorer slik at vi ikke får til å opprette med mismatch mellom periode og gjeldende data
+    val opprettetTidspunkt = Tidspunkt.now(clock)
     val opprettetRevurdering = OpprettetRevurdering(
         id = UUID.randomUUID(),
         periode = revurderingsperiode,
-        opprettet = Tidspunkt.now(clock),
+        opprettet = opprettetTidspunkt,
+        oppdatert = opprettetTidspunkt,
         tilRevurdering = gjeldendeVedtak.id,
         saksbehandler = saksbehandler,
         oppgaveId = oppgaveIdRevurdering,
@@ -502,7 +505,8 @@ fun iverksattRevurdering(
              * TODO
              * se om vi får til noe som oppfører seg som [IverksettRevurderingResponse.ferdigstillIverksettelseITransaksjon]?
              */
-            val oversendtUtbetaling = response.utbetaling.toOversendtUtbetaling(UtbetalingStub.generateRequest(response.utbetaling))
+            val oversendtUtbetaling =
+                response.utbetaling.toOversendtUtbetaling(UtbetalingStub.generateRequest(response.utbetaling))
 
             Tuple4(
                 first = response.sak.copy(utbetalinger = response.sak.utbetalinger.filterNot { it.id == oversendtUtbetaling.id } + oversendtUtbetaling),
@@ -510,9 +514,11 @@ fun iverksattRevurdering(
                     is IverksettInnvilgetRevurderingResponse -> {
                         response.vedtak.behandling
                     }
+
                     is IverksettOpphørtRevurderingResponse -> {
                         response.vedtak.behandling
                     }
+
                     else -> TODO("Ukjent implementasjon av ${IverksettRevurderingResponse::class}")
                 },
                 third = oversendtUtbetaling,

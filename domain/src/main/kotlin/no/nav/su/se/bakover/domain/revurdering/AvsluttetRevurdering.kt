@@ -24,6 +24,7 @@ data class AvsluttetRevurdering private constructor(
 ) : Revurdering() {
     override val id: UUID = underliggendeRevurdering.id
     override val opprettet: Tidspunkt = underliggendeRevurdering.opprettet
+    override val oppdatert: Tidspunkt = underliggendeRevurdering.oppdatert
     override val periode: Periode = underliggendeRevurdering.periode
     override val tilRevurdering: UUID = underliggendeRevurdering.tilRevurdering
     override val sakinfo: SakInfo = underliggendeRevurdering.sakinfo

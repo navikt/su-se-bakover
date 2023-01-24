@@ -104,6 +104,7 @@ sealed class BeregnetRevurdering : Revurdering() {
     }
 
     override fun oppdater(
+        clock: Clock,
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
         grunnlagsdata: Grunnlagsdata,
@@ -114,6 +115,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
         return oppdaterInternal(
+            clock = clock,
             periode = periode,
             revurderingsårsak = revurderingsårsak,
             grunnlagsdata = grunnlagsdata,
@@ -131,6 +133,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
+        override val oppdatert: Tidspunkt,
         override val tilRevurdering: UUID,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val beregning: Beregning,
@@ -193,6 +196,7 @@ sealed class BeregnetRevurdering : Revurdering() {
                     id = id,
                     periode = periode,
                     opprettet = opprettet,
+                    oppdatert = oppdatert,
                     tilRevurdering = tilRevurdering,
                     beregning = beregning,
                     simulering = it,
@@ -216,6 +220,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
+        override val oppdatert: Tidspunkt,
         override val tilRevurdering: UUID,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val beregning: Beregning,
@@ -314,6 +319,7 @@ sealed class BeregnetRevurdering : Revurdering() {
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
+                oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
                 beregning = beregning,
                 simulering = simulertUtbetaling.simulering,

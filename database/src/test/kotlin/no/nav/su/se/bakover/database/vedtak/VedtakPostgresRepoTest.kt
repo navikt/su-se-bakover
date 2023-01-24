@@ -94,6 +94,7 @@ internal class VedtakPostgresRepoTest {
                 id = nyRevurdering.id,
                 periode = søknadsbehandlingVedtak.periode,
                 opprettet = nyRevurdering.opprettet,
+                oppdatert = nyRevurdering.oppdatert,
                 tilRevurdering = søknadsbehandlingVedtak.id,
                 saksbehandler = søknadsbehandlingVedtak.saksbehandler,
                 oppgaveId = OppgaveId(""),

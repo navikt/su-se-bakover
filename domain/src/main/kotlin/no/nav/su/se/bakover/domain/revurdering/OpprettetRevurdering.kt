@@ -25,12 +25,14 @@ import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import java.time.Clock
 import java.util.UUID
 
 data class OpprettetRevurdering(
     override val id: UUID = UUID.randomUUID(),
     override val periode: Periode,
     override val opprettet: Tidspunkt,
+    override val oppdatert: Tidspunkt,
     override val tilRevurdering: UUID,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
     override val oppgaveId: OppgaveId,
@@ -107,6 +109,7 @@ data class OpprettetRevurdering(
     override fun skalSendeBrev() = !årsakErGRegulering() && brevvalgRevurdering.skalSendeBrev().isRight()
 
     override fun oppdater(
+        clock: Clock,
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
         grunnlagsdata: Grunnlagsdata,
@@ -117,6 +120,7 @@ data class OpprettetRevurdering(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
         return oppdaterInternal(
+            clock = clock,
             periode = periode,
             revurderingsårsak = revurderingsårsak,
             grunnlagsdata = grunnlagsdata,

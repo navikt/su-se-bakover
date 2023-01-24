@@ -142,6 +142,7 @@ sealed class SimulertRevurdering : Revurdering() {
     }
 
     override fun oppdater(
+        clock: Clock,
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
         grunnlagsdata: Grunnlagsdata,
@@ -152,6 +153,7 @@ sealed class SimulertRevurdering : Revurdering() {
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
         return oppdaterInternal(
+            clock = clock,
             periode = periode,
             revurderingsårsak = revurderingsårsak,
             grunnlagsdata = grunnlagsdata,
@@ -169,6 +171,7 @@ sealed class SimulertRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
+        override val oppdatert: Tidspunkt,
         override val tilRevurdering: UUID,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val oppgaveId: OppgaveId,
@@ -219,6 +222,7 @@ sealed class SimulertRevurdering : Revurdering() {
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
+                oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
                 saksbehandler = saksbehandler,
                 beregning = beregning,
@@ -245,6 +249,7 @@ sealed class SimulertRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
+        override val oppdatert: Tidspunkt,
         override val tilRevurdering: UUID,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val oppgaveId: OppgaveId,
@@ -318,6 +323,7 @@ sealed class SimulertRevurdering : Revurdering() {
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
+                oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
                 saksbehandler = saksbehandler,
                 beregning = beregning,

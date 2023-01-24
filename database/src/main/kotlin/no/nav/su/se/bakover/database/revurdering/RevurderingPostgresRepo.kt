@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.common.persistence.hent
 import no.nav.su.se.bakover.common.persistence.hentListe
 import no.nav.su.se.bakover.common.persistence.insert
 import no.nav.su.se.bakover.common.persistence.tidspunkt
+import no.nav.su.se.bakover.common.persistence.tidspunktOrNull
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.serializeNullable
 import no.nav.su.se.bakover.database.avkorting.AvkortingVedRevurderingDb
@@ -172,6 +173,7 @@ private fun Revurdering.toDb(): RevurderingDb {
                 tilbakekrevingsbehandling = null,
             )
         }
+
         is BeregnetRevurdering.Innvilget -> {
             RevurderingDb(
                 base = base,
@@ -181,6 +183,7 @@ private fun Revurdering.toDb(): RevurderingDb {
                 tilbakekrevingsbehandling = null,
             )
         }
+
         is BeregnetRevurdering.Opphørt -> {
             RevurderingDb(
                 base = base,
@@ -190,6 +193,7 @@ private fun Revurdering.toDb(): RevurderingDb {
                 tilbakekrevingsbehandling = null,
             )
         }
+
         is IverksattRevurdering.Innvilget -> {
             RevurderingDb(
                 base = base,
@@ -199,6 +203,7 @@ private fun Revurdering.toDb(): RevurderingDb {
                 tilbakekrevingsbehandling = this.tilbakekrevingsbehandling,
             )
         }
+
         is IverksattRevurdering.Opphørt -> {
             RevurderingDb(
                 base = base,
@@ -208,6 +213,7 @@ private fun Revurdering.toDb(): RevurderingDb {
                 tilbakekrevingsbehandling = this.tilbakekrevingsbehandling,
             )
         }
+
         is OpprettetRevurdering -> {
             RevurderingDb(
                 base = base,
@@ -217,6 +223,7 @@ private fun Revurdering.toDb(): RevurderingDb {
                 tilbakekrevingsbehandling = null,
             )
         }
+
         is RevurderingTilAttestering.Innvilget -> {
             RevurderingDb(
                 base = base,
@@ -226,6 +233,7 @@ private fun Revurdering.toDb(): RevurderingDb {
                 tilbakekrevingsbehandling = this.tilbakekrevingsbehandling,
             )
         }
+
         is RevurderingTilAttestering.Opphørt -> {
             RevurderingDb(
                 base = base,
@@ -235,6 +243,7 @@ private fun Revurdering.toDb(): RevurderingDb {
                 tilbakekrevingsbehandling = this.tilbakekrevingsbehandling,
             )
         }
+
         is SimulertRevurdering.Innvilget -> {
             RevurderingDb(
                 base = base,
@@ -244,6 +253,7 @@ private fun Revurdering.toDb(): RevurderingDb {
                 tilbakekrevingsbehandling = this.tilbakekrevingsbehandling,
             )
         }
+
         is SimulertRevurdering.Opphørt -> {
             RevurderingDb(
                 base = base,
@@ -253,6 +263,7 @@ private fun Revurdering.toDb(): RevurderingDb {
                 tilbakekrevingsbehandling = this.tilbakekrevingsbehandling,
             )
         }
+
         is UnderkjentRevurdering.Innvilget -> {
             RevurderingDb(
                 base = base,
@@ -262,6 +273,7 @@ private fun Revurdering.toDb(): RevurderingDb {
                 tilbakekrevingsbehandling = this.tilbakekrevingsbehandling,
             )
         }
+
         is UnderkjentRevurdering.Opphørt -> {
             RevurderingDb(
                 base = base,
@@ -411,12 +423,14 @@ internal class RevurderingPostgresRepo(
                     session = tx,
                 )
             }
+
             is Revurdering -> {
                 lagre(
                     revurdering = abstraktRevurdering.toDb(),
                     session = tx,
                 )
             }
+
             is StansAvYtelseRevurdering -> {
                 lagre(
                     revurdering = abstraktRevurdering.toDb(),
@@ -442,6 +456,7 @@ internal class RevurderingPostgresRepo(
                     tilbakekrevingsbehandling = null,
                 )
             }
+
             is GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse -> {
                 RevurderingDb(
                     base = base,
@@ -451,6 +466,7 @@ internal class RevurderingPostgresRepo(
                     tilbakekrevingsbehandling = null,
                 )
             }
+
             is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> {
                 RevurderingDb(
                     base = base,
@@ -479,6 +495,7 @@ internal class RevurderingPostgresRepo(
                     tilbakekrevingsbehandling = null,
                 )
             }
+
             is StansAvYtelseRevurdering.IverksattStansAvYtelse -> {
                 RevurderingDb(
                     base = base,
@@ -488,6 +505,7 @@ internal class RevurderingPostgresRepo(
                     tilbakekrevingsbehandling = null,
                 )
             }
+
             is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {
                 RevurderingDb(
                     base = base,
@@ -520,6 +538,7 @@ internal class RevurderingPostgresRepo(
         val status = RevurderingsType.valueOf(string("revurderingsType"))
         val periode = deserialize<Periode>(string("periode"))
         val opprettet = tidspunkt("opprettet")
+        val oppdatert = tidspunktOrNull("oppdatert")
         val tilRevurdering = uuid("vedtakSomRevurderesId")
         val sakinfo = SakInfo(
             sakId = uuid("sakid"),
@@ -567,6 +586,7 @@ internal class RevurderingPostgresRepo(
             id = id,
             periode = periode,
             opprettet = opprettet,
+            oppdatert = oppdatert ?: opprettet,
             tilRevurdering = tilRevurdering,
             saksbehandler = saksbehandler,
             beregning = beregning,
@@ -705,15 +725,18 @@ internal class RevurderingPostgresRepo(
                             tx = session,
                         )
                     }
+
                     is AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående -> {
                         // noop
                     }
+
                     is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel -> {
                         avkortingsvarselRepo.lagre(
                             avkortingsvarsel = avkorting.avkortingsvarsel,
                             tx = session,
                         )
                     }
+
                     is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
                         avkortingsvarselRepo.lagre(
                             avkortingsvarsel = avkorting.avkortingsvarsel,
@@ -724,11 +747,13 @@ internal class RevurderingPostgresRepo(
                             tx = session,
                         )
                     }
+
                     is AvkortingVedRevurdering.Iverksatt.KanIkkeHåndteres -> {
                         // noop
                     }
                 }
             }
+
             else -> {
                 // noop
             }
@@ -743,12 +768,14 @@ internal class RevurderingPostgresRepo(
                             session = session,
                         )
                     }
+
                     is Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort -> {
                         tilbakekrevingRepo.lagreTilbakekrevingsbehandling(
                             tilbakrekrevingsbehanding = tilbakekrevingsbehandling,
                             tx = session,
                         )
                     }
+
                     is Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.IkkeAvgjort -> {
                         tilbakekrevingRepo.lagreTilbakekrevingsbehandling(
                             tilbakrekrevingsbehanding = tilbakekrevingsbehandling,
@@ -757,25 +784,30 @@ internal class RevurderingPostgresRepo(
                     }
                 }
             }
+
             is Tilbakekrevingsbehandling.Ferdigbehandlet -> {
                 when (tilbakekrevingsbehandling) {
                     is Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag -> {
                         throw IllegalStateException("Kan aldri ha mottatt kravgrunnlag før vi har iverksatt")
                     }
+
                     is Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.SendtTilbakekrevingsvedtak -> {
                         throw IllegalStateException("Kan aldri ha besvart kravgrunnlag før vi har iverksatt")
                     }
+
                     is Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag -> {
                         tilbakekrevingRepo.lagreTilbakekrevingsbehandling(
                             tilbakrekrevingsbehanding = tilbakekrevingsbehandling,
                             session = session,
                         )
                     }
+
                     is Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving -> {
                         // noop
                     }
                 }
             }
+
             else -> {
                 // noop
             }
@@ -787,6 +819,7 @@ internal class RevurderingPostgresRepo(
         id: UUID,
         periode: Periode,
         opprettet: Tidspunkt,
+        oppdatert: Tidspunkt,
         tilRevurdering: UUID,
         saksbehandler: String,
         beregning: BeregningMedFradragBeregnetMånedsvis?,
@@ -807,6 +840,7 @@ internal class RevurderingPostgresRepo(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
+                oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
                 saksbehandler = Saksbehandler(saksbehandler),
                 beregning = beregning!!,
@@ -823,10 +857,12 @@ internal class RevurderingPostgresRepo(
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
             )
+
             RevurderingsType.UNDERKJENT_OPPHØRT -> UnderkjentRevurdering.Opphørt(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
+                oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
                 saksbehandler = Saksbehandler(saksbehandler),
                 beregning = beregning!!,
@@ -843,10 +879,12 @@ internal class RevurderingPostgresRepo(
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
             )
+
             RevurderingsType.IVERKSATT_INNVILGET -> IverksattRevurdering.Innvilget(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
+                oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
                 saksbehandler = Saksbehandler(saksbehandler),
                 oppgaveId = OppgaveId(oppgaveId!!),
@@ -863,10 +901,12 @@ internal class RevurderingPostgresRepo(
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
             )
+
             RevurderingsType.IVERKSATT_OPPHØRT -> IverksattRevurdering.Opphørt(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
+                oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
                 saksbehandler = Saksbehandler(saksbehandler),
                 beregning = beregning!!,
@@ -883,10 +923,12 @@ internal class RevurderingPostgresRepo(
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
             )
+
             RevurderingsType.TIL_ATTESTERING_INNVILGET -> RevurderingTilAttestering.Innvilget(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
+                oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
                 beregning = beregning!!,
                 simulering = simulering!!,
@@ -903,10 +945,12 @@ internal class RevurderingPostgresRepo(
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
             )
+
             RevurderingsType.TIL_ATTESTERING_OPPHØRT -> RevurderingTilAttestering.Opphørt(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
+                oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
                 beregning = beregning!!,
                 simulering = simulering!!,
@@ -923,10 +967,12 @@ internal class RevurderingPostgresRepo(
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
             )
+
             RevurderingsType.SIMULERT_INNVILGET -> SimulertRevurdering.Innvilget(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
+                oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
                 beregning = beregning!!,
                 simulering = simulering!!,
@@ -943,10 +989,12 @@ internal class RevurderingPostgresRepo(
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
             )
+
             RevurderingsType.SIMULERT_OPPHØRT -> SimulertRevurdering.Opphørt(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
+                oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
                 beregning = beregning!!,
                 simulering = simulering!!,
@@ -963,10 +1011,12 @@ internal class RevurderingPostgresRepo(
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
             )
+
             RevurderingsType.BEREGNET_INNVILGET -> BeregnetRevurdering.Innvilget(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
+                oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
                 saksbehandler = Saksbehandler(saksbehandler),
                 beregning = beregning!!,
@@ -980,10 +1030,12 @@ internal class RevurderingPostgresRepo(
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
             )
+
             RevurderingsType.BEREGNET_OPPHØRT -> BeregnetRevurdering.Opphørt(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
+                oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
                 beregning = beregning!!,
                 saksbehandler = Saksbehandler(saksbehandler),
@@ -997,10 +1049,12 @@ internal class RevurderingPostgresRepo(
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
             )
+
             RevurderingsType.OPPRETTET -> OpprettetRevurdering(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
+                oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
                 saksbehandler = Saksbehandler(saksbehandler),
                 oppgaveId = OppgaveId(oppgaveId!!),
@@ -1012,6 +1066,7 @@ internal class RevurderingPostgresRepo(
                 avkorting = avkorting as AvkortingVedRevurdering.Uhåndtert,
                 sakinfo = sakinfo,
             )
+
             RevurderingsType.SIMULERT_STANS -> StansAvYtelseRevurdering.SimulertStansAvYtelse(
                 id = id,
                 opprettet = opprettet,
@@ -1025,6 +1080,7 @@ internal class RevurderingPostgresRepo(
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt.IkkeSendBrev,
             )
+
             RevurderingsType.IVERKSATT_STANS -> StansAvYtelseRevurdering.IverksattStansAvYtelse(
                 id = id,
                 periode = periode,
@@ -1039,6 +1095,7 @@ internal class RevurderingPostgresRepo(
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt.IkkeSendBrev,
             )
+
             RevurderingsType.SIMULERT_GJENOPPTAK -> GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
                 id = id,
                 opprettet = opprettet,
@@ -1052,6 +1109,7 @@ internal class RevurderingPostgresRepo(
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt.IkkeSendBrev,
             )
+
             RevurderingsType.IVERKSATT_GJENOPPTAK -> GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse(
                 id = id,
                 periode = periode,
