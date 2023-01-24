@@ -56,6 +56,8 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
             return false
         }
 
+        override fun erÅpen() = false
+
         companion object {
             fun tryCreate(
                 stansAvYtelseRevurdering: StansAvYtelseRevurdering,
@@ -93,6 +95,8 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
     ) : StansAvYtelseRevurdering() {
 
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
+
+        override fun erÅpen() = true
 
         fun iverksett(attestering: Attestering): Either<KunneIkkeIverksetteStansAvYtelse, IverksattStansAvYtelse> {
             if (simulering.harFeilutbetalinger()) {
@@ -139,5 +143,7 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
             begrunnelse = null,
             bestemtAv = BrevvalgRevurdering.BestemtAv.Systembruker,
         ),
-    ) : StansAvYtelseRevurdering(), BehandlingMedAttestering
+    ) : StansAvYtelseRevurdering(), BehandlingMedAttestering {
+        override fun erÅpen() = false
+    }
 }

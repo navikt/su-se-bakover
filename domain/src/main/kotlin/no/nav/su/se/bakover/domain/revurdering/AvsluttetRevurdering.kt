@@ -60,34 +60,11 @@ data class AvsluttetRevurdering private constructor(
         }
     }
 
-    override val beregning = when (underliggendeRevurdering) {
-        is BeregnetRevurdering -> underliggendeRevurdering.beregning
-        is SimulertRevurdering -> underliggendeRevurdering.beregning
-        is UnderkjentRevurdering.Opphørt -> underliggendeRevurdering.beregning
-        is UnderkjentRevurdering.Innvilget -> underliggendeRevurdering.beregning
+    override fun skalTilbakekreve() = false
 
-        is OpprettetRevurdering -> null
+    override val beregning = underliggendeRevurdering.beregning
 
-        is AvsluttetRevurdering,
-        is RevurderingTilAttestering,
-        is IverksattRevurdering,
-        -> throw IllegalStateException("Skal ikke kunne instansiere en AvsluttetRevurdering med ${underliggendeRevurdering::class}. Sjekk tryCreate om du får denne feilen. id: $id")
-    }
-
-    override val simulering = when (underliggendeRevurdering) {
-        is SimulertRevurdering -> underliggendeRevurdering.simulering
-        is UnderkjentRevurdering.Opphørt -> underliggendeRevurdering.simulering
-        is UnderkjentRevurdering.Innvilget -> underliggendeRevurdering.simulering
-
-        is BeregnetRevurdering,
-        is OpprettetRevurdering,
-        -> null
-
-        is AvsluttetRevurdering,
-        is RevurderingTilAttestering,
-        is IverksattRevurdering,
-        -> throw IllegalStateException("Skal ikke kunne instansiere en AvsluttetRevurdering med ${underliggendeRevurdering::class}. Sjekk tryCreate om du får denne feilen. id: $id")
-    }
+    override val simulering = underliggendeRevurdering.simulering
 
     override fun skalSendeBrev(): Boolean {
         return skalSendeAvslutningsbrev()
@@ -96,6 +73,8 @@ data class AvsluttetRevurdering private constructor(
     override fun accept(visitor: RevurderingVisitor) {
         visitor.visit(this)
     }
+
+    override fun erÅpen() = false
 
     fun skalSendeAvslutningsbrev(): Boolean {
         return brevvalg.skalSendeBrev()

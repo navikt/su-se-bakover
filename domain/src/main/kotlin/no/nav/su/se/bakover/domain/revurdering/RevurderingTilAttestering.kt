@@ -44,6 +44,8 @@ sealed class RevurderingTilAttestering : Revurdering() {
 
     override fun skalSendeBrev() = !årsakErGRegulering() && brevvalgRevurdering.skalSendeBrev().isRight()
 
+    override fun erÅpen() = true
+
     abstract fun tilIverksatt(
         attestant: NavIdentBruker.Attestant,
         hentOpprinneligAvkorting: (id: UUID) -> Avkortingsvarsel?,
@@ -76,6 +78,8 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
         }
+
+        override fun skalTilbakekreve() = tilbakekrevingsbehandling.skalTilbakekreve().isRight()
 
         override fun tilIverksatt(
             attestant: NavIdentBruker.Attestant,
@@ -140,6 +144,8 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
         }
+
+        override fun skalTilbakekreve() = tilbakekrevingsbehandling.skalTilbakekreve().isRight()
 
         // Det er ikke i dette steget revurderingsperioden og simuleringen kjøres/lagres, så denne feilen bør ikke inntreffe.
         val opphørsperiodeForUtbetalinger = OpphørsperiodeForUtbetalinger(this).getOrElse {

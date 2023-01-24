@@ -338,7 +338,7 @@ enum class RevurderingsType {
             }.toString()
         }
 
-        fun åpneRevurderingstyper() = listOf(
+        private fun åpneRevurderingstyper() = listOf(
             OPPRETTET,
             BEREGNET_INNVILGET,
             BEREGNET_OPPHØRT,

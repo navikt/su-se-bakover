@@ -41,6 +41,8 @@ sealed class IverksattRevurdering : Revurdering() {
         return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
     }
 
+    override fun skalTilbakekreve() = tilbakekrevingsbehandling.skalTilbakekreve().isRight()
+
     abstract override fun accept(visitor: RevurderingVisitor)
 
     override fun skalSendeBrev() =
@@ -49,6 +51,8 @@ sealed class IverksattRevurdering : Revurdering() {
     fun erGRegulering(): Boolean {
         return this is Innvilget && årsakErGRegulering()
     }
+
+    override fun erÅpen() = false
 
     data class Innvilget(
         override val id: UUID,
