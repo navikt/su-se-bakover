@@ -19,6 +19,8 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
+import no.nav.su.se.bakover.domain.behandling.MedSaksbehandlerHistorikk
+import no.nav.su.se.bakover.domain.behandling.SaksbehandlingsHistorikk
 import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.toAvslagsgrunn
@@ -65,7 +67,8 @@ import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 import java.util.UUID
 
-sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering, Visitable<SøknadsbehandlingVisitor> {
+sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering, Visitable<SøknadsbehandlingVisitor>,
+    MedSaksbehandlerHistorikk {
     abstract val søknad: Søknad.Journalført.MedOppgave
 
     abstract val stønadsperiode: Stønadsperiode?
@@ -73,6 +76,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     abstract override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling
     abstract override val attesteringer: Attesteringshistorikk
     abstract val avkorting: AvkortingVedSøknadsbehandling
+
+    //TODO - kan sikkert gjøre noe med denne og attesteringer?
+    abstract override val saksbehandlingsHistorikk: SaksbehandlingsHistorikk
 
     // TODO ia: fritekst bør flyttes ut av denne klassen og til et eget konsept (som også omfatter fritekst på revurderinger)
     abstract val fritekstTilBrev: String
@@ -210,6 +216,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         stønadsperiode = stønadsperiode!!,
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         attesteringer = attesteringer,
+        saksbehandlingsHistorikk = saksbehandlingsHistorikk,
         avkorting = avkorting.uhåndtert(),
         sakstype = sakstype,
         saksbehandler = saksbehandler,
@@ -670,6 +677,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     grunnlagsdata = behandling.grunnlagsdata,
                     vilkårsvurderinger = behandling.vilkårsvurderinger,
                     attesteringer = behandling.attesteringer,
+                    saksbehandlingsHistorikk = behandling.saksbehandlingsHistorikk,
                     avkorting = behandling.avkorting.håndter().kanIkke(),
                     sakstype = behandling.sakstype,
                     saksbehandler = nySaksbehandler,
@@ -690,6 +698,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         grunnlagsdata = behandling.grunnlagsdata,
                         vilkårsvurderinger = behandling.vilkårsvurderinger,
                         attesteringer = behandling.attesteringer,
+                        saksbehandlingsHistorikk = behandling.saksbehandlingsHistorikk,
                         avkorting = behandling.avkorting.håndter(),
                         sakstype = behandling.sakstype,
                         saksbehandler = nySaksbehandler,
@@ -786,6 +795,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 stønadsperiode: Stønadsperiode,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
                 attesteringer: Attesteringshistorikk,
+                saksbehandlingsHistorikk: SaksbehandlingsHistorikk,
                 avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
                 sakstype: Sakstype,
                 saksbehandler: NavIdentBruker.Saksbehandler,
@@ -834,6 +844,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             grunnlagsdata,
                             oppdaterteVilkårsvurderinger,
                             attesteringer,
+                            saksbehandlingsHistorikk,
                             avkorting.kanIkke(),
                             sakstype,
                             saksbehandler,
@@ -854,6 +865,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             grunnlagsdata,
                             oppdaterteVilkårsvurderinger,
                             attesteringer,
+                            saksbehandlingsHistorikk,
                             avkorting.uhåndtert(),
                             sakstype,
                             saksbehandler,
@@ -874,6 +886,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             grunnlagsdata = grunnlagsdata,
                             vilkårsvurderinger = oppdaterteVilkårsvurderinger,
                             attesteringer = attesteringer,
+                            saksbehandlingsHistorikk = saksbehandlingsHistorikk,
                             avkorting = avkorting.kanIkke(),
                             sakstype = sakstype,
                             saksbehandler,
@@ -896,6 +909,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
+            override val saksbehandlingsHistorikk: SaksbehandlingsHistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
             override val sakstype: Sakstype,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
@@ -939,6 +953,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
+            override val saksbehandlingsHistorikk: SaksbehandlingsHistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
             override val sakstype: Sakstype,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
@@ -987,6 +1002,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     attesteringer = attesteringer,
+                    saksbehandlingsHistorikk = saksbehandlingsHistorikk,
                     avkorting = avkorting.håndter().kanIkke(),
                     sakstype = sakstype,
                 )
@@ -1012,6 +1028,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
+            override val saksbehandlingsHistorikk: SaksbehandlingsHistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
             override val sakstype: Sakstype,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
@@ -1091,6 +1108,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     attesteringer = attesteringer,
+                    saksbehandlingsHistorikk = saksbehandlingsHistorikk,
                     avkorting = avkorting,
                     sakstype = sakstype,
                     saksbehandler = saksbehandler,
@@ -1112,6 +1130,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
+            override val saksbehandlingsHistorikk: SaksbehandlingsHistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
             override val sakstype: Sakstype,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
@@ -1154,6 +1173,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
+            override val saksbehandlingsHistorikk: SaksbehandlingsHistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
             override val sakstype: Sakstype,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
@@ -1206,6 +1226,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     attesteringer = attesteringer,
+                    saksbehandlingsHistorikk = saksbehandlingsHistorikk,
                     avkorting = avkorting.kanIkke(),
                     sakstype = sakstype,
                 )
@@ -1234,6 +1255,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
         override val attesteringer: Attesteringshistorikk,
+        override val saksbehandlingsHistorikk: SaksbehandlingsHistorikk,
         override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
@@ -1296,6 +1318,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     attesteringer = attesteringer,
+                    saksbehandlingsHistorikk = saksbehandlingsHistorikk,
                     avkorting = avkorting,
                     sakstype = sakstype,
                     saksbehandler = saksbehandler,
@@ -1329,6 +1352,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
+                saksbehandlingsHistorikk = saksbehandlingsHistorikk,
                 avkorting = avkorting,
                 sakstype = sakstype,
             )
@@ -1359,6 +1383,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
+            override val saksbehandlingsHistorikk: SaksbehandlingsHistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
             override val sakstype: Sakstype,
         ) : TilAttestering() {
@@ -1402,6 +1427,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     simulering = simulering,
                     saksbehandler = saksbehandler,
                     attesteringer = attesteringer.leggTilNyAttestering(attestering),
+                    saksbehandlingsHistorikk = saksbehandlingsHistorikk,
                     fritekstTilBrev = fritekstTilBrev,
                     stønadsperiode = stønadsperiode,
                     grunnlagsdata = grunnlagsdata,
@@ -1424,6 +1450,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     simulering = simulering,
                     saksbehandler = saksbehandler,
                     attesteringer = attesteringer.leggTilNyAttestering(attestering),
+                    saksbehandlingsHistorikk = saksbehandlingsHistorikk,
                     fritekstTilBrev = fritekstTilBrev,
                     stønadsperiode = stønadsperiode,
                     grunnlagsdata = grunnlagsdata,
@@ -1458,6 +1485,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val grunnlagsdata: Grunnlagsdata,
                 override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 override val attesteringer: Attesteringshistorikk,
+                override val saksbehandlingsHistorikk: SaksbehandlingsHistorikk,
                 override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
                 override val sakstype: Sakstype,
             ) : Avslag() {
@@ -1497,6 +1525,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         fnr = fnr,
                         saksbehandler = saksbehandler,
                         attesteringer = attesteringer.leggTilNyAttestering(attestering),
+                        saksbehandlingsHistorikk = saksbehandlingsHistorikk,
                         fritekstTilBrev = fritekstTilBrev,
                         stønadsperiode = stønadsperiode,
                         grunnlagsdata = grunnlagsdata,
@@ -1531,6 +1560,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         fnr = fnr,
                         saksbehandler = saksbehandler,
                         attesteringer = attesteringer.leggTilNyAttestering(attestering),
+                        saksbehandlingsHistorikk = saksbehandlingsHistorikk,
                         fritekstTilBrev = fritekstTilBrev,
                         stønadsperiode = stønadsperiode,
                         grunnlagsdata = grunnlagsdata,
@@ -1556,6 +1586,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val grunnlagsdata: Grunnlagsdata,
                 override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 override val attesteringer: Attesteringshistorikk,
+                override val saksbehandlingsHistorikk: SaksbehandlingsHistorikk,
                 override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
                 override val sakstype: Sakstype,
             ) : Avslag() {
@@ -1600,6 +1631,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         beregning = beregning,
                         saksbehandler = saksbehandler,
                         attesteringer = attesteringer.leggTilNyAttestering(attestering),
+                        saksbehandlingsHistorikk = saksbehandlingsHistorikk,
                         fritekstTilBrev = fritekstTilBrev,
                         stønadsperiode = stønadsperiode,
                         grunnlagsdata = grunnlagsdata,
@@ -1635,6 +1667,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         beregning = beregning,
                         saksbehandler = saksbehandler,
                         attesteringer = attesteringer.leggTilNyAttestering(attestering),
+                        saksbehandlingsHistorikk = saksbehandlingsHistorikk,
                         fritekstTilBrev = fritekstTilBrev,
                         stønadsperiode = stønadsperiode,
                         grunnlagsdata = grunnlagsdata,
@@ -1676,6 +1709,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val simulering: Simulering,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attesteringer: Attesteringshistorikk,
+            override val saksbehandlingsHistorikk: SaksbehandlingsHistorikk,
             override val fritekstTilBrev: String,
             override val stønadsperiode: Stønadsperiode,
             override val grunnlagsdata: Grunnlagsdata,
@@ -1746,6 +1780,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         grunnlagsdata = grunnlagsdata,
                         vilkårsvurderinger = vilkårsvurderinger,
                         attesteringer = attesteringer,
+                        saksbehandlingsHistorikk = saksbehandlingsHistorikk,
                         avkorting = avkorting,
                         sakstype = sakstype,
                         saksbehandler = saksbehandler,
@@ -1776,6 +1811,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     attesteringer = attesteringer,
+                    saksbehandlingsHistorikk = saksbehandlingsHistorikk,
                     avkorting = avkorting,
                     sakstype = sakstype,
                 )
@@ -1794,6 +1830,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val beregning: Beregning,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attesteringer: Attesteringshistorikk,
+                override val saksbehandlingsHistorikk: SaksbehandlingsHistorikk,
                 override val fritekstTilBrev: String,
                 override val stønadsperiode: Stønadsperiode,
                 override val grunnlagsdata: Grunnlagsdata,
@@ -1850,6 +1887,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         grunnlagsdata = grunnlagsdata,
                         vilkårsvurderinger = vilkårsvurderinger,
                         attesteringer = attesteringer,
+                        saksbehandlingsHistorikk = saksbehandlingsHistorikk,
                         avkorting = avkorting,
                         sakstype = sakstype,
                     )
@@ -1872,6 +1910,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val fnr: Fnr,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attesteringer: Attesteringshistorikk,
+                override val saksbehandlingsHistorikk: SaksbehandlingsHistorikk,
                 override val fritekstTilBrev: String,
                 override val stønadsperiode: Stønadsperiode,
                 override val grunnlagsdata: Grunnlagsdata,
@@ -1924,6 +1963,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         grunnlagsdata = grunnlagsdata,
                         vilkårsvurderinger = vilkårsvurderinger,
                         attesteringer = attesteringer,
+                        saksbehandlingsHistorikk = saksbehandlingsHistorikk,
                         avkorting = avkorting,
                         sakstype = sakstype,
                     )
@@ -1969,6 +2009,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val simulering: Simulering,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attesteringer: Attesteringshistorikk,
+            override val saksbehandlingsHistorikk: SaksbehandlingsHistorikk,
             override val fritekstTilBrev: String,
             override val stønadsperiode: Stønadsperiode,
             override val grunnlagsdata: Grunnlagsdata,
@@ -2001,6 +2042,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val beregning: Beregning,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attesteringer: Attesteringshistorikk,
+                override val saksbehandlingsHistorikk: SaksbehandlingsHistorikk,
                 override val fritekstTilBrev: String,
                 override val stønadsperiode: Stønadsperiode,
                 override val grunnlagsdata: Grunnlagsdata,
@@ -2044,6 +2086,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val fnr: Fnr,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attesteringer: Attesteringshistorikk,
+                override val saksbehandlingsHistorikk: SaksbehandlingsHistorikk,
                 override val fritekstTilBrev: String,
                 override val stønadsperiode: Stønadsperiode,
                 override val grunnlagsdata: Grunnlagsdata,

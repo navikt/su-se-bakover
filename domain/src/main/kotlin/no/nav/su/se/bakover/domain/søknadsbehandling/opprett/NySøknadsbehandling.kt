@@ -5,6 +5,8 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
+import no.nav.su.se.bakover.domain.behandling.SaksbehandlingsHendelse
+import no.nav.su.se.bakover.domain.behandling.SaksbehandlingsHistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.sak.Saksnummer
@@ -24,6 +26,7 @@ data class NySøknadsbehandling(
     val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
     val sakstype: Sakstype,
     val saksbehandler: NavIdentBruker.Saksbehandler,
+    val saksbehandlingsHendelse: SaksbehandlingsHendelse,
 ) {
     init {
         require(sakstype == søknad.type) {
@@ -51,6 +54,7 @@ data class NySøknadsbehandling(
                 Sakstype.UFØRE -> Vilkårsvurderinger.Søknadsbehandling.Uføre.ikkeVurdert()
             },
             attesteringer = Attesteringshistorikk.empty(),
+            saksbehandlingsHistorikk = SaksbehandlingsHistorikk.nyHistorikk(saksbehandlingsHendelse),
             avkorting = avkorting,
             sakstype = sakstype,
             saksbehandler = saksbehandler,

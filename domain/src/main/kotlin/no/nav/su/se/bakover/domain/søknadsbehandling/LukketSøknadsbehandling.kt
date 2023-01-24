@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
+import no.nav.su.se.bakover.domain.behandling.SaksbehandlingsHistorikk
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
@@ -19,6 +20,7 @@ data class LukketSøknadsbehandling private constructor(
     override val grunnlagsdata = underliggendeSøknadsbehandling.grunnlagsdata
     override val vilkårsvurderinger = underliggendeSøknadsbehandling.vilkårsvurderinger
     override val attesteringer = underliggendeSøknadsbehandling.attesteringer
+    override val saksbehandlingsHistorikk = underliggendeSøknadsbehandling.saksbehandlingsHistorikk
     override val fritekstTilBrev = underliggendeSøknadsbehandling.fritekstTilBrev
     override val oppgaveId = underliggendeSøknadsbehandling.oppgaveId
     override val id = underliggendeSøknadsbehandling.id
