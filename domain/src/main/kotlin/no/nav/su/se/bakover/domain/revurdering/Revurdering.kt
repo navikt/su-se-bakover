@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
-import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -20,7 +19,6 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
@@ -33,7 +31,6 @@ import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOmBeregningGirOpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOmVilkårGirOpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOpphørVedRevurdering
-import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
@@ -55,26 +52,6 @@ import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 import java.util.UUID
 import kotlin.reflect.KClass
-
-sealed class AbstraktRevurdering : Behandling {
-    val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering
-        get() = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
-            grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger,
-        )
-
-    abstract val tilRevurdering: UUID
-    abstract val sakinfo: SakInfo
-    override val sakId by lazy { sakinfo.sakId }
-    override val saksnummer by lazy { sakinfo.saksnummer }
-    override val fnr by lazy { sakinfo.fnr }
-    override val sakstype: Sakstype by lazy { sakinfo.type }
-
-    abstract override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
-    abstract fun erÅpen(): Boolean
-
-    abstract val brevvalgRevurdering: BrevvalgRevurdering
-}
 
 sealed class Revurdering :
     AbstraktRevurdering(),
@@ -723,18 +700,6 @@ sealed class Revurdering :
         }.right()
     }
 
-    sealed class KunneIkkeBeregneRevurdering {
-        object KanIkkeVelgeSisteMånedVedNedgangIStønaden : KunneIkkeBeregneRevurdering()
-
-        data class UgyldigBeregningsgrunnlag(
-            val reason: no.nav.su.se.bakover.domain.beregning.UgyldigBeregningsgrunnlag,
-        ) : KunneIkkeBeregneRevurdering()
-
-        object KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps : KunneIkkeBeregneRevurdering()
-        object AvkortingErUfullstendig : KunneIkkeBeregneRevurdering()
-        object OpphørAvYtelseSomSkalAvkortes : KunneIkkeBeregneRevurdering()
-    }
-
     abstract fun skalSendeBrev(): Boolean
 
     fun leggTilBrevvalg(brevvalgRevurdering: BrevvalgRevurdering): Either<KunneIkkeLeggeTilBrevvalg, Revurdering> {
@@ -755,29 +720,4 @@ sealed class Revurdering :
             val tilstand: KClass<out Revurdering>,
         ) : KunneIkkeLeggeTilBrevvalg
     }
-}
-
-enum class Vurderingstatus(val status: String) {
-    Vurdert("Vurdert"),
-    IkkeVurdert("IkkeVurdert"),
-}
-
-enum class Revurderingsteg(val vilkår: String) {
-    // BorOgOppholderSegINorge("BorOgOppholderSegINorge"),
-    Flyktning("Flyktning"),
-    Formue("Formue"),
-
-    Oppholdstillatelse("Oppholdstillatelse"),
-
-    PersonligOppmøte("PersonligOppmøte"),
-    Uførhet("Uførhet"),
-    Bosituasjon("Bosituasjon"),
-
-    Institusjonsopphold("Institusjonsopphold"),
-    Utenlandsopphold("Utenlandsopphold"),
-    Inntekt("Inntekt"),
-    Opplysningsplikt("Opplysningsplikt"),
-    Pensjon("Pensjon"),
-    FastOppholdINorge("FastOppholdINorge"),
-    ;
 }

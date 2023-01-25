@@ -10,20 +10,21 @@ import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.revurdering.KunneIkkeBeregneRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import java.time.Clock
 import kotlin.math.roundToInt
 
 internal interface BeregnRevurderingStrategy {
-    fun beregn(): Either<Revurdering.KunneIkkeBeregneRevurdering, Pair<OpprettetRevurdering, Beregning>>
+    fun beregn(): Either<KunneIkkeBeregneRevurdering, Pair<OpprettetRevurdering, Beregning>>
 }
 
 internal class Normal(
     private val revurdering: Revurdering,
     private val beregningStrategyFactory: BeregningStrategyFactory,
 ) : BeregnRevurderingStrategy {
-    override fun beregn(): Either<Revurdering.KunneIkkeBeregneRevurdering, Pair<OpprettetRevurdering, Beregning>> {
+    override fun beregn(): Either<KunneIkkeBeregneRevurdering, Pair<OpprettetRevurdering, Beregning>> {
         return beregnUtenAvkorting(revurdering, beregningStrategyFactory).right()
     }
 }
@@ -34,7 +35,7 @@ internal class VidereførAvkorting(
     private val clock: Clock,
     private val beregningStrategyFactory: BeregningStrategyFactory,
 ) : BeregnRevurderingStrategy {
-    override fun beregn(): Either<Revurdering.KunneIkkeBeregneRevurdering, Pair<OpprettetRevurdering, Beregning>> {
+    override fun beregn(): Either<KunneIkkeBeregneRevurdering, Pair<OpprettetRevurdering, Beregning>> {
         val (utenAvkorting, beregningUtenAvkorting) = beregnUtenAvkorting(revurdering, beregningStrategyFactory)
 
         val fradragForAvkorting = Avkortingsplan(
@@ -44,7 +45,7 @@ internal class VidereførAvkorting(
             beregning = beregningUtenAvkorting,
             clock = clock,
         ).lagFradrag().getOrElse {
-            return Revurdering.KunneIkkeBeregneRevurdering.AvkortingErUfullstendig.left()
+            return KunneIkkeBeregneRevurdering.AvkortingErUfullstendig.left()
         }
 
         return utenAvkorting.oppdaterFradrag(
@@ -63,7 +64,7 @@ internal class AnnullerAvkorting(
     private val revurdering: Revurdering,
     private val beregningStrategyFactory: BeregningStrategyFactory,
 ) : BeregnRevurderingStrategy {
-    override fun beregn(): Either<Revurdering.KunneIkkeBeregneRevurdering, Pair<OpprettetRevurdering, Beregning>> {
+    override fun beregn(): Either<KunneIkkeBeregneRevurdering, Pair<OpprettetRevurdering, Beregning>> {
         return beregnUtenAvkorting(revurdering, beregningStrategyFactory).right()
     }
 }

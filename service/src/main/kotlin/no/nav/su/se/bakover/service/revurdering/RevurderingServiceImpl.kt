@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeBeregneOgSimulereRevurdering
+import no.nav.su.se.bakover.domain.revurdering.KunneIkkeBeregneRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeHentePersonEllerSaksbehandlerNavn
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteRevurdering
@@ -477,23 +478,23 @@ class RevurderingServiceImpl(
                     satsFactory = satsFactory,
                 ).getOrElse {
                     return when (it) {
-                        is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> {
+                        is KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> {
                             KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
                         }
 
-                        is Revurdering.KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag -> {
+                        is KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag -> {
                             KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag(it.reason)
                         }
 
-                        Revurdering.KunneIkkeBeregneRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps -> {
+                        KunneIkkeBeregneRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps -> {
                             KunneIkkeBeregneOgSimulereRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps
                         }
 
-                        Revurdering.KunneIkkeBeregneRevurdering.AvkortingErUfullstendig -> {
+                        KunneIkkeBeregneRevurdering.AvkortingErUfullstendig -> {
                             KunneIkkeBeregneOgSimulereRevurdering.AvkortingErUfullstendig
                         }
 
-                        Revurdering.KunneIkkeBeregneRevurdering.OpphørAvYtelseSomSkalAvkortes -> {
+                        KunneIkkeBeregneRevurdering.OpphørAvYtelseSomSkalAvkortes -> {
                             KunneIkkeBeregneOgSimulereRevurdering.OpphørAvYtelseSomSkalAvkortes
                         }
                     }.left()

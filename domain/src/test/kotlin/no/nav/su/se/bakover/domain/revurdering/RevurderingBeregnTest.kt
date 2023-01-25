@@ -589,7 +589,7 @@ internal class RevurderingBeregnTest {
                     clock = tikkendeKlokke,
                 ).getOrFail(),
                 satsFactory = satsFactoryTestPåDato(),
-            ) shouldBe Revurdering.KunneIkkeBeregneRevurdering.OpphørAvYtelseSomSkalAvkortes.left()
+            ) shouldBe KunneIkkeBeregneRevurdering.OpphørAvYtelseSomSkalAvkortes.left()
         }
     }
 
