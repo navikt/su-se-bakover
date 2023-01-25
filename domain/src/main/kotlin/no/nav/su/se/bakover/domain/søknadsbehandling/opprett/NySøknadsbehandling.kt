@@ -5,14 +5,15 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.behandling.SaksbehandlingsHendelse
-import no.nav.su.se.bakover.domain.behandling.SaksbehandlingsHistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 
@@ -26,7 +27,6 @@ data class NySøknadsbehandling(
     val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
     val sakstype: Sakstype,
     val saksbehandler: NavIdentBruker.Saksbehandler,
-    val saksbehandlingsHendelse: SaksbehandlingsHendelse,
 ) {
     init {
         require(sakstype == søknad.type) {
@@ -36,6 +36,14 @@ data class NySøknadsbehandling(
             "Søknadsbehandlingens og søknadens oppgaver ($oppgaveId, ${søknad.oppgaveId}) må være like ved opprettelse av søknadsbehandling. For søknadsbehandling: $id og søknad ${søknad.id}"
         }
     }
+
+    val søknadsbehandlingsHistorikk = Søknadsbehandlingshistorikk.nyHistorikk(
+        Søknadsbehandlingshendelse(
+            tidspunkt = opprettet,
+            saksbehandler = saksbehandler,
+            handling = SøknadsbehandlingsHandling.StartetBehandling,
+        ),
+    )
 
     fun toSøknadsbehandling(saksnummer: Saksnummer): Søknadsbehandling.Vilkårsvurdert.Uavklart {
         return Søknadsbehandling.Vilkårsvurdert.Uavklart(
@@ -54,7 +62,7 @@ data class NySøknadsbehandling(
                 Sakstype.UFØRE -> Vilkårsvurderinger.Søknadsbehandling.Uføre.ikkeVurdert()
             },
             attesteringer = Attesteringshistorikk.empty(),
-            saksbehandlingsHistorikk = SaksbehandlingsHistorikk.nyHistorikk(saksbehandlingsHendelse),
+            søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
             avkorting = avkorting,
             sakstype = sakstype,
             saksbehandler = saksbehandler,

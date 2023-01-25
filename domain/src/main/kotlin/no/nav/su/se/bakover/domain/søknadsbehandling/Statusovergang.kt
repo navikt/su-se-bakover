@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import java.time.Clock
 
 abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
@@ -14,30 +15,31 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
     class TilAttestering(
         private val saksbehandler: NavIdentBruker.Saksbehandler,
         private val fritekstTilBrev: String,
+        private val clock: Clock,
     ) : Statusovergang<Nothing, Søknadsbehandling.TilAttestering>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {
-            result = søknadsbehandling.tilAttestering(saksbehandler, fritekstTilBrev).right()
+            result = søknadsbehandling.tilAttestering(saksbehandler, fritekstTilBrev, clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {
-            result = søknadsbehandling.tilAttestering(saksbehandler, fritekstTilBrev).right()
+            result = søknadsbehandling.tilAttestering(saksbehandler, fritekstTilBrev, clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
-            result = søknadsbehandling.tilAttestering(saksbehandler, fritekstTilBrev).right()
+            result = søknadsbehandling.tilAttestering(saksbehandler, fritekstTilBrev, clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.UtenBeregning) {
-            result = søknadsbehandling.tilAttestering(saksbehandler).right()
+            result = søknadsbehandling.tilAttestering(saksbehandler, clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.MedBeregning) {
-            result = søknadsbehandling.tilAttestering(saksbehandler).right()
+            result = søknadsbehandling.tilAttestering(saksbehandler, clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Innvilget) {
-            result = søknadsbehandling.tilAttestering(saksbehandler).right()
+            result = søknadsbehandling.tilAttestering(saksbehandler, clock).right()
         }
     }
 

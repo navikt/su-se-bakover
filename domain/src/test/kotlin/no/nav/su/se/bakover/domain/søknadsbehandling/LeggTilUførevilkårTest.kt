@@ -6,6 +6,7 @@ import io.kotest.matchers.types.beInstanceOf
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetAvslag
@@ -36,6 +37,7 @@ internal class LeggTilUførevilkårTest {
                 periode = januar(2020),
             ),
             saksbehandler = saksbehandler,
+            clock = fixedClock,
         ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.VurderingsperiodeUtenforBehandlingsperiode.left()
 
         uavklart.leggTilUførevilkår(
@@ -43,6 +45,7 @@ internal class LeggTilUførevilkårTest {
                 periode = Periode.create(1.januar(2020), 31.januar(2025)),
             ),
             saksbehandler = saksbehandler,
+            clock = fixedClock,
         ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.VurderingsperiodeUtenforBehandlingsperiode.left()
 
         uavklart.leggTilUførevilkår(
@@ -50,6 +53,7 @@ internal class LeggTilUførevilkårTest {
                 periode = uavklart.periode,
             ),
             saksbehandler = saksbehandler,
+            clock = fixedClock,
         ).isRight() shouldBe true
     }
 
@@ -71,6 +75,7 @@ internal class LeggTilUførevilkårTest {
             it.leggTilUførevilkår(
                 uførhet = innvilgetUførevilkår(),
                 saksbehandler = saksbehandler,
+                clock = fixedClock,
             ).let { oppdatert ->
                 oppdatert.isRight() shouldBe true
                 oppdatert.getOrFail() shouldBe beInstanceOf<Søknadsbehandling.Vilkårsvurdert>()
@@ -90,6 +95,7 @@ internal class LeggTilUførevilkårTest {
             it.leggTilUførevilkår(
                 uførhet = innvilgetUførevilkår(),
                 saksbehandler = saksbehandler,
+                clock = fixedClock,
             ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.UgyldigTilstand(
                 fra = it::class,
                 til = Søknadsbehandling.Vilkårsvurdert::class,

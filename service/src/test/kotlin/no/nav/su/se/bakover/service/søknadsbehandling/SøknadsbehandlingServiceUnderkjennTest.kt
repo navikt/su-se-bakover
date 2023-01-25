@@ -35,6 +35,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.tilAttesteringSøknadsbehandlingUføre
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -329,6 +330,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             vilkårsvurderinger = innvilgetBehandlingTilAttestering.vilkårsvurderinger,
             avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
             sakstype = innvilgetBehandlingTilAttestering.sakstype,
+            søknadsbehandlingsHistorikk = innvilgetBehandlingTilAttestering.søknadsbehandlingsHistorikk,
         )
 
         actual shouldBe underkjentMedNyOppgaveIdOgAttestering.right()
@@ -421,6 +423,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             vilkårsvurderinger = innvilgetBehandlingTilAttestering.vilkårsvurderinger,
             avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
             sakstype = innvilgetBehandlingTilAttestering.sakstype,
+            søknadsbehandlingsHistorikk = innvilgetBehandlingTilAttestering.søknadsbehandlingsHistorikk,
         )
 
         actual shouldBe underkjentMedNyOppgaveIdOgAttestering.right()

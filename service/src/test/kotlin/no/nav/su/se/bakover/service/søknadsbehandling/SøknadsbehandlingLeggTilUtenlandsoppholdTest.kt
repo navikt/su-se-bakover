@@ -8,11 +8,14 @@ import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
+import no.nav.su.se.bakover.domain.vilkår.Inngangsvilkår
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
@@ -121,7 +124,13 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
                     ),
                 ),
                 saksbehandler = saksbehandler,
-            ) shouldBe innvilget.right()
+            ) shouldBe innvilget.copy(
+                søknadsbehandlingsHistorikk = innvilget.søknadsbehandlingsHistorikk.leggTilNyHendelse(
+                    nySøknadsbehandlingshendelse(
+                        handling = SøknadsbehandlingsHandling.OppdatertVilkår(Inngangsvilkår.Utenlandsopphold),
+                    ),
+                ),
+            ).right()
 
             verify(serviceAndMocks.søknadsbehandlingRepo).hent(any())
             verify(serviceAndMocks.søknadsbehandlingRepo).lagre(

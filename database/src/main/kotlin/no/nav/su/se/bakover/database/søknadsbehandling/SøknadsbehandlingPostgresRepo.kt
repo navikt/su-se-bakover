@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.database.avkorting.toDomain
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
+import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingHistorikkJson.Companion.toDbJson
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB.Companion.status
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -63,7 +64,9 @@ internal data class BaseSøknadsbehandlingDb(
     val sakstype: Sakstype,
     val status: SøknadsbehandlingStatusDB,
     val saksbehandler: String,
+    val søknadsbehandlingshistorikk: String,
 )
+
 internal data class SøknadsbehandlingDb(
     val base: BaseSøknadsbehandlingDb,
     val beregning: Beregning?,
@@ -117,6 +120,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 sakstype = this.sakstype,
                 status = SøknadsbehandlingStatusDB.OPPRETTET,
                 saksbehandler = saksbehandler.navIdent,
+                søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.toDbJson(),
             ),
             beregning = null,
             simulering = null,
@@ -135,6 +139,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     lukket = this.erLukket,
                 )
             }
+
             is Søknadsbehandling.Beregnet.Innvilget -> {
                 SøknadsbehandlingDb(
                     base = base,
@@ -143,6 +148,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     lukket = this.erLukket,
                 )
             }
+
             is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> {
                 SøknadsbehandlingDb(
                     base = base,
@@ -151,6 +157,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     lukket = this.erLukket,
                 )
             }
+
             is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> {
                 SøknadsbehandlingDb(
                     base = base,
@@ -159,6 +166,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     lukket = this.erLukket,
                 )
             }
+
             is Søknadsbehandling.Iverksatt.Innvilget -> {
                 SøknadsbehandlingDb(
                     base = base,
@@ -167,6 +175,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     lukket = this.erLukket,
                 )
             }
+
             is LukketSøknadsbehandling -> {
                 SøknadsbehandlingDb(
                     base = base,
@@ -175,6 +184,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     lukket = this.erLukket,
                 )
             }
+
             is Søknadsbehandling.Simulert -> {
                 SøknadsbehandlingDb(
                     base = base,
@@ -183,6 +193,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     lukket = this.erLukket,
                 )
             }
+
             is Søknadsbehandling.TilAttestering.Avslag.MedBeregning -> {
                 SøknadsbehandlingDb(
                     base = base,
@@ -191,6 +202,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     lukket = this.erLukket,
                 )
             }
+
             is Søknadsbehandling.TilAttestering.Avslag.UtenBeregning -> {
                 SøknadsbehandlingDb(
                     base = base,
@@ -199,6 +211,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     lukket = this.erLukket,
                 )
             }
+
             is Søknadsbehandling.TilAttestering.Innvilget -> {
                 SøknadsbehandlingDb(
                     base = base,
@@ -207,6 +220,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     lukket = this.erLukket,
                 )
             }
+
             is Søknadsbehandling.Underkjent.Avslag.MedBeregning -> {
                 SøknadsbehandlingDb(
                     base = base,
@@ -215,6 +229,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     lukket = this.erLukket,
                 )
             }
+
             is Søknadsbehandling.Underkjent.Avslag.UtenBeregning -> {
                 SøknadsbehandlingDb(
                     base = base,
@@ -223,6 +238,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     lukket = this.erLukket,
                 )
             }
+
             is Søknadsbehandling.Underkjent.Innvilget -> {
                 SøknadsbehandlingDb(
                     base = base,
@@ -231,6 +247,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     lukket = this.erLukket,
                 )
             }
+
             is Søknadsbehandling.Vilkårsvurdert.Avslag -> {
                 SøknadsbehandlingDb(
                     base = base,
@@ -239,6 +256,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     lukket = this.erLukket,
                 )
             }
+
             is Søknadsbehandling.Vilkårsvurdert.Innvilget -> {
                 SøknadsbehandlingDb(
                     base = base,
@@ -247,6 +265,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     lukket = this.erLukket,
                 )
             }
+
             is Søknadsbehandling.Vilkårsvurdert.Uavklart -> {
                 SøknadsbehandlingDb(
                     base = base,
@@ -274,6 +293,7 @@ internal class SøknadsbehandlingPostgresRepo(
             sakstype = this.sakstype,
             status = this.status(),
             saksbehandler = this.saksbehandler.toString(),
+            søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.toDbJson(),
         )
     }
 
@@ -294,7 +314,8 @@ internal class SøknadsbehandlingPostgresRepo(
                         saksbehandler,
                         beregning,
                         simulering,
-                        lukket
+                        lukket,
+                        saksbehandling
                     ) values (
                         :id,
                         :sakId,
@@ -309,12 +330,14 @@ internal class SøknadsbehandlingPostgresRepo(
                         :saksbehandler,
                         to_json(:beregning::json),
                         to_json(:simulering::json),
-                        :lukket
+                        :lukket,
+                        to_json(:saksbehandling::json)
                     ) on conflict(id) do update set
                         status = :status,
                         stønadsperiode = to_json(:stonadsperiode::json),
                         oppgaveId = :oppgaveId,
                         attestering = to_json(:attestering::json),
+                        saksbehandling = to_json(:saksbehandling::json),
                         avkorting = to_json(:avkorting::json),
                         fritekstTilBrev = :fritekstTilBrev,
                         saksbehandler = :saksbehandler,
@@ -338,6 +361,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 "beregning" to søknadsbehandling.beregning,
                 "simulering" to serializeNullable(søknadsbehandling.simulering),
                 "lukket" to søknadsbehandling.lukket,
+                "saksbehandling" to søknadsbehandling.base.søknadsbehandlingshistorikk,
             ),
             session = tx,
         )
@@ -355,7 +379,9 @@ internal class SøknadsbehandlingPostgresRepo(
                     tx = tx,
                 )
             }
-            else -> { /*noop*/ }
+
+            else -> { /*noop*/
+            }
         }
     }
 
@@ -424,6 +450,8 @@ internal class SøknadsbehandlingPostgresRepo(
         )
         val simulering = deserializeNullable<Simulering>(stringOrNull("simulering"))
         val attesteringer = Attesteringshistorikk.create(deserializeList((string("attestering"))))
+        val søknadsbehandlingHistorikk =
+            SøknadsbehandlingHistorikkJson.toSøknadsbehandlingsHistorikk(string("saksbehandling"))
         val saksbehandler = NavIdentBruker.Saksbehandler(string("saksbehandler"))
         val saksnummer = Saksnummer(long("saksnummer"))
         val fritekstTilBrev = stringOrNull("fritekstTilBrev") ?: ""
@@ -452,10 +480,12 @@ internal class SøknadsbehandlingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
+                søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
             )
+
             SøknadsbehandlingStatusDB.VILKÅRSVURDERT_INNVILGET -> Søknadsbehandling.Vilkårsvurdert.Innvilget(
                 id = behandlingId,
                 opprettet = opprettet,
@@ -469,10 +499,12 @@ internal class SøknadsbehandlingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
+                søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Uhåndtert,
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
             )
+
             SøknadsbehandlingStatusDB.VILKÅRSVURDERT_AVSLAG -> Søknadsbehandling.Vilkårsvurdert.Avslag(
                 id = behandlingId,
                 opprettet = opprettet,
@@ -486,10 +518,12 @@ internal class SøknadsbehandlingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
+                søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
             )
+
             SøknadsbehandlingStatusDB.BEREGNET_INNVILGET -> Søknadsbehandling.Beregnet.Innvilget(
                 id = behandlingId,
                 opprettet = opprettet,
@@ -504,10 +538,12 @@ internal class SøknadsbehandlingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
+                søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert,
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
             )
+
             SøknadsbehandlingStatusDB.BEREGNET_AVSLAG -> Søknadsbehandling.Beregnet.Avslag(
                 id = behandlingId,
                 opprettet = opprettet,
@@ -522,10 +558,12 @@ internal class SøknadsbehandlingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
+                søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
             )
+
             SøknadsbehandlingStatusDB.SIMULERT -> Søknadsbehandling.Simulert(
                 id = behandlingId,
                 opprettet = opprettet,
@@ -541,10 +579,12 @@ internal class SøknadsbehandlingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
+                søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert,
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
             )
+
             SøknadsbehandlingStatusDB.TIL_ATTESTERING_INNVILGET -> Søknadsbehandling.TilAttestering.Innvilget(
                 id = behandlingId,
                 opprettet = opprettet,
@@ -561,9 +601,11 @@ internal class SøknadsbehandlingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
+                søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert,
                 sakstype = sakstype,
             )
+
             SøknadsbehandlingStatusDB.TIL_ATTESTERING_AVSLAG -> when (beregning) {
                 null -> Søknadsbehandling.TilAttestering.Avslag.UtenBeregning(
                     id = behandlingId,
@@ -579,9 +621,11 @@ internal class SøknadsbehandlingPostgresRepo(
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     attesteringer = attesteringer,
+                    søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                     avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
                     sakstype = sakstype,
                 )
+
                 else -> Søknadsbehandling.TilAttestering.Avslag.MedBeregning(
                     id = behandlingId,
                     opprettet = opprettet,
@@ -597,10 +641,12 @@ internal class SøknadsbehandlingPostgresRepo(
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     attesteringer = attesteringer,
+                    søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                     avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
                     sakstype = sakstype,
                 )
             }
+
             SøknadsbehandlingStatusDB.UNDERKJENT_INNVILGET -> Søknadsbehandling.Underkjent.Innvilget(
                 id = behandlingId,
                 opprettet = opprettet,
@@ -613,6 +659,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 simulering = simulering!!,
                 saksbehandler = saksbehandler,
                 attesteringer = attesteringer,
+                søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 fritekstTilBrev = fritekstTilBrev,
                 stønadsperiode = stønadsperiode!!,
                 grunnlagsdata = grunnlagsdata,
@@ -620,6 +667,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert,
                 sakstype = sakstype,
             )
+
             SøknadsbehandlingStatusDB.UNDERKJENT_AVSLAG -> when (beregning) {
                 null -> Søknadsbehandling.Underkjent.Avslag.UtenBeregning(
                     id = behandlingId,
@@ -631,6 +679,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     fnr = fnr,
                     saksbehandler = saksbehandler,
                     attesteringer = attesteringer,
+                    søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                     fritekstTilBrev = fritekstTilBrev,
                     stønadsperiode = stønadsperiode!!,
                     grunnlagsdata = grunnlagsdata,
@@ -638,6 +687,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
                     sakstype = sakstype,
                 )
+
                 else -> Søknadsbehandling.Underkjent.Avslag.MedBeregning(
                     id = behandlingId,
                     opprettet = opprettet,
@@ -649,6 +699,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     beregning = beregning,
                     saksbehandler = saksbehandler,
                     attesteringer = attesteringer,
+                    søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                     fritekstTilBrev = fritekstTilBrev,
                     stønadsperiode = stønadsperiode!!,
                     grunnlagsdata = grunnlagsdata,
@@ -657,6 +708,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     sakstype = sakstype,
                 )
             }
+
             SøknadsbehandlingStatusDB.IVERKSATT_INNVILGET -> {
                 Søknadsbehandling.Iverksatt.Innvilget(
                     id = behandlingId,
@@ -670,6 +722,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     simulering = simulering!!,
                     saksbehandler = saksbehandler,
                     attesteringer = attesteringer,
+                    søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                     fritekstTilBrev = fritekstTilBrev,
                     stønadsperiode = stønadsperiode!!,
                     grunnlagsdata = grunnlagsdata,
@@ -678,6 +731,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     sakstype = sakstype,
                 )
             }
+
             SøknadsbehandlingStatusDB.IVERKSATT_AVSLAG -> {
                 when (beregning) {
                     null -> Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
@@ -690,6 +744,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         fnr = fnr,
                         saksbehandler = saksbehandler,
                         attesteringer = attesteringer,
+                        søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                         fritekstTilBrev = fritekstTilBrev,
                         stønadsperiode = stønadsperiode!!,
                         grunnlagsdata = grunnlagsdata,
@@ -697,6 +752,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         avkorting = avkorting as AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
                         sakstype = sakstype,
                     )
+
                     else -> Søknadsbehandling.Iverksatt.Avslag.MedBeregning(
                         id = behandlingId,
                         opprettet = opprettet,
@@ -708,6 +764,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         beregning = beregning,
                         saksbehandler = saksbehandler,
                         attesteringer = attesteringer,
+                        søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                         fritekstTilBrev = fritekstTilBrev,
                         stønadsperiode = stønadsperiode!!,
                         grunnlagsdata = grunnlagsdata,

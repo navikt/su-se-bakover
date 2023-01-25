@@ -13,6 +13,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.BosituasjonValg
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.FullførBosituasjonRequest
@@ -217,6 +219,13 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                     ),
                 ),
             ),
+            søknadsbehandlingsHistorikk = expected.søknadsbehandlingsHistorikk.leggTilNyHendelse(
+                Søknadsbehandlingshendelse(
+                    tidspunkt = fixedTidspunkt,
+                    saksbehandler = saksbehandler,
+                    handling = SøknadsbehandlingsHandling.TattStillingTilEPS,
+                ),
+            ),
         )
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe uavklart.id })
@@ -276,6 +285,13 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                     bosituasjon.copy(
                         id = (response as Søknadsbehandling.Vilkårsvurdert).grunnlagsdata.bosituasjon.first().id,
                     ),
+                ),
+            ),
+            søknadsbehandlingsHistorikk = expected.søknadsbehandlingsHistorikk.leggTilNyHendelse(
+                Søknadsbehandlingshendelse(
+                    tidspunkt = fixedTidspunkt,
+                    saksbehandler = saksbehandler,
+                    handling = SøknadsbehandlingsHandling.TattStillingTilEPS,
                 ),
             ),
         )
@@ -386,6 +402,13 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                     bosituasjon.copy(
                         id = response.grunnlagsdata.bosituasjon.first().id,
                     ),
+                ),
+            ),
+            søknadsbehandlingsHistorikk = expected.søknadsbehandlingsHistorikk.leggTilNyHendelse(
+                Søknadsbehandlingshendelse(
+                    tidspunkt = fixedTidspunkt,
+                    saksbehandler = saksbehandler,
+                    handling = SøknadsbehandlingsHandling.FullførBosituasjon,
                 ),
             ),
         )

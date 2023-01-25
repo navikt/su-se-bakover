@@ -10,8 +10,6 @@ import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
-import no.nav.su.se.bakover.domain.behandling.SaksbehandlerHandlingSøknadsbehandling
-import no.nav.su.se.bakover.domain.behandling.SaksbehandlingsHendelse
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
@@ -59,6 +57,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.UnderkjennRequest
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.forsøkStatusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.medFritekstTilBrev
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
@@ -133,9 +133,6 @@ class SøknadsbehandlingServiceImpl(
 
         require(sak.id == sakId) { "sak.id ${sak.id} må være lik request.sakId $sakId" }
 
-
-
-
         return sak.opprettNySøknadsbehandling(
             søknadId = request.søknadId,
             clock = clock,
@@ -184,6 +181,7 @@ class SøknadsbehandlingServiceImpl(
 
         return søknadsbehandling.simuler(
             saksbehandler = request.saksbehandler,
+            clock = clock,
         ) { beregning, uføregrunnlag ->
             sak.lagNyUtbetaling(
                 saksbehandler = request.saksbehandler,
@@ -214,7 +212,7 @@ class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)?.let {
             statusovergang(
                 søknadsbehandling = it,
-                statusovergang = Statusovergang.TilAttestering(request.saksbehandler, request.fritekstTilBrev),
+                statusovergang = Statusovergang.TilAttestering(request.saksbehandler, request.fritekstTilBrev, clock),
             )
         }
             ?: throw IllegalArgumentException("Søknadsbehandling send til attestering: Fant ikke søknadsbehandling ${request.behandlingId}")
@@ -381,15 +379,7 @@ class SøknadsbehandlingServiceImpl(
             return KunneIkkeLeggeTilUføreVilkår.UgyldigInput(it).left()
         }
 
-        søknadsbehandling.saksbehandlingsHistorikk.leggTilNyHendelse(
-            saksbehandlingsHendelse = SaksbehandlingsHendelse(
-                tidspunkt = Tidspunkt.now(clock),
-                saksbehandler = saksbehandler,
-                handling = SaksbehandlerHandlingSøknadsbehandling.OppdatertVilkår2(vilkår),
-            ),
-        )
-
-        val vilkårsvurdert = søknadsbehandling.leggTilUførevilkår(saksbehandler, vilkår).getOrElse {
+        val vilkårsvurdert = søknadsbehandling.leggTilUførevilkår(saksbehandler, vilkår, clock).getOrElse {
             return when (it) {
                 is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.UgyldigTilstand -> {
                     KunneIkkeLeggeTilUføreVilkår.UgyldigTilstand(fra = it.fra, til = it.til)
@@ -419,6 +409,7 @@ class SøknadsbehandlingServiceImpl(
         return søknadsbehandling.leggTilLovligOpphold(
             lovligOppholdVilkår = vilkår,
             saksbehandler = saksbehandler,
+            clock = clock,
         ).mapLeft {
             KunneIkkeLeggetilLovligOppholdVilkår.FeilVedSøknadsbehandling(it)
         }.onRight {
@@ -444,6 +435,7 @@ class SøknadsbehandlingServiceImpl(
         return søknadsbehandling.leggTilFamiliegjenforeningvilkår(
             familiegjenforening = familiegjenforeningVilkår,
             saksbehandler = saksbehandler,
+            clock = clock,
         ).mapLeft {
             it.tilKunneIkkeLeggeTilFamiliegjenforeningVilkårService()
         }.onRight {
@@ -475,7 +467,15 @@ class SøknadsbehandlingServiceImpl(
             return it.left()
         }
 
-        return søknadsbehandling.oppdaterBosituasjon(saksbehandler, bosituasjon).mapLeft {
+        return søknadsbehandling.oppdaterBosituasjon(
+            saksbehandler,
+            bosituasjon,
+            Søknadsbehandlingshendelse(
+                tidspunkt = Tidspunkt.now(clock),
+                saksbehandler = saksbehandler,
+                handling = SøknadsbehandlingsHandling.TattStillingTilEPS,
+            ),
+        ).mapLeft {
             KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeOppdatereBosituasjon(it)
         }.map {
             søknadsbehandlingRepo.lagre(it)
@@ -495,7 +495,15 @@ class SøknadsbehandlingServiceImpl(
                 return KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeLagreBosituasjon.left()
             }
 
-        return søknadsbehandling.oppdaterBosituasjon(saksbehandler, bosituasjon).mapLeft {
+        return søknadsbehandling.oppdaterBosituasjon(
+            saksbehandler,
+            bosituasjon,
+            Søknadsbehandlingshendelse(
+                tidspunkt = Tidspunkt.now(clock),
+                saksbehandler = saksbehandler,
+                handling = SøknadsbehandlingsHandling.FullførBosituasjon,
+            ),
+        ).mapLeft {
             KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(it)
         }.onRight {
             søknadsbehandlingRepo.lagre(it)
@@ -514,7 +522,7 @@ class SøknadsbehandlingServiceImpl(
          * Vi ønsker gradvis å gå over til sistenevnte måte å gjøre det på.
          */
         val oppdatertBehandling =
-            behandling.leggTilFradragsgrunnlag(saksbehandler, request.fradragsgrunnlag).getOrElse {
+            behandling.leggTilFradragsgrunnlag(saksbehandler, request.fradragsgrunnlag, clock).getOrElse {
                 return it.toService().left()
             }
 
@@ -565,7 +573,7 @@ class SøknadsbehandlingServiceImpl(
             }
         }
 
-        val vilkårsvurdert = søknadsbehandling.leggTilUtenlandsopphold(saksbehandler, vilkår).getOrElse {
+        val vilkårsvurdert = søknadsbehandling.leggTilUtenlandsopphold(saksbehandler, vilkår, clock).getOrElse {
             return it.tilService().left()
         }
 
@@ -577,7 +585,7 @@ class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilOpplysningsplikt.FantIkkeBehandling.left()
 
-        return søknadsbehandling.leggTilOpplysningspliktVilkår(request.saksbehandler, request.vilkår).mapLeft {
+        return søknadsbehandling.leggTilOpplysningspliktVilkår(request.saksbehandler, request.vilkår, clock).mapLeft {
             KunneIkkeLeggeTilOpplysningsplikt.Søknadsbehandling(it)
         }.map {
             søknadsbehandlingRepo.lagre(it)
@@ -592,7 +600,7 @@ class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilPensjonsVilkår.FantIkkeBehandling.left()
 
-        return søknadsbehandling.leggTilPensjonsVilkår(request.vilkår, saksbehandler).mapLeft {
+        return søknadsbehandling.leggTilPensjonsVilkår(request.vilkår, saksbehandler, clock).mapLeft {
             KunneIkkeLeggeTilPensjonsVilkår.Søknadsbehandling(it)
         }.map {
             søknadsbehandlingRepo.lagre(it)
@@ -607,7 +615,7 @@ class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilFlyktningVilkår.FantIkkeBehandling.left()
 
-        return søknadsbehandling.leggTilFlyktningVilkår(saksbehandler, request.vilkår).mapLeft {
+        return søknadsbehandling.leggTilFlyktningVilkår(saksbehandler, request.vilkår, clock).mapLeft {
             KunneIkkeLeggeTilFlyktningVilkår.Søknadsbehandling(it)
         }.map {
             søknadsbehandlingRepo.lagre(it)
@@ -622,7 +630,7 @@ class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeFastOppholdINorgeVilkår.FantIkkeBehandling.left()
 
-        return søknadsbehandling.leggTilFastOppholdINorgeVilkår(saksbehandler, request.vilkår).mapLeft {
+        return søknadsbehandling.leggTilFastOppholdINorgeVilkår(saksbehandler, request.vilkår, clock).mapLeft {
             KunneIkkeLeggeFastOppholdINorgeVilkår.Søknadsbehandling(it)
         }.map {
             søknadsbehandlingRepo.lagre(it)
@@ -637,7 +645,7 @@ class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilPersonligOppmøteVilkår.FantIkkeBehandling.left()
 
-        return søknadsbehandling.leggTilPersonligOppmøteVilkår(saksbehandler, request.vilkår).mapLeft {
+        return søknadsbehandling.leggTilPersonligOppmøteVilkår(saksbehandler, request.vilkår, clock).mapLeft {
             KunneIkkeLeggeTilPersonligOppmøteVilkår.Søknadsbehandling(it)
         }.map {
             søknadsbehandlingRepo.lagre(it)
@@ -662,6 +670,7 @@ class SøknadsbehandlingServiceImpl(
             ).getOrElse {
                 return KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet(it).left()
             },
+            clock = clock,
         ).onRight {
             søknadsbehandlingRepo.lagre(it)
         }.mapLeft {
@@ -676,7 +685,7 @@ class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilInstitusjonsoppholdVilkår.FantIkkeBehandling.left()
 
-        return søknadsbehandling.leggTilInstitusjonsoppholdVilkår(saksbehandler, request.vilkår).mapLeft {
+        return søknadsbehandling.leggTilInstitusjonsoppholdVilkår(saksbehandler, request.vilkår, clock).mapLeft {
             KunneIkkeLeggeTilInstitusjonsoppholdVilkår.Søknadsbehandling(it)
         }.map {
             søknadsbehandlingRepo.lagre(it)

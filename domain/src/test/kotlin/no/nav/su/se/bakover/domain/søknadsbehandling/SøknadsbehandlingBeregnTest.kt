@@ -64,6 +64,7 @@ internal class SøknadsbehandlingBeregnTest {
                     ),
                 ),
                 saksbehandler = saksbehandler,
+                clock = fixedClock,
             )
         }.getOrFail().let { førBeregning ->
             førBeregning.beregn(
@@ -99,6 +100,7 @@ internal class SøknadsbehandlingBeregnTest {
                     ),
                 ),
                 saksbehandler = saksbehandler,
+                clock = fixedClock,
             )
         }.getOrFail().let { førBeregning ->
             førBeregning.beregn(
@@ -135,7 +137,8 @@ internal class SøknadsbehandlingBeregnTest {
                         opprettet = førBeregning.opprettet,
                         simulering = simuleringOpphørt(
                             opphørsperiode = Periode.create(
-                                fraOgMed = LocalDate.now(nåtidForSimuleringStub).startOfMonth().minusMonths(antallMånederMedFeilutbetaling),
+                                fraOgMed = LocalDate.now(nåtidForSimuleringStub).startOfMonth()
+                                    .minusMonths(antallMånederMedFeilutbetaling),
                                 tilOgMed = stønadsperiode2021.periode.tilOgMed,
                             ),
                             eksisterendeUtbetalinger = eksisterendeUtbetalinger,
@@ -190,6 +193,7 @@ internal class SøknadsbehandlingBeregnTest {
                     ),
                 ),
                 saksbehandler = saksbehandler,
+                clock = fixedClock,
             ).getOrFail().copy(
                 avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
                     Avkortingsvarsel.Utenlandsopphold.Opprettet(
@@ -199,7 +203,8 @@ internal class SøknadsbehandlingBeregnTest {
                         opprettet = vilkårsvurdert.opprettet,
                         simulering = simuleringOpphørt(
                             opphørsperiode = Periode.create(
-                                fraOgMed = LocalDate.now(nåtidForSimuleringStub).startOfMonth().minusMonths(antallMånederMedFeilutbetaling),
+                                fraOgMed = LocalDate.now(nåtidForSimuleringStub).startOfMonth()
+                                    .minusMonths(antallMånederMedFeilutbetaling),
                                 tilOgMed = stønadsperiode2021.periode.tilOgMed,
                             ),
                             eksisterendeUtbetalinger = eksisterendeUtbetalinger,

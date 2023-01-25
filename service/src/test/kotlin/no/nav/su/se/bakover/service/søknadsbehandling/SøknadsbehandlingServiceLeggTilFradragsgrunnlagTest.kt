@@ -12,8 +12,10 @@ import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagReque
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
@@ -78,13 +80,22 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             avkorting = behandling.avkorting,
             sakstype = behandling.sakstype,
             saksbehandler = behandling.saksbehandler,
+            søknadsbehandlingsHistorikk = behandling.søknadsbehandlingsHistorikk.leggTilNyHendelse(
+                nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertFradrag),
+            ),
         )
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandling.id })
         verify(søknadsbehandlingRepoMock).defaultTransactionContext()
         verify(søknadsbehandlingRepoMock).lagre(
             argThat {
-                it shouldBe behandling.copy(grunnlagsdata = behandling.grunnlagsdata.copy(fradragsgrunnlag = fradragsgrunnlag))
+                it shouldBe behandling.copy(
+                    grunnlagsdata = behandling.grunnlagsdata.copy(fradragsgrunnlag = fradragsgrunnlag),
+                    søknadsbehandlingsHistorikk =
+                    behandling.søknadsbehandlingsHistorikk.leggTilNyHendelse(
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertFradrag),
+                    ),
+                )
             },
             anyOrNull(),
         )

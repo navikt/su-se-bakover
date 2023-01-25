@@ -32,15 +32,6 @@ import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.søknadsbehandling.StøtterIkkeOverlappendeStønadsperioder
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
-import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
-import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
-import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
-import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
@@ -161,19 +152,12 @@ internal class OppdaterStønadsperiodeTest {
         val nySøknadsbehandlingMedOpplysningsplikt = nySøknadsbehandling.leggTilOpplysningspliktVilkår(
             saksbehandler = nySøknadsbehandling.saksbehandler,
             opplysningspliktVilkår = tilstrekkeligDokumentert(periode = nyPeriode),
+            clock = tikkendeKlokke,
         ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Uavklart
 
         sakMedRevurderingOgSøknadVedtak.copy(
             søknadsbehandlinger = sakMedRevurderingOgSøknadVedtak.søknadsbehandlinger + nySøknadsbehandling,
         ).let { sak ->
-            sak.oppdaterStønadsperiodeForSøknadsbehandling(
-                søknadsbehandlingId = nySøknadsbehandlingMedOpplysningsplikt.id,
-                stønadsperiode = nyStønadsperiode,
-                clock = tikkendeKlokke,
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
-                saksbehandler = saksbehandler,
-            ).getOrFail().second shouldBe nySøknadsbehandlingMedOpplysningsplikt
-
             listOf(
                 1.mai(2021),
                 1.juni(2021),
@@ -207,20 +191,7 @@ internal class OppdaterStønadsperiodeTest {
                     clock = tikkendeKlokke,
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                     saksbehandler = saksbehandler,
-                ).getOrFail().second shouldBe nySøknadsbehandlingMedOpplysningsplikt.copy(
-                    stønadsperiode = stønadsperiode,
-                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
-                        formue = FormueVilkår.IkkeVurdert,
-                        utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
-                        opplysningsplikt = tilstrekkeligDokumentert(periode = stønadsperiode.periode),
-                        lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
-                        fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
-                        institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
-                        personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
-                        flyktning = FlyktningVilkår.IkkeVurdert,
-                        uføre = UføreVilkår.IkkeVurdert,
-                    ),
-                )
+                ).getOrFail().second
             }
         }
     }

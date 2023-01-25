@@ -7,8 +7,6 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.behandling.SaksbehandlerHandlingSøknadsbehandling
-import no.nav.su.se.bakover.domain.behandling.SaksbehandlingsHendelse
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -64,11 +62,6 @@ fun Sak.opprettNySøknadsbehandling(
         avkorting = this.hentUteståendeAvkortingForSøknadsbehandling().fold({ it }, { it }).kanIkke(),
         sakstype = søknad.type,
         saksbehandler = saksbehandler,
-        saksbehandlingsHendelse = SaksbehandlingsHendelse(
-            tidspunkt = Tidspunkt.now(clock),
-            saksbehandler = saksbehandler,
-            handling = SaksbehandlerHandlingSøknadsbehandling.StartetBehandling,
-        ),
     ).let { nySøknadsbehandling ->
         val søknadsbehandling = nySøknadsbehandling.toSøknadsbehandling(this.saksnummer)
         Tuple4(

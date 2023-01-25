@@ -101,10 +101,11 @@ private fun avslå(
             satsFactory = satsFactory,
             avkorting = sak.hentUteståendeAvkortingForSøknadsbehandling().fold({ it }, { it }).kanIkke(),
         )
-        .avslåPgaManglendeDokumentasjon(request.saksbehandler)
+        .avslåPgaManglendeDokumentasjon(request.saksbehandler, clock)
         .tilAttestering(
             saksbehandler = request.saksbehandler,
             fritekstTilBrev = request.fritekstTilBrev,
+            clock = clock,
         ).let { søknadsbehandlingTilAttestering ->
             Pair(
                 sak.copy(
@@ -143,6 +144,7 @@ private fun Søknadsbehandling.leggTilStønadsperiodeHvisNull(
 
 private fun Søknadsbehandling.avslåPgaManglendeDokumentasjon(
     saksbehandler: NavIdentBruker.Saksbehandler,
+    clock: Clock,
 ): Søknadsbehandling.Vilkårsvurdert.Avslag {
     return leggTilOpplysningspliktVilkår(
         opplysningspliktVilkår = OpplysningspliktVilkår.Vurdert.tryCreate(
@@ -161,5 +163,6 @@ private fun Søknadsbehandling.avslåPgaManglendeDokumentasjon(
             ),
         ).getOrElse { throw IllegalArgumentException(it.toString()) },
         saksbehandler = saksbehandler,
+        clock = clock,
     ).getOrElse { throw IllegalArgumentException(it.toString()) } as Søknadsbehandling.Vilkårsvurdert.Avslag
 }
