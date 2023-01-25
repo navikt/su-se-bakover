@@ -76,7 +76,7 @@ internal class StønadsstatistikkTest {
                     ),
                 ).let { Pair(it.first, it.third as VedtakSomKanRevurderes) },
                 clock = clock,
-            ),
+            ).let { it.first to it.second },
             clock = clock,
         )
         assert(
@@ -132,7 +132,7 @@ internal class StønadsstatistikkTest {
             sakOgVedtakSomKanRevurderes = sakOgVedtak,
             periode = stønadsperiode,
             clock = clock,
-        )
+        ).let { it.first to it.second }
         val (sak, _) = vedtakIverksattGjenopptakAvYtelseFraIverksattStans(
             sakOgVedtakSomKanRevurderes = sakOgVedtak,
             periode = stønadsperiode,
@@ -198,7 +198,7 @@ internal class StønadsstatistikkTest {
             sakOgVedtakSomKanRevurderes = sakOgVedtak,
             periode = stansOgGjenopptagelsesperiode,
             clock = clock,
-        )
+        ).let { it.first to it.second }
         vedtakIverksattGjenopptakAvYtelseFraIverksattStans(
             sakOgVedtakSomKanRevurderes = sakOgVedtak,
             periode = stansOgGjenopptagelsesperiode,

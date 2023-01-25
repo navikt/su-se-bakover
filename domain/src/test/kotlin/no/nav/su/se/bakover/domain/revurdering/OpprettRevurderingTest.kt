@@ -202,6 +202,7 @@ internal class OpprettRevurderingTest {
             grunnlagsdata = opprettetRevurdering.grunnlagsdata,
             vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
             informasjonSomRevurderes = opprettetRevurdering.informasjonSomRevurderes,
+            vedtakSomRevurderesMånedsvis = opprettetRevurdering.vedtakSomRevurderesMånedsvis,
             tilRevurdering = opprettetRevurdering.tilRevurdering,
             avkorting = opprettetRevurdering.avkorting,
             saksbehandler = opprettetRevurdering.saksbehandler,
@@ -209,5 +210,6 @@ internal class OpprettRevurderingTest {
 
         oppdatertRevurdering.oppdatert shouldNotBe oppdatertRevurdering.opprettet
         oppdatertRevurdering.oppdatert shouldBe Tidspunkt.now(enUkeEtterFixedClock)
+        oppdatertRevurdering.opprettet shouldBe opprettetRevurdering.opprettet
     }
 }

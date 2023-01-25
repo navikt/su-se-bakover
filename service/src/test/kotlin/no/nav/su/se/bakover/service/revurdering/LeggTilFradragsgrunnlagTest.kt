@@ -68,37 +68,35 @@ internal class LeggTilFradragsgrunnlagTest {
 
     @Test
     fun `leggTilFradragsgrunnlag - lagreFradrag finner ikke revurdering`() {
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn null
-        }
-
-        val revurderingService = RevurderingTestUtils.createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-        )
-
-        val request = LeggTilFradragsgrunnlagRequest(
-            behandlingId = revurderingId,
-            fradragsgrunnlag = listOf(
-                lagFradragsgrunnlag(
-                    type = Fradragstype.Arbeidsinntekt,
-                    månedsbeløp = 0.0,
-                    periode = år(2021),
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
+        RevurderingServiceMocks(
+            revurderingRepo = mock<RevurderingRepo> {
+                on { hent(any()) } doReturn null
+            },
+        ).also {
+            val request = LeggTilFradragsgrunnlagRequest(
+                behandlingId = revurderingId,
+                fradragsgrunnlag = listOf(
+                    lagFradragsgrunnlag(
+                        type = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = 0.0,
+                        periode = år(2021),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
                 ),
-            ),
-        )
+            )
 
-        revurderingService.leggTilFradragsgrunnlag(
-            request,
-        ) shouldBe KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
+            it.revurderingService.leggTilFradragsgrunnlag(
+                request,
+            ) shouldBe KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
 
-        inOrder(
-            revurderingRepoMock,
-        ) {
-            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
+            inOrder(
+                it.revurderingRepo,
+            ) {
+                verify(it.revurderingRepo).hent(argThat { it shouldBe revurderingId })
+            }
+
+            it.verifyNoMoreInteractions()
         }
-
-        verifyNoMoreInteractions(revurderingRepoMock)
     }
 }

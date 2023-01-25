@@ -91,6 +91,7 @@ data class Måned private constructor(
 
     override fun equals(other: Any?) = super.equals(other)
     override fun hashCode() = super.hashCode()
+    override fun toString() = årOgMåned.toString()
 }
 
 /**

@@ -5,9 +5,11 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.februar
+import no.nav.su.se.bakover.common.periode.mai
+import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.common.toNonEmptyList
@@ -20,13 +22,16 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.SendTilAttesteringRequest
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.aktørId
@@ -58,7 +63,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 internal class RevurderingSendTilAttesteringTest {
@@ -358,20 +362,15 @@ internal class RevurderingSendTilAttesteringTest {
 
     @Test
     fun `formueopphør må være fra første måned`() {
-        val stønadsperiode = RevurderingTestUtils.stønadsperiodeNesteMånedOgTreMånederFram
-        val revurderingsperiode = stønadsperiode.periode
-        val førsteUførevurderingsperiode = Periode.create(
-            fraOgMed = revurderingsperiode.fraOgMed,
-            tilOgMed = revurderingsperiode.fraOgMed.endOfMonth(),
-        )
-        val andreUførevurderingsperiode = Periode.create(
-            fraOgMed = revurderingsperiode.fraOgMed.plus(1, ChronoUnit.MONTHS),
-            tilOgMed = revurderingsperiode.tilOgMed,
-        )
+        val revurderingsperiode = februar(2021)..mai(2021)
+        val stønadsperiode = Stønadsperiode.create(revurderingsperiode)
+        val førsteUførevurderingsperiode = februar(2021)
+        val andreUførevurderingsperiode = mars(2021)..mai(2021)
 
         val (sak, simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak) = simulertRevurdering(
             stønadsperiode = stønadsperiode,
             revurderingsperiode = revurderingsperiode,
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Formue)),
             vilkårOverrides = listOf(
                 FormueVilkår.Vurdert.createFromGrunnlag(
                     grunnlag = nonEmptyListOf(
@@ -420,8 +419,8 @@ internal class RevurderingSendTilAttesteringTest {
 
     @Test
     fun `uføreopphør kan ikke gjøres i kombinasjon med fradragsendringer`() {
-        val stønadsperiode = RevurderingTestUtils.stønadsperiodeNesteMånedOgTreMånederFram
-        val revurderingsperiode = stønadsperiode.periode
+        val revurderingsperiode = februar(2021)..mai(2021)
+        val stønadsperiode = Stønadsperiode.create(revurderingsperiode)
         val (sak, simulert) = simulertRevurdering(
             vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = revurderingsperiode)),
             grunnlagsdataOverrides = grunnlagsdataEnsligMedFradrag(periode = revurderingsperiode).let { it.fradragsgrunnlag + it.bosituasjon },

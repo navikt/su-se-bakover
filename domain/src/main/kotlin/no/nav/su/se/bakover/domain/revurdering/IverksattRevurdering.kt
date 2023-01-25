@@ -48,10 +48,6 @@ sealed class IverksattRevurdering : Revurdering() {
     override fun skalSendeBrev() =
         !årsakErGRegulering() && brevvalgRevurdering.skalSendeBrev().isRight()
 
-    fun erGRegulering(): Boolean {
-        return this is Innvilget && årsakErGRegulering()
-    }
-
     override fun erÅpen() = false
 
     data class Innvilget(
@@ -60,6 +56,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val opprettet: Tidspunkt,
         override val oppdatert: Tidspunkt,
         override val tilRevurdering: UUID,
+        override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val oppgaveId: OppgaveId,
         override val revurderingsårsak: Revurderingsårsak,
@@ -96,6 +93,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
+        override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Iverksatt,
         override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet,

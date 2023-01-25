@@ -5,12 +5,18 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.april
+import no.nav.su.se.bakover.common.periode.februar
+import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.juni
+import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -21,6 +27,7 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
@@ -162,6 +169,42 @@ internal class GjeldendeVedtaksdataTest {
         ).let {
             it.inneholderOpphørsvedtakMedAvkortingUtenlandsopphold() shouldBe true
             it.pågåendeAvkortingEllerBehovForFremtidigAvkorting shouldBe true
+        }
+    }
+
+    @Test
+    fun `gjeldendeVedtakMånedsvis - mapper riktig med hull`() {
+        val revurderingsperiode = januar(2021)..februar(2021)
+        val clock = TikkendeKlokke(1.februar(2021).fixedClock())
+        val (sak, revurderingsvedtak) = vedtakRevurdering(
+            clock = clock,
+            revurderingsperiode = revurderingsperiode,
+            stønadsperiode = Stønadsperiode.create(januar(2021)..april(2021)),
+            vilkårOverrides = listOf(
+                utenlandsoppholdAvslag(
+                    periode = revurderingsperiode,
+                ),
+            ),
+        )
+        val søknadsbehandlingsvedtak1 =
+            sak.vedtakListe.first() as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling
+        val (oppdatertSak, _, nyttSøknadsbehandlingsvedtak) = iverksattSøknadsbehandling(
+            // Hopper over mai for å lage et hull
+            stønadsperiode = Stønadsperiode.create(juni(2021)),
+            sakOgSøknad = sak to nySøknadJournalførtMedOppgave(sakId = sak.id, fnr = sak.fnr, clock = clock),
+        )
+        GjeldendeVedtaksdata(
+            periode = år(2021),
+            vedtakListe = oppdatertSak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().toNonEmptyList(),
+            clock = clock,
+        ).let {
+            it.gjeldendeVedtakMånedsvisMedPotensielleHull() shouldBe mapOf(
+                januar(2021) to revurderingsvedtak,
+                februar(2021) to revurderingsvedtak,
+                mars(2021) to søknadsbehandlingsvedtak1,
+                april(2021) to søknadsbehandlingsvedtak1,
+                juni(2021) to nyttSøknadsbehandlingsvedtak,
+            )
         }
     }
 }

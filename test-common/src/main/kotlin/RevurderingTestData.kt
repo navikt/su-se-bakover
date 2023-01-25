@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.test
 
 import arrow.core.Tuple4
+import io.kotest.assertions.fail
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.endOfMonth
-import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
@@ -36,12 +36,14 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.opprett.opprettRevurdering
+import no.nav.su.se.bakover.domain.revurdering.toVedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.iverksett.IverksettInnvilgetRevurderingResponse
 import no.nav.su.se.bakover.domain.sak.iverksett.IverksettOpphørtRevurderingResponse
 import no.nav.su.se.bakover.domain.sak.iverksett.IverksettRevurderingResponse
 import no.nav.su.se.bakover.domain.sak.iverksett.iverksettRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
+import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
@@ -587,13 +589,15 @@ fun simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
 ): Pair<Sak, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
     return sakOgVedtakSomKanRevurderes.let { (sak, vedtak) ->
+        val gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(periode.fraOgMed, clock).getOrFail()
         val revurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
             periode = periode,
-            grunnlagsdata = sak.kopierGjeldendeVedtaksdata(periode.fraOgMed, clock).getOrFail().grunnlagsdata,
-            vilkårsvurderinger = sak.kopierGjeldendeVedtaksdata(periode.fraOgMed, clock).getOrFail().vilkårsvurderinger,
+            grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
+            vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
             tilRevurdering = vedtak.id,
+            vedtakSomRevurderesMånedsvis = gjeldendeVedtaksdata.toVedtakSomRevurderesMånedsvis(),
             saksbehandler = saksbehandler,
             simulering = simulerStans(
                 sak = sakOgVedtakSomKanRevurderes.first,
@@ -674,18 +678,36 @@ fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
         periode = periodeForStans,
         clock = clock,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+    ).let { it.first to it.second },
+    gjenopptaId: UUID = UUID.randomUUID(),
+    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    revurderingsårsak: Revurderingsårsak = Revurderingsårsak.create(
+        årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
+        begrunnelse = "valid",
     ),
 ): Pair<Sak, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
     require(sakOgVedtakSomKanRevurderes.first.vedtakListe.last() is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse)
 
-    return sakOgVedtakSomKanRevurderes.let { (sak, vedtak) ->
+    // TODO jah: Vi bør ikke replikere så mange linjer med produksjonskode i GjenopptaYtelseServiceImpl. Vi bør flytte domenekoden fra nevnte fil og kun beholde sideeffektene i servicen.
+    return sakOgVedtakSomKanRevurderes.let { (sak, _) ->
+        val sisteVedtakPåTidslinje = sak.vedtakstidslinje().tidslinje.lastOrNull() ?: fail("Fant ingen vedtak")
+
+        if (sisteVedtakPåTidslinje.originaltVedtak !is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse) {
+            fail("Siste vedtak er ikke stans")
+        }
+        val gjeldendeVedtaksdata: GjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+            fraOgMed = sisteVedtakPåTidslinje.periode.fraOgMed,
+            clock = clock,
+        ).getOrFail()
+
         val revurdering = GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
-            id = revurderingId,
+            id = gjenopptaId,
             opprettet = Tidspunkt.now(clock),
-            periode = vedtak.periode,
-            grunnlagsdata = vedtak.behandling.grunnlagsdata,
-            vilkårsvurderinger = vedtak.behandling.vilkårsvurderinger.tilVilkårsvurderingerRevurdering(),
-            tilRevurdering = vedtak.id,
+            periode = gjeldendeVedtaksdata.garantertSammenhengendePeriode(),
+            grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
+            vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger.tilVilkårsvurderingerRevurdering(),
+            tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(sisteVedtakPåTidslinje.periode.fraOgMed)!!.id,
+            vedtakSomRevurderesMånedsvis = gjeldendeVedtaksdata.toVedtakSomRevurderesMånedsvis(),
             saksbehandler = saksbehandler,
             simulering = simulerGjenopptak(
                 sak = sak,
@@ -694,10 +716,7 @@ fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
                 clock = clock,
                 utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
             ).getOrFail().simulering,
-            revurderingsårsak = Revurderingsårsak.create(
-                årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
-                begrunnelse = "valid",
-            ),
+            revurderingsårsak = revurderingsårsak,
             sakinfo = sak.info(),
         )
         sak.copy(
@@ -722,7 +741,7 @@ fun iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse(
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode = periode,
         clock = clock,
-    ),
+    ).let { it.first to it.second },
     attestering: Attestering = attesteringIverksatt(clock),
 ): Pair<Sak, GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse> {
     return simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(

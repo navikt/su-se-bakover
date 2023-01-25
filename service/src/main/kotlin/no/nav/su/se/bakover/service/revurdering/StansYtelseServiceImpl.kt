@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.domain.revurdering.stans.StansAvYtelseTransactionExc
 import no.nav.su.se.bakover.domain.revurdering.stans.StansAvYtelseTransactionException.Companion.exception
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
+import no.nav.su.se.bakover.domain.revurdering.toVedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForStans
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
@@ -132,6 +133,7 @@ class StansYtelseServiceImpl(
                     grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                     vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
                     tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(request.fraOgMed)!!.id,
+                    vedtakSomRevurderesMånedsvis = gjeldendeVedtaksdata.toVedtakSomRevurderesMånedsvis(),
                     saksbehandler = request.saksbehandler,
                     simulering = simulertUtbetaling.simulering,
                     revurderingsårsak = request.revurderingsårsak,

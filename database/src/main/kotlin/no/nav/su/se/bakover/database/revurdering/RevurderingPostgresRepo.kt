@@ -63,6 +63,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.domain.revurdering.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
@@ -71,11 +72,15 @@ import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 
+/**
+ * Brukes kun ved insert / update av revurderinger.
+ */
 private data class BaseRevurderingDb(
     val id: UUID,
     val periode: Periode,
     val opprettet: Tidspunkt,
     val tilRevurdering: UUID,
+    val vedtakSomRevurderesMånedsvis: String,
     val saksbehandler: Saksbehandler,
     val oppgaveId: OppgaveId?,
     val revurderingsårsak: Revurderingsårsak,
@@ -103,6 +108,7 @@ private fun StansAvYtelseRevurdering.toBaseRevurderingDb(): BaseRevurderingDb {
         periode = this.periode,
         opprettet = this.opprettet,
         tilRevurdering = this.tilRevurdering,
+        vedtakSomRevurderesMånedsvis = this.vedtakSomRevurderesMånedsvis.toDbJson(),
         saksbehandler = this.saksbehandler,
         oppgaveId = null,
         revurderingsårsak = this.revurderingsårsak,
@@ -123,6 +129,7 @@ private fun GjenopptaYtelseRevurdering.toBaseRevurderingDb(): BaseRevurderingDb 
         periode = this.periode,
         opprettet = this.opprettet,
         tilRevurdering = this.tilRevurdering,
+        vedtakSomRevurderesMånedsvis = this.vedtakSomRevurderesMånedsvis.toDbJson(),
         saksbehandler = this.saksbehandler,
         oppgaveId = null,
         revurderingsårsak = this.revurderingsårsak,
@@ -143,6 +150,7 @@ private fun Revurdering.toBaseRevurderingDb(): BaseRevurderingDb {
         periode = this.periode,
         opprettet = this.opprettet,
         tilRevurdering = this.tilRevurdering,
+        vedtakSomRevurderesMånedsvis = this.vedtakSomRevurderesMånedsvis.toDbJson(),
         saksbehandler = this.saksbehandler,
         oppgaveId = this.oppgaveId,
         revurderingsårsak = this.revurderingsårsak,
@@ -581,6 +589,8 @@ internal class RevurderingPostgresRepo(
 
         val brevvalg = deserialize<BrevvalgRevurderingDbJson>(string("brevvalg")).toDomain()
 
+        val vedtakSomRevurderesMånedsvis = VedtakSomRevurderesMånedsvisDbJson.toDomain(string("vedtakSomRevurderesMånedsvis"))
+
         val revurdering = lagRevurdering(
             status = status,
             id = id,
@@ -588,6 +598,7 @@ internal class RevurderingPostgresRepo(
             opprettet = opprettet,
             oppdatert = oppdatert ?: opprettet,
             tilRevurdering = tilRevurdering,
+            vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
             saksbehandler = saksbehandler,
             beregning = beregning,
             simulering = simulering,
@@ -650,6 +661,7 @@ internal class RevurderingPostgresRepo(
                         oppgaveId,
                         revurderingsType,
                         vedtakSomRevurderesId,
+                        vedtakSomRevurderesMånedsvis,
                         attestering,
                         årsak,
                         begrunnelse,
@@ -668,6 +680,7 @@ internal class RevurderingPostgresRepo(
                         :oppgaveId,
                         :revurderingsType,
                         :vedtakSomRevurderesId,
+                        to_jsonb(:vedtakSomRevurderesManedsvis::jsonb),
                         to_jsonb(:attestering::jsonb),
                         :arsak,
                         :begrunnelse,
@@ -685,6 +698,7 @@ internal class RevurderingPostgresRepo(
                         oppgaveId = :oppgaveId,
                         revurderingsType = :revurderingsType,
                         vedtakSomRevurderesId = :vedtakSomRevurderesId,
+                        vedtakSomRevurderesMånedsvis = to_jsonb(:vedtakSomRevurderesManedsvis::jsonb),
                         attestering = to_jsonb(:attestering::jsonb),
                         årsak = :arsak,
                         begrunnelse = :begrunnelse,
@@ -704,6 +718,7 @@ internal class RevurderingPostgresRepo(
                     "oppgaveId" to revurdering.base.oppgaveId.toString(),
                     "revurderingsType" to revurdering.base.type,
                     "vedtakSomRevurderesId" to revurdering.base.tilRevurdering,
+                    "vedtakSomRevurderesManedsvis" to revurdering.base.vedtakSomRevurderesMånedsvis,
                     "attestering" to revurdering.base.attesteringer.serialize(),
                     "arsak" to revurdering.base.revurderingsårsak.årsak.toString(),
                     "begrunnelse" to revurdering.base.revurderingsårsak.begrunnelse.toString(),
@@ -821,6 +836,7 @@ internal class RevurderingPostgresRepo(
         opprettet: Tidspunkt,
         oppdatert: Tidspunkt,
         tilRevurdering: UUID,
+        vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         saksbehandler: String,
         beregning: BeregningMedFradragBeregnetMånedsvis?,
         simulering: Simulering?,
@@ -842,6 +858,7 @@ internal class RevurderingPostgresRepo(
                 opprettet = opprettet,
                 oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
+                vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 saksbehandler = Saksbehandler(saksbehandler),
                 beregning = beregning!!,
                 simulering = simulering!!,
@@ -864,6 +881,7 @@ internal class RevurderingPostgresRepo(
                 opprettet = opprettet,
                 oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
+                vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 saksbehandler = Saksbehandler(saksbehandler),
                 beregning = beregning!!,
                 simulering = simulering!!,
@@ -886,6 +904,7 @@ internal class RevurderingPostgresRepo(
                 opprettet = opprettet,
                 oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
+                vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 saksbehandler = Saksbehandler(saksbehandler),
                 oppgaveId = OppgaveId(oppgaveId!!),
                 beregning = beregning!!,
@@ -908,6 +927,7 @@ internal class RevurderingPostgresRepo(
                 opprettet = opprettet,
                 oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
+                vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 saksbehandler = Saksbehandler(saksbehandler),
                 beregning = beregning!!,
                 simulering = simulering!!,
@@ -930,6 +950,7 @@ internal class RevurderingPostgresRepo(
                 opprettet = opprettet,
                 oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
+                vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 beregning = beregning!!,
                 simulering = simulering!!,
                 saksbehandler = Saksbehandler(saksbehandler),
@@ -952,6 +973,7 @@ internal class RevurderingPostgresRepo(
                 opprettet = opprettet,
                 oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
+                vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 beregning = beregning!!,
                 simulering = simulering!!,
                 saksbehandler = Saksbehandler(saksbehandler),
@@ -974,6 +996,7 @@ internal class RevurderingPostgresRepo(
                 opprettet = opprettet,
                 oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
+                vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 beregning = beregning!!,
                 simulering = simulering!!,
                 saksbehandler = Saksbehandler(saksbehandler),
@@ -996,6 +1019,7 @@ internal class RevurderingPostgresRepo(
                 opprettet = opprettet,
                 oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
+                vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 beregning = beregning!!,
                 simulering = simulering!!,
                 saksbehandler = Saksbehandler(saksbehandler),
@@ -1018,6 +1042,7 @@ internal class RevurderingPostgresRepo(
                 opprettet = opprettet,
                 oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
+                vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 saksbehandler = Saksbehandler(saksbehandler),
                 beregning = beregning!!,
                 oppgaveId = OppgaveId(oppgaveId!!),
@@ -1037,6 +1062,7 @@ internal class RevurderingPostgresRepo(
                 opprettet = opprettet,
                 oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
+                vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 beregning = beregning!!,
                 saksbehandler = Saksbehandler(saksbehandler),
                 oppgaveId = OppgaveId(oppgaveId!!),
@@ -1056,6 +1082,7 @@ internal class RevurderingPostgresRepo(
                 opprettet = opprettet,
                 oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
+                vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 saksbehandler = Saksbehandler(saksbehandler),
                 oppgaveId = OppgaveId(oppgaveId!!),
                 revurderingsårsak = revurderingsårsak,
@@ -1074,6 +1101,7 @@ internal class RevurderingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 tilRevurdering = tilRevurdering,
+                vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 saksbehandler = Saksbehandler(saksbehandler),
                 simulering = simulering!!,
                 revurderingsårsak = revurderingsårsak,
@@ -1086,6 +1114,7 @@ internal class RevurderingPostgresRepo(
                 periode = periode,
                 opprettet = opprettet,
                 tilRevurdering = tilRevurdering,
+                vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 saksbehandler = Saksbehandler(saksbehandler),
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
@@ -1103,6 +1132,7 @@ internal class RevurderingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 tilRevurdering = tilRevurdering,
+                vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 saksbehandler = Saksbehandler(saksbehandler),
                 simulering = simulering!!,
                 revurderingsårsak = revurderingsårsak,
@@ -1115,6 +1145,7 @@ internal class RevurderingPostgresRepo(
                 periode = periode,
                 opprettet = opprettet,
                 tilRevurdering = tilRevurdering,
+                vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 saksbehandler = Saksbehandler(saksbehandler),
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,

@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.juli
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
+import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.toPeriode
 import no.nav.su.se.bakover.domain.Sak
@@ -35,8 +36,6 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.periodeNesteMånedOgTreMånederFram
-import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.stønadsperiodeNesteMånedOgTreMånederFram
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.fixedClock
@@ -65,7 +64,6 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 internal class OppdaterRevurderingServiceTest {
@@ -147,8 +145,7 @@ internal class OppdaterRevurderingServiceTest {
             val actual = it.revurderingService.oppdaterRevurdering(
                 OppdaterRevurderingCommand(
                     revurderingId = iverksatt.id,
-                    periode = periodeNesteMånedOgTreMånederFram.fraOgMed.rangeTo(iverksatt.periode.tilOgMed)
-                        .toPeriode(),
+                    periode = iverksatt.periode,
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "gyldig begrunnelse",
                     saksbehandler = saksbehandler,
@@ -166,25 +163,19 @@ internal class OppdaterRevurderingServiceTest {
 
     @Test
     fun `oppdater en revurdering`() {
-        val (sak, revurdering) = opprettetRevurdering(
-            stønadsperiode = stønadsperiodeNesteMånedOgTreMånederFram,
-            revurderingsperiode = stønadsperiodeNesteMånedOgTreMånederFram.periode,
-        )
+        val (sak, revurdering) = opprettetRevurdering()
         RevurderingServiceMocks(
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
             revurderingRepo = mock(),
         ).also {
-            val oppdatertPeriode = Periode.create(
-                periodeNesteMånedOgTreMånederFram.fraOgMed.plus(1, ChronoUnit.MONTHS),
-                periodeNesteMånedOgTreMånederFram.tilOgMed,
-            )
+            val oppdatertPeriode = januar(2021)..mars(2021)
             val actual = it.revurderingService.oppdaterRevurdering(
                 // Bruker andre verdier enn den opprinnelige revurderingen for å se at de faktisk forandrer seg
                 OppdaterRevurderingCommand(
                     revurderingId = revurdering.id,
-                    periode = oppdatertPeriode.fraOgMed.rangeTo(revurdering.periode.tilOgMed).toPeriode(),
+                    periode = oppdatertPeriode,
                     årsak = "ANDRE_KILDER",
                     begrunnelse = "bør bli oppdatert",
                     saksbehandler = NavIdentBruker.Saksbehandler("En ny saksbehandlinger"),
@@ -232,8 +223,7 @@ internal class OppdaterRevurderingServiceTest {
             it.revurderingService.oppdaterRevurdering(
                 OppdaterRevurderingCommand(
                     revurderingId = revurdering.id,
-                    periode = periodeNesteMånedOgTreMånederFram.fraOgMed.rangeTo(revurdering.periode.tilOgMed)
-                        .toPeriode(),
+                    periode = revurdering.periode,
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,
