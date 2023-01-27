@@ -44,7 +44,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkårService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkårService.FantIkkeBehandling.tilKunneIkkeLeggeTilFamiliegjenforeningVilkårService
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFormuegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold
@@ -435,7 +434,6 @@ class SøknadsbehandlingServiceImpl(
         return søknadsbehandling.leggTilFamiliegjenforeningvilkår(
             familiegjenforening = familiegjenforeningVilkår,
             saksbehandler = saksbehandler,
-            clock = clock,
         ).mapLeft {
             it.tilKunneIkkeLeggeTilFamiliegjenforeningVilkårService()
         }.onRight {
@@ -501,7 +499,7 @@ class SøknadsbehandlingServiceImpl(
             Søknadsbehandlingshendelse(
                 tidspunkt = Tidspunkt.now(clock),
                 saksbehandler = saksbehandler,
-                handling = SøknadsbehandlingsHandling.FullførBosituasjon,
+                handling = SøknadsbehandlingsHandling.FullførtBosituasjon,
             ),
         ).mapLeft {
             KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(it)
@@ -522,9 +520,10 @@ class SøknadsbehandlingServiceImpl(
          * Vi ønsker gradvis å gå over til sistenevnte måte å gjøre det på.
          */
         val oppdatertBehandling =
-            behandling.leggTilFradragsgrunnlag(saksbehandler, request.fradragsgrunnlag, clock).getOrElse {
-                return it.toService().left()
-            }
+            behandling.leggTilFradragsgrunnlagFraSaksbehandler(saksbehandler, request.fradragsgrunnlag, clock)
+                .getOrElse {
+                    return it.toService().left()
+                }
 
         søknadsbehandlingRepo.lagre(oppdatertBehandling)
 
@@ -585,7 +584,7 @@ class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilOpplysningsplikt.FantIkkeBehandling.left()
 
-        return søknadsbehandling.leggTilOpplysningspliktVilkår(request.saksbehandler, request.vilkår, clock).mapLeft {
+        return søknadsbehandling.leggTilOpplysningspliktVilkår(request.saksbehandler, request.vilkår).mapLeft {
             KunneIkkeLeggeTilOpplysningsplikt.Søknadsbehandling(it)
         }.map {
             søknadsbehandlingRepo.lagre(it)
@@ -600,7 +599,7 @@ class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilPensjonsVilkår.FantIkkeBehandling.left()
 
-        return søknadsbehandling.leggTilPensjonsVilkår(request.vilkår, saksbehandler, clock).mapLeft {
+        return søknadsbehandling.leggTilPensjonsVilkår(request.vilkår, saksbehandler).mapLeft {
             KunneIkkeLeggeTilPensjonsVilkår.Søknadsbehandling(it)
         }.map {
             søknadsbehandlingRepo.lagre(it)
@@ -655,26 +654,15 @@ class SøknadsbehandlingServiceImpl(
 
     override fun leggTilFormuevilkår(
         request: LeggTilFormuevilkårRequest,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeLeggeTilFormuegrunnlag, Søknadsbehandling> {
+    ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår, Søknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeLeggeTilFormuegrunnlag.FantIkkeSøknadsbehandling.left()
+            ?: throw IllegalArgumentException("Fant ikke behandling med id ${request.behandlingId}")
 
-        return søknadsbehandling.leggTilFormuevilkår(
-            saksbehandler = saksbehandler,
-            vilkår = request.toDomain(
-                bosituasjon = søknadsbehandling.grunnlagsdata.bosituasjon,
-                behandlingsperiode = søknadsbehandling.periode,
-                clock = clock,
-                formuegrenserFactory = formuegrenserFactory,
-            ).getOrElse {
-                return KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet(it).left()
-            },
-            clock = clock,
+        return søknadsbehandling.leggTilFormuegrunnlag(
+            request = request,
+            formuegrenserFactory = formuegrenserFactory,
         ).onRight {
             søknadsbehandlingRepo.lagre(it)
-        }.mapLeft {
-            KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeLeggeTilFormuegrunnlagTilSøknadsbehandling(it)
         }
     }
 

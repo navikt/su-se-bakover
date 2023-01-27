@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
-import no.nav.su.se.bakover.domain.vilkår.Inngangsvilkår
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.UtenlandsoppholdStatus
@@ -127,7 +126,7 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
             ) shouldBe innvilget.copy(
                 søknadsbehandlingsHistorikk = innvilget.søknadsbehandlingsHistorikk.leggTilNyHendelse(
                     nySøknadsbehandlingshendelse(
-                        handling = SøknadsbehandlingsHandling.OppdatertVilkår(Inngangsvilkår.Utenlandsopphold),
+                        handling = SøknadsbehandlingsHandling.OppdatertUtenlandsopphold,
                     ),
                 ),
             ).right()

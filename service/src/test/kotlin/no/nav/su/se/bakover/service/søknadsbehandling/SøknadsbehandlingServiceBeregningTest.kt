@@ -63,7 +63,7 @@ class SøknadsbehandlingServiceBeregningTest {
     @Test
     fun `oppretter beregning`() {
         val vilkårsvurdert = søknadsbehandlingVilkårsvurdertInnvilget().let { (_, vilkårsvurdert) ->
-            vilkårsvurdert.leggTilFradragsgrunnlag(
+            vilkårsvurdert.leggTilFradragsgrunnlagFraSaksbehandler(
                 fradragsgrunnlag = listOf(
                     Grunnlag.Fradragsgrunnlag.create(
                         id = UUID.randomUUID(),

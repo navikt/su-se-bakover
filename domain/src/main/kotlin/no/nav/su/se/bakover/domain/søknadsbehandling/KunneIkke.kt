@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.søknadsbehandling
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
+import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import kotlin.reflect.KClass
 
 sealed class KunneIkkeLeggeTilVilkår {
@@ -80,6 +81,9 @@ sealed class KunneIkkeLeggeTilVilkår {
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out Søknadsbehandling>,
         ) : KunneIkkeLeggeTilFormuevilkår()
+
+        data class KunneIkkeMappeTilDomenet(val feil: LeggTilFormuevilkårRequest.KunneIkkeMappeTilDomenet) :
+            KunneIkkeLeggeTilFormuevilkår()
     }
 
     sealed class KunneIkkeLeggeTilFamiliegjenforeningVilkår : KunneIkkeLeggeTilVilkår() {
@@ -158,6 +162,7 @@ sealed class KunneIkkeBeregne {
 
 sealed class KunneIkkeLukkeSøknadsbehandling {
     override fun toString() = this::class.simpleName!!
+
     object KanIkkeLukkeEnAlleredeLukketSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling()
     object KanIkkeLukkeEnIverksattSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling()
     object KanIkkeLukkeEnSøknadsbehandlingTilAttestering : KunneIkkeLukkeSøknadsbehandling()

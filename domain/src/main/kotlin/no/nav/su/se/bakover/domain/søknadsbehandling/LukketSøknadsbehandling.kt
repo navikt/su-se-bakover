@@ -89,7 +89,7 @@ data class LukketSøknadsbehandling private constructor(
         stønadsperiode: Stønadsperiode,
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
         avkorting: AvkortingVedSøknadsbehandling,
-        nyHendelse: Søknadsbehandlingshendelse,
+        søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
     ) = throw UnsupportedOperationException("Kan ikke kalle copyInternal på en lukket søknadsbehandling.")
 
     init {

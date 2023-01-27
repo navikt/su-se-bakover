@@ -81,7 +81,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             sakstype = behandling.sakstype,
             saksbehandler = behandling.saksbehandler,
             søknadsbehandlingsHistorikk = behandling.søknadsbehandlingsHistorikk.leggTilNyHendelse(
-                nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertFradrag),
+                nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertFradragsgrunnlag),
             ),
         )
 
@@ -93,7 +93,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
                     grunnlagsdata = behandling.grunnlagsdata.copy(fradragsgrunnlag = fradragsgrunnlag),
                     søknadsbehandlingsHistorikk =
                     behandling.søknadsbehandlingsHistorikk.leggTilNyHendelse(
-                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertFradrag),
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertFradragsgrunnlag),
                     ),
                 )
             },

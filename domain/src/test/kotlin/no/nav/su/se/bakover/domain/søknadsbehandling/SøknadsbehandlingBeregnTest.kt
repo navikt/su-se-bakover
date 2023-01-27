@@ -49,7 +49,7 @@ internal class SøknadsbehandlingBeregnTest {
     @Test
     fun `fjerner evt gammelt grunnlag for avkorting dersom ingen avkorting skal finne sted`() {
         søknadsbehandlingVilkårsvurdertInnvilget().let { (_, vilkårsvurdert) ->
-            vilkårsvurdert.leggTilFradragsgrunnlag(
+            vilkårsvurdert.leggTilFradragsgrunnlagFraSaksbehandler(
                 fradragsgrunnlag = listOf(
                     Grunnlag.Fradragsgrunnlag.create(
                         id = UUID.randomUUID(),
@@ -85,7 +85,7 @@ internal class SøknadsbehandlingBeregnTest {
     @Test
     fun `beregner med fradrag`() {
         søknadsbehandlingVilkårsvurdertInnvilget().let { (_, vilkårsvurdert) ->
-            vilkårsvurdert.leggTilFradragsgrunnlag(
+            vilkårsvurdert.leggTilFradragsgrunnlagFraSaksbehandler(
                 fradragsgrunnlag = listOf(
                     Grunnlag.Fradragsgrunnlag.create(
                         id = UUID.randomUUID(),
@@ -178,7 +178,7 @@ internal class SøknadsbehandlingBeregnTest {
         søknadsbehandlingVilkårsvurdertInnvilget(
             stønadsperiode = stønadsperiode2021,
         ).let { (_, vilkårsvurdert) ->
-            vilkårsvurdert.leggTilFradragsgrunnlag(
+            vilkårsvurdert.leggTilFradragsgrunnlagFraSaksbehandler(
                 fradragsgrunnlag = listOf(
                     Grunnlag.Fradragsgrunnlag.create(
                         id = UUID.randomUUID(),

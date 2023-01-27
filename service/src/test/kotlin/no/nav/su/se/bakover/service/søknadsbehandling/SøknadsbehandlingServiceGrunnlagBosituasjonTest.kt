@@ -408,7 +408,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                 Søknadsbehandlingshendelse(
                     tidspunkt = fixedTidspunkt,
                     saksbehandler = saksbehandler,
-                    handling = SøknadsbehandlingsHandling.FullførBosituasjon,
+                    handling = SøknadsbehandlingsHandling.FullførtBosituasjon,
                 ),
             ),
         )

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.test
 
+import arrow.core.NonEmptyList
 import arrow.core.flatten
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -8,10 +9,12 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
@@ -49,6 +52,7 @@ import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.søknad.oppgaveIdSøknad
@@ -1182,19 +1186,16 @@ fun vilkårsvurdertSøknadsbehandling(
                     .leggTilPensjonsVilkår(
                         saksbehandler = saksbehandler,
                         vilkår = customVilkår.customOrDefault { vilkår.pensjon as PensjonsVilkår.Vurdert },
-                        clock = clock,
                     )
                     .getOrFail()
                     .leggTilOpplysningspliktVilkår(
                         saksbehandler = saksbehandler,
                         opplysningspliktVilkår = customVilkår.customOrDefault { vilkår.opplysningsplikt as OpplysningspliktVilkår.Vurdert },
-                        clock = clock,
                     )
                     .getOrFail()
                     .leggTilFamiliegjenforeningvilkår(
                         saksbehandler = saksbehandler,
                         familiegjenforening = customVilkår.customOrDefault { vilkår.familiegjenforening as FamiliegjenforeningVilkår.Vurdert },
-                        clock = clock,
                     )
                     .getOrFail()
                     .leggTilLovligOpphold(
@@ -1230,11 +1231,21 @@ fun vilkårsvurdertSøknadsbehandling(
                         ),
                     )
                     .getOrFail()
-                    .leggTilFormuevilkår(
-                        saksbehandler = saksbehandler,
-                        clock = clock,
-                        vilkår = customVilkår.customOrDefault { vilkår.formue as FormueVilkår.Vurdert },
-                    ).getOrFail()
+                    .let {
+                        if (!customVilkår.any { it is FormueVilkår.IkkeVurdert }) {
+                            it.leggTilFormuegrunnlag(
+                                request = LeggTilFormuevilkårRequest(
+                                    behandlingId = søknadsbehandling.id,
+                                    formuegrunnlag = customVilkår.customOrDefault { vilkår.formue }.grunnlag.toFormueRequestGrunnlag(),
+                                    saksbehandler = saksbehandler,
+                                    tidspunkt = Tidspunkt.now(clock),
+                                ),
+                                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                            ).getOrFail()
+                        } else {
+                            it
+                        }
+                    }
                     .leggTilPersonligOppmøteVilkår(
                         saksbehandler = saksbehandler,
                         vilkår = customVilkår.customOrDefault { vilkår.personligOppmøte as PersonligOppmøteVilkår.Vurdert },
@@ -1252,7 +1263,6 @@ fun vilkårsvurdertSøknadsbehandling(
                     .leggTilOpplysningspliktVilkår(
                         saksbehandler = saksbehandler,
                         opplysningspliktVilkår = customVilkår.customOrDefault { vilkår.opplysningsplikt as OpplysningspliktVilkår.Vurdert },
-                        clock = clock,
                     )
                     .getOrFail()
                     .leggTilFlyktningVilkår(
@@ -1294,11 +1304,21 @@ fun vilkårsvurdertSøknadsbehandling(
                         ),
                     )
                     .getOrFail()
-                    .leggTilFormuevilkår(
-                        saksbehandler = saksbehandler,
-                        clock = clock,
-                        vilkår = customVilkår.customOrDefault { vilkår.formue as FormueVilkår.Vurdert },
-                    ).getOrFail()
+                    .let {
+                        if (!customVilkår.any { it is FormueVilkår.IkkeVurdert }) {
+                            it.leggTilFormuegrunnlag(
+                                request = LeggTilFormuevilkårRequest(
+                                    behandlingId = søknadsbehandling.id,
+                                    formuegrunnlag = customVilkår.customOrDefault { vilkår.formue }.grunnlag.toFormueRequestGrunnlag(),
+                                    saksbehandler = saksbehandler,
+                                    tidspunkt = Tidspunkt.now(clock),
+                                ),
+                                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                            ).getOrFail()
+                        } else {
+                            it
+                        }
+                    }
                     .leggTilPersonligOppmøteVilkår(
                         saksbehandler = saksbehandler,
                         vilkår = customVilkår.customOrDefault { vilkår.personligOppmøte as PersonligOppmøteVilkår.Vurdert },
@@ -1309,7 +1329,7 @@ fun vilkårsvurdertSøknadsbehandling(
         }
 
         val medFradrag = if (customGrunnlag.customOrDefault { grunnlagsdata.fradragsgrunnlag }.isNotEmpty()) {
-            vilkårsvurdert.leggTilFradragsgrunnlag(
+            vilkårsvurdert.leggTilFradragsgrunnlagFraSaksbehandler(
                 saksbehandler = saksbehandler,
                 fradragsgrunnlag = customGrunnlag.customOrDefault { grunnlagsdata.fradragsgrunnlag },
                 clock = clock,
@@ -1329,4 +1349,16 @@ private inline fun <reified T : Vilkår> List<Vilkår>.customOrDefault(default: 
 
 private inline fun <reified T : Grunnlag> List<Grunnlag>.customOrDefault(default: () -> List<T>): List<T> {
     return filterIsInstance<T>().ifEmpty { default() }
+}
+
+fun List<Formuegrunnlag>.toFormueRequestGrunnlag(): NonEmptyList<LeggTilFormuevilkårRequest.Grunnlag> {
+    return this.map {
+        LeggTilFormuevilkårRequest.Grunnlag.Søknadsbehandling(
+            periode = it.periode,
+            epsFormue = it.epsFormue,
+            søkersFormue = it.søkersFormue,
+            begrunnelse = "",
+            måInnhenteMerInformasjon = false,
+        )
+    }.toNonEmptyList()
 }

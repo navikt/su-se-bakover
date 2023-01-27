@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.søknadsbehandling
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -22,11 +23,12 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
-import no.nav.su.se.bakover.domain.vilkår.Inngangsvilkår
+import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.enUkeEtterFixedClock
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattRevurdering
@@ -43,7 +45,7 @@ import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.stønadsperiode2022
-import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
+import no.nav.su.se.bakover.test.toFormueRequestGrunnlag
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import org.junit.jupiter.api.Nested
@@ -219,10 +221,14 @@ internal class SøknadsbehandlingPostgresRepoTest {
             }
 
             // Tilbake til vilkårsvurdert
-            simulert.leggTilFormuevilkår(
-                saksbehandler = saksbehandler,
-                vilkår = innvilgetFormueVilkår(),
-                clock = fixedClock,
+            simulert.leggTilFormuegrunnlag(
+                request = LeggTilFormuevilkårRequest(
+                    behandlingId = simulert.id,
+                    formuegrunnlag = simulert.vilkårsvurderinger.formue.grunnlag.toFormueRequestGrunnlag(),
+                    saksbehandler = saksbehandler,
+                    tidspunkt = fixedTidspunkt,
+                ),
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail().also { vilkårsvurdert ->
                 repo.lagre(vilkårsvurdert)
                 repo.hent(vilkårsvurdert.id) shouldBe vilkårsvurdert
@@ -351,15 +357,18 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 ),
                 sakstype = iverksatt.sakstype,
                 søknadsbehandlingsHistorikk = nySøknadsbehandlingshistorikk(
-                    listOf(
+                    nonEmptyListOf(
                         nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.StartetBehandling),
                         nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertStønadsperiode),
-                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertVilkår(Inngangsvilkår.Uførhet)),
-                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertVilkår(Inngangsvilkår.Opplysningsplikt)),
-                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertVilkår(Inngangsvilkår.Flyktning)),
-                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertVilkår(Inngangsvilkår.LovligOpphold)),
-                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertVilkår(Inngangsvilkår.FastOppholdINorge)),
-                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertVilkår(Inngangsvilkår.Institusjonsopphold)),
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertUførhet),
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertFlyktning),
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertLovligOpphold),
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertFastOppholdINorge),
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertInstitusjonsopphold),
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertUtenlandsopphold),
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.TattStillingTilEPS),
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertFormue),
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertPersonligOppmøte),
                         nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),
                     ),
                 ),

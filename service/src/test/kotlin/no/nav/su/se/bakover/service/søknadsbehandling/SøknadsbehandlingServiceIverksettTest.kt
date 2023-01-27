@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.assertions.throwables.shouldThrow
@@ -258,11 +259,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 søknadsbehandlingsHistorikk = nySøknadsbehandlingshistorikkSendtTilAttesteringAvslåttBeregning(
                     saksbehandler = avslagTilAttestering.saksbehandler,
                 ).leggTilNyeHendelser(
-                    listOf(
-                        nySøknadsbehandlingshendelse(
-                            saksbehandler = avslagTilAttestering.saksbehandler,
-                            handling = SøknadsbehandlingsHandling.OppdatertFradrag,
-                        ),
+                    nonEmptyListOf(
                         nySøknadsbehandlingshendelse(
                             saksbehandler = avslagTilAttestering.saksbehandler,
                             handling = SøknadsbehandlingsHandling.Beregnet,

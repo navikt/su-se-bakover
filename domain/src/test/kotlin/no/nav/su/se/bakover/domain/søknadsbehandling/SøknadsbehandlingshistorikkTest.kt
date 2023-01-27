@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.vilkår.Inngangsvilkår
 import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
 import org.junit.jupiter.api.Test
 
@@ -47,14 +47,14 @@ internal class SøknadsbehandlingshistorikkTest {
         Søknadsbehandlingshistorikk.nyHistorikk(
             nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.StartetBehandling),
         ).leggTilNyeHendelser(
-            listOf(
+            nonEmptyListOf(
                 nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertStønadsperiode),
-                nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertVilkår(Inngangsvilkår.Uførhet)),
+                nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertUførhet),
             ),
         ).let {
             it.historikk.size shouldBe 3
             it.historikk.first().handling shouldBe SøknadsbehandlingsHandling.StartetBehandling
-            it.historikk.last().handling shouldBe SøknadsbehandlingsHandling.OppdatertVilkår(Inngangsvilkår.Uførhet)
+            it.historikk.last().handling shouldBe SøknadsbehandlingsHandling.OppdatertUførhet
         }
     }
 }

@@ -146,7 +146,7 @@ private fun Søknadsbehandling.avslåPgaManglendeDokumentasjon(
     saksbehandler: NavIdentBruker.Saksbehandler,
     clock: Clock,
 ): Søknadsbehandling.Vilkårsvurdert.Avslag {
-    return leggTilOpplysningspliktVilkår(
+    return leggTilOpplysningspliktVilkårForSaksbehandler(
         opplysningspliktVilkår = OpplysningspliktVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(
                 VurderingsperiodeOpplysningsplikt.create(

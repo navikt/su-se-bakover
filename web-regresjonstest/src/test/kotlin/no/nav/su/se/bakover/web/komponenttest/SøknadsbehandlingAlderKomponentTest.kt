@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.domain.vilkår.uføre.UførevilkårStatus
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.UtenlandsoppholdStatus
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnrOver67
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.getOrFail
@@ -218,8 +219,9 @@ internal class SøknadsbehandlingAlderKomponentTest {
                             måInnhenteMerInformasjon = false,
                         ),
                     ),
+                    saksbehandler = saksbehandler,
+                    tidspunkt = fixedTidspunkt,
                 ),
-                saksbehandler = saksbehandler,
             )
             appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilUtenlandsopphold(
                 LeggTilFlereUtenlandsoppholdRequest(

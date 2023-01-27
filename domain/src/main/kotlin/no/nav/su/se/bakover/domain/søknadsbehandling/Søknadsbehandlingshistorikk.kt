@@ -1,11 +1,12 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
+import arrow.core.NonEmptyList
+import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.behandling.SaksbehandlingsHandling
 import no.nav.su.se.bakover.domain.behandling.Saksbehandlingshendelse
 import no.nav.su.se.bakover.domain.behandling.Saksbehandlingshistorikk
-import no.nav.su.se.bakover.domain.vilkår.Inngangsvilkår
 
 data class Søknadsbehandlingshendelse(
     override val tidspunkt: Tidspunkt,
@@ -20,28 +21,36 @@ data class Søknadsbehandlingshistorikk private constructor(
     override fun leggTilNyHendelse(saksbehandlingsHendelse: Søknadsbehandlingshendelse) =
         Søknadsbehandlingshistorikk(historikk.plus(saksbehandlingsHendelse))
 
-    override fun leggTilNyeHendelser(saksbehandlingsHendelse: List<Søknadsbehandlingshendelse>) =
+    override fun leggTilNyeHendelser(saksbehandlingsHendelse: NonEmptyList<Søknadsbehandlingshendelse>) =
         Søknadsbehandlingshistorikk(historikk.plus(saksbehandlingsHendelse))
 
     companion object {
-        fun nyHistorikk(hendelse: Søknadsbehandlingshendelse) = Søknadsbehandlingshistorikk(listOf(hendelse))
+        fun nyHistorikk(hendelse: Søknadsbehandlingshendelse) = Søknadsbehandlingshistorikk(nonEmptyListOf(hendelse))
 
-        fun createFromExisting(historikk: List<Søknadsbehandlingshendelse>) = Søknadsbehandlingshistorikk(historikk)
+        fun createFromExisting(historikk: List<Søknadsbehandlingshendelse>) =
+            Søknadsbehandlingshistorikk(historikk)
     }
 }
 
 sealed interface SøknadsbehandlingsHandling : SaksbehandlingsHandling {
     object StartetBehandling : SøknadsbehandlingsHandling
     object OppdatertStønadsperiode : SøknadsbehandlingsHandling
-    data class OppdatertVilkår(val inngangsvilkår: Inngangsvilkår) : SøknadsbehandlingsHandling
+    object OppdatertUførhet : SøknadsbehandlingsHandling
+    object OppdatertOpplysningsplikt : SøknadsbehandlingsHandling
+    object OppdatertFlyktning : SøknadsbehandlingsHandling
+    object OppdatertLovligOpphold : SøknadsbehandlingsHandling
+    object OppdatertInstitusjonsopphold : SøknadsbehandlingsHandling
+    object OppdatertUtenlandsopphold : SøknadsbehandlingsHandling
+    object OppdatertPersonligOppmøte : SøknadsbehandlingsHandling
+    object OppdatertFastOppholdINorge : SøknadsbehandlingsHandling
+    object OppdatertFormue : SøknadsbehandlingsHandling
 
     /**
      * Bruker får ja/nei spørsmål ved Formue-steget i frontend
      */
     object TattStillingTilEPS : SøknadsbehandlingsHandling
-    object OppdatertFormue : SøknadsbehandlingsHandling
-    object FullførBosituasjon : SøknadsbehandlingsHandling
-    object OppdatertFradrag : SøknadsbehandlingsHandling
+    object FullførtBosituasjon : SøknadsbehandlingsHandling
+    object OppdatertFradragsgrunnlag : SøknadsbehandlingsHandling
     object Beregnet : SøknadsbehandlingsHandling
     object Simulert : SøknadsbehandlingsHandling
     object SendtTilAttestering : SøknadsbehandlingsHandling

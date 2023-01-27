@@ -32,7 +32,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglende
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
-import no.nav.su.se.bakover.domain.vilkår.Inngangsvilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
@@ -165,7 +164,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                         ),
                         nySøknadsbehandlingshendelse(
                             saksbehandler = expectedSaksbehandler,
-                            handling = SøknadsbehandlingsHandling.OppdatertVilkår(Inngangsvilkår.Opplysningsplikt),
+                            handling = SøknadsbehandlingsHandling.OppdatertOpplysningsplikt,
                         ),
                         nySøknadsbehandlingshendelse(
                             saksbehandler = expectedSaksbehandler,
@@ -307,10 +306,10 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 ),
                 sakstype = sak.type,
                 søknadsbehandlingsHistorikk = vilkårsvurdertInnvilget.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
-                    listOf(
+                    nonEmptyListOf(
                         nySøknadsbehandlingshendelse(
                             saksbehandler = expectedSaksbehandler,
-                            handling = SøknadsbehandlingsHandling.OppdatertVilkår(Inngangsvilkår.Opplysningsplikt),
+                            handling = SøknadsbehandlingsHandling.OppdatertOpplysningsplikt,
                         ),
                         nySøknadsbehandlingshendelse(
                             saksbehandler = expectedSaksbehandler,

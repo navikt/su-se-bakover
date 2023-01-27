@@ -367,7 +367,7 @@ class RevurderingServiceImpl(
         val bosituasjon =
             revurdering.grunnlagsdata.bosituasjon as List<Grunnlag.Bosituasjon.Fullstendig>
 
-        val vilkår = request.toDomain(bosituasjon, revurdering.periode, clock, formuegrenserFactory).getOrElse {
+        val vilkår = request.toDomain(bosituasjon, revurdering.periode, formuegrenserFactory).getOrElse {
             return KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet(it).left()
         }
         return revurdering.oppdaterFormueOgMarkerSomVurdert(vilkår).mapLeft {

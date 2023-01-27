@@ -27,8 +27,8 @@ import no.nav.su.se.bakover.database.avkorting.toDomain
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
-import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingHistorikkJson.Companion.toDbJson
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB.Companion.status
+import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingshistorikkJson.Companion.toDbJson
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -451,7 +451,7 @@ internal class SøknadsbehandlingPostgresRepo(
         val simulering = deserializeNullable<Simulering>(stringOrNull("simulering"))
         val attesteringer = Attesteringshistorikk.create(deserializeList((string("attestering"))))
         val søknadsbehandlingHistorikk =
-            SøknadsbehandlingHistorikkJson.toSøknadsbehandlingsHistorikk(string("saksbehandling"))
+            SøknadsbehandlingshistorikkJson.toSøknadsbehandlingsHistorikk(string("saksbehandling"))
         val saksbehandler = NavIdentBruker.Saksbehandler(string("saksbehandler"))
         val saksnummer = Saksnummer(long("saksnummer"))
         val fritekstTilBrev = stringOrNull("fritekstTilBrev") ?: ""

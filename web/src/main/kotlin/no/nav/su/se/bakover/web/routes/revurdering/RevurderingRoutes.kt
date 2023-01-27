@@ -49,7 +49,7 @@ internal fun Route.revurderingRoutes(
 
     LeggTilBosituasjonRevurderingRoute(revurderingService, satsFactory)
 
-    leggTilFormueRevurderingRoute(revurderingService, satsFactory)
+    leggTilFormueRevurderingRoute(revurderingService, satsFactory, clock)
 
     hentGrunnlagRevurderingRoutes(sakService, satsFactory)
 

@@ -1,15 +1,16 @@
 package no.nav.su.se.bakover.test
 
+import arrow.core.NonEmptyList
+import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk
-import no.nav.su.se.bakover.domain.vilkår.Inngangsvilkår
 import java.time.Clock
 
 /**
- * @param clock ignorerer clock hvis vi sender med tidspunkt
+ * @param tidspunkt ignorerer clock hvis vi sender med tidspunkt
  */
 fun nySøknadsbehandlingshendelse(
     clock: Clock = fixedClock,
@@ -25,7 +26,7 @@ fun nySøknadsbehandlingshendelse(
 }
 
 fun nySøknadsbehandlingshistorikk(
-    historikk: List<Søknadsbehandlingshendelse> = listOf(nySøknadsbehandlingshendelse()),
+    historikk: NonEmptyList<Søknadsbehandlingshendelse> = nonEmptyListOf(nySøknadsbehandlingshendelse()),
 ): Søknadsbehandlingshistorikk {
     return Søknadsbehandlingshistorikk.createFromExisting(historikk)
 }
@@ -36,7 +37,7 @@ fun nySøknadsbehandlingshistorikkStartetBehandling(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
 ): Søknadsbehandlingshistorikk {
     return nySøknadsbehandlingshistorikk(
-        listOf(
+        nonEmptyListOf(
             Søknadsbehandlingshendelse(
                 tidspunkt = tidspunkt,
                 saksbehandler = saksbehandler,
@@ -66,36 +67,36 @@ fun nySøknadsbehandlingshistorikkAlleVilkår(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
 ): Søknadsbehandlingshistorikk {
     return nySøknadsbehandlingshistorikkOppdatertStønadsperiode().leggTilNyeHendelser(
-        listOf(
+        nonEmptyListOf(
             Søknadsbehandlingshendelse(
                 tidspunkt = tidspunkt,
                 saksbehandler = saksbehandler,
-                handling = SøknadsbehandlingsHandling.OppdatertVilkår(Inngangsvilkår.Uførhet),
+                handling = SøknadsbehandlingsHandling.OppdatertUførhet,
             ),
             Søknadsbehandlingshendelse(
                 tidspunkt = tidspunkt,
                 saksbehandler = saksbehandler,
-                handling = SøknadsbehandlingsHandling.OppdatertVilkår(Inngangsvilkår.Flyktning),
+                handling = SøknadsbehandlingsHandling.OppdatertFlyktning,
             ),
             Søknadsbehandlingshendelse(
                 tidspunkt = tidspunkt,
                 saksbehandler = saksbehandler,
-                handling = SøknadsbehandlingsHandling.OppdatertVilkår(Inngangsvilkår.LovligOpphold),
+                handling = SøknadsbehandlingsHandling.OppdatertLovligOpphold,
             ),
             Søknadsbehandlingshendelse(
                 tidspunkt = tidspunkt,
                 saksbehandler = saksbehandler,
-                handling = SøknadsbehandlingsHandling.OppdatertVilkår(Inngangsvilkår.FastOppholdINorge),
+                handling = SøknadsbehandlingsHandling.OppdatertFastOppholdINorge,
             ),
             Søknadsbehandlingshendelse(
                 tidspunkt = tidspunkt,
                 saksbehandler = saksbehandler,
-                handling = SøknadsbehandlingsHandling.OppdatertVilkår(Inngangsvilkår.Institusjonsopphold),
+                handling = SøknadsbehandlingsHandling.OppdatertInstitusjonsopphold,
             ),
             Søknadsbehandlingshendelse(
                 tidspunkt = tidspunkt,
                 saksbehandler = saksbehandler,
-                handling = SøknadsbehandlingsHandling.OppdatertVilkår(Inngangsvilkår.Utenlandsopphold),
+                handling = SøknadsbehandlingsHandling.OppdatertUtenlandsopphold,
             ),
             Søknadsbehandlingshendelse(
                 tidspunkt = tidspunkt,
@@ -105,12 +106,12 @@ fun nySøknadsbehandlingshistorikkAlleVilkår(
             Søknadsbehandlingshendelse(
                 tidspunkt = tidspunkt,
                 saksbehandler = saksbehandler,
-                handling = SøknadsbehandlingsHandling.OppdatertVilkår(Inngangsvilkår.Formue),
+                handling = SøknadsbehandlingsHandling.OppdatertFormue,
             ),
             Søknadsbehandlingshendelse(
                 tidspunkt = tidspunkt,
                 saksbehandler = saksbehandler,
-                handling = SøknadsbehandlingsHandling.OppdatertVilkår(Inngangsvilkår.PersonligOppmøte),
+                handling = SøknadsbehandlingsHandling.OppdatertPersonligOppmøte,
             ),
         ),
     )
@@ -126,16 +127,16 @@ fun nySøknadsbehandlingshistorikkAlleVilkårMedBosituasjonOgFradrag(
         tidspunkt,
         saksbehandler,
     ).leggTilNyeHendelser(
-        listOf(
+        nonEmptyListOf(
             Søknadsbehandlingshendelse(
                 tidspunkt = tidspunkt,
                 saksbehandler = saksbehandler,
-                handling = SøknadsbehandlingsHandling.FullførBosituasjon,
+                handling = SøknadsbehandlingsHandling.FullførtBosituasjon,
             ),
             Søknadsbehandlingshendelse(
                 tidspunkt = tidspunkt,
                 saksbehandler = saksbehandler,
-                handling = SøknadsbehandlingsHandling.OppdatertFradrag,
+                handling = SøknadsbehandlingsHandling.OppdatertFradragsgrunnlag,
             ),
         ),
     )

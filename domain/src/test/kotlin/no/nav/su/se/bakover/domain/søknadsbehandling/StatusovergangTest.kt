@@ -2,17 +2,21 @@ package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
+import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.test.attesteringUnderkjent
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
@@ -36,10 +40,8 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.trekkSøknad
 import no.nav.su.se.bakover.test.underkjentSøknadsbehandlingUføre
-import no.nav.su.se.bakover.test.vilkår.avslåttFormueVilkår
 import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårVurdertTilUavklart
-import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
@@ -232,10 +234,22 @@ internal class StatusovergangTest {
         fun `vilkårsvurdert innvilget til vilkårsvurdert innvilget`() {
             vilkårsvurdertSøknadsbehandlingUføre().also { (_, innvilget) ->
                 innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>().also {
-                    it.leggTilFormuevilkår(
-                        saksbehandler = saksbehandler,
-                        innvilgetFormueVilkår(),
-                        clock = fixedClock,
+                    it.leggTilFormuegrunnlag(
+                        request = LeggTilFormuevilkårRequest(
+                            behandlingId = innvilget.id,
+                            formuegrunnlag = nonEmptyListOf(
+                                LeggTilFormuevilkårRequest.Grunnlag.Søknadsbehandling(
+                                    periode = innvilget.periode,
+                                    epsFormue = null,
+                                    søkersFormue = Formuegrunnlag.Verdier.empty(),
+                                    begrunnelse = null,
+                                    måInnhenteMerInformasjon = false,
+                                ),
+                            ),
+                            saksbehandler = saksbehandler,
+                            tidspunkt = fixedTidspunkt,
+                        ),
+                        formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                     ).getOrFail().also {
                         it.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
                     }
@@ -262,7 +276,6 @@ internal class StatusovergangTest {
                     it.leggTilOpplysningspliktVilkår(
                         saksbehandler = saksbehandler,
                         utilstrekkeligDokumentert(),
-                        clock = fixedClock,
                     )
                         .getOrFail()
                         .also { avslag ->
@@ -307,10 +320,22 @@ internal class StatusovergangTest {
         fun `vilkårsvurdert avslag til vilkårsvurdert avslag`() {
             vilkårsvurdertSøknadsbehandlingUføre(customVilkår = listOf(avslåttUførevilkårUtenGrunnlag())).also { (_, avslag) ->
                 avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>().also {
-                    it.leggTilFormuevilkår(
-                        saksbehandler = saksbehandler,
-                        avslåttFormueVilkår(),
-                        clock = fixedClock,
+                    it.leggTilFormuegrunnlag(
+                        request = LeggTilFormuevilkårRequest(
+                            behandlingId = avslag.id,
+                            formuegrunnlag = nonEmptyListOf(
+                                LeggTilFormuevilkårRequest.Grunnlag.Søknadsbehandling(
+                                    periode = avslag.periode,
+                                    epsFormue = null,
+                                    søkersFormue = Formuegrunnlag.Verdier.empty(),
+                                    begrunnelse = null,
+                                    måInnhenteMerInformasjon = false,
+                                ),
+                            ),
+                            saksbehandler = saksbehandler,
+                            tidspunkt = fixedTidspunkt,
+                        ),
+                        formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                     ).getOrFail()
                         .also { avslag ->
                             avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
@@ -415,7 +440,6 @@ internal class StatusovergangTest {
                     simulert.leggTilOpplysningspliktVilkår(
                         saksbehandler = saksbehandler,
                         tilstrekkeligDokumentert(),
-                        clock = fixedClock,
                     )
                         .getOrFail()
                         .also { innvilget ->
@@ -432,7 +456,6 @@ internal class StatusovergangTest {
                     simulert.leggTilOpplysningspliktVilkår(
                         saksbehandler = saksbehandler,
                         utilstrekkeligDokumentert(),
-                        clock = fixedClock,
                     )
                         .getOrFail()
                         .also { avslag ->
@@ -449,7 +472,6 @@ internal class StatusovergangTest {
                     underkjent.leggTilOpplysningspliktVilkår(
                         saksbehandler = saksbehandler,
                         tilstrekkeligDokumentert(),
-                        clock = fixedClock,
                     )
                         .getOrFail()
                         .also { innvilget ->
@@ -517,7 +539,7 @@ internal class StatusovergangTest {
                 customGrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 50000.0)),
             ).also { (_, underkjent) ->
                 underkjent.shouldBeType<Søknadsbehandling.Underkjent.Avslag.MedBeregning>().also {
-                    underkjent.leggTilFradragsgrunnlag(
+                    underkjent.leggTilFradragsgrunnlagFraSaksbehandler(
                         saksbehandler = saksbehandler,
                         emptyList(),
                         clock = fixedClock,
@@ -563,10 +585,22 @@ internal class StatusovergangTest {
                     clock = fixedClock,
                 )
                     .shouldBeType<Either.Left<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFastOppholdINorgeVilkår.UgyldigTilstand>>()
-                it.leggTilFormuevilkår(
-                    saksbehandler = saksbehandler,
-                    avslåttFormueVilkår(),
-                    clock = fixedClock,
+                it.leggTilFormuegrunnlag(
+                    request = LeggTilFormuevilkårRequest(
+                        behandlingId = it.id,
+                        formuegrunnlag = nonEmptyListOf(
+                            LeggTilFormuevilkårRequest.Grunnlag.Søknadsbehandling(
+                                periode = it.periode,
+                                epsFormue = null,
+                                søkersFormue = Formuegrunnlag.Verdier.empty(),
+                                begrunnelse = null,
+                                måInnhenteMerInformasjon = false,
+                            ),
+                        ),
+                        saksbehandler = saksbehandler,
+                        tidspunkt = fixedTidspunkt,
+                    ),
+                    formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 ).shouldBeType<Either.Left<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår.UgyldigTilstand>>()
             }
         }
@@ -593,9 +627,7 @@ internal class StatusovergangTest {
                 nySaksbehandler = saksbehandler,
             ).getOrFail() shouldBe beregnetInnvilget.copy(
                 søknadsbehandlingsHistorikk = beregnetInnvilget.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
-                    listOf(
-                        // Hvor og hvorfor oppdaterer den fradragene? :thinkies:
-                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertFradrag),
+                    nonEmptyListOf(
                         nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.Beregnet),
                     ),
                 ),
@@ -611,9 +643,7 @@ internal class StatusovergangTest {
                 nySaksbehandler = saksbehandler,
             ).getOrFail() shouldBe beregnetAvslag.copy(
                 søknadsbehandlingsHistorikk = beregnetAvslag.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
-                    listOf(
-                        // Hvor og hvorfor oppdaterer den fradragene? :thinkies:
-                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertFradrag),
+                    nonEmptyListOf(
                         nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.Beregnet),
                     ),
                 ),
@@ -629,8 +659,7 @@ internal class StatusovergangTest {
                 nySaksbehandler = saksbehandler,
             ).getOrFail() shouldBe beregnetInnvilget.copy(
                 søknadsbehandlingsHistorikk = simulert.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
-                    listOf(
-                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertFradrag),
+                    nonEmptyListOf(
                         nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.Beregnet),
                     ),
                 ),
@@ -649,8 +678,7 @@ internal class StatusovergangTest {
                 .copy(
                     attesteringer = Attesteringshistorikk.create(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())),
                     søknadsbehandlingsHistorikk = underkjentAvslagBeregning.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
-                        listOf(
-                            nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertFradrag),
+                        nonEmptyListOf(
                             nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.Beregnet),
                         ),
                     ),
@@ -669,14 +697,12 @@ internal class StatusovergangTest {
                 .copy(
                     attesteringer = Attesteringshistorikk.create(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())),
                     søknadsbehandlingsHistorikk = beregnetInnvilget.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
-                        listOf(
+                        nonEmptyListOf(
                             nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.Simulert),
                             nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),
-                            nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertFradrag),
                             nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.Beregnet),
                         ),
                     ),
-
                 )
         }
 
