@@ -73,7 +73,7 @@ fun Sak.avslåSøknadPgaManglendeDokumentasjon(
                     attestant = NavIdentBruker.Attestant(command.saksbehandler.navIdent),
                     opprettet = Tidspunkt.now(clock),
                 ),
-                // For avslag pgr. manglende dokumentasjon vil saksbehandler og attestant være den samme.
+                // For avslag pga. manglende dokumentasjon vil saksbehandler og attestant være den samme.
                 saksbehandlerOgAttestantKanIkkeVæreDenSamme = false,
             ),
             lagDokument = lagDokument,

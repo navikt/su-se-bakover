@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.vilkår.uføre.UførevilkårStatus
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.stønadsperiode2021
-import no.nav.su.se.bakover.test.vilkår.formuevilkårAvslåttPgrBrukersformue
+import no.nav.su.se.bakover.test.vilkår.formuevilkårAvslåttPgaBrukersformue
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -27,7 +27,7 @@ internal class RevurderingLeggTilUføregrunnlagTest {
     fun `avslår uførhet, med avslått formue, gir feilmelding om at utfallet ikke støttes`() {
         val (sak, opprettetRevurdering) = opprettetRevurdering(
             vilkårOverrides = listOf(
-                formuevilkårAvslåttPgrBrukersformue(),
+                formuevilkårAvslåttPgaBrukersformue(),
             ),
         )
 

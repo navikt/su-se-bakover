@@ -65,7 +65,7 @@ import no.nav.su.se.bakover.test.tilAttesteringSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.underkjentSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vilkår.flyktningVilkårAvslått
-import no.nav.su.se.bakover.test.vilkår.formuevilkårAvslåttPgrBrukersformue
+import no.nav.su.se.bakover.test.vilkår.formuevilkårAvslåttPgaBrukersformue
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandling
@@ -192,7 +192,7 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager request for vilkårsvurdert avslag pga formue`() {
         vilkårsvurdertSøknadsbehandling(
-            customVilkår = listOf(formuevilkårAvslåttPgrBrukersformue()),
+            customVilkår = listOf(formuevilkårAvslåttPgaBrukersformue()),
         ).let { (sak, søknadsbehandling) ->
             søknadsbehandling.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
             LagBrevRequestVisitor(
@@ -797,7 +797,7 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager request for vedtak med avslått formue`() {
         val (_, søknadsbehandling, avslåttVedtak) = iverksattSøknadsbehandling(
-            customVilkår = listOf(formuevilkårAvslåttPgrBrukersformue()),
+            customVilkår = listOf(formuevilkårAvslåttPgaBrukersformue()),
             fritekstTilBrev = "Fritekst!",
         )
         søknadsbehandling.shouldBeType<Søknadsbehandling.Iverksatt.Avslag.UtenBeregning>()

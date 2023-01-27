@@ -405,7 +405,16 @@ data class Sak(
         periode: Periode,
         uteståendeAvkorting: AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting,
     ): Either<Unit, AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting> {
-        return if (!periode.inneholder(uteståendeAvkorting.avkortingsvarsel.periode())) Unit.left() else uteståendeAvkorting.right()
+        if (periode.inneholder(uteståendeAvkorting.avkortingsvarsel.periode())) {
+            // Vi revurderer hele den utestående avkortingsvarselet. Det er greit.
+            return uteståendeAvkorting.right()
+        }
+        if (periode.overlapper(uteståendeAvkorting.avkortingsvarsel.periode())) {
+            // Vi revurderer over deler av et utestående avkortingsvarsel. Det er ikke greit.
+            return Unit.left()
+        }
+        // Vi revurderer på utsiden av avkortingsvarselet. Det er greit.
+        return uteståendeAvkorting.right()
     }
 
     internal fun hentGjeldendeVedtaksdataOgSjekkGyldighetForRevurderingsperiode(

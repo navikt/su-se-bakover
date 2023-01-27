@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service.revurdering
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.desember
@@ -24,7 +23,6 @@ import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.beregnetRevurdering
@@ -48,7 +46,6 @@ import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
@@ -358,29 +355,6 @@ internal class RevurderingBeregnOgSimulerTest {
             verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe actual.revurdering }, anyOrNull())
             verify(serviceAndMocks.sakService).hentSakForRevurdering(argThat { it shouldBe underkjent.id })
             serviceAndMocks.verifyNoMoreInteractions()
-        }
-    }
-
-    @Test
-    fun `uavklarte vilkår kaster exception`() {
-        val (sak, opprettet) = opprettetRevurdering(
-            vilkårOverrides = listOf(
-                UføreVilkår.IkkeVurdert,
-            ),
-        )
-
-        assertThrows<IllegalStateException> {
-            RevurderingServiceMocks(
-                revurderingRepo = mock(),
-                sakService = mock {
-                    on { hentSakForRevurdering(any()) } doReturn sak
-                },
-            ).revurderingService.beregnOgSimuler(
-                revurderingId = opprettet.id,
-                saksbehandler = NavIdentBruker.Saksbehandler("s1"),
-            )
-        }.also {
-            it.message shouldContain "Et vurdert vilkår i revurdering kan ikke være uavklart"
         }
     }
 

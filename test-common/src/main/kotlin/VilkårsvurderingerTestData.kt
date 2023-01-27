@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårAvslag
 import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.flyktningVilkårAvslått
 import no.nav.su.se.bakover.test.vilkår.flyktningVilkårInnvilget
-import no.nav.su.se.bakover.test.vilkår.formuevilkårAvslåttPgrBrukersformue
+import no.nav.su.se.bakover.test.vilkår.formuevilkårAvslåttPgaBrukersformue
 import no.nav.su.se.bakover.test.vilkår.formuevilkårUtenEps0Innvilget
 import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
@@ -174,7 +174,7 @@ fun vilkårsvurderingerAvslåttAlleRevurdering(
     lovligOpphold: LovligOppholdVilkår = lovligOppholdVilkårAvslag(
         nonEmptyListOf(vurderingsperiodeLovligOppholdAvslag(vurderingsperiode = periode)),
     ),
-    formue: FormueVilkår = formuevilkårAvslåttPgrBrukersformue(
+    formue: FormueVilkår = formuevilkårAvslåttPgaBrukersformue(
         periode = periode,
         bosituasjon = bosituasjon.toList().toNonEmptyList(),
     ),
@@ -216,7 +216,7 @@ fun vilkårsvurderingerAvslåttAlle(
             periode = periode,
         ),
         utenlandsopphold = utenlandsoppholdAvslag(periode = periode),
-        formue = formuevilkårAvslåttPgrBrukersformue(
+        formue = formuevilkårAvslåttPgaBrukersformue(
             periode = periode,
             bosituasjon = bosituasjongrunnlagEnslig(periode = periode),
         ),

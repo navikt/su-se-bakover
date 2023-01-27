@@ -39,7 +39,7 @@ class AvslåSøknadManglendeDokumentasjonServiceImpl(
 
     private fun lagAvslg(command: AvslåManglendeDokumentasjonCommand): Either<KunneIkkeAvslåSøknad, IverksattAvslåttSøknadsbehandlingResponse> {
         return sakService.hentSakForSøknad(command.søknadId)
-            .getOrElse { throw IllegalArgumentException("Fant ikke søknad ${command.søknadId}. Kan ikke avslå søknad pgr. manglende dokumentasjon.") }
+            .getOrElse { throw IllegalArgumentException("Fant ikke søknad ${command.søknadId}. Kan ikke avslå søknad pga. manglende dokumentasjon.") }
             .avslåSøknadPgaManglendeDokumentasjon(
                 command = command,
                 clock = clock,

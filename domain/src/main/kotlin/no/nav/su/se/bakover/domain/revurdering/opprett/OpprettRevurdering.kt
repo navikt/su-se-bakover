@@ -51,8 +51,6 @@ fun Sak.opprettRevurdering(
             it
         },
         { uteståendeAvkorting ->
-            // TODO jah: Det fremstår som noe strengt at dersom det finnes en utestående avkorting, må vi revurdere den i sin helhet.
-            //  Dersom vi ikke overlapper med periode, bør vi kanskje få lov til å revurdere?
             kontrollerAtUteståendeAvkortingRevurderes(
                 periode = command.periode,
                 uteståendeAvkorting = uteståendeAvkorting,

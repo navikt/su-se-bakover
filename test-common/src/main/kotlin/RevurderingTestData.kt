@@ -41,6 +41,8 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
+import no.nav.su.se.bakover.domain.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.iverksett.IverksettInnvilgetRevurderingResponse
 import no.nav.su.se.bakover.domain.sak.iverksett.IverksettOpphørtRevurderingResponse
@@ -48,7 +50,17 @@ import no.nav.su.se.bakover.domain.sak.iverksett.IverksettRevurderingResponse
 import no.nav.su.se.bakover.domain.sak.iverksett.iverksettRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
+import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
+import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
+import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
+import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -137,65 +149,88 @@ fun opprettRevurderingFraSaksopplysninger(
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
 ): Pair<Sak, OpprettetRevurdering> {
-    val gjeldendeVedtaksdata = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVedtaksdata(
-        periode = revurderingsperiode,
-        clock = clock,
-    ).getOrFail()
-
-    val gjeldendeVedtak = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(revurderingsperiode.fraOgMed)
-        ?: throw IllegalStateException("Fant ingen gjeldende vedtak for fra og med dato for revurderingen: ${revurderingsperiode.fraOgMed}")
-
-    val grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
-        grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
-        vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
-    ).let {
-        GrunnlagsdataOgVilkårsvurderinger.Revurdering(
-            grunnlagsdata = grunnlagsdataOverrides.fold(it.grunnlagsdata) { acc, grunnlag ->
-                when (grunnlag) {
-                    is Grunnlag.Bosituasjon -> {
-                        acc.copy(bosituasjon = (acc.bosituasjon + grunnlag) - it.grunnlagsdata.bosituasjon.toSet())
-                    }
-
-                    is Grunnlag.Fradragsgrunnlag -> {
-                        acc.copy(fradragsgrunnlag = (acc.fradragsgrunnlag + grunnlag) - it.grunnlagsdata.fradragsgrunnlag.toSet())
-                    }
-
-                    else -> {
-                        // andre grunnlag legges til via sine respektive vilkår
-                        acc
-                    }
-                }
-            },
-            vilkårsvurderinger = vilkårOverrides.fold(it.vilkårsvurderinger) { acc, vilkår -> acc.leggTil(vilkår) },
-        )
+    vilkårOverrides.map { it::class }.let {
+        require(it == it.distinct())
     }
-    // TODO refaktorer slik at vi ikke får til å opprette med mismatch mellom periode og gjeldende data
-    val opprettetTidspunkt = Tidspunkt.now(clock)
-    val opprettetRevurdering = OpprettetRevurdering(
-        id = UUID.randomUUID(),
-        periode = revurderingsperiode,
-        opprettet = opprettetTidspunkt,
-        oppdatert = opprettetTidspunkt,
-        tilRevurdering = gjeldendeVedtak.id,
-        saksbehandler = saksbehandler,
-        oppgaveId = oppgaveIdRevurdering,
-        revurderingsårsak = revurderingsårsak,
-        grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
-        vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.tilVilkårsvurderingerRevurdering(),
-        informasjonSomRevurderes = informasjonSomRevurderes,
-        attesteringer = Attesteringshistorikk.empty(),
-        avkorting = sakOgVedtakSomKanRevurderes.first.hentUteståendeAvkortingForRevurdering().fold({ it }, { it }),
-        sakinfo = sakOgVedtakSomKanRevurderes.first.info(),
-    )
-    return Pair(
-        sakOgVedtakSomKanRevurderes.first.copy(
-            // For å støtte revurderinger av revurderinger (burde nok legge inn litt validering)
-            revurderinger = sakOgVedtakSomKanRevurderes.first.revurderinger + opprettetRevurdering,
+    require(vilkårOverrides.none { it.vurdering == Vurdering.Uavklart }) {
+        "Man kan ikke sende inn uavklarte vilkår til en revurdering. Den starter som utfylt(innvilget/avslag) også kan man overskrive de med nye vilkår som er innvilget/avslag, men ikke uavklart."
+    }
+    return sakOgVedtakSomKanRevurderes.first.opprettRevurdering(
+        command = OpprettRevurderingCommand(
+            sakId = sakOgVedtakSomKanRevurderes.first.id,
+            periode = revurderingsperiode,
+            årsak = revurderingsårsak.årsak.toString(),
+            begrunnelse = revurderingsårsak.begrunnelse.toString(),
+            saksbehandler = saksbehandler,
+            informasjonSomRevurderes = informasjonSomRevurderes.informasjonSomRevurderes.keys.toList(),
         ),
-        opprettetRevurdering,
-    )
+        clock = clock,
+    ).getOrFail().leggTilOppgaveId(oppgaveIdRevurdering).let { (sak, opprettetRevurdering) ->
+        opprettetRevurdering.let { or ->
+            vilkårOverrides.filterIsInstance<UføreVilkår.Vurdert>().firstOrNull()?.let {
+                or.oppdaterUføreOgMarkerSomVurdert(it).getOrFail()
+            } ?: or
+        }.let { or ->
+            vilkårOverrides.filterIsInstance<FlyktningVilkår.Vurdert>().firstOrNull()?.let {
+                or.oppdaterFlyktningvilkårOgMarkerSomVurdert(it).getOrFail()
+            } ?: or
+        }.let { or ->
+            grunnlagsdataOverrides.filterIsInstance<Grunnlag.Bosituasjon>().let {
+                if (it.isNotEmpty()) {
+                    @Suppress("UNCHECKED_CAST")
+                    or.oppdaterBosituasjonOgMarkerSomVurdert(it as List<Grunnlag.Bosituasjon.Fullstendig>).getOrFail()
+                } else {
+                    or
+                }
+            }
+        }.let { or ->
+            vilkårOverrides.filterIsInstance<FastOppholdINorgeVilkår.Vurdert>().firstOrNull()?.let {
+                or.oppdaterFastOppholdINorgeOgMarkerSomVurdert(it).getOrFail()
+            } ?: or
+        }.let { or ->
+            vilkårOverrides.filterIsInstance<FormueVilkår.Vurdert>().firstOrNull()?.let {
+                or.oppdaterFormueOgMarkerSomVurdert(it).getOrFail()
+            } ?: or
+        }.let { or ->
+            vilkårOverrides.filterIsInstance<UtenlandsoppholdVilkår.Vurdert>().firstOrNull()?.let {
+                or.oppdaterUtenlandsoppholdOgMarkerSomVurdert(it).getOrFail()
+            } ?: or
+        }.let { or ->
+            grunnlagsdataOverrides.filterIsInstance<Grunnlag.Fradragsgrunnlag>().let {
+                if (it.isNotEmpty()) {
+                    or.oppdaterFradragOgMarkerSomVurdert(it).getOrFail()
+                } else {
+                    or
+                }
+            }
+        }.let { or ->
+            vilkårOverrides.filterIsInstance<OpplysningspliktVilkår.Vurdert>().firstOrNull()?.let {
+                or.oppdaterOpplysningspliktOgMarkerSomVurdert(it).getOrFail()
+            } ?: or
+        }.let { or ->
+            vilkårOverrides.filterIsInstance<LovligOppholdVilkår.Vurdert>().firstOrNull()?.let {
+                or.oppdaterLovligOppholdOgMarkerSomVurdert(it).getOrFail()
+            } ?: or
+        }.let { or ->
+            vilkårOverrides.filterIsInstance<PersonligOppmøteVilkår.Vurdert>().firstOrNull()?.let {
+                or.oppdaterPersonligOppmøtevilkårOgMarkerSomVurdert(it).getOrFail()
+            } ?: or
+        }.let { or ->
+            vilkårOverrides.filterIsInstance<InstitusjonsoppholdVilkår.Vurdert>().firstOrNull()?.let {
+                or.oppdaterInstitusjonsoppholdOgMarkerSomVurdert(it).getOrFail()
+            } ?: or
+        }.let { r ->
+            sak.copy(
+                revurderinger = sak.revurderinger.filterNot { it.id == r.id }.plus(r),
+            ) to r
+        }
+    }
 }
 
+/**
+ * @param stønadsperiode brukes kun dersom [sakOgVedtakSomKanRevurderes] får default-verdi.
+ * @param sakOgVedtakSomKanRevurderes Dersom denne settes, ignoreres [stønadsperiode]
+ */
 fun opprettetRevurdering(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,

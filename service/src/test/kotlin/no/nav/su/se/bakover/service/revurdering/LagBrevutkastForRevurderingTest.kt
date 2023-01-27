@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service.revurdering
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
@@ -24,7 +23,6 @@ import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
-import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -209,28 +207,6 @@ internal class LagBrevutkastForRevurderingTest {
                 revurderingId = revurderingId,
                 fritekst = "",
             )
-        }
-    }
-
-    @Test
-    fun `uavklarte vilkår kaster exception`() {
-        val (sak, revurdering) = opprettetRevurdering(
-            vilkårOverrides = listOf(
-                formuevilkårIkkeVurdert(),
-            ),
-        )
-
-        assertThrows<IllegalStateException> {
-            RevurderingServiceMocks(
-                sakService = mock {
-                    on { hentSakForRevurdering(any()) } doReturn sak
-                },
-            ).also {
-                it.revurderingService.beregnOgSimuler(
-                    revurderingId = revurdering.id,
-                    saksbehandler = NavIdentBruker.Saksbehandler("s1"),
-                )
-            }
         }
     }
 }
