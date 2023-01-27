@@ -2,7 +2,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 plugins {
     kotlin("jvm")
-    id("com.diffplug.spotless") version "6.13.0"
+    id("com.diffplug.spotless") version "6.14.0"
 }
 
 version = "0.0.1"
