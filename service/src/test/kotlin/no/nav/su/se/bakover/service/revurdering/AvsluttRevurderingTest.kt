@@ -23,10 +23,10 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
-import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
-import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -41,7 +41,7 @@ internal class AvsluttRevurderingTest {
 
     @Test
     fun `avslutter en revurdering som ikke skal bli forhåndsvarslet`() {
-        val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
+        val opprettetRevurdering = opprettetRevurdering().second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering
@@ -101,7 +101,7 @@ internal class AvsluttRevurderingTest {
 
     @Test
     fun `får feil dersom generering av brev feiler når man avslutter revurdering`() {
-        val simulert = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
+        val simulert = simulertRevurdering().second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn simulert
@@ -299,7 +299,9 @@ internal class AvsluttRevurderingTest {
             saksbehandler = saksbehandler,
         )
 
-        actual shouldBe KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse(KunneIkkeLageAvsluttetGjenopptaAvYtelse.RevurderingenErIverksatt)
+        actual shouldBe KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse(
+            KunneIkkeLageAvsluttetGjenopptaAvYtelse.RevurderingenErIverksatt,
+        )
             .left()
         verify(revurderingRepoMock).hent(argThat { it shouldBe gjenopptaYtelse.id })
         verifyNoMoreInteractions(revurderingRepoMock)

@@ -31,7 +31,7 @@ import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
-import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.simulertRevurdering
 import org.mockito.kotlin.mock
 import java.time.Clock
 import java.time.LocalDate
@@ -129,10 +129,10 @@ internal object RevurderingTestUtils {
      * - Simulering: no.nav.su.se.bakover.test.simulering()
      */
     internal val simulertRevurderingInnvilget: SimulertRevurdering.Innvilget =
-        simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+        simulertRevurdering(
             stønadsperiode = stønadsperiodeNesteMånedOgTreMånederFram,
             revurderingsperiode = stønadsperiodeNesteMånedOgTreMånederFram.periode,
-        ).second
+        ).second as SimulertRevurdering.Innvilget
 }
 
 internal fun Grunnlag.Uføregrunnlag.ekvivalentMed(other: Grunnlag.Uføregrunnlag) {

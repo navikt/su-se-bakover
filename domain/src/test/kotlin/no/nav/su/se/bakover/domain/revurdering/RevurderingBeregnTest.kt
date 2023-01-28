@@ -4,7 +4,6 @@ import arrow.core.left
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
@@ -18,7 +17,6 @@ import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -26,25 +24,17 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
-import no.nav.su.se.bakover.domain.sak.Saksnummer
-import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
-import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.opprettetRevurdering
-import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.sakMedUteståendeAvkorting
-import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -55,7 +45,6 @@ import no.nav.su.se.bakover.test.vilkår.avslåttFormueVilkår
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.mock
 import java.util.UUID
 import kotlin.math.abs
 
@@ -198,7 +187,7 @@ internal class RevurderingBeregnTest {
 
     @Test
     fun `beregning som fører til beløp lik 0 gir opphør - g regulering`() {
-        opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+        opprettetRevurdering(
             revurderingsårsak = Revurderingsårsak.create(
                 årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.toString(),
                 begrunnelse = "a",
@@ -230,7 +219,7 @@ internal class RevurderingBeregnTest {
 
     @Test
     fun `beregning som fører til beløp lik 0 gir opphør`() {
-        opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().let { (sak, revurdering) ->
+        opprettetRevurdering().let { (sak, revurdering) ->
             revurdering.oppdaterFradragOgMarkerSomVurdert(
                 fradragsgrunnlag = listOf(
                     fradragsgrunnlagArbeidsinntekt(
@@ -257,7 +246,7 @@ internal class RevurderingBeregnTest {
 
     @Test
     fun `beregning som fører til beløp under minstegrense gir opphør`() {
-        opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().let { (sak, revurdering) ->
+        opprettetRevurdering().let { (sak, revurdering) ->
             revurdering.oppdaterFradragOgMarkerSomVurdert(
                 fradragsgrunnlag = listOf(
                     fradragsgrunnlagArbeidsinntekt(
@@ -592,37 +581,6 @@ internal class RevurderingBeregnTest {
             ) shouldBe KunneIkkeBeregneRevurdering.OpphørAvYtelseSomSkalAvkortes.left()
         }
     }
-
-    private fun lagUtbetaling(
-        vararg utbetalingslinjer: Utbetalingslinje,
-    ) = Utbetaling.UtbetalingForSimulering(
-        opprettet = fixedTidspunkt,
-        sakId = UUID.randomUUID(),
-        saksnummer = Saksnummer(9999),
-        fnr = Fnr.generer(),
-        utbetalingslinjer = utbetalingslinjer.toList().toNonEmptyList(),
-        behandler = mock(),
-        avstemmingsnøkkel = mock(),
-        sakstype = Sakstype.UFØRE,
-    ).toSimulertUtbetaling(
-        simulering = mock(),
-    ).toOversendtUtbetaling(
-        oppdragsmelding = mock(),
-    ).toKvittertUtbetaling(
-        kvittering = mock(),
-    )
-
-    private fun lagUtbetalingslinje(
-        @Suppress("SameParameterValue") månedsbeløp: Int,
-        periode: Periode,
-    ) = Utbetalingslinje.Ny(
-        opprettet = fixedTidspunkt,
-        fraOgMed = periode.fraOgMed,
-        tilOgMed = periode.tilOgMed,
-        forrigeUtbetalingslinjeId = null,
-        beløp = månedsbeløp,
-        uføregrad = Uføregrad.parse(50),
-    )
 
     private fun over10ProsentEndring(
         nyBeregning: Beregning,

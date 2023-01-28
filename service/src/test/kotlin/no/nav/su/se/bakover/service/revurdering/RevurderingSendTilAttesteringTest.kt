@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.service.revurdering
 
-import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -42,13 +41,12 @@ import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEpsAvslått
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
-import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.simulertRevurdering
-import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
@@ -67,14 +65,14 @@ internal class RevurderingSendTilAttesteringTest {
 
     @Test
     fun `sender til attestering`() {
-        val (sak, simulertRevurdering) = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+        val (sak, simulertRevurdering) = simulertRevurdering(
             stønadsperiode = stønadsperiode2021,
             revurderingsperiode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 30.september(2021)),
         )
 
         RevurderingServiceMocks(
             revurderingRepo = mock {
-                on { hent(revurderingId) } doReturn simulertRevurdering
+                on { hent(any()) } doReturn simulertRevurdering
             },
             personService = mock {
                 on { hentAktørId(any()) } doReturn aktørId.right()
@@ -96,7 +94,7 @@ internal class RevurderingSendTilAttesteringTest {
                     revurderingId = simulertRevurdering.id,
                     saksbehandler = saksbehandler,
                 ),
-            ).getOrElse { throw RuntimeException(it.toString()) }
+            ).getOrFail()
 
             inOrder(it.revurderingRepo, it.personService, it.oppgaveService, it.observer) {
                 verify(it.revurderingRepo).hent(argThat { it shouldBe simulertRevurdering.id })
@@ -129,7 +127,7 @@ internal class RevurderingSendTilAttesteringTest {
 
     @Test
     fun `sender ikke til attestering hvis revurdering er ikke simulert`() {
-        val (sak, opprettetRevurdering) = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak()
+        val (sak, opprettetRevurdering) = opprettetRevurdering()
 
         RevurderingServiceMocks(
             revurderingRepo = mock {
@@ -154,14 +152,14 @@ internal class RevurderingSendTilAttesteringTest {
                 RevurderingTilAttestering::class,
             ).left()
 
-            verify(it.revurderingRepo).hent(revurderingId)
+            verify(it.revurderingRepo).hent(opprettetRevurdering.id)
             verifyNoMoreInteractions(it.revurderingRepo)
         }
     }
 
     @Test
     fun `sender ikke til attestering hvis henting av aktørId feiler`() {
-        val (sak, revurdering) = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+        val (sak, revurdering) = simulertRevurdering(
             stønadsperiode = stønadsperiode2021,
             revurderingsperiode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 30.september(2021)),
         )
@@ -201,7 +199,7 @@ internal class RevurderingSendTilAttesteringTest {
 
     @Test
     fun `sender ikke til attestering hvis oppretting av oppgave feiler`() {
-        val (sak, revurdering) = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+        val (sak, revurdering) = simulertRevurdering(
             stønadsperiode = stønadsperiode2021,
             revurderingsperiode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 30.september(2021)),
         )
@@ -302,7 +300,8 @@ internal class RevurderingSendTilAttesteringTest {
                     revurderingId = revurderingId,
                     saksbehandler = saksbehandler,
                 ),
-            ) shouldBe KunneIkkeSendeRevurderingTilAttestering.FeilInnvilget(SimulertRevurdering.KunneIkkeSendeInnvilgetRevurderingTilAttestering.TilbakekrevingsbehandlingErIkkeFullstendig).left()
+            ) shouldBe KunneIkkeSendeRevurderingTilAttestering.FeilInnvilget(SimulertRevurdering.KunneIkkeSendeInnvilgetRevurderingTilAttestering.TilbakekrevingsbehandlingErIkkeFullstendig)
+                .left()
         }
     }
 
@@ -460,7 +459,7 @@ internal class RevurderingSendTilAttesteringTest {
 
     @Test
     fun `får ikke sendt til attestering dersom det eksisterer åpne kravgrunnlag for sak`() {
-        val (sak, simulert) = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak()
+        val (sak, simulert) = simulertRevurdering()
         RevurderingServiceMocks(
             revurderingRepo = mock {
                 on { hent(any()) } doReturn simulert

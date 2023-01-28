@@ -54,7 +54,7 @@ import no.nav.su.se.bakover.test.simulerGjenopptak
 import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
-import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.utbetalingsRequest
@@ -270,7 +270,7 @@ internal class GjenopptakAvYtelseServiceTest {
 
     @Test
     fun `svarer med feil dersom revurdering ikke er av korrekt type`() {
-        val (sak, enRevurdering) = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak()
+        val (sak, enRevurdering) = simulertRevurdering()
 
         ServiceMocks(
             sakService = mock {
