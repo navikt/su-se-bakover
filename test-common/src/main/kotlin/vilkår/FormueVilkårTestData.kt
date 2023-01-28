@@ -84,7 +84,7 @@ fun formuevilkårMedEps0Innvilget(
     )
 }
 
-fun formuevilkårAvslåttPgrBrukersformue(
+fun formuevilkårAvslåttPgaBrukersformue(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(
@@ -109,7 +109,7 @@ fun formuevilkårAvslåttPgrBrukersformue(
     )
 }
 
-fun formuevilkårAvslåttPgrBrukersformue(
+fun formuevilkårAvslåttPgaBrukersformue(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
     bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig>,

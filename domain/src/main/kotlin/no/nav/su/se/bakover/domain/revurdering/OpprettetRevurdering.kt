@@ -65,36 +65,50 @@ data class OpprettetRevurdering(
         utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
     ) = oppdaterUtenlandsoppholdOgMarkerSomVurdertInternal(utenlandsopphold)
 
-    override fun oppdaterFormueOgMarkerSomVurdert(formue: FormueVilkår.Vurdert): Either<KunneIkkeLeggeTilFormue, OpprettetRevurdering> =
+    override fun oppdaterFormueOgMarkerSomVurdert(
+        formue: FormueVilkår.Vurdert,
+    ): Either<KunneIkkeLeggeTilFormue, OpprettetRevurdering> =
         oppdaterFormueOgMarkerSomVurdertInternal(formue)
 
     override fun oppdaterFradragOgMarkerSomVurdert(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>) =
         oppdaterFradragOgMarkerSomVurdertInternal(fradragsgrunnlag)
 
-    override fun oppdaterPensjonsvilkårOgMarkerSomVurdert(vilkår: PensjonsVilkår.Vurdert): Either<KunneIkkeLeggeTilPensjonsVilkår, OpprettetRevurdering> {
+    override fun oppdaterPensjonsvilkårOgMarkerSomVurdert(
+        vilkår: PensjonsVilkår.Vurdert,
+    ): Either<KunneIkkeLeggeTilPensjonsVilkår, OpprettetRevurdering> {
         return oppdaterPensjonsVilkårOgMarkerSomVurdertInternal(vilkår)
     }
 
-    override fun oppdaterFlyktningvilkårOgMarkerSomVurdert(vilkår: FlyktningVilkår.Vurdert): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
+    override fun oppdaterFlyktningvilkårOgMarkerSomVurdert(
+        vilkår: FlyktningVilkår.Vurdert,
+    ): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
         return oppdaterFlyktningVilkårOgMarkerSomVurdertInternal(vilkår)
     }
 
-    override fun oppdaterPersonligOppmøtevilkårOgMarkerSomVurdert(vilkår: PersonligOppmøteVilkår.Vurdert): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, OpprettetRevurdering> {
+    override fun oppdaterPersonligOppmøtevilkårOgMarkerSomVurdert(
+        vilkår: PersonligOppmøteVilkår.Vurdert,
+    ): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, OpprettetRevurdering> {
         return oppdaterPersonligOppmøteVilkårOgMarkerSomVurdertInternal(vilkår)
     }
 
     override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>) =
         oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon)
 
-    override fun oppdaterOpplysningspliktOgMarkerSomVurdert(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysningsplikt, OpprettetRevurdering> {
+    override fun oppdaterOpplysningspliktOgMarkerSomVurdert(
+        opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
+    ): Either<KunneIkkeLeggeTilOpplysningsplikt, OpprettetRevurdering> {
         return oppdaterOpplysnigspliktOgMarkerSomVurdertInternal(opplysningspliktVilkår)
     }
 
-    override fun oppdaterLovligOppholdOgMarkerSomVurdert(lovligOppholdVilkår: LovligOppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold, OpprettetRevurdering> {
+    override fun oppdaterLovligOppholdOgMarkerSomVurdert(
+        lovligOppholdVilkår: LovligOppholdVilkår.Vurdert,
+    ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold, OpprettetRevurdering> {
         return oppdaterLovligOppholdOgMarkerSomVurdertInternal(lovligOppholdVilkår)
     }
 
-    override fun oppdaterInstitusjonsoppholdOgMarkerSomVurdert(institusjonsoppholdVilkår: InstitusjonsoppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, OpprettetRevurdering> {
+    override fun oppdaterInstitusjonsoppholdOgMarkerSomVurdert(
+        institusjonsoppholdVilkår: InstitusjonsoppholdVilkår.Vurdert,
+    ): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, OpprettetRevurdering> {
         return oppdaterInstitusjonsoppholdOgMarkerSomVurdertInternal(institusjonsoppholdVilkår)
     }
 
@@ -102,6 +116,10 @@ data class OpprettetRevurdering(
         return copy(informasjonSomRevurderes = informasjonSomRevurderes)
     }
 
+    /**
+     * Ikke ment å bli kalt som saksbehandler.
+     * Bruk heller [oppdaterFradragOgMarkerSomVurdert]
+     */
     override fun oppdaterFradrag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> {
         return oppdaterFradragInternal(fradragsgrunnlag)
     }

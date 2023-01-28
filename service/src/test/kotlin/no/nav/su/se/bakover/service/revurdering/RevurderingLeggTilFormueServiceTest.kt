@@ -15,8 +15,6 @@ import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.toNonEmptyList
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
@@ -29,7 +27,6 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.revurdering.opphør.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.service.argThat
@@ -37,13 +34,11 @@ import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.epsFnr
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.shouldBeType
-import no.nav.su.se.bakover.test.stønadsperiode2021
-import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
+import no.nav.su.se.bakover.test.vilkår.formuevilkårAvslåttPgaBrukersformue
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -60,27 +55,12 @@ internal class RevurderingLeggTilFormueServiceTest {
     fun `legg til revurdering av formue happy case`() {
         val nyFormue = LeggTilFormuevilkårRequest.Grunnlag.Revurdering(
             periode = år(2021),
-            epsFormue = Formuegrunnlag.Verdier.empty(),
+            epsFormue = null,
             søkersFormue = Formuegrunnlag.Verdier.empty(),
             begrunnelse = null,
         )
         val (sak, opprettet) = opprettetRevurdering(
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Formue)),
-            grunnlagsdataOverrides = listOf(
-                lagFradragsgrunnlag(
-                    type = Fradragstype.Arbeidsinntekt,
-                    månedsbeløp = 10000.0,
-                    periode = år(2021),
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-                Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
-                    id = UUID.randomUUID(),
-                    fnr = epsFnr,
-                    opprettet = fixedTidspunkt,
-                    periode = år(2021),
-                ),
-            ),
         )
 
         RevurderingServiceMocks(
@@ -310,19 +290,12 @@ internal class RevurderingLeggTilFormueServiceTest {
     @Test
     fun `når formue blir avslått, og uførhet er det også, får vi feil om at utfallet ikke støttes pga opphør av flere vilkår`() {
         val (sak, opprettet) = opprettetRevurdering(
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Uførhet, Revurderingsteg.Formue)),
             vilkårOverrides = listOf(
                 avslåttUførevilkårUtenGrunnlag(
                     periode = år(2021),
                 ),
-                formuevilkårIkkeVurdert(),
-                UtenlandsoppholdVilkår.IkkeVurdert,
-            ),
-            grunnlagsdataOverrides = listOf(
-                Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                    id = UUID.randomUUID(),
-                    opprettet = fixedTidspunkt,
-                    periode = stønadsperiode2021.periode,
-                ),
+                formuevilkårAvslåttPgaBrukersformue(),
             ),
         )
 

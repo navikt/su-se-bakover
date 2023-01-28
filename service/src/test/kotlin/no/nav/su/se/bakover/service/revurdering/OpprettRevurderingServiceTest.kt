@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
@@ -614,7 +615,7 @@ internal class OpprettRevurderingServiceTest {
                     periode = Periode.create(1.juni(2021), 31.desember(2021)),
                 ),
             ),
-            utbetalingerKjørtTilOgMed = 1.juli(2021),
+            utbetalingerKjørtTilOgMed = 1.august(2021),
         )
         val nyRevurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021))
 
@@ -636,7 +637,7 @@ internal class OpprettRevurderingServiceTest {
                     informasjonSomRevurderes = listOf(Revurderingsteg.Utenlandsopphold),
                 ),
             ) shouldBe KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
-                juni(2021),
+                juni(2021)..juli(2021),
             ).left()
         }
     }

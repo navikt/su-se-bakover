@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
@@ -293,11 +294,11 @@ internal class OppdaterRevurderingServiceTest {
     @Test
     fun `kan ikke revurdere perioder hvor det ikke eksisterer vedtak for alle månedene i revurderingsperioden`() {
         val sakMedFørstegangsbehandling = iverksattSøknadsbehandlingUføre(
-            stønadsperiode = Stønadsperiode.create(januar(2021).rangeTo(juli(2021))),
+            stønadsperiode = Stønadsperiode.create(januar(2021)..juli(2021)),
         )
 
         val sakMedNyStønadsperiode = iverksattSøknadsbehandlingUføre(
-            stønadsperiode = Stønadsperiode.create(januar(2022).rangeTo(desember(2022))),
+            stønadsperiode = Stønadsperiode.create(januar(2022)..desember(2022)),
             sakOgSøknad = sakMedFørstegangsbehandling.first to nySøknadJournalførtMedOppgave(
                 sakId = sakMedFørstegangsbehandling.first.id,
                 søknadInnhold = søknadinnholdUføre(
@@ -308,6 +309,8 @@ internal class OppdaterRevurderingServiceTest {
 
         val opprettetRevurdering = opprettetRevurdering(
             sakOgVedtakSomKanRevurderes = sakMedNyStønadsperiode.first to sakMedNyStønadsperiode.third as VedtakSomKanRevurderes,
+            // Setter en lovlig periode ved opprettelse for ikke å feile allerede her.
+            revurderingsperiode = januar(2021)..juli(2021),
         )
 
         RevurderingServiceMocks(
@@ -399,6 +402,7 @@ internal class OppdaterRevurderingServiceTest {
         val clock = TikkendeKlokke(fixedClock)
         val (sak1, opphørUtenlandsopphold) = vedtakRevurdering(
             clock = clock,
+            stønadsperiode = stønadsperiode2021,
             revurderingsperiode = Periode.create(1.juni(2021), 31.desember(2021)),
             vilkårOverrides = listOf(
                 utenlandsoppholdAvslag(
@@ -407,11 +411,15 @@ internal class OppdaterRevurderingServiceTest {
                     periode = Periode.create(1.juni(2021), 31.desember(2021)),
                 ),
             ),
-            utbetalingerKjørtTilOgMed = 1.juli(2021),
+            // Det vil si vi får avkorting for juni og juli.
+            utbetalingerKjørtTilOgMed = 1.august(2021),
         )
+        // Dersom vi revurderer over juli, må vi og revurdere over juni, hvis ikke skal vi få en feilmelding.
         val nyRevurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021))
 
         val (sak2, nyRevurdering) = opprettetRevurdering(
+            // Setter en periode vi er trygg på er lovlig.
+            revurderingsperiode = år(2021),
             sakOgVedtakSomKanRevurderes = sak1 to opphørUtenlandsopphold,
         )
         RevurderingServiceMocks(
@@ -432,7 +440,7 @@ internal class OppdaterRevurderingServiceTest {
                     informasjonSomRevurderes = listOf(Revurderingsteg.Utenlandsopphold),
                 ),
             ) shouldBe KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
-                juni(2021),
+                juni(2021)..juli(2021),
             ).left()
         }
     }

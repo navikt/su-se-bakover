@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import java.util.UUID
 
 /**
- * @param saksbehandlerOgAttestantKanIkkeVæreDenSamme Ved avslag pgr. manglende dokumentasjon vil saksbehandler og attestant være den samme.
+ * @param saksbehandlerOgAttestantKanIkkeVæreDenSamme Ved avslag pga. manglende dokumentasjon vil saksbehandler og attestant være den samme.
  */
 data class IverksettSøknadsbehandlingCommand(
     val behandlingId: UUID,

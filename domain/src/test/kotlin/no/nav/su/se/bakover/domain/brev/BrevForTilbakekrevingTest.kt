@@ -40,7 +40,7 @@ import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.vedtakRevurdering
-import no.nav.su.se.bakover.test.vilkår.formuevilkårAvslåttPgrBrukersformue
+import no.nav.su.se.bakover.test.vilkår.formuevilkårAvslåttPgaBrukersformue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -62,7 +62,7 @@ class BrevForTilbakekrevingTest {
 
     private fun simulertOpphørTilbakekreving(): Pair<Sak, SimulertRevurdering.Opphørt> = simulertRevurdering(
         vilkårOverrides = listOf(
-            formuevilkårAvslåttPgrBrukersformue(
+            formuevilkårAvslåttPgaBrukersformue(
                 periode = år(2021),
                 bosituasjon = bosituasjongrunnlagEnslig(
                     periode = år(2021),
