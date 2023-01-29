@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilUtenlandsopphold
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.domain.revurdering.RevurderingService
-import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
@@ -56,7 +56,7 @@ internal class LeggTilUtenlandsoppholdRevurderingRouteKtTest {
 
     @Test
     fun `happy case`() {
-        val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
+        val opprettetRevurdering = opprettetRevurdering().second
 
         val revurderingServiceMock = mock<RevurderingService> {
             on { leggTilUtenlandsopphold(any()) } doReturn RevurderingOgFeilmeldingerResponse(

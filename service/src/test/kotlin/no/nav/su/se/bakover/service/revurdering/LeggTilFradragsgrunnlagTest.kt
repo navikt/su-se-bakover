@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
-import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingId
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -26,7 +26,7 @@ internal class LeggTilFradragsgrunnlagTest {
 
     @Test
     fun `lagreFradrag happy case`() {
-        val (sak, eksisterendeRevurdering) = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak()
+        val (sak, eksisterendeRevurdering) = opprettetRevurdering()
 
         RevurderingServiceMocks(
             revurderingRepo = mock {

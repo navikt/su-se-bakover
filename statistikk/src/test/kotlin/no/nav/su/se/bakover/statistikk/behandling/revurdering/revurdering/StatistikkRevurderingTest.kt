@@ -4,6 +4,8 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.GitCommit
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
@@ -14,12 +16,10 @@ import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.revurderingUnderkjent
 import no.nav.su.se.bakover.test.tikkendeFixedClock
-import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
@@ -28,6 +28,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.skyscreamer.jsonassert.JSONAssert
+import java.time.ZoneOffset
 
 internal class StatistikkRevurderingTest {
 
@@ -35,11 +36,12 @@ internal class StatistikkRevurderingTest {
     fun `publiserer opprettet revurdering`() {
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Revurdering.Opprettet(
-                revurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second,
+                revurdering = opprettetRevurdering().second,
             ),
             behandlingStatus = "REGISTRERT",
             behandlingStatusBeskrivelse = "Vi har registrert en søknad, klage, revurdering, stans, gjenopptak eller lignende i systemet. Mottatt tidspunkt kan ha skjedd på et tidligere tidspunkt, som f.eks. ved papirsøknad og klage.",
             behandlingYtelseDetaljer = "[]",
+            funksjonellTid = "2021-01-01T01:02:34.456789Z",
         )
     }
 
@@ -47,7 +49,7 @@ internal class StatistikkRevurderingTest {
     fun `publiserer innvilget revurdering til attestering`() {
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Revurdering.TilAttestering.Innvilget(
-                revurdering = tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second,
+                revurdering = revurderingTilAttestering().second as RevurderingTilAttestering.Innvilget,
             ),
             behandlingStatus = "TIL_ATTESTERING",
             behandlingStatusBeskrivelse = "Saksbehandler har sendt behandlingen videre til beslutter/attestant/saksbehandler2 som må velge og enten underkjenne(sendes tilbake til saksbehandler) eller iverksette (ferdigbehandler) den.",
@@ -58,7 +60,10 @@ internal class StatistikkRevurderingTest {
 
     @Test
     fun `publiserer opphørt revurdering til attestering`() {
-        val revurdering = revurderingTilAttestering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag())).second as RevurderingTilAttestering.Opphørt
+        val revurdering =
+            revurderingTilAttestering(
+                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
+            ).second as RevurderingTilAttestering.Opphørt
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Revurdering.TilAttestering.Opphør(
                 revurdering = revurdering,
@@ -73,15 +78,17 @@ internal class StatistikkRevurderingTest {
 
     @Test
     fun `publiserer innvilget underkjent revurdering`() {
+        val revurdering = revurderingUnderkjent().second as UnderkjentRevurdering.Innvilget
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Revurdering.Underkjent.Innvilget(
-                revurdering = underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second,
+                revurdering = revurdering,
             ),
             behandlingStatus = "UNDERKJENT",
             behandlingStatusBeskrivelse = "beslutter/attestant/saksbehandler2 har sendt saken tilbake til saksbehandler.",
             resultat = "INNVILGET",
             resultatBeskrivelse = "Behandlingen har blitt innvilget. Dette gjelder søknadsbehandling, revurdering og regulering.",
             beslutter = "attestant",
+            funksjonellTid = revurdering.prøvHentSisteAttestering()!!.opprettet.toString(),
         )
     }
 
@@ -145,7 +152,9 @@ internal class StatistikkRevurderingTest {
     fun `publiserer avsluttet revurdering`() {
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Revurdering.Avsluttet(
-                revurdering = avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second,
+                revurdering = avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+                    tidspunktAvsluttet = 2.januar(2022).startOfDay(ZoneOffset.UTC),
+                ).second,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvsluttet"),
             ),
             behandlingStatus = "AVSLUTTET",
@@ -155,6 +164,7 @@ internal class StatistikkRevurderingTest {
             avsluttet = true,
             totrinnsbehandling = false,
             saksbehandler = "saksbehandlerSomAvsluttet",
+            funksjonellTid = "2022-01-02T00:00:00Z",
         )
     }
 

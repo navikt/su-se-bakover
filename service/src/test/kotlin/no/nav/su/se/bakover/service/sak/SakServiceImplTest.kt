@@ -18,18 +18,18 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjon
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.person
+import no.nav.su.se.bakover.test.revurderingTilAttestering
+import no.nav.su.se.bakover.test.revurderingUnderkjent
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksbehandlerNavn
-import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.tikkendeFixedClock
-import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
@@ -181,22 +181,22 @@ internal class SakServiceImplTest {
 
         val clock = tikkendeFixedClock()
 
-        val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+        val opprettetRevurdering = opprettetRevurdering(
             saksnummer = saknr1,
             clock = clock,
         ).second
-        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+        val simulertRevurdering = simulertRevurdering(
             saksnummer = saknr1,
             clock = clock,
         ).second
 
         val underkjentInnvilgetRevurdering =
-            underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+            revurderingUnderkjent(
                 saksnummer = saknr2,
                 clock = clock,
             ).second
         val tilAttesteringRevurdering =
-            tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+            revurderingTilAttestering(
                 saksnummer = saknr2,
                 clock = clock,
             ).second

@@ -15,12 +15,12 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
@@ -40,7 +40,7 @@ internal class LagBrevutkastForRevurderingTest {
     fun `lagBrevutkast - kan lage brev`() {
         val brevPdf = "".toByteArray()
 
-        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
+        val simulertRevurdering = simulertRevurdering().second
 
         RevurderingServiceMocks(
             revurderingRepo = mock {
@@ -189,7 +189,7 @@ internal class LagBrevutkastForRevurderingTest {
     @Test
     fun `kan ikke lage brev med status beregnet`() {
         val clock = tikkendeFixedClock()
-        val beregnget = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+        val beregnget = beregnetRevurdering(
             clock = clock,
         ).second
 

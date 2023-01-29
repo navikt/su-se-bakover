@@ -5,12 +5,12 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.Brevvalg
-import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.opprettetRevurdering
+import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.tikkendeFixedClock
-import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
 
@@ -20,7 +20,7 @@ internal class AvsluttetRevurderingTest {
     fun `lager en avsluttet revurdering med opprettet som underliggende`() {
         val clock = tikkendeFixedClock()
         AvsluttetRevurdering.tryCreate(
-            underliggendeRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+            underliggendeRevurdering = opprettetRevurdering(
                 clock = clock,
             ).second,
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
@@ -33,7 +33,7 @@ internal class AvsluttetRevurderingTest {
     fun `lager en avsluttet revurdering med beregnet som underliggende`() {
         val clock = tikkendeFixedClock()
         AvsluttetRevurdering.tryCreate(
-            underliggendeRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+            underliggendeRevurdering = beregnetRevurdering(
                 clock = clock,
             ).second,
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
@@ -74,7 +74,7 @@ internal class AvsluttetRevurderingTest {
     fun `får feil dersom man prøver å lage en avsluttet revurdering med til attestering som underliggende`() {
         val clock = tikkendeFixedClock()
         AvsluttetRevurdering.tryCreate(
-            underliggendeRevurdering = tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+            underliggendeRevurdering = revurderingTilAttestering(
                 clock = clock,
             ).second,
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",

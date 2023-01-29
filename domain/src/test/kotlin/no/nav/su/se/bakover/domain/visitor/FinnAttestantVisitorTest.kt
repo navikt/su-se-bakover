@@ -3,10 +3,10 @@ package no.nav.su.se.bakover.domain.visitor
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.test.attestant
-import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.opprettetRevurdering
+import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
@@ -32,7 +32,7 @@ internal class FinnAttestantVisitorTest {
             it.attestant shouldBe null
         }
         FinnAttestantVisitor().let {
-            opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+            opprettetRevurdering(
                 clock = clock,
             ).second.accept(it)
             it.attestant shouldBe null
@@ -52,7 +52,7 @@ internal class FinnAttestantVisitorTest {
         }
 
         FinnAttestantVisitor().let {
-            beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+            beregnetRevurdering(
                 clock = clock,
             ).second.accept(it)
             it.attestant shouldBe null
@@ -80,7 +80,7 @@ internal class FinnAttestantVisitorTest {
         }
 
         FinnAttestantVisitor().let {
-            simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+            simulertRevurdering(
                 clock = clock,
             ).second.accept(it)
             it.attestant shouldBe null

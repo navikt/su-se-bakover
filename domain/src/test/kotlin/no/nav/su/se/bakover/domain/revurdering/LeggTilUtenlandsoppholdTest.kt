@@ -15,18 +15,15 @@ import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import no.nav.su.se.bakover.test.avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.beregnetRevurdering
-import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattRevurdering
-import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingTilAttestering
+import no.nav.su.se.bakover.test.revurderingUnderkjent
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulertRevurdering
-import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.tikkendeFixedClock
-import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
@@ -35,7 +32,7 @@ class LeggTilUtenlandsoppholdTest {
 
     @Test
     fun `får ikke legge til opphold i utlandet utenfor perioden`() {
-        val uavklart = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
+        val uavklart = opprettetRevurdering().second
 
         uavklart.oppdaterUtenlandsoppholdOgMarkerSomVurdert(
             utenlandsopphold = utenlandsoppholdInnvilget(
@@ -73,24 +70,24 @@ class LeggTilUtenlandsoppholdTest {
     fun `får bare lagt til opphold i utlandet for enkelte typer`() {
         val clock = tikkendeFixedClock()
         listOf(
-            opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+            opprettetRevurdering(
                 clock = clock,
             ),
-            beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+            beregnetRevurdering(
                 clock = clock,
             ),
             beregnetRevurdering(
                 clock = clock,
                 vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
             ),
-            simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+            simulertRevurdering(
                 clock = clock,
             ),
             simulertRevurdering(
                 clock = clock,
                 vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
             ),
-            underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+            revurderingUnderkjent(
                 clock = clock,
             ),
         ).map {
@@ -107,7 +104,7 @@ class LeggTilUtenlandsoppholdTest {
         }
 
         listOf(
-            tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(),
+            revurderingTilAttestering(),
             revurderingTilAttestering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag())),
             iverksattRevurdering().let { it.first to it.second.shouldBeType<IverksattRevurdering.Innvilget>() },
             iverksattRevurdering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag())).let { (it.first to it.second) },
@@ -126,7 +123,7 @@ class LeggTilUtenlandsoppholdTest {
 
     @Test
     fun `får ikke legge til vurderingsperioder med både avslag og innvilget`() {
-        val uavklart = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
+        val uavklart = opprettetRevurdering().second
 
         uavklart.oppdaterUtenlandsoppholdOgMarkerSomVurdert(
             utenlandsopphold = UtenlandsoppholdVilkår.Vurdert.tryCreate(
@@ -150,7 +147,7 @@ class LeggTilUtenlandsoppholdTest {
 
     @Test
     fun `må vurdere hele revurderingsperioden`() {
-        val uavklart = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
+        val uavklart = opprettetRevurdering().second
 
         uavklart.oppdaterUtenlandsoppholdOgMarkerSomVurdert(
             utenlandsopphold = UtenlandsoppholdVilkår.Vurdert.tryCreate(

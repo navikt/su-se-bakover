@@ -29,7 +29,6 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.opprettetRevurdering
-import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.revurderingUnderkjent
 import no.nav.su.se.bakover.test.saksbehandler
@@ -57,7 +56,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
 
     @Test
     fun `oppdaterer uførevilkåret når nytt uføregrunnlag legges til`() {
-        val (sak, opprettetRevurdering) = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+        val (sak, opprettetRevurdering) = opprettetRevurdering(
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Uførhet)),
         )
 
@@ -199,7 +198,8 @@ internal class RegulerGrunnbeløpServiceImplTest {
                     revurderingId = simulertRevurdering.id,
                     saksbehandler = saksbehandler,
                 ),
-            ) shouldBe KunneIkkeSendeRevurderingTilAttestering.FeilOpphørt(SimulertRevurdering.Opphørt.KanIkkeSendeOpphørtRevurderingTilAttestering.KanIkkeSendeEnOpphørtGReguleringTilAttestering).left()
+            ) shouldBe KunneIkkeSendeRevurderingTilAttestering.FeilOpphørt(SimulertRevurdering.Opphørt.KanIkkeSendeOpphørtRevurderingTilAttestering.KanIkkeSendeEnOpphørtGReguleringTilAttestering)
+                .left()
 
             inOrder(it.revurderingRepo, it.personService, it.oppgaveService) {
                 verify(it.revurderingRepo).hent(simulertRevurdering.id)

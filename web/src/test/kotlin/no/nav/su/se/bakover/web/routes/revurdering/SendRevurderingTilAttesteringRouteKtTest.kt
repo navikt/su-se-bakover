@@ -15,8 +15,8 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingService
+import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.sakId
-import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
@@ -59,7 +59,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
 
     @Test
     fun innvilget() {
-        val revurderingTilAttestering = tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
+        val revurderingTilAttestering = revurderingTilAttestering().second
 
         val revurderingServiceMock = mock<RevurderingService> {
             on { sendTilAttestering(any()) } doReturn revurderingTilAttestering.right()
