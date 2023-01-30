@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.test.bortfallSøknad
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.nySøknadsbehandlingUtenStønadsperiode
+import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknad.søknadId
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
@@ -43,9 +44,8 @@ internal class LukketSøknadsbehandlingTest {
     @Test
     fun `skal kunne lukke en opprettet søknadsbehandling uten stønadsperiode`() {
         nySøknadsbehandlingUtenStønadsperiode().let { (sak, søknadsbehandling) ->
-            søknadsbehandling.lukkSøknadsbehandlingOgSøknad(
-                bortfallSøknad(søknadId),
-            ) shouldBe LukketSøknadsbehandling.createFromPersistedState(
+            val command = bortfallSøknad(søknadId)
+            søknadsbehandling.lukkSøknadsbehandlingOgSøknad(command) shouldBe LukketSøknadsbehandling.createFromPersistedState(
                 søknadsbehandling = søknadsbehandling,
                 søknad = Søknad.Journalført.MedOppgave.Lukket.Bortfalt(
                     id = søknadsbehandling.søknad.id,
@@ -57,6 +57,14 @@ internal class LukketSøknadsbehandlingTest {
                     lukketTidspunkt = fixedTidspunkt,
                     lukketAv = saksbehandler,
                     innsendtAv = veileder,
+                ),
+            ).copy(
+                søknadsbehandlingsHistorikk = søknadsbehandling.søknadsbehandlingsHistorikk.leggTilNyHendelse(
+                    nySøknadsbehandlingshendelse(
+                        tidspunkt = command.lukketTidspunkt,
+                        saksbehandler = command.saksbehandler,
+                        handling = SøknadsbehandlingsHandling.Lukket,
+                    ),
                 ),
             ).right()
         }

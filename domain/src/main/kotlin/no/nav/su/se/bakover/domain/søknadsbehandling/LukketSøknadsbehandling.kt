@@ -14,12 +14,12 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadspe
 data class LukketSøknadsbehandling private constructor(
     val underliggendeSøknadsbehandling: Søknadsbehandling,
     override val søknad: Søknad.Journalført.MedOppgave.Lukket,
+    override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
 ) : Søknadsbehandling() {
     override val stønadsperiode = underliggendeSøknadsbehandling.stønadsperiode
     override val grunnlagsdata = underliggendeSøknadsbehandling.grunnlagsdata
     override val vilkårsvurderinger = underliggendeSøknadsbehandling.vilkårsvurderinger
     override val attesteringer = underliggendeSøknadsbehandling.attesteringer
-    override val søknadsbehandlingsHistorikk = underliggendeSøknadsbehandling.søknadsbehandlingsHistorikk
     override val fritekstTilBrev = underliggendeSøknadsbehandling.fritekstTilBrev
     override val oppgaveId = underliggendeSøknadsbehandling.oppgaveId
     override val id = underliggendeSøknadsbehandling.id
@@ -119,6 +119,13 @@ data class LukketSøknadsbehandling private constructor(
                     søknad = søknad.lukk(
                         lukkSøknadCommand = lukkSøknadCommand,
                     ),
+                    søknadsbehandlingsHistorikk = søknadsbehandlingSomSkalLukkes.søknadsbehandlingsHistorikk.leggTilNyHendelse(
+                        saksbehandlingsHendelse = Søknadsbehandlingshendelse(
+                            tidspunkt = lukkSøknadCommand.lukketTidspunkt,
+                            saksbehandler = lukkSøknadCommand.saksbehandler,
+                            handling = SøknadsbehandlingsHandling.Lukket,
+                        ),
+                    ),
                 ).right()
 
                 is Søknad.Journalført.MedOppgave.Lukket -> throw IllegalStateException("Kan ikke opprette en LukketSøknadsbehandling dersom søknaden allerede er lukket.")
@@ -139,6 +146,7 @@ data class LukketSøknadsbehandling private constructor(
             return LukketSøknadsbehandling(
                 underliggendeSøknadsbehandling = søknadsbehandling,
                 søknad = søknad,
+                søknadsbehandlingsHistorikk = søknadsbehandling.søknadsbehandlingsHistorikk,
             )
         }
 

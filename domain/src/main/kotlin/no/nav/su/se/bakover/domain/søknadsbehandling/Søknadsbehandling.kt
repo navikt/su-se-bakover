@@ -310,7 +310,7 @@ sealed class Søknadsbehandling :
                 søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.leggTilNyHendelse(
                     request.handling(request.tidspunkt),
                 ),
-            ).vilkårsvurder(saksbehandler)
+            ).vilkårsvurder(request.saksbehandler)
         }
     }
 
