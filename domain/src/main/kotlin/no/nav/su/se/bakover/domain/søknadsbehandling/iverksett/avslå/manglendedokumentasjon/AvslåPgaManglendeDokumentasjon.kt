@@ -96,17 +96,12 @@ private fun avslå(
     return søknadsbehandling
         // Dersom en søknadsbehandling kun er opprettet, men stønadsperiode ikke er valgt enda.
         .leggTilStønadsperiodeHvisNull(
-            saksbehandler = request.saksbehandler,
             clock = clock,
             satsFactory = satsFactory,
             avkorting = sak.hentUteståendeAvkortingForSøknadsbehandling().fold({ it }, { it }).kanIkke(),
         )
         .avslåPgaManglendeDokumentasjon(request.saksbehandler, clock)
-        .tilAttestering(
-            saksbehandler = request.saksbehandler,
-            fritekstTilBrev = request.fritekstTilBrev,
-            clock = clock,
-        ).let { søknadsbehandlingTilAttestering ->
+        .tilAttestering(fritekstTilBrev = request.fritekstTilBrev).let { søknadsbehandlingTilAttestering ->
             Pair(
                 sak.copy(
                     søknadsbehandlinger = sak.søknadsbehandlinger.filterNot { it.id == søknadsbehandlingTilAttestering.id } + søknadsbehandlingTilAttestering,
@@ -121,7 +116,6 @@ private fun avslå(
  * ikke er valgt av saksbeahndler gjør vi det direkte på søknadsbehandling.
  */
 private fun Søknadsbehandling.leggTilStønadsperiodeHvisNull(
-    saksbehandler: NavIdentBruker.Saksbehandler,
     clock: Clock,
     satsFactory: SatsFactory,
     avkorting: AvkortingVedSøknadsbehandling,
@@ -137,7 +131,6 @@ private fun Søknadsbehandling.leggTilStønadsperiodeHvisNull(
         ),
         formuegrenserFactory = satsFactory.formuegrenserFactory,
         clock = clock,
-        saksbehandler = saksbehandler,
         avkorting = avkorting,
     ).getOrElse { throw IllegalArgumentException(it.toString()) }
 }

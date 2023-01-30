@@ -39,7 +39,7 @@ fun Sak.oppdaterStønadsperiodeForSøknadsbehandling(
         return Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode(it).left()
     }
 
-    return søknadsbehandling.oppdaterStønadsperiode(
+    return søknadsbehandling.oppdaterStønadsperiodeForSaksbehandler(
         oppdatertStønadsperiode = stønadsperiode,
         formuegrenserFactory = formuegrenserFactory,
         clock = clock,

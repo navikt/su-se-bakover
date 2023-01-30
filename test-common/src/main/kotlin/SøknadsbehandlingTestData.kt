@@ -412,7 +412,7 @@ fun søknadsbehandlingTilAttesteringAvslagUtenBeregning(
         saksbehandler = saksbehandler,
         søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
     ).let { (sak, søknadsbehandling) ->
-        val oppdatertSøknadsbehandling = søknadsbehandling.tilAttestering(
+        val oppdatertSøknadsbehandling = søknadsbehandling.tilAttesteringForSaksbehandler(
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             clock = fixedClock,
@@ -939,7 +939,7 @@ fun tilAttesteringSøknadsbehandling(
         val tilAttestering = when (vilkårsvurdert) {
             // avslag for vilkår går rett til attestering
             is Søknadsbehandling.Vilkårsvurdert.Avslag -> {
-                vilkårsvurdert.tilAttestering(
+                vilkårsvurdert.tilAttesteringForSaksbehandler(
                     saksbehandler = saksbehandler,
                     fritekstTilBrev = fritekstTilBrev,
                     clock = clock,
@@ -1189,7 +1189,6 @@ fun vilkårsvurdertSøknadsbehandling(
                     )
                     .getOrFail()
                     .leggTilOpplysningspliktVilkår(
-                        saksbehandler = saksbehandler,
                         opplysningspliktVilkår = customVilkår.customOrDefault { vilkår.opplysningsplikt as OpplysningspliktVilkår.Vurdert },
                     )
                     .getOrFail()
@@ -1261,7 +1260,6 @@ fun vilkårsvurdertSøknadsbehandling(
                     clock = clock,
                 ).getOrFail()
                     .leggTilOpplysningspliktVilkår(
-                        saksbehandler = saksbehandler,
                         opplysningspliktVilkår = customVilkår.customOrDefault { vilkår.opplysningsplikt as OpplysningspliktVilkår.Vurdert },
                     )
                     .getOrFail()

@@ -160,15 +160,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                         ),
                         nySøknadsbehandlingshendelse(
                             saksbehandler = expectedSaksbehandler,
-                            handling = SøknadsbehandlingsHandling.OppdatertStønadsperiode,
-                        ),
-                        nySøknadsbehandlingshendelse(
-                            saksbehandler = expectedSaksbehandler,
                             handling = SøknadsbehandlingsHandling.OppdatertOpplysningsplikt,
-                        ),
-                        nySøknadsbehandlingshendelse(
-                            saksbehandler = expectedSaksbehandler,
-                            handling = SøknadsbehandlingsHandling.SendtTilAttestering,
                         ),
                     ),
                 ),
@@ -310,10 +302,6 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                         nySøknadsbehandlingshendelse(
                             saksbehandler = expectedSaksbehandler,
                             handling = SøknadsbehandlingsHandling.OppdatertOpplysningsplikt,
-                        ),
-                        nySøknadsbehandlingshendelse(
-                            saksbehandler = expectedSaksbehandler,
-                            handling = SøknadsbehandlingsHandling.SendtTilAttestering,
                         ),
                     ),
                 ),

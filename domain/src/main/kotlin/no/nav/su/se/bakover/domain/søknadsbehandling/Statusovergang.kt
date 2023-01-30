@@ -19,7 +19,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
     ) : Statusovergang<Nothing, Søknadsbehandling.TilAttestering>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {
-            result = søknadsbehandling.tilAttestering(saksbehandler, fritekstTilBrev, clock).right()
+            result = søknadsbehandling.tilAttesteringForSaksbehandler(saksbehandler, fritekstTilBrev, clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {

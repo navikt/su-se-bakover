@@ -80,7 +80,6 @@ sealed class Søknadsbehandling :
     abstract override val attesteringer: Attesteringshistorikk
     abstract val avkorting: AvkortingVedSøknadsbehandling
 
-    // TODO - kan sikkert gjøre noe med denne og attesteringer?
     abstract override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk
 
     // TODO ia: fritekst bør flyttes ut av denne klassen og til et eget konsept (som også omfatter fritekst på revurderinger)
@@ -142,11 +141,10 @@ sealed class Søknadsbehandling :
     }
 
     protected fun leggTilFradragsgrunnlagForBeregning(
-        saksbehandler: NavIdentBruker.Saksbehandler,
         fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
     ) = vilkårsvurder(saksbehandler).let {
         when (it) {
-            is KanBeregnes -> leggTilFradragsgrunnlagInternalForBeregning(saksbehandler, fradragsgrunnlag)
+            is KanBeregnes -> leggTilFradragsgrunnlagInternalForBeregning(fradragsgrunnlag)
             else -> KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen(
                 this::class,
             ).left()
@@ -174,7 +172,6 @@ sealed class Søknadsbehandling :
     }
 
     private fun leggTilFradragsgrunnlagInternalForBeregning(
-        saksbehandler: NavIdentBruker.Saksbehandler,
         fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
     ) = validerFradragsgrunnlag(fradragsgrunnlag).map {
         copyInternal(
@@ -225,8 +222,7 @@ sealed class Søknadsbehandling :
         stønadsperiode: Stønadsperiode = this.stønadsperiode!!,
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling = this.grunnlagsdataOgVilkårsvurderinger,
         avkorting: AvkortingVedSøknadsbehandling = this.avkorting,
-        // TODO: default til this.søkandshistorikk
-        søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
+        søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk,
     ): Søknadsbehandling
 
     fun leggTilUtenlandsopphold(
@@ -319,14 +315,12 @@ sealed class Søknadsbehandling :
     }
 
     fun oppdaterStønadsperiode(
-        saksbehandler: NavIdentBruker.Saksbehandler,
         oppdatertStønadsperiode: Stønadsperiode,
         formuegrenserFactory: FormuegrenserFactory,
         clock: Clock,
         avkorting: AvkortingVedSøknadsbehandling,
     ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> = if (this is KanOppdaterePeriodeGrunnlagVilkår) {
         oppdaterStønadsperiodeInternal(
-            saksbehandler = saksbehandler,
             oppdatertStønadsperiode = oppdatertStønadsperiode,
             formuegrenserFactory = formuegrenserFactory,
             clock = clock,
@@ -337,6 +331,46 @@ sealed class Søknadsbehandling :
     }
 
     private fun oppdaterStønadsperiodeInternal(
+        oppdatertStønadsperiode: Stønadsperiode,
+        formuegrenserFactory: FormuegrenserFactory,
+        clock: Clock,
+        avkorting: AvkortingVedSøknadsbehandling,
+    ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
+        return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
+            stønadsperiode = oppdatertStønadsperiode,
+            formuegrenserFactory = formuegrenserFactory,
+            clock = clock,
+        ).mapLeft {
+            KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
+        }.map {
+            copyInternal(
+                stønadsperiode = oppdatertStønadsperiode,
+                grunnlagsdataOgVilkårsvurderinger = it,
+                avkorting = avkorting,
+                søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk,
+            ).vilkårsvurder(saksbehandler)
+        }
+    }
+
+    fun oppdaterStønadsperiodeForSaksbehandler(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        oppdatertStønadsperiode: Stønadsperiode,
+        formuegrenserFactory: FormuegrenserFactory,
+        clock: Clock,
+        avkorting: AvkortingVedSøknadsbehandling,
+    ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> = if (this is KanOppdaterePeriodeGrunnlagVilkår) {
+        oppdaterStønadsperiodeInternalForSaksbehandler(
+            saksbehandler = saksbehandler,
+            oppdatertStønadsperiode = oppdatertStønadsperiode,
+            formuegrenserFactory = formuegrenserFactory,
+            clock = clock,
+            avkorting = avkorting,
+        )
+    } else {
+        KunneIkkeOppdatereStønadsperiode.UgyldigTilstand(this::class).left()
+    }
+
+    private fun oppdaterStønadsperiodeInternalForSaksbehandler(
         saksbehandler: NavIdentBruker.Saksbehandler,
         oppdatertStønadsperiode: Stønadsperiode,
         formuegrenserFactory: FormuegrenserFactory,
@@ -366,25 +400,24 @@ sealed class Søknadsbehandling :
     }
 
     /**
-     * Selv om begge public funskjonene for leggTilOpplysningsplikt tar inn saksbehandler.
-     * Denne brukes i forbindelse med at saksbehandler er påkrevd for vilkårsvurdering
+     * Selv om begge public funskjonene for leggTilOpplysningsplikt tar inn saksbehandler
+     * burde denne brukes i forbindelse med at systemet må legge inn opplysningsplikt vilkåret, da
+     * dette ikke er et steg som saksbehandler gjør frontend
      *
      * Den andre funksjonen [leggTilOpplysningspliktVilkårForSaksbehandler], brukes i forbindelse med lukking / avslåPgaManglende dokumentasjon. Det er en saksbehandler handling,
      * som vi bruker for å oppdatere handlingene.
      */
     fun leggTilOpplysningspliktVilkår(
-        saksbehandler: NavIdentBruker.Saksbehandler,
         opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
         return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-            leggTilOpplysningspliktVilkårInternal(saksbehandler, opplysningspliktVilkår)
+            leggTilOpplysningspliktVilkårInternal(opplysningspliktVilkår)
         } else {
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt.UgyldigTilstand(this::class).left()
         }
     }
 
     private fun leggTilOpplysningspliktVilkårInternal(
-        saksbehandler: NavIdentBruker.Saksbehandler,
         vilkår: OpplysningspliktVilkår.Vurdert,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt>(vilkår).map {
@@ -397,11 +430,11 @@ sealed class Søknadsbehandling :
     }
 
     /**
-     * Selv om begge public funskjonene for leggTilOpplysningsplikt tar inn saksbehandler.
      * Denne brukes i forbindelse med lukking / avslåPgaManglende dokumentasjon. Det er en saksbehandler handling,
      * som vi bruker for å oppdatere handlingene.
      *
-     * Den andre funksjonen [leggTilOpplysningspliktVilkår], brukes saksbehandler fordi det er påkrevd for vilkårsvurdering
+     * Den andre funksjonen [leggTilOpplysningspliktVilkår], er for at systemet skal legge inn vilkåret, da dette
+     * ikke gjøres frontend
      */
     fun leggTilOpplysningspliktVilkårForSaksbehandler(
         saksbehandler: NavIdentBruker.Saksbehandler,
@@ -429,7 +462,6 @@ sealed class Søknadsbehandling :
                         tidspunkt = Tidspunkt.now(clock),
                         saksbehandler = saksbehandler,
                         handling = SøknadsbehandlingsHandling.OppdatertOpplysningsplikt,
-
                     ),
                 ),
             ).vilkårsvurder(saksbehandler)
@@ -820,7 +852,6 @@ sealed class Søknadsbehandling :
         return when (val avkort = søknadsbehandling.avkorting) {
             is AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående -> {
                 beregnUtenAvkorting(
-                    saksbehandler = nySaksbehandler,
                     begrunnelse = begrunnelse,
                     beregningStrategyFactory = beregningStrategyFactory,
                 ).getOrElse { return it.left() }
@@ -832,7 +863,6 @@ sealed class Søknadsbehandling :
 
             is AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting -> {
                 beregnMedAvkorting(
-                    saksbehandler = nySaksbehandler,
                     avkorting = avkort,
                     begrunnelse = begrunnelse,
                     clock = clock,
@@ -898,12 +928,10 @@ sealed class Søknadsbehandling :
      * ligge i grunnlaget
      */
     private fun beregnUtenAvkorting(
-        saksbehandler: NavIdentBruker.Saksbehandler,
         begrunnelse: String?,
         beregningStrategyFactory: BeregningStrategyFactory,
     ): Either<KunneIkkeBeregne, Pair<Vilkårsvurdert, Beregning>> {
         return leggTilFradragsgrunnlagForBeregning(
-            saksbehandler,
             fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold },
         ).getOrElse {
             return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left()
@@ -928,14 +956,12 @@ sealed class Søknadsbehandling :
      * Restbeløpet etter andre fradrag er faktorert inn av [beregnUtenAvkorting] er maksimalt beløp som kan avkortes.
      */
     private fun beregnMedAvkorting(
-        saksbehandler: NavIdentBruker.Saksbehandler,
         avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting,
         begrunnelse: String?,
         clock: Clock,
         beregningStrategyFactory: BeregningStrategyFactory,
     ): Either<KunneIkkeBeregne, Pair<Vilkårsvurdert, Beregning>> {
         return beregnUtenAvkorting(
-            saksbehandler,
             begrunnelse,
             beregningStrategyFactory,
         ).map { (utenAvkorting, beregningUtenAvkorting) ->
@@ -952,7 +978,6 @@ sealed class Søknadsbehandling :
             }
 
             val medAvkorting = utenAvkorting.leggTilFradragsgrunnlagForBeregning(
-                saksbehandler = saksbehandler,
                 fradragsgrunnlag = utenAvkorting.grunnlagsdata.fradragsgrunnlag + fradragForAvkorting,
             ).getOrElse { return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left() }
 
@@ -1174,7 +1199,32 @@ sealed class Søknadsbehandling :
                 visitor.visit(this)
             }
 
+            /**
+             * Til bruk der systemet har behov for å gjøre handling
+             * Se eksempel: [AvslåPgaManglendeDokumentasjon.kt]
+             */
             fun tilAttestering(
+                fritekstTilBrev: String,
+            ): TilAttestering.Avslag.UtenBeregning = TilAttestering.Avslag.UtenBeregning(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                søknad = søknad,
+                oppgaveId = oppgaveId,
+                fnr = fnr,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = fritekstTilBrev,
+                stønadsperiode = stønadsperiode,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                attesteringer = attesteringer,
+                søknadsbehandlingsHistorikk = this.søknadsbehandlingsHistorikk,
+                avkorting = avkorting.håndter().kanIkke(),
+                sakstype = sakstype,
+            )
+
+            fun tilAttesteringForSaksbehandler(
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 fritekstTilBrev: String,
                 clock: Clock,

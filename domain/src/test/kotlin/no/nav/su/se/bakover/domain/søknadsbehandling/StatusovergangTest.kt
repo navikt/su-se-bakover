@@ -116,7 +116,7 @@ internal class StatusovergangTest {
         simulert.tilAttestering(saksbehandler, fritekstTilBrev, fixedClock)
 
     private val tilAttesteringAvslagVilkår: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning =
-        vilkårsvurdertAvslag.tilAttestering(saksbehandler, fritekstTilBrev, fixedClock)
+        vilkårsvurdertAvslag.tilAttesteringForSaksbehandler(saksbehandler, fritekstTilBrev, fixedClock)
 
     private val tilAttesteringAvslagBeregning: Søknadsbehandling.TilAttestering.Avslag.MedBeregning =
         beregnetAvslag.tilAttestering(saksbehandler, fritekstTilBrev, fixedClock)
@@ -274,7 +274,6 @@ internal class StatusovergangTest {
             vilkårsvurdertSøknadsbehandlingUføre().also { (_, innvilget) ->
                 innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>().also {
                     it.leggTilOpplysningspliktVilkår(
-                        saksbehandler = saksbehandler,
                         utilstrekkeligDokumentert(),
                     )
                         .getOrFail()
@@ -438,7 +437,6 @@ internal class StatusovergangTest {
             simulertSøknadsbehandlingUføre().also { (_, simulert) ->
                 simulert.shouldBeType<Søknadsbehandling.Simulert>().also {
                     simulert.leggTilOpplysningspliktVilkår(
-                        saksbehandler = saksbehandler,
                         tilstrekkeligDokumentert(),
                     )
                         .getOrFail()
@@ -454,7 +452,6 @@ internal class StatusovergangTest {
             simulertSøknadsbehandlingUføre().also { (_, simulert) ->
                 simulert.shouldBeType<Søknadsbehandling.Simulert>().also {
                     simulert.leggTilOpplysningspliktVilkår(
-                        saksbehandler = saksbehandler,
                         utilstrekkeligDokumentert(),
                     )
                         .getOrFail()
@@ -470,7 +467,6 @@ internal class StatusovergangTest {
             underkjentSøknadsbehandlingUføre().also { (_, underkjent) ->
                 underkjent.shouldBeType<Søknadsbehandling.Underkjent.Innvilget>().also {
                     underkjent.leggTilOpplysningspliktVilkår(
-                        saksbehandler = saksbehandler,
                         tilstrekkeligDokumentert(),
                     )
                         .getOrFail()
@@ -1005,7 +1001,7 @@ internal class StatusovergangTest {
                 underkjentAvslagBeregning,
                 underkjentInnvilget,
             ).forEach {
-                it.oppdaterStønadsperiode(
+                it.oppdaterStønadsperiodeForSaksbehandler(
                     oppdatertStønadsperiode = stønadsperiode,
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                     clock = fixedClock,
@@ -1026,7 +1022,7 @@ internal class StatusovergangTest {
                 iverksattInnvilget,
                 lukketSøknadsbehandling,
             ).forEach {
-                it.oppdaterStønadsperiode(
+                it.oppdaterStønadsperiodeForSaksbehandler(
                     oppdatertStønadsperiode = stønadsperiode,
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                     clock = fixedClock,
