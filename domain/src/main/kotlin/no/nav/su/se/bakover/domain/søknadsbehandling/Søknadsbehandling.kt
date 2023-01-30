@@ -400,8 +400,7 @@ sealed class Søknadsbehandling :
     }
 
     /**
-     * Selv om begge public funskjonene for leggTilOpplysningsplikt tar inn saksbehandler
-     * burde denne brukes i forbindelse med at systemet må legge inn opplysningsplikt vilkåret, da
+     * Denne brukes i forbindelse med at systemet må legge inn opplysningsplikt vilkåret, da
      * dette ikke er et steg som saksbehandler gjør frontend
      *
      * Den andre funksjonen [leggTilOpplysningspliktVilkårForSaksbehandler], brukes i forbindelse med lukking / avslåPgaManglende dokumentasjon. Det er en saksbehandler handling,
