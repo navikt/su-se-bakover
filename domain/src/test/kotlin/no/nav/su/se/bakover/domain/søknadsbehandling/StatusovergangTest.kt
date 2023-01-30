@@ -2,17 +2,21 @@ package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
+import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.test.attesteringUnderkjent
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
@@ -20,6 +24,7 @@ import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.nySøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.shouldBeType
@@ -35,10 +40,8 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.trekkSøknad
 import no.nav.su.se.bakover.test.underkjentSøknadsbehandlingUføre
-import no.nav.su.se.bakover.test.vilkår.avslåttFormueVilkår
 import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårVurdertTilUavklart
-import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
@@ -88,6 +91,7 @@ internal class StatusovergangTest {
         vilkårsvurdertInnvilget.leggTilUførevilkår(
             uførhet = innvilgetUførevilkår(forventetInntekt = 11000000),
             saksbehandler = saksbehandler,
+            clock = fixedClock,
         ).getOrFail().beregn(
             begrunnelse = null,
             clock = fixedClock,
@@ -98,6 +102,7 @@ internal class StatusovergangTest {
     private val simulert: Søknadsbehandling.Simulert =
         beregnetInnvilget.simuler(
             saksbehandler = saksbehandler,
+            clock = fixedClock,
         ) { _, _ ->
             simulerUtbetaling(
                 sak = sakOgUavklart.first,
@@ -108,13 +113,13 @@ internal class StatusovergangTest {
         }.getOrFail()
 
     private val tilAttesteringInnvilget: Søknadsbehandling.TilAttestering.Innvilget =
-        simulert.tilAttestering(saksbehandler, fritekstTilBrev)
+        simulert.tilAttestering(saksbehandler, fritekstTilBrev, fixedClock)
 
     private val tilAttesteringAvslagVilkår: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning =
-        vilkårsvurdertAvslag.tilAttestering(saksbehandler, fritekstTilBrev)
+        vilkårsvurdertAvslag.tilAttesteringForSaksbehandler(saksbehandler, fritekstTilBrev, fixedClock)
 
     private val tilAttesteringAvslagBeregning: Søknadsbehandling.TilAttestering.Avslag.MedBeregning =
-        beregnetAvslag.tilAttestering(saksbehandler, fritekstTilBrev)
+        beregnetAvslag.tilAttestering(saksbehandler, fritekstTilBrev, fixedClock)
 
     private val underkjentInnvilget: Søknadsbehandling.Underkjent.Innvilget =
         tilAttesteringInnvilget.tilUnderkjent(attesteringUnderkjent(clock = fixedClock))
@@ -162,6 +167,7 @@ internal class StatusovergangTest {
                     it.leggTilInstitusjonsoppholdVilkår(
                         vilkår = institusjonsoppholdvilkårAvslag(),
                         saksbehandler = saksbehandler,
+                        clock = fixedClock,
                     ).getOrFail().also {
                         it.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
                     }
@@ -176,6 +182,7 @@ internal class StatusovergangTest {
                     it.leggTilFastOppholdINorgeVilkår(
                         saksbehandler = saksbehandler,
                         fastOppholdVilkårVurdertTilUavklart(),
+                        clock = fixedClock,
                     ).getOrFail().also {
                         it.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Uavklart>()
                     }
@@ -186,7 +193,11 @@ internal class StatusovergangTest {
         @Test
         fun `håndtering av opplysningsplikt`() {
             nySøknadsbehandlingUføre().also { (_, uavklart) ->
-                uavklart.leggTilUførevilkår(saksbehandler = saksbehandler, innvilgetUførevilkår()).getOrFail()
+                uavklart.leggTilUførevilkår(
+                    saksbehandler = saksbehandler,
+                    innvilgetUførevilkår(),
+                    clock = fixedClock,
+                ).getOrFail()
                     .also { vilkårsvurdert ->
                         vilkårsvurdert.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Uavklart>()
                         vilkårsvurdert.vilkårsvurderinger.uføreVilkår().getOrFail().shouldBeType<UføreVilkår.Vurdert>()
@@ -199,7 +210,11 @@ internal class StatusovergangTest {
             vilkårsvurdertSøknadsbehandlingUføre(
                 customVilkår = listOf(utilstrekkeligDokumentert()),
             ).also { (_, uavklart) ->
-                uavklart.leggTilUførevilkår(saksbehandler = saksbehandler, innvilgetUførevilkår()).getOrFail()
+                uavklart.leggTilUførevilkår(
+                    saksbehandler = saksbehandler,
+                    innvilgetUførevilkår(),
+                    clock = fixedClock,
+                ).getOrFail()
                     .also { vilkårsvurdert ->
                         vilkårsvurdert.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
                         vilkårsvurdert.vilkårsvurderinger.uføreVilkår().getOrFail().shouldBeType<UføreVilkår.Vurdert>()
@@ -219,7 +234,23 @@ internal class StatusovergangTest {
         fun `vilkårsvurdert innvilget til vilkårsvurdert innvilget`() {
             vilkårsvurdertSøknadsbehandlingUføre().also { (_, innvilget) ->
                 innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>().also {
-                    it.leggTilFormuevilkår(saksbehandler = saksbehandler, innvilgetFormueVilkår()).getOrFail().also {
+                    it.leggTilFormuegrunnlag(
+                        request = LeggTilFormuevilkårRequest(
+                            behandlingId = innvilget.id,
+                            formuegrunnlag = nonEmptyListOf(
+                                LeggTilFormuevilkårRequest.Grunnlag.Søknadsbehandling(
+                                    periode = innvilget.periode,
+                                    epsFormue = null,
+                                    søkersFormue = Formuegrunnlag.Verdier.empty(),
+                                    begrunnelse = null,
+                                    måInnhenteMerInformasjon = false,
+                                ),
+                            ),
+                            saksbehandler = saksbehandler,
+                            tidspunkt = fixedTidspunkt,
+                        ),
+                        formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                    ).getOrFail().also {
                         it.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
                     }
                 }
@@ -233,6 +264,7 @@ internal class StatusovergangTest {
                     it.leggTilInstitusjonsoppholdVilkår(
                         saksbehandler = saksbehandler,
                         institusjonsoppholdvilkårAvslag(),
+                        clock = fixedClock,
                     ).getOrFail().also { avslag ->
                         avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
                     }
@@ -241,7 +273,9 @@ internal class StatusovergangTest {
 
             vilkårsvurdertSøknadsbehandlingUføre().also { (_, innvilget) ->
                 innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>().also {
-                    it.leggTilOpplysningspliktVilkår(saksbehandler = saksbehandler, utilstrekkeligDokumentert())
+                    it.leggTilOpplysningspliktVilkår(
+                        utilstrekkeligDokumentert(),
+                    )
                         .getOrFail()
                         .also { avslag ->
                             avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
@@ -259,6 +293,7 @@ internal class StatusovergangTest {
                     it.leggTilInstitusjonsoppholdVilkår(
                         saksbehandler = saksbehandler,
                         institusjonsoppholdvilkårInnvilget(),
+                        clock = fixedClock,
                     ).getOrFail()
                         .also { innvilget ->
                             innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
@@ -268,7 +303,11 @@ internal class StatusovergangTest {
 
             vilkårsvurdertSøknadsbehandlingUføre(customVilkår = listOf(avslåttUførevilkårUtenGrunnlag())).also { (_, avslag) ->
                 avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>().also {
-                    it.leggTilUførevilkår(saksbehandler = saksbehandler, innvilgetUførevilkår()).getOrFail()
+                    it.leggTilUførevilkår(
+                        saksbehandler = saksbehandler,
+                        innvilgetUførevilkår(),
+                        clock = fixedClock,
+                    ).getOrFail()
                         .also { innvilget ->
                             innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
                         }
@@ -280,7 +319,23 @@ internal class StatusovergangTest {
         fun `vilkårsvurdert avslag til vilkårsvurdert avslag`() {
             vilkårsvurdertSøknadsbehandlingUføre(customVilkår = listOf(avslåttUførevilkårUtenGrunnlag())).also { (_, avslag) ->
                 avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>().also {
-                    it.leggTilFormuevilkår(saksbehandler = saksbehandler, avslåttFormueVilkår()).getOrFail()
+                    it.leggTilFormuegrunnlag(
+                        request = LeggTilFormuevilkårRequest(
+                            behandlingId = avslag.id,
+                            formuegrunnlag = nonEmptyListOf(
+                                LeggTilFormuevilkårRequest.Grunnlag.Søknadsbehandling(
+                                    periode = avslag.periode,
+                                    epsFormue = null,
+                                    søkersFormue = Formuegrunnlag.Verdier.empty(),
+                                    begrunnelse = null,
+                                    måInnhenteMerInformasjon = false,
+                                ),
+                            ),
+                            saksbehandler = saksbehandler,
+                            tidspunkt = fixedTidspunkt,
+                        ),
+                        formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                    ).getOrFail()
                         .also { avslag ->
                             avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
                         }
@@ -295,6 +350,7 @@ internal class StatusovergangTest {
                     beregnet.leggTilInstitusjonsoppholdVilkår(
                         saksbehandler = saksbehandler,
                         institusjonsoppholdvilkårInnvilget(),
+                        clock = fixedClock,
                     ).getOrFail()
                         .also { innvilget ->
                             innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
@@ -304,7 +360,11 @@ internal class StatusovergangTest {
 
             beregnetSøknadsbehandlingUføre().also { (_, beregnet) ->
                 beregnet.shouldBeType<Søknadsbehandling.Beregnet.Innvilget>().also {
-                    beregnet.leggTilUtenlandsopphold(saksbehandler = saksbehandler, utenlandsoppholdInnvilget())
+                    beregnet.leggTilUtenlandsopphold(
+                        saksbehandler = saksbehandler,
+                        utenlandsoppholdInnvilget(),
+                        clock = fixedClock,
+                    )
                         .getOrFail()
                         .also { innvilget ->
                             innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
@@ -317,7 +377,11 @@ internal class StatusovergangTest {
         fun `beregnet innvilget til vilkårsvurdert avslag`() {
             beregnetSøknadsbehandlingUføre().also { (_, beregnet) ->
                 beregnet.shouldBeType<Søknadsbehandling.Beregnet.Innvilget>().also {
-                    beregnet.leggTilUtenlandsopphold(saksbehandler = saksbehandler, utenlandsoppholdAvslag())
+                    beregnet.leggTilUtenlandsopphold(
+                        saksbehandler = saksbehandler,
+                        utenlandsoppholdAvslag(),
+                        clock = fixedClock,
+                    )
                         .getOrFail().also { avslag ->
                             avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
                         }
@@ -336,7 +400,11 @@ internal class StatusovergangTest {
                 ),
             ).also { (_, beregnet) ->
                 beregnet.shouldBeType<Søknadsbehandling.Beregnet.Avslag>().also {
-                    beregnet.leggTilUtenlandsopphold(saksbehandler = saksbehandler, utenlandsoppholdInnvilget())
+                    beregnet.leggTilUtenlandsopphold(
+                        saksbehandler = saksbehandler,
+                        utenlandsoppholdInnvilget(),
+                        clock = fixedClock,
+                    )
                         .getOrFail()
                         .also { innvilget -> innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>() }
                 }
@@ -357,6 +425,7 @@ internal class StatusovergangTest {
                     beregnet.leggTilInstitusjonsoppholdVilkår(
                         saksbehandler = saksbehandler,
                         institusjonsoppholdvilkårAvslag(),
+                        clock = fixedClock,
                     ).getOrFail()
                         .also { innvilget -> innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>() }
                 }
@@ -367,7 +436,9 @@ internal class StatusovergangTest {
         fun `simulert til vilkårsvurdert innvilget`() {
             simulertSøknadsbehandlingUføre().also { (_, simulert) ->
                 simulert.shouldBeType<Søknadsbehandling.Simulert>().also {
-                    simulert.leggTilOpplysningspliktVilkår(saksbehandler = saksbehandler, tilstrekkeligDokumentert())
+                    simulert.leggTilOpplysningspliktVilkår(
+                        tilstrekkeligDokumentert(),
+                    )
                         .getOrFail()
                         .also { innvilget ->
                             innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
@@ -380,7 +451,9 @@ internal class StatusovergangTest {
         fun `simulert til vilkårsvurdert avslag`() {
             simulertSøknadsbehandlingUføre().also { (_, simulert) ->
                 simulert.shouldBeType<Søknadsbehandling.Simulert>().also {
-                    simulert.leggTilOpplysningspliktVilkår(saksbehandler = saksbehandler, utilstrekkeligDokumentert())
+                    simulert.leggTilOpplysningspliktVilkår(
+                        utilstrekkeligDokumentert(),
+                    )
                         .getOrFail()
                         .also { avslag ->
                             avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
@@ -393,7 +466,9 @@ internal class StatusovergangTest {
         fun `underkjent innvilget til vilkårsvurdert innvilget`() {
             underkjentSøknadsbehandlingUføre().also { (_, underkjent) ->
                 underkjent.shouldBeType<Søknadsbehandling.Underkjent.Innvilget>().also {
-                    underkjent.leggTilOpplysningspliktVilkår(saksbehandler = saksbehandler, tilstrekkeligDokumentert())
+                    underkjent.leggTilOpplysningspliktVilkår(
+                        tilstrekkeligDokumentert(),
+                    )
                         .getOrFail()
                         .also { innvilget ->
                             innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
@@ -409,6 +484,7 @@ internal class StatusovergangTest {
                     underkjent.leggTilInstitusjonsoppholdVilkår(
                         saksbehandler = saksbehandler,
                         institusjonsoppholdvilkårAvslag(),
+                        clock = fixedClock,
                     ).getOrFail().also { avslag ->
                         avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
                     }
@@ -422,7 +498,11 @@ internal class StatusovergangTest {
                 customVilkår = listOf(avslåttUførevilkårUtenGrunnlag()),
             ).also { (_, underkjent) ->
                 underkjent.shouldBeType<Søknadsbehandling.Underkjent.Avslag.UtenBeregning>().also {
-                    underkjent.leggTilUførevilkår(saksbehandler = saksbehandler, innvilgetUførevilkår()).getOrFail()
+                    underkjent.leggTilUførevilkår(
+                        saksbehandler = saksbehandler,
+                        innvilgetUførevilkår(),
+                        clock = fixedClock,
+                    ).getOrFail()
                         .also { innvilget ->
                             innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
                         }
@@ -436,7 +516,11 @@ internal class StatusovergangTest {
                 customVilkår = listOf(avslåttUførevilkårUtenGrunnlag()),
             ).also { (_, underkjent) ->
                 underkjent.shouldBeType<Søknadsbehandling.Underkjent.Avslag.UtenBeregning>().also {
-                    underkjent.leggTilUførevilkår(saksbehandler = saksbehandler, avslåttUførevilkårUtenGrunnlag())
+                    underkjent.leggTilUførevilkår(
+                        saksbehandler = saksbehandler,
+                        avslåttUførevilkårUtenGrunnlag(),
+                        clock = fixedClock,
+                    )
                         .getOrFail()
                         .also { avslag ->
                             avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
@@ -451,7 +535,11 @@ internal class StatusovergangTest {
                 customGrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 50000.0)),
             ).also { (_, underkjent) ->
                 underkjent.shouldBeType<Søknadsbehandling.Underkjent.Avslag.MedBeregning>().also {
-                    underkjent.leggTilFradragsgrunnlag(saksbehandler = saksbehandler, emptyList()).getOrFail()
+                    underkjent.leggTilFradragsgrunnlagFraSaksbehandler(
+                        saksbehandler = saksbehandler,
+                        emptyList(),
+                        clock = fixedClock,
+                    ).getOrFail()
                         .also { innvilget ->
                             innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
                         }
@@ -468,6 +556,7 @@ internal class StatusovergangTest {
                     underkjent.leggTilInstitusjonsoppholdVilkår(
                         saksbehandler = saksbehandler,
                         institusjonsoppholdvilkårAvslag(),
+                        clock = fixedClock,
                     ).getOrFail().also { avslag ->
                         avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
                     }
@@ -486,10 +575,29 @@ internal class StatusovergangTest {
                 iverksattAvslagBeregning,
                 lukketSøknadsbehandling,
             ).forEach {
-                it.leggTilFastOppholdINorgeVilkår(saksbehandler = saksbehandler, fastOppholdVilkårInnvilget())
+                it.leggTilFastOppholdINorgeVilkår(
+                    saksbehandler = saksbehandler,
+                    fastOppholdVilkårInnvilget(),
+                    clock = fixedClock,
+                )
                     .shouldBeType<Either.Left<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFastOppholdINorgeVilkår.UgyldigTilstand>>()
-                it.leggTilFormuevilkår(saksbehandler = saksbehandler, avslåttFormueVilkår())
-                    .shouldBeType<Either.Left<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår.UgyldigTilstand>>()
+                it.leggTilFormuegrunnlag(
+                    request = LeggTilFormuevilkårRequest(
+                        behandlingId = it.id,
+                        formuegrunnlag = nonEmptyListOf(
+                            LeggTilFormuevilkårRequest.Grunnlag.Søknadsbehandling(
+                                periode = it.periode,
+                                epsFormue = null,
+                                søkersFormue = Formuegrunnlag.Verdier.empty(),
+                                begrunnelse = null,
+                                måInnhenteMerInformasjon = false,
+                            ),
+                        ),
+                        saksbehandler = saksbehandler,
+                        tidspunkt = fixedTidspunkt,
+                    ),
+                    formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                ).shouldBeType<Either.Left<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår.UgyldigTilstand>>()
             }
         }
     }
@@ -513,7 +621,13 @@ internal class StatusovergangTest {
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
                 nySaksbehandler = saksbehandler,
-            ).getOrFail() shouldBe beregnetInnvilget
+            ).getOrFail() shouldBe beregnetInnvilget.copy(
+                søknadsbehandlingsHistorikk = beregnetInnvilget.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
+                    nonEmptyListOf(
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.Beregnet),
+                    ),
+                ),
+            )
         }
 
         @Test
@@ -523,7 +637,13 @@ internal class StatusovergangTest {
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
                 nySaksbehandler = saksbehandler,
-            ).getOrFail() shouldBe beregnetAvslag
+            ).getOrFail() shouldBe beregnetAvslag.copy(
+                søknadsbehandlingsHistorikk = beregnetAvslag.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
+                    nonEmptyListOf(
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.Beregnet),
+                    ),
+                ),
+            )
         }
 
         @Test
@@ -533,7 +653,13 @@ internal class StatusovergangTest {
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
                 nySaksbehandler = saksbehandler,
-            ).getOrFail() shouldBe beregnetInnvilget
+            ).getOrFail() shouldBe beregnetInnvilget.copy(
+                søknadsbehandlingsHistorikk = simulert.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
+                    nonEmptyListOf(
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.Beregnet),
+                    ),
+                ),
+            )
         }
 
         @Test
@@ -545,7 +671,14 @@ internal class StatusovergangTest {
                 nySaksbehandler = saksbehandler,
             ).getOrFail() shouldBe beregnetAvslag
                 .medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
-                .copy(attesteringer = Attesteringshistorikk.create(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())))
+                .copy(
+                    attesteringer = Attesteringshistorikk.create(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())),
+                    søknadsbehandlingsHistorikk = underkjentAvslagBeregning.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
+                        nonEmptyListOf(
+                            nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.Beregnet),
+                        ),
+                    ),
+                )
         }
 
         @Test
@@ -557,7 +690,16 @@ internal class StatusovergangTest {
                 nySaksbehandler = saksbehandler,
             ).getOrFail() shouldBe beregnetInnvilget
                 .medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev)
-                .copy(attesteringer = Attesteringshistorikk.create(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())))
+                .copy(
+                    attesteringer = Attesteringshistorikk.create(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())),
+                    søknadsbehandlingsHistorikk = beregnetInnvilget.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
+                        nonEmptyListOf(
+                            nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.Simulert),
+                            nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),
+                            nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.Beregnet),
+                        ),
+                    ),
+                )
         }
 
         @Test
@@ -590,7 +732,7 @@ internal class StatusovergangTest {
         fun `vilkårsvurder avslag til attestering`() {
             statusovergang(
                 vilkårsvurdertAvslag,
-                Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev),
+                Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev, fixedClock),
             ) shouldBe tilAttesteringAvslagVilkår
         }
 
@@ -598,7 +740,7 @@ internal class StatusovergangTest {
         fun `vilkårsvurder beregning til attestering`() {
             statusovergang(
                 beregnetAvslag,
-                Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev),
+                Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev, fixedClock),
             ) shouldBe tilAttesteringAvslagBeregning
         }
 
@@ -606,7 +748,7 @@ internal class StatusovergangTest {
         fun `simulert til attestering`() {
             statusovergang(
                 simulert,
-                Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev),
+                Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev, fixedClock),
             ) shouldBe tilAttesteringInnvilget
         }
 
@@ -614,12 +756,15 @@ internal class StatusovergangTest {
         fun `underkjent avslag vilkår til attestering`() {
             statusovergang(
                 underkjentAvslagVilkår,
-                Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev),
+                Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev, fixedClock),
             ) shouldBe tilAttesteringAvslagVilkår.copy(
                 attesteringer = Attesteringshistorikk.create(
                     listOf(
                         underkjentAvslagVilkår.attesteringer.hentSisteAttestering(),
                     ),
+                ),
+                søknadsbehandlingsHistorikk = underkjentAvslagVilkår.søknadsbehandlingsHistorikk.leggTilNyHendelse(
+                    nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),
                 ),
             )
         }
@@ -628,12 +773,15 @@ internal class StatusovergangTest {
         fun `underkjent avslag beregning til attestering`() {
             statusovergang(
                 underkjentAvslagBeregning,
-                Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev),
+                Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev, fixedClock),
             ) shouldBe tilAttesteringAvslagBeregning.copy(
                 attesteringer = Attesteringshistorikk.create(
                     listOf(
                         underkjentAvslagBeregning.attesteringer.hentSisteAttestering(),
                     ),
+                ),
+                søknadsbehandlingsHistorikk = underkjentAvslagBeregning.søknadsbehandlingsHistorikk.leggTilNyHendelse(
+                    nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),
                 ),
             )
         }
@@ -642,12 +790,15 @@ internal class StatusovergangTest {
         fun `underkjent innvilging til attestering`() {
             statusovergang(
                 underkjentInnvilget,
-                Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev),
+                Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev, fixedClock),
             ) shouldBe tilAttesteringInnvilget.copy(
                 attesteringer = Attesteringshistorikk.create(
                     listOf(
                         underkjentInnvilget.attesteringer.hentSisteAttestering(),
                     ),
+                ),
+                søknadsbehandlingsHistorikk = underkjentInnvilget.søknadsbehandlingsHistorikk.leggTilNyHendelse(
+                    nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),
                 ),
             )
         }
@@ -664,7 +815,7 @@ internal class StatusovergangTest {
             assertThrows<IllegalStateException> {
                 statusovergang(
                     simulertMedFeilutbetaling,
-                    Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev),
+                    Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev, fixedClock),
                 )
             }
 
@@ -679,7 +830,7 @@ internal class StatusovergangTest {
             assertThrows<IllegalStateException> {
                 statusovergang(
                     underkjentInnvilgetMedFeilutbetaling,
-                    Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev),
+                    Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev, fixedClock),
                 )
             }
         }
@@ -701,7 +852,7 @@ internal class StatusovergangTest {
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it::class.simpleName}") {
                     statusovergang(
                         it,
-                        Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev),
+                        Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev, fixedClock),
                     )
                 }
             }
@@ -850,7 +1001,7 @@ internal class StatusovergangTest {
                 underkjentAvslagBeregning,
                 underkjentInnvilget,
             ).forEach {
-                it.oppdaterStønadsperiode(
+                it.oppdaterStønadsperiodeForSaksbehandler(
                     oppdatertStønadsperiode = stønadsperiode,
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                     clock = fixedClock,
@@ -871,7 +1022,7 @@ internal class StatusovergangTest {
                 iverksattInnvilget,
                 lukketSøknadsbehandling,
             ).forEach {
-                it.oppdaterStønadsperiode(
+                it.oppdaterStønadsperiodeForSaksbehandler(
                     oppdatertStønadsperiode = stønadsperiode,
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                     clock = fixedClock,

@@ -39,6 +39,7 @@ interface SøknadsbehandlingService {
         request: OpprettRequest,
         hentSak: (() -> Sak)? = null,
     ): Either<Sak.KunneIkkeOppretteSøknadsbehandling, Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart>>
+
     fun beregn(request: BeregnRequest): Either<KunneIkkeBeregne, Søknadsbehandling.Beregnet>
     fun simuler(request: SimulerRequest): Either<KunneIkkeSimulereBehandling, Søknadsbehandling.Simulert>
     fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeTilAttestering, Søknadsbehandling.TilAttestering>
@@ -79,8 +80,7 @@ interface SøknadsbehandlingService {
 
     fun leggTilFormuevilkår(
         request: LeggTilFormuevilkårRequest,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeLeggeTilFormuegrunnlag, Søknadsbehandling>
+    ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår, Søknadsbehandling>
 
     fun hentForSøknad(søknadId: UUID): Søknadsbehandling?
     fun persisterSøknadsbehandling(lukketSøknadbehandling: LukketSøknadsbehandling, tx: TransactionContext)
@@ -282,14 +282,5 @@ interface SøknadsbehandlingService {
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out Søknadsbehandling>,
         ) : KunneIkkeLeggeTilUtenlandsopphold()
-    }
-
-    sealed interface KunneIkkeLeggeTilFormuegrunnlag {
-        object FantIkkeSøknadsbehandling : KunneIkkeLeggeTilFormuegrunnlag
-        data class KunneIkkeMappeTilDomenet(val feil: LeggTilFormuevilkårRequest.KunneIkkeMappeTilDomenet) :
-            KunneIkkeLeggeTilFormuegrunnlag
-
-        data class KunneIkkeLeggeTilFormuegrunnlagTilSøknadsbehandling(val feil: KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår) :
-            KunneIkkeLeggeTilFormuegrunnlag
     }
 }

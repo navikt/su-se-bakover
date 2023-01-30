@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.database.søknadsbehandling
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeTypeOf
-import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
@@ -14,26 +14,29 @@ import no.nav.su.se.bakover.common.persistence.hent
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
-import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
-import no.nav.su.se.bakover.test.attestant
+import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.enUkeEtterFixedClock
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
+import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
+import no.nav.su.se.bakover.test.nySøknadsbehandlingshistorikk
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
@@ -42,7 +45,7 @@ import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.stønadsperiode2022
-import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
+import no.nav.su.se.bakover.test.toFormueRequestGrunnlag
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import org.junit.jupiter.api.Nested
@@ -194,6 +197,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
             val simulert = beregnet.simuler(
                 saksbehandler = saksbehandler,
+                clock = fixedClock,
             ) { _, _ ->
                 simulerUtbetaling(
                     sak = sak,
@@ -217,9 +221,14 @@ internal class SøknadsbehandlingPostgresRepoTest {
             }
 
             // Tilbake til vilkårsvurdert
-            simulert.leggTilFormuevilkår(
-                saksbehandler = saksbehandler,
-                vilkår = innvilgetFormueVilkår(),
+            simulert.leggTilFormuegrunnlag(
+                request = LeggTilFormuevilkårRequest(
+                    behandlingId = simulert.id,
+                    formuegrunnlag = simulert.vilkårsvurderinger.formue.grunnlag.toFormueRequestGrunnlag(),
+                    saksbehandler = saksbehandler,
+                    tidspunkt = fixedTidspunkt,
+                ),
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail().also { vilkårsvurdert ->
                 repo.lagre(vilkårsvurdert)
                 repo.hent(vilkårsvurdert.id) shouldBe vilkårsvurdert
@@ -347,6 +356,22 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
                 ),
                 sakstype = iverksatt.sakstype,
+                søknadsbehandlingsHistorikk = nySøknadsbehandlingshistorikk(
+                    nonEmptyListOf(
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.StartetBehandling),
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertStønadsperiode),
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertUførhet),
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertFlyktning),
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertLovligOpphold),
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertFastOppholdINorge),
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertInstitusjonsopphold),
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertUtenlandsopphold),
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.TattStillingTilEPS),
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertFormue),
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertPersonligOppmøte),
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),
+                    ),
+                ),
             )
             repo.hent(iverksatt.id).also {
                 it shouldBe expected
@@ -406,32 +431,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 søknadsbehandling = opprettetMedStønadsperiode,
             )
 
-            testDataHelper.søknadsbehandlingRepo.hent(opprettetMedStønadsperiode.id) shouldBe Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
-                id = opprettetMedStønadsperiode.id,
-                opprettet = opprettetMedStønadsperiode.opprettet,
-                sakId = opprettetMedStønadsperiode.sakId,
-                saksnummer = opprettetMedStønadsperiode.saksnummer,
-                søknad = opprettetMedStønadsperiode.søknad,
-                oppgaveId = opprettetMedStønadsperiode.oppgaveId,
-                fnr = opprettetMedStønadsperiode.fnr,
-                saksbehandler = saksbehandler,
-                attesteringer = Attesteringshistorikk.create(
-                    attesteringer = listOf(
-                        Attestering.Iverksatt(
-                            attestant = NavIdentBruker.Attestant(attestant.navIdent),
-                            opprettet = opprettetMedStønadsperiode.attesteringer.hentSisteAttestering().opprettet,
-                        ),
-                    ),
-                ),
-                fritekstTilBrev = "",
-                stønadsperiode = opprettetMedStønadsperiode.stønadsperiode,
-                grunnlagsdata = opprettetMedStønadsperiode.grunnlagsdata,
-                vilkårsvurderinger = opprettetMedStønadsperiode.vilkårsvurderinger,
-                avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
-                    håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
-                ),
-                sakstype = opprettetMedStønadsperiode.sakstype,
-            )
+            testDataHelper.søknadsbehandlingRepo.hent(opprettetMedStønadsperiode.id) shouldBe opprettetMedStønadsperiode
+            opprettetMedStønadsperiode.shouldBeInstanceOf<Søknadsbehandling.Iverksatt.Avslag.UtenBeregning>()
         }
     }
 

@@ -19,6 +19,7 @@ data class LukketSøknadsbehandling private constructor(
     override val grunnlagsdata = underliggendeSøknadsbehandling.grunnlagsdata
     override val vilkårsvurderinger = underliggendeSøknadsbehandling.vilkårsvurderinger
     override val attesteringer = underliggendeSøknadsbehandling.attesteringer
+    override val søknadsbehandlingsHistorikk = underliggendeSøknadsbehandling.søknadsbehandlingsHistorikk
     override val fritekstTilBrev = underliggendeSøknadsbehandling.fritekstTilBrev
     override val oppgaveId = underliggendeSøknadsbehandling.oppgaveId
     override val id = underliggendeSøknadsbehandling.id
@@ -88,6 +89,7 @@ data class LukketSøknadsbehandling private constructor(
         stønadsperiode: Stønadsperiode,
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
         avkorting: AvkortingVedSøknadsbehandling,
+        søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
     ) = throw UnsupportedOperationException("Kan ikke kalle copyInternal på en lukket søknadsbehandling.")
 
     init {

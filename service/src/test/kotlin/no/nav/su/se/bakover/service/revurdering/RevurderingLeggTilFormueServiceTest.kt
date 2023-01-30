@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.revurderingTilAttestering
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.vilkår.formuevilkårAvslåttPgaBrukersformue
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
@@ -75,6 +76,8 @@ internal class RevurderingLeggTilFormueServiceTest {
                 request = LeggTilFormuevilkårRequest(
                     behandlingId = revurderingId,
                     formuegrunnlag = listOf(nyFormue).toNonEmptyList(),
+                    saksbehandler = saksbehandler,
+                    tidspunkt = fixedTidspunkt,
                 ),
             ).getOrFail()
 
@@ -127,6 +130,8 @@ internal class RevurderingLeggTilFormueServiceTest {
                             begrunnelse = null,
                         ),
                     ).toNonEmptyList(),
+                    saksbehandler = saksbehandler,
+                    tidspunkt = fixedTidspunkt,
                 ),
             ).getOrElse {
                 it shouldBe KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet(
@@ -165,6 +170,8 @@ internal class RevurderingLeggTilFormueServiceTest {
                             begrunnelse = null,
                         ),
                     ).toNonEmptyList(),
+                    saksbehandler = saksbehandler,
+                    tidspunkt = fixedTidspunkt,
                 ),
             ).getOrElse {
                 it shouldBe KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet(LeggTilFormuevilkårRequest.KunneIkkeMappeTilDomenet.FormuePeriodeErUtenforBehandlingsperioden)
@@ -199,6 +206,8 @@ internal class RevurderingLeggTilFormueServiceTest {
                             begrunnelse = null,
                         ),
                     ).toNonEmptyList(),
+                    saksbehandler = saksbehandler,
+                    tidspunkt = fixedTidspunkt,
                 ),
             ).getOrElse {
                 it shouldBe KunneIkkeLeggeTilFormuegrunnlag.Konsistenssjekk(
@@ -248,6 +257,8 @@ internal class RevurderingLeggTilFormueServiceTest {
                             begrunnelse = null,
                         ),
                     ).toNonEmptyList(),
+                    saksbehandler = saksbehandler,
+                    tidspunkt = fixedTidspunkt,
                 ),
             ).getOrElse {
                 it shouldBe KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet(LeggTilFormuevilkårRequest.KunneIkkeMappeTilDomenet.IkkeLovMedOverlappendePerioder)
@@ -280,6 +291,8 @@ internal class RevurderingLeggTilFormueServiceTest {
                             begrunnelse = null,
                         ),
                     ).toNonEmptyList(),
+                    saksbehandler = saksbehandler,
+                    tidspunkt = fixedTidspunkt,
                 ),
             ).getOrElse {
                 it shouldBe KunneIkkeLeggeTilFormuegrunnlag.FantIkkeRevurdering
@@ -327,6 +340,8 @@ internal class RevurderingLeggTilFormueServiceTest {
                             begrunnelse = ":(",
                         ),
                     ),
+                    saksbehandler = saksbehandler,
+                    tidspunkt = fixedTidspunkt,
                 ),
             ).getOrFail()
 
@@ -380,7 +395,10 @@ internal class RevurderingLeggTilFormueServiceTest {
                             begrunnelse = ":(",
                         ),
                     ),
+                    saksbehandler = saksbehandler,
+                    tidspunkt = fixedTidspunkt,
                 ),
+
             ).getOrFail()
 
             response.feilmeldinger.shouldContain(RevurderingsutfallSomIkkeStøttes.OpphørErIkkeFraFørsteMåned)
@@ -405,6 +423,8 @@ internal class RevurderingLeggTilFormueServiceTest {
                             begrunnelse = null,
                         ),
                     ).toNonEmptyList(),
+                    saksbehandler = saksbehandler,
+                    tidspunkt = fixedTidspunkt,
                 ),
             )
 

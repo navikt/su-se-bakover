@@ -15,9 +15,13 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.NySøknadsbehandling
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nySakUføre
 import no.nav.su.se.bakover.test.sakId
@@ -199,6 +203,13 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                 avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
                 sakstype = sak.type,
                 saksbehandler = saksbehandler,
+                søknadsbehandlingsHistorikk = Søknadsbehandlingshistorikk.nyHistorikk(
+                    hendelse = Søknadsbehandlingshendelse(
+                        tidspunkt = fixedTidspunkt,
+                        saksbehandler = saksbehandler,
+                        handling = SøknadsbehandlingsHandling.StartetBehandling,
+                    ),
+                ),
             ),
             // periode er null for Søknadsbehandling.Vilkårsvurdert.Uavklart og vil gi exception dersom man kaller get() på den.
             Søknadsbehandling.Vilkårsvurdert.Uavklart::periode,
@@ -238,6 +249,13 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                         avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
                         sakstype = sak.type,
                         saksbehandler = saksbehandler,
+                        søknadsbehandlingsHistorikk = Søknadsbehandlingshistorikk.nyHistorikk(
+                            hendelse = Søknadsbehandlingshendelse(
+                                tidspunkt = fixedTidspunkt,
+                                saksbehandler = saksbehandler,
+                                handling = SøknadsbehandlingsHandling.StartetBehandling,
+                            ),
+                        ),
                     ),
                     saksbehandler = saksbehandler,
                 )

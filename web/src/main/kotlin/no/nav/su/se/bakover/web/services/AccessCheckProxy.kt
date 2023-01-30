@@ -127,6 +127,7 @@ import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
@@ -583,10 +584,9 @@ open class AccessCheckProxy(
 
                     override fun leggTilFormuevilkår(
                         request: LeggTilFormuevilkårRequest,
-                        saksbehandler: NavIdentBruker.Saksbehandler,
-                    ): Either<SøknadsbehandlingService.KunneIkkeLeggeTilFormuegrunnlag, Søknadsbehandling> {
+                    ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår, Søknadsbehandling> {
                         assertHarTilgangTilBehandling(request.behandlingId)
-                        return service.leggTilFormuevilkår(request, saksbehandler)
+                        return service.leggTilFormuevilkår(request)
                     }
 
                     override fun hentForSøknad(søknadId: UUID) = kastKanKunKallesFraAnnenService()

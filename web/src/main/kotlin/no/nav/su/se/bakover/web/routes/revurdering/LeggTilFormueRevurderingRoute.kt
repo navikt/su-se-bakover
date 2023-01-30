@@ -9,6 +9,8 @@ import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
+import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.depositumErHøyereEnnInnskudd
@@ -17,6 +19,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
+import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
@@ -34,6 +37,7 @@ import no.nav.su.se.bakover.web.routes.grunnlag.FormuegrunnlagJson
 import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
 import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
 import no.nav.su.se.bakover.web.routes.revurdering.FormueBody.Companion.toServiceRequest
+import java.time.Clock
 import java.util.UUID
 
 private data class FormueBody(
@@ -56,7 +60,7 @@ private data class FormueBody(
                 depositumskonto = json.depositumskonto,
             )
 
-        fun List<FormueBody>.toServiceRequest(revurderingId: UUID): Either<Resultat, LeggTilFormuevilkårRequest> {
+        fun List<FormueBody>.toServiceRequest(revurderingId: UUID, saksbehandler: NavIdentBruker.Saksbehandler, clock: Clock): Either<Resultat, LeggTilFormuevilkårRequest> {
             if (this.isEmpty()) {
                 return HttpStatusCode.BadRequest.errorJson(
                     "Formueliste kan ikke være tom",
@@ -81,6 +85,9 @@ private data class FormueBody(
                         begrunnelse = formueBody.begrunnelse,
                     )
                 }.toNonEmptyList(),
+                saksbehandler = saksbehandler,
+                tidspunkt = Tidspunkt.now(clock),
+
             ).right()
         }
     }
@@ -89,13 +96,14 @@ private data class FormueBody(
 internal fun Route.leggTilFormueRevurderingRoute(
     revurderingService: RevurderingService,
     satsFactory: SatsFactory,
+    clock: Clock,
 ) {
     post("$revurderingPath/{revurderingId}/formuegrunnlag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     call.withBody<List<FormueBody>> { body ->
-                        body.toServiceRequest(revurderingId).mapLeft { call.svar(it) }
+                        body.toServiceRequest(revurderingId, call.suUserContext.saksbehandler, clock).mapLeft { call.svar(it) }
                             .map { request ->
                                 revurderingService.leggTilFormuegrunnlag(request)
                                     .map {

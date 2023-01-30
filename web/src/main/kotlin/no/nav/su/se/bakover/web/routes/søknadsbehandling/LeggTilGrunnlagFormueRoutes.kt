@@ -9,6 +9,8 @@ import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
+import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.depositumErHøyereEnnInnskudd
@@ -29,14 +31,13 @@ import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageFormueVerdier
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFormuegrunnlag
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFormuegrunnlag.FantIkkeSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.grunnlag.FormuegrunnlagJson
 import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
 import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.FormueBody.Companion.toServiceRequest
+import java.time.Clock
 import java.util.UUID
 
 private data class FormueBody(
@@ -60,7 +61,11 @@ private data class FormueBody(
                 depositumskonto = json.depositumskonto,
             )
 
-        fun List<FormueBody>.toServiceRequest(behandlingId: UUID): Either<Resultat, LeggTilFormuevilkårRequest> {
+        fun List<FormueBody>.toServiceRequest(
+            behandlingId: UUID,
+            saksbehandler: NavIdentBruker.Saksbehandler,
+            clock: Clock,
+        ): Either<Resultat, LeggTilFormuevilkårRequest> {
             if (this.isEmpty()) {
                 return HttpStatusCode.BadRequest.errorJson(
                     "Formueliste kan ikke være tom",
@@ -86,6 +91,8 @@ private data class FormueBody(
                         måInnhenteMerInformasjon = formueBody.måInnhenteMerInformasjon,
                     )
                 }.toNonEmptyList(),
+                saksbehandler = saksbehandler,
+                tidspunkt = Tidspunkt.now(clock),
             ).right()
         }
     }
@@ -94,16 +101,17 @@ private data class FormueBody(
 internal fun Route.leggTilFormueForSøknadsbehandlingRoute(
     søknadsbehandlingService: SøknadsbehandlingService,
     satsFactory: SatsFactory,
+    clock: Clock,
 ) {
     post("$behandlingPath/{behandlingId}/formuegrunnlag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
                     call.withBody<List<FormueBody>> { body ->
-                        body.toServiceRequest(behandlingId).mapLeft {
+                        body.toServiceRequest(behandlingId, call.suUserContext.saksbehandler, clock).mapLeft {
                             call.svar(it)
                         }.map { request ->
-                            søknadsbehandlingService.leggTilFormuevilkår(request, saksbehandler = call.suUserContext.saksbehandler)
+                            søknadsbehandlingService.leggTilFormuevilkår(request)
                                 .map {
                                     call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                                     call.sikkerlogg("Lagret formue for revudering $behandlingId på $sakId")
@@ -127,14 +135,10 @@ private fun KunneIkkeLageFormueVerdier.tilResultat() = when (this) {
     )
 }
 
-private fun KunneIkkeLeggeTilFormuegrunnlag.tilResultat() = when (this) {
-    FantIkkeSøknadsbehandling -> Feilresponser.fantIkkeBehandling
-    is KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeLeggeTilFormuegrunnlagTilSøknadsbehandling -> when (val f = this.feil) {
-        is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår.UgyldigTilstand -> Feilresponser.ugyldigTilstand(
-            fra = f.fra,
-            til = f.til,
-        )
-    }
-
-    is KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet -> this.feil.tilResultat()
+internal fun KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår.tilResultat() = when (this) {
+    is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår.KunneIkkeMappeTilDomenet -> this.feil.tilResultat()
+    is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår.UgyldigTilstand -> Feilresponser.ugyldigTilstand(
+        fra = this.fra,
+        til = this.til,
+    )
 }

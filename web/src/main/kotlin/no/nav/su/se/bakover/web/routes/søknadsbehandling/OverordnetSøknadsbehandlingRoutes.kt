@@ -27,7 +27,7 @@ internal fun Route.overordnetSøknadsbehandligRoutes(
 
     leggTilUtenlandsopphold(søknadsbehandlingServices.søknadsbehandlingService, satsFactory)
 
-    leggTilFormueForSøknadsbehandlingRoute(søknadsbehandlingServices.søknadsbehandlingService, satsFactory)
+    leggTilFormueForSøknadsbehandlingRoute(søknadsbehandlingServices.søknadsbehandlingService, satsFactory, clock)
 
     leggTilFamiliegjenforeningRoute(søknadsbehandlingServices.søknadsbehandlingService, satsFactory)
 

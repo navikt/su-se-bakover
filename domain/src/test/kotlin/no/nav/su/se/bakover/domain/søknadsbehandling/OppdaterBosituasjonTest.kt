@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.harEpsInntekt
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEpsUførFlyktning
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataMedEpsMedFradrag
 import no.nav.su.se.bakover.test.saksbehandler
@@ -38,6 +39,11 @@ internal class OppdaterBosituasjonTest {
             original.oppdaterBosituasjon(
                 bosituasjon = bosituasjongrunnlagEnslig(),
                 saksbehandler = saksbehandler,
+                hendelse = Søknadsbehandlingshendelse(
+                    tidspunkt = fixedTidspunkt,
+                    saksbehandler = saksbehandler,
+                    handling = SøknadsbehandlingsHandling.TattStillingTilEPS,
+                ),
             ).getOrFail().also {
                 it.grunnlagsdata.fradragsgrunnlag.harEpsInntekt() shouldBe false
                 it.vilkårsvurderinger.formue.harEPSFormue() shouldBe false

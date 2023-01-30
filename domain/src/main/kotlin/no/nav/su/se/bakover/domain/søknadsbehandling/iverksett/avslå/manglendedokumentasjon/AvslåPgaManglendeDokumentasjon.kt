@@ -96,16 +96,12 @@ private fun avslå(
     return søknadsbehandling
         // Dersom en søknadsbehandling kun er opprettet, men stønadsperiode ikke er valgt enda.
         .leggTilStønadsperiodeHvisNull(
-            saksbehandler = request.saksbehandler,
             clock = clock,
             satsFactory = satsFactory,
             avkorting = sak.hentUteståendeAvkortingForSøknadsbehandling().fold({ it }, { it }).kanIkke(),
         )
-        .avslåPgaManglendeDokumentasjon(request.saksbehandler)
-        .tilAttestering(
-            saksbehandler = request.saksbehandler,
-            fritekstTilBrev = request.fritekstTilBrev,
-        ).let { søknadsbehandlingTilAttestering ->
+        .avslåPgaManglendeDokumentasjon(request.saksbehandler, clock)
+        .tilAttestering(fritekstTilBrev = request.fritekstTilBrev).let { søknadsbehandlingTilAttestering ->
             Pair(
                 sak.copy(
                     søknadsbehandlinger = sak.søknadsbehandlinger.filterNot { it.id == søknadsbehandlingTilAttestering.id } + søknadsbehandlingTilAttestering,
@@ -120,7 +116,6 @@ private fun avslå(
  * ikke er valgt av saksbeahndler gjør vi det direkte på søknadsbehandling.
  */
 private fun Søknadsbehandling.leggTilStønadsperiodeHvisNull(
-    saksbehandler: NavIdentBruker.Saksbehandler,
     clock: Clock,
     satsFactory: SatsFactory,
     avkorting: AvkortingVedSøknadsbehandling,
@@ -136,15 +131,15 @@ private fun Søknadsbehandling.leggTilStønadsperiodeHvisNull(
         ),
         formuegrenserFactory = satsFactory.formuegrenserFactory,
         clock = clock,
-        saksbehandler = saksbehandler,
         avkorting = avkorting,
     ).getOrElse { throw IllegalArgumentException(it.toString()) }
 }
 
 private fun Søknadsbehandling.avslåPgaManglendeDokumentasjon(
     saksbehandler: NavIdentBruker.Saksbehandler,
+    clock: Clock,
 ): Søknadsbehandling.Vilkårsvurdert.Avslag {
-    return leggTilOpplysningspliktVilkår(
+    return leggTilOpplysningspliktVilkårForSaksbehandler(
         opplysningspliktVilkår = OpplysningspliktVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(
                 VurderingsperiodeOpplysningsplikt.create(
@@ -161,5 +156,6 @@ private fun Søknadsbehandling.avslåPgaManglendeDokumentasjon(
             ),
         ).getOrElse { throw IllegalArgumentException(it.toString()) },
         saksbehandler = saksbehandler,
+        clock = clock,
     ).getOrElse { throw IllegalArgumentException(it.toString()) } as Søknadsbehandling.Vilkårsvurdert.Avslag
 }

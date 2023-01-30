@@ -64,19 +64,14 @@ sealed class Vilkårsvurderinger {
 
     object VilkårEksistererIkke
 
-    fun lovligOppholdVilkår() = lovligOpphold
+    fun lovligOppholdVilkår(): LovligOppholdVilkår = lovligOpphold
 
-    fun formueVilkår(): FormueVilkår {
-        return formue
-    }
+    fun formueVilkår(): FormueVilkår = formue
 
-    fun utenlandsoppholdVilkår(): UtenlandsoppholdVilkår {
-        return utenlandsopphold
-    }
+    fun utenlandsoppholdVilkår(): UtenlandsoppholdVilkår = utenlandsopphold
 
-    fun opplysningspliktVilkår(): OpplysningspliktVilkår {
-        return opplysningsplikt
-    }
+    fun opplysningspliktVilkår(): OpplysningspliktVilkår = opplysningsplikt
+    fun institusjonsoppholdVilkår(): InstitusjonsoppholdVilkår = institusjonsopphold
 
     fun pensjonsVilkår(): Either<VilkårEksistererIkke, PensjonsVilkår> {
         return when (this) {

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.assertions.throwables.shouldThrow
@@ -32,6 +33,7 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrollsamtaleVedNyStønadsperiodeService
@@ -53,6 +55,8 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
+import no.nav.su.se.bakover.test.nySøknadsbehandlingshistorikkSendtTilAttesteringAvslåttBeregning
 import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.søknad.personopplysninger
@@ -252,6 +256,20 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
                 ),
                 sakstype = avslagTilAttestering.sakstype,
+                søknadsbehandlingsHistorikk = nySøknadsbehandlingshistorikkSendtTilAttesteringAvslåttBeregning(
+                    saksbehandler = avslagTilAttestering.saksbehandler,
+                ).leggTilNyeHendelser(
+                    nonEmptyListOf(
+                        nySøknadsbehandlingshendelse(
+                            saksbehandler = avslagTilAttestering.saksbehandler,
+                            handling = SøknadsbehandlingsHandling.Beregnet,
+                        ),
+                        nySøknadsbehandlingshendelse(
+                            saksbehandler = avslagTilAttestering.saksbehandler,
+                            handling = SøknadsbehandlingsHandling.SendtTilAttestering,
+                        ),
+                    ),
+                ),
             )
 
             val serviceAndMocks = ServiceAndMocks(

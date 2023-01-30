@@ -49,7 +49,7 @@ internal class SøknadsbehandlingBeregnTest {
     @Test
     fun `fjerner evt gammelt grunnlag for avkorting dersom ingen avkorting skal finne sted`() {
         søknadsbehandlingVilkårsvurdertInnvilget().let { (_, vilkårsvurdert) ->
-            vilkårsvurdert.leggTilFradragsgrunnlag(
+            vilkårsvurdert.leggTilFradragsgrunnlagFraSaksbehandler(
                 fradragsgrunnlag = listOf(
                     Grunnlag.Fradragsgrunnlag.create(
                         id = UUID.randomUUID(),
@@ -64,6 +64,7 @@ internal class SøknadsbehandlingBeregnTest {
                     ),
                 ),
                 saksbehandler = saksbehandler,
+                clock = fixedClock,
             )
         }.getOrFail().let { førBeregning ->
             førBeregning.beregn(
@@ -84,7 +85,7 @@ internal class SøknadsbehandlingBeregnTest {
     @Test
     fun `beregner med fradrag`() {
         søknadsbehandlingVilkårsvurdertInnvilget().let { (_, vilkårsvurdert) ->
-            vilkårsvurdert.leggTilFradragsgrunnlag(
+            vilkårsvurdert.leggTilFradragsgrunnlagFraSaksbehandler(
                 fradragsgrunnlag = listOf(
                     Grunnlag.Fradragsgrunnlag.create(
                         id = UUID.randomUUID(),
@@ -99,6 +100,7 @@ internal class SøknadsbehandlingBeregnTest {
                     ),
                 ),
                 saksbehandler = saksbehandler,
+                clock = fixedClock,
             )
         }.getOrFail().let { førBeregning ->
             førBeregning.beregn(
@@ -135,7 +137,8 @@ internal class SøknadsbehandlingBeregnTest {
                         opprettet = førBeregning.opprettet,
                         simulering = simuleringOpphørt(
                             opphørsperiode = Periode.create(
-                                fraOgMed = LocalDate.now(nåtidForSimuleringStub).startOfMonth().minusMonths(antallMånederMedFeilutbetaling),
+                                fraOgMed = LocalDate.now(nåtidForSimuleringStub).startOfMonth()
+                                    .minusMonths(antallMånederMedFeilutbetaling),
                                 tilOgMed = stønadsperiode2021.periode.tilOgMed,
                             ),
                             eksisterendeUtbetalinger = eksisterendeUtbetalinger,
@@ -175,7 +178,7 @@ internal class SøknadsbehandlingBeregnTest {
         søknadsbehandlingVilkårsvurdertInnvilget(
             stønadsperiode = stønadsperiode2021,
         ).let { (_, vilkårsvurdert) ->
-            vilkårsvurdert.leggTilFradragsgrunnlag(
+            vilkårsvurdert.leggTilFradragsgrunnlagFraSaksbehandler(
                 fradragsgrunnlag = listOf(
                     Grunnlag.Fradragsgrunnlag.create(
                         id = UUID.randomUUID(),
@@ -190,6 +193,7 @@ internal class SøknadsbehandlingBeregnTest {
                     ),
                 ),
                 saksbehandler = saksbehandler,
+                clock = fixedClock,
             ).getOrFail().copy(
                 avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
                     Avkortingsvarsel.Utenlandsopphold.Opprettet(
@@ -199,7 +203,8 @@ internal class SøknadsbehandlingBeregnTest {
                         opprettet = vilkårsvurdert.opprettet,
                         simulering = simuleringOpphørt(
                             opphørsperiode = Periode.create(
-                                fraOgMed = LocalDate.now(nåtidForSimuleringStub).startOfMonth().minusMonths(antallMånederMedFeilutbetaling),
+                                fraOgMed = LocalDate.now(nåtidForSimuleringStub).startOfMonth()
+                                    .minusMonths(antallMånederMedFeilutbetaling),
                                 tilOgMed = stønadsperiode2021.periode.tilOgMed,
                             ),
                             eksisterendeUtbetalinger = eksisterendeUtbetalinger,

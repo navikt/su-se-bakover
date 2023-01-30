@@ -23,6 +23,8 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.IverksattAvslåttSøknadsbehandlingResponse
@@ -40,6 +42,8 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nySøknadsbehandlingUtenStønadsperiode
+import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
@@ -104,6 +108,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 tilOgMed = LocalDate.now(serviceAndMocks.clock).endOfMonth(),
             )
 
+            val expectedSaksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo")
             val expectedSøknadsbehandling = Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
                 id = uavklart.id,
                 opprettet = uavklart.opprettet,
@@ -112,7 +117,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 søknad = uavklart.søknad,
                 oppgaveId = uavklart.oppgaveId,
                 fnr = uavklart.fnr,
-                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
+                saksbehandler = expectedSaksbehandler,
                 attesteringer = Attesteringshistorikk.create(
                     listOf(
                         Attestering.Iverksatt(
@@ -147,6 +152,18 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
                 ),
                 sakstype = sak.type,
+                søknadsbehandlingsHistorikk = Søknadsbehandlingshistorikk.createFromExisting(
+                    listOf(
+                        nySøknadsbehandlingshendelse(
+                            saksbehandler = saksbehandler,
+                            handling = SøknadsbehandlingsHandling.StartetBehandling,
+                        ),
+                        nySøknadsbehandlingshendelse(
+                            saksbehandler = expectedSaksbehandler,
+                            handling = SøknadsbehandlingsHandling.OppdatertOpplysningsplikt,
+                        ),
+                    ),
+                ),
             )
 
             val expectedVedtak = Avslagsvedtak.AvslagVilkår(
@@ -238,7 +255,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             ).getOrFail()
 
             val expectedPeriode = vilkårsvurdertInnvilget.periode
-
+            val expectedSaksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo")
             val expectedSøknadsbehandling = Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
                 id = vilkårsvurdertInnvilget.id,
                 opprettet = vilkårsvurdertInnvilget.opprettet,
@@ -247,7 +264,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 søknad = vilkårsvurdertInnvilget.søknad,
                 oppgaveId = vilkårsvurdertInnvilget.oppgaveId,
                 fnr = vilkårsvurdertInnvilget.fnr,
-                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
+                saksbehandler = expectedSaksbehandler,
                 attesteringer = Attesteringshistorikk.create(
                     listOf(
                         Attestering.Iverksatt(
@@ -280,6 +297,14 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
                 ),
                 sakstype = sak.type,
+                søknadsbehandlingsHistorikk = vilkårsvurdertInnvilget.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
+                    nonEmptyListOf(
+                        nySøknadsbehandlingshendelse(
+                            saksbehandler = expectedSaksbehandler,
+                            handling = SøknadsbehandlingsHandling.OppdatertOpplysningsplikt,
+                        ),
+                    ),
+                ),
             )
 
             val expectedVedtak = Avslagsvedtak.AvslagVilkår(

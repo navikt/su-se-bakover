@@ -4,30 +4,33 @@ import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.getOrElse
 import arrow.core.left
+import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageFormueGrunnlag
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
-import java.time.Clock
 import java.util.UUID
 
 data class LeggTilFormuevilkårRequest(
     val behandlingId: UUID,
     val formuegrunnlag: Nel<Grunnlag>,
+    val saksbehandler: NavIdentBruker.Saksbehandler,
+    val tidspunkt: Tidspunkt,
 ) {
     fun toDomain(
         bosituasjon: List<no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon>,
         behandlingsperiode: Periode,
-        clock: Clock,
         formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeMappeTilDomenet, FormueVilkår.Vurdert> {
         return FormueVilkår.Vurdert.tryCreateFromGrunnlag(
             grunnlag = formuegrunnlag.map { element ->
                 element.måInnhenteMerInformasjon to Formuegrunnlag.tryCreate(
-                    opprettet = Tidspunkt.now(clock),
+                    opprettet = tidspunkt,
                     periode = element.periode,
                     epsFormue = element.epsFormue,
                     søkersFormue = element.søkersFormue,
@@ -63,13 +66,12 @@ data class LeggTilFormuevilkårRequest(
     fun toDomain(
         bosituasjon: List<no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Fullstendig>,
         behandlingsperiode: Periode,
-        clock: Clock,
         formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeMappeTilDomenet, FormueVilkår.Vurdert> {
         return FormueVilkår.Vurdert.tryCreateFromGrunnlag(
             grunnlag = formuegrunnlag.map { element ->
                 element.måInnhenteMerInformasjon to Formuegrunnlag.tryCreate(
-                    opprettet = Tidspunkt.now(clock),
+                    opprettet = tidspunkt,
                     periode = element.periode,
                     epsFormue = element.epsFormue,
                     søkersFormue = element.søkersFormue,
@@ -93,6 +95,14 @@ data class LeggTilFormuevilkårRequest(
                 FormueVilkår.Vurdert.UgyldigFormuevilkår.OverlappendeVurderingsperioder -> return KunneIkkeMappeTilDomenet.IkkeLovMedOverlappendePerioder.left()
             }
         }
+    }
+
+    fun handling(tidspunkt: Tidspunkt): Søknadsbehandlingshendelse {
+        return Søknadsbehandlingshendelse(
+            tidspunkt = tidspunkt,
+            saksbehandler = saksbehandler,
+            handling = SøknadsbehandlingsHandling.OppdatertFormue,
+        )
     }
 
     sealed interface Grunnlag {

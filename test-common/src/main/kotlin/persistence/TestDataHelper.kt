@@ -323,18 +323,21 @@ class TestDataHelper(
     ): Triple<Sak, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, Utbetaling.OversendtUtbetaling.MedKvittering> {
         return persisterSøknadsbehandlingIverksatt(sakOgSøknad) { søknadsbehandling(it) }.let { (sak, _, vedtak) ->
             (vedtak as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling).let {
-                databaseRepos.utbetaling.hentOversendtUtbetalingForUtbetalingId(vedtak.utbetalingId).let { utbetalingUtenKvittering ->
-                    (utbetalingUtenKvittering as Utbetaling.OversendtUtbetaling.UtenKvittering).toKvittertUtbetaling(kvittering()).let { utbetalingMedKvittering ->
-                        databaseRepos.utbetaling.oppdaterMedKvittering(utbetalingMedKvittering)
-                        databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
-                            Triple(
-                                persistertSak!!,
-                                persistertSak.vedtakListe.single { it.id == vedtak.id } as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
-                                persistertSak.utbetalinger.single { it.id == utbetalingUtenKvittering.id } as Utbetaling.OversendtUtbetaling.MedKvittering,
-                            )
+                databaseRepos.utbetaling.hentOversendtUtbetalingForUtbetalingId(vedtak.utbetalingId)
+                    .let { utbetalingUtenKvittering ->
+                        (utbetalingUtenKvittering as Utbetaling.OversendtUtbetaling.UtenKvittering).toKvittertUtbetaling(
+                            kvittering(),
+                        ).let { utbetalingMedKvittering ->
+                            databaseRepos.utbetaling.oppdaterMedKvittering(utbetalingMedKvittering)
+                            databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
+                                Triple(
+                                    persistertSak!!,
+                                    persistertSak.vedtakListe.single { it.id == vedtak.id } as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
+                                    persistertSak.utbetalinger.single { it.id == utbetalingUtenKvittering.id } as Utbetaling.OversendtUtbetaling.MedKvittering,
+                                )
+                            }
                         }
                     }
-                }
             }
         }
     }
@@ -727,6 +730,7 @@ class TestDataHelper(
             }
         }
     }
+
     fun persisterGjenopptakAvYtelseSimulert(
         id: UUID = UUID.randomUUID(),
         opprettet: Tidspunkt = Tidspunkt.now(clock),
@@ -1174,9 +1178,10 @@ class TestDataHelper(
     ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
         val (sak, søknad) = persisterJournalførtSøknadMedOppgave(sakId = sakId, søknadId = søknadId)
         assert(sak.id == sakId && sak.søknader.count { it.sakId == sakId && it.id == søknadId } == 1)
+        val opprettet = Tidspunkt.now(clock)
         return NySøknadsbehandling(
             id = id,
-            opprettet = Tidspunkt.now(clock),
+            opprettet = opprettet,
             sakId = sak.id,
             søknad = søknad,
             oppgaveId = søknad.oppgaveId,

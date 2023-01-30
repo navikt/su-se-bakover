@@ -11,6 +11,9 @@ import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 
@@ -34,6 +37,14 @@ data class NySøknadsbehandling(
         }
     }
 
+    val søknadsbehandlingsHistorikk = Søknadsbehandlingshistorikk.nyHistorikk(
+        Søknadsbehandlingshendelse(
+            tidspunkt = opprettet,
+            saksbehandler = saksbehandler,
+            handling = SøknadsbehandlingsHandling.StartetBehandling,
+        ),
+    )
+
     fun toSøknadsbehandling(saksnummer: Saksnummer): Søknadsbehandling.Vilkårsvurdert.Uavklart {
         return Søknadsbehandling.Vilkårsvurdert.Uavklart(
             id = id,
@@ -51,6 +62,7 @@ data class NySøknadsbehandling(
                 Sakstype.UFØRE -> Vilkårsvurderinger.Søknadsbehandling.Uføre.ikkeVurdert()
             },
             attesteringer = Attesteringshistorikk.empty(),
+            søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
             avkorting = avkorting,
             sakstype = sakstype,
             saksbehandler = saksbehandler,

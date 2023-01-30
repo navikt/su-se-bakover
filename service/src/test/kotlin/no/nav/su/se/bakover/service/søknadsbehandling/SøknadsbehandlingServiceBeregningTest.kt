@@ -63,7 +63,7 @@ class SøknadsbehandlingServiceBeregningTest {
     @Test
     fun `oppretter beregning`() {
         val vilkårsvurdert = søknadsbehandlingVilkårsvurdertInnvilget().let { (_, vilkårsvurdert) ->
-            vilkårsvurdert.leggTilFradragsgrunnlag(
+            vilkårsvurdert.leggTilFradragsgrunnlagFraSaksbehandler(
                 fradragsgrunnlag = listOf(
                     Grunnlag.Fradragsgrunnlag.create(
                         id = UUID.randomUUID(),
@@ -78,6 +78,7 @@ class SøknadsbehandlingServiceBeregningTest {
                     ),
                 ),
                 saksbehandler = saksbehandler,
+                clock = fixedClock,
             ).getOrFail()
         }
 
@@ -184,15 +185,16 @@ class SøknadsbehandlingServiceBeregningTest {
             beregnet shouldBe beOfType<Søknadsbehandling.Beregnet.Innvilget>()
             beregnet.avkorting.shouldBeType<AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående>().also {
                 Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-                    objekt = sak.uteståendeAvkorting.shouldBeType<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes>().let {
-                        Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                            id = it.id,
-                            sakId = sak.id,
-                            revurderingId = sakMedUteståendeAvkorting.third.behandling.id,
-                            simulering = it.simulering,
-                            opprettet = it.opprettet,
-                        )
-                    },
+                    objekt = sak.uteståendeAvkorting.shouldBeType<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes>()
+                        .let {
+                            Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                                id = it.id,
+                                sakId = sak.id,
+                                revurderingId = sakMedUteståendeAvkorting.third.behandling.id,
+                                simulering = it.simulering,
+                                opprettet = it.opprettet,
+                            )
+                        },
                 )
             }
             beregnet.grunnlagsdata shouldNotBe vilkårsvurdert.grunnlagsdata
@@ -257,15 +259,16 @@ class SøknadsbehandlingServiceBeregningTest {
             beregnet.avkorting shouldBe AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere(
                 håndtert = AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(
                     Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-                        objekt = sak.uteståendeAvkorting.shouldBeType<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes>().let {
-                            Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                                id = it.id,
-                                sakId = sak.id,
-                                revurderingId = sakMedUteståendeAvkorting.third.behandling.id,
-                                simulering = it.simulering,
-                                opprettet = it.opprettet,
-                            )
-                        },
+                        objekt = sak.uteståendeAvkorting.shouldBeType<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes>()
+                            .let {
+                                Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                                    id = it.id,
+                                    sakId = sak.id,
+                                    revurderingId = sakMedUteståendeAvkorting.third.behandling.id,
+                                    simulering = it.simulering,
+                                    opprettet = it.opprettet,
+                                )
+                            },
                     ),
                 ),
             )
@@ -321,6 +324,7 @@ class SøknadsbehandlingServiceBeregningTest {
                             ),
                         ),
                         saksbehandler = saksbehandler,
+                        clock = fixedClock,
                     ).getOrFail()
                 }
             },
