@@ -2,11 +2,14 @@ package no.nav.su.se.bakover.database.revurdering
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mai
+import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.revurdering.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
@@ -14,6 +17,7 @@ import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulering
+import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -23,30 +27,19 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
     fun `lagrer og henter revurdering for gjenopptak av ytelse`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val vedtak =
-                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
 
-            val simulertRevurdering = GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
-                id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
-                periode = år(2021),
-                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
-                vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(),
-                tilRevurdering = vedtak.id,
-                saksbehandler = saksbehandler,
-                simulering = simulering(),
-                revurderingsårsak = Revurderingsårsak.create(
-                    årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
-                    begrunnelse = "huffa",
-                ),
-                sakinfo = vedtak.sakinfo(),
+            val (sakEtterStans, stansVedtak) = testDataHelper.persisterIverksattStansOgVedtak()
+
+            val (_, simulertRevurdering) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
+                sakOgVedtakSomKanRevurderes = sakEtterStans to stansVedtak,
             )
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
 
             testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe simulertRevurdering
 
-            val persistertSimulert = testDataHelper.revurderingRepo.hent(simulertRevurdering.id)!! as GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse
+            val persistertSimulert =
+                testDataHelper.revurderingRepo.hent(simulertRevurdering.id)!! as GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse
 
             val iverksattRevurdering = persistertSimulert.iverksett(
                 Attestering.Iverksatt(NavIdentBruker.Attestant("atte"), fixedTidspunkt),
@@ -71,6 +64,12 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
                 vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(),
                 tilRevurdering = vedtak.id,
+                vedtakSomRevurderesMånedsvis = VedtakSomRevurderesMånedsvis(
+                    mapOf(
+                        januar(2021) to UUID.randomUUID(),
+                        mars(2021) to UUID.randomUUID(),
+                    ),
+                ),
                 saksbehandler = saksbehandler,
                 simulering = simulering(),
                 revurderingsårsak = Revurderingsårsak.create(
@@ -115,6 +114,12 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
                 vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(),
                 tilRevurdering = vedtak.id,
+                vedtakSomRevurderesMånedsvis = VedtakSomRevurderesMånedsvis(
+                    mapOf(
+                        januar(2021) to UUID.randomUUID(),
+                        mars(2021) to UUID.randomUUID(),
+                    ),
+                ),
                 saksbehandler = saksbehandler,
                 simulering = simulering(),
                 revurderingsårsak = Revurderingsårsak.create(
@@ -126,7 +131,8 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
 
-            val persistertSimulert = testDataHelper.revurderingRepo.hent(simulertRevurdering.id)!! as GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse
+            val persistertSimulert =
+                testDataHelper.revurderingRepo.hent(simulertRevurdering.id)!! as GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse
 
             val avsluttetGjenopptaAvYtelse = persistertSimulert.avslutt(
                 begrunnelse = "Avslutter denne her",

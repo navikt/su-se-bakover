@@ -117,8 +117,12 @@ data class GjeldendeVedtaksdata(
     fun gjeldendeVedtakPåDato(dato: LocalDate): VedtakSomKanRevurderes? =
         tidslinje.gjeldendeForDato(dato)?.originaltVedtak
 
-    fun gjeldendeVedtak(): Map<Måned, VedtakSomKanRevurderes?> {
-        return periode.måneder().map { it to gjeldendeVedtakPåDato(it.fraOgMed) }.toMap()
+    fun gjeldendeVedtakMånedsvis(): Map<Måned, VedtakSomKanRevurderes?> {
+        return periode.måneder().associateWith { gjeldendeVedtakPåDato(it.fraOgMed) }
+    }
+
+    fun gjeldendeVedtakMånedsvisMedPotensielleHull(): Map<Måned, VedtakSomKanRevurderes> {
+        return gjeldendeVedtakMånedsvis().filterValues { it != null }.mapValues { it.value!! }
     }
 
     fun tidslinjeForVedtakErSammenhengende(): Boolean {

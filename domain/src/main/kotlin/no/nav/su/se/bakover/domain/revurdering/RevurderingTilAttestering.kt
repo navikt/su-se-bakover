@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.tilbakekrevingErVurdert
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørsperiodeForUtbetalinger
@@ -38,10 +37,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
     abstract override val brevvalgRevurdering: BrevvalgRevurdering.Valgt
     abstract val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling
 
-    fun tilbakekrevingErVurdert(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
-        return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
-    }
-
     override fun skalSendeBrev() = !årsakErGRegulering() && brevvalgRevurdering.skalSendeBrev().isRight()
 
     override fun erÅpen() = true
@@ -58,6 +53,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val opprettet: Tidspunkt,
         override val oppdatert: Tidspunkt,
         override val tilRevurdering: UUID,
+        override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val oppgaveId: OppgaveId,
         override val revurderingsårsak: Revurderingsårsak,
@@ -105,6 +101,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
+                vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 attesteringer = attesteringer.leggTilNyAttestering(
                     Attestering.Iverksatt(
                         attestant,
@@ -125,6 +122,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val opprettet: Tidspunkt,
         override val oppdatert: Tidspunkt,
         override val tilRevurdering: UUID,
+        override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val oppgaveId: OppgaveId,
         override val revurderingsårsak: Revurderingsårsak,
@@ -182,6 +180,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                     opprettet = opprettet,
                     oppdatert = oppdatert,
                     tilRevurdering = tilRevurdering,
+                    vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                     saksbehandler = saksbehandler,
                     beregning = beregning,
                     simulering = simulering,
@@ -229,6 +228,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 opprettet = opprettet,
                 oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
+                vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 saksbehandler = saksbehandler,
                 beregning = beregning,
                 simulering = simulering,
@@ -250,6 +250,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 opprettet = opprettet,
                 oppdatert = oppdatert,
                 tilRevurdering = tilRevurdering,
+                vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 saksbehandler = saksbehandler,
                 beregning = beregning,
                 simulering = simulering,

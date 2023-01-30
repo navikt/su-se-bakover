@@ -256,7 +256,7 @@ fun vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
     ),
     attestering: Attestering = attesteringIverksatt(clock = clock),
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
-): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse> {
+): Triple<Sak, VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse, Utbetaling.OversendtUtbetaling.UtenKvittering> {
     return iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode = periode,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
@@ -281,10 +281,14 @@ fun vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             clock = clock,
         )
 
-        sak.copy(
-            vedtakListe = sak.vedtakListe + vedtak,
-            utbetalinger = sak.utbetalinger + utbetaling,
-        ) to vedtak
+        Triple(
+            sak.copy(
+                vedtakListe = sak.vedtakListe + vedtak,
+                utbetalinger = sak.utbetalinger + utbetaling,
+            ),
+            vedtak,
+            utbetaling,
+        )
     }
 }
 
@@ -297,7 +301,7 @@ fun vedtakIverksattGjenopptakAvYtelseFraIverksattStans(
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode = periode,
         clock = clock,
-    ),
+    ).let { it.first to it.second },
     attestering: Attestering = attesteringIverksatt(clock = clock),
 ): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse> {
     return iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse(

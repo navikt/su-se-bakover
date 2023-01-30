@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.revurdering.toVedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import java.time.Clock
 import java.util.UUID
@@ -88,6 +89,7 @@ fun Sak.opprettRevurdering(
                 opprettet = tidspunkt,
                 oppdatert = tidspunkt,
                 tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(dato = command.periode.fraOgMed)!!.id,
+                vedtakSomRevurderesMånedsvis = gjeldendeVedtaksdata.toVedtakSomRevurderesMånedsvis(),
                 saksbehandler = command.saksbehandler,
                 oppgaveId = oppgaveId,
                 revurderingsårsak = revurderingsårsak,

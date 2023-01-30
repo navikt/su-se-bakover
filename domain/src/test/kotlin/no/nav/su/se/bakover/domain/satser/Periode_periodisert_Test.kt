@@ -55,7 +55,7 @@ internal class Periode_periodisert_Test {
         // I dette tilfellet vil vi mangle data for april 2018. Det er ikke ønskelig.
         shouldThrow<AssertionError> {
             RåSatser(RåSats(1.mai(2018), "a")).periodisert(april(2018))
-        }.message shouldBe "Kan ikke periodisere siden vi mangler data for første ønsket måned: Måned(årOgMåned=2018-04). Tidligste måned tilgjengelig er Måned(årOgMåned=2018-05)"
+        }.message shouldBe "Kan ikke periodisere siden vi mangler data for første ønsket måned: 2018-04. Tidligste måned tilgjengelig er 2018-05"
     }
 
     @Test
@@ -68,7 +68,7 @@ internal class Periode_periodisert_Test {
                     RåSats(1.mai(2019), "b"),
                 ),
             ).periodisert(april(2018))
-        }.message shouldBe "Kan ikke periodisere siden vi mangler data for første ønsket måned: Måned(årOgMåned=2018-04). Tidligste måned tilgjengelig er Måned(årOgMåned=2018-05)"
+        }.message shouldBe "Kan ikke periodisere siden vi mangler data for første ønsket måned: 2018-04. Tidligste måned tilgjengelig er 2018-05"
     }
 
     @Test
@@ -82,7 +82,7 @@ internal class Periode_periodisert_Test {
                     RåSats(1.mai(2020), "c"),
                 ),
             ).periodisert(april(2018))
-        }.message shouldBe "Kan ikke periodisere siden vi mangler data for første ønsket måned: Måned(årOgMåned=2018-04). Tidligste måned tilgjengelig er Måned(årOgMåned=2018-05)"
+        }.message shouldBe "Kan ikke periodisere siden vi mangler data for første ønsket måned: 2018-04. Tidligste måned tilgjengelig er 2018-05"
     }
 
     @Test

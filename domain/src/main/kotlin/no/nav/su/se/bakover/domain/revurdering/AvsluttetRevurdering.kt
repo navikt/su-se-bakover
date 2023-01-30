@@ -38,6 +38,7 @@ data class AvsluttetRevurdering private constructor(
     override val saksbehandler: NavIdentBruker.Saksbehandler = underliggendeRevurdering.saksbehandler
     override val revurderingsårsak: Revurderingsårsak = underliggendeRevurdering.revurderingsårsak
     override val informasjonSomRevurderes: InformasjonSomRevurderes = underliggendeRevurdering.informasjonSomRevurderes
+    override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis = underliggendeRevurdering.vedtakSomRevurderesMånedsvis
     override val oppgaveId: OppgaveId = underliggendeRevurdering.oppgaveId
     override val attesteringer: Attesteringshistorikk = underliggendeRevurdering.attesteringer
     override val erOpphørt: Boolean = underliggendeRevurdering.erOpphørt

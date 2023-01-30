@@ -12,6 +12,8 @@ import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -420,10 +422,7 @@ internal class GjenopptakAvYtelseServiceTest {
 
     @Test
     fun `happy path for iverksettelse`() {
-        val periode = Periode.create(
-            fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
-            tilOgMed = år(2021).tilOgMed,
-        )
+        val periode = februar(2021)..desember(2021)
         val clock = tikkendeFixedClock()
         val (sak, simulertGjenopptak) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
             periodeForStans = periode,
@@ -465,7 +464,7 @@ internal class GjenopptakAvYtelseServiceTest {
         ).let { serviceAndMocks ->
             serviceAndMocks.revurderingService.addObserver(observerMock)
             val response = serviceAndMocks.revurderingService.iverksettGjenopptakAvYtelse(
-                revurderingId = revurderingId,
+                revurderingId = simulertGjenopptak.id,
                 attestant = NavIdentBruker.Attestant(simulertGjenopptak.saksbehandler.navIdent),
             ).getOrFail()
 

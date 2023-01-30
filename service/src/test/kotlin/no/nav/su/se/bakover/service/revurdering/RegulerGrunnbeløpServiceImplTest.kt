@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SendTilAttesteringRequest
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
@@ -23,7 +24,6 @@ import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.UførevilkårStatus
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingsårsakRegulerGrunnbeløp
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.revurderingUnderkjent
+import no.nav.su.se.bakover.test.revurderingsårsak
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.simulertRevurdering
@@ -126,7 +127,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
     fun `G-regulering med uendret fradrag og forventetInntekt fører til Innvilget`() {
         val (sak, revurdering) = opprettetRevurdering(
             revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
-            revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
+            revurderingsårsak = revurderingsårsak,
         )
 
         RevurderingServiceMocks(
@@ -167,7 +168,10 @@ internal class RegulerGrunnbeløpServiceImplTest {
     fun `Ikke lov å sende en Simulert Opphørt til attestering`() {
         val (sak, simulertRevurdering) = simulertRevurdering(
             revurderingsperiode = Periode.create(1.august(2021), 31.desember(2021)),
-            revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
+            revurderingsårsak = Revurderingsårsak(
+                Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
+                Revurderingsårsak.Begrunnelse.create("revurderingsårsakBegrunnelse"),
+            ),
             vilkårOverrides = listOf(
                 avslåttUførevilkårUtenGrunnlag(
                     periode = Periode.create(1.august(2021), 31.desember(2021)),
@@ -215,7 +219,10 @@ internal class RegulerGrunnbeløpServiceImplTest {
     fun `Ikke lov å sende en Underkjent Opphørt til attestering`() {
         assertThrows<AssertionError> {
             revurderingUnderkjent(
-                revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
+                revurderingsårsak = Revurderingsårsak(
+                    Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
+                    Revurderingsårsak.Begrunnelse.create("revurderingsårsakBegrunnelse"),
+                ),
                 clock = tikkendeFixedClock(),
                 vilkårOverrides = listOf(
                     flyktningVilkårAvslått(),

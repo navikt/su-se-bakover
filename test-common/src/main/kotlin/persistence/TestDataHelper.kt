@@ -56,6 +56,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.domain.revurdering.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakInfo
@@ -84,7 +85,6 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataMedEpsMedFradrag
 import no.nav.su.se.bakover.test.iverksattRevurdering
-import no.nav.su.se.bakover.test.iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.kvittering
@@ -111,6 +111,7 @@ import no.nav.su.se.bakover.test.tilAttesteringSøknadsbehandling
 import no.nav.su.se.bakover.test.trekkSøknad
 import no.nav.su.se.bakover.test.underkjentSøknadsbehandling
 import no.nav.su.se.bakover.test.utbetalingslinje
+import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.veileder
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
@@ -368,31 +369,6 @@ class TestDataHelper(
         }
     }
 
-    fun persisterVedtakForStans(
-        stans: StansAvYtelseRevurdering.IverksattStansAvYtelse = persisterIverksattStansAvYtelse().second,
-        periode: Periode = stønadsperiode2021.periode,
-        avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
-        utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje(periode = periode)),
-        utbetalingId: UUID30 = UUID30.randomUUID(),
-    ): VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse {
-        oversendtUtbetalingUtenKvittering(
-            id = utbetalingId,
-            fnr = stans.fnr,
-            sakId = stans.sakId,
-            saksnummer = stans.saksnummer,
-            avstemmingsnøkkel = avstemmingsnøkkel,
-            utbetalingslinjer = utbetalingslinjer,
-        ).let {
-            databaseRepos.utbetaling.opprettUtbetaling(it, sessionFactory.newTransactionContext())
-            it.toKvittertUtbetaling(kvittering()).also { utbetalingMedKvittering ->
-                databaseRepos.utbetaling.oppdaterMedKvittering(utbetalingMedKvittering)
-            }
-        }
-        return VedtakSomKanRevurderes.from(stans, utbetalingId, clock).also {
-            databaseRepos.vedtakRepo.lagre(it)
-        }
-    }
-
     /**
      * TODO jah: På sikt burde denne muligens først persistere en stans, men føler det er litt out of scope for denne PR.
      */
@@ -561,7 +537,7 @@ class TestDataHelper(
         }
     }
 
-    fun persisterUnderkjentRevurdering(
+    private fun persisterUnderkjentRevurdering(
         sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
@@ -715,18 +691,20 @@ class TestDataHelper(
         }
     }
 
-    fun persisterIverksattStansAvYtelse(
+    fun persisterIverksattStansOgVedtak(
         sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
-    ): Pair<Sak, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
-        return iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+    ): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse> {
+        return vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             sakOgVedtakSomKanRevurderes = sakOgVedtak.first to sakOgVedtak.second,
             clock = clock,
-        ).let { (sak, revurdering) ->
-            databaseRepos.revurderingRepo.lagre(revurdering)
+        ).let { (sak, vedtak, utbetaling) ->
+            databaseRepos.revurderingRepo.lagre(vedtak.behandling)
+            databaseRepos.utbetaling.opprettUtbetaling(utbetaling)
+            databaseRepos.vedtakRepo.lagre(vedtak)
             databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
-                persistertSak!! to persistertSak.revurderinger.single { it.id == revurdering.id } as StansAvYtelseRevurdering.IverksattStansAvYtelse
+                persistertSak!! to vedtak
             }
         }
     }
@@ -741,12 +719,16 @@ class TestDataHelper(
         grunnlagsdata: Grunnlagsdata = grunnlagsdataMedEpsMedFradrag(periode, epsFnr),
         vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = periode).tilVilkårsvurderingerRevurdering(),
         tilRevurdering: VedtakSomKanRevurderes = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
+        vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis = VedtakSomRevurderesMånedsvis(
+            periode.måneder().associateWith { tilRevurdering.id },
+        ),
         simulering: Simulering = simulering(fnr = Fnr.generer()),
         revurderingsårsak: Revurderingsårsak = Revurderingsårsak(
             Revurderingsårsak.Årsak.DØDSFALL,
             Revurderingsårsak.Begrunnelse.create("begrunnelse"),
         ),
     ): GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse {
+        // TODO jah: Dette vil ikke ligne på produksjonskoden.
         return GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
             id = id,
             opprettet = opprettet,
@@ -754,6 +736,7 @@ class TestDataHelper(
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
             tilRevurdering = tilRevurdering.id,
+            vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
             saksbehandler = saksbehandler,
             simulering = simulering,
             revurderingsårsak = revurderingsårsak,
@@ -776,6 +759,9 @@ class TestDataHelper(
         grunnlagsdata: Grunnlagsdata = grunnlagsdataMedEpsMedFradrag(periode, epsFnr),
         vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = periode).tilVilkårsvurderingerRevurdering(),
         tilRevurdering: VedtakSomKanRevurderes = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
+        vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis = VedtakSomRevurderesMånedsvis(
+            periode.måneder().associateWith { tilRevurdering.id },
+        ),
         simulering: Simulering = simulering(fnr = Fnr.generer()),
         revurderingsårsak: Revurderingsårsak = Revurderingsårsak(
             Revurderingsårsak.Årsak.DØDSFALL,
@@ -783,14 +769,15 @@ class TestDataHelper(
         ),
     ): GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse {
         return persisterGjenopptakAvYtelseSimulert(
-            id,
-            opprettet,
-            periode,
-            grunnlagsdata,
-            vilkårsvurderinger,
-            tilRevurdering,
-            simulering,
-            revurderingsårsak,
+            id = id,
+            opprettet = opprettet,
+            periode = periode,
+            grunnlagsdata = grunnlagsdata,
+            vilkårsvurderinger = vilkårsvurderinger,
+            tilRevurdering = tilRevurdering,
+            vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
+            simulering = simulering,
+            revurderingsårsak = revurderingsårsak,
         ).iverksett(attesteringIverksatt()).getOrFail().also {
             databaseRepos.revurderingRepo.lagre(it)
         }
@@ -913,7 +900,7 @@ class TestDataHelper(
         }
     }
 
-    fun persisterSøknadsbehandlingBeregnet(
+    private fun persisterSøknadsbehandlingBeregnet(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, Søknadsbehandling.Beregnet> = { (sak, søknad) ->
             beregnetSøknadsbehandling(
@@ -969,7 +956,7 @@ class TestDataHelper(
         }
     }
 
-    fun persisterSøknadsbehandlingTilAttestering(
+    private fun persisterSøknadsbehandlingTilAttestering(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, Søknadsbehandling.TilAttestering> = { (sak, søknad) ->
             tilAttesteringSøknadsbehandling(
@@ -1107,7 +1094,7 @@ class TestDataHelper(
         }
     }
 
-    fun persisterSøknadsbehandlingUnderkjent(
+    private fun persisterSøknadsbehandlingUnderkjent(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, Søknadsbehandling.Underkjent> = { (sak, søknad) ->
             underkjentSøknadsbehandling(

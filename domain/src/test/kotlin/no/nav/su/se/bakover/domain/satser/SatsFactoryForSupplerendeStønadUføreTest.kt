@@ -40,14 +40,14 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
         fun `ordinær - desember 2019 er ikke tilgjengelig`() {
             shouldThrow<IllegalArgumentException> {
                 satsFactoryTestPåDato(påDato = fixedLocalDate).ordinærUføre(desember(2019))
-            }.message shouldBe "Har ikke data for etterspurt måned: Måned(årOgMåned=2019-12). Vi har bare data fra og med måned: Måned(årOgMåned=2020-01)"
+            }.message shouldBe "Har ikke data for etterspurt måned: 2019-12. Vi har bare data fra og med måned: 2020-01"
         }
 
         @Test
         fun `høy - desember 2019 er ikke tilgjengelig`() {
             shouldThrow<IllegalArgumentException> {
                 satsFactoryTestPåDato(påDato = fixedLocalDate).høyUføre(desember(2019))
-            }.message shouldBe "Har ikke data for etterspurt måned: Måned(årOgMåned=2019-12). Vi har bare data fra og med måned: Måned(årOgMåned=2020-01)"
+            }.message shouldBe "Har ikke data for etterspurt måned: 2019-12. Vi har bare data fra og med måned: 2020-01"
         }
 
         @Test

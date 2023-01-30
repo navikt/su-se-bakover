@@ -112,7 +112,7 @@ internal class ReguleringPostgresRepoTest {
             testDataHelper.persisterSøknadsbehandlingVilkårsvurdertInnvilget()
 
             val expected = listOf(
-                testDataHelper.persisterVedtakForStans().behandling.saksnummer,
+                testDataHelper.persisterIverksattStansOgVedtak().second.behandling.saksnummer,
                 testDataHelper.persisterSøknadsbehandlingBeregnetAvslag().first.saksnummer,
                 testDataHelper.persisterSøknadsbehandlingBeregnetInnvilget().first.saksnummer,
                 testDataHelper.persisterSøknadsbehandlingSimulert().first.saksnummer,

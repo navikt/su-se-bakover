@@ -67,7 +67,7 @@ internal class FerdigeBehandlingerRepoTest {
 
             val iverksattRevurderingInnvilget = testDataHelper.persisterRevurderingIverksattInnvilget().second
             val iverksattRevurderingOpphørt = testDataHelper.persisterRevurderingIverksattOpphørt()
-            val (_, iverksattStansAvYtelse) = testDataHelper.persisterIverksattStansAvYtelse()
+            val (_, iverksattStansAvYtelse) = testDataHelper.persisterIverksattStansOgVedtak()
             val iverksattGjenopptak = testDataHelper.persisterGjenopptakAvYtelseIverksatt()
             val (_, beregnetRevurdering) = testDataHelper.persisterBeregnetRevurdering()
 
@@ -112,7 +112,7 @@ internal class FerdigeBehandlingerRepoTest {
                     behandlingStartet = iverksattRevurderingOpphørt.attesteringer.hentSisteAttestering().opprettet,
                     status = Behandlingsoversikt.Behandlingsstatus.OPPHØR,
                 ),
-                testDataHelper.vedtakRepo.hentVedtakForId(iverksattStansAvYtelse.tilRevurdering)!!
+                testDataHelper.vedtakRepo.hentVedtakForId(iverksattStansAvYtelse.behandling.tilRevurdering)!!
                     .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().behandling.let {
                         Behandlingsoversikt(
                             saksnummer = Saksnummer(2023),
@@ -125,9 +125,9 @@ internal class FerdigeBehandlingerRepoTest {
 
                 Behandlingsoversikt(
                     saksnummer = Saksnummer(2023),
-                    behandlingsId = iverksattStansAvYtelse.id,
+                    behandlingsId = iverksattStansAvYtelse.behandling.id,
                     behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
-                    behandlingStartet = iverksattStansAvYtelse.attesteringer.hentSisteAttestering().opprettet,
+                    behandlingStartet = iverksattStansAvYtelse.behandling.attesteringer.hentSisteAttestering().opprettet,
                     status = Behandlingsoversikt.Behandlingsstatus.STANS,
                 ),
                 testDataHelper.vedtakRepo.hentVedtakForId(iverksattGjenopptak.tilRevurdering)!!

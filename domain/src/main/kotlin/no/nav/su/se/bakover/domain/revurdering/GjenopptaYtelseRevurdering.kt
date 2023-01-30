@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 
-sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
+sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
 
     abstract val saksbehandler: NavIdentBruker.Saksbehandler
     abstract val simulering: Simulering
@@ -41,6 +41,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
         val tidspunktAvsluttet: Tidspunkt,
     ) : GjenopptaYtelseRevurdering() {
         override val tilRevurdering: UUID = underliggendeStansAvYtelse.tilRevurdering
+        override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis = underliggendeStansAvYtelse.vedtakSomRevurderesMånedsvis
         override val sakinfo: SakInfo = underliggendeStansAvYtelse.sakinfo
         override val id: UUID = underliggendeStansAvYtelse.id
         override val opprettet: Tidspunkt = underliggendeStansAvYtelse.opprettet
@@ -85,6 +86,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val tilRevurdering: UUID,
+        override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val simulering: Simulering,
         override val revurderingsårsak: Revurderingsårsak,
@@ -109,6 +111,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 tilRevurdering = tilRevurdering,
+                vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 saksbehandler = saksbehandler,
                 simulering = simulering,
                 attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(attestering),
@@ -125,6 +128,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val tilRevurdering: UUID,
+        override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val simulering: Simulering,
         override val attesteringer: Attesteringshistorikk,

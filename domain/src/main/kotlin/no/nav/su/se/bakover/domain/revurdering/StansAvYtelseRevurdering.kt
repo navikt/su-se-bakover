@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 
-sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
+sealed class StansAvYtelseRevurdering : AbstraktRevurdering {
 
     abstract val attesteringer: Attesteringshistorikk
     abstract val saksbehandler: NavIdentBruker.Saksbehandler
@@ -38,18 +38,19 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
         val begrunnelse: String,
         val tidspunktAvsluttet: Tidspunkt,
     ) : StansAvYtelseRevurdering() {
-        override val tilRevurdering: UUID = underliggendeStansAvYtelse.tilRevurdering
-        override val sakinfo: SakInfo = underliggendeStansAvYtelse.sakinfo
-        override val id: UUID = underliggendeStansAvYtelse.id
-        override val opprettet: Tidspunkt = underliggendeStansAvYtelse.opprettet
-        override val periode: Periode = underliggendeStansAvYtelse.periode
-        override val grunnlagsdata: Grunnlagsdata = underliggendeStansAvYtelse.grunnlagsdata
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering = underliggendeStansAvYtelse.vilkårsvurderinger
-        override val brevvalgRevurdering: BrevvalgRevurdering.Valgt.IkkeSendBrev = underliggendeStansAvYtelse.brevvalgRevurdering
-        override val attesteringer: Attesteringshistorikk = underliggendeStansAvYtelse.attesteringer
-        override val saksbehandler: NavIdentBruker.Saksbehandler = underliggendeStansAvYtelse.saksbehandler
-        override val simulering: Simulering = underliggendeStansAvYtelse.simulering
-        override val revurderingsårsak: Revurderingsårsak = underliggendeStansAvYtelse.revurderingsårsak
+        override val tilRevurdering = underliggendeStansAvYtelse.tilRevurdering
+        override val vedtakSomRevurderesMånedsvis = underliggendeStansAvYtelse.vedtakSomRevurderesMånedsvis
+        override val sakinfo = underliggendeStansAvYtelse.sakinfo
+        override val id = underliggendeStansAvYtelse.id
+        override val opprettet = underliggendeStansAvYtelse.opprettet
+        override val periode = underliggendeStansAvYtelse.periode
+        override val grunnlagsdata = underliggendeStansAvYtelse.grunnlagsdata
+        override val vilkårsvurderinger = underliggendeStansAvYtelse.vilkårsvurderinger
+        override val brevvalgRevurdering = underliggendeStansAvYtelse.brevvalgRevurdering
+        override val attesteringer = underliggendeStansAvYtelse.attesteringer
+        override val saksbehandler = underliggendeStansAvYtelse.saksbehandler
+        override val simulering = underliggendeStansAvYtelse.simulering
+        override val revurderingsårsak = underliggendeStansAvYtelse.revurderingsårsak
 
         // vi sender ikke noe brev ved stans/gjenoppta
         fun skalSendeAvslutningsbrev(): Boolean {
@@ -84,6 +85,7 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val tilRevurdering: UUID,
+        override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val simulering: Simulering,
         override val revurderingsårsak: Revurderingsårsak,
@@ -109,6 +111,7 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 tilRevurdering = tilRevurdering,
+                vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 saksbehandler = saksbehandler,
                 simulering = simulering,
                 attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(attestering),
@@ -134,6 +137,7 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val tilRevurdering: UUID,
+        override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val simulering: Simulering,
         override val attesteringer: Attesteringshistorikk,

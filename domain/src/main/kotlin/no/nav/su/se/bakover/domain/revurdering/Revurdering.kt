@@ -54,7 +54,7 @@ import java.util.UUID
 import kotlin.reflect.KClass
 
 sealed class Revurdering :
-    AbstraktRevurdering(),
+    AbstraktRevurdering,
     BehandlingMedOppgave,
     BehandlingMedAttestering,
     Visitable<RevurderingVisitor> {
@@ -138,6 +138,7 @@ sealed class Revurdering :
         grunnlagsdata: Grunnlagsdata,
         vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         informasjonSomRevurderes: InformasjonSomRevurderes,
+        vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         tilRevurdering: UUID,
         avkorting: AvkortingVedRevurdering.Uhåndtert,
         saksbehandler: Saksbehandler,
@@ -155,6 +156,7 @@ sealed class Revurdering :
         grunnlagsdata: Grunnlagsdata,
         vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         informasjonSomRevurderes: InformasjonSomRevurderes,
+        vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         tilRevurdering: UUID,
         avkorting: AvkortingVedRevurdering.Uhåndtert,
         saksbehandler: Saksbehandler,
@@ -171,6 +173,7 @@ sealed class Revurdering :
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
+            vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
             attesteringer = attesteringer,
             avkorting = avkorting,
             sakinfo = sakinfo,
@@ -524,6 +527,7 @@ sealed class Revurdering :
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
+            vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
             attesteringer = attesteringer,
             avkorting = avkorting.let {
                 when (it) {
@@ -556,6 +560,7 @@ sealed class Revurdering :
             opprettet = opprettet,
             oppdatert = oppdatert,
             tilRevurdering = tilRevurdering,
+            vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
             saksbehandler = saksbehandler,
             oppgaveId = oppgaveId,
             revurderingsårsak = revurderingsårsak,
@@ -617,6 +622,7 @@ sealed class Revurdering :
                 grunnlagsdata = revurdering.grunnlagsdata,
                 vilkårsvurderinger = revurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
+                vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 attesteringer = revurdering.attesteringer,
                 avkorting = revurdering.avkorting.håndter(),
                 sakinfo = sakinfo,
@@ -630,6 +636,7 @@ sealed class Revurdering :
                 opprettet = revurdering.opprettet,
                 oppdatert = revurdering.oppdatert,
                 tilRevurdering = revurdering.tilRevurdering,
+                vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 saksbehandler = revurdering.saksbehandler,
                 beregning = revurdertBeregning,
                 oppgaveId = revurdering.oppgaveId,

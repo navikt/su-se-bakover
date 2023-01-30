@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.opprett.unngåRevurderingAvPeriodeDetErPågåendeAvkortingFor
+import no.nav.su.se.bakover.domain.revurdering.toVedtakSomRevurderesMånedsvis
 import java.time.Clock
 
 fun Sak.oppdaterRevurdering(
@@ -78,6 +79,7 @@ fun Sak.oppdaterRevurdering(
         grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
         vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
         informasjonSomRevurderes = informasjonSomRevurderes,
+        vedtakSomRevurderesMånedsvis = gjeldendeVedtaksdata.toVedtakSomRevurderesMånedsvis(),
         tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(dato = periode.fraOgMed)!!.id,
         avkorting = avkorting,
         saksbehandler = command.saksbehandler,

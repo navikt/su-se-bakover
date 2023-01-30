@@ -4,27 +4,40 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
+import no.nav.su.se.bakover.domain.person.IdentClient
+import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeLageAvsluttetGjenopptaAvYtelse
+import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVedOpphørService
+import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
+import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.avsluttetGjenopptakelseAvYtelseeFraIverksattSøknadsbehandlignsvedtak
 import no.nav.su.se.bakover.test.avsluttetStansAvYtelseFraIverksattSøknadsbehandlignsvedtak
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
@@ -35,6 +48,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
+import java.time.Clock
 import java.util.UUID
 
 internal class AvsluttRevurderingTest {
@@ -50,7 +64,7 @@ internal class AvsluttRevurderingTest {
             on { lukkOppgave(any()) } doReturn Unit.right()
         }
 
-        val revurderingService = RevurderingTestUtils.createRevurderingService(
+        val revurderingService = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             oppgaveService = oppgaveServiceMock,
         )
@@ -83,7 +97,7 @@ internal class AvsluttRevurderingTest {
             on { hent(any()) } doReturn null
         }
 
-        val revurderingService = RevurderingTestUtils.createRevurderingService(
+        val revurderingService = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
         )
 
@@ -113,7 +127,7 @@ internal class AvsluttRevurderingTest {
             on { lukkOppgave(any()) } doReturn Unit.right()
         }
 
-        val revurderingService = RevurderingTestUtils.createRevurderingService(
+        val revurderingService = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
@@ -149,7 +163,7 @@ internal class AvsluttRevurderingTest {
             on { hent(any()) } doReturn stansAvYtelse
         }
 
-        val revurderingService = RevurderingTestUtils.createRevurderingService(
+        val revurderingService = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
         )
 
@@ -179,7 +193,7 @@ internal class AvsluttRevurderingTest {
             on { hent(any()) } doReturn avsluttetStansAvYtelse
         }
 
-        val revurderingService = RevurderingTestUtils.createRevurderingService(
+        val revurderingService = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
         )
 
@@ -204,7 +218,7 @@ internal class AvsluttRevurderingTest {
             on { hent(any()) } doReturn iverksattStansAvYtelse
         }
 
-        val revurderingService = RevurderingTestUtils.createRevurderingService(
+        val revurderingService = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
         )
 
@@ -230,7 +244,7 @@ internal class AvsluttRevurderingTest {
             on { hent(any()) } doReturn gjenopptaYtelse
         }
 
-        val revurderingService = RevurderingTestUtils.createRevurderingService(
+        val revurderingService = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
         )
 
@@ -261,7 +275,7 @@ internal class AvsluttRevurderingTest {
             on { hent(any()) } doReturn gjenopptaYtelse
         }
 
-        val revurderingService = RevurderingTestUtils.createRevurderingService(
+        val revurderingService = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
         )
 
@@ -288,7 +302,7 @@ internal class AvsluttRevurderingTest {
             on { hent(any()) } doReturn gjenopptaYtelse
         }
 
-        val revurderingService = RevurderingTestUtils.createRevurderingService(
+        val revurderingService = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
         )
 
@@ -306,4 +320,36 @@ internal class AvsluttRevurderingTest {
         verify(revurderingRepoMock).hent(argThat { it shouldBe gjenopptaYtelse.id })
         verifyNoMoreInteractions(revurderingRepoMock)
     }
+
+    private fun createRevurderingService(
+        utbetalingService: UtbetalingService = mock(),
+        revurderingRepo: RevurderingRepo = mock(),
+        oppgaveService: OppgaveService = mock(),
+        personService: PersonService = mock(),
+        identClient: IdentClient = mock(),
+        brevService: BrevService = mock(),
+        clock: Clock = fixedClock,
+        vedtakRepo: VedtakRepo = mock(),
+        sakService: SakService = mock(),
+        annullerKontrollsamtaleService: AnnullerKontrollsamtaleVedOpphørService = mock(),
+        sessionFactory: SessionFactory = TestSessionFactory(),
+        tilbakekrevingService: TilbakekrevingService = mock(),
+        satsFactory: SatsFactory = satsFactoryTestPåDato(),
+    ) =
+        RevurderingServiceImpl(
+            utbetalingService = utbetalingService,
+            revurderingRepo = revurderingRepo,
+            oppgaveService = oppgaveService,
+            personService = personService,
+            identClient = identClient,
+            brevService = brevService,
+            clock = clock,
+            vedtakRepo = vedtakRepo,
+            annullerKontrollsamtaleService = annullerKontrollsamtaleService,
+            sessionFactory = sessionFactory,
+            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+            sakService = sakService,
+            tilbakekrevingService = tilbakekrevingService,
+            satsFactory = satsFactory,
+        )
 }

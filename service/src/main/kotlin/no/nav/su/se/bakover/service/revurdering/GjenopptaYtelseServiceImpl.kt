@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeSimulereGjenopptakAvYtelse
+import no.nav.su.se.bakover.domain.revurdering.toVedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForGjenopptak
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
@@ -49,7 +50,9 @@ class GjenopptaYtelseServiceImpl(
         observers.add(eventObserver)
     }
 
-    override fun gjenopptaYtelse(request: GjenopptaYtelseRequest): Either<KunneIkkeSimulereGjenopptakAvYtelse, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
+    override fun gjenopptaYtelse(
+        request: GjenopptaYtelseRequest,
+    ): Either<KunneIkkeSimulereGjenopptakAvYtelse, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
         val sak = sakService.hentSak(request.sakId)
             .getOrElse { return KunneIkkeSimulereGjenopptakAvYtelse.FantIkkeSak.left() }
 
@@ -86,6 +89,7 @@ class GjenopptaYtelseServiceImpl(
                                 grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                                 vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger.tilVilkårsvurderingerRevurdering(),
                                 tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(sisteVedtakPåTidslinje.periode.fraOgMed)!!.id,
+                                vedtakSomRevurderesMånedsvis = gjeldendeVedtaksdata.toVedtakSomRevurderesMånedsvis(),
                                 saksbehandler = request.saksbehandler,
                                 simulering = simulertUtbetaling.simulering,
                                 revurderingsårsak = request.revurderingsårsak,
@@ -123,6 +127,7 @@ class GjenopptaYtelseServiceImpl(
                         grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                         vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger.tilVilkårsvurderingerRevurdering(),
                         tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(sisteVedtakPåTidslinje.periode.fraOgMed)!!.id,
+                        vedtakSomRevurderesMånedsvis = gjeldendeVedtaksdata.toVedtakSomRevurderesMånedsvis(),
                         saksbehandler = request.saksbehandler,
                         simulering = simulertUtbetaling.simulering,
                         revurderingsårsak = request.revurderingsårsak,

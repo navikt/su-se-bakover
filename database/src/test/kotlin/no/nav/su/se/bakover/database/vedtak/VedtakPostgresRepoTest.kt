@@ -6,28 +6,15 @@ import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.persistence.hent
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
-import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingFerdigbehandlet
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
-import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
 import no.nav.su.se.bakover.test.plus
-import no.nav.su.se.bakover.test.sendBrev
-import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
 
@@ -86,40 +73,15 @@ internal class VedtakPostgresRepoTest {
     fun `oppdaterer koblingstabell mellom revurdering og vedtak ved lagring av vedtak for revurdering`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val vedtakRepo = testDataHelper.vedtakRepo
-            val (sak, søknadsbehandlingVedtak) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { it.first to it.second }
+            val (sak, søknadsbehandlingVedtak) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
+                .let { it.first to it.second }
 
-            val nyRevurdering = testDataHelper.persisterRevurderingOpprettet(sak to søknadsbehandlingVedtak).second
-            val iverksattRevurdering = IverksattRevurdering.Innvilget(
-                id = nyRevurdering.id,
-                periode = søknadsbehandlingVedtak.periode,
-                opprettet = nyRevurdering.opprettet,
-                oppdatert = nyRevurdering.oppdatert,
-                tilRevurdering = søknadsbehandlingVedtak.id,
-                saksbehandler = søknadsbehandlingVedtak.saksbehandler,
-                oppgaveId = OppgaveId(""),
-                beregning = søknadsbehandlingVedtak.beregning,
-                simulering = søknadsbehandlingVedtak.simulering,
-                grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-                attesteringer = Attesteringshistorikk.empty()
-                    .leggTilNyAttestering(Attestering.Iverksatt(søknadsbehandlingVedtak.attestant, fixedTidspunkt)),
-                revurderingsårsak = Revurderingsårsak(
-                    Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                    Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-                ),
-                vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
-                informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-                avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
-                tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingFerdigbehandlet,
-                sakinfo = søknadsbehandlingVedtak.sakinfo(),
-                brevvalgRevurdering = sendBrev(),
+            val (_, iverksattRevurdering, revurderingUtbetaling, revurderingVedtak) = iverksattRevurdering(
+                sakOgVedtakSomKanRevurderes = sak to søknadsbehandlingVedtak,
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
-
-            val revurderingVedtak =
-                VedtakSomKanRevurderes.from(iverksattRevurdering, søknadsbehandlingVedtak.utbetalingId, fixedClock)
-
-            vedtakRepo.lagre(revurderingVedtak)
+            testDataHelper.utbetalingRepo.opprettUtbetaling(revurderingUtbetaling)
+            testDataHelper.vedtakRepo.lagre(revurderingVedtak)
 
             dataSource.withSession { session ->
                 """
@@ -188,7 +150,7 @@ internal class VedtakPostgresRepoTest {
     fun `oppretter og henter vedtak for stans av ytelse`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val vedtak = testDataHelper.persisterVedtakForStans()
+            val (_, vedtak) = testDataHelper.persisterIverksattStansOgVedtak()
             val vedtakRepo = testDataHelper.vedtakRepo as VedtakPostgresRepo
             testDataHelper.dataSource.withSession {
                 vedtakRepo.hent(vedtak.id, it) shouldBe vedtak
