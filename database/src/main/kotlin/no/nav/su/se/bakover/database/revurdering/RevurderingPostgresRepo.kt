@@ -79,6 +79,7 @@ private data class BaseRevurderingDb(
     val id: UUID,
     val periode: Periode,
     val opprettet: Tidspunkt,
+    val oppdatert: Tidspunkt?,
     val tilRevurdering: UUID,
     val vedtakSomRevurderesMånedsvis: String,
     val saksbehandler: Saksbehandler,
@@ -107,6 +108,7 @@ private fun StansAvYtelseRevurdering.toBaseRevurderingDb(): BaseRevurderingDb {
         id = this.id,
         periode = this.periode,
         opprettet = this.opprettet,
+        oppdatert = null,
         tilRevurdering = this.tilRevurdering,
         vedtakSomRevurderesMånedsvis = this.vedtakSomRevurderesMånedsvis.toDbJson(),
         saksbehandler = this.saksbehandler,
@@ -128,6 +130,7 @@ private fun GjenopptaYtelseRevurdering.toBaseRevurderingDb(): BaseRevurderingDb 
         id = this.id,
         periode = this.periode,
         opprettet = this.opprettet,
+        oppdatert = null,
         tilRevurdering = this.tilRevurdering,
         vedtakSomRevurderesMånedsvis = this.vedtakSomRevurderesMånedsvis.toDbJson(),
         saksbehandler = this.saksbehandler,
@@ -149,6 +152,7 @@ private fun Revurdering.toBaseRevurderingDb(): BaseRevurderingDb {
         id = this.id,
         periode = this.periode,
         opprettet = this.opprettet,
+        oppdatert = this.oppdatert,
         tilRevurdering = this.tilRevurdering,
         vedtakSomRevurderesMånedsvis = this.vedtakSomRevurderesMånedsvis.toDbJson(),
         saksbehandler = this.saksbehandler,
@@ -654,6 +658,7 @@ internal class RevurderingPostgresRepo(
                     insert into revurdering (
                         id,
                         opprettet,
+                        oppdatert,
                         periode,
                         beregning,
                         simulering,
@@ -673,6 +678,7 @@ internal class RevurderingPostgresRepo(
                     ) values (
                         :id,
                         :opprettet,
+                        :oppdatert,
                         to_json(:periode::json),
                         to_json(:beregning::json),
                         to_json(:simulering::json),
@@ -691,6 +697,7 @@ internal class RevurderingPostgresRepo(
                         to_json(:brevvalg::json)
                     )
                         ON CONFLICT(id) do update set
+                        oppdatert = :oppdatert,
                         periode = to_json(:periode::json),
                         beregning = to_json(:beregning::json),
                         simulering = to_json(:simulering::json),
@@ -711,6 +718,7 @@ internal class RevurderingPostgresRepo(
                 mapOf(
                     "id" to revurdering.base.id,
                     "opprettet" to revurdering.base.opprettet,
+                    "oppdatert" to revurdering.base.oppdatert,
                     "periode" to serialize(revurdering.base.periode),
                     "beregning" to revurdering.beregning,
                     "simulering" to serializeNullable(revurdering.simulering),
