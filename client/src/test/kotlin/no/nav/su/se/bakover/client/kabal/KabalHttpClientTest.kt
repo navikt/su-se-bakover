@@ -175,7 +175,7 @@ internal class KabalHttpClientTest : WiremockBase {
 
     private val stubMapping = WireMock.post(urlPathEqualTo(oversendelsePath))
         .withHeader("Authorization", WireMock.equalTo("Bearer token"))
-        .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
+        .withHeader("Nav-Callid", WireMock.equalTo("correlationId"))
         .withHeader("Accept", WireMock.equalTo("application/json"))
         .withHeader("Content-Type", WireMock.equalTo("application/json"))
 
