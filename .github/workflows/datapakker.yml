@@ -41,7 +41,7 @@ jobs:
           username: ${{ github.repository }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and publish Docker image
-        uses: docker/build-push-action@v3.3.0
+        uses: docker/build-push-action@v4.0.0
         with:
           context: .
           file: ./datapakker/søknad/Dockerfile
