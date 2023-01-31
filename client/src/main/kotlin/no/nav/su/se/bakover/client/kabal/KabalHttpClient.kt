@@ -78,7 +78,8 @@ class KabalHttpClient(
                     sikkerLogg.info("Klage sendt med klageId=${klage.id}, request=$requestBody, response=$responseBody, responseStatus=${res.statusCode()}")
                     Unit.right()
                 } else {
-                    log.error("Feil ved oversendelse til Kabal/KA, status=${res.statusCode()}, body=$responseBody")
+                    log.error("Feil ved oversendelse til Kabal/KA, status=${res.statusCode()}, body=$responseBody. Se sikkerlogg for request.")
+                    sikkerLogg.error("Feil ved oversendelse til Kabal/KA, request: $requestBody")
                     return KunneIkkeOversendeTilKlageinstans.left()
                 }
             }
