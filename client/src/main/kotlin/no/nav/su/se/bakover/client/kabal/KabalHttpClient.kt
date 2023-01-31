@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.client.isSuccess
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.CorrelationId.Companion.getOrCreateCorrelationIdFromThreadLocal
-import no.nav.su.se.bakover.common.CorrelationIdHeader
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -26,17 +25,18 @@ import java.time.Duration
 
 const val oversendelsePath = "/api/oversendelse/v2/klage"
 
+/**
+ * Swagger: https://kabal-api.dev.intern.nav.no/swagger-ui/index.html?urls.primaryName=external
+ */
 class KabalHttpClient(
     private val kabalConfig: ApplicationConfig.ClientsConfig.KabalConfig,
     private val exchange: AzureAd,
 ) : KlageClient {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    private val client: HttpClient = HttpClient.newBuilder()
-        .version(HttpClient.Version.HTTP_1_1)
-        .connectTimeout(Duration.ofSeconds(20))
-        .followRedirects(HttpClient.Redirect.NEVER)
-        .build()
+    private val client: HttpClient =
+        HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).connectTimeout(Duration.ofSeconds(20))
+            .followRedirects(HttpClient.Redirect.NEVER).build()
 
     /*
     * TODO ai: 13.12.2021 Burde varit OnBehalfOf-token men Kabal har ikke støtte for det per nå.
@@ -65,13 +65,11 @@ class KabalHttpClient(
             ),
         )
         return Either.catch {
-            val request = HttpRequest.newBuilder()
-                .uri(URI.create("${kabalConfig.url}$oversendelsePath"))
-                .header("Authorization", "Bearer $token")
-                .header("Accept", "application/json")
-                .header(CorrelationIdHeader, getOrCreateCorrelationIdFromThreadLocal().toString())
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(requestBody)).build()
+            val request = HttpRequest.newBuilder().uri(URI.create("${kabalConfig.url}$oversendelsePath"))
+                .header("Authorization", "Bearer $token").header("Accept", "application/json")
+                .header("Nav-Callid", getOrCreateCorrelationIdFromThreadLocal().toString())
+                .header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                .build()
 
             client.send(request, HttpResponse.BodyHandlers.ofString()).let { res ->
                 val responseBody = res.body()
