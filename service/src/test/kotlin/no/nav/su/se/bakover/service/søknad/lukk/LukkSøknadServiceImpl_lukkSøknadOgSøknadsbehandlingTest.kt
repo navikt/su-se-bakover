@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -42,6 +43,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknad.nySakMedJournalførtSøknadUtenOppgave
@@ -516,6 +518,15 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
         fun expectedLukketSøknadsbehandling() = LukketSøknadsbehandling.createFromPersistedState(
             søknadsbehandling = søknadsbehandling!!,
             søknad = expectedLukketSøknad(),
+        ).copy(
+            søknadsbehandlingsHistorikk = søknadsbehandling.søknadsbehandlingsHistorikk.leggTilNyHendelse(
+                nySøknadsbehandlingshendelse(
+                    tidspunkt = fixedTidspunkt,
+                    saksbehandler = saksbehandler,
+                    handling = SøknadsbehandlingsHandling.Lukket,
+
+                ),
+            ),
         )
 
         fun expectedLukketSøknad(): Søknad.Journalført.MedOppgave.Lukket {
