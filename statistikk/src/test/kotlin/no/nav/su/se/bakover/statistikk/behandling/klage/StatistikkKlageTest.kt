@@ -21,6 +21,7 @@ import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.comparator.CustomComparator
+import java.time.Instant
 
 internal class StatistikkKlageTest {
 
@@ -62,7 +63,7 @@ internal class StatistikkKlageTest {
             resultatBeskrivelse = "Kun brukt i klagebehandling ved oversendelse til klageinstansen.",
             resultatBegrunnelse = "SU_PARAGRAF_3,SU_PARAGRAF_4",
             beslutter = "attestant",
-            funksjonellTid = fixedTidspunkt,
+            funksjonellTid = Tidspunkt(Instant.parse("2021-02-01T01:02:03.456789Z")),
         )
     }
 
@@ -116,7 +117,7 @@ internal class StatistikkKlageTest {
                        "funksjonellTid":"$funksjonellTid",
                        "tekniskTid":"2021-01-01T01:02:03.456789Z",
                        "mottattDato":${statistikkEvent.klage.datoKlageMottatt},
-                       "registrertDato":"2021-01-01",
+                       "registrertDato":"2021-02-01",
                        "behandlingId":${statistikkEvent.klage.id},
                        "sakId":${statistikkEvent.klage.sakId},
                        "saksnummer":"12345676",

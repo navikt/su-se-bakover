@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.client.kabal.KabalRequest.Hjemmel.Companion.toKabalH
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
-import java.time.ZoneOffset
 
 internal object KabalRequestMapper {
     fun map(
@@ -12,19 +11,15 @@ internal object KabalRequestMapper {
         journalpostIdForVedtak: JournalpostId,
     ): KabalRequest {
         return KabalRequest(
-            avsenderSaksbehandlerIdent = klage.saksbehandler.navIdent,
-            dvhReferanse = klage.id.toString(),
-            fagsak = KabalRequest.Fagsak(klage.saksnummer.toString()),
-            hjemler = (klage.vurderinger.vedtaksvurdering as VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold).hjemler.toKabalHjemler(),
-            innsendtTilNav = klage.datoKlageMottatt,
-            mottattFoersteinstans = klage.opprettet.toLocalDate(ZoneOffset.UTC),
-            kildeReferanse = klage.id.toString(),
             klager = KabalRequest.Klager(
                 id = KabalRequest.PartId(
                     verdi = klage.fnr.toString(),
                 ),
             ),
-            /* TODO ai: Se på å sende med journalpostId:n for OVERSENDELSESBREV:et, via en jobb */
+            fagsak = KabalRequest.Fagsak(klage.saksnummer.toString()),
+            kildeReferanse = klage.id.toString(),
+            dvhReferanse = klage.id.toString(),
+            hjemler = (klage.vurderinger.vedtaksvurdering as VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold).hjemler.toKabalHjemler(),
             tilknyttedeJournalposter = listOf(
                 KabalRequest.TilknyttedeJournalposter(
                     journalpostId = klage.journalpostId,
@@ -34,7 +29,11 @@ internal object KabalRequestMapper {
                     journalpostId = journalpostIdForVedtak,
                     type = KabalRequest.TilknyttedeJournalposter.Type.OPPRINNELIG_VEDTAK,
                 ),
+                // TODO jah: Vi har ikke journalført klagebrevet på dette tidspunktet. Da måtte vi ha byttet til en jobb, som ikke sendte denne requesten før vi journalførte brevet.
+                // TODO jah: En klage kan bunne i en eller flere søknader, siden et revurderingsvedtak kan gjøre det samme. Her kunne vi lenket til en eller flere søknader.
             ),
+            brukersHenvendelseMottattNavDato = klage.datoKlageMottatt,
+            innsendtTilNav = klage.datoKlageMottatt,
         )
     }
 }

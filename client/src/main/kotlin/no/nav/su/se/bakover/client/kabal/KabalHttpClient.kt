@@ -23,10 +23,10 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Duration
 
-const val oversendelsePath = "/api/oversendelse/v2/klage"
+const val oversendelsePath = "/api/oversendelse/v3/sak"
 
 /**
- * Swagger: https://kabal-api.dev.intern.nav.no/swagger-ui/index.html?urls.primaryName=external
+ * For docs og swagger, se [KabalRequest]
  */
 class KabalHttpClient(
     private val kabalConfig: ApplicationConfig.ClientsConfig.KabalConfig,
@@ -38,9 +38,9 @@ class KabalHttpClient(
         HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).connectTimeout(Duration.ofSeconds(20))
             .followRedirects(HttpClient.Redirect.NEVER).build()
 
-    /*
-    * TODO ai: 13.12.2021 Burde varit OnBehalfOf-token men Kabal har ikke støtte for det per nå.
-    */
+    /**
+     * TODO jah: klage-teamet mente vi har mulighet til å bytte til OnBehalfOf-token. Men de gjør ingen særskilt tilgangsjekk på brukeren.
+     */
     private fun hentToken(): Either<KunneIkkeOversendeTilKlageinstans, String> {
         return Either.catch {
             exchange.getSystemToken(kabalConfig.clientId)
