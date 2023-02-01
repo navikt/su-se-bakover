@@ -28,10 +28,9 @@ class TikkendeKlokke(
 
     fun spolTil(dato: LocalDate): Instant {
         require(dato.startOfDay(zone) > nextInstant) { "Kan bare spole fremover i tid" }
-        do {
-            instant()
-        } while (nextInstant < dato.startOfDay(zone).instant)
-        return nextInstant
+        return dato.startOfDay(zone).plus(nextInstant.nano.toLong(), ChronoUnit.NANOS).instant.also {
+            nextInstant = it
+        }
     }
 
     fun copy(): TikkendeKlokke = TikkendeKlokke(initialClock)

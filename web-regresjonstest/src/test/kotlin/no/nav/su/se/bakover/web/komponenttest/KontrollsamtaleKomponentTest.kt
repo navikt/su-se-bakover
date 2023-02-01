@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.førsteINesteMåned
+import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.startOfMonth
@@ -67,8 +68,11 @@ internal class KontrollsamtaleKomponentTest {
 
     @Test
     fun `oppretter kontrollsamtale, kall inn og annuller`() {
-        val tikkendeKlokke = TikkendeKlokke(LocalDate.now().fixedClock())
-        val stønadStart = LocalDate.now().førsteINesteMåned()
+        // TODO jah: Denne vil feile dersom førsteFrist eller andreFrist havner i november, fordi da er det 25. og 30. (siste) som gjelder. På grunn av utbetalingskjøringer før jul.
+        // TODO jah: Dersom man legger inn en sats som er innenfor periode 2022-juni til 2023-mai vil testen feil. Da kan man endre testStartTidspunkt til neste knekkpunkt.
+        val testStartTidspunkt = 20.mai(2022)
+        val tikkendeKlokke = TikkendeKlokke(testStartTidspunkt.fixedClock())
+        val stønadStart = testStartTidspunkt.førsteINesteMåned()
         val stønadSlutt = stønadStart.plusMonths(11).endOfMonth()
         val førsteInnkalling = stønadStart.plusMonths(4).startOfMonth()
         val førsteFrist = stønadStart.plusMonths(4).endOfMonth()
