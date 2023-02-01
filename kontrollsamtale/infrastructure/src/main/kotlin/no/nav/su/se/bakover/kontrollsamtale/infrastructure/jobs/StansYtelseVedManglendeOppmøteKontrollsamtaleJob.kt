@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.igår
 import no.nav.su.se.bakover.common.jobs.infrastructure.RunCheckFactory
 import no.nav.su.se.bakover.common.jobs.infrastructure.shouldRun
@@ -34,12 +35,14 @@ class StansYtelseVedManglendeOppmøteKontrollsamtaleJob(
             initialDelay = initialDelay.toMillis(),
         ) {
             Either.catch {
-                listOf(
-                    runCheckFactory.åpningstidStormaskin(),
-                    runCheckFactory.leaderPod(),
-                    runCheckFactory.unleashToggle("supstonad.automatisk.stans.manglende.oppmote.kontrollsamtale"),
-                ).shouldRun().ifTrue {
-                    service.håndterUtløpsdato(igår(clock))
+                CorrelationId.withCorrelationId {
+                    listOf(
+                        runCheckFactory.åpningstidStormaskin(),
+                        runCheckFactory.leaderPod(),
+                        runCheckFactory.unleashToggle("supstonad.automatisk.stans.manglende.oppmote.kontrollsamtale"),
+                    ).shouldRun().ifTrue {
+                        service.håndterUtløpsdato(igår(clock))
+                    }
                 }
             }.mapLeft {
                 log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)
