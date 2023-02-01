@@ -27,7 +27,6 @@ include("database")
 include("client")
 include("test-common")
 include("web-regresjonstest")
-include("web-kafka-test")
 include("statistikk")
 
 include("hendelse:infrastructure")

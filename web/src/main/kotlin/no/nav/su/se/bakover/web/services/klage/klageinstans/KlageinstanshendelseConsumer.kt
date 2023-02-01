@@ -35,7 +35,7 @@ class KlageinstanshendelseConsumer(
 
             while (this.isActive) {
                 Either.catch {
-                    CorrelationId.withCorrelationId {
+                    CorrelationId.withCorrelationIdSuspend {
                         val messages = consumer.poll(pollTimeoutDuration)
                         if (!messages.isEmpty) {
                             consume(messages)
@@ -50,7 +50,7 @@ class KlageinstanshendelseConsumer(
         }
     }
 
-    private fun consume(messages: ConsumerRecords<String, String>) {
+    private suspend fun consume(messages: ConsumerRecords<String, String>) {
         val offsets = mutableMapOf<TopicPartition, OffsetAndMetadata>()
         log.debug(
             "$topicName: Prosesserer ${messages.count()} nye meldinger.",
@@ -75,6 +75,7 @@ class KlageinstanshendelseConsumer(
                             // Hvis dette skjer vil Kafka prøve å sende meldingen på nytt mens den blokkerer nyere meldinger.
                             // Dersom dette oppstår kan vi vurdere om vi heller bare skal forkaste meldingen eller lagre den (da flytter vi kompleksiten inn i domenet.)
                             consumer.enforceRebalance()
+                            delay(60.seconds)
                             return@breakable
                         }
 

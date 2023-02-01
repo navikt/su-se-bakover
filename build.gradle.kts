@@ -205,14 +205,6 @@ configure(listOf(project(":client"))) {
     }
 }
 
-configure(listOf(project(":web-kafka-test"))) {
-    // :web-kafka-test denne gir veldig ofte timing issues. Prøver å kjøre denne ikke-parallellt.
-    tasks.test {
-        sharedTestSetup()
-        skipHeavyInfrastructureTestsIfToggled(this)
-    }
-}
-
 configure(
     listOf(
         project(":common"),
@@ -244,16 +236,6 @@ configurations {
     all {
         // Vi bruker logback og mener vi kan trygt sette en exclude på log4j: https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHELOGGINGLOG4J-2314720
         exclude(group = "org.apache.logging.log4j", module = "log4j-core")
-    }
-}
-
-fun Project.skipHeavyInfrastructureTestsIfToggled(test: Test) {
-    if (findProperty("skip-heavy-infrastructure-tests") == "true") {
-        println("Skipping heavy infrastructure tests like Kafka.")
-        test.filter {
-            excludeTestsMatching("*KafkaTest*")
-            isFailOnNoMatchingTests = false
-        }
     }
 }
 

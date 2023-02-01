@@ -24,6 +24,7 @@ dependencies {
     implementation(project(":kontrollsamtale:domain"))
 
     testImplementation(project(":test-common"))
+    testImplementation("org.awaitility:awaitility:4.2.0")
 }
 
 tasks.named<Jar>("jar") {
