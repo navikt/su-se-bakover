@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.MockConsumer
+import org.apache.kafka.clients.consumer.OffsetAndMetadata
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.apache.kafka.common.TopicPartition
 import org.junit.jupiter.api.Test
@@ -29,6 +30,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.slf4j.helpers.NOPLogger
 import java.time.Duration
+import java.util.concurrent.TimeUnit
 
 private const val TOPIC = "kafkaTopic"
 private const val PARTITION = 0
@@ -61,13 +63,13 @@ internal class PersonhendelseConsumerKafkaTest {
             log = NOPLogger.NOP_LOGGER, // Don't spam logs running tests
             sikkerLogg = NOPLogger.NOP_LOGGER, // Don't spam logs running tests
         )
-
+        kafkaConsumer.lastComittedShouldBe(6)
         val hendelser = argumentCaptor<no.nav.su.se.bakover.domain.personhendelse.Personhendelse.IkkeTilknyttetSak>()
-        verify(personhendelseService, timeout(1000).times(6)).prosesserNyHendelse(hendelser.capture())
+        verify(personhendelseService, timeout(5000).times(6)).prosesserNyHendelse(hendelser.capture())
         hendelser.allValues shouldBe (0..5L).map {
             no.nav.su.se.bakover.domain.personhendelse.Personhendelse.IkkeTilknyttetSak(
                 endringstype = no.nav.su.se.bakover.domain.personhendelse.Personhendelse.Endringstype.OPPRETTET,
-                hendelse = no.nav.su.se.bakover.domain.personhendelse.Personhendelse.Hendelse.Dødsfall(no.nav.su.se.bakover.test.fixedLocalDate),
+                hendelse = no.nav.su.se.bakover.domain.personhendelse.Personhendelse.Hendelse.Dødsfall(fixedLocalDate),
                 metadata = no.nav.su.se.bakover.domain.personhendelse.Personhendelse.Metadata(
                     personidenter = nonEmptyListOf(ident, fnr.toString()),
                     hendelseId = it.toString(),
@@ -163,5 +165,18 @@ internal class PersonhendelseConsumerKafkaTest {
         )
         // Emulerer at PDL-kafka legger på 0-byte
         return ConsumerRecord(topic, partition, offset, key, personhendelse)
+    }
+
+    private fun MockConsumer<String, Personhendelse>.lastComittedShouldBe(
+        shouldBeOffset: Int,
+        topic: String = TOPIC,
+        partition: Int = PARTITION,
+    ) {
+        val topicPartition = TopicPartition(topic, partition)
+        org.awaitility.Awaitility.await().atLeast(100, TimeUnit.MILLISECONDS).until {
+            this.committed(setOf(topicPartition)) == mapOf(
+                topicPartition to OffsetAndMetadata(shouldBeOffset.toLong()),
+            )
+        }
     }
 }
