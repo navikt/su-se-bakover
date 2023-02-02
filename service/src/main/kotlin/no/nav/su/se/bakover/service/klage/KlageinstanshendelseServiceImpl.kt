@@ -44,7 +44,9 @@ class KlageinstanshendelseServiceImpl(
         klageinstanshendelseRepo.lagre(hendelse)
     }
 
-    override fun håndterUtfallFraKlageinstans(deserializeAndMap: (id: UUID, opprettet: Tidspunkt, json: String) -> Either<KunneIkkeTolkeKlageinstanshendelse, TolketKlageinstanshendelse>) {
+    override fun håndterUtfallFraKlageinstans(
+        deserializeAndMap: (id: UUID, opprettet: Tidspunkt, json: String) -> Either<KunneIkkeTolkeKlageinstanshendelse, TolketKlageinstanshendelse>,
+    ) {
         val ubehandletKlageinstanshendelser = klageinstanshendelseRepo.hentUbehandlaKlageinstanshendelser()
 
         ubehandletKlageinstanshendelser.forEach { uprosessertKlageinstanshendelse ->

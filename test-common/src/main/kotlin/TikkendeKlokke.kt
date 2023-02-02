@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.test
 
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.startOfDay
 import java.time.Clock
 import java.time.Instant
@@ -25,6 +26,8 @@ class TikkendeKlokke(
         nextInstant = nextInstant.plus(1, ChronoUnit.SECONDS)
         return nextInstant
     }
+
+    fun nextTidspunkt() = Tidspunkt(instant())
 
     fun spolTil(dato: LocalDate): Instant {
         require(dato.startOfDay(zone) > nextInstant) { "Kan bare spole fremover i tid" }

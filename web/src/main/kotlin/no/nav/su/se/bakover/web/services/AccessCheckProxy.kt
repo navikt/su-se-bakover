@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
@@ -139,6 +140,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrolls
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
+import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.FullførBosituasjonRequest
@@ -902,8 +904,8 @@ open class AccessCheckProxy(
 
                 override fun hentJournalpostId(vedtakId: UUID) = kastKanKunKallesFraAnnenService()
 
-                override fun hentAktiveFnr(fomDato: LocalDate): List<Fnr> {
-                    return services.vedtakService.hentAktiveFnr(fomDato)
+                override fun hentInnvilgetFnrForMåned(måned: Måned): InnvilgetForMåned {
+                    return services.vedtakService.hentInnvilgetFnrForMåned(måned)
                 }
 
                 override fun hentForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()

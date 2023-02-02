@@ -1,19 +1,18 @@
 package no.nav.su.se.bakover.service.vedtak
 
-import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import java.time.Clock
-import java.time.LocalDate
+import no.nav.su.se.bakover.domain.vedtak.tilInnvilgetForMåned
 import java.util.UUID
 
 class VedtakServiceImpl(
     private val vedtakRepo: VedtakRepo,
-    private val clock: Clock,
 ) : VedtakService {
 
     override fun lagre(vedtak: Vedtak) {
@@ -36,10 +35,8 @@ class VedtakServiceImpl(
         return vedtakRepo.hentJournalpostId(vedtakId)
     }
 
-    override fun hentAktiveFnr(fomDato: LocalDate): List<Fnr> {
-        return vedtakRepo.hentAktive(fomDato).map {
-            it.behandling.fnr
-        }.sortedWith(compareBy(Fnr::toString)).distinct()
+    override fun hentInnvilgetFnrForMåned(måned: Måned): InnvilgetForMåned {
+        return vedtakRepo.hentForMåned(måned).tilInnvilgetForMåned(måned)
     }
 
     override fun hentForUtbetaling(utbetalingId: UUID30): VedtakSomKanRevurderes? {

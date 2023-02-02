@@ -6,15 +6,14 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import java.time.Clock
-import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 
@@ -25,43 +24,45 @@ internal fun Route.frikortVedtakRoutes(
     vedtakService: VedtakService,
     clock: Clock,
 ) {
-    fun hentDato(dato: String): Either<Resultat, LocalDate> {
-        return Either.catch { YearMonth.parse(dato, formatter).atDay(1) }
+    fun hentDato(dato: String): Either<Resultat, Måned> {
+        return Either.catch { Måned.fra(YearMonth.parse(dato, formatter)) }
             .mapLeft {
                 HttpStatusCode.BadRequest.errorJson(
-                    "Ugyldig dato - dato må være på format YYYY-MM",
+                    "Ugyldig dato - dato må være på format yyyy-MM",
                     "ugyldig_datoformat",
                 )
             }
     }
 
-    // Her kan man få kode 6 og kode 7...
+    // Responsen kan inneholde skjermede fødselsnumre. Dette er avklart med dagens konsument og må avklares med potensielt fremtidige konsumenter.
     get("$frikortPath/{aktivDato?}") {
-        val aktivDato = call.parameters["aktivDato"] // YYYY-MM  2021-02
+        val forMåned = call.parameters["aktivDato"] // yyyy-MM  2021-02
             ?.let {
                 hentDato(it).getOrElse {
                     call.svar(it)
                     return@get
                 }
             }
-            ?: Tidspunkt.now(clock).toLocalDate(zoneIdOslo)
-        val aktiveBehandlinger = vedtakService.hentAktiveFnr(aktivDato)
+            ?: Måned.now(clock)
         call.svar(
             Resultat.json(
                 HttpStatusCode.OK,
-                serialize(
-                    object {
-                        @Suppress("unused")
-                        val dato = aktivDato.toFrikortFormat()
-
-                        @Suppress("unused")
-                        val fnr = aktiveBehandlinger
-                    },
-                ),
+                vedtakService.hentInnvilgetFnrForMåned(forMåned).toJson(),
             ),
         )
     }
 }
 
-private fun LocalDate.toFrikortFormat(): String = formatter
-    .withZone(zoneIdOslo).format(this)
+private data class JsonResponse(
+    val dato: String,
+    val fnr: List<String>,
+)
+
+private fun InnvilgetForMåned.toJson(): String {
+    return JsonResponse(
+        dato = måned.toString(),
+        fnr = fnr.map { it.toString() },
+    ).let {
+        serialize(it)
+    }
+}

@@ -112,7 +112,6 @@ object ServiceBuilder {
 
         val vedtakService = VedtakServiceImpl(
             vedtakRepo = databaseRepos.vedtakRepo,
-            clock = clock,
         )
 
         val tilbakekrevingService = TilbakekrevingServiceImpl(
