@@ -33,6 +33,17 @@ internal class VerifisertStønadsperiodeOppMotPersonsAlderTest {
 
     @Nested
     inner class HarPerson {
+        @Test
+        fun `endrer ikke stønadsperioden hvis vi henter person, men fødselsinformasjon er null - Varsler om at vi ikke fikk verifisert mot person info`() {
+            VerifisertStønadsperiodeOppMotPersonsAlder.verifiser(
+                stønadsperiode2021,
+                person(),
+                fixedClock,
+            ) shouldBe VerifisertStønadsperiodeOppMotPersonsAlder.create(
+                stønadsperiode2021,
+                VerifiseringsMelding.KunneIkkeVerifisereStønadsperiodeMotFødselsinformasjon,
+            ).right()
+        }
 
         @Nested
         inner class PersonUnder67 {
@@ -56,18 +67,6 @@ internal class VerifisertStønadsperiodeOppMotPersonsAlderTest {
 
         @Nested
         inner class PersonBlir67EllerEldre {
-            @Test
-            fun `endrer ikke stønadsperioden hvis vi henter person, men fødselsinformasjon er null - Varsler om at vi ikke fikk verifisert mot person info`() {
-                VerifisertStønadsperiodeOppMotPersonsAlder.verifiser(
-                    stønadsperiode2021,
-                    person(),
-                    fixedClock,
-                ) shouldBe VerifisertStønadsperiodeOppMotPersonsAlder.create(
-                    stønadsperiode2021,
-                    VerifiseringsMelding.KunneIkkeVerifisereStønadsperiodeMotFødselsinformasjon,
-                ).right()
-            }
-
             @Test
             fun `Gir feil dersom person er allerede 67 eller eldre`() {
                 VerifisertStønadsperiodeOppMotPersonsAlder.verifiser(
