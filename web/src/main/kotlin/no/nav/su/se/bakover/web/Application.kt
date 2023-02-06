@@ -81,6 +81,7 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.overordnetSøknadsbehandligRoutes
 import no.nav.su.se.bakover.web.routes.togglePaths
 import no.nav.su.se.bakover.web.routes.toggleRoutes
+import no.nav.su.se.bakover.web.routes.vedtak.stønadsmottakereRoute
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.opplysningspliktRoutes
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.ServiceBuilder
@@ -290,6 +291,7 @@ fun Application.susebakover(
                     klageRoutes(accessProtectedServices.klageService, clock)
                     dokumentRoutes(accessProtectedServices.brev)
                     nøkkeltallRoutes(accessProtectedServices.nøkkeltallService)
+                    stønadsmottakereRoute(accessProtectedServices.vedtakService, clock)
                     kontrollsamtaleRoutes(accessProtectedServices.kontrollsamtaleSetup.kontrollsamtaleService)
                     reguleringRoutes(accessProtectedServices.reguleringService, satsFactoryIDag, clock)
                     opplysningspliktRoutes(

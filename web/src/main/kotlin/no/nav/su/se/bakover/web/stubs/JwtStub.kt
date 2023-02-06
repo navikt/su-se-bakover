@@ -13,7 +13,7 @@ class JwtStub(
 ) {
     @TestOnly
     fun createJwtToken(
-        subject: String = "enSaksbehandler",
+        subject: String = "serviceUserTestUsername",
         roller: List<Brukerrolle> = listOf(Brukerrolle.Saksbehandler, Brukerrolle.Attestant, Brukerrolle.Veileder),
         navIdent: String? = "Z990Lokal",
         navn: String? = "Brukerens navn",

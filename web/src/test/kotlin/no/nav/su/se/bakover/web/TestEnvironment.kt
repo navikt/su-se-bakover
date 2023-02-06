@@ -88,6 +88,7 @@ suspend fun ApplicationTestBuilder.defaultRequest(
     uri: String,
     roller: List<Brukerrolle> = emptyList(),
     navIdent: String,
+    jwtSubject: String = "serviceUserTestUsername",
     setup: HttpRequestBuilder.() -> Unit = {},
 ): HttpResponse {
     return this.client.request(uri) {
@@ -99,6 +100,7 @@ suspend fun ApplicationTestBuilder.defaultRequest(
                 jwtStub.createJwtToken(
                     roller = roller,
                     navIdent = navIdent,
+                    subject = jwtSubject,
                 ).asBearerToken(),
             )
         }

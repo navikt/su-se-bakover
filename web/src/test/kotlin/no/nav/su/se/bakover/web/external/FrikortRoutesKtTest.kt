@@ -29,7 +29,6 @@ import java.time.Clock
 import java.time.ZoneOffset
 
 internal class FrikortRoutesKtTest {
-    internal val testServices = TestServicesBuilder.services()
 
     @Test
     fun `secure endpoint krever autentisering`() {
@@ -37,7 +36,7 @@ internal class FrikortRoutesKtTest {
             application {
                 testSusebakover()
             }
-            defaultRequest(HttpMethod.Get, frikortPath).apply {
+            defaultRequest(HttpMethod.Get, frikortPath, navIdent = "Z990Lokal", jwtSubject = "unknownSubject").apply {
                 this.status shouldBe HttpStatusCode.Unauthorized
             }
         }
