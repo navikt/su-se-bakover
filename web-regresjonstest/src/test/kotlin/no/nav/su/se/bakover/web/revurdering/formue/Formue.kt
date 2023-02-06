@@ -21,6 +21,30 @@ internal fun leggTilFormue(
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
     url: String = "/saker/$sakId/revurderinger/$behandlingId/formuegrunnlag",
     client: HttpClient,
+    søkersFormue: String = """
+        {
+          "verdiIkkePrimærbolig": 0,
+          "verdiEiendommer": 0,
+          "verdiKjøretøy": 0,
+          "innskudd": 6000,
+          "verdipapir": 5000,
+          "pengerSkyldt": 0,
+          "kontanter": 2000,
+          "depositumskonto": 4500
+        }
+    """.trimIndent(),
+    epsFormue: String = """
+        {
+          "verdiIkkePrimærbolig": 0,
+          "verdiEiendommer": 0,
+          "verdiKjøretøy": 0,
+          "innskudd": 8000,
+          "verdipapir": 0,
+          "pengerSkyldt": 0,
+          "kontanter": 11000,
+          "depositumskonto": 0
+        }
+    """.trimIndent(),
 ): String {
     return runBlocking {
         defaultRequest(
@@ -38,26 +62,8 @@ internal fun leggTilFormue(
                       "fraOgMed": "$fraOgMed",
                       "tilOgMed": "$tilOgMed"
                     },
-                    "epsFormue":  {
-                        "verdiIkkePrimærbolig": 0,
-                        "verdiEiendommer": 0,
-                        "verdiKjøretøy": 0,
-                        "innskudd": 8000,
-                        "verdipapir": 0,
-                        "pengerSkyldt": 0,
-                        "kontanter": 11000,
-                        "depositumskonto": 0
-                      },
-                    "søkersFormue":  {
-                        "verdiIkkePrimærbolig": 0,
-                        "verdiEiendommer": 0,
-                        "verdiKjøretøy": 0,
-                        "innskudd": 50000,
-                        "verdipapir": 5000,
-                        "pengerSkyldt": 0,
-                        "kontanter": 2000,
-                        "depositumskonto": 45000
-                      },
+                    "epsFormue": $epsFormue,
+                    "søkersFormue": $søkersFormue,
                     "begrunnelse": "Lagt til automatisk av Formue.kt#leggTilFormue()"
                   }
                 ]
