@@ -92,6 +92,7 @@ import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
+import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.revurderingUnderkjent
 import no.nav.su.se.bakover.test.saksbehandler
@@ -865,7 +866,9 @@ class TestDataHelper(
             nySøknadsbehandlingMedStønadsperiode(
                 sakOgSøknad = sak to søknad,
                 clock = clock,
-            )
+            ).let {
+                it.first to it.second
+            }
         },
     ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
         return persisterSøknadsbehandlingVilkårsvurdert(sakOgSøknad) { søknadsbehandling(it) }.let { (sak, vilkårsvurdertSøknadsbehandling) ->
@@ -1184,6 +1187,7 @@ class TestDataHelper(
                 clock = clock,
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 saksbehandler = saksbehandler,
+                hentPerson = { person().right() },
             ).getOrFail().second.let {
                 databaseRepos.søknadsbehandling.lagre(it)
                 assert(it.fnr == sak.fnr && it.sakId == sakId)

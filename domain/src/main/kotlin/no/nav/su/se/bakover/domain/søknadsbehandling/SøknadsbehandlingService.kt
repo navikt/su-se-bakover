@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.VerifiseringsMelding
 import no.nav.su.se.bakover.domain.vilkår.UgyldigFamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.FullførBosituasjonRequest
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjonEpsGrunnlag
@@ -47,7 +48,7 @@ interface SøknadsbehandlingService {
 
     fun brev(request: BrevRequest): Either<KunneIkkeLageDokument, ByteArray>
     fun hent(request: HentRequest): Either<FantIkkeBehandling, Søknadsbehandling>
-    fun oppdaterStønadsperiode(request: OppdaterStønadsperiodeRequest): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling>
+    fun oppdaterStønadsperiode(request: OppdaterStønadsperiodeRequest): Either<KunneIkkeOppdatereStønadsperiode, Pair<Søknadsbehandling, VerifiseringsMelding>>
     fun leggTilUførevilkår(
         request: LeggTilUførevurderingerRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,

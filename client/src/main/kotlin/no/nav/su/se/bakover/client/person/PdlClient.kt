@@ -39,6 +39,10 @@ internal data class PdlClientConfig(
     val azureAd: AzureAd,
 )
 
+// docs for vanlige folk: https://pdldocs-navno.msappproxy.net/ekstern/index.html#_f%C3%B8dsel
+// api doc: https://github.com/navikt/pdl/blob/master/apps/api/src/main/resources/schemas/pdl.graphqls
+// Du kan leke med de ulike queryene her (naisdevice): https://pdl-playground.dev.intern.nav.no/editor
+
 internal class PdlClient(
     private val config: PdlClientConfig,
 ) {
@@ -94,7 +98,12 @@ internal class PdlClient(
             statsborgerskap = person.statsborgerskap.firstOrNull()?.land,
             sivilstand = person.sivilstand.firstOrNull(),
             kjønn = person.kjoenn.map { it.kjoenn }.firstOrNull(),
-            fødselsdato = person.foedsel.map { it.foedselsdato }.firstOrNull(),
+            fødsel = person.foedsel.map {
+                PdlData.Fødsel(
+                    foedselsaar = it.foedselsaar,
+                    foedselsdato = it.foedselsdato,
+                )
+            }.firstOrNull(),
             adressebeskyttelse = person.adressebeskyttelse.firstOrNull()?.gradering,
             vergemålEllerFremtidsfullmakt = person.vergemaalEllerFremtidsfullmakt.isNotEmpty(),
             fullmakt = person.fullmakt.isNotEmpty(),
@@ -124,6 +133,7 @@ internal class PdlClient(
             }
         }
     }
+
     fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
         return kallPDLMedSystembruker<IdentResponseData>(fnr, hentIdenterQuery).map {
             val identer = it.hentIdenter ?: return FantIkkePerson.left()
@@ -151,7 +161,11 @@ internal class PdlClient(
         return håndterPdlSvar(result, response)
     }
 
-    private inline fun <reified T> kallPDLMedOnBehalfOfToken(fnr: Fnr, query: String, jwtOnBehalfOf: String): Either<KunneIkkeHentePerson, T> {
+    private inline fun <reified T> kallPDLMedOnBehalfOfToken(
+        fnr: Fnr,
+        query: String,
+        jwtOnBehalfOf: String,
+    ): Either<KunneIkkeHentePerson, T> {
         val pdlRequest = PdlRequest(query, Variables(ident = fnr.toString()))
         val (_, response, result) = "${config.vars.url}/graphql".httpPost()
             .header("Authorization", "Bearer $jwtOnBehalfOf")
@@ -163,7 +177,10 @@ internal class PdlClient(
         return håndterPdlSvar(result, response)
     }
 
-    private inline fun <reified T> håndterPdlSvar(result: Result<String, FuelError>, response: Response): Either<KunneIkkeHentePerson, T> {
+    private inline fun <reified T> håndterPdlSvar(
+        result: Result<String, FuelError>,
+        response: Response,
+    ): Either<KunneIkkeHentePerson, T> {
         return result.fold(
             {
                 val pdlResponse: PdlResponse<T> = objectMapper.readValue(it, specializedType(T::class.java))
@@ -299,7 +316,8 @@ internal data class Kjønn(
 )
 
 internal data class Fødsel(
-    val foedselsdato: LocalDate,
+    val foedselsdato: LocalDate?,
+    val foedselsaar: Int,
 )
 
 internal data class Adressebeskyttelse(

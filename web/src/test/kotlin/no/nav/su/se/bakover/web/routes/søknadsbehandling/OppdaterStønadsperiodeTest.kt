@@ -11,6 +11,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.VerifiseringsMelding
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
@@ -148,7 +149,10 @@ class OppdaterStønadsperiodeTest {
         val søknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().second
 
         val serviceMock = mock<SøknadsbehandlingService> {
-            on { oppdaterStønadsperiode(any()) } doReturn søknadsbehandling.right()
+            on { oppdaterStønadsperiode(any()) } doReturn Pair(
+                søknadsbehandling,
+                VerifiseringsMelding.VerifisertOkPersonFyllerIkke67Plus,
+            ).right()
         }
 
         testApplication {

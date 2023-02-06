@@ -62,6 +62,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.forsøkStatusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.medFritekstTilBrev
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.VerifiseringsMelding
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.FullførBosituasjonRequest
@@ -346,7 +347,7 @@ class SøknadsbehandlingServiceImpl(
         return søknadsbehandlingRepo.hentForSøknad(søknadId)
     }
 
-    override fun oppdaterStønadsperiode(request: OppdaterStønadsperiodeRequest): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling> {
+    override fun oppdaterStønadsperiode(request: OppdaterStønadsperiodeRequest): Either<KunneIkkeOppdatereStønadsperiode, Pair<Søknadsbehandling, VerifiseringsMelding>> {
         val sak =
             sakService.hentSak(request.sakId).getOrElse { return KunneIkkeOppdatereStønadsperiode.FantIkkeSak.left() }
 
@@ -356,11 +357,12 @@ class SøknadsbehandlingServiceImpl(
             clock = clock,
             formuegrenserFactory = formuegrenserFactory,
             saksbehandler = request.saksbehandler,
+            hentPerson = personService::hentPerson,
         ).mapLeft {
             KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode(it)
         }.map {
             søknadsbehandlingRepo.lagre(it.second)
-            it.second
+            Pair(it.second, it.third)
         }
     }
 
@@ -584,7 +586,11 @@ class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilOpplysningsplikt.FantIkkeBehandling.left()
 
-        return søknadsbehandling.leggTilOpplysningspliktVilkårForSaksbehandler(request.saksbehandler, request.vilkår, clock).mapLeft {
+        return søknadsbehandling.leggTilOpplysningspliktVilkårForSaksbehandler(
+            request.saksbehandler,
+            request.vilkår,
+            clock,
+        ).mapLeft {
             KunneIkkeLeggeTilOpplysningsplikt.Søknadsbehandling(it)
         }.map {
             søknadsbehandlingRepo.lagre(it)

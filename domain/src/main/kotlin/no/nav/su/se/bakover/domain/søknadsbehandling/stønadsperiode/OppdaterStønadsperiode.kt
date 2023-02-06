@@ -1,10 +1,14 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.finnesOverlappendeÅpenBehandling
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.validerOverlappendeStønadsperioder
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
@@ -26,7 +30,8 @@ fun Sak.oppdaterStønadsperiodeForSøknadsbehandling(
     clock: Clock,
     formuegrenserFactory: FormuegrenserFactory,
     saksbehandler: NavIdentBruker.Saksbehandler,
-): Either<Sak.KunneIkkeOppdatereStønadsperiode, Pair<Sak, Søknadsbehandling.Vilkårsvurdert>> {
+    hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
+): Either<Sak.KunneIkkeOppdatereStønadsperiode, Triple<Sak, Søknadsbehandling.Vilkårsvurdert, VerifiseringsMelding>> {
     val søknadsbehandling = søknadsbehandlinger.singleOrNull {
         it.id == søknadsbehandlingId
     } ?: return Sak.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
@@ -39,8 +44,18 @@ fun Sak.oppdaterStønadsperiodeForSøknadsbehandling(
         return Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode(it).left()
     }
 
+    val verifisertStønadsperiodeOppMotPersonsAlder = hentPerson(this.fnr).let {
+        VerifisertStønadsperiodeOppMotPersonsAlder.verifiser(
+            stønadsperiode = stønadsperiode,
+            person = it.getOrNull(),
+            clock = clock,
+        )
+    }.getOrElse {
+        return Sak.KunneIkkeOppdatereStønadsperiode.ValideringsfeilAvStønadsperiodeOgPersonsAlder(it).left()
+    }
+
     return søknadsbehandling.oppdaterStønadsperiodeForSaksbehandler(
-        oppdatertStønadsperiode = stønadsperiode,
+        oppdatertStønadsperiode = verifisertStønadsperiodeOppMotPersonsAlder,
         formuegrenserFactory = formuegrenserFactory,
         clock = clock,
         saksbehandler = saksbehandler,
@@ -56,11 +71,12 @@ fun Sak.oppdaterStønadsperiodeForSøknadsbehandling(
             }
         }
     }.map { søknadsbehandlingMedOppdatertStønadsperiode ->
-        Pair(
+        Triple(
             this.copy(
                 søknadsbehandlinger = søknadsbehandlinger.filterNot { it.id == søknadsbehandlingMedOppdatertStønadsperiode.id } + søknadsbehandlingMedOppdatertStønadsperiode,
             ),
             søknadsbehandlingMedOppdatertStønadsperiode,
+            verifisertStønadsperiodeOppMotPersonsAlder.verifiseringsMelding,
         )
     }
 }

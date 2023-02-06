@@ -74,6 +74,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.fail
 import vilkår.personligOppmøtevilkårAvslag
 import java.time.Clock
+import java.time.Year
 import java.util.UUID
 
 internal class LagBrevRequestVisitorTest {
@@ -1229,6 +1230,9 @@ internal class LagBrevRequestVisitorTest {
             aktørId = AktørId(aktørId = "123"),
         ),
         navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
+        fødsel = Person.Fødsel(
+            år = Year.of(1956),
+        ),
     )
     private val generertPdf = "".toByteArray()
 

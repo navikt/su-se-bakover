@@ -61,7 +61,9 @@ class LeggTilUtenlandsoppholdTest {
     @Test
     fun `får bare lagt til opphold i utlandet for enkelte typer`() {
         listOf(
-            søknadsbehandlingVilkårsvurdertUavklart(),
+            søknadsbehandlingVilkårsvurdertUavklart().let {
+                it.first to it.second
+            },
             søknadsbehandlingVilkårsvurdertAvslag(),
             søknadsbehandlingVilkårsvurdertInnvilget(),
             søknadsbehandlingBeregnetAvslag(),

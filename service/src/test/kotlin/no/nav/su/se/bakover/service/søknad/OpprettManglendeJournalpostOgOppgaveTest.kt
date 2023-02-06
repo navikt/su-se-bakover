@@ -33,6 +33,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
+import java.time.Year
 import java.util.UUID
 
 class OpprettManglendeJournalpostOgOppgaveTest {
@@ -65,6 +66,9 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             aktørId = AktørId(aktørId = "123"),
         ),
         navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
+        fødsel = Person.Fødsel(
+            år = Year.of(1956),
+        ),
     )
 
     @Test

@@ -46,6 +46,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.metrics.SuMetrics
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
@@ -61,6 +62,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.UnderkjennRequest
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Valideringsfeil
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.StønadsperiodeJson
@@ -109,6 +111,11 @@ internal fun Route.søknadsbehandlingRoutes(
             }
         }
     }
+
+    data class StønadsperiodeJsonResponse(
+        val søknadsbehandling: BehandlingJson,
+        val melding: String,
+    )
 
     post("$behandlingPath/{behandlingId}/stønadsperiode") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -161,14 +168,28 @@ internal fun Route.søknadsbehandlingRoutes(
                                                     "Stønadsperioden overlapper en annen åpen behandling.",
                                                     "stønadsperiode_overlapper_åpen_behandling",
                                                 )
+
                                                 is Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode -> feil.feil.tilResultat()
+                                                is Sak.KunneIkkeOppdatereStønadsperiode.KunneIkkeHentePerson -> feil.feil.tilResultat()
+                                                is Sak.KunneIkkeOppdatereStønadsperiode.ValideringsfeilAvStønadsperiodeOgPersonsAlder -> feil.feil.tilResultat()
+                                                else -> throw IllegalArgumentException("får intellij til å være stille")
                                             }
                                         }
                                     },
                                 )
                             }.map {
-                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                                call.svar(Created.jsonBody(it, satsFactory))
+                                call.audit(it.first.fnr, AuditLogEvent.Action.UPDATE, it.first.id)
+                                call.svar(
+                                    Resultat.json(
+                                        Created,
+                                        serialize(
+                                            StønadsperiodeJsonResponse(
+                                                it.first.toJson(satsFactory),
+                                                it.second.toString(),
+                                            ),
+                                        ),
+                                    ),
+                                )
                             }
                         }
                     }
@@ -404,5 +425,14 @@ internal fun Route.søknadsbehandlingRoutes(
                 )
             }
         }
+    }
+}
+
+internal fun Valideringsfeil.tilResultat(): Resultat {
+    return when (this) {
+        Valideringsfeil.PersonEr67EllerEldre -> BadRequest.errorJson(
+            "Person er 67 år eller eldre",
+            "person_er_67_eller_eldre",
+        )
     }
 }

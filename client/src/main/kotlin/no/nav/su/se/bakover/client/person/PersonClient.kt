@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import java.time.Duration
+import java.time.Year
 
 internal data class PersonClientConfig(
     val kodeverk: Kodeverk,
@@ -35,8 +36,14 @@ internal class PersonClient(
     private val hentBrukerToken: () -> JwtToken.BrukerToken = {
         JwtToken.BrukerToken.fraMdc()
     },
-    private val personCache: Cache<FnrCacheKey, Person> = newCache(cacheName = "person", expireAfterWrite = Duration.ofMinutes(30)),
-    private val aktørIdCache: Cache<FnrCacheKey, AktørId> = newCache(cacheName = "aktoerId", expireAfterWrite = Duration.ofMinutes(30)),
+    private val personCache: Cache<FnrCacheKey, Person> = newCache(
+        cacheName = "person",
+        expireAfterWrite = Duration.ofMinutes(30),
+    ),
+    private val aktørIdCache: Cache<FnrCacheKey, AktørId> = newCache(
+        cacheName = "aktoerId",
+        expireAfterWrite = Duration.ofMinutes(30),
+    ),
 ) : PersonOppslag {
 
     private fun <Value, Error> Cache<FnrCacheKey, Value>.getOrAdd(
@@ -120,7 +127,12 @@ internal class PersonClient(
             )
         },
         kjønn = pdlData.kjønn,
-        fødselsdato = pdlData.fødselsdato,
+        fødsel = pdlData.fødsel?.let {
+            Person.Fødsel(
+                dato = pdlData.fødsel.foedselsdato,
+                år = Year.of(pdlData.fødsel.foedselsaar),
+            )
+        },
         adressebeskyttelse = pdlData.adressebeskyttelse,
         skjermet = config.skjerming.erSkjermet(pdlData.ident.fnr),
         kontaktinfo = kontaktinfo(pdlData.ident.fnr),

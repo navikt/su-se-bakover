@@ -33,6 +33,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import java.time.Clock
+import java.time.Year
 import java.util.UUID
 
 internal class DistribuerBrevServiceTest {
@@ -44,6 +45,9 @@ internal class DistribuerBrevServiceTest {
             aktørId = AktørId(aktørId = "123"),
         ),
         navn = Person.Navn(fornavn = "Tore", mellomnavn = null, etternavn = "Strømøy"),
+        fødsel = Person.Fødsel(
+            år = Year.of(1956),
+        ),
     )
     val distribusjonstype = Distribusjonstype.VIKTIG
     val distribusjonstidspunkt = Distribusjonstidspunkt.KJERNETID

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode
 
 import arrow.core.left
+import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -36,6 +37,7 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
@@ -62,6 +64,7 @@ internal class OppdaterStønadsperiodeTest {
             formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             clock = fixedClock,
             saksbehandler = saksbehandler,
+            hentPerson = { person().right() },
         ).getOrFail().second
 
         vilkårsvurdert.periode shouldNotBe nyPeriode
@@ -90,6 +93,7 @@ internal class OppdaterStønadsperiodeTest {
                 clock = fixedClock,
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 saksbehandler = saksbehandler,
+                hentPerson = { person().right() },
             ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode(
                 StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeOverlapperMedIkkeOpphørtStønadsperiode,
             ).left()
@@ -116,6 +120,7 @@ internal class OppdaterStønadsperiodeTest {
                 clock = fixedClock,
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 saksbehandler = saksbehandler,
+                hentPerson = { person().right() },
             ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode(
                 StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeForSenerePeriodeEksisterer,
             ).left()
@@ -168,6 +173,7 @@ internal class OppdaterStønadsperiodeTest {
                     clock = tikkendeKlokke,
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                     saksbehandler = saksbehandler,
+                    hentPerson = { person().right() },
                 ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode(
                     StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold,
                 ).left()
@@ -189,6 +195,7 @@ internal class OppdaterStønadsperiodeTest {
                     clock = tikkendeKlokke,
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                     saksbehandler = saksbehandler,
+                    hentPerson = { person().right() },
                 ).getOrFail().second
             }
         }
@@ -237,6 +244,7 @@ internal class OppdaterStønadsperiodeTest {
                 clock = tikkendeKlokke.copy(),
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 saksbehandler = saksbehandler,
+                hentPerson = { person().right() },
             ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode(
                 StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeInneholderFeilutbetaling,
             ).left()
@@ -254,6 +262,7 @@ internal class OppdaterStønadsperiodeTest {
                 clock = tikkendeKlokke.copy(),
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 saksbehandler = saksbehandler,
+                hentPerson = { person().right() },
             ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode(
                 StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeOverlapperMedIkkeOpphørtStønadsperiode,
             ).left()
@@ -273,6 +282,7 @@ internal class OppdaterStønadsperiodeTest {
                 clock = tikkendeKlokke.copy(),
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 saksbehandler = saksbehandler,
+                hentPerson = { person().right() },
             ).shouldBeRight()
         }
     }

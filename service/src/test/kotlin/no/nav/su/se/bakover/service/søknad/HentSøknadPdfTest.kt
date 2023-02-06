@@ -28,6 +28,7 @@ import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import java.nio.charset.StandardCharsets
+import java.time.Year
 import java.util.UUID
 
 class HentSøknadPdfTest {
@@ -60,6 +61,9 @@ class HentSøknadPdfTest {
             aktørId = AktørId(aktørId = "1234"),
         ),
         navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
+        fødsel = Person.Fødsel(
+            år = Year.of(1956),
+        ),
     )
 
     @Test

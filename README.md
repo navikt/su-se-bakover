@@ -137,7 +137,7 @@ prod: https://alertmanager.prod-fss.nais.io
 
 ## Kubernetes
 1. Check out https://github.com/navikt/kubeconfigs
-2. Set context: `kubectl config set-context dev-fss`
+2. Bruk context: `kubectl config use-context dev-fss`
 3. Try to get pods: `kubectl get pods`, and follow the auth info
 
 * Set team-namespace as default: `kubectl config set-context --current --namespace=supstonad`

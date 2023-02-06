@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadspe
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
@@ -63,6 +64,9 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
             søknadsbehandlingRepo = mock {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
+            personService = mock {
+                on { hentPerson(any()) } doReturn person().right()
+            },
         ).let { it ->
             val response = it.søknadsbehandlingService.oppdaterStønadsperiode(
                 SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
@@ -76,13 +80,15 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
             vilkårsvurdert.stønadsperiode.periode shouldNotBe nyStønadsperiode
 
             verify(it.sakService).hentSak(sak.id)
+            verify(it.personService).hentPerson(sak.fnr)
             verify(it.søknadsbehandlingRepo).defaultTransactionContext()
             verify(it.søknadsbehandlingRepo).lagre(
                 argThat {
-                    it shouldBe response
+                    it shouldBe response.first
                     it.stønadsperiode shouldBe nyStønadsperiode
                     it.vilkårsvurderinger.let { vilkårsvurderinger ->
-                        vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag.all { it.periode == nyStønadsperiode.periode } shouldBe true
+                        vilkårsvurderinger.uføreVilkår()
+                            .getOrFail().grunnlag.all { it.periode == nyStønadsperiode.periode } shouldBe true
                         vilkårsvurderinger.formue.grunnlag.all { it.periode == nyStønadsperiode.periode } shouldBe true
                     }
                 },

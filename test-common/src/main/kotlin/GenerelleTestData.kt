@@ -85,12 +85,14 @@ val sakinfo = SakInfo(
 fun person(
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     aktørId: AktørId = no.nav.su.se.bakover.test.aktørId,
+    fødsel: Person.Fødsel? = null,
 ) = Person(
     ident = Ident(
         fnr = fnr,
         aktørId = aktørId,
     ),
     navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
+    fødsel = fødsel,
 )
 
 val stønadsperiode2021 = Stønadsperiode.create(år(2021))

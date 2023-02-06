@@ -13,7 +13,7 @@ internal data class PdlData(
     val statsborgerskap: String?,
     val sivilstand: SivilstandResponse?,
     val kjønn: String?,
-    val fødselsdato: LocalDate?,
+    val fødsel: Fødsel?,
     val adressebeskyttelse: String?,
     val vergemålEllerFremtidsfullmakt: Boolean,
     val fullmakt: Boolean,
@@ -28,6 +28,11 @@ internal data class PdlData(
         val fornavn: String,
         val mellomnavn: String?,
         val etternavn: String,
+    )
+
+    internal data class Fødsel(
+        val foedselsaar: Int,
+        val foedselsdato: LocalDate? = null,
     )
 
     internal data class Adresse(
