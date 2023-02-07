@@ -41,7 +41,7 @@ subprojects {
         implementation("com.networknt:json-schema-validator:1.0.76")
         implementation("io.getunleash:unleash-client-java:7.1.0")
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.3.1.0")
-        implementation("org.apache.kafka:kafka-clients:3.3.2") {
+        implementation("org.apache.kafka:kafka-clients:3.4.0") {
             exclude("org.apache.kafka","kafka-raft")
             exclude("org.apache.kafka","kafka-server-common")
             exclude("org.apache.kafka","kafka-storage")
