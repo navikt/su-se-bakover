@@ -5,14 +5,14 @@ import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.su.se.bakover.common.Brukerrolle
-import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.svar
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.web.features.authorize
 import java.time.Clock
-import java.time.LocalDate
 
 internal fun Route.stønadsmottakereRoute(
     vedtakService: VedtakService,
@@ -20,11 +20,10 @@ internal fun Route.stønadsmottakereRoute(
 ) {
     get("/stønadsmottakere") {
         authorize(Brukerrolle.Drift) {
-            val inneværendeMåned = LocalDate.now(clock)
             call.svar(
                 Resultat.json(
                     HttpStatusCode.OK,
-                    vedtakService.hentAktiveFnr(inneværendeMåned).toJson(inneværendeMåned),
+                    vedtakService.hentInnvilgetFnrForMåned(Måned.now(clock)).toJson(),
                 ),
             )
         }
@@ -36,10 +35,11 @@ private data class JsonResponse(
     val fnr: List<String>,
 )
 
-private fun List<Fnr>.toJson(dato: LocalDate): String {
+private fun InnvilgetForMåned.toJson(): String {
     return JsonResponse(
-        dato = dato.toString(),
-        fnr = this.map { it.toString() },
+        // TODO jah: Burde endre dato-feltet til måned for backend/frontend, men dette er bare et driftsendepunkt for verifikasjon.
+        dato = måned.toString(),
+        fnr = fnr.map { it.toString() },
     ).let {
         serialize(it)
     }

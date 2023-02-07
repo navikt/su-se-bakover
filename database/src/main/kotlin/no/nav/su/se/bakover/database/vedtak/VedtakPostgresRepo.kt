@@ -1,11 +1,13 @@
 package no.nav.su.se.bakover.database.vedtak
 
 import kotliquery.Row
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.deserializeListNullable
 import no.nav.su.se.bakover.common.deserializeNullable
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.PostgresSessionContext.Companion.withSession
@@ -37,12 +39,13 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
+import no.nav.su.se.bakover.domain.vedtak.ForenkletVedtak
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import java.time.LocalDate
+import no.nav.su.se.bakover.domain.vedtak.Vedtakstype
 import java.util.UUID
 
 internal enum class VedtakType {
@@ -174,19 +177,35 @@ internal class VedtakPostgresRepo(
                 it.toVedtak(session)
             }
 
-    override fun hentAktive(dato: LocalDate): List<VedtakSomKanRevurderes.EndringIYtelse> {
+    override fun hentForMåned(måned: Måned): List<ForenkletVedtak> {
         return dbMetrics.timeQuery("hentAktiveVedtak") {
             sessionFactory.withSession { session ->
                 """
-                select * from vedtak
-                where fraogmed <= :dato
-                  and tilogmed >= :dato
-                order by fraogmed, tilogmed, opprettet
-
+                  select
+                    v.opprettet,
+                    v.fraogmed,
+                    v.tilogmed,
+                    v.vedtaktype,
+                    s.fnr
+                  from vedtak v
+                    left join sak s on s.id = v.sakid
+                  where
+                    v.vedtaktype IN ('SØKNAD','ENDRING','OPPHØR') and
+                    :dato between fraogmed and tilogmed
                 """.trimIndent()
-                    .hentListe(mapOf("dato" to dato), session) {
-                        it.toVedtak(session)
-                    }.filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse>()
+                    .hentListe(mapOf("dato" to måned.fraOgMed), session) {
+                        ForenkletVedtak(
+                            opprettet = it.tidspunkt("opprettet"),
+                            periode = Periode.create(it.localDate("fraogmed"), it.localDate("tilogmed")),
+                            fødselsnummer = Fnr(it.string("fnr")),
+                            vedtakstype = when (val v = it.string("vedtaktype")) {
+                                "SØKNAD" -> Vedtakstype.SØKNADSBEHANDLING
+                                "ENDRING" -> Vedtakstype.REVURDERING_INNVILGELSE
+                                "OPPHØR" -> Vedtakstype.REVURDERING_OPPHØR
+                                else -> throw IllegalStateException("Hentet ukjent vedtakstype fra databasen: $v")
+                            },
+                        )
+                    }
             }
         }
     }
@@ -207,8 +226,10 @@ internal class VedtakPostgresRepo(
         val behandling: Behandling? = when (knytning) {
             is BehandlingVedtaksknytning.ForSøknadsbehandling ->
                 søknadsbehandlingRepo.hent(knytning.søknadsbehandlingId, session)!!
+
             is BehandlingVedtaksknytning.ForRevurdering ->
                 revurderingRepo.hent(knytning.revurderingId, session)!!
+
             is BehandlingVedtaksknytning.ForKlage -> null
             is BehandlingVedtaksknytning.ForRegulering ->
                 reguleringRepo.hent(knytning.reguleringId, session)
@@ -242,6 +263,7 @@ internal class VedtakPostgresRepo(
                     utbetalingId = utbetalingId!!,
                 )
             }
+
             VedtakType.REGULERING -> {
                 VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering(
                     id = id,
@@ -255,6 +277,7 @@ internal class VedtakPostgresRepo(
                     utbetalingId = utbetalingId!!,
                 )
             }
+
             VedtakType.ENDRING -> {
                 VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering(
                     id = id,
@@ -268,6 +291,7 @@ internal class VedtakPostgresRepo(
                     utbetalingId = utbetalingId!!,
                 )
             }
+
             VedtakType.OPPHØR -> {
                 VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering(
                     id = id,
@@ -281,6 +305,7 @@ internal class VedtakPostgresRepo(
                     utbetalingId = utbetalingId!!,
                 )
             }
+
             VedtakType.AVSLAG -> {
                 if (beregning != null) {
                     Avslagsvedtak.AvslagBeregning(
@@ -309,6 +334,7 @@ internal class VedtakPostgresRepo(
                     )
                 }
             }
+
             VedtakType.STANS_AV_YTELSE -> VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse(
                 id = id,
                 opprettet = opprettet,
@@ -319,6 +345,7 @@ internal class VedtakPostgresRepo(
                 simulering = simulering!!,
                 utbetalingId = utbetalingId!!,
             )
+
             VedtakType.GJENOPPTAK_AV_YTELSE -> VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse(
                 id = id,
                 opprettet = opprettet,
@@ -329,6 +356,7 @@ internal class VedtakPostgresRepo(
                 simulering = simulering!!,
                 utbetalingId = utbetalingId!!,
             )
+
             VedtakType.AVVIST_KLAGE -> Klagevedtak.Avvist(
                 id = id,
                 opprettet = opprettet,
@@ -343,6 +371,7 @@ internal class VedtakPostgresRepo(
         """
                 INSERT INTO vedtak(
                     id,
+                    sakId,
                     opprettet,
                     fraOgMed,
                     tilOgMed,
@@ -354,6 +383,7 @@ internal class VedtakPostgresRepo(
                     vedtaktype
                 ) VALUES (
                     :id,
+                    :sakId,
                     :opprettet,
                     :fraOgMed,
                     :tilOgMed,
@@ -368,6 +398,7 @@ internal class VedtakPostgresRepo(
             .insert(
                 mapOf(
                     "id" to vedtak.id,
+                    "sakId" to vedtak.sakinfo().sakId,
                     "opprettet" to vedtak.opprettet,
                     "fraOgMed" to vedtak.periode.fraOgMed,
                     "tilOgMed" to vedtak.periode.tilOgMed,
@@ -378,14 +409,19 @@ internal class VedtakPostgresRepo(
                     "beregning" to when (vedtak) {
                         is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse ->
                             null
+
                         is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse ->
                             null
+
                         is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering ->
                             vedtak.beregning
+
                         is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling ->
                             vedtak.beregning
+
                         is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering ->
                             vedtak.beregning
+
                         is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering ->
                             vedtak.beregning
                     },
@@ -411,6 +447,7 @@ internal class VedtakPostgresRepo(
         """
                 insert into vedtak(
                     id,
+                    sakId,
                     opprettet,
                     fraOgMed,
                     tilOgMed,
@@ -423,6 +460,7 @@ internal class VedtakPostgresRepo(
                     avslagsgrunner
                 ) values (
                     :id,
+                    :sakId,
                     :opprettet,
                     :fraOgMed,
                     :tilOgMed,
@@ -438,6 +476,7 @@ internal class VedtakPostgresRepo(
             .insert(
                 mapOf(
                     "id" to vedtak.id,
+                    "sakId" to vedtak.behandling.sakId,
                     "opprettet" to vedtak.opprettet,
                     "fraOgMed" to vedtak.periode.fraOgMed,
                     "tilOgMed" to vedtak.periode.tilOgMed,
@@ -456,6 +495,7 @@ internal class VedtakPostgresRepo(
         """
                 INSERT INTO vedtak(
                     id,
+                    sakId,
                     opprettet,
                     fraOgMed,
                     tilOgMed,
@@ -467,6 +507,7 @@ internal class VedtakPostgresRepo(
                     vedtaktype
                 ) VALUES (
                     :id,
+                    :sakId,
                     :opprettet,
                     null,
                     null,
@@ -480,6 +521,7 @@ internal class VedtakPostgresRepo(
         """.trimIndent().insert(
             mapOf(
                 "id" to vedtak.id,
+                "sakId" to vedtak.klage.sakId,
                 "opprettet" to vedtak.opprettet,
                 "saksbehandler" to vedtak.saksbehandler,
                 "attestant" to vedtak.attestant,
@@ -496,10 +538,13 @@ private fun lagreKlagevedtaksknytningTilBehandling(vedtak: Stønadsvedtak, sessi
     when (vedtak.behandling) {
         is AbstraktRevurdering ->
             lagreKlagevedtaksknytningTilRevurdering(vedtak, session)
+
         is Søknadsbehandling ->
             lagreKlagevedtaksknytningTilSøknadsbehandling(vedtak, session)
+
         is Regulering ->
             lagreKlagevedtaksknytningTilRegulering(vedtak, session)
+
         else ->
             throw IllegalArgumentException("vedtak.behandling er av ukjent type. Den må være en revurdering eller en søknadsbehandling.")
     }
@@ -611,6 +656,7 @@ private fun hentBehandlingVedtaksknytning(vedtakId: UUID, session: Session): Beh
                 søknadsbehandlingId = UUID.fromString(søknadsbehandlingId),
             )
         }
+
         revurderingId != null && søknadsbehandlingId == null && klageId == null && reguleringId == null -> {
             BehandlingVedtaksknytning.ForRevurdering(
                 id = id,
@@ -619,6 +665,7 @@ private fun hentBehandlingVedtaksknytning(vedtakId: UUID, session: Session): Beh
                 revurderingId = UUID.fromString(revurderingId),
             )
         }
+
         revurderingId == null && søknadsbehandlingId == null && klageId != null && reguleringId == null -> {
             BehandlingVedtaksknytning.ForKlage(
                 id = id,
@@ -627,6 +674,7 @@ private fun hentBehandlingVedtaksknytning(vedtakId: UUID, session: Session): Beh
                 klageId = UUID.fromString(klageId),
             )
         }
+
         revurderingId == null && søknadsbehandlingId == null && klageId == null && reguleringId != null -> {
             BehandlingVedtaksknytning.ForRegulering(
                 id = id,
@@ -635,6 +683,7 @@ private fun hentBehandlingVedtaksknytning(vedtakId: UUID, session: Session): Beh
                 reguleringId = UUID.fromString(reguleringId),
             )
         }
+
         else -> {
             throw IllegalStateException(
                 "Fant ugyldig behandling-vedtak-knytning. søknadsbehandlingId=$søknadsbehandlingId, revurderingId=$revurderingId, klageId=$klageId, reguleringId=$reguleringId. Én og nøyaktig én av dem må være satt.",

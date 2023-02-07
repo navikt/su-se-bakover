@@ -75,13 +75,12 @@ internal class FrikortIT {
                 },
                 client = this.client,
             )
-            // TODO jah: Med dagens algoritme fjerner vi ikke opphør. Kommer en ny PR som fikser dette.
             // language=JSON
             JSONAssert.assertEquals(
                 """
                 {
                   "dato": "2021-01",
-                  "fnr": ["$fnrA","$fnrB"]
+                  "fnr": ["$fnrB"]
                 }
                 """.trimIndent(),
                 hentAktiveFnr(client = this.client),

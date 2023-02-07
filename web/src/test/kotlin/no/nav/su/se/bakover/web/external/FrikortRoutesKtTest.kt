@@ -11,7 +11,10 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.februar
+import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.startOfDay
+import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.web.DEFAULT_CALL_ID
@@ -45,7 +48,7 @@ internal class FrikortRoutesKtTest {
     @Test
     fun `secure endpoint ok med gyldig token`() {
         val vedtakServiceMock = mock<VedtakService> {
-            on { hentAktiveFnr(any()) } doReturn emptyList()
+            on { hentInnvilgetFnrForMåned(any()) } doReturn InnvilgetForMåned(januar(2021), emptyList())
         }
 
         testApplication {
@@ -78,24 +81,24 @@ internal class FrikortRoutesKtTest {
                 )
             }.apply {
                 this.status shouldBe HttpStatusCode.BadRequest
-                bodyAsText() shouldContain ("Ugyldig dato - dato må være på format YYYY-MM")
+                bodyAsText() shouldContain ("Ugyldig dato - dato må være på format yyyy-MM")
             }
         }
     }
 
     @Test
     fun `sjekk default dato`() {
-        val frikortJsonString = """{"dato":"2021-01","fnr":["42920322544"]}"""
+        val frikortJsonString = """{"dato":"2021-02","fnr":["42920322544"]}"""
 
         val vedtakServiceMock = mock<VedtakService> {
-            on { hentAktiveFnr(any()) } doReturn listOf(Fnr("42920322544"))
+            on { hentInnvilgetFnrForMåned(any()) } doReturn InnvilgetForMåned(februar(2021), listOf(Fnr("42920322544")))
         }
 
         testApplication {
             application {
                 testSusebakover(
                     services = TestServicesBuilder.services(vedtakService = vedtakServiceMock),
-                    clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC),
+                    clock = Clock.fixed(31.januar(2021).startOfDay().instant, ZoneOffset.UTC),
                 )
             }
             val response = client.get(frikortPath) {
@@ -114,14 +117,14 @@ internal class FrikortRoutesKtTest {
         val frikortJsonString = """{"dato":"2021-02","fnr":["42920322544"]}"""
 
         val vedtakServiceMock = mock<VedtakService> {
-            on { hentAktiveFnr(any()) } doReturn listOf(Fnr("42920322544"))
+            on { hentInnvilgetFnrForMåned(any()) } doReturn InnvilgetForMåned(februar(2021), listOf(Fnr("42920322544")))
         }
 
         testApplication {
             application {
                 testSusebakover(
                     services = TestServicesBuilder.services(vedtakService = vedtakServiceMock),
-                    clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC),
+                    clock = Clock.fixed(31.januar(2021).startOfDay().instant, ZoneOffset.UTC),
                 )
             }
 
@@ -141,14 +144,14 @@ internal class FrikortRoutesKtTest {
         val frikortJsonString = """{"dato":"2021-02","fnr":[]}"""
 
         val vedtakServiceMock = mock<VedtakService> {
-            on { hentAktiveFnr(any()) } doReturn emptyList()
+            on { hentInnvilgetFnrForMåned(any()) } doReturn InnvilgetForMåned(februar(2021), emptyList())
         }
 
         testApplication {
             application {
                 testSusebakover(
                     services = TestServicesBuilder.services(vedtakService = vedtakServiceMock),
-                    clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC),
+                    clock = Clock.fixed(31.januar(2021).startOfDay().instant, ZoneOffset.UTC),
                 )
             }
             val response = client.get("$frikortPath/2021-02") {

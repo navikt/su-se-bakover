@@ -4,10 +4,13 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.persistence.hent
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
+import no.nav.su.se.bakover.domain.vedtak.ForenkletVedtak
+import no.nav.su.se.bakover.domain.vedtak.Vedtakstype
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
@@ -117,9 +120,14 @@ internal class VedtakPostgresRepoTest {
                 )
             }
 
-            vedtakRepo.hentAktive(1.februar(2021)).also {
+            vedtakRepo.hentForMåned(februar(2021)).also {
                 it.size shouldBe 1
-                it.first() shouldBe vedtakSomErAktivt
+                it.first() shouldBe ForenkletVedtak(
+                    opprettet = vedtakSomErAktivt.opprettet,
+                    periode = vedtakSomErAktivt.periode,
+                    fødselsnummer = vedtakSomErAktivt.behandling.fnr,
+                    vedtakstype = Vedtakstype.SØKNADSBEHANDLING,
+                )
             }
         }
     }
