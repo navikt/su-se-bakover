@@ -54,13 +54,13 @@ internal class KlageinstanshendelseConsumerKafkaTest {
             sikkerLogg = NOPLogger.NOP_LOGGER, // Don't spam logs running tests
         )
         val hendelser = argumentCaptor<UprosessertKlageinstanshendelse>()
-        kafkaConsumer.currentOffsetShouldBe(3)
+        kafkaConsumer.lastComittedOffsetShouldBe(3)
         verify(klageinstanshendelseService, timeout(100).times(2)).lagre(any())
 
         kafkaConsumer.genererKlageinstanshendelseMelding(3, "ANNENSTONAD")
         kafkaConsumer.genererKlageinstanshendelseMelding(4, "SUPSTONAD")
         kafkaConsumer.genererKlageinstanshendelseMelding(5, "ANNENSTONAD")
-        kafkaConsumer.currentOffsetShouldBe(6)
+        kafkaConsumer.lastComittedOffsetShouldBe(6)
         verify(klageinstanshendelseService, timeout(100).times(3)).lagre(hendelser.capture())
         hendelser.allValues.size shouldBe 3
         hendelser.allValues.forEachIndexed { index, uprosessertKlageinstanshendelse ->
@@ -87,7 +87,7 @@ internal class KlageinstanshendelseConsumerKafkaTest {
             )
         }
         verifyNoMoreInteractions(klageinstanshendelseService)
-        kafkaConsumer.currentOffsetShouldBe(6) // last offset (5) + 1
+        kafkaConsumer.lastComittedOffsetShouldBe(6) // last offset (5) + 1
     }
 
     @Test
@@ -130,11 +130,11 @@ internal class KlageinstanshendelseConsumerKafkaTest {
         verify(klageinstanshendelseService, timeout(1000)).lagre(any())
         Thread.sleep(2000) // Venter deretter en liten stund til for å verifisere at det ikke kommer fler kall.
         verifyNoMoreInteractions(klageinstanshendelseService)
-        kafkaConsumer.currentOffsetShouldBe(1)
+        kafkaConsumer.lastComittedOffsetShouldBe(1)
         kafkaConsumer.shouldRebalance() shouldBe true
     }
 
-    private fun MockConsumer<String, String>.currentOffsetShouldBe(
+    private fun MockConsumer<String, String>.lastComittedOffsetShouldBe(
         shouldBeOffset: Int,
         topic: String = TOPIC,
         partition: Int = PARTITION,
@@ -152,7 +152,7 @@ internal class KlageinstanshendelseConsumerKafkaTest {
         kilde: String,
         withRebalance: Boolean = false,
         topic: String = TOPIC,
-        partition: Int = no.nav.su.se.bakover.web.services.klage.klageinstans.PARTITION,
+        partition: Int = PARTITION,
     ) {
         val melding = """
             {

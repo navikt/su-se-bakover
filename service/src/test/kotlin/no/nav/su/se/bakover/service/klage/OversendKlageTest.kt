@@ -7,7 +7,6 @@ import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -166,7 +165,7 @@ internal class OversendKlageTest {
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Some name",
                     fritekst = klage.vurderinger.fritekstTilOversendelsesbrev,
-                    klageDato = 1.desember(2021),
+                    klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = Saksnummer(12345676),
                 )
@@ -214,7 +213,7 @@ internal class OversendKlageTest {
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Some name",
                     fritekst = klage.vurderinger.fritekstTilOversendelsesbrev,
-                    klageDato = 1.desember(2021),
+                    klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = Saksnummer(12345676),
                 )
@@ -268,7 +267,7 @@ internal class OversendKlageTest {
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Some name",
                     fritekst = klage.vurderinger.fritekstTilOversendelsesbrev,
-                    klageDato = 1.desember(2021),
+                    klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = sak.saksnummer,
                 )
@@ -300,7 +299,7 @@ internal class OversendKlageTest {
                         opprettet = it.opprettet,
                         tittel = "Oversendelsesbrev til klager",
                         generertDokument = pdfAsBytes,
-                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${sak.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\",\"saksnummer\":12345676},\"saksbehandlerNavn\":\"Some name\",\"fritekst\":\"fritekstTilBrev\",\"klageDato\":\"01.12.2021\",\"vedtakDato\":\"01.01.2021\",\"saksnummer\":12345676,\"erAldersbrev\":false}",
+                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${sak.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\",\"saksnummer\":12345676},\"saksbehandlerNavn\":\"Some name\",\"fritekst\":\"fritekstTilBrev\",\"klageDato\":\"15.01.2021\",\"vedtakDato\":\"01.01.2021\",\"saksnummer\":12345676,\"erAldersbrev\":false}",
                     ),
                     metadata = Dokument.Metadata(
                         sakId = sak.id,
@@ -518,7 +517,7 @@ internal class OversendKlageTest {
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Some name",
                     fritekst = klage.vurderinger.fritekstTilOversendelsesbrev,
-                    klageDato = 1.desember(2021),
+                    klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = klage.saksnummer,
                 )
@@ -537,7 +536,7 @@ internal class OversendKlageTest {
                         opprettet = it.opprettet,
                         tittel = "Oversendelsesbrev til klager",
                         generertDokument = pdfAsBytes,
-                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${sak.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\",\"saksnummer\":12345676},\"saksbehandlerNavn\":\"Some name\",\"fritekst\":\"fritekstTilBrev\",\"klageDato\":\"01.12.2021\",\"vedtakDato\":\"01.01.2021\",\"saksnummer\":12345676,\"erAldersbrev\":false}",
+                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${sak.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\",\"saksnummer\":12345676},\"saksbehandlerNavn\":\"Some name\",\"fritekst\":\"fritekstTilBrev\",\"klageDato\":\"15.01.2021\",\"vedtakDato\":\"01.01.2021\",\"saksnummer\":12345676,\"erAldersbrev\":false}",
                     ),
                     metadata = Dokument.Metadata(
                         sakId = sak.id,

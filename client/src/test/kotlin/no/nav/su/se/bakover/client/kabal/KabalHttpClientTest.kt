@@ -32,28 +32,23 @@ internal class KabalHttpClientTest : WiremockBase {
     private val klage = oversendtKlage().second
     private val expectedRequest = """
         {
-          "avsenderEnhet":"4815",
-          "avsenderSaksbehandlerIdent":"saksbehandler",
-          "dvhReferanse":"${klage.id}",
-          "fagsak":{
-            "fagsakId":"12345676",
-            "fagsystem":"SUPSTONAD"
-          },
-          "hjemler":[
-            "SUP_ST_L_3",
-            "SUP_ST_L_4"
-          ],
-          "innsendtTilNav":"2021-12-01",
-          "mottattFoersteinstans":"2021-01-01",
-          "kilde":"SUPSTONAD",
-          "kildeReferanse":"${klage.id}",
           "klager":{
             "id":{
               "type":"PERSON",
               "verdi":"${klage.fnr}"
             }
           },
-          "tilknyttedeJournalposter":[
+          "fagsak":{
+            "fagsakId":"12345676",
+            "fagsystem":"SUPSTONAD"
+          },
+          "kildeReferanse":"${klage.id}",
+          "dvhReferanse":"${klage.id}",
+          "hjemler":[
+            "SUP_ST_L_3",
+            "SUP_ST_L_4"
+          ],
+            "tilknyttedeJournalposter":[
             {
               "journalpostId":"klageJournalpostId",
               "type":"BRUKERS_KLAGE"
@@ -63,12 +58,11 @@ internal class KabalHttpClientTest : WiremockBase {
               "type":"OPPRINNELIG_VEDTAK"
             }
           ],
-          "kommentar":null,
-          "frist":null,
-          "sakenGjelder":null,
-          "oversendtKaDato":null,
-          "innsynUrl":null,
+          "brukersHenvendelseMottattNavDato":"2021-01-15",
+          "innsendtTilNav":"2021-01-15",
           "type":"KLAGE",
+          "forrigeBehandlendeEnhet":"4815",
+          "kilde":"SUPSTONAD",
           "ytelse":"SUP_UFF"
         }
     """.trimIndent()
@@ -115,10 +109,10 @@ internal class KabalHttpClientTest : WiremockBase {
                     .withFault(Fault.CONNECTION_RESET_BY_PEER),
             ),
         )
-        val oathMock = mock<AzureAd> {}
-        val tokenoppslagMock = mock<TokenOppslag> {
-            on { token() } doReturn AccessToken("token")
+        val oathMock = mock<AzureAd> {
+            on { getSystemToken(any()) } doReturn "token"
         }
+
         val client = KabalHttpClient(
             kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(
                 clientId = "kabalClientId",
@@ -134,7 +128,7 @@ internal class KabalHttpClientTest : WiremockBase {
         verify(oathMock).getSystemToken(
             otherAppId = argThat { it shouldBe "kabalClientId" },
         )
-        verifyNoMoreInteractions(oathMock, tokenoppslagMock)
+        verifyNoMoreInteractions(oathMock)
         val actualRequest = wireMockServer.allServeEvents.first().request.bodyAsString
 
         JSONAssert.assertEquals(expectedRequest, actualRequest, true)

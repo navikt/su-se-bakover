@@ -146,10 +146,10 @@ internal class AvvistKlageTest {
                 {
                   "id":"${klage.id}",
                   "sakid":"${klage.sakId}",
-                  "opprettet":"2021-01-01T01:02:03.456789Z",
+                  "opprettet":"2021-02-01T01:02:03.456789Z",
                   "journalpostId":"klageJournalpostId",
                   "saksbehandler":"saksbehandler",
-                  "datoKlageMottatt":"2021-12-01",
+                  "datoKlageMottatt":"2021-01-15",
                   "status":"AVVIST",
                   "vedtakId":"${klage.vilkårsvurderinger.vedtakId}",
                   "innenforFristen":"NEI",

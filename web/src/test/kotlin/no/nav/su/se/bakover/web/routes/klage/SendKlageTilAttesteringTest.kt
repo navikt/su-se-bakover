@@ -134,10 +134,10 @@ internal class SendKlageTilAttesteringTest {
                 {
                   "id":"${klageTilAttestering.id}",
                   "sakid":"${klageTilAttestering.sakId}",
-                  "opprettet":"2021-01-01T01:02:03.456789Z",
+                  "opprettet":"2021-02-01T01:02:03.456789Z",
                   "journalpostId":"klageJournalpostId",
                   "saksbehandler":"saksbehandler",
-                  "datoKlageMottatt":"2021-12-01",
+                  "datoKlageMottatt":"2021-01-15",
                   "status":"TIL_ATTESTERING_TIL_VURDERING",
                   "vedtakId":"${klageTilAttestering.vilkårsvurderinger.vedtakId}",
                   "innenforFristen":"JA",

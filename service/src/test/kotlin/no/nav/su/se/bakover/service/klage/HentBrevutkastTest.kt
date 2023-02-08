@@ -4,7 +4,6 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrev
@@ -192,7 +191,7 @@ internal class HentBrevutkastTest {
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Ola Nordmann",
                     fritekst = "",
-                    klageDato = 1.desember(2021),
+                    klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = Saksnummer(12345676),
                 )
@@ -241,7 +240,7 @@ internal class HentBrevutkastTest {
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Ola Nordmann",
                     fritekst = "",
-                    klageDato = 1.desember(2021),
+                    klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = Saksnummer(12345676),
                 )
@@ -290,7 +289,7 @@ internal class HentBrevutkastTest {
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Ola Nordmann",
                     fritekst = "jeg er fritekst for et brev",
-                    klageDato = 1.desember(2021),
+                    klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = Saksnummer(12345676),
                 )
@@ -370,7 +369,7 @@ internal class HentBrevutkastTest {
                 dagensDato = fixedLocalDate,
                 saksbehandlerNavn = "Ola Nordmann",
                 fritekst = "",
-                klageDato = 1.desember(2021),
+                klageDato = 15.januar(2021),
                 vedtaksbrevDato = 1.januar(2021),
                 saksnummer = Saksnummer(12345676),
             ),
@@ -410,7 +409,7 @@ internal class HentBrevutkastTest {
                 dagensDato = fixedLocalDate,
                 saksbehandlerNavn = "Ola Nordmann",
                 fritekst = "fritekstTilBrev",
-                klageDato = 1.desember(2021),
+                klageDato = 15.januar(2021),
                 vedtaksbrevDato = 1.januar(2021),
                 saksnummer = Saksnummer(12345676),
             ),
@@ -450,7 +449,7 @@ internal class HentBrevutkastTest {
                 dagensDato = fixedLocalDate,
                 saksbehandlerNavn = "Ola Nordmann",
                 fritekst = "fritekstTilBrev",
-                klageDato = 1.desember(2021),
+                klageDato = 15.januar(2021),
                 vedtaksbrevDato = 1.januar(2021),
                 saksnummer = Saksnummer(12345676),
             ),
@@ -528,7 +527,7 @@ internal class HentBrevutkastTest {
                         dagensDato = fixedLocalDate,
                         saksbehandlerNavn = "Ola Nordmann",
                         fritekst = brevrequestType.fritekst,
-                        klageDato = 1.desember(2021),
+                        klageDato = 15.januar(2021),
                         vedtaksbrevDato = 1.januar(2021),
                         saksnummer = Saksnummer(12345676),
                     )

@@ -5,7 +5,7 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
@@ -426,7 +426,7 @@ internal class VilkårsvurderKlageTest {
         mocks.service.vilkårsvurder(request).getOrFail().also {
             expectedKlage = VilkårsvurdertKlage.Påbegynt(
                 id = it.id,
-                opprettet = fixedTidspunkt,
+                opprettet = it.opprettet,
                 sakId = klage.sakId,
                 saksnummer = klage.saksnummer,
                 fnr = klage.fnr,
@@ -435,7 +435,7 @@ internal class VilkårsvurderKlageTest {
                 saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
                 vilkårsvurderinger = VilkårsvurderingerTilKlage.empty(),
                 attesteringer = attesteringer,
-                datoKlageMottatt = 1.desember(2021),
+                datoKlageMottatt = 15.januar(2021),
             )
             it shouldBe expectedKlage
         }
@@ -481,7 +481,7 @@ internal class VilkårsvurderKlageTest {
         mocks.service.vilkårsvurder(request).getOrFail().also {
             expectedKlage = VilkårsvurdertKlage.Utfylt.create(
                 id = it.id,
-                opprettet = fixedTidspunkt,
+                opprettet = it.opprettet,
                 sakId = klage.sakId,
                 saksnummer = klage.saksnummer,
                 fnr = klage.fnr,
@@ -497,7 +497,7 @@ internal class VilkårsvurderKlageTest {
                 ),
                 vurderinger = vurderingerTilKlage,
                 attesteringer = attesteringer,
-                datoKlageMottatt = 1.desember(2021),
+                datoKlageMottatt = 15.januar(2021),
                 klageinstanshendelser = Klageinstanshendelser.empty(),
                 fritekstTilAvvistVedtaksbrev = null,
             )

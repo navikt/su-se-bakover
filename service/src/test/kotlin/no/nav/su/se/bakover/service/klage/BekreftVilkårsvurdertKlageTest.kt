@@ -4,7 +4,7 @@ import arrow.core.left
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
 import no.nav.su.se.bakover.test.createBekreftetVilkårsvurdertKlage
-import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattAvvistKlage
 import no.nav.su.se.bakover.test.opprettetKlage
@@ -253,7 +252,7 @@ internal class BekreftVilkårsvurdertKlageTest {
         ).getOrFail().also {
             expectedKlage = createBekreftetVilkårsvurdertKlage(
                 id = it.id,
-                opprettet = fixedTidspunkt,
+                opprettet = it.opprettet,
                 sakId = klage.sakId,
                 saksnummer = klage.saksnummer,
                 fnr = klage.fnr,
@@ -263,7 +262,7 @@ internal class BekreftVilkårsvurdertKlageTest {
                 vilkårsvurderinger = vilkårsvurderingerTilKlage,
                 vurderinger = vurderingerTilKlage,
                 attesteringer = attesteringer,
-                datoKlageMottatt = 1.desember(2021),
+                datoKlageMottatt = 15.januar(2021),
                 klageinstanshendelser = Klageinstanshendelser.empty(),
                 fritekstTilBrev = klage.getFritekstTilBrev().getOrNull(),
             )

@@ -1,59 +1,59 @@
+@file:Suppress("unused")
+
 package no.nav.su.se.bakover.client.kabal
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.Hjemler
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 /**
  * Docs:
  *  https://confluence.adeo.no/pages/viewpage.action?pageId=441059973
  *  https://confluence.adeo.no/display/FIP/Kabaldata
- *  https://kabal-api.dev.intern.nav.no/swagger-ui/?urls.primaryName=external#/kabal-api-external/sendInnKlageV2UsingPOST
+ *  https://kabal-api.dev.intern.nav.no/swagger-ui/index.html?urls.primaryName=external
  *
- *
- * @param avsenderSaksbehandlerIdent Ident til saksbehandler
- * @param dvhReferanse Intern referanse som Kabal bruker når de leverer statistikk
- * @param fagsak Informasjon om saken/klagen i systemet som kaller på Kabal.
- * @param hjemler Liste med hjemler. Disse vises i Kabal.
- * @param innsendtTilNav Dato for når klagen ble innsendt.
- * @param mottattFoersteinstans Dato for når klagen registrerades på første instans
- * @param kilde Kode for kildesystemet. Brukes til filtrering på Kafka når vedtaket sendes fra Kabal.
- * @param kildeReferanse Intern referanse på klagen
- * @param klager Id til Klager.
- * @param tilknyttedeJournalposter Relevante journalposter til klagen. Disse vises i Kabal.
- * @param oversendtKaDato Kan settes dersom denne saken har blitt sendt til Gosys og derfor har fristen begynt å løpe.
- * @param innsynUrl Url tilbake til kildesystem for innsyn i sak
- * @param type Gyldige verdier er "KLAGE" i både prod og dev
- * @param ytelse Ytelsekode
+ * @param klager Fødselsnummer til klager.
+ * @param fagsak Fagsak brukt tl journalføring. Dersom denne er tom, journalfører vi på en generell sak.
+ * @param kildeReferanse Id som er intern for kildesytemet (f.eks. K9) så vedtak fra oss knyttes riktig i kilde. Her bruker vi vår interne/eksterne klageid (uuid).
+ * @param dvhReferanse Id som rapporteres på til DVH, bruker kildeReferanse dersom denne ikke er satt. Her bruker vi vår interne/eksterne klageid (uuid).
+ * @param hjemler Enum. Liste med hjemler. Disse vises i Kabal.
+ * @param tilknyttedeJournalposter Relevante journalposter til klagen. Denne kan være tom. Disse vises i Kabal.
+ * @param brukersHenvendelseMottattNavDato Dato for når klagen ble mottatt NAV.
+ * @param innsendtTilNav Dato for når klagen ble innsendt. F.eks. posteringstidspunktet. Denne informasjonen registerer ikke SU (atm).
  * */
 internal data class KabalRequest(
-    val avsenderEnhet: String = "4815",
-    val avsenderSaksbehandlerIdent: String,
-    val dvhReferanse: String,
-    val fagsak: Fagsak,
-    val hjemler: List<Hjemmel>,
-    val innsendtTilNav: LocalDate,
-    val mottattFoersteinstans: LocalDate,
-    val kilde: String = "SUPSTONAD",
-    val kildeReferanse: String,
     val klager: Klager,
+    val fagsak: Fagsak,
+    val kildeReferanse: String,
+    val dvhReferanse: String,
+    val hjemler: List<Hjemmel>,
     val tilknyttedeJournalposter: List<TilknyttedeJournalposter>,
-    val kommentar: String? = null,
-    val frist: LocalDate? = null,
-    val sakenGjelder: SakenGjelder? = null,
-    val oversendtKaDato: LocalDateTime? = null,
-    val innsynUrl: String? = null,
-    val type: String = "KLAGE",
-    val ytelse: String = "SUP_UFF",
+    val brukersHenvendelseMottattNavDato: LocalDate,
+    val innsendtTilNav: LocalDate,
 ) {
-    data class Klager(val id: PartId)
-    data class SakenGjelder(val id: PartId, val skalMottaKopi: Boolean)
+    /** Enum. Gyldige verdier er [KLAGE,ANKE]. */
+    @JsonInclude
+    val type: String = "KLAGE"
 
-    data class TilknyttedeJournalposter(val journalpostId: JournalpostId, val type: Type) {
+    /** Id på enheten som behandlet vedtaket som denne henvendelsen gjelder. */
+    @JsonInclude
+    val forrigeBehandlendeEnhet: String = "4815"
+
+    /** Enum. Kode for kildesystemet. Brukes til filtrering på Kafka når vedtaket sendes fra Kabal. */
+    @JsonInclude
+    val kilde: String = "SUPSTONAD"
+
+    /** Enum. Ytelseskode */
+    @JsonInclude
+    val ytelse: String = "SUP_UFF"
+
+    data class Klager(val id: PartId)
+
+    data class TilknyttedeJournalposter(val type: Type, val journalpostId: JournalpostId) {
         enum class Type(private val verdi: String) {
-            ANNET("ANNET"),
+            // TODO jah: Her kan vi legge til BRUKERS_SOEKNAD
             BRUKERS_KLAGE("BRUKERS_KLAGE"),
             OPPRINNELIG_VEDTAK("OPPRINNELIG_VEDTAK"),
             OVERSENDELSESBREV("OVERSENDELSESBREV"),
@@ -63,6 +63,9 @@ internal data class KabalRequest(
         }
     }
 
+    /**
+     * Dersom vi ønsker flere tilgjengelige hjemler, kan det bestilles fra Slack, #su-kabal-integrasjon eller #team-digital-klage
+     */
     enum class Hjemmel(@JsonValue private val verdi: String) {
         LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_3("SUP_ST_L_3"),
         LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_4("SUP_ST_L_4"),
@@ -106,13 +109,25 @@ internal data class KabalRequest(
         }
     }
 
+    /**
+     * @param fagsakId Her bruker vi saksnummer, det samme som vi bruker til journalføring og oppgaver.
+     */
     data class Fagsak(
         val fagsakId: String,
-        val fagsystem: String = "SUPSTONAD",
-    )
+    ) {
+        /** Enum. */
+        @JsonInclude
+        val fagsystem: String = "SUPSTONAD"
+    }
 
+    /**
+     * @param verdi Fødselsnummer
+     */
     data class PartId(
-        val type: String = "PERSON",
         val verdi: String,
-    )
+    ) {
+        /** Enum. [PERSON,VIRKSOMHET] */
+        @JsonInclude
+        val type: String = "PERSON"
+    }
 }
