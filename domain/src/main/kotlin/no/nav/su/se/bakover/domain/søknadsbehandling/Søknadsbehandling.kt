@@ -45,7 +45,7 @@ import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.Vilkårsvurdert.Companion.opprett
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
-import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.VerifisertStønadsperiodeOppMotPersonsAlder
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.VurdertStønadsperiodeOppMotPersonsAlder
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
@@ -355,7 +355,7 @@ sealed class Søknadsbehandling :
 
     fun oppdaterStønadsperiodeForSaksbehandler(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        oppdatertStønadsperiode: VerifisertStønadsperiodeOppMotPersonsAlder,
+        oppdatertStønadsperiode: VurdertStønadsperiodeOppMotPersonsAlder.RettPåUføre,
         formuegrenserFactory: FormuegrenserFactory,
         clock: Clock,
         avkorting: AvkortingVedSøknadsbehandling,

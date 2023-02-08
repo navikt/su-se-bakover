@@ -40,7 +40,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.innvilg.Iverksat
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.iverksettSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
-import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.VerifiseringsMelding
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.VurdertStønadsperiodeOppMotPersonsAlder
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
@@ -77,7 +77,7 @@ fun søknadsbehandlingVilkårsvurdertUavklart(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     clock: Clock = fixedClock,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-): Triple<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart, VerifiseringsMelding> {
+): Triple<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart, VurdertStønadsperiodeOppMotPersonsAlder.RettPåUføre.SaksbehandlerMåKontrollereManuelt?> {
     val sakOgSøknad = nySakMedjournalførtSøknadOgOppgave(
         sakId = sakId,
         saksnummer = saksnummer,
@@ -731,7 +731,7 @@ fun nySøknadsbehandlingMedStønadsperiode(
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person> = { person().right() },
-): Triple<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart, VerifiseringsMelding> {
+): Triple<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart, VurdertStønadsperiodeOppMotPersonsAlder.RettPåUføre.SaksbehandlerMåKontrollereManuelt?> {
     return nySøknadsbehandlingUtenStønadsperiode(
         clock = clock,
         sakOgSøknad = sakOgSøknad,
@@ -745,7 +745,8 @@ fun nySøknadsbehandlingMedStønadsperiode(
             formuegrenserFactory = formuegrenserFactoryTestPåDato(LocalDate.now(clock)),
             saksbehandler = saksbehandler,
             hentPerson = hentPerson,
-        ).getOrFail() as Triple<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart, VerifiseringsMelding>
+        )
+            .getOrFail() as Triple<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart, VurdertStønadsperiodeOppMotPersonsAlder.RettPåUføre.SaksbehandlerMåKontrollereManuelt?>
     }
 }
 

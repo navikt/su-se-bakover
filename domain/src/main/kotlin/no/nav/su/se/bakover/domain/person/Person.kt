@@ -25,17 +25,6 @@ data class Person(
     fun getAlder(påDato: LocalDate): Int? = fødsel?.dato?.let { Period.between(it, påDato).years }
     fun er67EllerEldre(påDato: LocalDate): Boolean? = getAlder(påDato)?.let { it >= 67 }
 
-    fun blir67(år: Year): Boolean? = fødsel?.let {
-        år.value.minus(it.år.value) == 67
-    }
-
-    fun eldreEnn67(år: Year): Boolean? = fødsel?.let {
-        år.value.minus(it.år.value) > 67
-    }
-
-    fun harFødselsInformasjon(): Boolean = fødsel != null
-    fun harFødselsdato(): Boolean = fødsel?.dato != null
-
     data class Navn(
         val fornavn: String,
         val mellomnavn: String?,
@@ -77,5 +66,11 @@ data class Person(
     data class Fødsel(
         val dato: LocalDate? = null,
         val år: Year,
-    )
+    ) {
+        init {
+            if (dato != null) {
+                require(dato.year == år.value) { "Året på fødselsdatoen og fødselsåret som er angitt er ikke lik. fødelsdato ${dato.year}, fødselsår ${år.value}" }
+            }
+        }
+    }
 }

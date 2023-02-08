@@ -6,11 +6,13 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
-import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.VerifisertStønadsperiodeOppMotPersonsAlder
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvilkår
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.VurdertStønadsperiodeOppMotPersonsAlder
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
@@ -26,7 +28,6 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.nySøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
-import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.shouldBeType
@@ -62,11 +63,11 @@ import org.junit.jupiter.api.assertThrows
 internal class StatusovergangTest {
 
     private val stønadsperiode = stønadsperiode2021
-    private val verifisertStønadsperiodeOppMotPersonsAlder = VerifisertStønadsperiodeOppMotPersonsAlder.verifiser(
-        stønadsperiode = stønadsperiode2021,
-        person = person(),
-        clock = fixedClock,
-    ).getOrFail()
+    private val vurdertStønadsperiodeOppMotPersonsAlder =
+        VurdertStønadsperiodeOppMotPersonsAlder.RettPåUføre.KontrollertAutomatisk(
+            stønadsperiode = stønadsperiode2021,
+            vilkår = Aldersvilkår.RettPåUføre.MedFødselsdato(1.januar(2000)),
+        )
 
     private val sakOgUavklart = søknadsbehandlingVilkårsvurdertUavklart(
         stønadsperiode = stønadsperiode,
@@ -1009,7 +1010,7 @@ internal class StatusovergangTest {
                 underkjentInnvilget,
             ).forEach {
                 it.oppdaterStønadsperiodeForSaksbehandler(
-                    oppdatertStønadsperiode = verifisertStønadsperiodeOppMotPersonsAlder,
+                    oppdatertStønadsperiode = vurdertStønadsperiodeOppMotPersonsAlder,
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                     clock = fixedClock,
                     saksbehandler = saksbehandler,
@@ -1030,7 +1031,7 @@ internal class StatusovergangTest {
                 lukketSøknadsbehandling,
             ).forEach {
                 it.oppdaterStønadsperiodeForSaksbehandler(
-                    oppdatertStønadsperiode = verifisertStønadsperiodeOppMotPersonsAlder,
+                    oppdatertStønadsperiode = vurdertStønadsperiodeOppMotPersonsAlder,
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                     clock = fixedClock,
                     saksbehandler = saksbehandler,

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.common.periode
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.su.se.bakover.common.erFørsteDagIMåned
 import no.nav.su.se.bakover.common.erSisteDagIMåned
 import java.time.Clock
@@ -7,12 +8,15 @@ import java.time.LocalDate
 import java.time.Month
 import java.time.YearMonth
 import java.time.temporal.ChronoUnit
+import java.time.temporal.Temporal
+import java.time.temporal.TemporalAdjuster
 import java.util.concurrent.ConcurrentHashMap
 
 data class Måned private constructor(
     // Vi ønsker ikke ha denne i json enda, men holder oss til Periode sin fraOgMed og tilOgMed
-    private val årOgMåned: YearMonth,
-) : Periode(årOgMåned) {
+    @JsonIgnore
+    val årOgMåned: YearMonth,
+) : Periode(årOgMåned), Temporal by årOgMåned, TemporalAdjuster by årOgMåned {
     operator fun rangeTo(that: Måned): Periode {
         if (this == that) return this
         return create(this.fraOgMed, that.tilOgMed).also {

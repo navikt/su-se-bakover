@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
-import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -11,7 +10,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
-import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.VerifiseringsMelding
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
@@ -28,36 +26,6 @@ import java.util.UUID
 class OppdaterStønadsperiodeTest {
     private val url = "$sakPath/$sakId/behandlinger/${UUID.randomUUID()}/stønadsperiode"
     private val services = TestServicesBuilder.services()
-
-    @Test
-    fun `svarer med 404 dersom behandling ikke finnes`() {
-        val serviceMock = mock<SøknadsbehandlingService> {
-            on { oppdaterStønadsperiode(any()) } doReturn SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
-        }
-
-        testApplication {
-            application {
-                testSusebakover(
-                    services = TestServicesBuilder.services(
-                        søknadsbehandling = SøknadsbehandlingServices(
-                            søknadsbehandlingService = serviceMock,
-                            iverksettSøknadsbehandlingService = mock(),
-                        ),
-                    ),
-                )
-            }
-            defaultRequest(
-                HttpMethod.Post,
-                url,
-                listOf(Brukerrolle.Saksbehandler),
-            ) {
-                setBody("""{"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-31"}, "begrunnelse": "begrunnelsen"}""")
-            }.apply {
-                status shouldBe HttpStatusCode.NotFound
-                bodyAsText() shouldContain "Fant ikke behandling"
-            }
-        }
-    }
 
     @Test
     fun `svarer med 400 dersom perioden starter tidligere enn 2021`() {
@@ -149,10 +117,7 @@ class OppdaterStønadsperiodeTest {
         val søknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().second
 
         val serviceMock = mock<SøknadsbehandlingService> {
-            on { oppdaterStønadsperiode(any()) } doReturn Pair(
-                søknadsbehandling,
-                VerifiseringsMelding.VerifisertOkPersonFyllerIkke67Plus,
-            ).right()
+            on { oppdaterStønadsperiode(any()) } doReturn Pair(søknadsbehandling, null).right()
         }
 
         testApplication {
