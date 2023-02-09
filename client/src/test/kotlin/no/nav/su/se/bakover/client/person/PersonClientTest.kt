@@ -33,6 +33,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
+import java.time.Year
 
 internal class PersonClientTest {
 
@@ -212,7 +213,10 @@ internal class PersonClientTest {
             ),
             telefonnummer = null,
             kjønn = null,
-            fødselsdato = null,
+            fødsel = PdlData.Fødsel(
+                foedselsaar = 1990,
+                foedselsdato = null,
+            ),
             adresse = emptyList(),
             statsborgerskap = null,
             adressebeskyttelse = null,
@@ -237,7 +241,12 @@ internal class PersonClientTest {
             statsborgerskap = pdlData().statsborgerskap,
             sivilstand = null,
             kjønn = pdlData().kjønn,
-            fødselsdato = pdlData().fødselsdato,
+            fødsel = pdlData().fødsel?.let {
+                Person.Fødsel(
+                    år = Year.of(it.foedselsaar),
+                    dato = it.foedselsdato,
+                )
+            },
             adressebeskyttelse = pdlData().adressebeskyttelse,
             skjermet = false,
             kontaktinfo = Person.Kontaktinfo(
@@ -250,6 +259,7 @@ internal class PersonClientTest {
             fullmakt = pdlData().fullmakt,
             dødsdato = pdlData().dødsdato!!,
         )
+
         val pdlClient: PdlClient = mock {
             on { person(any(), any()) } doReturn pdlData().right()
             on { personForSystembruker(any()) } doReturn pdlData().right()

@@ -47,7 +47,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeUnderkjenne
@@ -62,6 +61,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.forsøkStatusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.medFritekstTilBrev
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.VurdertStønadsperiodeOppMotPersonsAlder
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.FullførBosituasjonRequest
@@ -346,9 +346,12 @@ class SøknadsbehandlingServiceImpl(
         return søknadsbehandlingRepo.hentForSøknad(søknadId)
     }
 
-    override fun oppdaterStønadsperiode(request: OppdaterStønadsperiodeRequest): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling> {
+    override fun oppdaterStønadsperiode(
+        request: OppdaterStønadsperiodeRequest,
+    ): Either<Sak.KunneIkkeOppdatereStønadsperiode, Pair<Søknadsbehandling.Vilkårsvurdert, VurdertStønadsperiodeOppMotPersonsAlder.RettPåUføre.SaksbehandlerMåKontrollereManuelt?>> {
         val sak =
-            sakService.hentSak(request.sakId).getOrElse { return KunneIkkeOppdatereStønadsperiode.FantIkkeSak.left() }
+            sakService.hentSak(request.sakId)
+                .getOrElse { throw IllegalArgumentException("Fant ikke sak ${request.sakId}") }
 
         return sak.oppdaterStønadsperiodeForSøknadsbehandling(
             søknadsbehandlingId = request.behandlingId,
@@ -356,11 +359,10 @@ class SøknadsbehandlingServiceImpl(
             clock = clock,
             formuegrenserFactory = formuegrenserFactory,
             saksbehandler = request.saksbehandler,
-        ).mapLeft {
-            KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode(it)
-        }.map {
+            hentPerson = personService::hentPerson,
+        ).map {
             søknadsbehandlingRepo.lagre(it.second)
-            it.second
+            Pair(it.second, it.third)
         }
     }
 
@@ -584,7 +586,11 @@ class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilOpplysningsplikt.FantIkkeBehandling.left()
 
-        return søknadsbehandling.leggTilOpplysningspliktVilkårForSaksbehandler(request.saksbehandler, request.vilkår, clock).mapLeft {
+        return søknadsbehandling.leggTilOpplysningspliktVilkårForSaksbehandler(
+            request.saksbehandler,
+            request.vilkår,
+            clock,
+        ).mapLeft {
             KunneIkkeLeggeTilOpplysningsplikt.Søknadsbehandling(it)
         }.map {
             søknadsbehandlingRepo.lagre(it)

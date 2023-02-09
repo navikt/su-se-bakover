@@ -47,6 +47,7 @@ import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.StøtterIkkeOverlappendeStønadsperioder
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.VurdertStønadsperiodeOppMotPersonsAlder
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -595,14 +596,15 @@ data class Sak(
             val feil: no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeOppdatereStønadsperiode,
         ) : KunneIkkeOppdatereStønadsperiode
 
-        data class KunneIkkeHenteGjeldendeVedtaksdata(
-            val feil: Sak.KunneIkkeHenteGjeldendeVedtaksdata,
-        ) : KunneIkkeOppdatereStønadsperiode
-
-        /** Dette kan være en søknadsbehandling, revurdering eller regulering. Kan utvides til en per dersom, dersom saksbehandlerne har behov for dette. */
+        /**
+         * Dette kan være en søknadsbehandling, revurdering eller regulering.
+         * Kan utvides til en per dersom, dersom saksbehandlerne har behov for dette.
+         */
         object FinnesOverlappendeÅpenBehandling : KunneIkkeOppdatereStønadsperiode
 
         data class OverlappendeStønadsperiode(val feil: StøtterIkkeOverlappendeStønadsperioder) : KunneIkkeOppdatereStønadsperiode
+
+        data class ValideringsfeilAvStønadsperiodeOgPersonsAlder(val feil: VurdertStønadsperiodeOppMotPersonsAlder.SøkerErForGammel) : KunneIkkeOppdatereStønadsperiode
     }
 
     fun avventerKravgrunnlag(): Boolean {

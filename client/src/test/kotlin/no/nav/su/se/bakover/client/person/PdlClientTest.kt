@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.token.JwtToken
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.SivilstandTyper
@@ -22,10 +21,42 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.slf4j.MDC
+import java.time.LocalDate
 
 internal class PdlClientTest : WiremockBase {
 
     private val tokenOppslag = TokenOppslagStub
+
+    private val expectedPdlDataTemplate = PdlData(
+        ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
+        navn = PdlData.Navn(
+            fornavn = "NYDELIG",
+            mellomnavn = null,
+            etternavn = "KRONJUVEL",
+        ),
+        telefonnummer = null,
+        kjønn = "MANN",
+        fødsel = null,
+        adresse = listOf(
+            PdlData.Adresse(
+                adresselinje = "SANDTAKVEIEN 42",
+                postnummer = "9190",
+                bruksenhet = null,
+                kommunenummer = "5427",
+                adressetype = "Bostedsadresse",
+                adresseformat = "Vegadresse",
+            ),
+        ),
+        statsborgerskap = "SYR",
+        adressebeskyttelse = null,
+        vergemålEllerFremtidsfullmakt = false,
+        fullmakt = false,
+        sivilstand = SivilstandResponse(
+            type = SivilstandTyper.GIFT,
+            relatertVedSivilstand = "12345678901",
+        ),
+        dødsdato = 21.desember(2021),
+    )
 
     @Test
     fun `hent aktørid inneholder errors`() {
@@ -68,7 +99,10 @@ internal class PdlClientTest : WiremockBase {
                 azureAd = mock(),
             ),
         )
-        client.aktørId(Fnr("12345678912"), JwtToken.BrukerToken("ignored because of mock")) shouldBe KunneIkkeHentePerson.Ukjent.left()
+        client.aktørId(
+            Fnr("12345678912"),
+            JwtToken.BrukerToken("ignored because of mock"),
+        ) shouldBe KunneIkkeHentePerson.Ukjent.left()
     }
 
     @Test
@@ -85,7 +119,10 @@ internal class PdlClientTest : WiremockBase {
                 azureAd = mock(),
             ),
         )
-        client.aktørId(Fnr("12345678912"), JwtToken.BrukerToken("ignored because of mock")) shouldBe KunneIkkeHentePerson.Ukjent.left()
+        client.aktørId(
+            Fnr("12345678912"),
+            JwtToken.BrukerToken("ignored because of mock"),
+        ) shouldBe KunneIkkeHentePerson.Ukjent.left()
     }
 
     @Test
@@ -126,7 +163,10 @@ internal class PdlClientTest : WiremockBase {
                 azureAd = azureAdMock,
             ),
         )
-        client.aktørId(Fnr("12345678912"), JwtToken.BrukerToken("ignored because of mock")) shouldBe AktørId("2751637578706").right()
+        client.aktørId(
+            Fnr("12345678912"),
+            JwtToken.BrukerToken("ignored because of mock"),
+        ) shouldBe AktørId("2751637578706").right()
     }
 
     @Test
@@ -167,7 +207,10 @@ internal class PdlClientTest : WiremockBase {
                 azureAd = azureAdMock,
             ),
         )
-        client.aktørId(Fnr("12345678912"), JwtToken.BrukerToken("ignored because of mock")) shouldBe AktørId("2751637578706").right()
+        client.aktørId(
+            Fnr("12345678912"),
+            JwtToken.BrukerToken("ignored because of mock"),
+        ) shouldBe AktørId("2751637578706").right()
     }
 
     @Test
@@ -215,7 +258,10 @@ internal class PdlClientTest : WiremockBase {
                 azureAd = azureAdMock,
             ),
         )
-        client.person(Fnr("12345678912"), JwtToken.BrukerToken("ignored because of mock")) shouldBe KunneIkkeHentePerson.FantIkkePerson.left()
+        client.person(
+            Fnr("12345678912"),
+            JwtToken.BrukerToken("ignored because of mock"),
+        ) shouldBe KunneIkkeHentePerson.FantIkkePerson.left()
     }
 
     @Test
@@ -232,7 +278,10 @@ internal class PdlClientTest : WiremockBase {
                 azureAd = mock(),
             ),
         )
-        client.person(Fnr("12345678912"), JwtToken.BrukerToken("ignored because of mock")) shouldBe KunneIkkeHentePerson.Ukjent.left()
+        client.person(
+            Fnr("12345678912"),
+            JwtToken.BrukerToken("ignored because of mock"),
+        ) shouldBe KunneIkkeHentePerson.Ukjent.left()
     }
 
     @Test
@@ -313,7 +362,12 @@ internal class PdlClientTest : WiremockBase {
                       "kjoenn": "MANN"
                     }
                   ],
-                  "foedsel": [],
+                  "foedsel": [
+                  {
+                    "foedselsdato": "2021-12-21",
+                    "foedselsaar": 2021
+                  }
+      ],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
                   "fullmakt": [],
@@ -354,35 +408,14 @@ internal class PdlClientTest : WiremockBase {
                 azureAd = azureAdMock,
             ),
         )
-        client.person(Fnr("07028820547"), JwtToken.BrukerToken("ignored because of mock")) shouldBe PdlData(
-            ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
-            navn = PdlData.Navn(
-                fornavn = "NYDELIG",
-                mellomnavn = null,
-                etternavn = "KRONJUVEL",
+        client.person(
+            Fnr("07028820547"),
+            JwtToken.BrukerToken("ignored because of mock"),
+        ) shouldBe expectedPdlDataTemplate.copy(
+            fødsel = PdlData.Fødsel(
+                foedselsdato = LocalDate.of(2021, 12, 21),
+                foedselsaar = 2021,
             ),
-            telefonnummer = null,
-            kjønn = "MANN",
-            fødselsdato = null,
-            adresse = listOf(
-                PdlData.Adresse(
-                    adresselinje = "SANDTAKVEIEN 42",
-                    postnummer = "9190",
-                    bruksenhet = null,
-                    kommunenummer = "5427",
-                    adressetype = "Bostedsadresse",
-                    adresseformat = "Vegadresse",
-                ),
-            ),
-            statsborgerskap = "SYR",
-            adressebeskyttelse = null,
-            vergemålEllerFremtidsfullmakt = false,
-            fullmakt = false,
-            sivilstand = SivilstandResponse(
-                type = SivilstandTyper.GIFT,
-                relatertVedSivilstand = "12345678901",
-            ),
-            dødsdato = 21.desember(2021),
         ).right()
     }
 
@@ -509,16 +542,10 @@ internal class PdlClientTest : WiremockBase {
                 azureAd = azureAdMock,
             ),
         )
-        client.person(Fnr("07028820547"), JwtToken.BrukerToken("ignored because of mock")) shouldBe PdlData(
-            ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
-            navn = PdlData.Navn(
-                fornavn = "NYDELIG",
-                mellomnavn = null,
-                etternavn = "KRONJUVEL",
-            ),
-            telefonnummer = null,
-            kjønn = "MANN",
-            fødselsdato = null,
+        client.person(
+            Fnr("07028820547"),
+            JwtToken.BrukerToken("ignored because of mock"),
+        ) shouldBe expectedPdlDataTemplate.copy(
             adresse = listOf(
                 PdlData.Adresse(
                     adresselinje = "SANDTAKVEIEN 42",
@@ -537,15 +564,6 @@ internal class PdlClientTest : WiremockBase {
                     adresseformat = "PostadresseIFrittFormat",
                 ),
             ),
-            statsborgerskap = "SYR",
-            adressebeskyttelse = null,
-            vergemålEllerFremtidsfullmakt = false,
-            fullmakt = false,
-            sivilstand = SivilstandResponse(
-                type = SivilstandTyper.GIFT,
-                relatertVedSivilstand = "12345678901",
-            ),
-            dødsdato = 21.desember(2021),
         ).right()
     }
 
@@ -667,16 +685,10 @@ internal class PdlClientTest : WiremockBase {
                 azureAd = azureAdMock,
             ),
         )
-        client.person(Fnr("07028820547"), JwtToken.BrukerToken("ignored because of mock")) shouldBe PdlData(
-            ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
-            navn = PdlData.Navn(
-                fornavn = "NYDELIG",
-                mellomnavn = null,
-                etternavn = "KRONJUVEL",
-            ),
-            telefonnummer = null,
-            kjønn = "MANN",
-            fødselsdato = null,
+        client.person(
+            Fnr("07028820547"),
+            JwtToken.BrukerToken("ignored because of mock"),
+        ) shouldBe expectedPdlDataTemplate.copy(
             adresse = listOf(
                 PdlData.Adresse(
                     adresselinje = "SANDTAKVEIEN 42",
@@ -702,14 +714,6 @@ internal class PdlClientTest : WiremockBase {
                     adressetype = "Kontaktadresse",
                     adresseformat = "PostadresseIFrittFormat",
                 ),
-            ),
-            statsborgerskap = "SYR",
-            adressebeskyttelse = null,
-            vergemålEllerFremtidsfullmakt = false,
-            fullmakt = false,
-            sivilstand = SivilstandResponse(
-                type = SivilstandTyper.GIFT,
-                relatertVedSivilstand = "12345678901",
             ),
             dødsdato = null,
         ).right()
@@ -771,23 +775,12 @@ internal class PdlClientTest : WiremockBase {
                 azureAd = mock(),
             ),
         )
-        client.personForSystembruker(Fnr("07028820547")) shouldBe PdlData(
-            ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
-            navn = PdlData.Navn(
-                fornavn = "NYDELIG",
-                mellomnavn = null,
-                etternavn = "KRONJUVEL",
-            ),
-            telefonnummer = null,
-            kjønn = null,
-            fødselsdato = null,
+        client.personForSystembruker(Fnr("07028820547")) shouldBe expectedPdlDataTemplate.copy(
             adresse = emptyList(),
-            statsborgerskap = null,
-            adressebeskyttelse = null,
-            vergemålEllerFremtidsfullmakt = false,
-            fullmakt = false,
+            kjønn = null,
             sivilstand = null,
             dødsdato = null,
+            statsborgerskap = null,
         ).right()
     }
 
@@ -852,23 +845,15 @@ internal class PdlClientTest : WiremockBase {
                 azureAd = azureAdMock,
             ),
         )
-        client.person(Fnr("07028820547"), JwtToken.BrukerToken("ignored because of mock")) shouldBe PdlData(
-            ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
-            navn = PdlData.Navn(
-                fornavn = "NYDELIG",
-                mellomnavn = null,
-                etternavn = "KRONJUVEL",
-            ),
-            telefonnummer = null,
-            kjønn = null,
-            fødselsdato = null,
+        client.person(
+            Fnr("07028820547"),
+            JwtToken.BrukerToken("ignored because of mock"),
+        ) shouldBe expectedPdlDataTemplate.copy(
             adresse = emptyList(),
-            statsborgerskap = null,
-            adressebeskyttelse = null,
-            vergemålEllerFremtidsfullmakt = false,
-            fullmakt = false,
+            kjønn = null,
             sivilstand = null,
             dødsdato = null,
+            statsborgerskap = null,
         ).right()
     }
 
@@ -956,7 +941,7 @@ internal class PdlClientTest : WiremockBase {
                       "doedsdato": null
                     },
                      {
-                      "doedsdato": "2022-02-22"
+                      "doedsdato": "2021-12-21"
                      }
                   ]
                 },
@@ -987,23 +972,11 @@ internal class PdlClientTest : WiremockBase {
                 azureAd = mock(),
             ),
         )
-        client.personForSystembruker(Fnr("07028820547")) shouldBe PdlData(
-            ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
-            navn = PdlData.Navn(
-                fornavn = "NYDELIG",
-                mellomnavn = null,
-                etternavn = "KRONJUVEL",
-            ),
-            telefonnummer = null,
-            kjønn = null,
-            fødselsdato = null,
+        client.personForSystembruker(Fnr("07028820547")) shouldBe expectedPdlDataTemplate.copy(
             adresse = emptyList(),
-            statsborgerskap = null,
-            adressebeskyttelse = null,
-            vergemålEllerFremtidsfullmakt = false,
-            fullmakt = false,
+            kjønn = null,
             sivilstand = null,
-            dødsdato = 22.februar(2022),
+            statsborgerskap = null,
         ).right()
     }
 

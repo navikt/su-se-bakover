@@ -170,7 +170,9 @@ internal class AvkortingsvarselPostgresRepoTest {
                 nySøknadsbehandlingMedStønadsperiode(
                     sakOgSøknad = sak to søknad,
                     stønadsperiode = stønadsperiode2022,
-                )
+                ).let {
+                    it.first to it.second
+                }
             }
 
             val opprettet = Avkortingsvarsel.Utenlandsopphold.Opprettet(

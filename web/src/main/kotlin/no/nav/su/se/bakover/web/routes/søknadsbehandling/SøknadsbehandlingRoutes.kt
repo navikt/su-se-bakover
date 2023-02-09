@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
 import arrow.core.Either
-import arrow.core.flatMap
 import arrow.core.right
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -29,7 +28,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.avkortingErU
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeBehandling
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkePerson
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSaksbehandlerEllerAttestant
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.feilVedGenereringAvDokument
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeSimulere
@@ -46,6 +44,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.metrics.SuMetrics
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
@@ -110,14 +109,19 @@ internal fun Route.søknadsbehandlingRoutes(
         }
     }
 
+    data class StønadsperiodeJsonResponse(
+        val søknadsbehandling: BehandlingJson,
+        val måKontrolleres: Boolean,
+    )
+
     post("$behandlingPath/{behandlingId}/stønadsperiode") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
                     call.withBody<StønadsperiodeJson> { body ->
-                        body.toStønadsperiode().mapLeft {
+                        body.toStønadsperiode().onLeft {
                             call.svar(it)
-                        }.flatMap { stønadsperiode ->
+                        }.onRight { stønadsperiode ->
                             søknadsbehandlingService.oppdaterStønadsperiode(
                                 SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
                                     behandlingId = behandlingId,
@@ -125,51 +129,23 @@ internal fun Route.søknadsbehandlingRoutes(
                                     sakId = sakId,
                                     saksbehandler = call.suUserContext.saksbehandler,
                                 ),
-                            ).mapLeft { error ->
-                                call.svar(
-                                    when (error) {
-                                        SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling -> {
-                                            fantIkkeBehandling
-                                        }
-
-                                        SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeSak -> {
-                                            fantIkkeSak
-                                        }
-
-                                        is SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode -> {
-                                            when (val feil = error.feil) {
-                                                Sak.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling -> {
-                                                    fantIkkeBehandling
-                                                }
-
-                                                is Sak.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> {
-                                                    log.error("Feil ved oppdatering av stønadsperiode: ${feil.feil}")
-                                                    InternalServerError.errorJson(
-                                                        "Feil ved oppdatering av stønadsperiode",
-                                                        "oppdatering_av_stønadsperiode",
-                                                    )
-                                                }
-
-                                                is Sak.KunneIkkeOppdatereStønadsperiode.KunneIkkeHenteGjeldendeVedtaksdata -> {
-                                                    InternalServerError.errorJson(
-                                                        "Kunne ikke hente gjeldende vedtaksdata",
-                                                        "kunne_ikke_hente_gjeldende_vedtaksdata",
-                                                    )
-                                                }
-
-                                                is Sak.KunneIkkeOppdatereStønadsperiode.FinnesOverlappendeÅpenBehandling -> BadRequest.errorJson(
-                                                    "Stønadsperioden overlapper en annen åpen behandling.",
-                                                    "stønadsperiode_overlapper_åpen_behandling",
-                                                )
-                                                is Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode -> feil.feil.tilResultat()
-                                            }
-                                        }
-                                    },
-                                )
-                            }.map {
-                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                                call.svar(Created.jsonBody(it, satsFactory))
-                            }
+                            ).fold(
+                                { call.svar(it.tilResultat()) },
+                                {
+                                    call.audit(it.first.fnr, AuditLogEvent.Action.UPDATE, it.first.id)
+                                    call.svar(
+                                        Resultat.json(
+                                            Created,
+                                            serialize(
+                                                StønadsperiodeJsonResponse(
+                                                    søknadsbehandling = it.first.toJson(satsFactory),
+                                                    måKontrolleres = it.second !== null,
+                                                ),
+                                            ),
+                                        ),
+                                    )
+                                },
+                            )
                         }
                     }
                 }
@@ -405,4 +381,31 @@ internal fun Route.søknadsbehandlingRoutes(
             }
         }
     }
+}
+
+internal fun Sak.KunneIkkeOppdatereStønadsperiode.tilResultat(): Resultat {
+    return when (this) {
+        is Sak.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling -> fantIkkeBehandling
+        is Sak.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> {
+            InternalServerError.errorJson(
+                "Feil ved oppdatering av stønadsperiode",
+                "oppdatering_av_stønadsperiode",
+            )
+        }
+
+        is Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode -> this.feil.tilResultat()
+        is Sak.KunneIkkeOppdatereStønadsperiode.ValideringsfeilAvStønadsperiodeOgPersonsAlder -> this.tilResultat()
+        is Sak.KunneIkkeOppdatereStønadsperiode.FinnesOverlappendeÅpenBehandling -> BadRequest.errorJson(
+            "Stønadsperioden overlapper en annen åpen behandling.",
+            "stønadsperiode_overlapper_åpen_behandling",
+        )
+    }
+}
+
+internal fun Sak.KunneIkkeOppdatereStønadsperiode.ValideringsfeilAvStønadsperiodeOgPersonsAlder.tilResultat(): Resultat {
+    // VurdertStønadsperiodeOppMotPersonsAlder.SøkerErForGammel
+    return BadRequest.errorJson(
+        "Søker er for gammel for hele stønadsperioden. fødselsår ${this.feil.vilkår.fødselsår}",
+        "søker_er_for_gammel",
+    )
 }

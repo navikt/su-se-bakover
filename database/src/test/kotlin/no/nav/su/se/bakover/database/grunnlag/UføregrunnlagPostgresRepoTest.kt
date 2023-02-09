@@ -26,7 +26,9 @@ internal class UføregrunnlagPostgresRepoTest {
             val behandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert { (sak, søknad) ->
                 nySøknadsbehandlingMedStønadsperiode(
                     sakOgSøknad = sak to søknad,
-                )
+                ).let {
+                    it.first to it.second
+                }
             }.second
 
             val uføregrunnlag1 = Uføregrunnlag(

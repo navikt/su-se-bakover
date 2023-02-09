@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.søknadsbehandling
 
 import arrow.core.nonEmptyListOf
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -40,6 +41,7 @@ import no.nav.su.se.bakover.test.nySøknadsbehandlingshistorikk
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
+import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulerUtbetaling
@@ -139,7 +141,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 nySøknadsbehandlingMedStønadsperiode(
                     sakOgSøknad = sak to søknad,
                     stønadsperiode = Stønadsperiode.create(periode = januar(2021)),
-                )
+                ).let {
+                    it.first to it.second
+                }
             }
 
             repo.lagre(
@@ -149,6 +153,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(fixedLocalDate),
                     clock = fixedClock,
                     saksbehandler = saksbehandler,
+                    hentPerson = { person().right() },
                 ).getOrFail().second,
             )
 

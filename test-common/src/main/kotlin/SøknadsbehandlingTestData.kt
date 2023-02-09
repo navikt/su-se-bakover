@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.test
 
+import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.flatten
 import arrow.core.nonEmptyListOf
@@ -20,6 +21,8 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
@@ -37,6 +40,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.innvilg.Iverksat
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.iverksettSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.VurdertStønadsperiodeOppMotPersonsAlder
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
@@ -73,7 +77,7 @@ fun søknadsbehandlingVilkårsvurdertUavklart(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     clock: Clock = fixedClock,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
+): Triple<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart, VurdertStønadsperiodeOppMotPersonsAlder.RettPåUføre.SaksbehandlerMåKontrollereManuelt?> {
     val sakOgSøknad = nySakMedjournalførtSøknadOgOppgave(
         sakId = sakId,
         saksnummer = saksnummer,
@@ -675,7 +679,9 @@ fun nySøknadsbehandlingAlder(
         clock = clock,
         stønadsperiode = stønadsperiode,
         sakOgSøknad = sakOgSøknad,
-    )
+    ).let {
+        it.first to it.second
+    }
 }
 
 fun nySøknadsbehandlingUføre(
@@ -688,7 +694,9 @@ fun nySøknadsbehandlingUføre(
         clock = clock,
         stønadsperiode = stønadsperiode,
         sakOgSøknad = sakOgSøknad,
-    )
+    ).let {
+        it.first to it.second
+    }
 }
 
 /**
@@ -722,7 +730,8 @@ fun nySøknadsbehandlingMedStønadsperiode(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
+    hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person> = { person().right() },
+): Triple<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart, VurdertStønadsperiodeOppMotPersonsAlder.RettPåUføre.SaksbehandlerMåKontrollereManuelt?> {
     return nySøknadsbehandlingUtenStønadsperiode(
         clock = clock,
         sakOgSøknad = sakOgSøknad,
@@ -735,7 +744,9 @@ fun nySøknadsbehandlingMedStønadsperiode(
             clock = clock,
             formuegrenserFactory = formuegrenserFactoryTestPåDato(LocalDate.now(clock)),
             saksbehandler = saksbehandler,
-        ).getOrFail() as Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart>
+            hentPerson = hentPerson,
+        )
+            .getOrFail() as Triple<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart, VurdertStønadsperiodeOppMotPersonsAlder.RettPåUføre.SaksbehandlerMåKontrollereManuelt?>
     }
 }
 

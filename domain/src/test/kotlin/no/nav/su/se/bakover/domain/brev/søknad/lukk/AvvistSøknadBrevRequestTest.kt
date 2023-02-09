@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.person.Person.Navn
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.test.fixedLocalDate
 import org.junit.jupiter.api.Test
+import java.time.Year
 
 internal class AvvistSøknadBrevRequestTest {
 
@@ -29,6 +30,9 @@ internal class AvvistSøknadBrevRequestTest {
             aktørId = AktørId(aktørId = "123"),
         ),
         navn = Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
+        fødsel = Person.Fødsel(
+            år = Year.of(1956),
+        ),
     )
 
     @Test

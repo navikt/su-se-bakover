@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Ident
 import java.time.LocalDate
 import java.time.Period
+import java.time.Year
 
 data class Person(
     val ident: Ident,
@@ -13,7 +14,7 @@ data class Person(
     val statsborgerskap: String? = null,
     val sivilstand: Sivilstand? = null,
     val kjønn: String? = null,
-    val fødselsdato: LocalDate? = null,
+    val fødsel: Fødsel? = null,
     val adressebeskyttelse: String? = null,
     val skjermet: Boolean? = null,
     val kontaktinfo: Kontaktinfo? = null,
@@ -21,7 +22,7 @@ data class Person(
     val fullmakt: Boolean? = null,
     val dødsdato: LocalDate? = null,
 ) {
-    fun getAlder(påDato: LocalDate): Int? = fødselsdato?.let { Period.between(it, påDato).years }
+    fun getAlder(påDato: LocalDate): Int? = fødsel?.dato?.let { Period.between(it, påDato).years }
     fun er67EllerEldre(påDato: LocalDate): Boolean? = getAlder(påDato)?.let { it >= 67 }
 
     data class Navn(
@@ -61,4 +62,15 @@ data class Person(
         val type: SivilstandTyper,
         val relatertVedSivilstand: Fnr?,
     )
+
+    data class Fødsel(
+        val dato: LocalDate? = null,
+        val år: Year,
+    ) {
+        init {
+            if (dato != null) {
+                require(dato.year == år.value) { "Året på fødselsdatoen og fødselsåret som er angitt er ikke lik. fødelsdato ${dato.year}, fødselsår ${år.value}" }
+            }
+        }
+    }
 }

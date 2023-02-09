@@ -76,7 +76,7 @@ data class PersonResponseJson(
     val statsborgerskap: String?,
     val sivilstand: SivilstandJson?,
     val kjønn: String?,
-    val fødselsdato: LocalDate?,
+    val fødsel: Fødsel?,
     val alder: Number?,
     val adressebeskyttelse: String?,
     val skjermet: Boolean?,
@@ -94,6 +94,11 @@ data class PersonResponseJson(
     data class TelefonnummerJson(
         val landskode: String,
         val nummer: String,
+    )
+
+    data class Fødsel(
+        val dato: LocalDate?,
+        val år: Int,
     )
 
     data class AdresseJson(
@@ -148,7 +153,12 @@ data class PersonResponseJson(
             },
             statsborgerskap = this.statsborgerskap,
             kjønn = this.kjønn,
-            fødselsdato = this.fødselsdato,
+            fødsel = this.fødsel?.let {
+                Fødsel(
+                    dato = it.dato,
+                    år = it.år.value,
+                )
+            },
             alder = this.getAlder(LocalDate.now(clock)),
             adressebeskyttelse = this.adressebeskyttelse,
             sivilstand = this.sivilstand?.let { sivilstand ->

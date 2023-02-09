@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.person.Telefonnummer
+import java.time.Year
 
 object PersonOppslagStub :
     PersonOppslag {
@@ -36,7 +37,10 @@ object PersonOppslagStub :
         ),
         statsborgerskap = "NOR",
         kjønn = "MANN",
-        fødselsdato = 1.januar(1990),
+        fødsel = Person.Fødsel(
+            dato = 1.januar(1990),
+            år = Year.of(1990),
+        ),
         sivilstand = null,
         adressebeskyttelse = if (fnr.toString() == ApplicationConfig.fnrKode6()) "STRENGT_FORTROLIG_ADRESSE" else null,
         skjermet = false,
@@ -60,7 +64,8 @@ object PersonOppslagStub :
 
     override fun personMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = nyTestPerson(fnr).right()
     override fun aktørId(fnr: Fnr) = AktørId("2437280977705").right()
-    override fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> = AktørId("2437280977705").right()
+    override fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> =
+        AktørId("2437280977705").right()
 
     override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> =
         if (fnr.toString() == ApplicationConfig.fnrKode6()) {

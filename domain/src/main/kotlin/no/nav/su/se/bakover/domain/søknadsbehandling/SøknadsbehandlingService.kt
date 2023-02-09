@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.VurdertStønadsperiodeOppMotPersonsAlder
 import no.nav.su.se.bakover.domain.vilkår.UgyldigFamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.FullførBosituasjonRequest
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjonEpsGrunnlag
@@ -47,7 +48,11 @@ interface SøknadsbehandlingService {
 
     fun brev(request: BrevRequest): Either<KunneIkkeLageDokument, ByteArray>
     fun hent(request: HentRequest): Either<FantIkkeBehandling, Søknadsbehandling>
-    fun oppdaterStønadsperiode(request: OppdaterStønadsperiodeRequest): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling>
+
+    /**
+     * Oppdatering av stønadsperiode tar hensyn til personens alder ved slutten av stønadsperioden.
+     */
+    fun oppdaterStønadsperiode(request: OppdaterStønadsperiodeRequest): Either<Sak.KunneIkkeOppdatereStønadsperiode, Pair<Søknadsbehandling.Vilkårsvurdert, VurdertStønadsperiodeOppMotPersonsAlder.RettPåUføre.SaksbehandlerMåKontrollereManuelt?>>
     fun leggTilUførevilkår(
         request: LeggTilUførevurderingerRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,
@@ -204,13 +209,6 @@ interface SøknadsbehandlingService {
     )
 
     object FantIkkeBehandling
-
-    sealed class KunneIkkeOppdatereStønadsperiode {
-        object FantIkkeBehandling : SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
-        object FantIkkeSak : SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
-        data class KunneIkkeOppdatereStønadsperiode(val feil: Sak.KunneIkkeOppdatereStønadsperiode) :
-            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
-    }
 
     data class OppdaterStønadsperiodeRequest(
         val behandlingId: UUID,

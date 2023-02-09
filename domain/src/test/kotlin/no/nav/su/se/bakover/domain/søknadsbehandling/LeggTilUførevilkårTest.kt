@@ -60,7 +60,9 @@ internal class LeggTilUførevilkårTest {
     @Test
     fun `får bare lagt til uførevilkår for enkelte typer`() {
         listOf(
-            søknadsbehandlingVilkårsvurdertUavklart(),
+            søknadsbehandlingVilkårsvurdertUavklart().let {
+                it.first to it.second
+            },
             søknadsbehandlingVilkårsvurdertAvslag(),
             søknadsbehandlingVilkårsvurdertInnvilget(),
             søknadsbehandlingBeregnetAvslag(),
