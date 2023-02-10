@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.brev.BrevService
+import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrevRequest
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Kravgrunnlag
@@ -14,7 +15,6 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingClient
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingRepo
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
-import no.nav.su.se.bakover.domain.visitor.KunneIkkeLageBrevRequest
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import org.slf4j.LoggerFactory
 import java.time.Clock

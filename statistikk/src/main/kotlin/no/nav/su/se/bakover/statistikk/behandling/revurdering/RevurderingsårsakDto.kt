@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.statistikk.behandling.revurdering
 
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak as RevurderingsårsakDomain
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak as RevurderingsårsakDomain
 
 fun RevurderingsårsakDomain.toResultatBegrunnelse(): String {
     return when (this.årsak) {

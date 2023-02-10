@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.test
 
-import no.nav.su.se.bakover.domain.revurdering.BrevvalgRevurdering
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 
 fun sendBrev(
     fritekst: String = "En deilig fritekst",

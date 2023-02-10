@@ -13,9 +13,11 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.RevurderingService
+import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
+import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeIverksetteRevurdering
+import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.sakId
@@ -87,7 +89,7 @@ internal class IverksettRevurderingRouteKtTest {
     @Test
     fun `fant ikke revurdering`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeIverksetteRevurdering.FeilVedIverksettelse(no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeIverksetteRevurdering.FantIkkeRevurdering),
+            error = KunneIkkeIverksetteRevurdering.Saksfeil.FantIkkeRevurdering,
             expectedStatusCode = HttpStatusCode.NotFound,
             expectedJsonResponse = """
                 {
@@ -101,11 +103,9 @@ internal class IverksettRevurderingRouteKtTest {
     @Test
     fun `ugyldig tilstand`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeIverksetteRevurdering.FeilVedIverksettelse(
-                no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeIverksetteRevurdering.UgyldigTilstand(
-                    fra = IverksattRevurdering::class,
-                    til = OpprettetRevurdering::class,
-                ),
+            error = KunneIkkeIverksetteRevurdering.Saksfeil.UgyldigTilstand(
+                fra = IverksattRevurdering::class,
+                til = OpprettetRevurdering::class,
             ),
             expectedStatusCode = HttpStatusCode.BadRequest,
             expectedJsonResponse = """
@@ -120,7 +120,9 @@ internal class IverksettRevurderingRouteKtTest {
     @Test
     fun `attestant og saksbehandler kan ikke være samme person`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeIverksetteRevurdering.FeilVedIverksettelse(no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson),
+            error = KunneIkkeIverksetteRevurdering.Saksfeil.Revurderingsfeil(
+                RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson,
+            ),
             expectedStatusCode = HttpStatusCode.Forbidden,
             expectedJsonResponse = """
                 {
@@ -134,7 +136,7 @@ internal class IverksettRevurderingRouteKtTest {
     @Test
     fun `kunne ikke kontrollsimulere`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeIverksetteRevurdering.FeilVedIverksettelse(no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(UtbetalingFeilet.KunneIkkeSimulere(SimulerUtbetalingFeilet.FeilVedSimulering(SimuleringFeilet.TekniskFeil)))),
+            error = KunneIkkeIverksetteRevurdering.Saksfeil.KunneIkkeUtbetale(UtbetalingFeilet.KunneIkkeSimulere(SimulerUtbetalingFeilet.FeilVedSimulering(SimuleringFeilet.TekniskFeil))),
             expectedStatusCode = HttpStatusCode.InternalServerError,
             expectedJsonResponse = """
                 {
@@ -148,7 +150,9 @@ internal class IverksettRevurderingRouteKtTest {
     @Test
     fun `kunne ikke utbetale`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil)),
+            error = KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(
+                KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil),
+            ),
             expectedStatusCode = HttpStatusCode.InternalServerError,
             expectedJsonResponse = """
                 {

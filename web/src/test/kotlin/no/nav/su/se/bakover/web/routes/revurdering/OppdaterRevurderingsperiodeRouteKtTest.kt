@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
+import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -109,21 +109,6 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
                 actualResponse.status shouldBe RevurderingsStatus.OPPRETTET
             }
         }
-    }
-
-    @Test
-    fun `fant ikke revurdering`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeOppdatereRevurdering.FantIkkeRevurdering,
-            expectedStatusCode = HttpStatusCode.NotFound,
-            expectedJsonResponse = """
-                {
-                    "message":"Fant ikke revurdering",
-                    "code":"fant_ikke_revurdering"
-                }
-            """.trimIndent(),
-
-        )
     }
 
     @Test

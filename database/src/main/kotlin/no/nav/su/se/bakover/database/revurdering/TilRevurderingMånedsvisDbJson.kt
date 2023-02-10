@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.database.revurdering
 
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.revurdering.VedtakSomRevurderesMånedsvis
+import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import java.time.YearMonth
 import java.util.UUID
 

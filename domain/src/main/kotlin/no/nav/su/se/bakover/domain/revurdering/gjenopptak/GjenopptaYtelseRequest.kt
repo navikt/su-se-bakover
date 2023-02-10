@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering.gjenopptak
 
 import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import java.util.UUID
 
 sealed class GjenopptaYtelseRequest {

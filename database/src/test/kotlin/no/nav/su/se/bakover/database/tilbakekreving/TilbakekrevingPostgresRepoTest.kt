@@ -117,7 +117,7 @@ internal class TilbakekrevingPostgresRepoTest {
                 saksbehandler = saksbehandler,
             ).getOrFail().tilIverksatt(
                 attestant = attestant,
-                hentOpprinneligAvkorting = { null },
+                uteståendeAvkortingPåSak = null,
                 clock = fixedClock,
             ).getOrFail()
 

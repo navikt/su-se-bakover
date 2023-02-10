@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.domain.revurdering.oppdater
 
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import java.util.UUID
 
 data class OppdaterRevurderingCommand(

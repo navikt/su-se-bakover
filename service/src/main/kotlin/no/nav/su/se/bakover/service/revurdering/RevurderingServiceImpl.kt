@@ -36,48 +36,48 @@ import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeBeregneOgSimulereRevurdering
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeBeregneRevurdering
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeForhåndsvarsle
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeHentePersonEllerSaksbehandlerNavn
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteRevurdering
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLageBrevutkastForAvsluttingAvRevurdering
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLageBrevutkastForRevurdering
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilBosituasjongrunnlag
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilBrevvalg
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilFormuegrunnlag
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilFradragsgrunnlag
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilUføreVilkår
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilUtenlandsopphold
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeOppdatereTilbakekrevingsbehandling
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeSendeRevurderingTilAttestering
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeUnderkjenneRevurdering
-import no.nav.su.se.bakover.domain.revurdering.LeggTilBosituasjonerRequest
-import no.nav.su.se.bakover.domain.revurdering.LeggTilBrevvalgRequest
-import no.nav.su.se.bakover.domain.revurdering.OppdaterTilbakekrevingsbehandlingRequest
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
-import no.nav.su.se.bakover.domain.revurdering.RevurderingOgFeilmeldingerResponse
-import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
-import no.nav.su.se.bakover.domain.revurdering.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
-import no.nav.su.se.bakover.domain.revurdering.SendTilAttesteringRequest
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Varselmelding
-import no.nav.su.se.bakover.domain.revurdering.VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling
+import no.nav.su.se.bakover.domain.revurdering.attestering.KunneIkkeSendeRevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.attestering.SendTilAttesteringRequest
+import no.nav.su.se.bakover.domain.revurdering.beregning.KunneIkkeBeregneOgSimulereRevurdering
+import no.nav.su.se.bakover.domain.revurdering.beregning.KunneIkkeBeregneRevurdering
+import no.nav.su.se.bakover.domain.revurdering.beregning.VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling
+import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeForhåndsvarsle
+import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForAvsluttingAvRevurdering
+import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForRevurdering
+import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLeggeTilBrevvalg
+import no.nav.su.se.bakover.domain.revurdering.brev.LeggTilBrevvalgRequest
+import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeIverksetteRevurdering
+import no.nav.su.se.bakover.domain.revurdering.iverksett.iverksettRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.oppdater.oppdaterRevurdering
-import no.nav.su.se.bakover.domain.revurdering.oppdaterTilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVedOpphørService
 import no.nav.su.se.bakover.domain.revurdering.opphør.IdentifiserRevurderingsopphørSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.opprett.opprettRevurdering
+import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
+import no.nav.su.se.bakover.domain.revurdering.service.KunneIkkeHentePersonEllerSaksbehandlerNavn
+import no.nav.su.se.bakover.domain.revurdering.service.RevurderingOgFeilmeldingerResponse
+import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
+import no.nav.su.se.bakover.domain.revurdering.tilbakekreving.KunneIkkeOppdatereTilbakekrevingsbehandling
+import no.nav.su.se.bakover.domain.revurdering.tilbakekreving.OppdaterTilbakekrevingsbehandlingRequest
+import no.nav.su.se.bakover.domain.revurdering.tilbakekreving.oppdaterTilbakekrevingsbehandling
+import no.nav.su.se.bakover.domain.revurdering.underkjenn.KunneIkkeUnderkjenneRevurdering
+import no.nav.su.se.bakover.domain.revurdering.varsel.Varselmelding
+import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
+import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
+import no.nav.su.se.bakover.domain.revurdering.vilkår.formue.KunneIkkeLeggeTilFormuegrunnlag
+import no.nav.su.se.bakover.domain.revurdering.vilkår.fradag.KunneIkkeLeggeTilFradragsgrunnlag
+import no.nav.su.se.bakover.domain.revurdering.vilkår.uføre.KunneIkkeLeggeTilUføreVilkår
+import no.nav.su.se.bakover.domain.revurdering.vilkår.utenlandsopphold.KunneIkkeLeggeTilUtenlandsopphold
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.sak.iverksett.iverksettRevurdering
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
@@ -930,9 +930,7 @@ class RevurderingServiceImpl(
             attestant = attestant,
             clock = clock,
             simuler = utbetalingService::simulerUtbetaling,
-        ).mapLeft {
-            KunneIkkeIverksetteRevurdering.FeilVedIverksettelse(it)
-        }.flatMap {
+        ).flatMap {
             it.ferdigstillIverksettelseITransaksjon(
                 sessionFactory = sessionFactory,
                 klargjørUtbetaling = utbetalingService::klargjørUtbetaling,

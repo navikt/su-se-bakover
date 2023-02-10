@@ -24,12 +24,13 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
-import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
+import no.nav.su.se.bakover.domain.revurdering.avkorting.KanIkkeRevurderePgaAvkorting
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
+import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
+import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
+import no.nav.su.se.bakover.domain.revurdering.steg.Vurderingstatus
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
@@ -48,6 +49,7 @@ import no.nav.su.se.bakover.test.nySakUføre
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
+import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.tikkendeFixedClock
@@ -443,10 +445,11 @@ internal class OpprettRevurderingServiceTest {
     }
 
     @Test
-    fun `får feilmelding dersom saken har utestående avkorting, men revurderingsperioden inneholder ikke perioden for avkortingen`() {
+    fun `får feil dersom saken har utestående avkorting og revurderingsperioden delvis overlapper`() {
         val clock = TikkendeKlokke(fixedClock)
         val (sak, _) = vedtakRevurdering(
             clock = clock,
+            stønadsperiode = stønadsperiode2021,
             revurderingsperiode = Periode.create(1.juni(2021), 31.desember(2021)),
             vilkårOverrides = listOf(
                 utenlandsoppholdAvslag(
@@ -455,8 +458,12 @@ internal class OpprettRevurderingServiceTest {
                     periode = Periode.create(1.juni(2021), 31.desember(2021)),
                 ),
             ),
+            // Kun juni og juli som får avkorting, resten av månene får da et opphør frem i tid.
             utbetalingerKjørtTilOgMed = 1.august(2021),
         )
+        // Vi får lov til å revurdere august-desember, siden vi da kun overskriver opphør frem i tid.
+        // Det er også lov å revurdere hele den utestående avkortingen (juni-juli)
+        // Men vi skal ikke få lov til å overskrive kun juli, siden det bare er deler av en avkortingsperiode (juni-juli)
         val nyRevurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021))
 
         RevurderingServiceMocks(
@@ -476,9 +483,14 @@ internal class OpprettRevurderingServiceTest {
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Utenlandsopphold),
                 ),
-            ) shouldBe KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
-                juni(2021)..juli(2021),
+            ) shouldBe KunneIkkeOppretteRevurdering.Avkorting(
+                KanIkkeRevurderePgaAvkorting.UteståendeAvkortingMåRevurderesISinHelhet(
+                    juni(2021)..juli(2021),
+                ),
             ).left()
+            verify(it.sakService).hentSak(sak.id)
+            // Eneste grunnen til å ha denne service-testen er å få verifisert at vi ikke utfører sideeffekter ved exceptions/Either.lefts.
+            it.verifyNoMoreInteractions()
         }
     }
 }

@@ -16,12 +16,12 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerGjenopptakFeil
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalGjenopptakFeil
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
-import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeSimulereGjenopptakAvYtelse
-import no.nav.su.se.bakover.domain.revurdering.toVedtakSomRevurderesMånedsvis
+import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
+import no.nav.su.se.bakover.domain.revurdering.revurderes.toVedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForGjenopptak
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling

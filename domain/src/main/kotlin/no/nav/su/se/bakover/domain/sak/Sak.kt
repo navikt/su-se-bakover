@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.FraOgMedDatoM�
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden
 import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.toNonEmptyList
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
@@ -33,11 +32,11 @@ import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
-import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOmVilkårGirOpphørVedRevurdering
+import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
@@ -72,7 +71,7 @@ data class Sak(
     val fnr: Fnr,
     val søknader: List<Søknad> = emptyList(),
     val søknadsbehandlinger: List<Søknadsbehandling> = emptyList(),
-    // TODO jah: Bytt til [Oversendt
+    // TODO jah: Bytt til [Utbetaling.Oversendt]
     val utbetalinger: List<Utbetaling>,
     val revurderinger: List<AbstraktRevurdering> = emptyList(),
     val vedtakListe: List<Vedtak> = emptyList(),
@@ -363,30 +362,6 @@ data class Sak(
         }
     }
 
-    fun hentUteståendeAvkortingForRevurdering(): Either<AvkortingVedRevurdering.Uhåndtert.IngenUtestående, AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting> {
-        return when (uteståendeAvkorting) {
-            is Avkortingsvarsel.Ingen -> {
-                AvkortingVedRevurdering.Uhåndtert.IngenUtestående.left()
-            }
-
-            is Avkortingsvarsel.Utenlandsopphold.Annullert -> {
-                AvkortingVedRevurdering.Uhåndtert.IngenUtestående.left()
-            }
-
-            is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
-                AvkortingVedRevurdering.Uhåndtert.IngenUtestående.left()
-            }
-
-            is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
-                AvkortingVedRevurdering.Uhåndtert.IngenUtestående.left()
-            }
-
-            is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
-                AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(uteståendeAvkorting).right()
-            }
-        }
-    }
-
     fun hentSøknadsbehandlingForSøknad(søknadId: UUID): Either<FantIkkeSøknadsbehandlingForSøknad, Søknadsbehandling> {
         return søknadsbehandlinger.singleOrNull { it.søknad.id == søknadId }?.right()
             ?: FantIkkeSøknadsbehandlingForSøknad.left()
@@ -400,22 +375,6 @@ data class Sak(
 
         // TODO jah: Denne er tenkt erstatte HarÅpenBehandling når vi er ferdige med oppgaven: samtidige åpne behandlinger.
         object HarÅpenSøknadsbehandling : KunneIkkeOppretteSøknadsbehandling
-    }
-
-    internal fun kontrollerAtUteståendeAvkortingRevurderes(
-        periode: Periode,
-        uteståendeAvkorting: AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting,
-    ): Either<Unit, AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting> {
-        if (periode.inneholder(uteståendeAvkorting.avkortingsvarsel.periode())) {
-            // Vi revurderer hele den utestående avkortingsvarselet. Det er greit.
-            return uteståendeAvkorting.right()
-        }
-        if (periode.overlapper(uteståendeAvkorting.avkortingsvarsel.periode())) {
-            // Vi revurderer over deler av et utestående avkortingsvarsel. Det er ikke greit.
-            return Unit.left()
-        }
-        // Vi revurderer på utsiden av avkortingsvarselet. Det er greit.
-        return uteståendeAvkorting.right()
     }
 
     internal fun hentGjeldendeVedtaksdataOgSjekkGyldighetForRevurderingsperiode(

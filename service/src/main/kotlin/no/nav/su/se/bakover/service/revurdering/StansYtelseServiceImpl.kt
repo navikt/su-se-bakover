@@ -16,8 +16,9 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerStansFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalStansFeil
-import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
+import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
+import no.nav.su.se.bakover.domain.revurdering.revurderes.toVedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.stans.IverksettStansAvYtelseITransaksjonResponse
 import no.nav.su.se.bakover.domain.revurdering.stans.IverksettStansAvYtelseTransactionException
 import no.nav.su.se.bakover.domain.revurdering.stans.IverksettStansAvYtelseTransactionException.Companion.exception
@@ -28,7 +29,6 @@ import no.nav.su.se.bakover.domain.revurdering.stans.StansAvYtelseTransactionExc
 import no.nav.su.se.bakover.domain.revurdering.stans.StansAvYtelseTransactionException.Companion.exception
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
-import no.nav.su.se.bakover.domain.revurdering.toVedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForStans
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling

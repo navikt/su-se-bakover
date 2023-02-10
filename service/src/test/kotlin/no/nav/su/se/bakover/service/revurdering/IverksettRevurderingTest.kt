@@ -15,8 +15,9 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
+import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -341,11 +342,9 @@ internal class IverksettRevurderingTest {
             attestant = attestant,
         )
 
-        response shouldBe KunneIkkeIverksetteRevurdering.FeilVedIverksettelse(
-            no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeIverksetteRevurdering.UgyldigTilstand(
-                iverksattRevurdering().second::class,
-                IverksattRevurdering::class,
-            ),
+        response shouldBe KunneIkkeIverksetteRevurdering.Saksfeil.UgyldigTilstand(
+            iverksattRevurdering().second::class,
+            IverksattRevurdering::class,
         ).left()
     }
 
@@ -397,7 +396,7 @@ internal class IverksettRevurderingTest {
         )
 
         response shouldBe KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(
-            no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon.UkjentFeil(
+            KunneIkkeFerdigstilleIverksettelsestransaksjon.UkjentFeil(
                 expectedException,
             ),
         ).left()
@@ -452,7 +451,7 @@ internal class IverksettRevurderingTest {
         )
 
         response shouldBe KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(
-            no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon.UkjentFeil(
+            KunneIkkeFerdigstilleIverksettelsestransaksjon.UkjentFeil(
                 expectedException,
             ),
         ).left()
@@ -506,7 +505,7 @@ internal class IverksettRevurderingTest {
         )
 
         response shouldBe KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(
-            no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeUtbetale(
+            KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeUtbetale(
                 UtbetalingFeilet.Protokollfeil,
             ),
         ).left()
@@ -563,7 +562,7 @@ internal class IverksettRevurderingTest {
             revurderingId = revurderingTilAttestering.id,
             attestant = attestant,
         ) shouldBe KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(
-            no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon.UkjentFeil(
+            KunneIkkeFerdigstilleIverksettelsestransaksjon.UkjentFeil(
                 expectedException,
             ),
         ).left()
@@ -619,7 +618,7 @@ internal class IverksettRevurderingTest {
             attestant = attestant,
         )
         response shouldBe KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(
-            no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeUtbetale(
+            KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeUtbetale(
                 UtbetalingFeilet.Protokollfeil,
             ),
         ).left()
@@ -650,7 +649,7 @@ internal class IverksettRevurderingTest {
             it.revurderingService.iverksett(
                 revurderingTilAttestering.id,
                 attestant,
-            ) shouldBe KunneIkkeIverksetteRevurdering.FeilVedIverksettelse(no.nav.su.se.bakover.domain.sak.iverksett.KunneIkkeIverksetteRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving)
+            ) shouldBe KunneIkkeIverksetteRevurdering.Saksfeil.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving
                 .left()
         }
     }

@@ -24,11 +24,11 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilBosituasjongrunnlag
-import no.nav.su.se.bakover.domain.revurdering.LeggTilBosituasjonRequest
-import no.nav.su.se.bakover.domain.revurdering.LeggTilBosituasjonerRequest
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
-import no.nav.su.se.bakover.domain.revurdering.RevurderingService
+import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
+import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
+import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonForRevurderingRequest
+import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
@@ -57,11 +57,11 @@ private data class JsonBody(
     val delerBolig: Boolean?,
     val erEPSUførFlyktning: Boolean?,
 ) {
-    fun toService(): Either<Resultat, LeggTilBosituasjonRequest> {
+    fun toService(): Either<Resultat, LeggTilBosituasjonForRevurderingRequest> {
         val periode = periode.toPeriodeOrResultat()
             .getOrElse { return it.left() }
 
-        return LeggTilBosituasjonRequest(
+        return LeggTilBosituasjonForRevurderingRequest(
             periode = periode,
             epsFnr = epsFnr,
             delerBolig = delerBolig,
