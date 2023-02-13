@@ -5,12 +5,12 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.vedtakSomRevurderesMånedsvis
 import java.time.Clock
 
 fun Sak.verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg(
-    revurdering: RevurderingTilAttestering,
+    revurdering: AbstraktRevurdering,
     clock: Clock,
 ): Either<DetHarKommetNyeOverlappendeVedtak, Unit> {
     val current = this.vedtakSomRevurderesMånedsvis(

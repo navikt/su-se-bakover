@@ -63,11 +63,11 @@ class BrevServiceImpl(
 
     override fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): List<Dokument> {
         return when (hentDokumenterForIdType) {
-            is HentDokumenterForIdType.Sak -> dokumentRepo.hentForSak(hentDokumenterForIdType.id)
-            is HentDokumenterForIdType.Søknad -> dokumentRepo.hentForSøknad(hentDokumenterForIdType.id)
-            is HentDokumenterForIdType.Revurdering -> dokumentRepo.hentForRevurdering(hentDokumenterForIdType.id)
-            is HentDokumenterForIdType.Vedtak -> dokumentRepo.hentForVedtak(hentDokumenterForIdType.id)
-            is HentDokumenterForIdType.Klage -> dokumentRepo.hentForKlage(hentDokumenterForIdType.id)
+            is HentDokumenterForIdType.HentDokumenterForSak -> dokumentRepo.hentForSak(hentDokumenterForIdType.id)
+            is HentDokumenterForIdType.HentDokumenterForSøknad -> dokumentRepo.hentForSøknad(hentDokumenterForIdType.id)
+            is HentDokumenterForIdType.HentDokumenterForRevurdering -> dokumentRepo.hentForRevurdering(hentDokumenterForIdType.id)
+            is HentDokumenterForIdType.HentDokumenterForVedtak -> dokumentRepo.hentForVedtak(hentDokumenterForIdType.id)
+            is HentDokumenterForIdType.HentDokumenterForKlage -> dokumentRepo.hentForKlage(hentDokumenterForIdType.id)
         }
     }
 

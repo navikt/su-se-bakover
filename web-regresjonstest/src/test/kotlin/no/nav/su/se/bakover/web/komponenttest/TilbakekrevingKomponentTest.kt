@@ -76,7 +76,7 @@ class TilbakekrevingKomponentTest {
             appComponents.services.utbetaling.hentUtbetaling(vedtak.utbetalingId).getOrFail()
                 .shouldBeType<Utbetaling.OversendtUtbetaling.MedKvittering>()
 
-            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtak.id)).also {
+            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForVedtak(vedtak.id)).also {
                 it shouldBe emptyList()
             }
 
@@ -124,7 +124,7 @@ class TilbakekrevingKomponentTest {
                 }
 
             @Suppress("UNCHECKED_CAST")
-            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtak.id))
+            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForVedtak(vedtak.id))
                 .also { dokumenter ->
                     dokumenter.single().also { brev ->
                         (
@@ -162,7 +162,7 @@ class TilbakekrevingKomponentTest {
 
             appComponents.mottaKvitteringForUtbetalingFraØkonomi(vedtak.utbetalingId)
 
-            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtak.id)).also {
+            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForVedtak(vedtak.id)).also {
                 it shouldBe emptyList()
             }
 
@@ -207,7 +207,7 @@ class TilbakekrevingKomponentTest {
                     """.replace("\n", "").trimWhitespace()
                 }
 
-            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtak.id))
+            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForVedtak(vedtak.id))
                 .also { dokumenter ->
                     dokumenter.single().also { brev ->
                         brev.tittel shouldBe "Vi har vurdert den supplerende stønaden din på nytt"
@@ -372,7 +372,7 @@ class TilbakekrevingKomponentTest {
                     it.behandling.tilbakekrevingsbehandling.shouldBeType<MottattKravgrunnlag>()
                 }
 
-            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtak.id)) shouldBe emptyList()
+            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForVedtak(vedtak.id)) shouldBe emptyList()
         }
     }
 
@@ -415,8 +415,8 @@ class TilbakekrevingKomponentTest {
 
             appComponents.sendTilbakekrevingsvedtakTilØkonomi()
 
-            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtak.id)) shouldBe emptyList()
-            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Revurdering(vedtak.behandling.id)) shouldBe emptyList()
+            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForVedtak(vedtak.id)) shouldBe emptyList()
+            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForRevurdering(vedtak.behandling.id)) shouldBe emptyList()
             appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
                 .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>().behandling.tilbakekrevingsbehandling.shouldBeType<SendtTilbakekrevingsvedtak>()
         }

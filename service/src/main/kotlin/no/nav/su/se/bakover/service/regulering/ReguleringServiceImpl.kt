@@ -102,10 +102,6 @@ class ReguleringServiceImpl(
                     Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes, Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
                         "Regulering for saksnummer $saksnummer: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
                     )
-
-                    Sak.KunneIkkeOppretteEllerOppdatereRegulering.HarÅpenBehandling -> log.info(
-                        "Regulering for saksnummer $saksnummer: Skippet. Fantes en åpen behandling",
-                    )
                 }
 
                 return@map KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(feil).left()
@@ -184,10 +180,7 @@ class ReguleringServiceImpl(
         }
 
         return sak.opprettEllerOppdaterRegulering(regulering.periode.fraOgMed, clock).mapLeft {
-            return when (it) {
-                Sak.KunneIkkeOppretteEllerOppdatereRegulering.HarÅpenBehandling -> KunneIkkeRegulereManuelt.HarÅpenBehandling.left()
-                else -> throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it")
-            }
+            throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it")
         }.map { opprettetRegulering ->
             return opprettetRegulering
                 .copy(reguleringstype = opprettetRegulering.reguleringstype)
@@ -201,7 +194,10 @@ class ReguleringServiceImpl(
         }
     }
 
-    private fun ferdigstillOgIverksettRegulering(regulering: OpprettetRegulering, sak: Sak): Either<KunneIkkeFerdigstilleOgIverksette, IverksattRegulering> {
+    private fun ferdigstillOgIverksettRegulering(
+        regulering: OpprettetRegulering,
+        sak: Sak,
+    ): Either<KunneIkkeFerdigstilleOgIverksette, IverksattRegulering> {
         return regulering.beregn(
             satsFactory = satsFactory,
             begrunnelse = null,
@@ -314,7 +310,10 @@ class ReguleringServiceImpl(
         return reguleringRepo.hentSakerMedÅpenBehandlingEllerStans()
     }
 
-    private fun lagVedtakOgUtbetal(regulering: IverksattRegulering, sak: Sak): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale, Pair<IverksattRegulering, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering>> {
+    private fun lagVedtakOgUtbetal(
+        regulering: IverksattRegulering,
+        sak: Sak,
+    ): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale, Pair<IverksattRegulering, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering>> {
         return Either.catch {
             val utbetaling = sak.lagNyUtbetaling(
                 saksbehandler = regulering.saksbehandler,

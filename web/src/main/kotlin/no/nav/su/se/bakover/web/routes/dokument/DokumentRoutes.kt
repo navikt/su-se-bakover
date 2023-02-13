@@ -105,11 +105,11 @@ private data class HentDokumentParameters(
 
     fun toDomain(): HentDokumenterForIdType {
         return when (idType) {
-            IdType.SAK -> HentDokumenterForIdType.Sak(id)
-            IdType.SØKNAD -> HentDokumenterForIdType.Søknad(id)
-            IdType.VEDTAK -> HentDokumenterForIdType.Vedtak(id)
-            IdType.REVURDERING -> HentDokumenterForIdType.Revurdering(id)
-            IdType.KLAGE -> HentDokumenterForIdType.Klage(id)
+            IdType.SAK -> HentDokumenterForIdType.HentDokumenterForSak(id)
+            IdType.SØKNAD -> HentDokumenterForIdType.HentDokumenterForSøknad(id)
+            IdType.VEDTAK -> HentDokumenterForIdType.HentDokumenterForVedtak(id)
+            IdType.REVURDERING -> HentDokumenterForIdType.HentDokumenterForRevurdering(id)
+            IdType.KLAGE -> HentDokumenterForIdType.HentDokumenterForKlage(id)
         }
     }
 }

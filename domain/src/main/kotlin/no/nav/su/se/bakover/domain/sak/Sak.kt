@@ -234,14 +234,6 @@ data class Sak(
         return hentIkkeOpphørtePerioder().any { it.inneholder(now) || it.starterEtter(now) }
     }
 
-    fun harÅpenRevurderingForStansAvYtelse(): Boolean {
-        return revurderinger.filterIsInstance<StansAvYtelseRevurdering.SimulertStansAvYtelse>().isNotEmpty()
-    }
-
-    fun harÅpenRevurderingForGjenopptakAvYtelse(): Boolean {
-        return revurderinger.filterIsInstance<GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse>().isNotEmpty()
-    }
-
     fun hentRevurdering(id: UUID): Either<Unit, AbstraktRevurdering> {
         return revurderinger.singleOrNull { it.id == id }?.right() ?: Unit.left()
     }
@@ -323,7 +315,6 @@ data class Sak(
         object FinnesIngenVedtakSomKanRevurderesForValgtPeriode : KunneIkkeOppretteEllerOppdatereRegulering
         object StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig : KunneIkkeOppretteEllerOppdatereRegulering
         object BleIkkeLagetReguleringDaDenneUansettMåRevurderes : KunneIkkeOppretteEllerOppdatereRegulering
-        object HarÅpenBehandling : KunneIkkeOppretteEllerOppdatereRegulering
     }
 
     fun hentSøknad(id: UUID): Either<FantIkkeSøknad, Søknad> {
@@ -337,6 +328,12 @@ data class Sak(
     fun hentÅpneSøknadsbehandlinger(): List<Søknadsbehandling> = søknadsbehandlinger.filter { it.erÅpen() }
 
     fun harÅpenSøknadsbehandling(): Boolean = hentÅpneSøknadsbehandlinger().isNotEmpty()
+
+    fun harÅpenStansbehandling(): Boolean = revurderinger
+        .filterIsInstance<StansAvYtelseRevurdering.SimulertStansAvYtelse>().isNotEmpty()
+
+    fun harÅpenGjenopptaksbehandling(): Boolean = revurderinger
+        .filterIsInstance<GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse>().isNotEmpty()
 
     fun hentUteståendeAvkortingForSøknadsbehandling(): Either<AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående, AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting> {
         return when (uteståendeAvkorting) {
@@ -368,12 +365,9 @@ data class Sak(
     }
 
     sealed interface KunneIkkeOppretteSøknadsbehandling {
-        object HarÅpenBehandling : KunneIkkeOppretteSøknadsbehandling
         object ErLukket : KunneIkkeOppretteSøknadsbehandling
         object ManglerOppgave : KunneIkkeOppretteSøknadsbehandling
         object FinnesAlleredeSøknadsehandlingForSøknad : KunneIkkeOppretteSøknadsbehandling
-
-        // TODO jah: Denne er tenkt erstatte HarÅpenBehandling når vi er ferdige med oppgaven: samtidige åpne behandlinger.
         object HarÅpenSøknadsbehandling : KunneIkkeOppretteSøknadsbehandling
     }
 
@@ -430,15 +424,6 @@ data class Sak(
         object FormueSomFørerTilOpphørMåRevurderes : OpphørtVilkårMåRevurderes
         object UtenlandsoppholdSomFørerTilOpphørMåRevurderes : OpphørtVilkårMåRevurderes
     }
-
-    fun harÅpenRegulering() = hentÅpneReguleringer().isNotEmpty()
-    fun hentÅpneReguleringer(): List<Regulering> = reguleringer.filter { it.erÅpen() }
-
-    fun harÅpenRevurdering() = hentÅpneRevurderinger().isNotEmpty()
-    fun hentÅpneRevurderinger(): List<AbstraktRevurdering> = revurderinger.filter { it.erÅpen() }
-
-    fun harÅpenBehandling(): Boolean =
-        harÅpenSøknadsbehandling() || harÅpenRevurdering() || harÅpenRegulering() || harÅpenRevurderingForStansAvYtelse() || harÅpenRevurderingForGjenopptakAvYtelse()
 
     /**
      * @return Den oppdaterte saken, søknaden som er lukket og dersom den fantes, den lukkede søknadsbehandlingen.
@@ -554,12 +539,6 @@ data class Sak(
         data class KunneIkkeOppdatereGrunnlagsdata(
             val feil: no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeOppdatereStønadsperiode,
         ) : KunneIkkeOppdatereStønadsperiode
-
-        /**
-         * Dette kan være en søknadsbehandling, revurdering eller regulering.
-         * Kan utvides til en per dersom, dersom saksbehandlerne har behov for dette.
-         */
-        object FinnesOverlappendeÅpenBehandling : KunneIkkeOppdatereStønadsperiode
 
         data class OverlappendeStønadsperiode(val feil: StøtterIkkeOverlappendeStønadsperioder) : KunneIkkeOppdatereStønadsperiode
 

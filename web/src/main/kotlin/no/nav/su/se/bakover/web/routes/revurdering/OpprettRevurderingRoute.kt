@@ -7,7 +7,6 @@ import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.harAlleredeÅpenBehandling
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
@@ -76,7 +75,6 @@ internal fun Route.opprettRevurderingRoute(
 
 private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
     return when (this) {
-        is KunneIkkeOppretteRevurdering.HarÅpenBehandling -> harAlleredeÅpenBehandling
         is KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes -> måVelgeInformasjonSomRevurderes
         is KunneIkkeOppretteRevurdering.OpphørteVilkårMåRevurderes -> this.feil.tilResultat()
         is KunneIkkeOppretteRevurdering.UgyldigRevurderingsårsak -> this.feil.tilResultat()

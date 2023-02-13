@@ -7,7 +7,7 @@ data class IverksettStansAvYtelseTransactionException(
     companion object {
         fun KunneIkkeIverksetteStansYtelse.exception(): IverksettStansAvYtelseTransactionException {
             return when (this) {
-                KunneIkkeIverksetteStansYtelse.FantIkkeRevurdering -> {
+                is KunneIkkeIverksetteStansYtelse.FantIkkeRevurdering -> {
                     IverksettStansAvYtelseTransactionException(this::class.java.toString(), this)
                 }
 
@@ -15,7 +15,7 @@ data class IverksettStansAvYtelseTransactionException(
                     IverksettStansAvYtelseTransactionException(this.feil::class.java.toString(), this)
                 }
 
-                KunneIkkeIverksetteStansYtelse.SimuleringIndikererFeilutbetaling -> {
+                is KunneIkkeIverksetteStansYtelse.SimuleringIndikererFeilutbetaling -> {
                     IverksettStansAvYtelseTransactionException(this::class.java.toString(), this)
                 }
 
@@ -25,6 +25,10 @@ data class IverksettStansAvYtelseTransactionException(
 
                 is KunneIkkeIverksetteStansYtelse.UkjentFeil -> {
                     IverksettStansAvYtelseTransactionException(this.msg, this)
+                }
+
+                is KunneIkkeIverksetteStansYtelse.DetHarKommetNyeOverlappendeVedtak -> {
+                    IverksettStansAvYtelseTransactionException(this::class.java.toString(), this)
                 }
             }
         }

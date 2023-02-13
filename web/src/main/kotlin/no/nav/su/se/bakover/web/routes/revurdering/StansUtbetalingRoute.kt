@@ -9,7 +9,7 @@ import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.harAlleredeÅpenBehandling
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ukjentFeil
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
@@ -40,6 +40,9 @@ internal fun Route.stansUtbetaling(
     service: StansYtelseService,
     satsFactory: SatsFactory,
 ) {
+    /**
+     * Oppretter en ny stansbehandling.
+     */
     post("$revurderingPath/stans") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
@@ -71,6 +74,9 @@ internal fun Route.stansUtbetaling(
         }
     }
 
+    /**
+     * Oppdaterer en allerede opprettet stansbehandling.
+     */
     patch("$revurderingPath/stans/{revurderingId}") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
@@ -158,12 +164,15 @@ private fun KunneIkkeStanseYtelse.tilResultat(): Resultat {
             fantIkkeSak
         }
 
-        KunneIkkeStanseYtelse.SakHarÅpenBehandling -> {
-            harAlleredeÅpenBehandling
-        }
-
         is KunneIkkeStanseYtelse.UkjentFeil -> {
             ukjentFeil
+        }
+
+        KunneIkkeStanseYtelse.FinnesÅpenStansbehandling -> {
+            HttpStatusCode.BadRequest.errorJson(
+                message = "Finnes allerede en åpen stansbehandling.",
+                code = "finnes_åpen_stansbehandling",
+            )
         }
     }
 }
@@ -203,6 +212,8 @@ private fun KunneIkkeIverksetteStansYtelse.tilResultat(): Resultat {
         is KunneIkkeIverksetteStansYtelse.UkjentFeil -> {
             ukjentFeil
         }
+
+        KunneIkkeIverksetteStansYtelse.DetHarKommetNyeOverlappendeVedtak -> Feilresponser.detHarKommetNyeOverlappendeVedtak
     }
 }
 

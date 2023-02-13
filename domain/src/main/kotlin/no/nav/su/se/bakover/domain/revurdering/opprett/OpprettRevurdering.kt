@@ -22,10 +22,6 @@ fun Sak.opprettRevurdering(
     command: OpprettRevurderingCommand,
     clock: Clock,
 ): Either<KunneIkkeOppretteRevurdering, OpprettRevurderingResultatUtenOppgaveId> {
-    if (harÅpenBehandling()) {
-        return KunneIkkeOppretteRevurdering.HarÅpenBehandling.left()
-    }
-
     val informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(command.informasjonSomRevurderes)
         .getOrElse { return KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
 

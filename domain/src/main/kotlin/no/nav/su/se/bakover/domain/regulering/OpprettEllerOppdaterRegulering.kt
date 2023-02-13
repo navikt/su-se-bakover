@@ -27,17 +27,9 @@ fun Sak.opprettEllerOppdaterRegulering(
     val (reguleringsId, opprettet, _startDato) = reguleringer.filterIsInstance<OpprettetRegulering>()
         .let { r ->
             when (r.size) {
-                0 -> Triple(UUID.randomUUID(), Tidspunkt.now(clock), startDato).also {
-                    if (harÅpenBehandling()) {
-                        return Sak.KunneIkkeOppretteEllerOppdatereRegulering.HarÅpenBehandling.left()
-                    }
-                }
+                0 -> Triple(UUID.randomUUID(), Tidspunkt.now(clock), startDato)
 
-                1 -> Triple(r.first().id, r.first().opprettet, minOf(startDato, r.first().periode.fraOgMed)).also {
-                    if (harÅpenSøknadsbehandling() || harÅpenRevurdering()) {
-                        return Sak.KunneIkkeOppretteEllerOppdatereRegulering.HarÅpenBehandling.left()
-                    }
-                }
+                1 -> Triple(r.first().id, r.first().opprettet, minOf(startDato, r.first().periode.fraOgMed))
 
                 else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
             }

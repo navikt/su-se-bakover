@@ -26,13 +26,8 @@ fun Sak.opprettNySøknadsbehandling(
     clock: Clock,
     saksbehandler: NavIdentBruker.Saksbehandler,
 ): Either<Sak.KunneIkkeOppretteSøknadsbehandling, Tuple4<Sak, NySøknadsbehandling, Søknadsbehandling.Vilkårsvurdert.Uavklart, StatistikkEvent.Behandling.Søknad.Opprettet>> {
-    if (harÅpenBehandling()) {
-        // TODO jah: Endre/slette denne når de nye begrensningene er på plass for opprettelse og iverksettelse av søknadsbehandling/revurdering/regulering.
-        return Sak.KunneIkkeOppretteSøknadsbehandling.HarÅpenBehandling.left()
-    }
     if (harÅpenSøknadsbehandling()) {
-        // Denne dekkes inntil videre av `harÅpenBehandling()` over. Conditionen over skal slettes når vi har lagt inn alle begrensninger på opprett/oppdater/iverksett for regulering/revurdering/søknadsbehandling.
-        // Har ikke hatt behov for samtidige søknadsbehandlinger. Åpner ved behov. Husk å sjekke for overlappende behandlinger.
+        // Har ikke hatt behov for samtidige søknadsbehandlinger. Åpner ved behov. Kan være lurt og sjekke for overlappende søknadsbehandlinger ved oppdaterStønadsperiode.
         return Sak.KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling.left()
     }
     val søknad = hentSøknad(søknadId).fold(

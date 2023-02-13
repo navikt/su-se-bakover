@@ -5,22 +5,28 @@ import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import kotlin.reflect.KClass
 
-sealed class KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering {
-    data class KunneIkkeUtbetale(val feil: UtbetalGjenopptakFeil) : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering()
-    object FantIkkeRevurdering : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering() {
+sealed interface KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering {
+    data class KunneIkkeUtbetale(val feil: UtbetalGjenopptakFeil) : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering
+    object FantIkkeRevurdering : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering {
         override fun toString() = this::class.simpleName!!
     }
+
     data class UgyldigTilstand(
         val faktiskTilstand: KClass<out AbstraktRevurdering>,
-    ) : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering() {
+    ) : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering {
         val målTilstand: KClass<out GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse> =
             GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse::class
     }
 
-    object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering() {
+    object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering {
         override fun toString() = this::class.simpleName!!
     }
-    object LagringFeilet : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering() {
+
+    object LagringFeilet : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering {
+        override fun toString() = this::class.simpleName!!
+    }
+
+    object DetHarKommetNyeOverlappendeVedtak : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering {
         override fun toString() = this::class.simpleName!!
     }
 }

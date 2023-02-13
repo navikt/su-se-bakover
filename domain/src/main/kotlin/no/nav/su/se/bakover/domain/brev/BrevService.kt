@@ -22,14 +22,14 @@ interface BrevService {
  * Informasjon om id og hvilken type instans denne id'en stammer fra.
  * Avgjør hvilke [Dokument.Metadata] som benyttes for oppslag.
  */
-sealed class HentDokumenterForIdType {
-    abstract val id: UUID
+sealed interface HentDokumenterForIdType {
+    val id: UUID
 
-    data class Sak(override val id: UUID) : HentDokumenterForIdType()
-    data class Søknad(override val id: UUID) : HentDokumenterForIdType()
-    data class Revurdering(override val id: UUID) : HentDokumenterForIdType()
-    data class Vedtak(override val id: UUID) : HentDokumenterForIdType()
-    data class Klage(override val id: UUID) : HentDokumenterForIdType()
+    data class HentDokumenterForSak(override val id: UUID) : HentDokumenterForIdType
+    data class HentDokumenterForSøknad(override val id: UUID) : HentDokumenterForIdType
+    data class HentDokumenterForRevurdering(override val id: UUID) : HentDokumenterForIdType
+    data class HentDokumenterForVedtak(override val id: UUID) : HentDokumenterForIdType
+    data class HentDokumenterForKlage(override val id: UUID) : HentDokumenterForIdType
 }
 
 sealed class KunneIkkeLageBrev {

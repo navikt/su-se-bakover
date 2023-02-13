@@ -123,23 +123,23 @@ internal class BrevServiceImplTest {
             dokumentRepo = dokumentRepoMock,
         ).brevService
 
-        service.hentDokumenterFor(HentDokumenterForIdType.Sak(sakId)) shouldBe listOf(
+        service.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForSak(sakId)) shouldBe listOf(
             sakDokument,
         )
-        service.hentDokumenterFor(HentDokumenterForIdType.Sak(randomId)) shouldBe emptyList()
-        service.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtakId)) shouldBe listOf(
+        service.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForSak(randomId)) shouldBe emptyList()
+        service.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForVedtak(vedtakId)) shouldBe listOf(
             vedtakDokument,
         )
-        service.hentDokumenterFor(HentDokumenterForIdType.Vedtak(randomId)) shouldBe emptyList()
-        service.hentDokumenterFor(HentDokumenterForIdType.Søknad(søknadId)) shouldBe listOf(
+        service.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForVedtak(randomId)) shouldBe emptyList()
+        service.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForSøknad(søknadId)) shouldBe listOf(
             søknadDokument,
         )
-        service.hentDokumenterFor(HentDokumenterForIdType.Søknad(randomId)) shouldBe emptyList()
-        service.hentDokumenterFor(HentDokumenterForIdType.Revurdering(revurderingId)) shouldBe listOf(
+        service.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForSøknad(randomId)) shouldBe emptyList()
+        service.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForRevurdering(revurderingId)) shouldBe listOf(
             revurderingDokument,
         )
-        service.hentDokumenterFor(HentDokumenterForIdType.Revurdering(randomId)) shouldBe emptyList()
-        service.hentDokumenterFor(HentDokumenterForIdType.Klage(klageId)) shouldBe listOf(klageDokument)
+        service.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForRevurdering(randomId)) shouldBe emptyList()
+        service.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForKlage(klageId)) shouldBe listOf(klageDokument)
     }
 
     @Test

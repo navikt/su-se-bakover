@@ -41,7 +41,7 @@ class AvslagKomponentTest {
                     Avslagsgrunn.UFØRHET,
                     Avslagsgrunn.FLYKTNING,
                 )
-                appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Vedtak(avslagsvedtak.id)).let {
+                appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForVedtak(avslagsvedtak.id)).let {
                     it shouldHaveSize 1
                     it.first().shouldBeType<Dokument.MedMetadata.Vedtak>().let { dokument ->
                         dokument.generertDokument shouldNotBe null

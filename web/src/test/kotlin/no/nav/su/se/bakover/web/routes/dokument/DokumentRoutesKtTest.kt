@@ -91,7 +91,7 @@ internal class DokumentRoutesKtTest {
     fun `happy case`() {
         val services = TestServicesBuilder.services(
             brev = mock {
-                on { hentDokumenterFor(argThat { it is HentDokumenterForIdType.Søknad }) } doReturn listOf(
+                on { hentDokumenterFor(argThat { it is HentDokumenterForIdType.HentDokumenterForSøknad }) } doReturn listOf(
                     Dokument.UtenMetadata.Informasjon.Annet(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.EPOCH,
@@ -114,7 +114,7 @@ internal class DokumentRoutesKtTest {
             ).let {
                 it.status shouldBe HttpStatusCode.OK
                 verify(services.brev).hentDokumenterFor(
-                    HentDokumenterForIdType.Søknad(
+                    HentDokumenterForIdType.HentDokumenterForSøknad(
                         UUID.fromString("39f05293-39e0-47be-ba35-a7e0b233b630"),
                     ),
                 )
@@ -132,7 +132,7 @@ internal class DokumentRoutesKtTest {
         val sakId = "39f05293-39e0-47be-ba35-a7e0b233b630"
         val services = TestServicesBuilder.services(
             brev = mock {
-                on { hentDokumenterFor(argThat { it is HentDokumenterForIdType.Sak }) } doReturn emptyList()
+                on { hentDokumenterFor(argThat { it is HentDokumenterForIdType.HentDokumenterForSak }) } doReturn emptyList()
             },
         )
 
@@ -148,7 +148,7 @@ internal class DokumentRoutesKtTest {
                 it.status shouldBe HttpStatusCode.OK
                 it.bodyAsText() shouldBe "[]"
                 verify(services.brev).hentDokumenterFor(
-                    HentDokumenterForIdType.Sak(
+                    HentDokumenterForIdType.HentDokumenterForSak(
                         UUID.fromString(sakId),
                     ),
                 )
