@@ -29,7 +29,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeFerdigstilleOgIverksette
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
-import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
@@ -73,6 +73,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.time.Clock
 import java.util.UUID
+
 // TODO refaktorer disse testene til å unngå "scrambling" og hacking, og i større grad bruke satsfactory til å trigge endringer.
 internal class ReguleringServiceImplTest {
 
@@ -89,7 +90,7 @@ internal class ReguleringServiceImplTest {
             clock = clock,
         )
 
-        reguleringService.startRegulering(1.mai(2021)).size shouldBe 1
+        reguleringService.startAutomatiskRegulering(1.mai(2021)).size shouldBe 1
     }
 
     @Nested
@@ -118,13 +119,13 @@ internal class ReguleringServiceImplTest {
             val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
             val reguleringService = lagReguleringServiceImpl(sak)
 
-            val regulering = reguleringService.startRegulering(1.mai(2021)).first().getOrFail()
+            val regulering = reguleringService.startAutomatiskRegulering(1.mai(2021)).first().getOrFail()
             regulering.reguleringstype shouldBe Reguleringstype.AUTOMATISK
         }
 
         @Test
         fun `OffentligPensjon gir manuell`() {
-            reguleringService.startRegulering(1.mai(2021)).single()
+            reguleringService.startAutomatiskRegulering(1.mai(2021)).single()
                 .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL(
                 setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt),
             )
@@ -132,7 +133,7 @@ internal class ReguleringServiceImplTest {
 
         @Test
         fun `NAVytelserTilLivsopphold gir manuell`() {
-            reguleringService.startRegulering(1.mai(2021)).single()
+            reguleringService.startAutomatiskRegulering(1.mai(2021)).single()
                 .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL(
                 setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt),
             )
@@ -143,7 +144,7 @@ internal class ReguleringServiceImplTest {
             val stansAvYtelse = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().first
             val reguleringService = lagReguleringServiceImpl(stansAvYtelse)
 
-            reguleringService.startRegulering(1.mai(2021)).single()
+            reguleringService.startAutomatiskRegulering(1.mai(2021)).single()
                 .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL(
                 setOf(ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset),
             )
@@ -161,7 +162,7 @@ internal class ReguleringServiceImplTest {
 
             val reguleringService = lagReguleringServiceImpl(sak = revurdertSak, clock = clock)
 
-            reguleringService.startRegulering(1.mai(2021))
+            reguleringService.startAutomatiskRegulering(1.mai(2021))
                 .first() shouldBe KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode)
                 .left()
         }
@@ -170,12 +171,19 @@ internal class ReguleringServiceImplTest {
         fun `en behandling med delvis opphør i slutten av perioden skal reguleres automatisk`() {
             val revurdertSak = vedtakRevurdering(
                 revurderingsperiode = Periode.create(1.september(2021), 31.desember(2021)),
-                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = Periode.create(1.september(2021), 31.desember(2021)))),
+                vilkårOverrides = listOf(
+                    avslåttUførevilkårUtenGrunnlag(
+                        periode = Periode.create(
+                            1.september(2021),
+                            31.desember(2021),
+                        ),
+                    ),
+                ),
             ).first
 
             val reguleringService = lagReguleringServiceImpl(revurdertSak)
 
-            val regulering = reguleringService.startRegulering(1.mai(2021)).first().getOrFail()
+            val regulering = reguleringService.startAutomatiskRegulering(1.mai(2021)).first().getOrFail()
             regulering.reguleringstype shouldBe Reguleringstype.AUTOMATISK
             regulering.periode shouldBe Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.august(2021))
         }
@@ -186,7 +194,14 @@ internal class ReguleringServiceImplTest {
             val (sakEtterFørsteRevudering, vedtak) = vedtakRevurdering(
                 clock = clock,
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
-                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = Periode.create(1.mai(2021), 31.desember(2021)))),
+                vilkårOverrides = listOf(
+                    avslåttUførevilkårUtenGrunnlag(
+                        periode = Periode.create(
+                            1.mai(2021),
+                            31.desember(2021),
+                        ),
+                    ),
+                ),
             )
 
             val sak = vedtakRevurdering(
@@ -204,7 +219,7 @@ internal class ReguleringServiceImplTest {
             ).first
             val reguleringService = lagReguleringServiceImpl(sak)
 
-            val regulering = reguleringService.startRegulering(1.mai(2021)).first().getOrFail()
+            val regulering = reguleringService.startAutomatiskRegulering(1.mai(2021)).first().getOrFail()
             regulering.reguleringstype shouldBe Reguleringstype.AUTOMATISK
             regulering.periode shouldBe Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.desember(2021))
         }
@@ -215,7 +230,14 @@ internal class ReguleringServiceImplTest {
             val (sakEtterFørsteRevudering, vedtak) = vedtakRevurdering(
                 clock = clock,
                 revurderingsperiode = Periode.create(1.juni(2021), 31.desember(2021)),
-                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = Periode.create(1.juni(2021), 31.desember(2021)))),
+                vilkårOverrides = listOf(
+                    avslåttUførevilkårUtenGrunnlag(
+                        periode = Periode.create(
+                            1.juni(2021),
+                            31.desember(2021),
+                        ),
+                    ),
+                ),
             )
 
             val sak = vedtakRevurdering(
@@ -233,7 +255,7 @@ internal class ReguleringServiceImplTest {
             ).first
             val reguleringService = lagReguleringServiceImpl(sak)
 
-            reguleringService.startRegulering(1.mai(2021))
+            reguleringService.startAutomatiskRegulering(1.mai(2021))
                 .first() shouldBe KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(feil = Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig)
                 .left()
         }
@@ -318,7 +340,7 @@ internal class ReguleringServiceImplTest {
 
             val reguleringService = lagReguleringServiceImpl(revurdertSak, lagFeilutbetaling = true)
 
-            reguleringService.startRegulering(1.mai(2021)) shouldBe listOf(
+            reguleringService.startAutomatiskRegulering(1.mai(2021)) shouldBe listOf(
                 KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(
                     KunneIkkeFerdigstilleOgIverksette.KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling,
                 ).left(),
@@ -333,7 +355,7 @@ internal class ReguleringServiceImplTest {
             val sak = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(år(2021))).first
             val reguleringService = lagReguleringServiceImpl(sak)
 
-            val regulering = reguleringService.startRegulering(1.mai(2021)).first().getOrFail()
+            val regulering = reguleringService.startAutomatiskRegulering(1.mai(2021)).first().getOrFail()
             regulering.periode.fraOgMed shouldBe 1.mai(2021)
         }
 
@@ -347,7 +369,7 @@ internal class ReguleringServiceImplTest {
             ).first
             val reguleringService = lagReguleringServiceImpl(sak)
 
-            val regulering = reguleringService.startRegulering(1.mai(2021)).first().getOrFail()
+            val regulering = reguleringService.startAutomatiskRegulering(1.mai(2021)).first().getOrFail()
             regulering.periode.fraOgMed shouldBe 1.juni(2021)
         }
 
@@ -374,14 +396,14 @@ internal class ReguleringServiceImplTest {
             val (sak, regulering) = sakOgVedtak
 
             val reguleringService = lagReguleringServiceImpl(sak)
-            reguleringService.startRegulering(1.mai(2021)).first().getOrFail().let {
-                it.shouldBeInstanceOf<Regulering.OpprettetRegulering>()
+            reguleringService.startAutomatiskRegulering(1.mai(2021)).first().getOrFail().let {
+                it.shouldBeInstanceOf<OpprettetRegulering>()
                 shouldBeEqualToComparingFields(
                     regulering,
                     FieldsEqualityCheckConfig(
                         propertiesToExclude = listOf(
-                            Regulering.OpprettetRegulering::grunnlagsdataOgVilkårsvurderinger,
-                            Regulering.OpprettetRegulering::opprettet,
+                            OpprettetRegulering::grunnlagsdataOgVilkårsvurderinger,
+                            OpprettetRegulering::opprettet,
                         ),
                     ),
                 )
@@ -419,15 +441,15 @@ internal class ReguleringServiceImplTest {
             val (sak, regulering) = sakOgVedtak
 
             val reguleringService = lagReguleringServiceImpl(sak)
-            reguleringService.startRegulering(1.mai(2021)).first().getOrFail().let {
-                it.shouldBeInstanceOf<Regulering.OpprettetRegulering>()
+            reguleringService.startAutomatiskRegulering(1.mai(2021)).first().getOrFail().let {
+                it.shouldBeInstanceOf<OpprettetRegulering>()
                 it.shouldBeEqualToComparingFields(
                     regulering,
                     FieldsEqualityCheckConfig(
                         propertiesToExclude = listOf(
-                            Regulering.OpprettetRegulering::periode,
-                            Regulering.OpprettetRegulering::grunnlagsdataOgVilkårsvurderinger,
-                            Regulering.OpprettetRegulering::opprettet,
+                            OpprettetRegulering::periode,
+                            OpprettetRegulering::grunnlagsdataOgVilkårsvurderinger,
+                            OpprettetRegulering::opprettet,
                         ),
                     ),
                 )
@@ -449,7 +471,7 @@ internal class ReguleringServiceImplTest {
         val eventObserverMock: StatistikkEventObserver = mock()
         lagReguleringServiceImpl(sak).apply {
             addObserver(eventObserverMock)
-        }.startRegulering(1.mai(2021))
+        }.startAutomatiskRegulering(1.mai(2021))
 
         verify(eventObserverMock).handle(argThat { it.shouldBeTypeOf<StatistikkEvent.Stønadsvedtak>() })
     }
@@ -480,7 +502,13 @@ internal class ReguleringServiceImplTest {
                         (sak.vedtakListe.first() as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling).let { vedtak ->
                             vedtak.copy(
                                 behandling = vedtak.behandling.let {
-                                    it.copy(grunnlagsdata = it.grunnlagsdata.copy(fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 10000.0))))
+                                    it.copy(
+                                        grunnlagsdata = it.grunnlagsdata.copy(
+                                            fradragsgrunnlag = listOf(
+                                                fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 10000.0),
+                                            ),
+                                        ),
+                                    )
                                 },
                             )
                         },

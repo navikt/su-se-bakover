@@ -3,6 +3,9 @@ package no.nav.su.se.bakover.web.routes.regulering
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
+import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
+import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
@@ -62,9 +65,9 @@ internal fun Regulering.toJson(satsFactory: SatsFactory) = ReguleringJson(
         is Reguleringstype.MANUELL -> type.problemer.toJson()
     },
     reguleringsstatus = when (this) {
-        is Regulering.AvsluttetRegulering -> ReguleringJson.Status.AVSLUTTET
-        is Regulering.IverksattRegulering -> ReguleringJson.Status.IVERKSATT
-        is Regulering.OpprettetRegulering -> ReguleringJson.Status.OPPRETTET
+        is AvsluttetRegulering -> ReguleringJson.Status.AVSLUTTET
+        is IverksattRegulering -> ReguleringJson.Status.IVERKSATT
+        is OpprettetRegulering -> ReguleringJson.Status.OPPRETTET
     },
     erFerdigstilt = this.erFerdigstilt,
     periode = periode.toJson(),
@@ -75,8 +78,8 @@ internal fun Regulering.toJson(satsFactory: SatsFactory) = ReguleringJson(
     ),
     saksbehandler = saksbehandler.navIdent,
     avsluttet = when (this) {
-        is Regulering.AvsluttetRegulering -> ReguleringJson.Avsluttet(this.avsluttetTidspunkt)
-        is Regulering.IverksattRegulering, is Regulering.OpprettetRegulering -> null
+        is AvsluttetRegulering -> ReguleringJson.Avsluttet(this.avsluttetTidspunkt)
+        is IverksattRegulering, is OpprettetRegulering -> null
     },
     sakstype = sakstype.toJson(),
 )

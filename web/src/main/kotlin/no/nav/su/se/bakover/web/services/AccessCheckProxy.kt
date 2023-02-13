@@ -64,6 +64,8 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.PersonRepo
 import no.nav.su.se.bakover.domain.person.PersonService
+import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
+import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
@@ -1025,11 +1027,11 @@ open class AccessCheckProxy(
                 ) = kastKanKunKallesFraAnnenService()
             },
             reguleringService = object : ReguleringService {
-                override fun startRegulering(startDato: LocalDate): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
-                    return services.reguleringService.startRegulering(startDato)
+                override fun startAutomatiskRegulering(startDato: LocalDate): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
+                    return services.reguleringService.startAutomatiskRegulering(startDato)
                 }
 
-                override fun avslutt(reguleringId: UUID): Either<KunneIkkeAvslutte, Regulering.AvsluttetRegulering> {
+                override fun avslutt(reguleringId: UUID): Either<KunneIkkeAvslutte, AvsluttetRegulering> {
                     return services.reguleringService.avslutt(reguleringId)
                 }
 
@@ -1046,7 +1048,7 @@ open class AccessCheckProxy(
                     uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
                     fradrag: List<Grunnlag.Fradragsgrunnlag>,
                     saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<KunneIkkeRegulereManuelt, Regulering.IverksattRegulering> {
+                ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
                     return services.reguleringService.regulerManuelt(
                         reguleringId,
                         uføregrunnlag,

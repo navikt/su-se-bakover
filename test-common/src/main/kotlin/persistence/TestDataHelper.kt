@@ -44,7 +44,8 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
+import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -401,7 +402,7 @@ class TestDataHelper(
     fun persisterReguleringOpprettet(
         startDato: LocalDate = 1.mai(2021),
         clock: Clock = tikkendeFixedClock(),
-    ): Pair<Sak, Regulering.OpprettetRegulering> {
+    ): Pair<Sak, OpprettetRegulering> {
         return persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().first.let { sak ->
             sak.opprettEllerOppdaterRegulering(
                 startDato = startDato,
@@ -418,7 +419,7 @@ class TestDataHelper(
     fun persisterReguleringIverksatt(
         startDato: LocalDate = 1.mai(2021),
         clock: Clock = tikkendeFixedClock(),
-    ): Pair<Sak, Regulering.IverksattRegulering> {
+    ): Pair<Sak, IverksattRegulering> {
         return persisterReguleringOpprettet(
             startDato = startDato,
             clock = clock,

@@ -3,29 +3,14 @@ package no.nav.su.se.bakover.domain.regulering
 import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 
-sealed class Reguleringstype {
-    object AUTOMATISK : Reguleringstype() {
-        override fun toString(): String {
-            return "AUTOMATISK"
-        }
+sealed interface Reguleringstype {
+    object AUTOMATISK : Reguleringstype {
+        override fun toString() = "AUTOMATISK"
     }
 
-    data class MANUELL(val problemer: Set<ÅrsakTilManuellRegulering>) : Reguleringstype() {
-        override fun toString(): String {
-            return "MANUELL"
-        }
+    data class MANUELL(val problemer: Set<ÅrsakTilManuellRegulering>) : Reguleringstype {
+        override fun toString() = "MANUELL"
     }
-}
-
-enum class ÅrsakTilManuellRegulering {
-    FradragMåHåndteresManuelt,
-    YtelseErMidlertidigStanset,
-    ForventetInntektErStørreEnn0,
-    DelvisOpphør,
-    VedtakstidslinjeErIkkeSammenhengende,
-    PågåendeAvkortingEllerBehovForFremtidigAvkorting,
-    AvventerKravgrunnlag,
-    UtbetalingFeilet,
 }
 
 fun GjeldendeVedtaksdata.utledReguleringstype(): Reguleringstype {
