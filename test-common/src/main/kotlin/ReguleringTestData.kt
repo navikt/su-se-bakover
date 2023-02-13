@@ -8,7 +8,9 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
+import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
+import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
 import no.nav.su.se.bakover.domain.sak.Saksnummer
@@ -33,7 +35,7 @@ fun opprettetRegulering(
     saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(saksbehandlerNavn),
     reguleringstype: Reguleringstype = Reguleringstype.MANUELL(emptySet()),
     sakstype: Sakstype = Sakstype.UFØRE,
-) = Regulering.OpprettetRegulering(
+) = OpprettetRegulering( // TODO jah: Her omgår vi mye domenelogikk. Bør bruke Regulering.opprettRegulering(...) som tar utgangspunkt i en sak/gjeldendeVedtak.
     id = id,
     opprettet = opprettet,
     sakId = sakId,
@@ -63,7 +65,7 @@ fun iverksattAutomatiskRegulering(
     saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
     clock: Clock = fixedClock,
     sakstype: Sakstype = Sakstype.UFØRE,
-): Regulering.IverksattRegulering = opprettetRegulering(
+): IverksattRegulering = opprettetRegulering(
     id = id,
     sakId = sakId,
     reguleringsperiode = reguleringsperiode,
@@ -92,7 +94,7 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
         stønadsperiode.periode,
     ),
     clock: Clock = TikkendeKlokke(),
-): Pair<Sak, Regulering.OpprettetRegulering> {
+): Pair<Sak, OpprettetRegulering> {
     val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -114,7 +116,7 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
 fun stansetSøknadsbehandlingMedÅpenRegulering(
     regulerFraOgMed: LocalDate,
     clock: Clock = fixedClock,
-): Pair<Sak, Regulering.OpprettetRegulering> {
+): Pair<Sak, OpprettetRegulering> {
     val sakOgVedtak = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         clock = clock,
     )
@@ -140,7 +142,7 @@ fun innvilgetSøknadsbehandlingMedIverksattRegulering(
         stønadsperiode.periode,
     ),
     clock: Clock = TikkendeKlokke(),
-): Pair<Sak, Regulering.IverksattRegulering> {
+): Pair<Sak, IverksattRegulering> {
     val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -174,7 +176,7 @@ fun avsluttetRegulering(
     reguleringstype: Reguleringstype = Reguleringstype.MANUELL(emptySet()),
     sakstype: Sakstype = Sakstype.UFØRE,
     avsluttetTidspunkt: Clock = enUkeEtterFixedClock,
-): Regulering.AvsluttetRegulering {
+): AvsluttetRegulering {
     return opprettetRegulering(
         id = id,
         sakId = sakId,

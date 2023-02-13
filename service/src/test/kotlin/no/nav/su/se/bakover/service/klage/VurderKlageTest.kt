@@ -7,8 +7,8 @@ import no.nav.su.se.bakover.domain.klage.Hjemmel
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
-import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage

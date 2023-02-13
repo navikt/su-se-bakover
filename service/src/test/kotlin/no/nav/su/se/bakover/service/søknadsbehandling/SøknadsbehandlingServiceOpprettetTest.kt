@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandlin
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.NySøknadsbehandling
-import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail

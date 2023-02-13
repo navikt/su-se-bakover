@@ -45,7 +45,7 @@ internal fun Route.reguler(
             data class Request(val startDato: LocalDate)
             call.withBody<Request> {
                 CoroutineScope(Dispatchers.IO).launch {
-                    reguleringService.startRegulering(it.startDato)
+                    reguleringService.startAutomatiskRegulering(it.startDato)
                 }
                 call.svar(Resultat.okJson())
             }

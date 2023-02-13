@@ -28,6 +28,9 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
+import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
+import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
@@ -49,7 +52,7 @@ internal class ReguleringPostgresRepo(
         }
     }
 
-    override fun hentReguleringerSomIkkeErIverksatt(): List<Regulering.OpprettetRegulering> =
+    override fun hentReguleringerSomIkkeErIverksatt(): List<OpprettetRegulering> =
         dbMetrics.timeQuery("hentReguleringerSomIkkeErIverksatt") {
             sessionFactory.withSession { session ->
                 """ select * from regulering r left join sak s on r.sakid = s.id
@@ -57,7 +60,7 @@ internal class ReguleringPostgresRepo(
                 """.trimIndent().hentListe(
                     mapOf("reguleringstatus" to ReguleringStatus.OPPRETTET.toString()),
                     session,
-                ) { it.toRegulering(session) as Regulering.OpprettetRegulering }
+                ) { it.toRegulering(session) as OpprettetRegulering }
             }
         }
 
@@ -184,17 +187,17 @@ internal class ReguleringPostgresRepo(
                                 is Reguleringstype.MANUELL -> type.problemer.toList().serialize()
                             },
                             "reguleringStatus" to when (regulering) {
-                                is Regulering.IverksattRegulering -> ReguleringStatus.IVERKSATT
-                                is Regulering.OpprettetRegulering -> ReguleringStatus.OPPRETTET
-                                is Regulering.AvsluttetRegulering -> ReguleringStatus.AVSLUTTET
+                                is IverksattRegulering -> ReguleringStatus.IVERKSATT
+                                is OpprettetRegulering -> ReguleringStatus.OPPRETTET
+                                is AvsluttetRegulering -> ReguleringStatus.AVSLUTTET
                             }.toString(),
                             "avsluttet" to when (regulering) {
-                                is Regulering.AvsluttetRegulering -> {
+                                is AvsluttetRegulering -> {
                                     serialize(AvsluttetReguleringJson(regulering.avsluttetTidspunkt))
                                 }
 
-                                is Regulering.IverksattRegulering -> null
-                                is Regulering.OpprettetRegulering -> null
+                                is IverksattRegulering -> null
+                                is OpprettetRegulering -> null
                             },
                         ),
                         session,
@@ -294,7 +297,7 @@ internal class ReguleringPostgresRepo(
         avsluttetReguleringJson: AvsluttetReguleringJson?,
         sakstype: Sakstype,
     ): Regulering {
-        val opprettetRegulering = Regulering.OpprettetRegulering(
+        val opprettetRegulering = OpprettetRegulering(
             id = id,
             opprettet = opprettet,
             sakId = sakId,
@@ -311,13 +314,13 @@ internal class ReguleringPostgresRepo(
 
         return when (status) {
             ReguleringStatus.OPPRETTET -> opprettetRegulering
-            ReguleringStatus.IVERKSATT -> Regulering.IverksattRegulering(
+            ReguleringStatus.IVERKSATT -> IverksattRegulering(
                 opprettetRegulering = opprettetRegulering,
                 beregning = beregning!!,
                 simulering = simulering!!,
             )
 
-            ReguleringStatus.AVSLUTTET -> Regulering.AvsluttetRegulering(
+            ReguleringStatus.AVSLUTTET -> AvsluttetRegulering(
                 opprettetRegulering = opprettetRegulering,
                 avsluttetTidspunkt = avsluttetReguleringJson!!.tidspunkt,
             )

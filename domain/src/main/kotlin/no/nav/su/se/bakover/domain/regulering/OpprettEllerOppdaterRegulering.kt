@@ -23,8 +23,8 @@ fun Sak.opprettEllerOppdaterRegulering(
     // TODO jah: Bytt til YearMonth (Da slipper vi en unødvendig left)
     startDato: LocalDate,
     clock: Clock,
-): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering, Regulering.OpprettetRegulering> {
-    val (reguleringsId, opprettet, _startDato) = reguleringer.filterIsInstance<Regulering.OpprettetRegulering>()
+): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering, OpprettetRegulering> {
+    val (reguleringsId, opprettet, _startDato) = reguleringer.filterIsInstance<OpprettetRegulering>()
         .let { r ->
             when (r.size) {
                 0 -> Triple(UUID.randomUUID(), Tidspunkt.now(clock), startDato).also {

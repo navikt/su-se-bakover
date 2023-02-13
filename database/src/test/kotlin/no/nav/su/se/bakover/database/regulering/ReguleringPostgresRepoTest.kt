@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpForMåned
-import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.satser.Faktor
 import no.nav.su.se.bakover.domain.satser.FullSupplerendeStønadForMåned
 import no.nav.su.se.bakover.domain.satser.MinsteÅrligYtelseForUføretrygdedeForMåned
@@ -84,7 +84,7 @@ internal class ReguleringPostgresRepoTest {
             val repo = testDataHelper.reguleringRepo
 
             val (_, regulering) = testDataHelper.persisterReguleringOpprettet()
-            val avsluttetRegulering = Regulering.AvsluttetRegulering(regulering, fixedTidspunkt)
+            val avsluttetRegulering = AvsluttetRegulering(regulering, fixedTidspunkt)
 
             repo.lagre(avsluttetRegulering)
             repo.hent(avsluttetRegulering.id) shouldBe avsluttetRegulering

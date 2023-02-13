@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.grunnlag.krevAlleVilkårInnvilget
 import no.nav.su.se.bakover.domain.grunnlag.krevMinstEttAvslag
 import no.nav.su.se.bakover.domain.grunnlag.lagTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
@@ -161,7 +161,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         }
 
         fun from(
-            regulering: Regulering.IverksattRegulering,
+            regulering: IverksattRegulering,
             utbetalingId: UUID30,
             clock: Clock,
         ): EndringIYtelse.InnvilgetRegulering {
@@ -247,7 +247,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         data class InnvilgetRegulering(
             override val id: UUID,
             override val opprettet: Tidspunkt,
-            override val behandling: Regulering.IverksattRegulering,
+            override val behandling: IverksattRegulering,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestant: NavIdentBruker.Attestant,
             override val periode: Periode,

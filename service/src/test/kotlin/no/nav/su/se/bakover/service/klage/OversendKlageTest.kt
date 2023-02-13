@@ -24,8 +24,8 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
-import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage

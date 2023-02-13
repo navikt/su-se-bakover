@@ -45,8 +45,8 @@ sealed class KunneIkkeAvslutte {
 }
 
 interface ReguleringService {
-    fun startRegulering(startDato: LocalDate): List<Either<KunneIkkeOppretteRegulering, Regulering>>
-    fun avslutt(reguleringId: UUID): Either<KunneIkkeAvslutte, Regulering.AvsluttetRegulering>
+    fun startAutomatiskRegulering(startDato: LocalDate): List<Either<KunneIkkeOppretteRegulering, Regulering>>
+    fun avslutt(reguleringId: UUID): Either<KunneIkkeAvslutte, AvsluttetRegulering>
     fun hentStatus(): List<Pair<Regulering, List<ReguleringMerknad>>>
     fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer>
     fun regulerManuelt(
@@ -54,5 +54,5 @@ interface ReguleringService {
         uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
         fradrag: List<Grunnlag.Fradragsgrunnlag>,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeRegulereManuelt, Regulering.IverksattRegulering>
+    ): Either<KunneIkkeRegulereManuelt, IverksattRegulering>
 }

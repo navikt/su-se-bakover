@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.domain.vilkår.bosituasjon.BosituasjonValg
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.FullførBosituasjonRequest
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjonEpsGrunnlag
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.LeggTilBosituasjonEpsRequest
-import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer

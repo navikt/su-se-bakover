@@ -12,8 +12,8 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.avvistKlage
 import no.nav.su.se.bakover.test.avvistKlageTilAttestering
 import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage

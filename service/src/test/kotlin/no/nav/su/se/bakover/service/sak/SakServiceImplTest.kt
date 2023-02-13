@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
-import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjon
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.opprettetRevurdering

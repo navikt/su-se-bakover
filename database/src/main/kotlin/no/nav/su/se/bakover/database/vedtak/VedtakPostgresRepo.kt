@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsv
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -268,7 +269,7 @@ internal class VedtakPostgresRepo(
                 VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering(
                     id = id,
                     opprettet = opprettet,
-                    behandling = behandling as Regulering.IverksattRegulering,
+                    behandling = behandling as IverksattRegulering,
                     saksbehandler = saksbehandler,
                     attestant = attestant,
                     periode = periode!!,
