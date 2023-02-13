@@ -3,6 +3,13 @@
     <appender name="STDOUT_JSON" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <includeMdcKeyName>X-Correlation-ID</includeMdcKeyName>
+            <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                <!-- Making stacktraces shorter, because see https://doc.nais.io/observability/logs/examples#issues-with-long-log-messages -->
+                <maxDepthPerThrowable>30</maxDepthPerThrowable>
+                <maxLength>2048</maxLength>
+                <rootCauseFirst>true</rootCauseFirst>
+                <shortenedClassNameLength>20</shortenedClassNameLength>
+            </throwableConverter>
         </encoder>
     </appender>
 </included>
