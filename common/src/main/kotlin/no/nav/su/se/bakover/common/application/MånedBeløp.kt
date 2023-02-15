@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.common.application
 
+import no.nav.su.se.bakover.common.norwegianLocale
 import no.nav.su.se.bakover.common.periode.Måned
 import java.text.NumberFormat
 import java.time.LocalDate
-import java.util.Locale
 import kotlin.math.abs
 
 data class Månedsbeløp(
@@ -69,6 +69,6 @@ value class Beløp private constructor(
     }
 
     fun tusenseparert(): String {
-        return NumberFormat.getNumberInstance(Locale("nb", "NO")).format(value)
+        return NumberFormat.getNumberInstance(norwegianLocale).format(value)
     }
 }

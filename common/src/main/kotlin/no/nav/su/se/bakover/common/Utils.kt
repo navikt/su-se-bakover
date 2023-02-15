@@ -54,8 +54,9 @@ fun Tidspunkt.between(fraOgMed: Tidspunkt, tilOgMed: Tidspunkt) =
     (this == fraOgMed || this == tilOgMed) || this.instant.isAfter(fraOgMed.instant) && this.instant.isBefore(tilOgMed.instant)
 
 val ddMMyyyyFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+val norwegianLocale: Locale = Locale.of("nb", "NO")
 fun LocalDate.ddMMyyyy(): String = this.format(ddMMyyyyFormatter)
-fun LocalDate.toBrevformat(): String = this.format(DateTimeFormatter.ofPattern("d. LLLL yyyy", Locale("nb", "NO")))
+fun LocalDate.toBrevformat(): String = this.format(DateTimeFormatter.ofPattern("d. LLLL yyyy", norwegianLocale))
 fun ZonedDateTime.next(atTime: LocalTime): Date {
     return if (this.toLocalTime().isAfter(atTime)) {
         Date.from(

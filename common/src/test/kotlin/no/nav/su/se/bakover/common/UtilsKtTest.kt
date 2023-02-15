@@ -79,4 +79,24 @@ internal class UtilsKtTest {
         1.januar(2021).isEqualOrBefore(2.januar(2021)) shouldBe true
         2.januar(2021).isEqualOrBefore(1.januar(2021)) shouldBe false
     }
+
+    @Test
+    fun brevFormat() {
+        1.januar(2021).toBrevformat() shouldBe "1. januar 2021"
+        2.februar(2021).toBrevformat() shouldBe "2. februar 2021"
+        3.mars(2021).toBrevformat() shouldBe "3. mars 2021"
+        4.april(2021).toBrevformat() shouldBe "4. april 2021"
+        5.mai(2021).toBrevformat() shouldBe "5. mai 2021"
+        6.juni(2021).toBrevformat() shouldBe "6. juni 2021"
+        7.juli(2021).toBrevformat() shouldBe "7. juli 2021"
+        8.august(2021).toBrevformat() shouldBe "8. august 2021"
+        9.september(2021).toBrevformat() shouldBe "9. september 2021"
+        10.oktober(2021).toBrevformat() shouldBe "10. oktober 2021"
+        11.november(2021).toBrevformat() shouldBe "11. november 2021"
+        12.desember(2021).toBrevformat() shouldBe "12. desember 2021"
+
+        // Skuddår
+        29.februar(2020).toBrevformat() shouldBe "29. februar 2020"
+        29.februar(2024).toBrevformat() shouldBe "29. februar 2024"
+    }
 }
