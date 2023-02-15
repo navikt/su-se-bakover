@@ -117,7 +117,7 @@ class OppdaterStønadsperiodeTest {
         val søknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().second
 
         val serviceMock = mock<SøknadsbehandlingService> {
-            on { oppdaterStønadsperiode(any()) } doReturn Pair(søknadsbehandling, null).right()
+            on { oppdaterStønadsperiode(any()) } doReturn søknadsbehandling.right()
         }
 
         testApplication {

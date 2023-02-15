@@ -66,7 +66,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             aktørId = AktørId(aktørId = "123"),
         ),
         navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
-        fødsel = Person.Fødsel(
+        fødsel = Person.Fødsel.MedFødselsår(
             år = Year.of(1956),
         ),
     )

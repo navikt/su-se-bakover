@@ -57,7 +57,7 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
             verify(it.søknadsbehandlingRepo).defaultTransactionContext()
             verify(it.søknadsbehandlingRepo).lagre(
                 argThat {
-                    it shouldBe response.first
+                    it shouldBe response
                     it.stønadsperiode shouldBe nyStønadsperiode
                     it.vilkårsvurderinger.let { vilkårsvurderinger ->
                         vilkårsvurderinger.uføreVilkår()

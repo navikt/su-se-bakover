@@ -55,7 +55,7 @@ data class NySøknadsbehandling(
             oppgaveId = oppgaveId,
             fnr = fnr,
             fritekstTilBrev = "",
-            stønadsperiode = null,
+            aldersvurdering = null,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = when (sakstype) {
                 Sakstype.ALDER -> Vilkårsvurderinger.Søknadsbehandling.Alder.ikkeVurdert()

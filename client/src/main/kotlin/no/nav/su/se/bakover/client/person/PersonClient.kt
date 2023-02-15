@@ -128,10 +128,11 @@ internal class PersonClient(
         },
         kjønn = pdlData.kjønn,
         fødsel = pdlData.fødsel?.let {
-            Person.Fødsel(
-                dato = pdlData.fødsel.foedselsdato,
-                år = Year.of(pdlData.fødsel.foedselsaar),
-            )
+            if (it.foedselsdato != null) {
+                Person.Fødsel.MedFødselsdato(it.foedselsdato)
+            } else {
+                Person.Fødsel.MedFødselsår(Year.of(it.foedselsaar))
+            }
         },
         adressebeskyttelse = pdlData.adressebeskyttelse,
         skjermet = config.skjerming.erSkjermet(pdlData.ident.fnr),

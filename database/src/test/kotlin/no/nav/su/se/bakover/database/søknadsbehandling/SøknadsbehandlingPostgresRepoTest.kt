@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
@@ -354,7 +355,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 attesteringer = Attesteringshistorikk.empty()
                     .leggTilNyAttestering(attesteringIverksatt(clock = enUkeEtterFixedClock)),
                 fritekstTilBrev = "Dette er fritekst",
-                stønadsperiode = stønadsperiode2021,
+                aldersvurdering = Aldersvurdering.Historisk(stønadsperiode2021),
                 grunnlagsdata = iverksatt.grunnlagsdata,
                 vilkårsvurderinger = iverksatt.vilkårsvurderinger,
                 avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(

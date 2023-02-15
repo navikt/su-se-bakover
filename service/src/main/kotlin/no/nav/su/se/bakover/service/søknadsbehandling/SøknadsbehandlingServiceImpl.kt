@@ -61,7 +61,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.forsøkStatusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.medFritekstTilBrev
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
-import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.VurdertStønadsperiodeOppMotPersonsAlder
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.FullførBosituasjonRequest
@@ -348,7 +347,7 @@ class SøknadsbehandlingServiceImpl(
 
     override fun oppdaterStønadsperiode(
         request: OppdaterStønadsperiodeRequest,
-    ): Either<Sak.KunneIkkeOppdatereStønadsperiode, Pair<Søknadsbehandling.Vilkårsvurdert, VurdertStønadsperiodeOppMotPersonsAlder.RettPåUføre.SaksbehandlerMåKontrollereManuelt?>> {
+    ): Either<Sak.KunneIkkeOppdatereStønadsperiode, Søknadsbehandling.Vilkårsvurdert> {
         val sak =
             sakService.hentSak(request.sakId)
                 .getOrElse { throw IllegalArgumentException("Fant ikke sak ${request.sakId}") }
@@ -362,7 +361,7 @@ class SøknadsbehandlingServiceImpl(
             hentPerson = personService::hentPerson,
         ).map {
             søknadsbehandlingRepo.lagre(it.second)
-            Pair(it.second, it.third)
+            it.second
         }
     }
 

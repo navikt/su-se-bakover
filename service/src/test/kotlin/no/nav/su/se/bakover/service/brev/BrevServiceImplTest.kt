@@ -50,7 +50,7 @@ internal class BrevServiceImplTest {
                 aktørId = AktørId(aktørId = "123"),
             ),
             navn = Person.Navn(fornavn = "Tore", mellomnavn = null, etternavn = "Strømøy"),
-            fødsel = Person.Fødsel(
+            fødsel = Person.Fødsel.MedFødselsår(
                 år = Year.of(1956),
             ),
         )

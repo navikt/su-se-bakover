@@ -30,7 +30,7 @@ internal class AvvistSøknadBrevRequestTest {
             aktørId = AktørId(aktørId = "123"),
         ),
         navn = Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
-        fødsel = Person.Fødsel(
+        fødsel = Person.Fødsel.MedFødselsår(
             år = Year.of(1956),
         ),
     )

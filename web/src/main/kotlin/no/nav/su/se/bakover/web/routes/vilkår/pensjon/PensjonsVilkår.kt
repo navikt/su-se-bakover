@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.vilkår.alder
+package no.nav.su.se.bakover.web.routes.vilkår.pensjon
 
 import arrow.core.Either
 import arrow.core.flatMap

@@ -141,7 +141,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverkse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrollsamtaleVedNyStønadsperiodeService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.KunneIkkeAvslåSøknad
-import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.VurdertStønadsperiodeOppMotPersonsAlder
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
@@ -534,7 +533,7 @@ open class AccessCheckProxy(
                         return service.hent(request)
                     }
 
-                    override fun oppdaterStønadsperiode(request: SøknadsbehandlingService.OppdaterStønadsperiodeRequest): Either<Sak.KunneIkkeOppdatereStønadsperiode, Pair<Søknadsbehandling.Vilkårsvurdert, VurdertStønadsperiodeOppMotPersonsAlder.RettPåUføre.SaksbehandlerMåKontrollereManuelt?>> {
+                    override fun oppdaterStønadsperiode(request: SøknadsbehandlingService.OppdaterStønadsperiodeRequest): Either<Sak.KunneIkkeOppdatereStønadsperiode, Søknadsbehandling.Vilkårsvurdert> {
                         assertHarTilgangTilBehandling(request.behandlingId)
                         return service.oppdaterStønadsperiode(request)
                     }

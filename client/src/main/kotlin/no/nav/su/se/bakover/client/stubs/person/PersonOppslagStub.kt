@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Ident
+import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
@@ -37,9 +38,8 @@ object PersonOppslagStub :
         ),
         statsborgerskap = "NOR",
         kjønn = "MANN",
-        fødsel = Person.Fødsel(
-            dato = 1.januar(1990),
-            år = Year.of(1990),
+        fødsel = Person.Fødsel.MedFødselsdato(
+            dato = 31.august(1956),
         ),
         sivilstand = null,
         adressebeskyttelse = if (fnr.toString() == ApplicationConfig.fnrKode6()) "STRENGT_FORTROLIG_ADRESSE" else null,

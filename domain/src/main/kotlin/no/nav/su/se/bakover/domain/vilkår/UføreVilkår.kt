@@ -13,6 +13,10 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadspe
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import java.time.LocalDate
 
+const val uføretrygdMinsteAlder = 18
+const val uføretrygdMaxAlder = 67
+val uføretrygdAldersIntervall = uføretrygdMinsteAlder..uføretrygdMaxAlder
+
 sealed class UføreVilkår : Vilkår() {
     override val vilkår = Inngangsvilkår.Uførhet
     abstract val grunnlag: List<Grunnlag.Uføregrunnlag>

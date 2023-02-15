@@ -70,7 +70,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             oppgaveId = behandling.oppgaveId,
             fnr = behandling.fnr,
             fritekstTilBrev = behandling.fritekstTilBrev,
-            stønadsperiode = behandling.stønadsperiode,
+            aldersvurdering = behandling.aldersvurdering,
             grunnlagsdata = Grunnlagsdata.create(
                 fradragsgrunnlag = fradragsgrunnlag,
                 bosituasjon = behandling.grunnlagsdata.bosituasjon,

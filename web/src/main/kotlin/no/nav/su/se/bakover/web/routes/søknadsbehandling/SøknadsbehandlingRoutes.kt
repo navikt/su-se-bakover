@@ -109,11 +109,6 @@ internal fun Route.søknadsbehandlingRoutes(
         }
     }
 
-    data class StønadsperiodeJsonResponse(
-        val søknadsbehandling: BehandlingJson,
-        val måKontrolleres: Boolean,
-    )
-
     post("$behandlingPath/{behandlingId}/stønadsperiode") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
@@ -132,15 +127,12 @@ internal fun Route.søknadsbehandlingRoutes(
                             ).fold(
                                 { call.svar(it.tilResultat()) },
                                 {
-                                    call.audit(it.first.fnr, AuditLogEvent.Action.UPDATE, it.first.id)
+                                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                                     call.svar(
                                         Resultat.json(
                                             Created,
                                             serialize(
-                                                StønadsperiodeJsonResponse(
-                                                    søknadsbehandling = it.first.toJson(satsFactory),
-                                                    måKontrolleres = it.second !== null,
-                                                ),
+                                                it.toJson(satsFactory),
                                             ),
                                         ),
                                     )
@@ -394,14 +386,11 @@ internal fun Sak.KunneIkkeOppdatereStønadsperiode.tilResultat(): Resultat {
         }
 
         is Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode -> this.feil.tilResultat()
-        is Sak.KunneIkkeOppdatereStønadsperiode.ValideringsfeilAvStønadsperiodeOgPersonsAlder -> this.tilResultat()
-    }
-}
+        is Sak.KunneIkkeOppdatereStønadsperiode.FinnesOverlappendeÅpenBehandling -> BadRequest.errorJson(
+            "Stønadsperioden overlapper en annen åpen behandling.",
+            "stønadsperiode_overlapper_åpen_behandling",
+        )
 
-internal fun Sak.KunneIkkeOppdatereStønadsperiode.ValideringsfeilAvStønadsperiodeOgPersonsAlder.tilResultat(): Resultat {
-    // VurdertStønadsperiodeOppMotPersonsAlder.SøkerErForGammel
-    return BadRequest.errorJson(
-        "Søker er for gammel for hele stønadsperioden. fødselsår ${this.feil.vilkår.fødselsår}",
-        "søker_er_for_gammel",
-    )
+        else -> throw IllegalArgumentException("stfu")
+    }
 }
