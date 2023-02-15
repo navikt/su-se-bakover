@@ -158,7 +158,7 @@ subprojects {
 
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         kotlinOptions {
-            jvmTarget = "17"
+            jvmTarget = "19"
             freeCompilerArgs += "-progressive"
             allWarningsAsErrors = true
         }
@@ -166,7 +166,7 @@ subprojects {
 
     java {
         // Ensuring any java-files is also compiled with the preferred version.
-        toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+        toolchain.languageVersion.set(JavaLanguageVersion.of(19))
     }
 
     tasks.withType<Wrapper> {

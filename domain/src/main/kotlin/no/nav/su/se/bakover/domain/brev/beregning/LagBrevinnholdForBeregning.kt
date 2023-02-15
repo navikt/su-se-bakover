@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.domain.brev.beregning
 
+import no.nav.su.se.bakover.common.norwegianLocale
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlin.math.roundToInt
 import no.nav.su.se.bakover.domain.beregning.Beregning as FaktiskBeregning
 
@@ -25,7 +25,7 @@ data class LagBrevinnholdForBeregning(
             )
         }
 
-    private fun Periode.formaterForBrev() = DateTimeFormatter.ofPattern("LLLL yyyy", Locale("nb", "NO")).let {
+    private fun Periode.formaterForBrev() = DateTimeFormatter.ofPattern("LLLL yyyy", norwegianLocale).let {
         BrevPeriode(
             fraOgMed = it.format(this.fraOgMed),
             tilOgMed = it.format(this.tilOgMed),

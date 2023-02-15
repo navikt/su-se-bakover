@@ -1,4 +1,4 @@
-FROM ghcr.io/navikt/baseimages/temurin:17
+FROM ghcr.io/navikt/baseimages/temurin:19
 
 COPY init-scripts/* /init-scripts/
 COPY web/build/libs/*.jar ./

@@ -7,6 +7,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.application.Månedsbeløp
 import no.nav.su.se.bakover.common.ddMMyyyy
+import no.nav.su.se.bakover.common.norwegianLocale
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.toBrevformat
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
@@ -252,7 +253,7 @@ interface LagBrevRequest {
             personalia = lagPersonalia(),
             saksbehandlerNavn = saksbehandlerNavn,
             fritekst = fritekst,
-            bruttoTilbakekreving = NumberFormat.getNumberInstance(Locale("nb", "NO")).format(bruttoTilbakekreving),
+            bruttoTilbakekreving = NumberFormat.getNumberInstance(norwegianLocale).format(bruttoTilbakekreving),
             periodeStart = tilbakekreving.periodeStart,
             periodeSlutt = tilbakekreving.periodeSlutt,
             tilbakekreving = tilbakekreving.tilbakekrevingavdrag,
