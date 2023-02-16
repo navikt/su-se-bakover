@@ -31,7 +31,6 @@ data class UtløptFristForKontrollsamtaleContext(
     private val feilet: Set<Feilet>,
 ) : JobContext {
     private val logger = LoggerFactory.getLogger(this::class.java)
-    private val MAX_RETRIES = 2
 
     constructor(
         clock: Clock,
@@ -368,6 +367,8 @@ data class UtløptFristForKontrollsamtaleContext(
     )
 
     companion object {
+        const val MAX_RETRIES = 2
+
         fun genererId(fristUtløpDato: LocalDate): NameAndLocalDateId {
             return NameAndLocalDateId(
                 name = "HåndterUtløptFristForKontrollsamtale",
