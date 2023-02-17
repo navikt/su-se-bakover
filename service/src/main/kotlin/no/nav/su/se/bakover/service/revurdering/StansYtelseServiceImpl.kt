@@ -173,6 +173,7 @@ class StansYtelseServiceImpl(
                 is StansAvYtelseTransactionException -> {
                     it.feil
                 }
+
                 else -> {
                     KunneIkkeStanseYtelse.UkjentFeil(it.message.toString())
                 }
@@ -206,6 +207,7 @@ class StansYtelseServiceImpl(
                 is IverksettStansAvYtelseTransactionException -> {
                     it.feil
                 }
+
                 else -> {
                     KunneIkkeIverksetteStansYtelse.UkjentFeil(it.message.toString())
                 }
@@ -230,7 +232,21 @@ class StansYtelseServiceImpl(
 
         return when (revurdering) {
             is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {
-                if (sak.verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg(revurdering, clock).isLeft()) {
+                val gjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(
+                    sak = sak,
+                    fraOgMed = revurdering.periode.fraOgMed,
+                ).getOrElse { throw it.exception() }
+
+                val stansperiodeVedIverksettelse = gjeldendeVedtaksdata.garantertSammenhengendePeriode()
+                if (stansperiodeVedIverksettelse != revurdering.periode) {
+                    throw KunneIkkeIverksetteStansYtelse.DetHarKommetNyeOverlappendeVedtak.exception()
+                }
+                if (sak.verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg(
+                        periode = stansperiodeVedIverksettelse,
+                        eksisterendeVedtakSomRevurderesMånedsvis = revurdering.vedtakSomRevurderesMånedsvis,
+                        clock = clock,
+                    ).isLeft()
+                ) {
                     throw KunneIkkeIverksetteStansYtelse.DetHarKommetNyeOverlappendeVedtak.exception()
                 }
                 val iverksattRevurdering = revurdering.iverksett(

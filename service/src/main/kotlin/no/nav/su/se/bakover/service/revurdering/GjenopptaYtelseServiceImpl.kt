@@ -180,7 +180,22 @@ class GjenopptaYtelseServiceImpl(
 
         return when (revurdering) {
             is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> {
-                if (sak.verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg(revurdering, clock).isLeft()) {
+                val sisteVedtakPåTidslinje = sak.vedtakstidslinje().tidslinje.lastOrNull()
+                    ?: throw IllegalStateException("Fant siste vedtak på tidslinje ved iverksettelse av stans på sak ${sak.id}")
+                val gjeldendeVedtaksdata: GjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(
+                    sak = sak,
+                    fraOgMed = sisteVedtakPåTidslinje.periode.fraOgMed,
+                ).getOrElse { throw IllegalStateException("Fant ikke gjeldende vedtaksdata ved iverksettelse av stans på sak ${sak.id}") }
+                val stansperiodeVedIverksettelse = gjeldendeVedtaksdata.garantertSammenhengendePeriode()
+                if (stansperiodeVedIverksettelse != revurdering.periode) {
+                    return KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.DetHarKommetNyeOverlappendeVedtak.left()
+                }
+                if (sak.verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg(
+                        periode = stansperiodeVedIverksettelse,
+                        eksisterendeVedtakSomRevurderesMånedsvis = revurdering.vedtakSomRevurderesMånedsvis,
+                        clock = clock,
+                    ).isLeft()
+                ) {
                     return KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.DetHarKommetNyeOverlappendeVedtak.left()
                 }
                 val iverksattRevurdering = revurdering.iverksett(
