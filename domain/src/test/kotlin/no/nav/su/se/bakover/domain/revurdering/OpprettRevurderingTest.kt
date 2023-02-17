@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.domain.revurdering.avkorting.KanIkkeRevurderePgaAvko
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.oppdater.oppdaterRevurdering
-import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
@@ -64,7 +63,7 @@ internal class OpprettRevurderingTest {
     }
 
     @Test
-    fun `kan ikke opprette revurdering dersom det finnes en åpen revurdering`() {
+    fun `kan opprette revurdering dersom det finnes en åpen revurdering`() {
         val sakMedÅpenRevurdering = opprettetRevurdering().first
 
         sakMedÅpenRevurdering.opprettRevurdering(
@@ -77,11 +76,11 @@ internal class OpprettRevurderingTest {
                 begrunnelse = "begrunnelsen",
             ),
             clock = fixedClock,
-        ) shouldBe KunneIkkeOppretteRevurdering.HarÅpenBehandling.left()
+        ).shouldBeRight()
     }
 
     @Test
-    fun `kan ikke opprette revurdering dersom det finnes en åpen regulering`() {
+    fun `kan opprette revurdering dersom det finnes en åpen regulering`() {
         val sakMedÅpenRegulering = innvilgetSøknadsbehandlingMedÅpenRegulering(1.mai(2021)).first
         sakMedÅpenRegulering.opprettRevurdering(
             command = OpprettRevurderingCommand(
@@ -93,7 +92,7 @@ internal class OpprettRevurderingTest {
                 begrunnelse = "begrunnelsen",
             ),
             clock = fixedClock,
-        ) shouldBe KunneIkkeOppretteRevurdering.HarÅpenBehandling.left()
+        ).shouldBeRight()
     }
 
     @Test

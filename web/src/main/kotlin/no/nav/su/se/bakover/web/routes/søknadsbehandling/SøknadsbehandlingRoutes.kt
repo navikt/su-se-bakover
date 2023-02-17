@@ -395,10 +395,6 @@ internal fun Sak.KunneIkkeOppdatereStønadsperiode.tilResultat(): Resultat {
 
         is Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode -> this.feil.tilResultat()
         is Sak.KunneIkkeOppdatereStønadsperiode.ValideringsfeilAvStønadsperiodeOgPersonsAlder -> this.tilResultat()
-        is Sak.KunneIkkeOppdatereStønadsperiode.FinnesOverlappendeÅpenBehandling -> BadRequest.errorJson(
-            "Stønadsperioden overlapper en annen åpen behandling.",
-            "stønadsperiode_overlapper_åpen_behandling",
-        )
     }
 }
 

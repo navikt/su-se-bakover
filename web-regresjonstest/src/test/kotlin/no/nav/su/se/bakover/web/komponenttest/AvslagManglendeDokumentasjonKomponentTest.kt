@@ -87,7 +87,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
                     avslag.vilkårsvurderinger.vurdering shouldBe Vilkårsvurderingsresultat.Avslag(
                         setOf(avslag.vilkårsvurderinger.opplysningspliktVilkår()),
                     )
-                    appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Sak(avslag.sakId))
+                    appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForSak(avslag.sakId))
                         .let { dokumenter ->
                             dokumenter.single().let {
                                 it.tittel shouldBe "Avslag supplerende stønad"
@@ -175,7 +175,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
                         avslag.vilkårsvurderinger.vurdering shouldBe Vilkårsvurderingsresultat.Avslag(
                             setOf(avslag.vilkårsvurderinger.opplysningspliktVilkår()),
                         )
-                        appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Sak(avslag.sakId))
+                        appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForSak(avslag.sakId))
                             .let { dokumenter ->
                                 dokumenter.single().let {
                                     it.tittel shouldBe "Avslag supplerende stønad"

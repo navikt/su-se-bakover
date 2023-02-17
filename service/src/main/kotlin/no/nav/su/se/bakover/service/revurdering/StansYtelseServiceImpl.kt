@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerStansFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
+import no.nav.su.se.bakover.domain.revurdering.iverksett.verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.revurderes.toVedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.stans.IverksettStansAvYtelseITransaksjonResponse
@@ -92,6 +93,7 @@ class StansYtelseServiceImpl(
                             grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                             vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
                             tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(request.fraOgMed)!!.id,
+                            vedtakSomRevurderesMånedsvis = gjeldendeVedtaksdata.toVedtakSomRevurderesMånedsvis(),
                             saksbehandler = request.saksbehandler,
                             simulering = simulertUtbetaling.simulering,
                             revurderingsårsak = request.revurderingsårsak,
@@ -108,10 +110,9 @@ class StansYtelseServiceImpl(
                     sessionContext = transactionContext,
                 ).getOrElse { throw KunneIkkeStanseYtelse.FantIkkeSak.exception() }
 
-                if (sak.harÅpenBehandling()) {
-                    throw KunneIkkeStanseYtelse.SakHarÅpenBehandling.exception()
+                if (sak.harÅpenStansbehandling()) {
+                    throw KunneIkkeStanseYtelse.FinnesÅpenStansbehandling.exception()
                 }
-
                 val gjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(
                     sak = sak,
                     fraOgMed = request.fraOgMed,
@@ -229,6 +230,9 @@ class StansYtelseServiceImpl(
 
         return when (revurdering) {
             is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {
+                if (sak.verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg(revurdering, clock).isLeft()) {
+                    throw KunneIkkeIverksetteStansYtelse.DetHarKommetNyeOverlappendeVedtak.exception()
+                }
                 val iverksattRevurdering = revurdering.iverksett(
                     Attestering.Iverksatt(
                         attestant = attestant,

@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeSimulereGjenopptakAvYtelse
+import no.nav.su.se.bakover.domain.revurdering.iverksett.verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.revurderes.toVedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -103,10 +104,9 @@ class GjenopptaYtelseServiceImpl(
                 }
 
                 is GjenopptaYtelseRequest.Opprett -> {
-                    if (sak.harÅpenBehandling()) {
-                        return KunneIkkeSimulereGjenopptakAvYtelse.SakHarÅpenBehandling.left()
+                    if (sak.harÅpenGjenopptaksbehandling()) {
+                        return KunneIkkeSimulereGjenopptakAvYtelse.FinnesÅpenGjenopptaksbehandling.left()
                     }
-
                     val gjeldendeVedtaksdata: GjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(
                         sak = sak,
                         fraOgMed = sisteVedtakPåTidslinje.periode.fraOgMed,
@@ -180,6 +180,9 @@ class GjenopptaYtelseServiceImpl(
 
         return when (revurdering) {
             is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> {
+                if (sak.verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg(revurdering, clock).isLeft()) {
+                    return KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.DetHarKommetNyeOverlappendeVedtak.left()
+                }
                 val iverksattRevurdering = revurdering.iverksett(
                     Attestering.Iverksatt(
                         attestant,

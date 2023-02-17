@@ -45,7 +45,7 @@ class ForhåndsvarselKomponentTest {
                 client = this.client,
             )
 
-            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Revurdering(UUID.fromString(revurderingId))).let {
+            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForRevurdering(UUID.fromString(revurderingId))).let {
                 it shouldHaveSize 2
                 it.forEach { dokument ->
                     dokument.shouldBeType<Dokument.MedMetadata.Informasjon.Viktig>().let { forhåndsvarsel ->

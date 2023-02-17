@@ -60,7 +60,6 @@ import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
@@ -92,17 +91,6 @@ internal class StansAvYtelseServiceTest {
             },
         ).let {
             it.stansYtelseService.stansAvYtelse(defaultOpprettRequest()) shouldBe KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering.left()
-        }
-    }
-
-    @Test
-    fun `får ikke opprettet dersom sak har åpen behandling`() {
-        ServiceMocks(
-            sakService = mock {
-                on { hentSak(any<UUID>(), any()) } doReturn søknadsbehandlingVilkårsvurdertUavklart().first.right()
-            },
-        ).let {
-            it.stansYtelseService.stansAvYtelse(defaultOpprettRequest()) shouldBe KunneIkkeStanseYtelse.SakHarÅpenBehandling.left()
         }
     }
 
@@ -483,19 +471,6 @@ internal class StansAvYtelseServiceTest {
                 simuleringsperiode = any(),
             )
             it.verifyNoMoreInteractions()
-        }
-    }
-
-    @Test
-    fun `får ikke opprettet ny hvis det allerede eksisterer åpen revurdering for stans`() {
-        ServiceMocks(
-            sakService = mock {
-                on { hentSak(any<UUID>(), any()) } doReturn simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-                    periode = år(2021),
-                ).first.right()
-            },
-        ).let {
-            it.stansYtelseService.stansAvYtelse(defaultOpprettRequest()) shouldBe KunneIkkeStanseYtelse.SakHarÅpenBehandling.left()
         }
     }
 

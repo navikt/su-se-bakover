@@ -38,12 +38,8 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.innvilgetSøknadsbehandlingMedIverksattRegulering
-import no.nav.su.se.bakover.test.innvilgetSøknadsbehandlingMedÅpenRegulering
-import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
-import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -74,24 +70,6 @@ internal class SakTest {
         val sakUtenÅpenBehandling = iverksattSøknadsbehandlingUføre().first
         sakUtenÅpenBehandling.hentÅpneSøknadsbehandlinger().shouldBeEmpty()
         sakUtenÅpenBehandling.harÅpenSøknadsbehandling() shouldBe false
-    }
-
-    @Test
-    fun `henter åpne revurderinger`() {
-        val sakMedÅpenBehandling = opprettetRevurdering().first
-        sakMedÅpenBehandling.hentÅpneRevurderinger().shouldNotBeEmpty()
-
-        val sakUtenÅpenBehandling = iverksattRevurdering().first
-        sakUtenÅpenBehandling.hentÅpneRevurderinger().shouldBeEmpty()
-    }
-
-    @Test
-    fun `henter åpne reguleringer`() {
-        val sakMedÅpenBehandling = innvilgetSøknadsbehandlingMedÅpenRegulering(1.mai(2021)).first
-        sakMedÅpenBehandling.hentÅpneReguleringer().shouldNotBeEmpty()
-
-        val sakUtenÅpenBehandling = innvilgetSøknadsbehandlingMedIverksattRegulering().first
-        sakUtenÅpenBehandling.hentÅpneReguleringer().shouldBeEmpty()
     }
 
     @Nested

@@ -11,7 +11,7 @@ import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.harAlleredeÅpenBehandling
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.detHarKommetNyeOverlappendeVedtak
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.lagringFeilet
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
@@ -166,8 +166,12 @@ private fun KunneIkkeSimulereGjenopptakAvYtelse.tilResultat(): Resultat {
         }
 
         KunneIkkeSimulereGjenopptakAvYtelse.FantIkkeSak -> fantIkkeSak
-        KunneIkkeSimulereGjenopptakAvYtelse.SakHarÅpenBehandling -> {
-            harAlleredeÅpenBehandling
+
+        KunneIkkeSimulereGjenopptakAvYtelse.FinnesÅpenGjenopptaksbehandling -> {
+            BadRequest.errorJson(
+                message = "Finnes allerede en åpen gjenopptaksbehandling.",
+                code = "finnes_åpen_gjenopptaksbehandling",
+            )
         }
     }
 }
@@ -204,9 +208,9 @@ private fun KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.tilResultat(): R
             )
         }
 
-        KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.LagringFeilet -> {
-            lagringFeilet
-        }
+        KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.LagringFeilet -> lagringFeilet
+
+        KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.DetHarKommetNyeOverlappendeVedtak -> detHarKommetNyeOverlappendeVedtak
     }
 }
 

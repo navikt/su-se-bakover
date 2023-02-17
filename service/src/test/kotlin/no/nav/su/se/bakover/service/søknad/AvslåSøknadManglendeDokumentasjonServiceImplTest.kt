@@ -397,7 +397,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     fritekstTilBrev = "fritekstTilBrev",
                 ),
             ) shouldBe KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling(
-                Sak.KunneIkkeOppretteSøknadsbehandling.HarÅpenBehandling,
+                Sak.KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling,
             ).left()
 
             verify(it.sakService).hentSakForSøknad(nySøknad.id)

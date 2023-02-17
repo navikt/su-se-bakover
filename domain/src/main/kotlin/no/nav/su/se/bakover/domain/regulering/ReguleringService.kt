@@ -24,7 +24,6 @@ sealed class KunneIkkeRegulereManuelt {
     object StansetYtelseMåStartesFørDenKanReguleres : KunneIkkeRegulereManuelt()
     object AvventerKravgrunnlag : KunneIkkeRegulereManuelt()
     object HarPågåendeEllerBehovForAvkorting : KunneIkkeRegulereManuelt()
-    object HarÅpenBehandling : KunneIkkeRegulereManuelt()
     data class KunneIkkeFerdigstille(val feil: KunneIkkeFerdigstilleOgIverksette) : KunneIkkeRegulereManuelt()
 }
 

@@ -47,7 +47,6 @@ import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
-import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
@@ -86,27 +85,6 @@ internal class GjenopptakAvYtelseServiceTest {
             },
         ).let {
             it.revurderingService.gjenopptaYtelse(defaultOpprettRequest()) shouldBe KunneIkkeSimulereGjenopptakAvYtelse.FantIngenVedtak.left()
-        }
-    }
-
-    @Test
-    fun `svarer med feil dersom sak har åpen behandling`() {
-        val tikkendeKlokke = TikkendeKlokke(1.januar(2022).fixedClock())
-        val (sak, stans) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-            clock = tikkendeKlokke,
-        )
-
-        ServiceMocks(
-            sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn opprettetRevurdering(
-                    revurderingsperiode = mai(2022),
-                    sakOgVedtakSomKanRevurderes = sak to stans,
-                    clock = tikkendeKlokke,
-                ).first.right()
-            },
-            clock = tikkendeKlokke,
-        ).let {
-            it.revurderingService.gjenopptaYtelse(defaultOpprettRequest()) shouldBe KunneIkkeSimulereGjenopptakAvYtelse.SakHarÅpenBehandling.left()
         }
     }
 
@@ -400,22 +378,6 @@ internal class GjenopptakAvYtelseServiceTest {
                 simuleringsperiode = any(),
             )
             it.verifyNoMoreInteractions()
-        }
-    }
-
-    @Test
-    fun `får ikke opprettet ny hvis det allerede eksisterer åpen revurdering for gjenopptak`() {
-        val (sak, _) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse()
-
-        ServiceMocks(
-            sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn sak.right()
-            },
-            vedtakRepo = mock {
-                on { hentForSakId(any()) } doReturn sak.vedtakListe
-            },
-        ).let {
-            it.revurderingService.gjenopptaYtelse(defaultOpprettRequest()) shouldBe KunneIkkeSimulereGjenopptakAvYtelse.SakHarÅpenBehandling.left()
         }
     }
 
