@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.client
 
-import no.nav.su.se.bakover.client.azure.AzureAd
+import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher

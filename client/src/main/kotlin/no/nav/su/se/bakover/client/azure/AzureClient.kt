@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.client.azure
 
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.fuel.httpPost
+import no.nav.su.se.bakover.common.auth.AzureAd
 import org.json.JSONObject
 
 internal class AzureClient(

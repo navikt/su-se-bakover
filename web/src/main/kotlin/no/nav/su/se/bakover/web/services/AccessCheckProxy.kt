@@ -200,7 +200,9 @@ import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import java.time.Clock
 import java.time.LocalDate
+import java.time.Year
 import java.util.UUID
 
 open class AccessCheckProxy(
@@ -1077,7 +1079,9 @@ open class AccessCheckProxy(
                 }
             },
             skatteService = object : SkatteService {
-                override fun hentSamletSkattegrunnlag(fnr: Fnr): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag> {
+                override fun hentSamletSkattegrunnlag(
+                    fnr: Fnr,
+                ): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag> {
                     assertHarTilgangTilPerson(fnr)
                     return services.skatteService.hentSamletSkattegrunnlag(fnr)
                 }

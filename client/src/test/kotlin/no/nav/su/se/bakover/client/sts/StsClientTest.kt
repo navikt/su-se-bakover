@@ -7,12 +7,13 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.AccessToken
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
+import no.nav.su.se.bakover.common.suSeBakoverConsumerId
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Clock
 
 internal class StsClientTest : WiremockBase {
-    private val username = "srvsupstonad"
+    private val username = suSeBakoverConsumerId
     private val password = "supersecret"
 
     @Test

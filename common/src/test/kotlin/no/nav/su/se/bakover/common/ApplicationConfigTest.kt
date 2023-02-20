@@ -99,7 +99,10 @@ class ApplicationConfigTest {
                 jwksUri = "maskinporten_jwks_uri",
                 tokenEndpoint = "maskinporten_token_endpoint",
             ),
-            skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(apiUri = "https://api-test.sits.no"),
+            skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(
+                apiBaseUrl = "https://api-test.sits.no",
+                consumerId = suSeBakoverConsumerId,
+            ),
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(
@@ -312,7 +315,7 @@ class ApplicationConfigTest {
                         jwksUri = "mocked",
                         tokenEndpoint = "mocked",
                     ),
-                    skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(apiUri = "mocked"),
+                    skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(apiBaseUrl = "mocked"),
                 ),
                 kafkaConfig = ApplicationConfig.KafkaConfig(
                     producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap())),

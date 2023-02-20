@@ -6,6 +6,7 @@ import io.github.cdimascio.dotenv.dotenv
 import no.nav.su.se.bakover.common.EnvironmentConfig.getEnvironmentVariableOrDefault
 import no.nav.su.se.bakover.common.EnvironmentConfig.getEnvironmentVariableOrNull
 import no.nav.su.se.bakover.common.EnvironmentConfig.getEnvironmentVariableOrThrow
+import no.nav.su.se.bakover.common.auth.AzureAd
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -474,14 +475,23 @@ data class ApplicationConfig(
         }
 
         data class SkatteetatenConfig(
-            val apiUri: String,
-
+            val apiBaseUrl: String,
+            val consumerId: String,
+            val rettighetspakke: String = "navSupplerendeStoenad",
         ) {
             companion object {
-                fun createFromEnvironmentVariables() =
-                    SkatteetatenConfig(getEnvironmentVariableOrDefault("SKATTEETATEN_URL", "https://api-test.sits.no"))
+                fun createFromEnvironmentVariables(): SkatteetatenConfig {
+                    val apiBaseUrl = getEnvironmentVariableOrThrow("SKATTEETATEN_URL")
+                    return SkatteetatenConfig(
+                        apiBaseUrl = apiBaseUrl,
+                        consumerId = NavIdentBruker.Saksbehandler.systembruker().toString(),
+                    )
+                }
 
-                fun createLocalConfig() = SkatteetatenConfig("mocked")
+                fun createLocalConfig() = SkatteetatenConfig(
+                    apiBaseUrl = "mocked",
+                    consumerId = NavIdentBruker.Saksbehandler.systembruker().toString()
+                )
             }
         }
 

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.brev
 
+import no.nav.su.se.bakover.common.suSeBakoverConsumerId
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 
 internal data class BrevvalgRevurderingDbJson(
@@ -15,7 +16,7 @@ internal enum class BrevvalgRevurderingDbType {
     ;
 }
 
-private val SYSTEMBRUKER_DB = "srvsupstonad"
+private val SYSTEMBRUKER_DB = suSeBakoverConsumerId
 
 internal fun BrevvalgRevurdering.toDb(): BrevvalgRevurderingDbJson {
     return when (this) {

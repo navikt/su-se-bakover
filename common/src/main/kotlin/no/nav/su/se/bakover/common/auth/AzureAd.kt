@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.client.azure
+package no.nav.su.se.bakover.common.auth
 
 import org.json.JSONObject
 

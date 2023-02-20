@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.client.AccessToken
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.argThat
-import no.nav.su.se.bakover.client.azure.AzureAd
+import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.application.journal.JournalpostId

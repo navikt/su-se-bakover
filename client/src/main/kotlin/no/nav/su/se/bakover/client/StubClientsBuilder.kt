@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.client.stubs.person.IdentClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.suSeBakoverConsumerId
 import no.nav.su.se.bakover.common.infrastructure.nais.LeaderPodLookup
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
@@ -76,7 +77,7 @@ class StubClientsBuilder(
             },
             dokArkiv = DokArkivStub.also { log.warn("********** Using stub for ${DokArkiv::class.java} **********") },
             oppgaveClient = OppgaveClientStub.also { log.warn("********** Using stub for ${OppgaveClient::class.java} **********") },
-            kodeverk = KodeverkHttpClient(applicationConfig.clientsConfig.kodeverkUrl, "srvsupstonad"),
+            kodeverk = KodeverkHttpClient(applicationConfig.clientsConfig.kodeverkUrl, suSeBakoverConsumerId),
             simuleringClient = SimuleringStub(
                 clock = clock,
                 utbetalingerKjørtTilOgMed = LocalDate.now(clock),

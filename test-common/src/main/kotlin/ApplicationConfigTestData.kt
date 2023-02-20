@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.suSeBakoverConsumerId
 
 fun applicationConfig() = ApplicationConfig(
     runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Test,
@@ -89,7 +90,10 @@ fun applicationConfig() = ApplicationConfig(
             jwksUri = "maskinportenJwksUri",
             tokenEndpoint = "maskinporteTokenEndpointn",
         ),
-        skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(apiUri = "a"),
+        skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(
+            apiBaseUrl = "a",
+            consumerId = suSeBakoverConsumerId,
+        ),
     ),
     kafkaConfig = ApplicationConfig.KafkaConfig(
         producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()),
