@@ -6,8 +6,5 @@ import no.nav.su.se.bakover.common.Tidspunkt
  * En avgjørelse som er knyttet til [Aldersvurdering.Vurdert]
  */
 sealed interface SaksbehandlersAvgjørelse {
-
-    object TrengerIkkeAvgjørelse : SaksbehandlersAvgjørelse
-
     data class Avgjort(val tidspunkt: Tidspunkt) : SaksbehandlersAvgjørelse
 }

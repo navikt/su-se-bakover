@@ -128,9 +128,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     ),
                 ),
                 fritekstTilBrev = "fritekstTilBrev",
-                aldersvurdering = Aldersvurdering.Historisk(Stønadsperiode.create(
-                    periode = expectedPeriode,
-                )),
+                aldersvurdering = Aldersvurdering.SkalIkkeVurderes(Stønadsperiode.create(expectedPeriode)),
                 grunnlagsdata = uavklart.grunnlagsdata,
                 vilkårsvurderinger = uavklart.vilkårsvurderinger.leggTil(
                     OpplysningspliktVilkår.Vurdert.tryCreate(

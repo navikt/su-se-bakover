@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.BeregningJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.StønadsperiodeJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.OppdaterStønadsperiodeRequest
 import java.util.UUID
 
 internal data class BehandlingJson(
@@ -17,7 +17,7 @@ internal data class BehandlingJson(
     val saksbehandler: String,
     val fritekstTilBrev: String,
     val sakId: UUID,
-    val stønadsperiode: StønadsperiodeJson?,
+    val stønadsperiode: OppdaterStønadsperiodeRequest.Companion.StønadsperiodeJson?,
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
     val erLukket: Boolean,
     val simuleringForAvkortingsvarsel: SimuleringJson?,

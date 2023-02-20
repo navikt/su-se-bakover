@@ -62,7 +62,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.UnderkjennRequest
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.sak.sakPath
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.StønadsperiodeJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.OppdaterStønadsperiodeRequest
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.opprett.tilResultat
 import no.nav.su.se.bakover.web.routes.tilResultat
 import org.slf4j.LoggerFactory
@@ -113,16 +113,17 @@ internal fun Route.søknadsbehandlingRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
-                    call.withBody<StønadsperiodeJson> { body ->
-                        body.toStønadsperiode().onLeft {
+                    call.withBody<OppdaterStønadsperiodeRequest> { body ->
+                        body.toDomain(clock).onLeft {
                             call.svar(it)
-                        }.onRight { stønadsperiode ->
+                        }.onRight { partialOppdaterRequest ->
                             søknadsbehandlingService.oppdaterStønadsperiode(
                                 SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
                                     behandlingId = behandlingId,
-                                    stønadsperiode = stønadsperiode,
+                                    stønadsperiode = partialOppdaterRequest.stønadsperiode,
                                     sakId = sakId,
                                     saksbehandler = call.suUserContext.saksbehandler,
+                                    saksbehandlersAvgjørelse = partialOppdaterRequest.saksbehandlersAvgjørelse,
                                 ),
                             ).fold(
                                 { call.svar(it.tilResultat()) },

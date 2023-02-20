@@ -27,12 +27,12 @@ internal class AldersvurderingJson(
     ): Aldersvurdering {
         val aldersinformasjon = Aldersinformasjon.createFromExisting(
             alder = alder,
-            alderSøkerFyllerIÅr = alderSøkerFyllerIÅr?.let { Year.of(it) },
+            alderSøkerFyllerIÅr = alderSøkerFyllerIÅr,
             alderPåTidspunkt = alderPåTidspunkt,
         )
         val saksbehandlersAvgjørelse = when (saksbehandlerTattEnAvgjørelse) {
             true -> SaksbehandlersAvgjørelse.Avgjort(avgjørelsesTidspunkt!!)
-            false -> SaksbehandlersAvgjørelse.TrengerIkkeAvgjørelse
+            false -> null
         }
         return when (vurdering) {
             Vurdering.INNVILGET_MED_FØDSELSDATO -> Aldersvurdering.Vurdert(
@@ -125,15 +125,15 @@ internal class AldersvurderingJson(
                     fødselsdato = fødselsdato.toString(),
                     fødselsår = fødselsår?.value,
                     alder = aldersinformasjon.alder,
-                    alderSøkerFyllerIÅr = aldersinformasjon.alderSøkerFyllerIÅr?.value,
+                    alderSøkerFyllerIÅr = aldersinformasjon.alderSøkerFyllerIÅr,
                     alderPåTidspunkt = aldersinformasjon.alderPåTidspunkt,
                     saksbehandlerTattEnAvgjørelse = when (saksbehandlersAvgjørelse) {
                         is SaksbehandlersAvgjørelse.Avgjort -> true
-                        SaksbehandlersAvgjørelse.TrengerIkkeAvgjørelse -> false
+                        null -> false
                     },
                     avgjørelsesTidspunkt = when (saksbehandlersAvgjørelse) {
                         is SaksbehandlersAvgjørelse.Avgjort -> (saksbehandlersAvgjørelse as SaksbehandlersAvgjørelse.Avgjort).tidspunkt
-                        SaksbehandlersAvgjørelse.TrengerIkkeAvgjørelse -> null
+                        null -> null
                     },
                 )
             }.let { serialize(it) }

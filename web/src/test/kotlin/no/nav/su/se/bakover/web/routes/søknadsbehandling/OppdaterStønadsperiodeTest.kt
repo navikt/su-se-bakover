@@ -36,7 +36,12 @@ class OppdaterStønadsperiodeTest {
                 url,
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody("""{"periode": {"fraOgMed": "2019-01-01", "tilOgMed": "2021-12-31"}, "begrunnelse": "begrunnelsen"}""")
+                setBody(
+                    //language=JSON
+                    """
+                        {"periode": {"fraOgMed": "2019-01-01", "tilOgMed": "2021-12-31"}, "begrunnelse": "begrunnelsen", "harSaksbehandlerAvgjort": false}
+                    """.trimIndent(),
+                )
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
                 bodyAsText() shouldContain "En stønadsperiode kan ikke starte før 2021"
@@ -53,7 +58,12 @@ class OppdaterStønadsperiodeTest {
                 url,
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody("""{"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2022-12-31"}, "begrunnelse": "begrunnelsen"}""")
+                setBody(
+                    //language=JSON
+                    """
+                        {"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2022-12-31"}, "begrunnelse": "begrunnelsen", "harSaksbehandlerAvgjort": false}
+                    """.trimIndent(),
+                )
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
                 bodyAsText() shouldContain "En stønadsperiode kan være maks 12 måneder"
@@ -70,7 +80,12 @@ class OppdaterStønadsperiodeTest {
                 url,
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody("""{"periode": {"fraOgMed": "2021-01-15", "tilOgMed": "2021-12-31"}, "begrunnelse": "begrunnelsen"}""")
+                setBody(
+                    //language=JSON
+                    """{"periode": {"fraOgMed": "2021-01-15", "tilOgMed": "2021-12-31"}, "begrunnelse": "begrunnelsen", "harSaksbehandlerAvgjort": false}
+                        
+                    """.trimIndent(),
+                )
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
                 bodyAsText() shouldContain "Perioder kan kun starte på første dag i måneden"
@@ -87,7 +102,12 @@ class OppdaterStønadsperiodeTest {
                 url,
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody("""{"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-15"}, "begrunnelse": "begrunnelsen"}""")
+                setBody(
+                    //language=json
+                    """
+                        {"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-15"}, "begrunnelse": "begrunnelsen", "harSaksbehandlerAvgjort": false}
+                    """.trimIndent(),
+                )
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
                 bodyAsText() shouldContain "Perioder kan kun avsluttes siste dag i måneden"
@@ -104,7 +124,12 @@ class OppdaterStønadsperiodeTest {
                 url,
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody("""{"periode": {"fraOgMed": "2021-12-01", "tilOgMed": "2021-01-31"}, "begrunnelse": "begrunnelsen"}""")
+                setBody(
+                    //language=json
+                    """
+                        {"periode": {"fraOgMed": "2021-12-01", "tilOgMed": "2021-01-31"}, "begrunnelse": "begrunnelsen", "harSaksbehandlerAvgjort": false}
+                    """.trimIndent(),
+                )
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
                 bodyAsText() shouldContain "Startmåned må være tidligere eller lik sluttmåned"
@@ -136,7 +161,12 @@ class OppdaterStønadsperiodeTest {
                 url,
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody("""{"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-31"}, "begrunnelse": "begrunnelsen"}""")
+                setBody(
+                    //language=json
+                    """
+                        {"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-31"}, "begrunnelse": "begrunnelsen", "harSaksbehandlerAvgjort": false}
+                    """.trimIndent(),
+                )
             }.apply {
                 status shouldBe HttpStatusCode.Created
             }

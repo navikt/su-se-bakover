@@ -39,7 +39,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.Iverksatt
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.innvilg.IverksattInnvilgetSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.iverksettSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.SaksbehandlersAvgjørelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
@@ -731,6 +731,7 @@ fun nySøknadsbehandlingMedStønadsperiode(
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person> = { person().right() },
+    saksbehandlersAvgjørelse: SaksbehandlersAvgjørelse? = null,
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
     return nySøknadsbehandlingUtenStønadsperiode(
         clock = clock,
@@ -745,6 +746,7 @@ fun nySøknadsbehandlingMedStønadsperiode(
             formuegrenserFactory = formuegrenserFactoryTestPåDato(LocalDate.now(clock)),
             saksbehandler = saksbehandler,
             hentPerson = hentPerson,
+            saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
         ).getOrFail() as Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart>
     }
 }

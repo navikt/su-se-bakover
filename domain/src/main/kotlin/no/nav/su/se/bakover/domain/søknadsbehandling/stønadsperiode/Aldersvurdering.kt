@@ -5,7 +5,6 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.Year
 
-
 sealed interface Aldersvurdering {
     val stønadsperiode: Stønadsperiode
 
@@ -22,7 +21,7 @@ sealed interface Aldersvurdering {
 
     data class Vurdert(
         val maskinellVurdering: MaskinellAldersvurderingMedGrunnlagsdata,
-        val saksbehandlersAvgjørelse: SaksbehandlersAvgjørelse,
+        val saksbehandlersAvgjørelse: SaksbehandlersAvgjørelse?,
         val aldersinformasjon: Aldersinformasjon,
     ) : Aldersvurdering {
         val fødselsdato: LocalDate? get() = maskinellVurdering.fødselsdato
@@ -33,7 +32,7 @@ sealed interface Aldersvurdering {
             fun vurder(
                 stønadsperiode: Stønadsperiode,
                 person: Person,
-                saksbehandlersAvgjørelse: SaksbehandlersAvgjørelse,
+                saksbehandlersAvgjørelse: SaksbehandlersAvgjørelse?,
                 clock: Clock,
             ): Vurdert {
                 return Vurdert(

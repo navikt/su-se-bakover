@@ -23,7 +23,7 @@ data class Person(
     val dødsdato: LocalDate? = null,
 ) {
     fun getAlder(påDato: LocalDate): Int? = fødsel?.getAlder(påDato)
-    fun alderSomFylles(påÅr: Year): Year? = fødsel?.alderSomFylles(påÅr)
+    fun alderSomFylles(påÅr: Year): Int? = fødsel?.alderSomFylles(påÅr)
 
     fun er67EllerEldre(påDato: LocalDate): Boolean? = getAlder(påDato)?.let { it >= 67 }
 
@@ -74,8 +74,7 @@ data class Person(
          */
         fun getAlder(påDato: LocalDate): Int?
 
-        fun alderSomFylles(påÅr: Year): Year = påÅr.minusYears(år.value.toLong())
-
+        fun alderSomFylles(påÅr: Year): Int = påÅr.minusYears(år.value.toLong()).value
 
         data class MedFødselsdato(val dato: LocalDate) : Fødsel {
             override val år: Year = Year.of(dato.year)

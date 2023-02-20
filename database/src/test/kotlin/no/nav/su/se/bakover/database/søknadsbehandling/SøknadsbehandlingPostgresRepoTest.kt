@@ -155,6 +155,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     clock = fixedClock,
                     saksbehandler = saksbehandler,
                     hentPerson = { person().right() },
+                    saksbehandlersAvgjørelse = null,
                 ).getOrFail().second,
             )
 

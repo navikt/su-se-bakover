@@ -47,6 +47,7 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
                     stønadsperiode = nyStønadsperiode,
                     sakId = sak.id,
                     saksbehandler = saksbehandler,
+                    saksbehandlersAvgjørelse = null,
                 ),
             ).getOrFail()
 

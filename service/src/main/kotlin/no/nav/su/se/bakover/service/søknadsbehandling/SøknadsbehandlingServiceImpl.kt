@@ -359,6 +359,7 @@ class SøknadsbehandlingServiceImpl(
             formuegrenserFactory = formuegrenserFactory,
             saksbehandler = request.saksbehandler,
             hentPerson = personService::hentPerson,
+            saksbehandlersAvgjørelse = request.saksbehandlersAvgjørelse,
         ).map {
             søknadsbehandlingRepo.lagre(it.second)
             it.second

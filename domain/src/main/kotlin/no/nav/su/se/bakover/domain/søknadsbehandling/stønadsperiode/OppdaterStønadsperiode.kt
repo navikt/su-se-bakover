@@ -35,6 +35,7 @@ fun Sak.oppdaterStønadsperiodeForSøknadsbehandling(
     formuegrenserFactory: FormuegrenserFactory,
     saksbehandler: NavIdentBruker.Saksbehandler,
     hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
+    saksbehandlersAvgjørelse: SaksbehandlersAvgjørelse?,
 ): Either<Sak.KunneIkkeOppdatereStønadsperiode, Pair<Sak, Søknadsbehandling.Vilkårsvurdert>> {
     val søknadsbehandling = søknadsbehandlinger.singleOrNull {
         it.id == søknadsbehandlingId
@@ -52,8 +53,7 @@ fun Sak.oppdaterStønadsperiodeForSøknadsbehandling(
     val vurdering = Aldersvurdering.Vurdert.vurder(
         stønadsperiode = stønadsperiode,
         person = person,
-        //TODO: Må ha noe for å si om saksbehandler gjorde en avgjørelse eller ikke
-        saksbehandlersAvgjørelse = SaksbehandlersAvgjørelse.TrengerIkkeAvgjørelse,
+        saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
         clock = clock,
     )
     return internalOppdater(

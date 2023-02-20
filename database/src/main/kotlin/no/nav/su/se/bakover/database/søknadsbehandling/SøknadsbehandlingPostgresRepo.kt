@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.database.avkorting.toDomain
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
+import no.nav.su.se.bakover.database.søknadsbehandling.AldersvurderingJson.Companion.toDBJson
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB.Companion.status
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingshistorikkJson.Companion.toDbJson
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
@@ -65,6 +66,7 @@ internal data class BaseSøknadsbehandlingDb(
     val status: SøknadsbehandlingStatusDB,
     val saksbehandler: String,
     val søknadsbehandlingshistorikk: String,
+    val aldersvurdering: String?,
 )
 
 internal data class SøknadsbehandlingDb(
@@ -121,6 +123,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 status = SøknadsbehandlingStatusDB.OPPRETTET,
                 saksbehandler = saksbehandler.navIdent,
                 søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.toDbJson(),
+                aldersvurdering = null,
             ),
             beregning = null,
             simulering = null,
@@ -294,6 +297,7 @@ internal class SøknadsbehandlingPostgresRepo(
             status = this.status(),
             saksbehandler = this.saksbehandler.toString(),
             søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.toDbJson(),
+            aldersvurdering = this.aldersvurdering?.toDBJson(),
         )
     }
 
@@ -315,7 +319,8 @@ internal class SøknadsbehandlingPostgresRepo(
                         beregning,
                         simulering,
                         lukket,
-                        saksbehandling
+                        saksbehandling,
+                        aldersvurdering
                     ) values (
                         :id,
                         :sakId,
@@ -331,7 +336,8 @@ internal class SøknadsbehandlingPostgresRepo(
                         to_json(:beregning::json),
                         to_json(:simulering::json),
                         :lukket,
-                        to_json(:saksbehandling::json)
+                        to_json(:saksbehandling::json),
+                        to_json(:aldersvurdering::json)
                     ) on conflict(id) do update set
                         status = :status,
                         stønadsperiode = to_json(:stonadsperiode::json),
@@ -343,28 +349,30 @@ internal class SøknadsbehandlingPostgresRepo(
                         saksbehandler = :saksbehandler,
                         beregning = to_json(:beregning::json),
                         simulering =  to_json(:simulering::json),
-                        lukket = :lukket                    
+                        lukket = :lukket,
+                        aldersvurdering = to_json(:aldersvurdering::json)
             """.trimIndent()
             ).insert(
-                params = mapOf(
-                    "id" to søknadsbehandling.base.id,
-                    "sakId" to søknadsbehandling.base.sakId,
-                    "soknadId" to søknadsbehandling.base.søknad.id,
-                    "opprettet" to søknadsbehandling.base.opprettet,
-                    "status" to søknadsbehandling.base.status.toString(),
-                    "stonadsperiode" to serializeNullable(søknadsbehandling.base.stønadsperiode),
-                    "oppgaveId" to søknadsbehandling.base.oppgaveId.toString(),
-                    "attestering" to søknadsbehandling.base.attesteringer.serialize(),
-                    "avkorting" to serialize(søknadsbehandling.base.avkorting.toDb()),
-                    "fritekstTilBrev" to søknadsbehandling.base.fritekstTilBrev,
-                    "saksbehandler" to søknadsbehandling.base.saksbehandler,
-                    "beregning" to søknadsbehandling.beregning,
-                    "simulering" to serializeNullable(søknadsbehandling.simulering),
-                    "lukket" to søknadsbehandling.lukket,
-                    "saksbehandling" to søknadsbehandling.base.søknadsbehandlingshistorikk,
-                ),
-                session = tx,
-            )
+            params = mapOf(
+                "id" to søknadsbehandling.base.id,
+                "sakId" to søknadsbehandling.base.sakId,
+                "soknadId" to søknadsbehandling.base.søknad.id,
+                "opprettet" to søknadsbehandling.base.opprettet,
+                "status" to søknadsbehandling.base.status.toString(),
+                "stonadsperiode" to serializeNullable(søknadsbehandling.base.stønadsperiode),
+                "oppgaveId" to søknadsbehandling.base.oppgaveId.toString(),
+                "attestering" to søknadsbehandling.base.attesteringer.serialize(),
+                "avkorting" to serialize(søknadsbehandling.base.avkorting.toDb()),
+                "fritekstTilBrev" to søknadsbehandling.base.fritekstTilBrev,
+                "saksbehandler" to søknadsbehandling.base.saksbehandler,
+                "beregning" to søknadsbehandling.beregning,
+                "simulering" to serializeNullable(søknadsbehandling.simulering),
+                "lukket" to søknadsbehandling.lukket,
+                "saksbehandling" to søknadsbehandling.base.søknadsbehandlingshistorikk,
+                "aldersvurdering" to søknadsbehandling.base.aldersvurdering,
+            ),
+            session = tx,
+        )
 
         grunnlagsdataOgVilkårsvurderingerPostgresRepo.lagre(
             behandlingId = søknadsbehandling.base.id,

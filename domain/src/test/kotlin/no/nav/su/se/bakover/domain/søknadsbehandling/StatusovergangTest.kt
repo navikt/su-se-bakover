@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersinformasjon
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.MaskinellAldersvurderingMedGrunnlagsdata
-import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.SaksbehandlersAvgjørelse
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
@@ -995,11 +994,13 @@ internal class StatusovergangTest {
     inner class OppdaterStønadsperiode {
         private val aldersvurdering = Aldersvurdering.Vurdert(
             maskinellVurdering = MaskinellAldersvurderingMedGrunnlagsdata.avgjørBasertPåFødselsdatoEllerFødselsår(
-                stønadsperiode, person().fødsel,
+                stønadsperiode,
+                person().fødsel,
             ),
-            saksbehandlersAvgjørelse = SaksbehandlersAvgjørelse.TrengerIkkeAvgjørelse,
+            saksbehandlersAvgjørelse = null,
             aldersinformasjon = Aldersinformasjon.createAldersinformasjon(
-                person(), fixedClock,
+                person(),
+                fixedClock,
             ),
         )
 

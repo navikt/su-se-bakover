@@ -82,7 +82,6 @@ sealed class Søknadsbehandling :
     abstract override val attesteringer: Attesteringshistorikk
     abstract val avkorting: AvkortingVedSøknadsbehandling
 
-
     abstract override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk
 
     // TODO ia: fritekst bør flyttes ut av denne klassen og til et eget konsept (som også omfatter fritekst på revurderinger)
@@ -318,6 +317,29 @@ sealed class Søknadsbehandling :
         }
     }
 
+    fun leggTilAldersvurderingOgStønadsperiodeForAvslagPgaManglendeDokumentasjon(
+        aldersvurdering: Aldersvurdering.SkalIkkeVurderes,
+        formuegrenserFactory: FormuegrenserFactory,
+        clock: Clock,
+        avkorting: AvkortingVedSøknadsbehandling,
+    ): Vilkårsvurdert {
+        return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
+            stønadsperiode = aldersvurdering.stønadsperiode,
+            formuegrenserFactory = formuegrenserFactory,
+            clock = clock,
+        ).getOrElse {
+            throw IllegalArgumentException("Feil ved oppdatering av stønadsperiode for grunnlagsdata og vilkårsvurderinger. id $id")
+        }.let {
+            copyInternal(
+                stønadsperiode = aldersvurdering.stønadsperiode,
+                aldersvurdering = aldersvurdering,
+                grunnlagsdataOgVilkårsvurderinger = it,
+                avkorting = avkorting,
+                søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk,
+            ).vilkårsvurder(saksbehandler)
+        }
+    }
+
     fun oppdaterStønadsperiode(
         oppdatertStønadsperiode: Stønadsperiode,
         formuegrenserFactory: FormuegrenserFactory,
@@ -390,6 +412,7 @@ sealed class Søknadsbehandling :
         }.map {
             copyInternal(
                 stønadsperiode = aldersvurdering.stønadsperiode,
+                aldersvurdering = aldersvurdering,
                 grunnlagsdataOgVilkårsvurderinger = it,
                 avkorting = avkorting,
                 søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.leggTilNyHendelse(

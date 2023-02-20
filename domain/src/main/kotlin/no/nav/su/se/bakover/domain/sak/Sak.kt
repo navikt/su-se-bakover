@@ -540,7 +540,6 @@ data class Sak(
         ) : KunneIkkeOppdatereStønadsperiode
 
         data class OverlappendeStønadsperiode(val feil: StøtterIkkeOverlappendeStønadsperioder) : KunneIkkeOppdatereStønadsperiode
-
     }
 
     fun avventerKravgrunnlag(): Boolean {

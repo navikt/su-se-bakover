@@ -6,10 +6,9 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.Year
 
-
 data class Aldersinformasjon private constructor(
     val alder: Int?,
-    val alderSøkerFyllerIÅr: Year?,
+    val alderSøkerFyllerIÅr: Int?,
     val alderPåTidspunkt: Tidspunkt?,
 ) {
     companion object {
@@ -27,7 +26,7 @@ data class Aldersinformasjon private constructor(
 
         fun createFromExisting(
             alder: Int?,
-            alderSøkerFyllerIÅr: Year?,
+            alderSøkerFyllerIÅr: Int?,
             alderPåTidspunkt: Tidspunkt?,
         ): Aldersinformasjon = Aldersinformasjon(alder, alderSøkerFyllerIÅr, alderPåTidspunkt)
     }

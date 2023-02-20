@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode
 
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.vilkår.uføretrygdMaxAlder
 import java.time.LocalDate
@@ -20,7 +19,6 @@ sealed interface MaskinellAldersvurderingMedGrunnlagsdata {
     val fødselsår: Year?
 
     fun tidligsteGyldigeFødselsdato(): LocalDate = stønadsperiode.tidligsteGyldigeFødselsdato()
-
 
     companion object {
         // Hvis du har fødselsdag 1 dag før dette, så er du for gammel
@@ -124,8 +122,7 @@ sealed interface MaskinellAldersvurderingMedGrunnlagsdata {
         data class MedFødselsår(
             override val fødselsår: Year,
             override val stønadsperiode: Stønadsperiode,
-        ) :
-            RettPåAlder {
+        ) : RettPåAlder {
             override val fødselsdato: LocalDate? = null
         }
     }

@@ -7,13 +7,11 @@ import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Ident
-import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.person.Telefonnummer
-import java.time.Year
 
 object PersonOppslagStub :
     PersonOppslag {
@@ -39,7 +37,7 @@ object PersonOppslagStub :
         statsborgerskap = "NOR",
         kjønn = "MANN",
         fødsel = Person.Fødsel.MedFødselsdato(
-            dato = 31.august(1956),
+            dato = 1.januar(1990),
         ),
         sivilstand = null,
         adressebeskyttelse = if (fnr.toString() == ApplicationConfig.fnrKode6()) "STRENGT_FORTROLIG_ADRESSE" else null,
