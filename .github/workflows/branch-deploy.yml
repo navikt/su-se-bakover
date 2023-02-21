@@ -46,7 +46,7 @@ jobs:
         - uses: actions/setup-java@v3
           with:
             java-version: '19'
-            distribution: 'zulu'
+            distribution: 'temurin'
         - name: test and build
           run: ./gradlew test build
           env:
