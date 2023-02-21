@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.IverksattAvslåttSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.KunneIkkeAvslåSøknad
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
@@ -127,9 +128,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     ),
                 ),
                 fritekstTilBrev = "fritekstTilBrev",
-                stønadsperiode = Stønadsperiode.create(
-                    periode = expectedPeriode,
-                ),
+                aldersvurdering = Aldersvurdering.SkalIkkeVurderes(Stønadsperiode.create(expectedPeriode)),
                 grunnlagsdata = uavklart.grunnlagsdata,
                 vilkårsvurderinger = uavklart.vilkårsvurderinger.leggTil(
                     OpplysningspliktVilkår.Vurdert.tryCreate(
@@ -274,7 +273,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     ),
                 ),
                 fritekstTilBrev = "fritekstTilBrev",
-                stønadsperiode = vilkårsvurdertInnvilget.stønadsperiode,
+                aldersvurdering = vilkårsvurdertInnvilget.aldersvurdering,
                 grunnlagsdata = vilkårsvurdertInnvilget.grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurdertInnvilget.vilkårsvurderinger.leggTil(
                     OpplysningspliktVilkår.Vurdert.tryCreate(

@@ -9,8 +9,6 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragRespo
 import no.nav.su.se.bakover.web.routes.vilkår.FamiliegjenforeningVilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.FamiliegjenforeningVilkårJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.PersonligOppmøteVilkårJson
-import no.nav.su.se.bakover.web.routes.vilkår.alder.PensjonsVilkårJson
-import no.nav.su.se.bakover.web.routes.vilkår.alder.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.fastopphold.FastOppholdINorgeVilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.fastopphold.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.flyktning.FlyktningVilkårJson
@@ -21,6 +19,8 @@ import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.LovligOppholdVilkå
 import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.LovligOppholdVilkårJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.OpplysningspliktVilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.toJson
+import no.nav.su.se.bakover.web.routes.vilkår.pensjon.PensjonsVilkårJson
+import no.nav.su.se.bakover.web.routes.vilkår.pensjon.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.toJson
 
 internal data class GrunnlagsdataOgVilkårsvurderingerJson(

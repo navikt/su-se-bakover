@@ -22,6 +22,8 @@ import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersinformasjon
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
@@ -154,6 +156,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     clock = fixedClock,
                     saksbehandler = saksbehandler,
                     hentPerson = { person().right() },
+                    saksbehandlersAvgjørelse = null,
                 ).getOrFail().second,
             )
 
@@ -354,7 +357,17 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 attesteringer = Attesteringshistorikk.empty()
                     .leggTilNyAttestering(attesteringIverksatt(clock = enUkeEtterFixedClock)),
                 fritekstTilBrev = "Dette er fritekst",
-                stønadsperiode = stønadsperiode2021,
+                aldersvurdering = Aldersvurdering.Vurdert(
+                    maskinellVurdering = no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.UtenFødselsår(
+                        stønadsperiode2021,
+                    ),
+                    saksbehandlersAvgjørelse = null,
+                    aldersinformasjon = Aldersinformasjon.createFromExisting(
+                        alder = null,
+                        alderSøkerFyllerIÅr = null,
+                        alderPåTidspunkt = null,
+                    ),
+                ),
                 grunnlagsdata = iverksatt.grunnlagsdata,
                 vilkårsvurderinger = iverksatt.vilkårsvurderinger,
                 avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(

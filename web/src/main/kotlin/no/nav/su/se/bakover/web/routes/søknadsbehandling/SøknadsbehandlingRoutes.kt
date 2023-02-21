@@ -62,7 +62,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.UnderkjennRequest
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.sak.sakPath
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.StønadsperiodeJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.OppdaterStønadsperiodeRequest
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.opprett.tilResultat
 import no.nav.su.se.bakover.web.routes.tilResultat
 import org.slf4j.LoggerFactory
@@ -109,38 +109,31 @@ internal fun Route.søknadsbehandlingRoutes(
         }
     }
 
-    data class StønadsperiodeJsonResponse(
-        val søknadsbehandling: BehandlingJson,
-        val måKontrolleres: Boolean,
-    )
-
     post("$behandlingPath/{behandlingId}/stønadsperiode") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
-                    call.withBody<StønadsperiodeJson> { body ->
-                        body.toStønadsperiode().onLeft {
+                    call.withBody<OppdaterStønadsperiodeRequest> { body ->
+                        body.toDomain(clock).onLeft {
                             call.svar(it)
-                        }.onRight { stønadsperiode ->
+                        }.onRight { partialOppdaterRequest ->
                             søknadsbehandlingService.oppdaterStønadsperiode(
                                 SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
                                     behandlingId = behandlingId,
-                                    stønadsperiode = stønadsperiode,
+                                    stønadsperiode = partialOppdaterRequest.stønadsperiode,
                                     sakId = sakId,
                                     saksbehandler = call.suUserContext.saksbehandler,
+                                    saksbehandlersAvgjørelse = partialOppdaterRequest.saksbehandlersAvgjørelse,
                                 ),
                             ).fold(
                                 { call.svar(it.tilResultat()) },
                                 {
-                                    call.audit(it.first.fnr, AuditLogEvent.Action.UPDATE, it.first.id)
+                                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                                     call.svar(
                                         Resultat.json(
                                             Created,
                                             serialize(
-                                                StønadsperiodeJsonResponse(
-                                                    søknadsbehandling = it.first.toJson(satsFactory),
-                                                    måKontrolleres = it.second !== null,
-                                                ),
+                                                it.toJson(satsFactory),
                                             ),
                                         ),
                                     )
@@ -394,14 +387,7 @@ internal fun Sak.KunneIkkeOppdatereStønadsperiode.tilResultat(): Resultat {
         }
 
         is Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode -> this.feil.tilResultat()
-        is Sak.KunneIkkeOppdatereStønadsperiode.ValideringsfeilAvStønadsperiodeOgPersonsAlder -> this.tilResultat()
-    }
-}
 
-internal fun Sak.KunneIkkeOppdatereStønadsperiode.ValideringsfeilAvStønadsperiodeOgPersonsAlder.tilResultat(): Resultat {
-    // VurdertStønadsperiodeOppMotPersonsAlder.SøkerErForGammel
-    return BadRequest.errorJson(
-        "Søker er for gammel for hele stønadsperioden. fødselsår ${this.feil.vilkår.fødselsår}",
-        "søker_er_for_gammel",
-    )
+        else -> throw IllegalArgumentException("stfu")
+    }
 }

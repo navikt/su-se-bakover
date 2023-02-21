@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.database.avkorting.toDomain
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
+import no.nav.su.se.bakover.database.søknadsbehandling.AldersvurderingJson.Companion.toDBJson
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB.Companion.status
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingshistorikkJson.Companion.toDbJson
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
@@ -65,6 +66,7 @@ internal data class BaseSøknadsbehandlingDb(
     val status: SøknadsbehandlingStatusDB,
     val saksbehandler: String,
     val søknadsbehandlingshistorikk: String,
+    val aldersvurdering: String?,
 )
 
 internal data class SøknadsbehandlingDb(
@@ -121,6 +123,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 status = SøknadsbehandlingStatusDB.OPPRETTET,
                 saksbehandler = saksbehandler.navIdent,
                 søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.toDbJson(),
+                aldersvurdering = null,
             ),
             beregning = null,
             simulering = null,
@@ -294,6 +297,7 @@ internal class SøknadsbehandlingPostgresRepo(
             status = this.status(),
             saksbehandler = this.saksbehandler.toString(),
             søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.toDbJson(),
+            aldersvurdering = this.aldersvurdering?.toDBJson(),
         )
     }
 
@@ -315,7 +319,8 @@ internal class SøknadsbehandlingPostgresRepo(
                         beregning,
                         simulering,
                         lukket,
-                        saksbehandling
+                        saksbehandling,
+                        aldersvurdering
                     ) values (
                         :id,
                         :sakId,
@@ -331,7 +336,8 @@ internal class SøknadsbehandlingPostgresRepo(
                         to_json(:beregning::json),
                         to_json(:simulering::json),
                         :lukket,
-                        to_json(:saksbehandling::json)
+                        to_json(:saksbehandling::json),
+                        to_json(:aldersvurdering::json)
                     ) on conflict(id) do update set
                         status = :status,
                         stønadsperiode = to_json(:stonadsperiode::json),
@@ -343,7 +349,8 @@ internal class SøknadsbehandlingPostgresRepo(
                         saksbehandler = :saksbehandler,
                         beregning = to_json(:beregning::json),
                         simulering =  to_json(:simulering::json),
-                        lukket = :lukket                    
+                        lukket = :lukket,
+                        aldersvurdering = to_json(:aldersvurdering::json)
             """.trimIndent()
             ).insert(
             params = mapOf(
@@ -362,6 +369,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 "simulering" to serializeNullable(søknadsbehandling.simulering),
                 "lukket" to søknadsbehandling.lukket,
                 "saksbehandling" to søknadsbehandling.base.søknadsbehandlingshistorikk,
+                "aldersvurdering" to søknadsbehandling.base.aldersvurdering,
             ),
             session = tx,
         )
@@ -457,6 +465,9 @@ internal class SøknadsbehandlingPostgresRepo(
         val fritekstTilBrev = stringOrNull("fritekstTilBrev") ?: ""
         val stønadsperiode = deserializeNullable<Stønadsperiode>(stringOrNull("stønadsperiode"))
 
+        val aldersvurdering =
+            stønadsperiode?.let { AldersvurderingJson.toAldersvurdering(string("aldersvurdering"), it) }
+
         val fnr = Fnr(string("fnr"))
         val (grunnlagsdata, vilkårsvurderinger) = grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForSøknadsbehandling(
             behandlingId = behandlingId,
@@ -476,7 +487,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 oppgaveId = oppgaveId,
                 fnr = fnr,
                 fritekstTilBrev = fritekstTilBrev,
-                stønadsperiode = stønadsperiode,
+                aldersvurdering = aldersvurdering,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
@@ -495,7 +506,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 oppgaveId = oppgaveId,
                 fnr = fnr,
                 fritekstTilBrev = fritekstTilBrev,
-                stønadsperiode = stønadsperiode!!,
+                aldersvurdering = aldersvurdering!!,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
@@ -514,7 +525,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 oppgaveId = oppgaveId,
                 fnr = fnr,
                 fritekstTilBrev = fritekstTilBrev,
-                stønadsperiode = stønadsperiode!!,
+                aldersvurdering = aldersvurdering!!,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
@@ -534,7 +545,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 fnr = fnr,
                 beregning = beregning!!,
                 fritekstTilBrev = fritekstTilBrev,
-                stønadsperiode = stønadsperiode!!,
+                aldersvurdering = aldersvurdering!!,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
@@ -554,7 +565,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 fnr = fnr,
                 beregning = beregning!!,
                 fritekstTilBrev = fritekstTilBrev,
-                stønadsperiode = stønadsperiode!!,
+                aldersvurdering = aldersvurdering!!,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
@@ -575,7 +586,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 beregning = beregning!!,
                 simulering = simulering!!,
                 fritekstTilBrev = fritekstTilBrev,
-                stønadsperiode = stønadsperiode!!,
+                aldersvurdering = aldersvurdering!!,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
@@ -597,7 +608,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 simulering = simulering!!,
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = fritekstTilBrev,
-                stønadsperiode = stønadsperiode!!,
+                aldersvurdering = aldersvurdering!!,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
@@ -617,7 +628,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     fnr = fnr,
                     saksbehandler = saksbehandler,
                     fritekstTilBrev = fritekstTilBrev,
-                    stønadsperiode = stønadsperiode!!,
+                    aldersvurdering = aldersvurdering!!,
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     attesteringer = attesteringer,
@@ -637,7 +648,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     beregning = beregning,
                     saksbehandler = saksbehandler,
                     fritekstTilBrev = fritekstTilBrev,
-                    stønadsperiode = stønadsperiode!!,
+                    aldersvurdering = aldersvurdering!!,
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     attesteringer = attesteringer,
@@ -661,7 +672,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 fritekstTilBrev = fritekstTilBrev,
-                stønadsperiode = stønadsperiode!!,
+                aldersvurdering = aldersvurdering!!,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert,
@@ -681,7 +692,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     attesteringer = attesteringer,
                     søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                     fritekstTilBrev = fritekstTilBrev,
-                    stønadsperiode = stønadsperiode!!,
+                    aldersvurdering = aldersvurdering!!,
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
@@ -701,7 +712,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     attesteringer = attesteringer,
                     søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                     fritekstTilBrev = fritekstTilBrev,
-                    stønadsperiode = stønadsperiode!!,
+                    aldersvurdering = aldersvurdering!!,
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
@@ -724,7 +735,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     attesteringer = attesteringer,
                     søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                     fritekstTilBrev = fritekstTilBrev,
-                    stønadsperiode = stønadsperiode!!,
+                    aldersvurdering = aldersvurdering!!,
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     avkorting = avkorting as AvkortingVedSøknadsbehandling.Iverksatt,
@@ -746,7 +757,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         attesteringer = attesteringer,
                         søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                         fritekstTilBrev = fritekstTilBrev,
-                        stønadsperiode = stønadsperiode!!,
+                        aldersvurdering = aldersvurdering!!,
                         grunnlagsdata = grunnlagsdata,
                         vilkårsvurderinger = vilkårsvurderinger,
                         avkorting = avkorting as AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
@@ -766,7 +777,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         attesteringer = attesteringer,
                         søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                         fritekstTilBrev = fritekstTilBrev,
-                        stønadsperiode = stønadsperiode!!,
+                        aldersvurdering = aldersvurdering!!,
                         grunnlagsdata = grunnlagsdata,
                         vilkårsvurderinger = vilkårsvurderinger,
                         avkorting = avkorting as AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,

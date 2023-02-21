@@ -114,9 +114,9 @@ internal class PersonRoutesKtTest {
                     "kjønn": "MANN",
                     "fødsel": {
                         "dato": "1990-01-01",
-                        "år": 1990
+                        "år": 1990,
+                        "alder": 31
                     },
-                    "alder": 31,
                     "adressebeskyttelse": null,
                     "skjermet": false,
                     "kontaktinfo": {

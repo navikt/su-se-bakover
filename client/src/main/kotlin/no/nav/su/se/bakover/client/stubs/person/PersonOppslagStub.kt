@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.person.Telefonnummer
-import java.time.Year
 
 object PersonOppslagStub :
     PersonOppslag {
@@ -37,9 +36,8 @@ object PersonOppslagStub :
         ),
         statsborgerskap = "NOR",
         kjønn = "MANN",
-        fødsel = Person.Fødsel(
+        fødsel = Person.Fødsel.MedFødselsdato(
             dato = 1.januar(1990),
-            år = Year.of(1990),
         ),
         sivilstand = null,
         adressebeskyttelse = if (fnr.toString() == ApplicationConfig.fnrKode6()) "STRENGT_FORTROLIG_ADRESSE" else null,

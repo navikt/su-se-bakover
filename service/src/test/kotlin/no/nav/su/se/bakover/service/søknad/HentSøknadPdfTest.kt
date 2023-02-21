@@ -61,7 +61,7 @@ class HentSøknadPdfTest {
             aktørId = AktørId(aktørId = "1234"),
         ),
         navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
-        fødsel = Person.Fødsel(
+        fødsel = Person.Fødsel.MedFødselsår(
             år = Year.of(1956),
         ),
     )

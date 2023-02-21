@@ -436,7 +436,11 @@ internal class SøknadsbehandlingJsonTest {
               },
               "erLukket": false,
               "simuleringForAvkortingsvarsel": null,
-              "sakstype": "uføre"
+              "sakstype": "uføre",
+              "aldersvurdering": {
+                "harSaksbehandlerAvgjort": false,
+                "maskinellVurderingsresultat": "UKJENT"
+              }
             }
         """.trimIndent()
         JSONAssert.assertEquals(expected, serialize(søknadsbehandling.toJson(satsFactoryTestPåDato())), true)
@@ -635,7 +639,11 @@ internal class SøknadsbehandlingJsonTest {
               },
               "erLukket": false,
               "simuleringForAvkortingsvarsel": null,
-              "sakstype": "uføre"
+              "sakstype": "uføre",
+              "aldersvurdering": {
+                "harSaksbehandlerAvgjort": false,
+                "maskinellVurderingsresultat": "UKJENT"
+              }
             }
         """.trimIndent()
 

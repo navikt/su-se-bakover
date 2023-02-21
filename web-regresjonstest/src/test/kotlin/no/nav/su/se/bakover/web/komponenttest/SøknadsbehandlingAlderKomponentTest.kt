@@ -84,6 +84,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                     stønadsperiode = stønadsperiode2022,
                     sakId = sak.id,
                     saksbehandler = saksbehandler,
+                    saksbehandlersAvgjørelse = null,
                 ),
             ).getOrFail()
 

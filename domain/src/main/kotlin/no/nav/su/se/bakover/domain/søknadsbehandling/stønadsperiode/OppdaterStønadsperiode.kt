@@ -35,7 +35,8 @@ fun Sak.oppdaterStønadsperiodeForSøknadsbehandling(
     formuegrenserFactory: FormuegrenserFactory,
     saksbehandler: NavIdentBruker.Saksbehandler,
     hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
-): Either<Sak.KunneIkkeOppdatereStønadsperiode, Triple<Sak, Søknadsbehandling.Vilkårsvurdert, VurdertStønadsperiodeOppMotPersonsAlder.RettPåUføre.SaksbehandlerMåKontrollereManuelt?>> {
+    saksbehandlersAvgjørelse: SaksbehandlersAvgjørelse?,
+): Either<Sak.KunneIkkeOppdatereStønadsperiode, Pair<Sak, Søknadsbehandling.Vilkårsvurdert>> {
     val søknadsbehandling = søknadsbehandlinger.singleOrNull {
         it.id == søknadsbehandlingId
     } ?: return Sak.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
@@ -44,36 +45,35 @@ fun Sak.oppdaterStønadsperiodeForSøknadsbehandling(
         return Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode(it).left()
     }
 
-    val persion = hentPerson(this.fnr).getOrElse {
+    val person = hentPerson(this.fnr).getOrElse {
         throw IllegalStateException("Kunne ikke hente person. Denne var hentet for ikke så lenge siden")
     }
     // TODO - Dette vil feile for Su-Alder
 
-    val vurdering = VurdertStønadsperiodeOppMotPersonsAlder.vurder(
+    val vurdering = Aldersvurdering.Vurdert.vurder(
         stønadsperiode = stønadsperiode,
-        person = persion,
+        person = person,
+        saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
+        clock = clock,
     )
-    return when (vurdering) {
-        is VurdertStønadsperiodeOppMotPersonsAlder.RettPåUføre -> internalOppdater(
-            søknadsbehandling = søknadsbehandling,
-            formuegrenserFactory = formuegrenserFactory,
-            saksbehandler = saksbehandler,
-            vurdering = vurdering,
-            clock = clock,
-        )
-        is VurdertStønadsperiodeOppMotPersonsAlder.SøkerErForGammel -> Sak.KunneIkkeOppdatereStønadsperiode.ValideringsfeilAvStønadsperiodeOgPersonsAlder(vurdering).left()
-    }
+    return internalOppdater(
+        søknadsbehandling = søknadsbehandling,
+        formuegrenserFactory = formuegrenserFactory,
+        saksbehandler = saksbehandler,
+        vurdering = vurdering,
+        clock = clock,
+    )
 }
 
 private fun Sak.internalOppdater(
     søknadsbehandling: Søknadsbehandling,
     formuegrenserFactory: FormuegrenserFactory,
     saksbehandler: NavIdentBruker.Saksbehandler,
-    vurdering: VurdertStønadsperiodeOppMotPersonsAlder.RettPåUføre,
+    vurdering: Aldersvurdering.Vurdert,
     clock: Clock,
-): Either<Sak.KunneIkkeOppdatereStønadsperiode, Triple<Sak, Søknadsbehandling.Vilkårsvurdert, VurdertStønadsperiodeOppMotPersonsAlder.RettPåUføre.SaksbehandlerMåKontrollereManuelt?>> {
+): Either<Sak.KunneIkkeOppdatereStønadsperiode, Pair<Sak, Søknadsbehandling.Vilkårsvurdert>> {
     søknadsbehandling.oppdaterStønadsperiodeForSaksbehandler(
-        oppdatertStønadsperiode = vurdering,
+        aldersvurdering = vurdering,
         formuegrenserFactory = formuegrenserFactory,
         clock = clock,
         saksbehandler = saksbehandler,
@@ -89,12 +89,11 @@ private fun Sak.internalOppdater(
             }
         }.left()
     }.let { søknadsbehandlingMedOppdatertStønadsperiode ->
-        return Triple(
+        return Pair(
             this.copy(
                 søknadsbehandlinger = søknadsbehandlinger.filterNot { it.id == søknadsbehandlingMedOppdatertStønadsperiode.id } + søknadsbehandlingMedOppdatertStønadsperiode,
             ),
             søknadsbehandlingMedOppdatertStønadsperiode,
-            (vurdering as? VurdertStønadsperiodeOppMotPersonsAlder.RettPåUføre.SaksbehandlerMåKontrollereManuelt),
         ).right()
     }
 }

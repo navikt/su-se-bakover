@@ -65,6 +65,7 @@ internal class OppdaterStønadsperiodeTest {
             clock = fixedClock,
             saksbehandler = saksbehandler,
             hentPerson = { person().right() },
+            saksbehandlersAvgjørelse = null,
         ).getOrFail().second
 
         vilkårsvurdert.periode shouldNotBe nyPeriode
@@ -94,6 +95,7 @@ internal class OppdaterStønadsperiodeTest {
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 saksbehandler = saksbehandler,
                 hentPerson = { person().right() },
+                saksbehandlersAvgjørelse = null,
             ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode(
                 StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeOverlapperMedIkkeOpphørtStønadsperiode,
             ).left()
@@ -121,6 +123,7 @@ internal class OppdaterStønadsperiodeTest {
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 saksbehandler = saksbehandler,
                 hentPerson = { person().right() },
+                saksbehandlersAvgjørelse = null,
             ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode(
                 StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeForSenerePeriodeEksisterer,
             ).left()
@@ -174,6 +177,7 @@ internal class OppdaterStønadsperiodeTest {
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                     saksbehandler = saksbehandler,
                     hentPerson = { person().right() },
+                    saksbehandlersAvgjørelse = null,
                 ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode(
                     StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold,
                 ).left()
@@ -196,6 +200,7 @@ internal class OppdaterStønadsperiodeTest {
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                     saksbehandler = saksbehandler,
                     hentPerson = { person().right() },
+                    saksbehandlersAvgjørelse = null,
                 ).getOrFail().second
             }
         }
@@ -245,6 +250,7 @@ internal class OppdaterStønadsperiodeTest {
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 saksbehandler = saksbehandler,
                 hentPerson = { person().right() },
+                saksbehandlersAvgjørelse = null,
             ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode(
                 StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeInneholderFeilutbetaling,
             ).left()
@@ -263,6 +269,7 @@ internal class OppdaterStønadsperiodeTest {
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 saksbehandler = saksbehandler,
                 hentPerson = { person().right() },
+                saksbehandlersAvgjørelse = null,
             ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode(
                 StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeOverlapperMedIkkeOpphørtStønadsperiode,
             ).left()
@@ -283,6 +290,7 @@ internal class OppdaterStønadsperiodeTest {
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 saksbehandler = saksbehandler,
                 hentPerson = { person().right() },
+                saksbehandlersAvgjørelse = null,
             ).shouldBeRight()
         }
     }

@@ -242,10 +242,11 @@ internal class PersonClientTest {
             sivilstand = null,
             kjønn = pdlData().kjønn,
             fødsel = pdlData().fødsel?.let {
-                Person.Fødsel(
-                    år = Year.of(it.foedselsaar),
-                    dato = it.foedselsdato,
-                )
+                if (it.foedselsdato != null) {
+                    Person.Fødsel.MedFødselsdato(it.foedselsdato)
+                } else {
+                    Person.Fødsel.MedFødselsår(Year.of(it.foedselsaar))
+                }
             },
             adressebeskyttelse = pdlData().adressebeskyttelse,
             skjermet = false,

@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 
 data class LukketSøknadsbehandling private constructor(
@@ -16,7 +17,8 @@ data class LukketSøknadsbehandling private constructor(
     override val søknad: Søknad.Journalført.MedOppgave.Lukket,
     override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
 ) : Søknadsbehandling() {
-    override val stønadsperiode = underliggendeSøknadsbehandling.stønadsperiode
+    override val aldersvurdering: Aldersvurdering? = underliggendeSøknadsbehandling.aldersvurdering
+    override val stønadsperiode: Stønadsperiode? get() = aldersvurdering?.stønadsperiode
     override val grunnlagsdata = underliggendeSøknadsbehandling.grunnlagsdata
     override val vilkårsvurderinger = underliggendeSøknadsbehandling.vilkårsvurderinger
     override val attesteringer = underliggendeSøknadsbehandling.attesteringer
@@ -90,6 +92,7 @@ data class LukketSøknadsbehandling private constructor(
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
         avkorting: AvkortingVedSøknadsbehandling,
         søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
+        aldersvurdering: Aldersvurdering,
     ) = throw UnsupportedOperationException("Kan ikke kalle copyInternal på en lukket søknadsbehandling.")
 
     init {

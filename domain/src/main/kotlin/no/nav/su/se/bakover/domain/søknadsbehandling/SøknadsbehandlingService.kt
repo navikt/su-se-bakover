@@ -8,8 +8,8 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.SaksbehandlersAvgjørelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
-import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.VurdertStønadsperiodeOppMotPersonsAlder
 import no.nav.su.se.bakover.domain.vilkår.UgyldigFamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.FullførBosituasjonRequest
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjonEpsGrunnlag
@@ -52,7 +52,7 @@ interface SøknadsbehandlingService {
     /**
      * Oppdatering av stønadsperiode tar hensyn til personens alder ved slutten av stønadsperioden.
      */
-    fun oppdaterStønadsperiode(request: OppdaterStønadsperiodeRequest): Either<Sak.KunneIkkeOppdatereStønadsperiode, Pair<Søknadsbehandling.Vilkårsvurdert, VurdertStønadsperiodeOppMotPersonsAlder.RettPåUføre.SaksbehandlerMåKontrollereManuelt?>>
+    fun oppdaterStønadsperiode(request: OppdaterStønadsperiodeRequest): Either<Sak.KunneIkkeOppdatereStønadsperiode, Søknadsbehandling.Vilkårsvurdert>
     fun leggTilUførevilkår(
         request: LeggTilUførevurderingerRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,
@@ -215,6 +215,7 @@ interface SøknadsbehandlingService {
         val stønadsperiode: Stønadsperiode,
         val sakId: UUID,
         val saksbehandler: NavIdentBruker.Saksbehandler,
+        val saksbehandlersAvgjørelse: SaksbehandlersAvgjørelse?,
     )
 
     sealed class KunneIkkeLeggeTilUføreVilkår {

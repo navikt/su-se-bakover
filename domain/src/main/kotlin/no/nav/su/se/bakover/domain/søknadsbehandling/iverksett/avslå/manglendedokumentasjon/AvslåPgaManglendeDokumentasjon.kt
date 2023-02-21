@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.IverksattAvslåttSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.iverksettSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
@@ -95,7 +96,7 @@ private fun avslå(
     // TODO jah: Vi burde gå via sak i alle stegene vi muterer søknadsbehandlingen.
     return søknadsbehandling
         // Dersom en søknadsbehandling kun er opprettet, men stønadsperiode ikke er valgt enda.
-        .leggTilStønadsperiodeHvisNull(
+        .leggTilStønadsperiodeOgAldersvurderingHvisNull(
             clock = clock,
             satsFactory = satsFactory,
             avkorting = sak.hentUteståendeAvkortingForSøknadsbehandling().fold({ it }, { it }).kanIkke(),
@@ -115,24 +116,26 @@ private fun avslå(
  * Burde kanskje oppdatere via [Sak.oppdaterStønadsperiodeForSøknadsbehandling] men for å unngå problemer i tilfeller der stønadsperiode
  * ikke er valgt av saksbeahndler gjør vi det direkte på søknadsbehandling.
  */
-private fun Søknadsbehandling.leggTilStønadsperiodeHvisNull(
+private fun Søknadsbehandling.leggTilStønadsperiodeOgAldersvurderingHvisNull(
     clock: Clock,
     satsFactory: SatsFactory,
     avkorting: AvkortingVedSøknadsbehandling,
 ): Søknadsbehandling {
     if (stønadsperiode != null) return this
 
-    return oppdaterStønadsperiode(
-        oppdatertStønadsperiode = Stønadsperiode.create(
-            periode = Periode.create(
-                fraOgMed = LocalDate.now(clock).startOfMonth(),
-                tilOgMed = LocalDate.now(clock).endOfMonth(),
+    return leggTilAldersvurderingOgStønadsperiodeForAvslagPgaManglendeDokumentasjon(
+        aldersvurdering = Aldersvurdering.SkalIkkeVurderes(
+            Stønadsperiode.create(
+                periode = Periode.create(
+                    fraOgMed = LocalDate.now(clock).startOfMonth(),
+                    tilOgMed = LocalDate.now(clock).endOfMonth(),
+                ),
             ),
         ),
         formuegrenserFactory = satsFactory.formuegrenserFactory,
         clock = clock,
         avkorting = avkorting,
-    ).getOrElse { throw IllegalArgumentException(it.toString()) }
+    )
 }
 
 private fun Søknadsbehandling.avslåPgaManglendeDokumentasjon(

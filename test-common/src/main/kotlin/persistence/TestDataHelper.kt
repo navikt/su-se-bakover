@@ -1189,6 +1189,7 @@ class TestDataHelper(
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 saksbehandler = saksbehandler,
                 hentPerson = { person().right() },
+                saksbehandlersAvgjørelse = null,
             ).getOrFail().second.let {
                 databaseRepos.søknadsbehandling.lagre(it)
                 assert(it.fnr == sak.fnr && it.sakId == sakId)

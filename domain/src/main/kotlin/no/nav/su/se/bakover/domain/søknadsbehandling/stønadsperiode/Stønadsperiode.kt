@@ -39,4 +39,5 @@ data class Stønadsperiode private constructor(
     }
 
     override fun compareTo(other: Stønadsperiode) = periode.compareTo(other.periode)
+    fun måneder() = periode.måneder()
 }

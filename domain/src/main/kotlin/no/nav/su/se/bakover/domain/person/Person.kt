@@ -22,7 +22,9 @@ data class Person(
     val fullmakt: Boolean? = null,
     val dødsdato: LocalDate? = null,
 ) {
-    fun getAlder(påDato: LocalDate): Int? = fødsel?.dato?.let { Period.between(it, påDato).years }
+    fun getAlder(påDato: LocalDate): Int? = fødsel?.getAlder(påDato)
+    fun alderSomFylles(påÅr: Year): Int? = fødsel?.alderSomFylles(påÅr)
+
     fun er67EllerEldre(påDato: LocalDate): Boolean? = getAlder(påDato)?.let { it >= 67 }
 
     data class Navn(
@@ -63,14 +65,24 @@ data class Person(
         val relatertVedSivilstand: Fnr?,
     )
 
-    data class Fødsel(
-        val dato: LocalDate? = null,
-        val år: Year,
-    ) {
-        init {
-            if (dato != null) {
-                require(dato.year == år.value) { "Året på fødselsdatoen og fødselsåret som er angitt er ikke lik. fødelsdato ${dato.year}, fødselsår ${år.value}" }
-            }
+    sealed interface Fødsel {
+        val år: Year
+
+        /**
+         * Dersom fødselsdato eksisterer, vil alderen på person regnes ut basert på [påDato].
+         * Hvis ikke, returneres null
+         */
+        fun getAlder(påDato: LocalDate): Int?
+
+        fun alderSomFylles(påÅr: Year): Int = påÅr.minusYears(år.value.toLong()).value
+
+        data class MedFødselsdato(val dato: LocalDate) : Fødsel {
+            override val år: Year = Year.of(dato.year)
+            override fun getAlder(påDato: LocalDate) = dato.let { Period.between(it, påDato).years }
+        }
+
+        data class MedFødselsår(override val år: Year) : Fødsel {
+            override fun getAlder(påDato: LocalDate): Int? = null
         }
     }
 }

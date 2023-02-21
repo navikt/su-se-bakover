@@ -10,12 +10,13 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.StønadsperiodeJson.Companion.toJson
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.OppdaterStønadsperiodeRequest.Companion.toJson
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.LocalDate
 
-internal class StønadsperiodeJsonTest {
+internal class OppdaterStønadsperiodeRequestTest {
 
     private val fraOgMed = "2021-01-01"
     private val fraOgMedDato: LocalDate = 1.januar(2021)
@@ -23,7 +24,17 @@ internal class StønadsperiodeJsonTest {
     private val tilOgMed = "2021-12-31"
     private val tilOgMedDato: LocalDate = 31.desember(2021)
 
-    private val json = """
+    private val requestJson = """
+        {
+            "periode": {
+                "fraOgMed":"$fraOgMed",
+                "tilOgMed":"$tilOgMed"
+            },
+            "harSaksbehandlerAvgjort": false
+        }
+    """.trimIndent()
+
+    private val stønadsperiodeJson = """
         {
             "periode": {
                 "fraOgMed":"$fraOgMed",
@@ -38,20 +49,24 @@ internal class StønadsperiodeJsonTest {
     @Test
     fun `kan serialisere`() {
         val actual = serialize(stønadsperiode.toJson())
-        JSONAssert.assertEquals(json, actual, true)
+        JSONAssert.assertEquals(stønadsperiodeJson, actual, true)
     }
 
     @Test
     fun `kan deserialisere`() {
-        val stønadsperiodeJson = deserialize<StønadsperiodeJson>(json)
+        val request = deserialize<OppdaterStønadsperiodeRequest>(requestJson)
         assertSoftly {
-            stønadsperiodeJson shouldBe StønadsperiodeJson(
+            request shouldBe OppdaterStønadsperiodeRequest(
                 periode = PeriodeJson(
                     fraOgMed = fraOgMed,
                     tilOgMed = tilOgMed,
                 ),
+                harSaksbehandlerAvgjort = false,
             )
-            stønadsperiodeJson.toStønadsperiode() shouldBe stønadsperiode.right()
+            request.toDomain(fixedClock) shouldBe PartialOppdaterStønadsperiodeRequest(
+                stønadsperiode = stønadsperiode,
+                saksbehandlersAvgjørelse = null,
+            ).right()
         }
     }
 }

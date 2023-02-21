@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -64,6 +65,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
                     avslag.saksbehandler shouldBe NavIdentBruker.Saksbehandler("jossi")
                     avslag.grunnlagsdata shouldBe Grunnlagsdata.IkkeVurdert
                     avslag.avslagsgrunner shouldBe listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON)
+                    avslag.aldersvurdering.shouldBeType<Aldersvurdering.SkalIkkeVurderes>()
                     avslag.vilkårsvurderinger.opplysningspliktVilkår().shouldBeType<OpplysningspliktVilkår.Vurdert>()
                         .let { actualVilkår ->
                             avslag.vilkårsvurderinger shouldBe Vilkårsvurderinger.Søknadsbehandling.Uføre.ikkeVurdert().copy(
@@ -150,6 +152,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
                         avslag.saksbehandler shouldBe NavIdentBruker.Saksbehandler("jossi")
                         avslag.grunnlagsdata shouldBe Grunnlagsdata.IkkeVurdert
                         avslag.avslagsgrunner shouldBe listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON)
+                        avslag.aldersvurdering.shouldBeType<Aldersvurdering.Vurdert>()
                         avslag.vilkårsvurderinger.opplysningspliktVilkår()
                             .shouldBeType<OpplysningspliktVilkår.Vurdert>()
                             .let { actualVilkår ->

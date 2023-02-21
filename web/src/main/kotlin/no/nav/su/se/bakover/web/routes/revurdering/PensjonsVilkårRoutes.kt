@@ -16,9 +16,9 @@ import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vilkår.pensjon.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.web.features.authorize
-import no.nav.su.se.bakover.web.routes.vilkår.alder.LeggTilVurderingsperiodePensjonsvilkårJson
-import no.nav.su.se.bakover.web.routes.vilkår.alder.tilResultat
-import no.nav.su.se.bakover.web.routes.vilkår.alder.toDomain
+import no.nav.su.se.bakover.web.routes.vilkår.pensjon.LeggTilVurderingsperiodePensjonsvilkårJson
+import no.nav.su.se.bakover.web.routes.vilkår.pensjon.tilResultat
+import no.nav.su.se.bakover.web.routes.vilkår.pensjon.toDomain
 import java.time.Clock
 
 internal fun Route.pensjonsVilkårRoutes(

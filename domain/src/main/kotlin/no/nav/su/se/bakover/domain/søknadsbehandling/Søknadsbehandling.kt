@@ -44,8 +44,8 @@ import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.Vilkårsvurdert.Companion.opprett
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
-import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.VurdertStønadsperiodeOppMotPersonsAlder
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
@@ -75,6 +75,7 @@ sealed class Søknadsbehandling :
     MedSaksbehandlerHistorikk<Søknadsbehandlingshendelse> {
     abstract val søknad: Søknad.Journalført.MedOppgave
 
+    abstract val aldersvurdering: Aldersvurdering?
     abstract val stønadsperiode: Stønadsperiode?
     abstract override val grunnlagsdata: Grunnlagsdata
     abstract override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling
@@ -224,6 +225,7 @@ sealed class Søknadsbehandling :
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling = this.grunnlagsdataOgVilkårsvurderinger,
         avkorting: AvkortingVedSøknadsbehandling = this.avkorting,
         søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk,
+        aldersvurdering: Aldersvurdering = this.aldersvurdering!!,
     ): Søknadsbehandling
 
     fun leggTilUtenlandsopphold(
@@ -266,7 +268,7 @@ sealed class Søknadsbehandling :
         oppgaveId = oppgaveId,
         fnr = fnr,
         fritekstTilBrev = fritekstTilBrev,
-        stønadsperiode = stønadsperiode!!,
+        aldersvurdering = aldersvurdering!!,
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         attesteringer = attesteringer,
         saksbehandlingsHistorikk = søknadsbehandlingsHistorikk,
@@ -315,6 +317,29 @@ sealed class Søknadsbehandling :
         }
     }
 
+    fun leggTilAldersvurderingOgStønadsperiodeForAvslagPgaManglendeDokumentasjon(
+        aldersvurdering: Aldersvurdering.SkalIkkeVurderes,
+        formuegrenserFactory: FormuegrenserFactory,
+        clock: Clock,
+        avkorting: AvkortingVedSøknadsbehandling,
+    ): Vilkårsvurdert {
+        return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
+            stønadsperiode = aldersvurdering.stønadsperiode,
+            formuegrenserFactory = formuegrenserFactory,
+            clock = clock,
+        ).getOrElse {
+            throw IllegalArgumentException("Feil ved oppdatering av stønadsperiode for grunnlagsdata og vilkårsvurderinger. id $id")
+        }.let {
+            copyInternal(
+                stønadsperiode = aldersvurdering.stønadsperiode,
+                aldersvurdering = aldersvurdering,
+                grunnlagsdataOgVilkårsvurderinger = it,
+                avkorting = avkorting,
+                søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk,
+            ).vilkårsvurder(saksbehandler)
+        }
+    }
+
     fun oppdaterStønadsperiode(
         oppdatertStønadsperiode: Stønadsperiode,
         formuegrenserFactory: FormuegrenserFactory,
@@ -355,14 +380,14 @@ sealed class Søknadsbehandling :
 
     fun oppdaterStønadsperiodeForSaksbehandler(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        oppdatertStønadsperiode: VurdertStønadsperiodeOppMotPersonsAlder.RettPåUføre,
+        aldersvurdering: Aldersvurdering.Vurdert,
         formuegrenserFactory: FormuegrenserFactory,
         clock: Clock,
         avkorting: AvkortingVedSøknadsbehandling,
     ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> = if (this is KanOppdaterePeriodeGrunnlagVilkår) {
         oppdaterStønadsperiodeInternalForSaksbehandler(
             saksbehandler = saksbehandler,
-            oppdatertStønadsperiode = oppdatertStønadsperiode.stønadsperiode,
+            aldersvurdering = aldersvurdering,
             formuegrenserFactory = formuegrenserFactory,
             clock = clock,
             avkorting = avkorting,
@@ -373,20 +398,21 @@ sealed class Søknadsbehandling :
 
     private fun oppdaterStønadsperiodeInternalForSaksbehandler(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        oppdatertStønadsperiode: Stønadsperiode,
+        aldersvurdering: Aldersvurdering.Vurdert,
         formuegrenserFactory: FormuegrenserFactory,
         clock: Clock,
         avkorting: AvkortingVedSøknadsbehandling,
     ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
         return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
-            stønadsperiode = oppdatertStønadsperiode,
+            stønadsperiode = aldersvurdering.stønadsperiode,
             formuegrenserFactory = formuegrenserFactory,
             clock = clock,
         ).mapLeft {
             KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
         }.map {
             copyInternal(
-                stønadsperiode = oppdatertStønadsperiode,
+                stønadsperiode = aldersvurdering.stønadsperiode,
+                aldersvurdering = aldersvurdering,
                 grunnlagsdataOgVilkårsvurderinger = it,
                 avkorting = avkorting,
                 søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.leggTilNyHendelse(
@@ -888,7 +914,7 @@ sealed class Søknadsbehandling :
                     fnr = behandling.fnr,
                     beregning = beregning,
                     fritekstTilBrev = behandling.fritekstTilBrev,
-                    stønadsperiode = behandling.stønadsperiode!!,
+                    aldersvurdering = behandling.aldersvurdering!!,
                     grunnlagsdata = behandling.grunnlagsdata,
                     vilkårsvurderinger = behandling.vilkårsvurderinger,
                     attesteringer = behandling.attesteringer,
@@ -909,7 +935,7 @@ sealed class Søknadsbehandling :
                         fnr = behandling.fnr,
                         beregning = beregning,
                         fritekstTilBrev = behandling.fritekstTilBrev,
-                        stønadsperiode = behandling.stønadsperiode!!,
+                        aldersvurdering = behandling.aldersvurdering!!,
                         grunnlagsdata = behandling.grunnlagsdata,
                         vilkårsvurderinger = behandling.vilkårsvurderinger,
                         attesteringer = behandling.attesteringer,
@@ -1003,7 +1029,7 @@ sealed class Søknadsbehandling :
                 oppgaveId: OppgaveId,
                 fnr: Fnr,
                 fritekstTilBrev: String,
-                stønadsperiode: Stønadsperiode,
+                aldersvurdering: Aldersvurdering,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
                 attesteringer: Attesteringshistorikk,
                 saksbehandlingsHistorikk: Søknadsbehandlingshistorikk,
@@ -1025,11 +1051,11 @@ sealed class Søknadsbehandling :
                                     VurderingsperiodeOpplysningsplikt.create(
                                         id = UUID.randomUUID(),
                                         opprettet = opprettet,
-                                        periode = stønadsperiode.periode,
+                                        periode = aldersvurdering.stønadsperiode.periode,
                                         grunnlag = Opplysningspliktgrunnlag(
                                             id = UUID.randomUUID(),
                                             opprettet = opprettet,
-                                            periode = stønadsperiode.periode,
+                                            periode = aldersvurdering.stønadsperiode.periode,
                                             beskrivelse = OpplysningspliktBeskrivelse.TilstrekkeligDokumentasjon,
                                         ),
                                     ),
@@ -1051,7 +1077,7 @@ sealed class Søknadsbehandling :
                             oppgaveId,
                             fnr,
                             fritekstTilBrev,
-                            stønadsperiode,
+                            aldersvurdering,
                             grunnlagsdata,
                             oppdaterteVilkårsvurderinger,
                             attesteringer,
@@ -1072,7 +1098,7 @@ sealed class Søknadsbehandling :
                             oppgaveId,
                             fnr,
                             fritekstTilBrev,
-                            stønadsperiode,
+                            aldersvurdering,
                             grunnlagsdata,
                             oppdaterteVilkårsvurderinger,
                             attesteringer,
@@ -1093,7 +1119,7 @@ sealed class Søknadsbehandling :
                             oppgaveId = oppgaveId,
                             fnr = fnr,
                             fritekstTilBrev = fritekstTilBrev,
-                            stønadsperiode = stønadsperiode,
+                            aldersvurdering = aldersvurdering,
                             grunnlagsdata = grunnlagsdata,
                             vilkårsvurderinger = oppdaterteVilkårsvurderinger,
                             attesteringer = attesteringer,
@@ -1116,7 +1142,7 @@ sealed class Søknadsbehandling :
             override val oppgaveId: OppgaveId,
             override val fnr: Fnr,
             override val fritekstTilBrev: String,
-            override val stønadsperiode: Stønadsperiode,
+            override val aldersvurdering: Aldersvurdering,
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
@@ -1125,7 +1151,8 @@ sealed class Søknadsbehandling :
             override val sakstype: Sakstype,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
         ) : Vilkårsvurdert(), KanBeregnes {
-            override val periode: Periode = stønadsperiode.periode
+            override val periode: Periode = aldersvurdering.stønadsperiode.periode
+            override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
             override val beregning = null
             override val simulering: Simulering? = null
@@ -1143,9 +1170,10 @@ sealed class Søknadsbehandling :
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
                 avkorting: AvkortingVedSøknadsbehandling,
                 søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
+                aldersvurdering: Aldersvurdering,
             ): Vilkårsvurdert {
                 return copy(
-                    stønadsperiode = stønadsperiode,
+                    aldersvurdering = aldersvurdering,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                     søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
@@ -1162,7 +1190,7 @@ sealed class Søknadsbehandling :
             override val oppgaveId: OppgaveId,
             override val fnr: Fnr,
             override val fritekstTilBrev: String,
-            override val stønadsperiode: Stønadsperiode,
+            override val aldersvurdering: Aldersvurdering,
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
@@ -1171,7 +1199,7 @@ sealed class Søknadsbehandling :
             override val sakstype: Sakstype,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
         ) : Vilkårsvurdert(), ErAvslag {
-
+            override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
             override val beregning = null
             override val simulering: Simulering? = null
 
@@ -1180,16 +1208,17 @@ sealed class Søknadsbehandling :
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
                 avkorting: AvkortingVedSøknadsbehandling,
                 søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
+                aldersvurdering: Aldersvurdering,
             ): Avslag {
                 return copy(
-                    stønadsperiode = stønadsperiode,
+                    aldersvurdering = aldersvurdering,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                     søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
                 )
             }
 
-            override val periode: Periode = stønadsperiode.periode
+            override val periode: Periode = aldersvurdering.stønadsperiode.periode
 
             init {
                 kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
@@ -1215,7 +1244,7 @@ sealed class Søknadsbehandling :
                 fnr = fnr,
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = fritekstTilBrev,
-                stønadsperiode = stønadsperiode,
+                aldersvurdering = aldersvurdering,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
@@ -1238,7 +1267,7 @@ sealed class Søknadsbehandling :
                 fnr = fnr,
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = fritekstTilBrev,
-                stønadsperiode = stønadsperiode,
+                aldersvurdering = aldersvurdering,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
@@ -1270,7 +1299,7 @@ sealed class Søknadsbehandling :
             override val oppgaveId: OppgaveId,
             override val fnr: Fnr,
             override val fritekstTilBrev: String,
-            override val stønadsperiode: Stønadsperiode?,
+            override val aldersvurdering: Aldersvurdering?,
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
@@ -1279,7 +1308,7 @@ sealed class Søknadsbehandling :
             override val sakstype: Sakstype,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
         ) : Vilkårsvurdert() {
-
+            override val stønadsperiode: Stønadsperiode? = aldersvurdering?.stønadsperiode
             override val beregning = null
             override val simulering: Simulering? = null
 
@@ -1288,9 +1317,10 @@ sealed class Søknadsbehandling :
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
                 avkorting: AvkortingVedSøknadsbehandling,
                 søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
+                aldersvurdering: Aldersvurdering,
             ): Uavklart {
                 return copy(
-                    stønadsperiode = stønadsperiode,
+                    aldersvurdering = aldersvurdering,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                     søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
@@ -1317,6 +1347,7 @@ sealed class Søknadsbehandling :
     sealed class Beregnet : Søknadsbehandling(), KanOppdaterePeriodeGrunnlagVilkår {
         abstract override val beregning: Beregning
         abstract override val stønadsperiode: Stønadsperiode
+        abstract override val aldersvurdering: Aldersvurdering
         abstract override val avkorting: AvkortingVedSøknadsbehandling.Håndtert
         abstract override val saksbehandler: NavIdentBruker.Saksbehandler
 
@@ -1351,7 +1382,7 @@ sealed class Søknadsbehandling :
                     beregning = beregning,
                     simulering = simulering,
                     fritekstTilBrev = fritekstTilBrev,
-                    stønadsperiode = stønadsperiode,
+                    aldersvurdering = aldersvurdering,
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     attesteringer = attesteringer,
@@ -1379,7 +1410,7 @@ sealed class Søknadsbehandling :
             override val fnr: Fnr,
             override val beregning: Beregning,
             override val fritekstTilBrev: String,
-            override val stønadsperiode: Stønadsperiode,
+            override val aldersvurdering: Aldersvurdering,
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
@@ -1388,8 +1419,9 @@ sealed class Søknadsbehandling :
             override val sakstype: Sakstype,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
         ) : Beregnet() {
-            override val periode: Periode = stønadsperiode.periode
+            override val periode: Periode = aldersvurdering.stønadsperiode.periode
             override val simulering: Simulering? = null
+            override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
             init {
                 kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
@@ -1404,9 +1436,10 @@ sealed class Søknadsbehandling :
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
                 avkorting: AvkortingVedSøknadsbehandling,
                 søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
+                aldersvurdering: Aldersvurdering,
             ): Innvilget {
                 return copy(
-                    stønadsperiode = stønadsperiode,
+                    aldersvurdering = aldersvurdering,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                     søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
@@ -1424,7 +1457,7 @@ sealed class Søknadsbehandling :
             override val fnr: Fnr,
             override val beregning: Beregning,
             override val fritekstTilBrev: String,
-            override val stønadsperiode: Stønadsperiode,
+            override val aldersvurdering: Aldersvurdering,
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
@@ -1433,9 +1466,9 @@ sealed class Søknadsbehandling :
             override val sakstype: Sakstype,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
         ) : Beregnet(), ErAvslag {
-            override val periode: Periode = stønadsperiode.periode
+            override val periode: Periode = aldersvurdering.stønadsperiode.periode
             override val simulering: Simulering? = null
-
+            override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
             private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                 when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
                     is AvslagGrunnetBeregning.Ja -> listOf(vurdering.grunn.toAvslagsgrunn())
@@ -1451,9 +1484,10 @@ sealed class Søknadsbehandling :
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
                 avkorting: AvkortingVedSøknadsbehandling,
                 søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
+                aldersvurdering: Aldersvurdering,
             ): Avslag {
                 return copy(
-                    stønadsperiode = stønadsperiode,
+                    aldersvurdering = aldersvurdering,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                     søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
@@ -1479,7 +1513,7 @@ sealed class Søknadsbehandling :
                 beregning = beregning,
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = fritekstTilBrev,
-                stønadsperiode = stønadsperiode,
+                aldersvurdering = aldersvurdering,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
@@ -1514,7 +1548,7 @@ sealed class Søknadsbehandling :
         override val beregning: Beregning,
         override val simulering: Simulering,
         override val fritekstTilBrev: String,
-        override val stønadsperiode: Stønadsperiode,
+        override val aldersvurdering: Aldersvurdering,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
         override val attesteringer: Attesteringshistorikk,
@@ -1523,7 +1557,8 @@ sealed class Søknadsbehandling :
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
     ) : Søknadsbehandling(), KanOppdaterePeriodeGrunnlagVilkår {
-        override val periode: Periode = stønadsperiode.periode
+        override val periode: Periode = aldersvurdering.stønadsperiode.periode
+        override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
         init {
             kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
@@ -1538,9 +1573,10 @@ sealed class Søknadsbehandling :
             grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             avkorting: AvkortingVedSøknadsbehandling,
             søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
+            aldersvurdering: Aldersvurdering,
         ): Simulert {
             return copy(
-                stønadsperiode = stønadsperiode,
+                aldersvurdering = aldersvurdering,
                 grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                 vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
@@ -1578,7 +1614,7 @@ sealed class Søknadsbehandling :
                     beregning = beregning,
                     simulering = simulering,
                     fritekstTilBrev = fritekstTilBrev,
-                    stønadsperiode = stønadsperiode,
+                    aldersvurdering = aldersvurdering,
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     attesteringer = attesteringer,
@@ -1619,7 +1655,7 @@ sealed class Søknadsbehandling :
                 simulering = simulering,
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = fritekstTilBrev,
-                stønadsperiode = stønadsperiode,
+                aldersvurdering = aldersvurdering,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
@@ -1640,7 +1676,7 @@ sealed class Søknadsbehandling :
         abstract override val saksbehandler: NavIdentBruker.Saksbehandler
         abstract fun nyOppgaveId(nyOppgaveId: OppgaveId): TilAttestering
         abstract fun tilUnderkjent(attestering: Attestering): Underkjent
-        abstract override val stønadsperiode: Stønadsperiode
+        abstract override val aldersvurdering: Aldersvurdering
         abstract override val attesteringer: Attesteringshistorikk
         abstract override val avkorting: AvkortingVedSøknadsbehandling.Håndtert
 
@@ -1656,7 +1692,7 @@ sealed class Søknadsbehandling :
             override val simulering: Simulering,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val fritekstTilBrev: String,
-            override val stønadsperiode: Stønadsperiode,
+            override val aldersvurdering: Aldersvurdering,
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
@@ -1664,22 +1700,23 @@ sealed class Søknadsbehandling :
             override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
             override val sakstype: Sakstype,
         ) : TilAttestering() {
-
+            override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
                 avkorting: AvkortingVedSøknadsbehandling,
                 søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
+                aldersvurdering: Aldersvurdering,
             ): TilAttestering {
                 return copy(
-                    stønadsperiode = stønadsperiode,
+                    aldersvurdering = aldersvurdering,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                     søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
                 )
             }
 
-            override val periode: Periode = stønadsperiode.periode
+            override val periode: Periode = aldersvurdering.stønadsperiode.periode
 
             init {
                 kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
@@ -1708,7 +1745,7 @@ sealed class Søknadsbehandling :
                     attesteringer = attesteringer.leggTilNyAttestering(attestering),
                     søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
                     fritekstTilBrev = fritekstTilBrev,
-                    stønadsperiode = stønadsperiode,
+                    aldersvurdering = aldersvurdering,
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     avkorting = avkorting,
@@ -1731,7 +1768,7 @@ sealed class Søknadsbehandling :
                     attesteringer = attesteringer.leggTilNyAttestering(attestering),
                     søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
                     fritekstTilBrev = fritekstTilBrev,
-                    stønadsperiode = stønadsperiode,
+                    aldersvurdering = aldersvurdering,
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     avkorting = avkorting.iverksett(id),
@@ -1741,7 +1778,7 @@ sealed class Søknadsbehandling :
         }
 
         sealed class Avslag : TilAttestering(), ErAvslag {
-            abstract override val stønadsperiode: Stønadsperiode
+            abstract override val aldersvurdering: Aldersvurdering
 
             fun iverksett(attestering: Attestering.Iverksatt): Iverksatt.Avslag {
                 return when (this) {
@@ -1760,7 +1797,7 @@ sealed class Søknadsbehandling :
                 override val fnr: Fnr,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val fritekstTilBrev: String,
-                override val stønadsperiode: Stønadsperiode,
+                override val aldersvurdering: Aldersvurdering,
                 override val grunnlagsdata: Grunnlagsdata,
                 override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 override val attesteringer: Attesteringshistorikk,
@@ -1768,6 +1805,7 @@ sealed class Søknadsbehandling :
                 override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
                 override val sakstype: Sakstype,
             ) : Avslag() {
+                override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
                 // TODO fiks typing/gyldig tilstand/vilkår fradrag?
                 override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.vurdering) {
@@ -1776,7 +1814,7 @@ sealed class Søknadsbehandling :
                     is Vilkårsvurderingsresultat.Uavklart -> emptyList()
                 }
 
-                override val periode: Periode = stønadsperiode.periode
+                override val periode: Periode = aldersvurdering.stønadsperiode.periode
 
                 override val beregning = null
                 override val simulering: Simulering? = null
@@ -1806,7 +1844,7 @@ sealed class Søknadsbehandling :
                         attesteringer = attesteringer.leggTilNyAttestering(attestering),
                         søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
                         fritekstTilBrev = fritekstTilBrev,
-                        stønadsperiode = stønadsperiode,
+                        aldersvurdering = aldersvurdering,
                         grunnlagsdata = grunnlagsdata,
                         vilkårsvurderinger = vilkårsvurderinger,
                         avkorting = avkorting,
@@ -1819,9 +1857,10 @@ sealed class Søknadsbehandling :
                     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
                     avkorting: AvkortingVedSøknadsbehandling,
                     søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
+                    aldersvurdering: Aldersvurdering,
                 ): UtenBeregning {
                     return copy(
-                        stønadsperiode = stønadsperiode,
+                        aldersvurdering = aldersvurdering,
                         grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                         vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                         søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
@@ -1843,7 +1882,7 @@ sealed class Søknadsbehandling :
                         attesteringer = attesteringer.leggTilNyAttestering(attestering),
                         søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
                         fritekstTilBrev = fritekstTilBrev,
-                        stønadsperiode = stønadsperiode,
+                        aldersvurdering = aldersvurdering,
                         grunnlagsdata = grunnlagsdata,
                         vilkårsvurderinger = vilkårsvurderinger,
                         avkorting = avkorting.iverksett(id),
@@ -1863,7 +1902,7 @@ sealed class Søknadsbehandling :
                 override val beregning: Beregning,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val fritekstTilBrev: String,
-                override val stønadsperiode: Stønadsperiode,
+                override val aldersvurdering: Aldersvurdering,
                 override val grunnlagsdata: Grunnlagsdata,
                 override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 override val attesteringer: Attesteringshistorikk,
@@ -1871,7 +1910,7 @@ sealed class Søknadsbehandling :
                 override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
                 override val sakstype: Sakstype,
             ) : Avslag() {
-
+                override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
                 private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                     when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
                         is AvslagGrunnetBeregning.Ja -> listOf(vurdering.grunn.toAvslagsgrunn())
@@ -1885,7 +1924,7 @@ sealed class Søknadsbehandling :
                     is Vilkårsvurderingsresultat.Uavklart -> emptyList()
                 } + avslagsgrunnForBeregning
 
-                override val periode: Periode = stønadsperiode.periode
+                override val periode: Periode = aldersvurdering.stønadsperiode.periode
                 override val simulering: Simulering? = null
 
                 init {
@@ -1914,7 +1953,7 @@ sealed class Søknadsbehandling :
                         attesteringer = attesteringer.leggTilNyAttestering(attestering),
                         søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
                         fritekstTilBrev = fritekstTilBrev,
-                        stønadsperiode = stønadsperiode,
+                        aldersvurdering = aldersvurdering,
                         grunnlagsdata = grunnlagsdata,
                         vilkårsvurderinger = vilkårsvurderinger,
                         avkorting = avkorting,
@@ -1927,9 +1966,10 @@ sealed class Søknadsbehandling :
                     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
                     avkorting: AvkortingVedSøknadsbehandling,
                     søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
+                    aldersvurdering: Aldersvurdering,
                 ): MedBeregning {
                     return copy(
-                        stønadsperiode = stønadsperiode,
+                        aldersvurdering = aldersvurdering,
                         grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                         vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                         søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
@@ -1952,7 +1992,7 @@ sealed class Søknadsbehandling :
                         attesteringer = attesteringer.leggTilNyAttestering(attestering),
                         søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
                         fritekstTilBrev = fritekstTilBrev,
-                        stønadsperiode = stønadsperiode,
+                        aldersvurdering = aldersvurdering,
                         grunnlagsdata = grunnlagsdata,
                         vilkårsvurderinger = vilkårsvurderinger,
                         avkorting = avkorting.iverksett(id),
@@ -1973,7 +2013,7 @@ sealed class Søknadsbehandling :
         abstract override val fnr: Fnr
         abstract override val saksbehandler: NavIdentBruker.Saksbehandler
         abstract override val attesteringer: Attesteringshistorikk
-        abstract override val stønadsperiode: Stønadsperiode
+        abstract override val aldersvurdering: Aldersvurdering
         abstract override val avkorting: AvkortingVedSøknadsbehandling.Håndtert
 
         abstract fun nyOppgaveId(nyOppgaveId: OppgaveId): Underkjent
@@ -1992,14 +2032,14 @@ sealed class Søknadsbehandling :
             override val attesteringer: Attesteringshistorikk,
             override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
             override val fritekstTilBrev: String,
-            override val stønadsperiode: Stønadsperiode,
+            override val aldersvurdering: Aldersvurdering,
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
             override val sakstype: Sakstype,
         ) : Underkjent() {
-
-            override val periode: Periode = stønadsperiode.periode
+            override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
+            override val periode: Periode = aldersvurdering.stønadsperiode.periode
 
             init {
                 kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
@@ -2014,9 +2054,10 @@ sealed class Søknadsbehandling :
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
                 avkorting: AvkortingVedSøknadsbehandling,
                 søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
+                aldersvurdering: Aldersvurdering,
             ): Innvilget {
                 return copy(
-                    stønadsperiode = stønadsperiode,
+                    aldersvurdering = aldersvurdering,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                     søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
@@ -2058,7 +2099,7 @@ sealed class Søknadsbehandling :
                         beregning = beregning,
                         simulering = simulering,
                         fritekstTilBrev = fritekstTilBrev,
-                        stønadsperiode = stønadsperiode,
+                        aldersvurdering = aldersvurdering,
                         grunnlagsdata = grunnlagsdata,
                         vilkårsvurderinger = vilkårsvurderinger,
                         attesteringer = attesteringer,
@@ -2095,7 +2136,7 @@ sealed class Søknadsbehandling :
                     simulering = simulering,
                     saksbehandler = saksbehandler,
                     fritekstTilBrev = fritekstTilBrev,
-                    stønadsperiode = stønadsperiode,
+                    aldersvurdering = aldersvurdering,
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     attesteringer = attesteringer,
@@ -2126,15 +2167,15 @@ sealed class Søknadsbehandling :
                 override val attesteringer: Attesteringshistorikk,
                 override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
                 override val fritekstTilBrev: String,
-                override val stønadsperiode: Stønadsperiode,
+                override val aldersvurdering: Aldersvurdering,
                 override val grunnlagsdata: Grunnlagsdata,
                 override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
                 override val sakstype: Sakstype,
             ) : Avslag() {
-                override val periode: Periode = stønadsperiode.periode
+                override val periode: Periode = aldersvurdering.stønadsperiode.periode
                 override val simulering: Simulering? = null
-
+                override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
                 private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                     when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
                         is AvslagGrunnetBeregning.Ja -> listOf(vurdering.grunn.toAvslagsgrunn())
@@ -2150,9 +2191,10 @@ sealed class Søknadsbehandling :
                     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
                     avkorting: AvkortingVedSøknadsbehandling,
                     søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
+                    aldersvurdering: Aldersvurdering,
                 ): MedBeregning {
                     return copy(
-                        stønadsperiode = stønadsperiode,
+                        aldersvurdering = aldersvurdering,
                         grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                         vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                         søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
@@ -2182,7 +2224,7 @@ sealed class Søknadsbehandling :
                         beregning = beregning,
                         saksbehandler = saksbehandler,
                         fritekstTilBrev = fritekstTilBrev,
-                        stønadsperiode = stønadsperiode,
+                        aldersvurdering = aldersvurdering,
                         grunnlagsdata = grunnlagsdata,
                         vilkårsvurderinger = vilkårsvurderinger,
                         attesteringer = attesteringer,
@@ -2217,13 +2259,13 @@ sealed class Søknadsbehandling :
                 override val attesteringer: Attesteringshistorikk,
                 override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
                 override val fritekstTilBrev: String,
-                override val stønadsperiode: Stønadsperiode,
+                override val aldersvurdering: Aldersvurdering,
                 override val grunnlagsdata: Grunnlagsdata,
                 override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
                 override val sakstype: Sakstype,
             ) : Avslag() {
-
+                override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
                 override val beregning = null
                 override val simulering: Simulering? = null
 
@@ -2232,16 +2274,17 @@ sealed class Søknadsbehandling :
                     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
                     avkorting: AvkortingVedSøknadsbehandling,
                     søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
+                    aldersvurdering: Aldersvurdering,
                 ): UtenBeregning {
                     return copy(
-                        stønadsperiode = stønadsperiode,
+                        aldersvurdering = aldersvurdering,
                         grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                         vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                         søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
                     )
                 }
 
-                override val periode: Periode = stønadsperiode.periode
+                override val periode: Periode = aldersvurdering.stønadsperiode.periode
 
                 init {
                     kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
@@ -2269,7 +2312,7 @@ sealed class Søknadsbehandling :
                         fnr = fnr,
                         saksbehandler = saksbehandler,
                         fritekstTilBrev = fritekstTilBrev,
-                        stønadsperiode = stønadsperiode,
+                        aldersvurdering = aldersvurdering,
                         grunnlagsdata = grunnlagsdata,
                         vilkårsvurderinger = vilkårsvurderinger,
                         attesteringer = attesteringer,
@@ -2304,7 +2347,7 @@ sealed class Søknadsbehandling :
         abstract override val fnr: Fnr
         abstract override val saksbehandler: NavIdentBruker.Saksbehandler
         abstract override val attesteringer: Attesteringshistorikk
-        abstract override val stønadsperiode: Stønadsperiode
+        abstract override val aldersvurdering: Aldersvurdering
         abstract override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt
 
         override fun copyInternal(
@@ -2312,6 +2355,7 @@ sealed class Søknadsbehandling :
             grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             avkorting: AvkortingVedSøknadsbehandling,
             søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
+            aldersvurdering: Aldersvurdering,
         ) = throw UnsupportedOperationException("Kan ikke kalle copyInternal på en iverksatt søknadsbehandling.")
 
         data class Innvilget(
@@ -2328,14 +2372,14 @@ sealed class Søknadsbehandling :
             override val attesteringer: Attesteringshistorikk,
             override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
             override val fritekstTilBrev: String,
-            override val stønadsperiode: Stønadsperiode,
+            override val aldersvurdering: Aldersvurdering,
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt,
             override val sakstype: Sakstype,
         ) : Iverksatt() {
-
-            override val periode: Periode = stønadsperiode.periode
+            override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
+            override val periode: Periode = aldersvurdering.stønadsperiode.periode
 
             init {
                 grunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget()
@@ -2361,13 +2405,14 @@ sealed class Søknadsbehandling :
                 override val attesteringer: Attesteringshistorikk,
                 override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
                 override val fritekstTilBrev: String,
-                override val stønadsperiode: Stønadsperiode,
+                override val aldersvurdering: Aldersvurdering,
                 override val grunnlagsdata: Grunnlagsdata,
                 override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
                 override val sakstype: Sakstype,
             ) : Avslag() {
-                override val periode: Periode = stønadsperiode.periode
+                override val periode: Periode = aldersvurdering.stønadsperiode.periode
+                override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
                 override val simulering: Simulering? = null
 
                 init {
@@ -2405,14 +2450,14 @@ sealed class Søknadsbehandling :
                 override val attesteringer: Attesteringshistorikk,
                 override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
                 override val fritekstTilBrev: String,
-                override val stønadsperiode: Stønadsperiode,
+                override val aldersvurdering: Aldersvurdering,
                 override val grunnlagsdata: Grunnlagsdata,
                 override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
                 override val sakstype: Sakstype,
             ) : Avslag() {
-                override val periode: Periode = stønadsperiode.periode
-
+                override val periode: Periode = aldersvurdering.stønadsperiode.periode
+                override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
                 override val beregning = null
                 override val simulering: Simulering? = null
 

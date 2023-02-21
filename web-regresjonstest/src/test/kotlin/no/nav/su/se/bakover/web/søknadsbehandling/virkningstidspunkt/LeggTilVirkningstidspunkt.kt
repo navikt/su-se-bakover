@@ -38,7 +38,8 @@ internal fun leggTilVirkningstidspunkt(
                 "periode":{
                   "fraOgMed":"$fraOgMed",
                   "tilOgMed":"$tilOgMed"
-                  }
+                  },
+                  "harSaksbehandlerAvgjort": false
               }
                 """.trimMargin(),
             )
