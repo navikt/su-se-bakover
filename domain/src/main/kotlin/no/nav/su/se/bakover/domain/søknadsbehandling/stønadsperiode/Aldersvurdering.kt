@@ -9,7 +9,7 @@ sealed interface Aldersvurdering {
     val stønadsperiode: Stønadsperiode
 
     /**
-     * Brukes ved avslag pga manglende dokumentasjon
+     * Brukes ved avslag pga manglende dokumentasjon dersom det ikke finnes en eksisterende alersvurdering på det tidspunktet
      */
     data class SkalIkkeVurderes(override val stønadsperiode: Stønadsperiode) : Aldersvurdering
 

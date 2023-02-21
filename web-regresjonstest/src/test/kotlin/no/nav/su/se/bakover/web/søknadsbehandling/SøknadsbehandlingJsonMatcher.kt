@@ -25,6 +25,7 @@ fun assertSøknadsbehandlingJson(
     expectedErLukket: Boolean = false,
     expectedSimuleringForAvkortingsvarsel: String? = null,
     expectedSakstype: String = "uføre",
+    expectedAldersvurdering: String? = null,
 ) {
     val expectedSakJson = """
     {
@@ -42,7 +43,8 @@ fun assertSøknadsbehandlingJson(
         "grunnlagsdataOgVilkårsvurderinger": $expectedGrunnlagsdataOgVilkårsvurderinger,
         "erLukket": $expectedErLukket,
         "simuleringForAvkortingsvarsel": $expectedSimuleringForAvkortingsvarsel,
-        "sakstype": $expectedSakstype
+        "sakstype": $expectedSakstype,
+        "aldersvurdering": $expectedAldersvurdering
     }
     """.trimIndent()
     JSONAssert.assertEquals(

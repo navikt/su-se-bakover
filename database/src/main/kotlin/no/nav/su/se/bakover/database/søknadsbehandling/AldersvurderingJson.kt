@@ -65,7 +65,7 @@ internal class AldersvurderingJson(
             )
 
             Vurdering.AVSLAG_MED_FØDSELSÅR -> Aldersvurdering.Vurdert(
-                maskinellVurdering = MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsår(
+                maskinellVurdering = MaskinellAldersvurderingMedGrunnlagsdata.RettPåAlder.MedFødselsår(
                     fødselsår = Year.of(fødselsår!!),
                     stønadsperiode = stønadsperiode,
                 ),
@@ -121,8 +121,17 @@ internal class AldersvurderingJson(
                 )
 
                 is Aldersvurdering.Vurdert -> AldersvurderingJson(
-                    vurdering = Vurdering.HISTORISK,
-                    fødselsdato = fødselsdato.toString(),
+                    vurdering = when (this.maskinellVurdering) {
+                        is MaskinellAldersvurderingMedGrunnlagsdata.RettPåAlder.MedFødselsdato -> Vurdering.AVSLAG_MED_FØDSELSDATO
+                        is MaskinellAldersvurderingMedGrunnlagsdata.RettPåAlder.MedFødselsår -> Vurdering.AVSLAG_MED_FØDSELSÅR
+
+                        is MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsdato -> Vurdering.INNVILGET_MED_FØDSELSDATO
+                        is MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsår -> Vurdering.INNVILGET_MED_FØDSELSÅR
+
+                        is MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.MedFødselsår -> Vurdering.UKJENT_MED_FØDSELSÅR
+                        is MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.UtenFødselsår -> Vurdering.UKJENT_UTEN_FØDSELSÅR
+                    },
+                    fødselsdato = fødselsdato?.toString(),
                     fødselsår = fødselsår?.value,
                     alder = aldersinformasjon.alder,
                     alderSøkerFyllerIÅr = aldersinformasjon.alderSøkerFyllerIÅr,

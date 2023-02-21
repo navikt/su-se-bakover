@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson.Companion.create
 import no.nav.su.se.bakover.web.routes.sak.toJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.AldersvurderingJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.AttesteringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SøkandsbehandlingStatusJson.Companion.status
@@ -39,7 +40,9 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
             erLukket = false,
             simuleringForAvkortingsvarsel = avkorting.toJson(),
             sakstype = sakstype.toJson(),
+            aldersvurdering = this.aldersvurdering?.toJson(),
         )
+
         is Søknadsbehandling.Beregnet -> {
             BehandlingJson(
                 id = id.toString(),
@@ -57,8 +60,10 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
+                aldersvurdering = this.aldersvurdering.toJson(),
             )
         }
+
         is Søknadsbehandling.Simulert -> {
             BehandlingJson(
                 id = id.toString(),
@@ -76,8 +81,10 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
+                aldersvurdering = this.aldersvurdering.toJson(),
             )
         }
+
         is Søknadsbehandling.TilAttestering.Innvilget -> {
             BehandlingJson(
                 id = id.toString(),
@@ -95,8 +102,10 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
+                aldersvurdering = this.aldersvurdering.toJson(),
             )
         }
+
         is Søknadsbehandling.TilAttestering.Avslag.MedBeregning -> {
             BehandlingJson(
                 id = id.toString(),
@@ -114,8 +123,10 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
+                aldersvurdering = this.aldersvurdering.toJson(),
             )
         }
+
         is Søknadsbehandling.TilAttestering.Avslag.UtenBeregning -> {
             BehandlingJson(
                 id = id.toString(),
@@ -133,8 +144,10 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
+                aldersvurdering = this.aldersvurdering.toJson(),
             )
         }
+
         is Søknadsbehandling.Underkjent.Innvilget -> {
             BehandlingJson(
                 id = id.toString(),
@@ -149,6 +162,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                             opprettet = it.opprettet,
                             underkjennelse = null,
                         )
+
                         is Attestering.Underkjent -> AttesteringJson(
                             attestant = it.attestant.navIdent,
                             opprettet = it.opprettet,
@@ -168,8 +182,10 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
+                aldersvurdering = this.aldersvurdering.toJson(),
             )
         }
+
         is Søknadsbehandling.Underkjent.Avslag.UtenBeregning -> {
             BehandlingJson(
                 id = id.toString(),
@@ -187,8 +203,10 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
+                aldersvurdering = this.aldersvurdering.toJson(),
             )
         }
+
         is Søknadsbehandling.Underkjent.Avslag.MedBeregning -> {
             BehandlingJson(
                 id = id.toString(),
@@ -206,8 +224,10 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
+                aldersvurdering = this.aldersvurdering.toJson(),
             )
         }
+
         is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> {
             BehandlingJson(
                 id = id.toString(),
@@ -225,8 +245,10 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
+                aldersvurdering = this.aldersvurdering.toJson(),
             )
         }
+
         is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> {
             BehandlingJson(
                 id = id.toString(),
@@ -244,8 +266,10 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
+                aldersvurdering = this.aldersvurdering.toJson(),
             )
         }
+
         is Søknadsbehandling.Iverksatt.Innvilget -> {
             BehandlingJson(
                 id = id.toString(),
@@ -263,8 +287,10 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
+                aldersvurdering = this.aldersvurdering.toJson(),
             )
         }
+
         is LukketSøknadsbehandling -> {
             underliggendeSøknadsbehandling.toJson(satsFactory).copy(erLukket = true)
         }
@@ -289,6 +315,7 @@ internal enum class SøkandsbehandlingStatusJson {
     IVERKSATT_INNVILGET,
     IVERKSATT_AVSLAG,
     ;
+
     companion object {
         fun Søknadsbehandling.status(): SøkandsbehandlingStatusJson {
             return when (this) {
