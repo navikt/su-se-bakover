@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.tidslinje
 import no.nav.su.se.bakover.common.application.CopyArgs
 import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.Validator.valider
 import java.time.LocalDate
 import java.util.LinkedList
@@ -197,9 +198,13 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
                             }
                             first.periode starterSamtidig second.periode -> {
                                 when {
-                                    first.opprettet.instant > second.opprettet.instant ||
-                                        first.opprettet.instant == second.opprettet.instant -> {
-                                        throw IllegalStateException("Feil ved periodisering i Tidslinje. Objekter er i ugyldig rekkefølge.")
+                                    first.opprettet.instant > second.opprettet.instant -> {
+                                        sikkerLogg.error("Feil ved periodisering i Tidslinje. Objekter er i ugyldig rekkefølge. First: $first er opprettet etter Second: $second. Queue: $queue. Result: $result")
+                                        throw IllegalStateException("Feil ved periodisering i Tidslinje. Objekter er i ugyldig rekkefølge. First er opprettet etter second. Se sikkerlogg.")
+                                    }
+                                    first.opprettet.instant == second.opprettet.instant -> {
+                                        sikkerLogg.error("Feil ved periodisering i Tidslinje. Objekter er i ugyldig rekkefølge. First: $first er opprettet samtidig som Second: $second. Queue: $queue. Result: $result")
+                                        throw IllegalStateException("Feil ved periodisering i Tidslinje. Objekter er i ugyldig rekkefølge. First er opprettet samtidig som second. Se sikkerlogg.")
                                     }
                                     first.opprettet.instant < second.opprettet.instant -> {
                                         result.add(
