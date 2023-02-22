@@ -20,7 +20,7 @@ internal class AldersvurderingJsonTest {
         @Test
         fun `historisk mappes riktig`() {
             Aldersvurdering.Historisk(stønadsperiode2021).toDBJson() shouldBe AldersvurderingJson(
-                maskinellVurdering = MaskinellVurdering.HISTORISK,
+                vurdering = MaskinellVurdering.HISTORISK,
                 fødselsdato = null,
                 fødselsår = null,
                 alder = null,
@@ -34,7 +34,7 @@ internal class AldersvurderingJsonTest {
         @Test
         fun `skal_ikke_vurderes mappes riktig`() {
             Aldersvurdering.SkalIkkeVurderes(stønadsperiode2021).toDBJson() shouldBe AldersvurderingJson(
-                maskinellVurdering = MaskinellVurdering.SKAL_IKKE_VURDERES,
+                vurdering = MaskinellVurdering.SKAL_IKKE_VURDERES,
                 fødselsdato = null,
                 fødselsår = null,
                 alder = null,
@@ -62,7 +62,7 @@ internal class AldersvurderingJsonTest {
                         alderPåTidspunkt = fixedTidspunkt,
                     ),
                 ).toDBJson() shouldBe AldersvurderingJson(
-                    maskinellVurdering = MaskinellVurdering.RETT_MED_FØDSELSDATO,
+                    vurdering = MaskinellVurdering.RETT_MED_FØDSELSDATO,
                     fødselsdato = "2000-01-01",
                     fødselsår = 2000,
                     alder = 21,
@@ -87,7 +87,7 @@ internal class AldersvurderingJsonTest {
                         alderPåTidspunkt = fixedTidspunkt,
                     ),
                 ).toDBJson() shouldBe AldersvurderingJson(
-                    maskinellVurdering = MaskinellVurdering.RETT_MED_FØDSELSÅR,
+                    vurdering = MaskinellVurdering.RETT_MED_FØDSELSÅR,
                     fødselsdato = null,
                     fødselsår = 2000,
                     alder = 21,
@@ -116,7 +116,7 @@ internal class AldersvurderingJsonTest {
                         alderPåTidspunkt = fixedTidspunkt,
                     ),
                 ).toDBJson() shouldBe AldersvurderingJson(
-                    maskinellVurdering = MaskinellVurdering.IKKE_RETT_MED_FØDSELSDATO,
+                    vurdering = MaskinellVurdering.IKKE_RETT_MED_FØDSELSDATO,
                     fødselsdato = "1950-01-01",
                     fødselsår = 1950,
                     alder = 71,
@@ -141,7 +141,7 @@ internal class AldersvurderingJsonTest {
                         alderPåTidspunkt = fixedTidspunkt,
                     ),
                 ).toDBJson() shouldBe AldersvurderingJson(
-                    maskinellVurdering = MaskinellVurdering.IKKE_RETT_MED_FØDSELSÅR,
+                    vurdering = MaskinellVurdering.IKKE_RETT_MED_FØDSELSÅR,
                     fødselsdato = null,
                     fødselsår = 1950,
                     alder = 71,
@@ -169,7 +169,7 @@ internal class AldersvurderingJsonTest {
                         alderPåTidspunkt = fixedTidspunkt,
                     ),
                 ).toDBJson() shouldBe AldersvurderingJson(
-                    maskinellVurdering = MaskinellVurdering.UKJENT_MED_FØDSELSÅR,
+                    vurdering = MaskinellVurdering.UKJENT_MED_FØDSELSÅR,
                     fødselsdato = null,
                     fødselsår = 1954,
                     alder = 67,
@@ -193,7 +193,7 @@ internal class AldersvurderingJsonTest {
                         alderPåTidspunkt = fixedTidspunkt,
                     ),
                 ).toDBJson() shouldBe AldersvurderingJson(
-                    maskinellVurdering = MaskinellVurdering.UKJENT_UTEN_FØDSELSÅR,
+                    vurdering = MaskinellVurdering.UKJENT_UTEN_FØDSELSÅR,
                     fødselsdato = null,
                     fødselsår = null,
                     alder = null,
@@ -212,7 +212,7 @@ internal class AldersvurderingJsonTest {
         fun `historisk mappes riktig`() {
             AldersvurderingJson.toAldersvurdering(
                 json = """{
-                "maskinellVurdering": "HISTORISK",
+                "vurdering": "HISTORISK",
                 "fødselsdato": null,
                 "fødselsår": null,
                 "alder": null,
@@ -230,7 +230,7 @@ internal class AldersvurderingJsonTest {
         fun `skalIkkeVurderes mappes riktig`() {
             AldersvurderingJson.toAldersvurdering(
                 json = """{
-                "maskinellVurdering": "SKAL_IKKE_VURDERES",
+                "vurdering": "SKAL_IKKE_VURDERES",
                 "fødselsdato": null,
                 "fødselsår": null,
                 "alder": null,
@@ -251,7 +251,7 @@ internal class AldersvurderingJsonTest {
                 AldersvurderingJson.toAldersvurdering(
                     //language=json
                     json = """{
-                        "maskinellVurdering": "RETT_MED_FØDSELSDATO",
+                        "vurdering": "RETT_MED_FØDSELSDATO",
                         "fødselsdato": "2000-01-01",
                         "fødselsår": 2000,
                         "alder": 21,
@@ -282,7 +282,7 @@ internal class AldersvurderingJsonTest {
                 AldersvurderingJson.toAldersvurdering(
                     //language=json
                     json = """{
-                        "maskinellVurdering": "RETT_MED_FØDSELSÅR",
+                        "vurdering": "RETT_MED_FØDSELSÅR",
                         "fødselsdato": null,
                         "fødselsår": 2000,
                         "alder": 21,
@@ -315,7 +315,7 @@ internal class AldersvurderingJsonTest {
                 AldersvurderingJson.toAldersvurdering(
                     //language=json
                     json = """{
-                        "maskinellVurdering": "IKKE_RETT_MED_FØDSELSDATO",
+                        "vurdering": "IKKE_RETT_MED_FØDSELSDATO",
                         "fødselsdato": "1950-01-01",
                         "fødselsår": 1950,
                         "alder": 71,
@@ -346,7 +346,7 @@ internal class AldersvurderingJsonTest {
                 AldersvurderingJson.toAldersvurdering(
                     //language=json
                     json = """{
-                        "maskinellVurdering": "IKKE_RETT_MED_FØDSELSÅR",
+                        "vurdering": "IKKE_RETT_MED_FØDSELSÅR",
                         "fødselsdato": null,
                         "fødselsår": 1950,
                         "alder": 71,
@@ -379,7 +379,7 @@ internal class AldersvurderingJsonTest {
                 AldersvurderingJson.toAldersvurdering(
                     //language=json
                     json = """{
-                        "maskinellVurdering": "UKJENT_MED_FØDSELSÅR",
+                        "vurdering": "UKJENT_MED_FØDSELSÅR",
                         "fødselsdato": null,
                         "fødselsår": 1954,
                         "alder": 67,
@@ -409,7 +409,7 @@ internal class AldersvurderingJsonTest {
                 AldersvurderingJson.toAldersvurdering(
                     //language=json
                     json = """{
-                        "maskinellVurdering": "UKJENT_UTEN_FØDSELSÅR",
+                        "vurdering": "UKJENT_UTEN_FØDSELSÅR",
                         "fødselsdato": null,
                         "fødselsår": null,
                         "alder": null,

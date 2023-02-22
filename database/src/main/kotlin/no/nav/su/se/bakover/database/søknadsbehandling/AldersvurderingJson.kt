@@ -34,7 +34,7 @@ internal class AldersvurderingJson(
             true -> SaksbehandlersAvgjørelse.Avgjort(avgjørelsesTidspunkt!!)
             false -> null
         }
-        return when (maskinellVurdering) {
+        return when (vurdering) {
             MaskinellVurdering.RETT_MED_FØDSELSDATO -> Aldersvurdering.Vurdert(
                 maskinellVurdering = MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsdato(
                     fødselsdato = LocalDate.parse(fødselsdato),
@@ -99,7 +99,7 @@ internal class AldersvurderingJson(
         fun Aldersvurdering.toDBJson(): String {
             return when (this) {
                 is Aldersvurdering.Historisk -> AldersvurderingJson(
-                    maskinellVurdering = MaskinellVurdering.HISTORISK,
+                    vurdering = MaskinellVurdering.HISTORISK,
                     fødselsdato = null,
                     fødselsår = null,
                     alder = null,
@@ -110,7 +110,7 @@ internal class AldersvurderingJson(
                 )
 
                 is Aldersvurdering.SkalIkkeVurderes -> AldersvurderingJson(
-                    maskinellVurdering = MaskinellVurdering.SKAL_IKKE_VURDERES,
+                    vurdering = MaskinellVurdering.SKAL_IKKE_VURDERES,
                     fødselsdato = null,
                     fødselsår = null,
                     alder = null,
@@ -121,7 +121,7 @@ internal class AldersvurderingJson(
                 )
 
                 is Aldersvurdering.Vurdert -> AldersvurderingJson(
-                    maskinellVurdering = when (this.maskinellVurdering) {
+                    vurdering = when (this.maskinellVurdering) {
                         is MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPåUføre.MedFødselsdato -> MaskinellVurdering.IKKE_RETT_MED_FØDSELSDATO
                         is MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPåUføre.MedFødselsår -> MaskinellVurdering.IKKE_RETT_MED_FØDSELSÅR
 
