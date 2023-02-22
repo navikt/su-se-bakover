@@ -534,12 +534,14 @@ data class Sak(
 
     sealed interface KunneIkkeOppdatereStønadsperiode {
         object FantIkkeBehandling : KunneIkkeOppdatereStønadsperiode
+        object AldersvurderingGirIkkeRettPåUføre : KunneIkkeOppdatereStønadsperiode
 
         data class KunneIkkeOppdatereGrunnlagsdata(
             val feil: no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeOppdatereStønadsperiode,
         ) : KunneIkkeOppdatereStønadsperiode
 
-        data class OverlappendeStønadsperiode(val feil: StøtterIkkeOverlappendeStønadsperioder) : KunneIkkeOppdatereStønadsperiode
+        data class OverlappendeStønadsperiode(val feil: StøtterIkkeOverlappendeStønadsperioder) :
+            KunneIkkeOppdatereStønadsperiode
     }
 
     fun avventerKravgrunnlag(): Boolean {

@@ -24,7 +24,7 @@ data class AldersvurderingJson(
                     AldersvurderingJson(
                         harSaksbehandlerAvgjort = this.saksbehandlersAvgjørelse != null,
                         maskinellVurderingsresultat = when (this.maskinellVurdering) {
-                            is MaskinellAldersvurderingMedGrunnlagsdata.RettPåAlder -> MaskinellVurderingsresultat.RETT_PÅ_ALDER
+                            is MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPåUføre -> MaskinellVurderingsresultat.IKKE_RETT_PÅ_UFØRE
                             is MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre -> MaskinellVurderingsresultat.RETT_PÅ_UFØRE
                             is MaskinellAldersvurderingMedGrunnlagsdata.Ukjent -> MaskinellVurderingsresultat.UKJENT
                         }.toString(),
@@ -36,7 +36,7 @@ data class AldersvurderingJson(
 }
 
 internal enum class MaskinellVurderingsresultat {
-    RETT_PÅ_ALDER,
+    IKKE_RETT_PÅ_UFØRE,
     RETT_PÅ_UFØRE,
     UKJENT,
     HISTORISK,

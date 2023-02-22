@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode
 
+import io.kotest.assertions.arrow.core.shouldBeLeft
+import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.juli
@@ -17,13 +19,13 @@ internal class AldersvurderingTest {
 
     @Test
     fun `person har ikke noe fødselsdata - Maskinell vurdering ukjent uten fødselsår`() {
-        val person = person()
+        val person = person(fødsel = null)
         Aldersvurdering.Vurdert.vurder(
             stønadsperiode = stønadsperiode2021,
             person = person,
             saksbehandlersAvgjørelse = null,
             clock = fixedClock,
-        ).let {
+        ).shouldBeLeft().let {
             it.maskinellVurdering shouldBe MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.UtenFødselsår(
                 stønadsperiode2021,
             )
@@ -40,15 +42,15 @@ internal class AldersvurderingTest {
     }
 
     @Test
-    fun `person har bare fødselsår, men er over 67 - Maskinell vurdering rettPåAlder`() {
+    fun `person har bare fødselsår, men er over 67 - Maskinell vurdering ikke rett på alder`() {
         val person = person(fødsel = Person.Fødsel.MedFødselsår(Year.of(1953)))
         Aldersvurdering.Vurdert.vurder(
             stønadsperiode = stønadsperiode2021,
             person = person,
             saksbehandlersAvgjørelse = null,
             clock = fixedClock,
-        ).let {
-            it.maskinellVurdering shouldBe MaskinellAldersvurderingMedGrunnlagsdata.RettPåAlder.MedFødselsår(
+        ).shouldBeLeft().let {
+            it.maskinellVurdering shouldBe MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPåUføre.MedFødselsår(
                 Year.of(1953),
                 stønadsperiode2021,
             )
@@ -72,7 +74,7 @@ internal class AldersvurderingTest {
             person = person,
             saksbehandlersAvgjørelse = null,
             clock = fixedClock,
-        ).let {
+        ).shouldBeRight().let {
             it.maskinellVurdering shouldBe MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsår(
                 Year.of(1960),
                 stønadsperiode2021,
@@ -97,7 +99,7 @@ internal class AldersvurderingTest {
             person = person,
             saksbehandlersAvgjørelse = null,
             clock = fixedClock,
-        ).let {
+        ).shouldBeLeft().let {
             it.maskinellVurdering shouldBe MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.MedFødselsår(
                 Year.of(1954),
                 stønadsperiode2021,
@@ -123,7 +125,7 @@ internal class AldersvurderingTest {
             person = person,
             saksbehandlersAvgjørelse = null,
             clock = fixedClock,
-        ).let {
+        ).shouldBeRight().let {
             it.maskinellVurdering shouldBe MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsdato(
                 1.august(1954),
                 Year.of(1954),
@@ -142,7 +144,7 @@ internal class AldersvurderingTest {
     }
 
     @Test
-    fun `person har fødselsdato, blir 67 måneden før slutten av stønadsperioden - Maskinell vurdering rett til uføre`() {
+    fun `person har fødselsdato, blir 67 måneden før slutten av stønadsperioden - Maskinell vurdering ikke rett til uføre`() {
         val person = person(fødsel = Person.Fødsel.MedFødselsdato(31.juli(1954)))
         val stønadsperiode = Stønadsperiode.create(januar(2021)..august(2021))
         Aldersvurdering.Vurdert.vurder(
@@ -150,8 +152,8 @@ internal class AldersvurderingTest {
             person = person,
             saksbehandlersAvgjørelse = null,
             clock = fixedClock,
-        ).let {
-            it.maskinellVurdering shouldBe MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsdato(
+        ).shouldBeLeft().let {
+            it.maskinellVurdering shouldBe MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPåUføre.MedFødselsdato(
                 31.juli(1954),
                 Year.of(1954),
                 stønadsperiode,
@@ -169,15 +171,15 @@ internal class AldersvurderingTest {
     }
 
     @Test
-    fun `person har fødselsdato, er over 67 - Maskinell vurdering rett til alder`() {
+    fun `person har fødselsdato, er over 67 - Maskinell vurdering ikke rett til uføre`() {
         val person = person(fødsel = Person.Fødsel.MedFødselsdato(31.juli(1950)))
         Aldersvurdering.Vurdert.vurder(
             stønadsperiode = stønadsperiode2021,
             person = person,
             saksbehandlersAvgjørelse = null,
             clock = fixedClock,
-        ).let {
-            it.maskinellVurdering shouldBe MaskinellAldersvurderingMedGrunnlagsdata.RettPåAlder.MedFødselsdato(
+        ).shouldBeLeft().let {
+            it.maskinellVurdering shouldBe MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPåUføre.MedFødselsdato(
                 31.juli(1950),
                 Year.of(1950),
                 stønadsperiode2021,

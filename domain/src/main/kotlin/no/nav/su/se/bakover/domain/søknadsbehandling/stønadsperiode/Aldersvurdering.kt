@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.domain.person.Person
 import java.time.Clock
 import java.time.LocalDate
@@ -34,7 +37,7 @@ sealed interface Aldersvurdering {
                 person: Person,
                 saksbehandlersAvgjørelse: SaksbehandlersAvgjørelse?,
                 clock: Clock,
-            ): Vurdert {
+            ): Either<Vurdert, Vurdert> {
                 return Vurdert(
                     maskinellVurdering = MaskinellAldersvurderingMedGrunnlagsdata.avgjørBasertPåFødselsdatoEllerFødselsår(
                         stønadsperiode = stønadsperiode,
@@ -42,7 +45,27 @@ sealed interface Aldersvurdering {
                     ),
                     saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
                     aldersinformasjon = Aldersinformasjon.createAldersinformasjon(person, clock),
-                )
+                ).let {
+                    when (it.maskinellVurdering) {
+                        is MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre -> {
+                            it.also {
+                                if (saksbehandlersAvgjørelse is SaksbehandlersAvgjørelse.Avgjort) {
+                                    throw IllegalArgumentException("Saksbehandler kan ikke ta en avgjørelse på en maskinell vurdering som gir rett på uføre")
+                                }
+                            }.right()
+                        }
+
+                        is MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPåUføre,
+                        is MaskinellAldersvurderingMedGrunnlagsdata.Ukjent,
+                        -> {
+                            if (saksbehandlersAvgjørelse is SaksbehandlersAvgjørelse.Avgjort) {
+                                it.right()
+                            } else {
+                                it.left()
+                            }
+                        }
+                    }
+                }
             }
         }
     }

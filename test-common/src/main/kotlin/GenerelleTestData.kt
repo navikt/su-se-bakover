@@ -85,7 +85,7 @@ val sakinfo = SakInfo(
 fun person(
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     aktørId: AktørId = no.nav.su.se.bakover.test.aktørId,
-    fødsel: Person.Fødsel? = null,
+    fødsel: Person.Fødsel? = Person.Fødsel.MedFødselsdato(1.januar(1990)),
 ) = Person(
     ident = Ident(
         fnr = fnr,

@@ -48,14 +48,15 @@ fun Sak.oppdaterStønadsperiodeForSøknadsbehandling(
     val person = hentPerson(this.fnr).getOrElse {
         throw IllegalStateException("Kunne ikke hente person. Denne var hentet for ikke så lenge siden")
     }
-    // TODO - Dette vil feile for Su-Alder
 
     val vurdering = Aldersvurdering.Vurdert.vurder(
         stønadsperiode = stønadsperiode,
         person = person,
         saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
         clock = clock,
-    )
+    ).getOrElse {
+        return Sak.KunneIkkeOppdatereStønadsperiode.AldersvurderingGirIkkeRettPåUføre.left()
+    }
     return internalOppdater(
         søknadsbehandling = søknadsbehandling,
         formuegrenserFactory = formuegrenserFactory,

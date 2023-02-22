@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.år
@@ -55,6 +56,7 @@ import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import vilkår.personligOppmøtevilkårAvslag
+import java.time.Year
 import java.util.UUID
 
 internal class SøknadsbehandlingPostgresRepoTest {
@@ -358,14 +360,16 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     .leggTilNyAttestering(attesteringIverksatt(clock = enUkeEtterFixedClock)),
                 fritekstTilBrev = "Dette er fritekst",
                 aldersvurdering = Aldersvurdering.Vurdert(
-                    maskinellVurdering = no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.UtenFødselsår(
-                        stønadsperiode2021,
+                    maskinellVurdering = no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsdato(
+                        fødselsdato = 1.januar(1990),
+                        fødselsår = Year.of(1990),
+                        stønadsperiode = stønadsperiode2021,
                     ),
                     saksbehandlersAvgjørelse = null,
                     aldersinformasjon = Aldersinformasjon.createFromExisting(
-                        alder = null,
-                        alderSøkerFyllerIÅr = null,
-                        alderPåTidspunkt = null,
+                        alder = 31,
+                        alderSøkerFyllerIÅr = 31,
+                        alderPåTidspunkt = fixedTidspunkt,
                     ),
                 ),
                 grunnlagsdata = iverksatt.grunnlagsdata,

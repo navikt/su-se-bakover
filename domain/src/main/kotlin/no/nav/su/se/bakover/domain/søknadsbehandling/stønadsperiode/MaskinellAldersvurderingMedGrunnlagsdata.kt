@@ -1,15 +1,15 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode
 
+import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.vilkår.uføretrygdMaxAlder
 import java.time.LocalDate
 import java.time.Year
 
 /**
- * Brukes både for SU-alder og SU-uføre.
+ * Brukes per nå bare for SU-uføre. Kan utvides videre når SU-Alder skal inn
  *
  * Et vilkår for å få SU-uføre stønad en gitt måned er at du ikke har fylt 67 år forrige måned, eller tidligere.
- * Tilsvarende for å få SU-alder stønad en gitt måned er at du fylte 67 år forrige måned, eller tidligere.
  *
  * Grunnen til usikkerheten rundt fødselsdato er at folkeregisteret ikke kan garantere denne verdien.
  */
@@ -23,7 +23,7 @@ sealed interface MaskinellAldersvurderingMedGrunnlagsdata {
     companion object {
         // Hvis du har fødselsdag 1 dag før dette, så er du for gammel
         fun Stønadsperiode.tidligsteGyldigeFødselsdato(): LocalDate =
-            periode.fraOgMed.minusYears(uføretrygdMaxAlder.toLong())
+            periode.tilOgMed.startOfMonth().minusYears(uføretrygdMaxAlder.toLong())
 
         fun avgjørBasertPåFødselsdatoEllerFødselsår(
             stønadsperiode: Stønadsperiode,
@@ -65,7 +65,7 @@ sealed interface MaskinellAldersvurderingMedGrunnlagsdata {
             stønadsperiode: Stønadsperiode,
         ): MaskinellAldersvurderingMedGrunnlagsdata {
             return if (fødselsdato < stønadsperiode.tidligsteGyldigeFødselsdato()) {
-                RettPåAlder.MedFødselsdato(
+                IkkeRettPåUføre.MedFødselsdato(
                     fødselsdato = fødselsdato,
                     fødselsår = fødselsår,
                     stønadsperiode = stønadsperiode,
@@ -85,7 +85,7 @@ sealed interface MaskinellAldersvurderingMedGrunnlagsdata {
             sisteÅrIPeriode: Int,
         ): MaskinellAldersvurderingMedGrunnlagsdata {
             return if (fødselsår.value < (sisteÅrIPeriode - 67)) {
-                RettPåAlder.MedFødselsår(
+                IkkeRettPåUføre.MedFødselsår(
                     fødselsår = fødselsår,
                     stønadsperiode = stønadsperiode,
                 )
@@ -112,17 +112,17 @@ sealed interface MaskinellAldersvurderingMedGrunnlagsdata {
         }
     }
 
-    sealed interface RettPåAlder : MaskinellAldersvurderingMedGrunnlagsdata {
+    sealed interface IkkeRettPåUføre : MaskinellAldersvurderingMedGrunnlagsdata {
         data class MedFødselsdato(
             override val fødselsdato: LocalDate,
             override val fødselsår: Year,
             override val stønadsperiode: Stønadsperiode,
-        ) : RettPåAlder
+        ) : IkkeRettPåUføre
 
         data class MedFødselsår(
             override val fødselsår: Year,
             override val stønadsperiode: Stønadsperiode,
-        ) : RettPåAlder {
+        ) : IkkeRettPåUføre {
             override val fødselsdato: LocalDate? = null
         }
     }

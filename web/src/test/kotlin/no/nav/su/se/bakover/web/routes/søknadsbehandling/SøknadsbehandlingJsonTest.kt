@@ -439,7 +439,7 @@ internal class SøknadsbehandlingJsonTest {
               "sakstype": "uføre",
               "aldersvurdering": {
                 "harSaksbehandlerAvgjort": false,
-                "maskinellVurderingsresultat": "UKJENT"
+                "maskinellVurderingsresultat": "RETT_PÅ_UFØRE"
               }
             }
         """.trimIndent()
@@ -642,7 +642,7 @@ internal class SøknadsbehandlingJsonTest {
               "sakstype": "uføre",
               "aldersvurdering": {
                 "harSaksbehandlerAvgjort": false,
-                "maskinellVurderingsresultat": "UKJENT"
+                "maskinellVurderingsresultat": "RETT_PÅ_UFØRE"
               }
             }
         """.trimIndent()
