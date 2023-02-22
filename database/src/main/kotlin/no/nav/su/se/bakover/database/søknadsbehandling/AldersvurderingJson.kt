@@ -12,7 +12,7 @@ import java.time.LocalDate
 import java.time.Year
 
 internal class AldersvurderingJson(
-    val maskinellVurdering: MaskinellVurdering,
+    val vurdering: MaskinellVurdering,
     val fødselsdato: String?,
     val fødselsår: Int?,
     val alder: Int?,
