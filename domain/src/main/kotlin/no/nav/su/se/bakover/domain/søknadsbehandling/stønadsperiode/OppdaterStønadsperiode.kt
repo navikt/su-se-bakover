@@ -55,7 +55,7 @@ fun Sak.oppdaterStønadsperiodeForSøknadsbehandling(
         saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
         clock = clock,
     ).getOrElse {
-        return Sak.KunneIkkeOppdatereStønadsperiode.AldersvurderingGirIkkeRettPåUføre.left()
+        return Sak.KunneIkkeOppdatereStønadsperiode.AldersvurderingGirIkkeRettPåUføre(it).left()
     }
     return internalOppdater(
         søknadsbehandling = søknadsbehandling,

@@ -60,6 +60,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.UnderkjennRequest
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.MaskinellAldersvurderingMedGrunnlagsdata
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.OppdaterStønadsperiodeRequest
@@ -388,6 +390,21 @@ internal fun Sak.KunneIkkeOppdatereStønadsperiode.tilResultat(): Resultat {
 
         is Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode -> this.feil.tilResultat()
 
-        else -> throw IllegalArgumentException("stfu")
+        is Sak.KunneIkkeOppdatereStønadsperiode.AldersvurderingGirIkkeRettPåUføre -> {
+            // OppdaterStønadsperiode vil fra dette tidspunktet alltid gi ut en vurdert vurdering
+            val maskinellVurdering = when ((this.vurdering as Aldersvurdering.Vurdert).maskinellVurdering) {
+                is MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPåUføre.MedFødselsdato -> "Ikke rett på uføre med fødselsdato"
+                is MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPåUføre.MedFødselsår -> "Ikke rett på uføre med fødselsår"
+                is MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsdato -> "Ikke rett på uføre med fødselsdato"
+                is MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsår -> "Ikke rett på uføre med fødselsdato"
+                is MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.MedFødselsår -> "Ikke rett på uføre med fødselsdato"
+                is MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.UtenFødselsår -> "Ikke rett på uføre med fødselsdato"
+            }
+
+            BadRequest.errorJson(
+                "Aldersvurdering gir ikke rett på uføre. Stønadsperioden må justeres, eller overstyres. vurdering - $maskinellVurdering",
+                "aldersvurdering_gir_ikke_rett_på_uføre",
+            )
+        }
     }
 }
