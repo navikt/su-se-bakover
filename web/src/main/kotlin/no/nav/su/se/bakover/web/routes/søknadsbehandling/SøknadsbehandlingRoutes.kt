@@ -395,10 +395,10 @@ internal fun Sak.KunneIkkeOppdatereStønadsperiode.tilResultat(): Resultat {
             val maskinellVurdering = when ((this.vurdering as Aldersvurdering.Vurdert).maskinellVurdering) {
                 is MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPåUføre.MedFødselsdato -> "Ikke rett på uføre med fødselsdato"
                 is MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPåUføre.MedFødselsår -> "Ikke rett på uføre med fødselsår"
-                is MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsdato -> "Ikke rett på uføre med fødselsdato"
-                is MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsår -> "Ikke rett på uføre med fødselsdato"
-                is MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.MedFødselsår -> "Ikke rett på uføre med fødselsdato"
-                is MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.UtenFødselsår -> "Ikke rett på uføre med fødselsdato"
+                is MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsdato -> "rett på uføre med fødselsdato"
+                is MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsår -> "rett på uføre med fødselsår"
+                is MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.MedFødselsår -> "Ukjent med fødselsår"
+                is MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.UtenFødselsår -> "ukjent uten fødselsår"
             }
 
             BadRequest.errorJson(
