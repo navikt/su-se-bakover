@@ -46,6 +46,7 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering {
         override val sakinfo = underliggendeStansAvYtelse.sakinfo
         override val id = underliggendeStansAvYtelse.id
         override val opprettet = underliggendeStansAvYtelse.opprettet
+        override val oppdatert: Tidspunkt = underliggendeStansAvYtelse.oppdatert
         override val periode = underliggendeStansAvYtelse.periode
         override val grunnlagsdata = underliggendeStansAvYtelse.grunnlagsdata
         override val vilkårsvurderinger = underliggendeStansAvYtelse.vilkårsvurderinger
@@ -84,6 +85,7 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering {
     data class SimulertStansAvYtelse(
         override val id: UUID,
         override val opprettet: Tidspunkt,
+        override val oppdatert: Tidspunkt,
         override val periode: Periode,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
@@ -110,6 +112,7 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering {
             return IverksattStansAvYtelse(
                 id = id,
                 opprettet = opprettet,
+                oppdatert = oppdatert,
                 periode = periode,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
@@ -136,6 +139,7 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering {
     data class IverksattStansAvYtelse(
         override val id: UUID,
         override val opprettet: Tidspunkt,
+        override val oppdatert: Tidspunkt,
         override val periode: Periode,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,

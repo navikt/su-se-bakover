@@ -44,14 +44,17 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
         val tidspunktAvsluttet: Tidspunkt,
     ) : GjenopptaYtelseRevurdering() {
         override val tilRevurdering: UUID = underliggendeStansAvYtelse.tilRevurdering
-        override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis = underliggendeStansAvYtelse.vedtakSomRevurderesMånedsvis
+        override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis =
+            underliggendeStansAvYtelse.vedtakSomRevurderesMånedsvis
         override val sakinfo: SakInfo = underliggendeStansAvYtelse.sakinfo
         override val id: UUID = underliggendeStansAvYtelse.id
         override val opprettet: Tidspunkt = underliggendeStansAvYtelse.opprettet
+        override val oppdatert: Tidspunkt = underliggendeStansAvYtelse.oppdatert
         override val periode: Periode = underliggendeStansAvYtelse.periode
         override val grunnlagsdata: Grunnlagsdata = underliggendeStansAvYtelse.grunnlagsdata
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering = underliggendeStansAvYtelse.vilkårsvurderinger
-        override val brevvalgRevurdering: BrevvalgRevurdering.Valgt.IkkeSendBrev = underliggendeStansAvYtelse.brevvalgRevurdering
+        override val brevvalgRevurdering: BrevvalgRevurdering.Valgt.IkkeSendBrev =
+            underliggendeStansAvYtelse.brevvalgRevurdering
         override val saksbehandler: NavIdentBruker.Saksbehandler = underliggendeStansAvYtelse.saksbehandler
         override val simulering: Simulering = underliggendeStansAvYtelse.simulering
         override val revurderingsårsak: Revurderingsårsak = underliggendeStansAvYtelse.revurderingsårsak
@@ -61,6 +64,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
         fun skalSendeAvslutningsbrev(): Boolean {
             return false
         }
+
         override fun erÅpen() = false
 
         companion object {
@@ -85,6 +89,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
     data class SimulertGjenopptakAvYtelse(
         override val id: UUID,
         override val opprettet: Tidspunkt,
+        override val oppdatert: Tidspunkt,
         override val periode: Periode,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
@@ -110,6 +115,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
             return IverksattGjenopptakAvYtelse(
                 id = id,
                 opprettet = opprettet,
+                oppdatert = oppdatert,
                 periode = periode,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
@@ -127,6 +133,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
     data class IverksattGjenopptakAvYtelse(
         override val id: UUID,
         override val opprettet: Tidspunkt,
+        override val oppdatert: Tidspunkt,
         override val periode: Periode,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,

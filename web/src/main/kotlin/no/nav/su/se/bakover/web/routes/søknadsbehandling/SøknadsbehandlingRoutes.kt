@@ -406,5 +406,7 @@ internal fun Sak.KunneIkkeOppdatereStønadsperiode.tilResultat(): Resultat {
                 "aldersvurdering_gir_ikke_rett_på_uføre",
             )
         }
+
+        else -> throw IllegalArgumentException("")
     }
 }

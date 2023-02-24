@@ -593,6 +593,7 @@ fun simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         val revurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
+            oppdatert = Tidspunkt.now(clock),
             periode = periode,
             grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
             vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
@@ -703,6 +704,7 @@ fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
         val revurdering = GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
             id = gjenopptaId,
             opprettet = Tidspunkt.now(clock),
+            oppdatert = Tidspunkt.now(clock),
             periode = gjeldendeVedtaksdata.garantertSammenhengendePeriode(),
             grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
             vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger.tilVilkårsvurderingerRevurdering(),

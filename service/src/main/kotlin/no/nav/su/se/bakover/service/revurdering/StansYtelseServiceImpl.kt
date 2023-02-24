@@ -89,6 +89,7 @@ class StansYtelseServiceImpl(
                         }
 
                         eksisterende.copy(
+                            oppdatert = Tidspunkt.now(clock),
                             periode = gjeldendeVedtaksdata.garantertSammenhengendePeriode(),
                             grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                             vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
@@ -130,6 +131,7 @@ class StansYtelseServiceImpl(
                 StansAvYtelseRevurdering.SimulertStansAvYtelse(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(clock),
+                    oppdatert = Tidspunkt.now(clock),
                     periode = gjeldendeVedtaksdata.garantertSammenhengendePeriode(),
                     grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                     vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
