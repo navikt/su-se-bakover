@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.dokument.Dokumenttilstand
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow
 import no.nav.su.se.bakover.domain.grunnlag.krevAlleVilkårInnvilget
@@ -21,6 +22,7 @@ import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
@@ -50,7 +52,10 @@ sealed interface Stønadsvedtak : Vedtak, Visitable<VedtakVisitor> {
     fun erStans() = this is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse
     fun erGjenopptak() = this is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse
 
-    fun skalSendeBrev(): Boolean
+    /**
+     * Kun true dersom vi skal sende brev og brevet ikke er generert enda.
+     */
+    fun skalGenerereDokumentVedFerdigstillelse(): Boolean
 
     /**
      * Dersom grunnlaget inneholder fradrag av typen [Fradragstype.AvkortingUtenlandsopphold] vet vi at vedtaket
@@ -98,33 +103,51 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             saksbehandler = søknadsbehandling.saksbehandler,
             attestant = søknadsbehandling.attesteringer.hentSisteAttestering().attestant,
             utbetalingId = utbetalingId,
+            dokumenttilstand = when (søknadsbehandling.skalSendeVedtaksbrev()) {
+                false -> Dokumenttilstand.SKAL_IKKE_GENERERE
+                true -> Dokumenttilstand.IKKE_GENERERT_ENDA
+            },
         )
 
-        fun from(revurdering: IverksattRevurdering.Innvilget, utbetalingId: UUID30, clock: Clock) =
-            EndringIYtelse.InnvilgetRevurdering(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(clock),
-                behandling = revurdering,
-                periode = revurdering.periode,
-                beregning = revurdering.beregning,
-                simulering = revurdering.simulering,
-                saksbehandler = revurdering.saksbehandler,
-                attestant = revurdering.attestering.attestant,
-                utbetalingId = utbetalingId,
-            )
+        fun from(
+            revurdering: IverksattRevurdering.Innvilget,
+            utbetalingId: UUID30,
+            clock: Clock,
+        ) = EndringIYtelse.InnvilgetRevurdering(
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.now(clock),
+            behandling = revurdering,
+            periode = revurdering.periode,
+            beregning = revurdering.beregning,
+            simulering = revurdering.simulering,
+            saksbehandler = revurdering.saksbehandler,
+            attestant = revurdering.attestering.attestant,
+            utbetalingId = utbetalingId,
+            dokumenttilstand = when (revurdering.brevvalgRevurdering) {
+                is BrevvalgRevurdering.Valgt.IkkeSendBrev -> Dokumenttilstand.SKAL_IKKE_GENERERE
+                is BrevvalgRevurdering.Valgt.SendBrev -> Dokumenttilstand.IKKE_GENERERT_ENDA
+            },
+        )
 
-        fun from(revurdering: IverksattRevurdering.Opphørt, utbetalingId: UUID30, clock: Clock) =
-            EndringIYtelse.OpphørtRevurdering(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(clock),
-                behandling = revurdering,
-                periode = revurdering.periode,
-                beregning = revurdering.beregning,
-                simulering = revurdering.simulering,
-                saksbehandler = revurdering.saksbehandler,
-                attestant = revurdering.attestering.attestant,
-                utbetalingId = utbetalingId,
-            )
+        fun from(
+            revurdering: IverksattRevurdering.Opphørt,
+            utbetalingId: UUID30,
+            clock: Clock,
+        ) = EndringIYtelse.OpphørtRevurdering(
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.now(clock),
+            behandling = revurdering,
+            periode = revurdering.periode,
+            beregning = revurdering.beregning,
+            simulering = revurdering.simulering,
+            saksbehandler = revurdering.saksbehandler,
+            attestant = revurdering.attestering.attestant,
+            utbetalingId = utbetalingId,
+            dokumenttilstand = when (revurdering.brevvalgRevurdering) {
+                is BrevvalgRevurdering.Valgt.IkkeSendBrev -> Dokumenttilstand.SKAL_IKKE_GENERERE
+                is BrevvalgRevurdering.Valgt.SendBrev -> Dokumenttilstand.IKKE_GENERERT_ENDA
+            },
+        )
 
         fun from(
             revurdering: StansAvYtelseRevurdering.IverksattStansAvYtelse,
@@ -199,13 +222,58 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             val beregning: Beregning,
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
+            override val dokumenttilstand: Dokumenttilstand,
         ) : EndringIYtelse {
+
             init {
                 behandling.grunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget()
+                require(dokumenttilstand != Dokumenttilstand.SKAL_IKKE_GENERERE)
             }
 
-            override fun skalSendeBrev(): Boolean {
-                return true
+            companion object {
+
+                fun createFromPersistence(
+                    id: UUID,
+                    opprettet: Tidspunkt,
+                    behandling: Søknadsbehandling.Iverksatt.Innvilget,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                    attestant: NavIdentBruker.Attestant,
+                    periode: Periode,
+                    beregning: Beregning,
+                    simulering: Simulering,
+                    utbetalingId: UUID30,
+                    dokumenttilstand: Dokumenttilstand?,
+                ) = InnvilgetSøknadsbehandling(
+                    id = id,
+                    opprettet = opprettet,
+                    behandling = behandling,
+                    saksbehandler = saksbehandler,
+                    attestant = attestant,
+                    periode = periode,
+                    beregning = beregning,
+                    simulering = simulering,
+                    utbetalingId = utbetalingId,
+                    dokumenttilstand = when (dokumenttilstand) {
+                        null -> when (behandling.skalSendeVedtaksbrev()) {
+                            true -> Dokumenttilstand.IKKE_GENERERT_ENDA
+                            false -> Dokumenttilstand.SKAL_IKKE_GENERERE
+                        }
+
+                        else -> dokumenttilstand
+                    },
+                )
+            }
+
+            override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
+                return when (dokumenttilstand) {
+                    Dokumenttilstand.SKAL_IKKE_GENERERE -> throw IllegalStateException("Skal ha brev ved avslag")
+                    Dokumenttilstand.IKKE_GENERERT_ENDA -> true
+                    // Her har vi allerede generert brev fra før og ønsker ikke generere et til.
+                    Dokumenttilstand.GENERERT,
+                    Dokumenttilstand.JOURNALFØRT,
+                    Dokumenttilstand.SENDT,
+                    -> false
+                }
             }
 
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
@@ -225,15 +293,60 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             val beregning: Beregning,
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
+            override val dokumenttilstand: Dokumenttilstand,
         ) : EndringIYtelse {
+
+            companion object {
+                fun createFromPersistence(
+                    id: UUID,
+                    opprettet: Tidspunkt,
+                    behandling: IverksattRevurdering.Innvilget,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                    attestant: NavIdentBruker.Attestant,
+                    periode: Periode,
+                    beregning: Beregning,
+                    simulering: Simulering,
+                    utbetalingId: UUID30,
+                    dokumenttilstand: Dokumenttilstand?,
+                ) = InnvilgetRevurdering(
+                    id = id,
+                    opprettet = opprettet,
+                    behandling = behandling,
+                    saksbehandler = saksbehandler,
+                    attestant = attestant,
+                    periode = periode,
+                    beregning = beregning,
+                    simulering = simulering,
+                    utbetalingId = utbetalingId,
+                    dokumenttilstand = when (dokumenttilstand) {
+                        null -> when (behandling.skalSendeVedtaksbrev()) {
+                            true -> Dokumenttilstand.IKKE_GENERERT_ENDA
+                            false -> Dokumenttilstand.SKAL_IKKE_GENERERE
+                        }
+
+                        else -> dokumenttilstand
+                    },
+                )
+            }
 
             /**
              *  Dersom dette er en tilbakekreving som avventer kravvgrunnlag, så ønsker vi ikke å sende brev før vi mottar kravgrunnlaget
              *  Brevutsending skjer i [no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService.sendTilbakekrevingsvedtak]
              *  TODO: Er det mulig å flytte denne logikken til ut fra vedtaks-biten til en felles plass?
              */
-            override fun skalSendeBrev(): Boolean {
-                return behandling.skalSendeBrev() && behandling.tilbakekrevingErVurdert().isLeft()
+            override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
+                return when (dokumenttilstand) {
+                    Dokumenttilstand.SKAL_IKKE_GENERERE -> false.also {
+                        require(!behandling.skalSendeVedtaksbrev())
+                    }
+
+                    Dokumenttilstand.IKKE_GENERERT_ENDA -> !behandling.avventerKravgrunnlag()
+                    // Her har vi allerede generert brev fra før og ønsker ikke generere et til.
+                    Dokumenttilstand.GENERERT,
+                    Dokumenttilstand.JOURNALFØRT,
+                    Dokumenttilstand.SENDT,
+                    -> false
+                }
             }
 
             override fun harIdentifisertBehovForFremtidigAvkorting() =
@@ -255,9 +368,12 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
-            override fun skalSendeBrev(): Boolean {
+
+            override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
                 return false
             }
+
+            override val dokumenttilstand: Dokumenttilstand = Dokumenttilstand.SKAL_IKKE_GENERERE
 
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
@@ -276,7 +392,42 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             val beregning: Beregning,
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
+            override val dokumenttilstand: Dokumenttilstand,
         ) : EndringIYtelse {
+
+            companion object {
+                fun createFromPersistence(
+                    id: UUID,
+                    opprettet: Tidspunkt,
+                    behandling: IverksattRevurdering.Opphørt,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                    attestant: NavIdentBruker.Attestant,
+                    periode: Periode,
+                    beregning: Beregning,
+                    simulering: Simulering,
+                    utbetalingId: UUID30,
+                    dokumenttilstand: Dokumenttilstand?,
+                ) = OpphørtRevurdering(
+                    id = id,
+                    opprettet = opprettet,
+                    behandling = behandling,
+                    saksbehandler = saksbehandler,
+                    attestant = attestant,
+                    periode = periode,
+                    beregning = beregning,
+                    simulering = simulering,
+                    utbetalingId = utbetalingId,
+                    dokumenttilstand = when (dokumenttilstand) {
+                        null -> when (behandling.skalSendeVedtaksbrev()) {
+                            true -> Dokumenttilstand.IKKE_GENERERT_ENDA
+                            false -> Dokumenttilstand.SKAL_IKKE_GENERERE
+                        }
+
+                        else -> dokumenttilstand
+                    },
+                )
+            }
+
             fun utledOpphørsgrunner(clock: Clock) = behandling.utledOpphørsgrunner(clock)
 
             /**
@@ -284,8 +435,8 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
              *  Brevutsending skjer i [no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService.sendTilbakekrevingsvedtak]
              *  TODO: Er det mulig å flytte denne logikken til ut fra vedtaks-biten til en felles plass?
              */
-            override fun skalSendeBrev(): Boolean {
-                return behandling.skalSendeBrev() && behandling.tilbakekrevingErVurdert().isLeft()
+            override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
+                return behandling.skalSendeVedtaksbrev() && !behandling.avventerKravgrunnlag()
             }
 
             override fun harIdentifisertBehovForFremtidigAvkorting() =
@@ -314,9 +465,18 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
-            override fun skalSendeBrev(): Boolean {
+
+            init {
+                // Avhengige typer. Vi ønsker få feil dersom den endres.
+                @Suppress("USELESS_IS_CHECK")
+                require(behandling.brevvalgRevurdering is BrevvalgRevurdering.Valgt.IkkeSendBrev)
+            }
+
+            override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
                 return false
             }
+
+            override val dokumenttilstand: Dokumenttilstand = Dokumenttilstand.SKAL_IKKE_GENERERE
 
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
@@ -335,9 +495,18 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
-            override fun skalSendeBrev(): Boolean {
+
+            init {
+                // Avhengige typer. Vi ønsker få feil dersom den endres.
+                @Suppress("USELESS_IS_CHECK")
+                require(behandling.brevvalgRevurdering is BrevvalgRevurdering.Valgt.IkkeSendBrev)
+            }
+
+            override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
                 return false
             }
+
+            override val dokumenttilstand: Dokumenttilstand = Dokumenttilstand.SKAL_IKKE_GENERERE
 
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
@@ -474,17 +643,19 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
         fun fromSøknadsbehandlingMedBeregning(
             avslag: Søknadsbehandling.Iverksatt.Avslag.MedBeregning,
             clock: Clock,
-        ) =
-            AvslagBeregning(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(clock),
-                behandling = avslag,
-                beregning = avslag.beregning,
-                saksbehandler = avslag.saksbehandler,
-                attestant = avslag.attesteringer.hentSisteAttestering().attestant,
-                periode = avslag.periode,
-                avslagsgrunner = avslag.avslagsgrunner,
-            )
+        ) = AvslagBeregning(
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.now(clock),
+            behandling = avslag,
+            beregning = avslag.beregning,
+            saksbehandler = avslag.saksbehandler,
+            attestant = avslag.attesteringer.hentSisteAttestering().attestant,
+            periode = avslag.periode,
+            avslagsgrunner = avslag.avslagsgrunner,
+            // Per tidspunkt er det implisitt at vi genererer og lagrer brev samtidig som vi oppretter vedtaket.
+            // TODO jah: Hvis vi heller flytter brevgenereringen ut til ferdigstill-jobben, blir det mer riktig og sette denne til IKKE_GENERERT_ENDA
+            dokumenttilstand = Dokumenttilstand.GENERERT,
+        )
 
         fun fromSøknadsbehandlingUtenBeregning(
             avslag: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning,
@@ -498,6 +669,9 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
                 attestant = avslag.attesteringer.hentSisteAttestering().attestant,
                 periode = avslag.periode,
                 avslagsgrunner = avslag.avslagsgrunner,
+                // Per tidspunkt er det implisitt at vi genererer og lagrer brev samtidig som vi oppretter vedtaket.
+                // TODO jah: Hvis vi heller flytter brevgenereringen ut til ferdigstill-jobben, blir det mer riktig og sette denne til IKKE_GENERERT_ENDA
+                dokumenttilstand = Dokumenttilstand.GENERERT,
             )
     }
 
@@ -509,13 +683,52 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
         override val avslagsgrunner: List<Avslagsgrunn>,
         override val behandling: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning,
         override val periode: Periode,
+        override val dokumenttilstand: Dokumenttilstand,
     ) : Avslagsvedtak {
         init {
             behandling.grunnlagsdataOgVilkårsvurderinger.krevMinstEttAvslag()
+            require(dokumenttilstand != Dokumenttilstand.SKAL_IKKE_GENERERE)
         }
 
-        override fun skalSendeBrev(): Boolean {
-            return true
+        companion object {
+            fun createFromPersistence(
+                id: UUID,
+                opprettet: Tidspunkt,
+                saksbehandler: NavIdentBruker.Saksbehandler,
+                attestant: NavIdentBruker.Attestant,
+                avslagsgrunner: List<Avslagsgrunn>,
+                behandling: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning,
+                periode: Periode,
+                dokumenttilstand: Dokumenttilstand?,
+            ) = AvslagVilkår(
+                id = id,
+                opprettet = opprettet,
+                behandling = behandling,
+                saksbehandler = saksbehandler,
+                attestant = attestant,
+                periode = periode,
+                avslagsgrunner = avslagsgrunner,
+                dokumenttilstand = when (dokumenttilstand) {
+                    null -> when (behandling.skalSendeVedtaksbrev()) {
+                        true -> Dokumenttilstand.IKKE_GENERERT_ENDA
+                        false -> Dokumenttilstand.SKAL_IKKE_GENERERE
+                    }
+
+                    else -> dokumenttilstand
+                },
+            )
+        }
+
+        override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
+            return when (dokumenttilstand) {
+                Dokumenttilstand.SKAL_IKKE_GENERERE -> throw IllegalStateException("Skal ha brev ved avslag")
+                Dokumenttilstand.IKKE_GENERERT_ENDA -> true
+                // Her har vi allerede generert brev fra før og ønsker ikke generere et til.
+                Dokumenttilstand.GENERERT,
+                Dokumenttilstand.JOURNALFØRT,
+                Dokumenttilstand.SENDT,
+                -> false
+            }
         }
 
         override fun harIdentifisertBehovForFremtidigAvkorting() = false
@@ -533,13 +746,54 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
         override val periode: Periode,
         val beregning: Beregning,
         override val avslagsgrunner: List<Avslagsgrunn>,
+        override val dokumenttilstand: Dokumenttilstand,
     ) : Avslagsvedtak {
         init {
             behandling.grunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget()
+            require(dokumenttilstand != Dokumenttilstand.SKAL_IKKE_GENERERE)
         }
 
-        override fun skalSendeBrev(): Boolean {
-            return true
+        companion object {
+            fun createFromPersistence(
+                id: UUID,
+                opprettet: Tidspunkt,
+                behandling: Søknadsbehandling.Iverksatt.Avslag.MedBeregning,
+                saksbehandler: NavIdentBruker.Saksbehandler,
+                attestant: NavIdentBruker.Attestant,
+                periode: Periode,
+                beregning: Beregning,
+                avslagsgrunner: List<Avslagsgrunn>,
+                dokumenttilstand: Dokumenttilstand?,
+            ) = AvslagBeregning(
+                id = id,
+                opprettet = opprettet,
+                behandling = behandling,
+                saksbehandler = saksbehandler,
+                attestant = attestant,
+                periode = periode,
+                beregning = beregning,
+                avslagsgrunner = avslagsgrunner,
+                dokumenttilstand = when (dokumenttilstand) {
+                    null -> when (behandling.skalSendeVedtaksbrev()) {
+                        true -> Dokumenttilstand.IKKE_GENERERT_ENDA
+                        false -> Dokumenttilstand.SKAL_IKKE_GENERERE
+                    }
+
+                    else -> dokumenttilstand
+                },
+            )
+        }
+
+        override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
+            return when (dokumenttilstand) {
+                Dokumenttilstand.SKAL_IKKE_GENERERE -> throw IllegalStateException("Skal ha brev ved avslag")
+                Dokumenttilstand.IKKE_GENERERT_ENDA -> true
+                // Her har vi allerede generert brev fra før og ønsker ikke generere et til.
+                Dokumenttilstand.GENERERT,
+                Dokumenttilstand.JOURNALFØRT,
+                Dokumenttilstand.SENDT,
+                -> false
+            }
         }
 
         override fun harIdentifisertBehovForFremtidigAvkorting() = false

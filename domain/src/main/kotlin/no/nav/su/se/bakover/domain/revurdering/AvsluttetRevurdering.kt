@@ -75,7 +75,7 @@ data class AvsluttetRevurdering private constructor(
     /**
      * Sender et avsluttningsbrev
      */
-    override fun skalSendeBrev(): Boolean {
+    override fun skalSendeVedtaksbrev(): Boolean {
         return skalSendeAvslutningsbrev()
     }
 

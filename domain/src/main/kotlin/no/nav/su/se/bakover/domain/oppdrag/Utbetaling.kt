@@ -40,7 +40,7 @@ sealed interface Utbetaling {
     fun bruttoBeløp() = utbetalingslinjer.sumOf { it.beløp }
 
     /**
-     * Vi tillater vi kun stans som en midlertidig operasjon i nåtid. Ved stans vil vi sende med en ønsket
+     * Vi tillater kun stans som en midlertidig operasjon i nåtid. Ved stans vil vi sende med en ønsket
      * dato for stans, for deretter å stanse den siste utbetalte linjen fra denne datoen - følgelig skal en stans
      * inneholde nøyaktig 1 utbetalingslinje av typen stans. [Utbetalingslinje.Endring.virkningsperiode] for en stans
      * skal alltid gjelde fra angitt stansdato til og med seneste til og med dato for sakens utbetalinger.

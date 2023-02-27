@@ -43,6 +43,13 @@ data class OpprettetRegulering(
 ) : Regulering {
     override fun erÅpen() = true
 
+    /**
+     * Skal ikke sende brev ved regulering.
+     */
+    override fun skalSendeVedtaksbrev(): Boolean {
+        return false
+    }
+
     override val erFerdigstilt = false
 
     override val grunnlagsdata: Grunnlagsdata

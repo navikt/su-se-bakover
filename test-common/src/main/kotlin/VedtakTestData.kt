@@ -62,6 +62,7 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
         vilkårsvurderinger = vilkårsvurderinger,
         clock = clock,
     ).let { (sak, søknadsbehandling) ->
+        // TODO jah: Bruk vedtaket + utbetalingen som kommer fra søknadsbehandlingIverksattInnvilget-kallet
         val utbetaling = simulerUtbetaling(
             sak = sak,
             søknadsbehandling = søknadsbehandling,

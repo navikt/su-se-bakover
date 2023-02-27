@@ -14,4 +14,11 @@ data class IverksattRegulering(
     override fun erÅpen(): Boolean = false
 
     override val erFerdigstilt = true
+
+    /**
+     * Skal ikke sende brev ved regulering.
+     */
+    override fun skalSendeVedtaksbrev(): Boolean {
+        return false
+    }
 }

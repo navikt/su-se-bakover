@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.dokument.Dokumenttilstand
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -173,6 +174,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 attestant = NavIdentBruker.Attestant("saksbehandlerSomAvslo"),
                 periode = expectedSøknadsbehandling.periode,
                 avslagsgrunner = listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON),
+                dokumenttilstand = Dokumenttilstand.GENERERT,
             )
 
             val expectedSak = sak.copy(
@@ -313,6 +315,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 attestant = NavIdentBruker.Attestant("saksbehandlerSomAvslo"),
                 periode = expectedSøknadsbehandling.periode,
                 avslagsgrunner = listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON),
+                dokumenttilstand = Dokumenttilstand.GENERERT,
             )
 
             val expectedSak = sak.copy(

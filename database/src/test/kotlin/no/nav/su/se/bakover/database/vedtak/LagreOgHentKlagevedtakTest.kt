@@ -16,7 +16,9 @@ internal class LagreOgHentKlagevedtakTest {
             val vedtak = testDataHelper.persisterVedtakForKlageIverksattAvvist()
 
             dataSource.withSession {
-                (vedtakRepo.hent(vedtak.id, it) as Klagevedtak.Avvist).shouldBeEqualComparingPublicFieldsAndInterface(vedtak)
+                // TODO jah: Ved vedtak som ikke fører til utbetaling (avvist klage og avslått søknad), genereres og lagres dokument synkront.
+                //  Vi mangler god, konsekvent teststøtte for dokumenter.
+                (vedtakRepo.hentVedtakForIdOgSession(vedtak.id, it) as Klagevedtak.Avvist).shouldBeEqualComparingPublicFieldsAndInterface(vedtak, vedtak::dokumenttilstand)
             }
         }
     }

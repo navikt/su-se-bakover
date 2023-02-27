@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.dokument.Dokumenttilstand
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
@@ -294,6 +295,7 @@ internal class IverksettAvvistKlageTest {
                     saksbehandler = expected.saksbehandler,
                     attestant = expected.attesteringer.first().attestant,
                     klage = expected,
+                    dokumenttilstand = Dokumenttilstand.GENERERT,
                 )
                 it shouldBe expectedVedtak!!
             },

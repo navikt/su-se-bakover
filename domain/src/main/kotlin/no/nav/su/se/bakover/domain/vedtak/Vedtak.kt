@@ -7,6 +7,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.dokument.Dokumenttilstand
 import java.util.UUID
 
 /**
@@ -17,6 +18,7 @@ sealed interface Vedtak {
     val opprettet: Tidspunkt
     val saksbehandler: NavIdentBruker.Saksbehandler
     val attestant: NavIdentBruker.Attestant
+    val dokumenttilstand: Dokumenttilstand
 }
 
 /**

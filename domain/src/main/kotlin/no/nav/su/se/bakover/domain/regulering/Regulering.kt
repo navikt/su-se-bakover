@@ -20,6 +20,7 @@ fun Regulering.inneholderAvslag(): Boolean =
     this.grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.vurdering is Vilkårsvurderingsresultat.Avslag
 
 sealed interface Regulering : Reguleringsfelter {
+
     fun erÅpen(): Boolean
 
     /** true dersom dette er en iverksatt regulering, false ellers. */

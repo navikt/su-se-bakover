@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.vedtak
 
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.domain.dokument.Dokumenttilstand
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
@@ -27,7 +28,7 @@ internal data class VedtakJson(
     val fnr: String,
     val periode: PeriodeJson?,
     val type: String,
-    val harDokument: Boolean,
+    val dokumenttilstand: String,
 )
 
 internal enum class VedtakTypeJson(private val beskrivelse: String) {
@@ -55,7 +56,7 @@ internal fun Vedtak.toJson(): VedtakJson {
     }
 }
 
-internal fun Avslagsvedtak.AvslagVilkår.toJson(): VedtakJson = VedtakJson(
+internal fun Avslagsvedtak.toJson(): VedtakJson = VedtakJson(
     id = id.toString(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
     beregning = null,
@@ -69,7 +70,7 @@ internal fun Avslagsvedtak.AvslagVilkår.toJson(): VedtakJson = VedtakJson(
     fnr = behandling.fnr.toString(),
     periode = periode.toJson(),
     type = VedtakTypeJson.AVSLAG.toString(),
-    harDokument = this.skalSendeBrev(),
+    dokumenttilstand = this.dokumenttilstand.toJson(),
 )
 
 internal fun Avslagsvedtak.AvslagBeregning.toJson(): VedtakJson = VedtakJson(
@@ -86,7 +87,7 @@ internal fun Avslagsvedtak.AvslagBeregning.toJson(): VedtakJson = VedtakJson(
     fnr = behandling.fnr.toString(),
     periode = periode.toJson(),
     type = VedtakTypeJson.AVSLAG.toString(),
-    harDokument = this.skalSendeBrev(),
+    dokumenttilstand = this.dokumenttilstand.toJson(),
 )
 
 internal fun VedtakSomKanRevurderes.EndringIYtelse.toJson(): VedtakJson = VedtakJson(
@@ -117,7 +118,7 @@ internal fun VedtakSomKanRevurderes.EndringIYtelse.toJson(): VedtakJson = Vedtak
         is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> VedtakTypeJson.STANS_AV_YTELSE.toString()
         is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> VedtakTypeJson.REGULERING.toString()
     },
-    harDokument = this.skalSendeBrev(),
+    dokumenttilstand = this.dokumenttilstand.toJson(),
 )
 
 internal fun Klagevedtak.toJson(): VedtakJson = VedtakJson(
@@ -134,7 +135,7 @@ internal fun Klagevedtak.toJson(): VedtakJson = VedtakJson(
     fnr = klage.fnr.toString(),
     periode = null,
     type = VedtakTypeJson.AVVIST_KLAGE.toString(),
-    harDokument = harDokument(),
+    dokumenttilstand = dokumenttilstand.toJson(),
 )
 
 internal fun VedtakSomKanRevurderes.toJson(): VedtakJson = when (this) {
@@ -148,4 +149,14 @@ internal fun VedtakSomKanRevurderes.toVedtakTypeJson(): VedtakTypeJson = when (t
     is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> VedtakTypeJson.SØKNAD
     is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> VedtakTypeJson.OPPHØR
     is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> VedtakTypeJson.STANS_AV_YTELSE
+}
+
+private fun Dokumenttilstand.toJson(): String {
+    return when (this) {
+        Dokumenttilstand.SKAL_IKKE_GENERERE -> "SKAL_IKKE_GENERERE"
+        Dokumenttilstand.IKKE_GENERERT_ENDA -> "IKKE_GENERERT_ENDA"
+        Dokumenttilstand.GENERERT -> "GENERERT"
+        Dokumenttilstand.JOURNALFØRT -> "JOURNALFØRT"
+        Dokumenttilstand.SENDT -> "SENDT"
+    }
 }

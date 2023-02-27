@@ -25,6 +25,13 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering {
     abstract val simulering: Simulering
     abstract val revurderingsårsak: Revurderingsårsak
 
+    /**
+     * Stans og gjenoppta er ikke ekte vedtak.
+     */
+    override fun skalSendeVedtaksbrev(): Boolean {
+        return false
+    }
+
     fun avslutt(
         begrunnelse: String,
         tidspunktAvsluttet: Tidspunkt,
