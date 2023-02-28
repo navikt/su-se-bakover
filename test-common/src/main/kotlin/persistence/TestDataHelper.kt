@@ -714,7 +714,7 @@ class TestDataHelper(
     fun persisterGjenopptakAvYtelseSimulert(
         id: UUID = UUID.randomUUID(),
         opprettet: Tidspunkt = Tidspunkt.now(clock),
-        oppdatert: Tidspunkt = Tidspunkt.now(clock),
+        oppdatert: Tidspunkt = opprettet,
         periode: Periode = Periode.create(
             stønadsperiode2021.periode.fraOgMed.plusMonths(1),
             stønadsperiode2021.periode.tilOgMed,
@@ -756,7 +756,7 @@ class TestDataHelper(
     fun persisterGjenopptakAvYtelseIverksatt(
         id: UUID = UUID.randomUUID(),
         opprettet: Tidspunkt = Tidspunkt.now(clock),
-        oppdatert: Tidspunkt = Tidspunkt.now(clock),
+        oppdatert: Tidspunkt = opprettet,
         periode: Periode = Periode.create(
             stønadsperiode2021.periode.fraOgMed.plusMonths(1),
             stønadsperiode2021.periode.tilOgMed,
