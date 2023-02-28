@@ -1079,8 +1079,8 @@ class RevurderingServiceImpl(
                     ),
                 )
                 sessionFactory.withTransactionContext {
-                    brevService.lagreDokument(dokumentMedMetaData)
-                    revurderingRepo.lagre(avsluttetRevurdering)
+                    brevService.lagreDokument(dokumentMedMetaData, it)
+                    revurderingRepo.lagre(avsluttetRevurdering, it)
                 }
             }
             avsluttetRevurdering.right()
