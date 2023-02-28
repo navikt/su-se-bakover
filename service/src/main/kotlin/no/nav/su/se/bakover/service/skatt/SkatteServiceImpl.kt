@@ -18,7 +18,7 @@ class SkatteServiceImpl(
         // TODO jah: Flytt domenelogikken til domenet
         return skatteClient.hentSamletSkattegrunnlag(fnr, Year.now(clock))
             .mapLeft { feil -> KunneIkkeHenteSkattemelding.KallFeilet(feil) }
-        //.map { hentInntektOgFradrag(it) }
+        // .map { hentInntektOgFradrag(it) }
     }
 }
 /* TODO jah: Finn ut om vi skal filtrere bort ting på dette nivået.

@@ -100,7 +100,7 @@ class ApplicationConfigTest {
                 tokenEndpoint = "maskinporten_token_endpoint",
             ),
             skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(
-                apiBaseUrl = "https://api-test.sits.no",
+                apiBaseUrl = "skatteetatenUrl",
                 consumerId = suSeBakoverConsumerId,
             ),
         ),
@@ -226,6 +226,7 @@ class ApplicationConfigTest {
                 "KRR_APP_ID" to "krrId",
                 "NAIS_APP_IMAGE" to "ghcr.io/navikt/su-se-bakover/su-se-bakover:87a3a5155bf00b4d6854efcc24e8b929549c9302",
                 "KAFKA_SCHEMA_REGISTRY" to "some-schema-url",
+                "SKATTEETATEN_URL" to "skatteetatenUrl",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
@@ -315,7 +316,10 @@ class ApplicationConfigTest {
                         jwksUri = "mocked",
                         tokenEndpoint = "mocked",
                     ),
-                    skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(apiBaseUrl = "mocked"),
+                    skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(
+                        apiBaseUrl = "mocked",
+                        consumerId = "srvsupstonad",
+                    ),
                 ),
                 kafkaConfig = ApplicationConfig.KafkaConfig(
                     producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap())),

@@ -120,6 +120,4 @@ class SkatteClient(
                 }.left()
         }
     }
-
-
 }

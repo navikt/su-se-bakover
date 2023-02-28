@@ -84,4 +84,3 @@ private fun List<Skattegrunnlag.Grunnlag>.toGrunnlagJson(): List<SkattegrunnlagJ
         )
     }
 }
-

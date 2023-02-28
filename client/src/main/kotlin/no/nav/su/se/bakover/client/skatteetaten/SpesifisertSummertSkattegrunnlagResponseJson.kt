@@ -48,7 +48,7 @@ internal data class SpesifisertSummertSkattegrunnlagResponseJson(
 
         fun toDomain(): List<Skattegrunnlag.Grunnlag> {
             val spesifisering = spesifisering.toDomain().also {
-                if(!kategori.contains("formue")) {
+                if (!kategori.contains("formue")) {
                     log.error("Mottok spesifisering av kjøretøy som ikke er tilknyttet formue.")
                 }
             }
@@ -107,7 +107,6 @@ internal data class SpesifisertSummertSkattegrunnlagResponseJson(
                     }
                 }
             }
-
         }
 
         companion object {

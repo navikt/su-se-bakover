@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.YearRange
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import java.time.Clock
 import java.time.Year

@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.common
 
 import org.junit.jupiter.api.Test
-
-import org.junit.jupiter.api.Assertions.*
 import java.time.Year
 
 internal class YearRangeTest {

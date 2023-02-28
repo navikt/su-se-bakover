@@ -4,7 +4,7 @@ import java.time.Year
 
 data class YearRange(override val start: Year, override val endInclusive: Year) : ClosedRange<Year>, Collection<Year> {
 
-    override val size: Int = java.time.temporal.ChronoUnit.YEARS.between(start,endInclusive.plusYears(1)).let {
+    override val size: Int = java.time.temporal.ChronoUnit.YEARS.between(start, endInclusive.plusYears(1)).let {
         Math.toIntExact(it)
     }
 
@@ -41,5 +41,5 @@ data class YearRange(override val start: Year, override val endInclusive: Year) 
 
 operator fun Year.inc(): Year = this.plusYears(1)
 
-operator fun Year.rangeTo(endInclusive: Year): YearRange = YearRange(this,endInclusive)
-fun Year.until(endExclusive:Year) = YearRange(this,endExclusive.minusYears(1))
+operator fun Year.rangeTo(endInclusive: Year): YearRange = YearRange(this, endInclusive)
+fun Year.until(endExclusive: Year) = YearRange(this, endExclusive.minusYears(1))

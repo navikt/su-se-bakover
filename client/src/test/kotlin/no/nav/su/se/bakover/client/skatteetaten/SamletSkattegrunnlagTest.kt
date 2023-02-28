@@ -3,10 +3,12 @@ package no.nav.su.se.bakover.client.skatteetaten
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.http.Body
 import com.github.tomakehurst.wiremock.http.Fault
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.common.ApplicationConfig
@@ -17,11 +19,13 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.skatt.skattegrunnlag
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.slf4j.MDC
 import java.time.Year
+import java.time.format.DateTimeParseException
 
 internal class SamletSkattegrunnlagTest {
     private val azureAdMock = mock<AzureAd> {
@@ -105,27 +109,28 @@ internal class SamletSkattegrunnlagTest {
     }
 
     @Test
-    fun `feil i deserializering håndteres`() {
-        val feilFormatPåBody = """
-            {
-             "personidentifikator": "$fnr",
-             "ggruunnllaagg": []
-            }
-        """.trimIndent()
+    fun `feil i mapping håndteres`() {
         wireMockServer.stubFor(
             WireMock.get("/api/spesifisertsummertskattegrunnlag")
                 .willReturn(
-                    WireMock.ok(feilFormatPåBody)
+                    WireMock.ok(
+                        """
+                        {
+                         "skatteoppgjoersdato":"en-dato-som-ikke-kan-parses"
+                        }
+                        """.trimIndent(),
+                    )
                         .withHeader("Content-Type", "application/json"),
                 ),
         )
 
-        val response = client.hentSamletSkattegrunnlag(
+        client.hentSamletSkattegrunnlag(
             fnr = fnr,
             inntektsÅr = Year.of(2021),
-        )
-
-        response.shouldBeInstanceOf<Either.Left<SkatteoppslagFeil.UkjentFeil>>()
+        ).onLeft {
+            it.shouldBeInstanceOf<SkatteoppslagFeil.UkjentFeil>()
+            it.throwable.shouldBeInstanceOf<DateTimeParseException>()
+        }.onRight { fail("Forventet left") }
     }
 
     @Test
@@ -152,7 +157,11 @@ internal class SamletSkattegrunnlagTest {
         client.hentSamletSkattegrunnlag(
             fnr = fnr,
             inntektsÅr = Year.of(2021),
-        ) shouldBe SkatteoppslagFeil.UkjentFeil(IllegalArgumentException("")).left()
+        ).onLeft {
+            it.shouldBeInstanceOf<SkatteoppslagFeil.UkjentFeil>()
+            it.throwable.shouldBeInstanceOf<MissingKotlinParameterException>()
+            it.throwable.message shouldContain "non-nullable type"
+        }.onRight { fail("Forventet left") }
     }
 
     @Test
@@ -165,6 +174,11 @@ internal class SamletSkattegrunnlagTest {
                         """
                         {
                           "grunnlag": [
+                          {
+                            "kategori": ["formue"],
+                            "tekniskNavn": "bruttoformue",
+                            "beloep": "1238"
+                          },
                             {
                               "beloep": "1000",
                               "tekniskNavn": "alminneligInntektFoerSaerfradrag",
@@ -217,7 +231,7 @@ internal class SamletSkattegrunnlagTest {
         )
 
         client.hentSamletSkattegrunnlag(
-            fnr = fnr,
+            fnr = Fnr(fnr = "04900148157"),
             inntektsÅr = Year.of(2021),
         ) shouldBe skattegrunnlag().right()
     }

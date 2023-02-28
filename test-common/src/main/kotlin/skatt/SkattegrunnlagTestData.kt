@@ -8,12 +8,12 @@ import no.nav.su.se.bakover.test.fixedClock
 import java.time.Clock
 import java.time.Year
 
-
 fun skattegrunnlag(
-    clock:Clock = fixedClock,
+    fnr: Fnr,
+    clock: Clock = fixedClock,
 ): Skattegrunnlag {
     return Skattegrunnlag(
-        fnr = Fnr(fnr = "04900148157"),
+        fnr = fnr,
         hentetTidspunkt = Tidspunkt.now(clock),
         årsgrunnlag = Skattegrunnlag.Årsgrunnlag(
             inntektsår = Year.of(2021),

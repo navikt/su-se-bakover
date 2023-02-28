@@ -6,7 +6,6 @@ import io.github.cdimascio.dotenv.dotenv
 import no.nav.su.se.bakover.common.EnvironmentConfig.getEnvironmentVariableOrDefault
 import no.nav.su.se.bakover.common.EnvironmentConfig.getEnvironmentVariableOrNull
 import no.nav.su.se.bakover.common.EnvironmentConfig.getEnvironmentVariableOrThrow
-import no.nav.su.se.bakover.common.auth.AzureAd
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -490,7 +489,7 @@ data class ApplicationConfig(
 
                 fun createLocalConfig() = SkatteetatenConfig(
                     apiBaseUrl = "mocked",
-                    consumerId = NavIdentBruker.Saksbehandler.systembruker().toString()
+                    consumerId = NavIdentBruker.Saksbehandler.systembruker().toString(),
                 )
             }
         }
