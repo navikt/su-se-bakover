@@ -70,6 +70,7 @@ class TilbakekrevingServiceImpl(
                             -> {
                                 throw RuntimeException("Kunne ikke lage brev, feil: $it")
                             }
+
                             is KunneIkkeLageBrevRequest.SkalIkkeSendeBrev -> {
                                 log.info("Det er valgt å ikke sende ut brev for vedtak: ${vedtak.id}, hopper over.")
                                 null
@@ -97,7 +98,6 @@ class TilbakekrevingServiceImpl(
                                                 sakId = vedtak.behandling.sakId,
                                                 vedtakId = vedtak.id,
                                                 revurderingId = vedtak.behandling.id,
-                                                bestillBrev = true,
                                             ),
                                         )
                                     },

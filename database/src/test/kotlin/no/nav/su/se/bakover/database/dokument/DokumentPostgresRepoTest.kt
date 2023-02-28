@@ -45,7 +45,6 @@ internal class DokumentPostgresRepoTest {
                     vedtakId = vedtak.id,
                     revurderingId = revurdering.id,
                     klageId = klage.id,
-                    bestillBrev = false,
                 ),
             )
             dokumentRepo.lagre(original, testDataHelper.sessionFactory.newTransactionContext())
@@ -79,11 +78,7 @@ internal class DokumentPostgresRepoTest {
                 tittel = "tittel",
                 generertDokument = "".toByteArray(),
                 generertDokumentJson = """{"some":"json"}""",
-                metadata = Dokument.Metadata(
-                    sakId = sak.id,
-                    søknadId = sak.søknad.id,
-                    bestillBrev = true,
-                ),
+                metadata = Dokument.Metadata(sakId = sak.id, søknadId = sak.søknad.id),
             )
             dokumentRepo.lagre(original, testDataHelper.sessionFactory.newTransactionContext())
 
@@ -133,11 +128,7 @@ internal class DokumentPostgresRepoTest {
                 tittel = "tittel",
                 generertDokument = "".toByteArray(),
                 generertDokumentJson = """{"some":"json"}""",
-                metadata = Dokument.Metadata(
-                    sakId = sak.id,
-                    søknadId = sak.søknad.id,
-                    bestillBrev = true,
-                ),
+                metadata = Dokument.Metadata(sakId = sak.id, søknadId = sak.søknad.id),
             )
             dokumentRepo.lagre(original, testDataHelper.sessionFactory.newTransactionContext())
 

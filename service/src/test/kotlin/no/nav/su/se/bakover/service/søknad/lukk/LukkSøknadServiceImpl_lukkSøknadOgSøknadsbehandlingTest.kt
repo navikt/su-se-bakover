@@ -610,13 +610,13 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
                         is LukkSøknadCommand.MedBrev.TrekkSøknad -> """
                             {"personalia":{"dato":"01.01.2021","fødselsnummer":"${sak!!.fnr}","fornavn":"Tore","etternavn":"Strømøy","saksnummer":12345676},"datoSøknadOpprettet":"01.01.2021","trukketDato":"01.01.2021","saksbehandlerNavn":"Testbruker, Lokal","erAldersbrev":false}
                         """.trimIndent()
+
                         is LukkSøknadCommand.UtenBrev -> fail("Bør ikke lagre dokument dersom vi ikke har brev.")
                     }
                     dokument.metadata shouldBe Dokument.Metadata(
                         sakId = sak.id,
                         søknadId = søknad!!.id,
                         vedtakId = null,
-                        bestillBrev = true,
                     )
                 },
                 argThat { it shouldBe TestSessionFactory.transactionContext },

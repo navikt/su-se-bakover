@@ -138,7 +138,6 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                     it.tittel shouldBe BrevTemplate.PåminnelseNyStønadsperiode.tittel()
                     it.metadata shouldBe Dokument.Metadata(
                         sakId = sak1.id,
-                        bestillBrev = true,
                     )
                 },
                 transactionContext = argThat { it shouldBe serviceAndMocks.sessionFactory.newTransactionContext() },

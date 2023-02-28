@@ -95,17 +95,11 @@ internal class BrevServiceImplTest {
         val klageId = UUID.randomUUID()
         val randomId = UUID.randomUUID()
 
-        val sakDokument =
-            lagDokument(Dokument.Metadata(sakId = sakId, bestillBrev = false))
-        val vedtakDokument =
-            lagDokument(Dokument.Metadata(sakId = sakId, vedtakId = vedtakId, bestillBrev = false))
-        val søknadDokument =
-            lagDokument(Dokument.Metadata(sakId = sakId, søknadId = søknadId, bestillBrev = false))
-        val revurderingDokument =
-            lagDokument(
-                Dokument.Metadata(sakId = sakId, revurderingId = revurderingId, bestillBrev = false),
-            )
-        val klageDokument = lagDokument(Dokument.Metadata(sakId = sakId, klageId = klageId, bestillBrev = false))
+        val sakDokument = lagDokument(Dokument.Metadata(sakId = sakId))
+        val vedtakDokument = lagDokument(Dokument.Metadata(sakId = sakId, vedtakId = vedtakId))
+        val søknadDokument = lagDokument(Dokument.Metadata(sakId = sakId, søknadId = søknadId))
+        val revurderingDokument = lagDokument(Dokument.Metadata(sakId = sakId, revurderingId = revurderingId))
+        val klageDokument = lagDokument(Dokument.Metadata(sakId = sakId, klageId = klageId))
 
         val dokumentRepoMock = mock<DokumentRepo> {
             on { hentForSak(sakId) } doReturn listOf(sakDokument)
@@ -177,6 +171,7 @@ internal class BrevServiceImplTest {
             it.verifyNoMoreInteraction()
         }
     }
+
     private fun lagDokument(metadata: Dokument.Metadata): Dokument.MedMetadata.Vedtak {
         val utenMetadata = Dokument.UtenMetadata.Vedtak(
             id = UUID.randomUUID(),
