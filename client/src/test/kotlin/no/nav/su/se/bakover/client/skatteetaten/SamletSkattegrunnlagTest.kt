@@ -134,19 +134,14 @@ internal class SamletSkattegrunnlagTest {
     }
 
     @Test
-    fun `feil i data-mappingen håndteres`() {
-        val feilformatertFnr = "123 x 567 y"
+    fun `feil i deserializeringr håndteres`() {
         wireMockServer.stubFor(
             WireMock.get("/api/spesifisertsummertskattegrunnlag")
                 .willReturn(
                     WireMock.ok(
                         """
                         {
-                          "personidentifikator": "$feilformatertFnr",
-                          "inntektsaar": "2021",
-                          "skjermet": false,
-                          "grunnlag": [],
-                          "skatteoppgjoersdato": "2022-02-10"
+                         "grunnlag":[{}]
                         }
                         """.trimIndent(),
                     )
@@ -233,7 +228,7 @@ internal class SamletSkattegrunnlagTest {
         client.hentSamletSkattegrunnlag(
             fnr = Fnr(fnr = "04900148157"),
             inntektsÅr = Year.of(2021),
-        ) shouldBe skattegrunnlag().right()
+        ) shouldBe skattegrunnlag(fnr = Fnr("04900148157")).right()
     }
 
     @BeforeEach
