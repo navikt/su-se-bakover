@@ -312,7 +312,6 @@ internal class IverksettAvvistKlageTest {
                         sakId = klage.sakId,
                         klageId = klage.id,
                         vedtakId = expectedVedtak!!.id,
-                        bestillBrev = true,
                     ),
                 )
             },

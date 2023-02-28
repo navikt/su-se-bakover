@@ -43,7 +43,6 @@ internal fun Sak.iverksettAvslagSøknadsbehandling(
                 søknadId = null,
                 vedtakId = vedtak.id,
                 revurderingId = null,
-                bestillBrev = true,
             ),
         )
 

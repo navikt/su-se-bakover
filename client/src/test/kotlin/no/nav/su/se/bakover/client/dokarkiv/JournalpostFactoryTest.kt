@@ -35,10 +35,7 @@ internal class JournalpostFactoryTest {
             tittel = "tittel",
             generertDokument = "".toByteArray(),
             generertDokumentJson = """{"k":"v"}""",
-            metadata = Dokument.Metadata(
-                sakId = UUID.randomUUID(),
-                bestillBrev = true,
-            ),
+            metadata = Dokument.Metadata(sakId = UUID.randomUUID()),
         )
 
         JournalpostFactory.lagJournalpost(personMock, saksnummer, dokument, Sakstype.UFØRE).let {
@@ -55,10 +52,7 @@ internal class JournalpostFactoryTest {
             tittel = "tittel",
             generertDokument = "".toByteArray(),
             generertDokumentJson = """{"k":"v"}""",
-            metadata = Dokument.Metadata(
-                sakId = UUID.randomUUID(),
-                bestillBrev = true,
-            ),
+            metadata = Dokument.Metadata(sakId = UUID.randomUUID()),
         )
 
         JournalpostFactory.lagJournalpost(personMock, saksnummer, dokument, Sakstype.UFØRE).let {

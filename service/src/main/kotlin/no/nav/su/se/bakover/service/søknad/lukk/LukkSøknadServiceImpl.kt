@@ -96,13 +96,7 @@ class LukkSøknadServiceImpl(
             throw IllegalArgumentException("Kunne ikke konvertere LagBrevRequest til dokument ved lukking av søknad $søknadId og søknadsbehandling. Underliggende grunn: $it")
         }.let {
             brevService.lagreDokument(
-                it.leggTilMetadata(
-                    metadata = Dokument.Metadata(
-                        sakId = sakId,
-                        søknadId = søknadId,
-                        bestillBrev = true,
-                    ),
-                ),
+                it.leggTilMetadata(metadata = Dokument.Metadata(sakId = sakId, søknadId = søknadId)),
                 tx,
             )
         }

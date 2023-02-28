@@ -294,7 +294,6 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 argThat {
                     it.metadata.sakId shouldBe avslagTilAttestering.sakId
                     it.metadata.vedtakId shouldNotBe null
-                    it.metadata.bestillBrev shouldBe true
                 },
                 anyOrNull(),
             )

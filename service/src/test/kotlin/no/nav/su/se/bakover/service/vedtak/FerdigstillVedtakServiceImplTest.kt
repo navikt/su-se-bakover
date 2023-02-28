@@ -117,7 +117,8 @@ internal class FerdigstillVedtakServiceImplTest {
         ) {
             val feil =
                 service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
-            feil shouldBe KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev(KunneIkkeLageDokument.KunneIkkeHentePerson).left()
+            feil shouldBe KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev(KunneIkkeLageDokument.KunneIkkeHentePerson)
+                .left()
 
             verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
             verify(brevService).lagDokument(vedtak)
@@ -138,7 +139,8 @@ internal class FerdigstillVedtakServiceImplTest {
         ) {
             val feil =
                 service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
-            feil shouldBe KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev(KunneIkkeLageDokument.KunneIkkeGenererePDF).left()
+            feil shouldBe KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev(KunneIkkeLageDokument.KunneIkkeGenererePDF)
+                .left()
 
             inOrder(
                 *all(),
@@ -179,11 +181,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 verify(brevService).lagreDokument(
                     argThat {
                         it.generertDokument contentEquals "brev".toByteArray()
-                        it.metadata shouldBe Dokument.Metadata(
-                            sakId = sak.id,
-                            vedtakId = vedtak.id,
-                            bestillBrev = true,
-                        )
+                        it.metadata shouldBe Dokument.Metadata(sakId = sak.id, vedtakId = vedtak.id)
                     },
                 )
                 verify(oppgaveService).lukkOppgaveMedSystembruker(argThat { it shouldBe (vedtak.behandling as BehandlingMedOppgave).oppgaveId })
@@ -211,7 +209,8 @@ internal class FerdigstillVedtakServiceImplTest {
             },
         ) {
             service.ferdigstillVedtakEtterUtbetaling(
-                sak.utbetalinger.single { it.id == vedtak.utbetalingId }.shouldBeType<Utbetaling.OversendtUtbetaling.UtenKvittering>().toKvittertUtbetaling(kvittering()),
+                sak.utbetalinger.single { it.id == vedtak.utbetalingId }
+                    .shouldBeType<Utbetaling.OversendtUtbetaling.UtenKvittering>().toKvittertUtbetaling(kvittering()),
             )
 
             inOrder(

@@ -53,7 +53,6 @@ class ForhåndsvarselKomponentTest {
                         forhåndsvarsel.distribusjonstype shouldBe Distribusjonstype.VIKTIG
                         forhåndsvarsel.metadata.revurderingId shouldBe UUID.fromString(revurderingId)
                         forhåndsvarsel.metadata.sakId shouldBe UUID.fromString(sakid)
-                        forhåndsvarsel.metadata.bestillBrev shouldBe true
                     }
                 }
             }

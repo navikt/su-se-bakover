@@ -173,10 +173,7 @@ class KontrollsamtaleServiceImpl(
                 generertDokument = it,
                 generertDokumentJson = brevRequest.brevInnhold.toJson(),
             ).leggTilMetadata(
-                metadata = Dokument.Metadata(
-                    sakId = sakId,
-                    bestillBrev = true,
-                ),
+                metadata = Dokument.Metadata(sakId = sakId),
             )
         }
     }

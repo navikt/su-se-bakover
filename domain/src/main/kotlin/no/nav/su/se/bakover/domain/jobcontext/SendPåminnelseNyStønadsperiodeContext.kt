@@ -127,15 +127,7 @@ data class SendPåminnelseNyStønadsperiodeContext(
                     )
                 }.map { dokument ->
                     sessionFactory.withTransactionContext { tx ->
-                        lagreDokument(
-                            dokument.leggTilMetadata(
-                                metadata = Dokument.Metadata(
-                                    sakId = sak.id,
-                                    bestillBrev = true,
-                                ),
-                            ),
-                            tx,
-                        )
+                        lagreDokument(dokument.leggTilMetadata(metadata = Dokument.Metadata(sakId = sak.id)), tx)
                         sendt(sak.saksnummer, clock).also {
                             lagreContext(it, tx)
                         }

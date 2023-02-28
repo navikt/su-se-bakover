@@ -330,7 +330,6 @@ class KlageServiceImpl(
                     Dokument.Metadata(
                         klageId = klage.id,
                         sakId = klage.sakId,
-                        bestillBrev = true,
                     ),
                 )
             }
@@ -404,7 +403,6 @@ class KlageServiceImpl(
                         klageId = klage.id,
                         sakId = klage.sakId,
                         vedtakId = vedtak.id,
-                        bestillBrev = true,
                     ),
                 )
             }

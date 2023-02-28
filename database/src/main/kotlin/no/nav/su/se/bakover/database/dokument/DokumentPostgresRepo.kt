@@ -28,14 +28,15 @@ internal class DokumentPostgresRepo(
     private val clock: Clock,
 ) : DokumentRepo {
 
-    private val joinDokumentOgDistribusjonQuery = "select d.*, dd.journalpostid, dd.brevbestillingid from dokument d left join dokument_distribusjon dd on dd.dokumentid = d.id"
+    private val joinDokumentOgDistribusjonQuery =
+        "select d.*, dd.journalpostid, dd.brevbestillingid from dokument d left join dokument_distribusjon dd on dd.dokumentid = d.id"
 
     override fun lagre(dokument: Dokument.MedMetadata, transactionContext: TransactionContext) {
         dbMetrics.timeQuery("lagreDokumentMedMetadata") {
             transactionContext.withTransaction { tx ->
                 """
-                insert into dokument(id, opprettet, sakId, generertDokument, generertDokumentJson, type, tittel, søknadId, vedtakId, revurderingId, klageId, bestillbrev)
-                values (:id, :opprettet, :sakId, :generertDokument, to_json(:generertDokumentJson::json), :type, :tittel, :soknadId, :vedtakId, :revurderingId, :klageId, :bestillbrev)
+                insert into dokument(id, opprettet, sakId, generertDokument, generertDokumentJson, type, tittel, søknadId, vedtakId, revurderingId, klageId)
+                values (:id, :opprettet, :sakId, :generertDokument, to_json(:generertDokumentJson::json), :type, :tittel, :soknadId, :vedtakId, :revurderingId, :klageId)
                 """.trimIndent()
                     .insert(
                         mapOf(
@@ -55,23 +56,20 @@ internal class DokumentPostgresRepo(
                             "vedtakId" to dokument.metadata.vedtakId,
                             "revurderingId" to dokument.metadata.revurderingId,
                             "klageId" to dokument.metadata.klageId,
-                            "bestillbrev" to dokument.metadata.bestillBrev,
                         ),
                         tx,
                     )
 
-                if (dokument.metadata.bestillBrev) {
-                    lagreDokumentdistribusjon(
-                        dokumentdistribusjon = Dokumentdistribusjon(
-                            id = UUID.randomUUID(),
-                            opprettet = dokument.opprettet,
-                            endret = dokument.opprettet,
-                            dokument = dokument,
-                            journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
-                        ),
-                        tx,
-                    )
-                }
+                lagreDokumentdistribusjon(
+                    dokumentdistribusjon = Dokumentdistribusjon(
+                        id = UUID.randomUUID(),
+                        opprettet = dokument.opprettet,
+                        endret = dokument.opprettet,
+                        dokument = dokument,
+                        journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
+                    ),
+                    tx,
+                )
             }
         }
     }
@@ -250,7 +248,6 @@ internal class DokumentPostgresRepo(
         val revurderingId = uuidOrNull("revurderingId")
         val klageId = uuidOrNull("klageId")
         val tittel = string("tittel")
-        val bestillbrev = boolean("bestillbrev")
         val brevbestillingId = stringOrNull("brevbestillingid")
         val journalpostId = stringOrNull("journalpostid")
 
@@ -267,11 +264,11 @@ internal class DokumentPostgresRepo(
                     vedtakId = vedtakId,
                     revurderingId = revurderingId,
                     klageId = klageId,
-                    bestillBrev = bestillbrev,
                     brevbestillingId = brevbestillingId,
                     journalpostId = journalpostId,
                 ),
             )
+
             DokumentKategori.INFORMASJON_ANNET -> Dokument.MedMetadata.Informasjon.Annet(
                 id = id,
                 opprettet = opprettet,
@@ -284,11 +281,11 @@ internal class DokumentPostgresRepo(
                     vedtakId = vedtakId,
                     revurderingId = revurderingId,
                     klageId = klageId,
-                    bestillBrev = bestillbrev,
                     brevbestillingId = brevbestillingId,
                     journalpostId = journalpostId,
                 ),
             )
+
             DokumentKategori.VEDTAK -> Dokument.MedMetadata.Vedtak(
                 id = id,
                 opprettet = opprettet,
@@ -301,13 +298,13 @@ internal class DokumentPostgresRepo(
                     vedtakId = vedtakId,
                     revurderingId = revurderingId,
                     klageId = klageId,
-                    bestillBrev = bestillbrev,
                     brevbestillingId = brevbestillingId,
                     journalpostId = journalpostId,
                 ),
             )
         }
     }
+
     private enum class DokumentKategori {
         INFORMASJON_VIKTIG,
         INFORMASJON_ANNET,

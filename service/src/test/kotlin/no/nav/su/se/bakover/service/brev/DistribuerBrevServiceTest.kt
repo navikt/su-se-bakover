@@ -307,10 +307,7 @@ internal class DistribuerBrevServiceTest {
             tittel = "tittel",
             generertDokument = "".toByteArray(),
             generertDokumentJson = "{}",
-            metadata = Dokument.Metadata(
-                sakId = sakinfo.sakId,
-                bestillBrev = true,
-            ),
+            metadata = Dokument.Metadata(sakId = sakinfo.sakId),
         ),
         journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
     )

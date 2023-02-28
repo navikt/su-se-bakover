@@ -47,7 +47,6 @@ class AvslagKomponentTest {
                         dokument.generertDokument shouldNotBe null
                         dokument.generertDokumentJson shouldNotBe null
                         dokument.tittel shouldBe "Avslag supplerende stønad"
-                        dokument.metadata.bestillBrev shouldBe true
                         dokument.metadata.vedtakId shouldBe avslagsvedtak.id
 
                         appComponents.databaseRepos.dokumentRepo.hentDokumenterForDistribusjon()

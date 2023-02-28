@@ -84,7 +84,6 @@ class FerdigstillVedtakServiceImpl(
                         søknadId = null,
                         vedtakId = vedtak.id,
                         revurderingId = null,
-                        bestillBrev = true,
                     ),
                 ),
             )

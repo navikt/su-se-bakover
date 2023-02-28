@@ -157,12 +157,7 @@ class SakServiceImpl(
 
     override fun lagreOgSendFritekstDokument(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.MedMetadata> {
         return opprettFritekstDokument(request).map {
-            it.leggTilMetadata(
-                Dokument.Metadata(
-                    sakId = request.sakId,
-                    bestillBrev = true,
-                ),
-            )
+            it.leggTilMetadata(Dokument.Metadata(sakId = request.sakId))
         }.onRight {
             dokumentRepo.lagre(it)
         }

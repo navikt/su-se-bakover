@@ -647,7 +647,6 @@ class RevurderingServiceImpl(
                                     Dokument.Metadata(
                                         sakId = revurdering.sakId,
                                         revurderingId = revurdering.id,
-                                        bestillBrev = true,
                                     ),
                                 ),
                                 transactionContext = tx,
@@ -1075,7 +1074,6 @@ class RevurderingServiceImpl(
                     metadata = Dokument.Metadata(
                         sakId = revurdering.sakId,
                         revurderingId = revurdering.id,
-                        bestillBrev = true,
                     ),
                 )
                 sessionFactory.withTransactionContext {

@@ -13,13 +13,13 @@ fun dokumentUtenMetadataVedtak(id: UUID = UUID.randomUUID()) = Dokument.UtenMeta
 
 fun dokumetMedMetadataVedtak(
     sakId: UUID = UUID.randomUUID(),
-    bestillBrev: Boolean = true,
+    // burde egentlig matche selve vedtaks-id'en
+    vedtakId: UUID = UUID.randomUUID(),
 ) = dokumentUtenMetadataVedtak().leggTilMetadata(
     metadata = Dokument.Metadata(
         sakId = sakId,
-        bestillBrev = bestillBrev,
         søknadId = null,
-        vedtakId = null,
+        vedtakId = vedtakId,
         revurderingId = null,
         klageId = null,
         journalpostId = null,
@@ -37,11 +37,9 @@ fun dokumentUtenMetadataInformasjon(id: UUID = UUID.randomUUID()) = Dokument.Ute
 
 fun dokumetMedMetadataInformasjon(
     sakId: UUID = UUID.randomUUID(),
-    bestillBrev: Boolean = true,
 ): Dokument.MedMetadata.Informasjon = dokumentUtenMetadataInformasjon().leggTilMetadata(
     metadata = Dokument.Metadata(
         sakId = sakId,
-        bestillBrev = bestillBrev,
         søknadId = null,
         vedtakId = null,
         revurderingId = null,
