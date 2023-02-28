@@ -110,7 +110,8 @@ data class AvsluttetRevurdering private constructor(
                     AvsluttetRevurdering(
                         underliggendeRevurdering,
                         begrunnelse,
-                        // Ønsker ikke putte spesifikk domenelogikk inn i [Brevvalg], men vi kunne flyttet denne ut i en enum evt.
+                        // TODO jah: Endre navn på Brevvalg til å hete AvsluttetBrevvalg og flytt inn i tilhørende mappe.
+                        //  Det er litt uheldig at vi kan avslutte uten brevvalg, ved "vis brev".
                         brevvalg ?: Brevvalg.SkalIkkeSendeBrev("IKKE_FORHÅNDSVARSLET"),
                         tidspunktAvsluttet,
                     ).right()

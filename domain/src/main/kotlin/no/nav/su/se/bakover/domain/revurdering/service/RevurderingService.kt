@@ -132,7 +132,7 @@ interface RevurderingService {
 
     fun lagBrevutkastForAvslutting(
         revurderingId: UUID,
-        fritekst: String?,
+        fritekst: String,
     ): Either<KunneIkkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, ByteArray>>
 
     fun avsluttRevurdering(

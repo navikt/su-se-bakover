@@ -1105,7 +1105,7 @@ class RevurderingServiceImpl(
 
     override fun lagBrevutkastForAvslutting(
         revurderingId: UUID,
-        fritekst: String?,
+        fritekst: String,
     ): Either<KunneIkkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, ByteArray>> {
         val revurdering = hent(revurderingId)
             .getOrElse { return KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.FantIkkeRevurdering.left() }
@@ -1113,7 +1113,7 @@ class RevurderingServiceImpl(
         // Lager en midlertidig avsluttet revurdering for å konstruere brevet - denne skal ikke lagres
         val avsluttetRevurdering = revurdering.avslutt(
             begrunnelse = "",
-            brevvalg = fritekst?.let { Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst(it) },
+            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst(fritekst),
             tidspunktAvsluttet = Tidspunkt.now(clock),
         ).getOrElse {
             return KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeLageBrevutkast.left()
