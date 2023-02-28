@@ -86,6 +86,7 @@ class GjenopptaYtelseServiceImpl(
                             GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
                                 id = update.id,
                                 opprettet = update.opprettet,
+                                oppdatert = Tidspunkt.now(clock),
                                 periode = gjeldendeVedtaksdata.garantertSammenhengendePeriode(),
                                 grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                                 vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger.tilVilkårsvurderingerRevurdering(),
@@ -123,6 +124,7 @@ class GjenopptaYtelseServiceImpl(
                     GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(clock),
+                        oppdatert = Tidspunkt.now(clock),
                         periode = gjeldendeVedtaksdata.garantertSammenhengendePeriode(),
                         grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                         vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger.tilVilkårsvurderingerRevurdering(),

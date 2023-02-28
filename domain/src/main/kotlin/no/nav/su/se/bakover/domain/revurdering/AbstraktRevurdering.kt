@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.revurdering
 
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
@@ -18,6 +19,14 @@ sealed interface AbstraktRevurdering : Behandling {
     val tilRevurdering: UUID
     val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis
     val sakinfo: SakInfo
+
+    /**
+     * Tidspunktet referer til enten når revurderinger ble opprettet, eller dersom den senere har blitt oppdatert.
+     * En oppdatering gjøres i en operasjon og kan endre perioden, årsaken, hva som revurderes, begrunnelsen.
+     * Basert på det den endrer vil den hente ny relevant data fra saken og populere felter som grunnlag, vilkår og avkorting.
+     */
+    abstract val oppdatert: Tidspunkt
+
     override val sakId get() = sakinfo.sakId
     override val saksnummer get() = sakinfo.saksnummer
     override val fnr get() = sakinfo.fnr
