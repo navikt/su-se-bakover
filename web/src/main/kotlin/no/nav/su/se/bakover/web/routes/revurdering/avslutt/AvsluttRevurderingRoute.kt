@@ -64,7 +64,7 @@ internal fun Route.avsluttRevurderingRoute(
     }
 
     data class BrevutkastForAvslutting(
-        val fritekst: String?,
+        val fritekst: String = "",
     )
     post("$revurderingPath/{revurderingId}/brevutkastForAvslutting") {
         authorize(Brukerrolle.Saksbehandler) {

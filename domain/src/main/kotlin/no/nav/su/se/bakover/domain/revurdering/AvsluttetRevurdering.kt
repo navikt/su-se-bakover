@@ -72,6 +72,9 @@ data class AvsluttetRevurdering private constructor(
 
     override val simulering = underliggendeRevurdering.simulering
 
+    /**
+     * Sender et avsluttningsbrev
+     */
     override fun skalSendeBrev(): Boolean {
         return skalSendeAvslutningsbrev()
     }

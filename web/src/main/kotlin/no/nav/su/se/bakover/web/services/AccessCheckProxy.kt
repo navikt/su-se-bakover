@@ -839,7 +839,7 @@ open class AccessCheckProxy(
 
                 override fun lagBrevutkastForAvslutting(
                     revurderingId: UUID,
-                    fritekst: String?,
+                    fritekst: String,
                 ): Either<KunneIkkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, ByteArray>> {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.lagBrevutkastForAvslutting(revurderingId, fritekst)
