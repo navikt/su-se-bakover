@@ -118,7 +118,6 @@ sealed interface Brevvalg {
             override val begrunnelse: String? = null,
         ) : SaksbehandlersValg {
             override val fritekst = null
-            override fun skalSendeBrev() = false
 
             override fun toString(): String {
                 // Vi ønsker ikke logge fritekst eller begrunnelse i tilfelle den inneholder sensitiv informasjon.

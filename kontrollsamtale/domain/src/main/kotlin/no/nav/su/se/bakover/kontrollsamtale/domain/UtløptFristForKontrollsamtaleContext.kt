@@ -58,19 +58,13 @@ data class UtløptFristForKontrollsamtaleContext(
         val fjernHvisFeilet = feilet.find { it.id == id }?.let { feilet.minus(it) } ?: feilet
         return copy(prosessert = prosessert + id, feilet = fjernHvisFeilet, endret = Tidspunkt.now(clock))
     }
-
     fun prosessert(): Set<UUID> {
         return prosessert
     }
 
     fun ikkeMøtt(id: UUID, clock: Clock): UtløptFristForKontrollsamtaleContext {
         val fjernHvisFeilet = feilet.find { it.id == id }?.let { feilet.minus(it) } ?: feilet
-        return copy(
-            prosessert = prosessert + id,
-            ikkeMøtt = ikkeMøtt + id,
-            feilet = fjernHvisFeilet,
-            endret = Tidspunkt.now(clock),
-        )
+        return copy(prosessert = prosessert + id, ikkeMøtt = ikkeMøtt + id, feilet = fjernHvisFeilet, endret = Tidspunkt.now(clock))
     }
 
     fun ikkeMøtt(): Set<UUID> {
@@ -89,11 +83,7 @@ data class UtløptFristForKontrollsamtaleContext(
 
     fun prosessertMedFeil(id: UUID, clock: Clock, oppgaveId: OppgaveId): UtløptFristForKontrollsamtaleContext {
         return feilet.find { it.id == id }!!.let {
-            copy(
-                prosessert = prosessert + id,
-                feilet = feilet.minus(it) + it.copy(oppgaveId = oppgaveId.toString()),
-                endret = Tidspunkt.now(clock),
-            )
+            copy(prosessert = prosessert + id, feilet = feilet.minus(it) + it.copy(oppgaveId = oppgaveId.toString()), endret = Tidspunkt.now(clock))
         }
     }
 
@@ -229,49 +219,6 @@ data class UtløptFristForKontrollsamtaleContext(
         )
     }
 
-    class HåndterIkkeMøtt() {
-        fun håndterIkkeMøttTilKontrollsamtale(
-            kontrollsamtale: Kontrollsamtale,
-            lagreKontrollsamtale: (kontrollsamtale: Kontrollsamtale, transactionContext: TransactionContext) -> Unit,
-            tx: TransactionContext,
-            opprettStans: (sakId: UUID, fraOgMed: LocalDate, transactionContext: TransactionContext) -> OpprettStansTransactionCallback,
-            sakInfo: SakInfo,
-            iverksettStans: (id: UUID, transactionContext: TransactionContext) -> IverksettStansTransactionCallback,
-            ikkeMøttCallback: (id: UUID, clock: Clock) -> UtløptFristForKontrollsamtaleContext,
-            clock: Clock,
-            lagreContext: (context: UtløptFristForKontrollsamtaleContext, transactionContext: TransactionContext) -> Unit,
-        ): UtløptFristForKontrollsamtaleContext {
-            return kontrollsamtale.settIkkeMøttInnenFrist()
-                .fold(
-                    {
-                        throw FeilVedProsesseringAvKontrollsamtaleException(msg = it::class.java.toString())
-                    },
-                    { ikkeMøttKontrollsamtale ->
-                        lagreKontrollsamtale(ikkeMøttKontrollsamtale, tx)
-
-                        opprettStans(sakInfo.sakId, ikkeMøttKontrollsamtale.frist.førsteINesteMåned(), tx)
-                            .let { opprettCallback ->
-                                iverksettStans(opprettCallback.revurderingId, tx).let { iverksettCallback ->
-                                    ikkeMøttCallback(ikkeMøttKontrollsamtale.id, clock).let { ctx ->
-                                        lagreContext(
-                                            ctx,
-                                            tx,
-                                        )
-                                        iverksettCallback.sendUtbetalingCallback()
-                                            .getOrElse {
-                                                throw FeilVedProsesseringAvKontrollsamtaleException(msg = it::class.java.toString())
-                                            }
-                                        opprettCallback.sendStatistikkCallback()
-                                        iverksettCallback.sendStatistikkCallback()
-                                        ctx
-                                    }
-                                }
-                            }
-                    },
-                )
-        }
-    }
-
     private fun håndterIkkeMøttTilKontrollsamtale(
         kontrollsamtale: Kontrollsamtale,
         lagreKontrollsamtale: (kontrollsamtale: Kontrollsamtale, transactionContext: TransactionContext) -> Unit,
@@ -353,7 +300,6 @@ data class UtløptFristForKontrollsamtaleContext(
                 },
             )
     }
-
     private fun håndterFeil(
         kontrollsamtale: Kontrollsamtale,
         error: Throwable,
@@ -409,13 +355,12 @@ data class UtløptFristForKontrollsamtaleContext(
 
     data class KunneIkkeHåndtereUtløptKontrollsamtale(val feil: String)
 
-    internal data class FeilVedProsesseringAvKontrollsamtaleException(val msg: String) : RuntimeException(msg)
+    private data class FeilVedProsesseringAvKontrollsamtaleException(val msg: String) : RuntimeException(msg)
 
     data class OpprettStansTransactionCallback(
         val revurderingId: UUID,
         val sendStatistikkCallback: () -> Unit,
     )
-
     data class IverksettStansTransactionCallback(
         val sendUtbetalingCallback: () -> Either<Any, Utbetalingsrequest>,
         val sendStatistikkCallback: () -> Unit,
