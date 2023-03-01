@@ -49,7 +49,7 @@ internal class AvsluttRevurderingRouteTest {
                     """
                         {
                             "begrunnelse": "sender en request for å avslutte revurdering",
-                             "fritekst": null
+                             "fritekst": ""
                         }
                     """.trimIndent(),
                 )
@@ -83,7 +83,7 @@ internal class AvsluttRevurderingRouteTest {
                     //language=JSON
                     """
                         {
-                             "fritekst": null
+                             "fritekst": ""
                         }
                     """.trimIndent(),
                 )
