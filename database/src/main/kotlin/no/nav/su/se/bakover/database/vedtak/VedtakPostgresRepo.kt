@@ -97,12 +97,6 @@ internal class VedtakPostgresRepo(
         }
     }
 
-    override fun hentForSakId(sakId: UUID): List<Vedtak> {
-        return dbMetrics.timeQuery("hentVedtakForSakId") {
-            sessionFactory.withSession { session -> hentForSakId(sakId, session) }
-        }
-    }
-
     internal fun hentForSakId(sakId: UUID, session: Session): List<Vedtak> =
         """
             SELECT v.*
@@ -146,14 +140,6 @@ internal class VedtakPostgresRepo(
                     .hent(mapOf("utbetalingId" to utbetalingId), session) {
                         it.toVedtak(session) as VedtakSomKanRevurderes.EndringIYtelse
                     }
-            }
-        }
-    }
-
-    override fun hentAlle(): List<Vedtak> {
-        return dbMetrics.timeQuery("hentAlleVedtak") {
-            sessionFactory.withSession { session ->
-                """select * from vedtak""".hentListe(emptyMap(), session) { it.toVedtak(session) }
             }
         }
     }
