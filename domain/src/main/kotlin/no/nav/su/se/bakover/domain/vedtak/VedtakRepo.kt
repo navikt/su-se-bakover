@@ -9,11 +9,9 @@ import java.util.UUID
 interface VedtakRepo {
     fun hentVedtakForId(vedtakId: UUID): Vedtak?
     fun hentForRevurderingId(revurderingId: UUID): Vedtak?
-    fun hentForSakId(sakId: UUID): List<Vedtak>
     fun hentForMåned(måned: Måned): List<ForenkletVedtak>
     fun lagre(vedtak: Vedtak)
     fun lagreITransaksjon(vedtak: Vedtak, sessionContext: TransactionContext)
     fun hentForUtbetaling(utbetalingId: UUID30): VedtakSomKanRevurderes?
-    fun hentAlle(): List<Vedtak>
     fun hentJournalpostId(vedtakId: UUID): JournalpostId?
 }

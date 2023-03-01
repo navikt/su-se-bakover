@@ -102,14 +102,10 @@ internal class GjenopptakAvYtelseServiceTest {
     @Test
     fun `svarer med feil dersom simulering feiler`() {
         val tikkendeKlokke = TikkendeKlokke(1.januar(2022).fixedClock())
-        val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+        val (sak, _) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             clock = tikkendeKlokke,
         )
-
         ServiceMocks(
-            vedtakRepo = mock {
-                on { hentForSakId(any()) } doReturn listOf(vedtak)
-            },
             utbetalingService = mock {
                 on {
                     simulerUtbetaling(
@@ -141,9 +137,6 @@ internal class GjenopptakAvYtelseServiceTest {
         )
 
         val serviceAndMocks = ServiceMocks(
-            vedtakRepo = mock {
-                on { hentForSakId(any()) } doReturn sak.vedtakListe
-            },
             utbetalingService = mock {
                 doAnswer { invocation ->
                     simulerUtbetaling(
@@ -286,9 +279,6 @@ internal class GjenopptakAvYtelseServiceTest {
         ServiceMocks(
             revurderingRepo = mock {
                 on { hent(any()) } doReturn revurdering
-            },
-            vedtakRepo = mock {
-                on { hentForSakId(any()) } doReturn sak.vedtakListe
             },
             utbetalingService = mock {
                 on { simulerUtbetaling(any(), any()) } doReturn simulertUtbetaling.right()
