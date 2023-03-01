@@ -192,6 +192,6 @@ Tilgang til databasen kan bestilles via identrutinen.
 
 Tilkobling: `jdbc:oracle:thin:@a01dbfl033.adeo.no:1521/infotrygd_suq` (personlig tilgang testet ok med SQLDeveloper i VDI)
 
-## Lagre og se PDF i database
+## Select og se PDF i database
 1. `SELECT encode(generertdokument, 'base64') FROM dokument where revurderingId = '<REPLACE_ME>';`
 2. `base64 --decode -i input.base64 -o output.pdf`
