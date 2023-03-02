@@ -431,6 +431,7 @@ internal fun Route.klageRoutes(
         }
     }
 
+    // TODO jah: Denne er i bruk, men har en litt snodig url?
     post("$klagePath/{klageId}/iverksett(AvvistKlage)") {
         authorize(Brukerrolle.Attestant) {
             call.withKlageId { klageId ->
@@ -443,7 +444,7 @@ internal fun Route.klageRoutes(
                     call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                     call.svar(Resultat.json(OK, serialize(it.toJson())))
                 }.mapLeft {
-                    when (it) {
+                    val resultat = when (it) {
                         KunneIkkeIverksetteAvvistKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
                         KunneIkkeIverksetteAvvistKlage.FantIkkeKlage -> fantIkkeKlage
                         is KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrev -> it.feil.toErrorJson()
@@ -452,8 +453,10 @@ internal fun Route.klageRoutes(
                             "Feil ved lagrinng av brev/klagen",
                             "feil_ved_lagring_av_brev_og_klage",
                         )
+
                         is KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrevRequest -> it.feil.toErrorJson()
                     }
+                    call.svar(resultat)
                 }
             }
         }

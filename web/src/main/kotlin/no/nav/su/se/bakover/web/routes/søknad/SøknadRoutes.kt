@@ -5,7 +5,6 @@ import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
-import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.application.call
 import io.ktor.server.response.respondBytes
@@ -16,6 +15,8 @@ import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSak
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSøknad
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
@@ -112,10 +113,7 @@ internal fun Route.søknadRoutes(
                 søknadService.hentSøknadPdf(søknadId).fold(
                     {
                         val responseMessage = when (it) {
-                            KunneIkkeLageSøknadPdf.FantIkkeSøknad -> NotFound.errorJson(
-                                "Fant ikke søknad",
-                                "fant_ikke_søknad",
-                            )
+                            KunneIkkeLageSøknadPdf.FantIkkeSøknad -> fantIkkeSøknad
 
                             KunneIkkeLageSøknadPdf.KunneIkkeLagePdf -> InternalServerError.errorJson(
                                 "Kunne ikke lage PDF",
@@ -123,14 +121,12 @@ internal fun Route.søknadRoutes(
                             )
 
                             KunneIkkeLageSøknadPdf.FantIkkePerson -> Feilresponser.fantIkkePerson
-                            KunneIkkeLageSøknadPdf.FantIkkeSak -> NotFound.errorJson(
-                                "Fant ikke sak",
-                                "fant_ikke_sak",
-                            )
+                            KunneIkkeLageSøknadPdf.FantIkkeSak -> fantIkkeSak
                         }
                         call.svar(responseMessage)
                     },
                     {
+                        // TODO jah: audit?
                         call.respondBytes(it, ContentType.Application.Pdf)
                     },
                 )

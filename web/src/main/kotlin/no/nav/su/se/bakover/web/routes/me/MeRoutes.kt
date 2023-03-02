@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.routes.me
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
-import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
@@ -24,7 +23,7 @@ data class UserData(
 internal fun Route.meRoutes(applicationConfig: ApplicationConfig, azureGroupMapper: AzureGroupMapper) {
     get("/me") {
         val roller =
-            getGroupsFromJWT(applicationConfig, call.principal<JWTPrincipal>()!!)
+            getGroupsFromJWT(applicationConfig, call.principal()!!)
                 .mapNotNull { azureGroupMapper.fromAzureGroup(it) }
 
         call.svar(

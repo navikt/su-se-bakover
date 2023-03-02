@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
 import arrow.core.Either
 import arrow.core.flatMap
-import arrow.core.getOrElse
 import arrow.core.merge
 import arrow.core.right
 import io.ktor.http.HttpStatusCode
@@ -115,7 +114,7 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                     call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                                     Resultat.json(HttpStatusCode.Created, serialize(it.toJson(satsFactory)))
                                 }
-                            }.getOrElse { it },
+                            }.merge(),
                     )
                 }
             }

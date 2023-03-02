@@ -56,7 +56,7 @@ internal fun Route.forhåndsvarslingRoute(
             call.withRevurderingId { revurderingId ->
                 call.withBody<ForhåndsvarselBrevutkastBody> { body ->
                     val revurdering =
-                        revurderingService.hentRevurdering(revurderingId) ?: return@withRevurderingId call.svar(
+                        revurderingService.hentRevurdering(revurderingId) ?: return@authorize call.svar(
                             fantIkkeRevurdering,
                         )
 

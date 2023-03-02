@@ -26,8 +26,9 @@ internal fun Route.brevutkastForRevurdering(
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<Body> { body ->
+                    // TODO jah: La `lagBrevutkastForRevurdering` også returnere fnr slik at vi kan slette denne linja.
                     val revurdering = revurderingService.hentRevurdering(revurderingId)
-                        ?: return@withRevurderingId call.svar(fantIkkeRevurdering)
+                        ?: return@authorize call.svar(fantIkkeRevurdering)
 
                     revurderingService.lagBrevutkastForRevurdering(revurderingId, body.fritekst).fold(
                         ifLeft = { call.svar(it.tilResultat()) },

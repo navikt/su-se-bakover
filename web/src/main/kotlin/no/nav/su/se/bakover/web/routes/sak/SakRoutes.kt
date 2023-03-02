@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.merge
 import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.NotFound
@@ -68,9 +67,9 @@ internal fun Route.sakRoutes(
                         Either.catch { Fnr(body.fnr) to Sakstype.from(body.type!!) }.fold(
                             ifLeft = {
                                 if (Sakstype.values().none { it.value == body.type }) {
-                                    call.svar(Feilresponser.ugyldigTypeSak)
+                                    return@authorize call.svar(Feilresponser.ugyldigTypeSak)
                                 } else {
-                                    call.svar(
+                                    return@authorize call.svar(
                                         Feilresponser.ugyldigFødselsnummer,
                                     )
                                 }
@@ -79,7 +78,7 @@ internal fun Route.sakRoutes(
                                 sakService.hentSak(fnr, type)
                                     .mapLeft {
                                         call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
-                                        call.svar(
+                                        return@authorize call.svar(
                                             NotFound.errorJson(
                                                 "Fant ikke noen sak av typen ${body.type} for person: ${body.fnr}",
                                                 "fant_ikke_sak_for_person",
@@ -88,7 +87,7 @@ internal fun Route.sakRoutes(
                                     }
                                     .map {
                                         call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
-                                        call.svar(
+                                        return@authorize call.svar(
                                             Resultat.json(
                                                 OK,
                                                 serialize(it.toJson(clock, satsFactory)),
@@ -100,17 +99,16 @@ internal fun Route.sakRoutes(
                     }
 
                     body.saksnummer != null -> {
-                        Saksnummer.tryParse(body.saksnummer).fold(
-                            ifLeft = {
-                                call.svar(
+                        return@authorize call.svar(
+                            Saksnummer.tryParse(body.saksnummer).fold(
+                                ifLeft = {
                                     BadRequest.errorJson(
                                         "${body.saksnummer} er ikke et gyldig saksnummer",
                                         "saksnummer_ikke_gyldig",
-                                    ),
-                                )
-                            },
-                            ifRight = { saksnummer ->
-                                call.svar(
+                                    )
+                                },
+                                ifRight = { saksnummer ->
+
                                     sakService.hentSak(saksnummer).fold(
                                         {
                                             NotFound.errorJson(
@@ -122,13 +120,13 @@ internal fun Route.sakRoutes(
                                             call.audit(it.fnr, AuditLogEvent.Action.ACCESS, null)
                                             Resultat.json(OK, serialize((it.toJson(clock, satsFactory))))
                                         },
-                                    ),
-                                )
-                            },
+                                    )
+                                },
+                            ),
                         )
                     }
 
-                    else -> call.svar(
+                    else -> return@authorize call.svar(
                         BadRequest.errorJson(
                             "Må oppgi enten saksnummer eller fødselsnummer",
                             "mangler_saksnummer_fødselsnummer",
@@ -202,7 +200,7 @@ internal fun Route.sakRoutes(
                             {
                                 when (it) {
                                     KunneIkkeHenteGjeldendeVedtaksdata.FantIkkeSak -> Feilresponser.fantIkkeSak
-                                    KunneIkkeHenteGjeldendeVedtaksdata.IngenVedtak -> HttpStatusCode.NotFound.errorJson(
+                                    KunneIkkeHenteGjeldendeVedtaksdata.IngenVedtak -> NotFound.errorJson(
                                         message = "Fant ingen vedtak for ${body.periode}",
                                         code = "fant_ingen_vedtak_for_periode",
                                     )

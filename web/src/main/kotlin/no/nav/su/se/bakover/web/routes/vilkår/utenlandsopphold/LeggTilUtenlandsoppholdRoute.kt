@@ -47,16 +47,15 @@ internal fun Route.leggTilUtenlandsopphold(
             call.withBehandlingId { behandlingId ->
                 call.withBody<UtenlandsoppholdBody> { body ->
                     if (body.vurderinger.size != 1) {
-                        call.svar(
+                        return@authorize call.svar(
                             BadRequest.errorJson(
                                 "Flere vurderingsperioder ble sendt inn. Forventet kun 1",
                                 "flere_perioder_ble_Sendt_inn",
                             ),
                         )
-                        return@withBehandlingId
                     }
                     body.toDomain(behandlingId).mapLeft {
-                        call.svar(it)
+                        return@authorize call.svar(it)
                     }.map { request ->
                         søknadsbehandlingService.leggTilUtenlandsopphold(request, saksbehandler = call.suUserContext.saksbehandler).fold(
                             ifLeft = { call.svar(it.tilResultat()) },
@@ -81,7 +80,7 @@ internal fun Route.leggTilUtlandsoppholdRoute(
             call.withRevurderingId { revurderingId ->
                 call.withBody<UtenlandsoppholdBody> { body ->
                     body.toDomain(revurderingId).mapLeft {
-                        call.svar(it)
+                        return@authorize call.svar(it)
                     }.map {
                         revurderingService.leggTilUtenlandsopphold(it)
                             .fold(

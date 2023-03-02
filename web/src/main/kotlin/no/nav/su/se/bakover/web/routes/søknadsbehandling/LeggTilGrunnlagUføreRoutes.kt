@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
 import arrow.core.flatMap
-import arrow.core.getOrElse
+import arrow.core.merge
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
@@ -37,12 +37,12 @@ internal fun Route.leggTilUføregrunnlagRoutes(
                                     leggTilUføregrunnlagRequest,
                                     saksbehandler = call.suUserContext.saksbehandler,
                                 ).mapLeft {
-                                    it.mapFeil()
+                                    it.tilResultat()
                                 }.map {
                                     call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                                     Resultat.json(HttpStatusCode.Created, serialize(it.toJson(satsFactory)))
                                 }
-                            }.getOrElse { it },
+                            }.merge(),
                     )
                 }
             }
@@ -50,7 +50,7 @@ internal fun Route.leggTilUføregrunnlagRoutes(
     }
 }
 
-private fun SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår.mapFeil(): Resultat {
+private fun SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår.tilResultat(): Resultat {
     return when (this) {
         SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår.FantIkkeBehandling -> {
             Feilresponser.fantIkkeBehandling

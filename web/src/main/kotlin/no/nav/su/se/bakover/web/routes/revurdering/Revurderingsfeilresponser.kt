@@ -21,10 +21,6 @@ import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Bre
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.navneoppslagSaksbehandlerAttesttantFeilet
 
 internal object Revurderingsfeilresponser {
-    val fantIkkeSak = NotFound.errorJson(
-        "Fant ikke sak",
-        "fant_ikke_sak",
-    )
 
     val fantIkkeRevurdering = NotFound.errorJson(
         "Fant ikke revurdering",
