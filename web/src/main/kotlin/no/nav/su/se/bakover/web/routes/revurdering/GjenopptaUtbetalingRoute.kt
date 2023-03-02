@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.detHarKommetNyeOverlappendeVedtak
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.lagringFeilet
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
@@ -33,7 +34,6 @@ import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeSimulereGjeno
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.features.authorize
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.tilResultat
 
@@ -50,7 +50,7 @@ internal fun Route.gjenopptaUtbetaling(
                     val revurderingsårsak = Revurderingsårsak.tryCreate(
                         årsak = body.årsak,
                         begrunnelse = body.begrunnelse,
-                    ).getOrElse { return@withSakId call.svar(it.tilResultat()) }
+                    ).getOrElse { return@authorize call.svar(it.tilResultat()) }
 
                     val request = GjenopptaYtelseRequest.Opprett(
                         sakId = sakId,
@@ -81,7 +81,7 @@ internal fun Route.gjenopptaUtbetaling(
                         val revurderingsårsak = Revurderingsårsak.tryCreate(
                             årsak = body.årsak,
                             begrunnelse = body.begrunnelse,
-                        ).getOrElse { return@withRevurderingId call.svar(it.tilResultat()) }
+                        ).getOrElse { return@authorize call.svar(it.tilResultat()) }
 
                         val request = GjenopptaYtelseRequest.Oppdater(
                             sakId = sakId,

@@ -9,7 +9,8 @@ import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.detHarKommetNyeOverlappendeVedtak
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ukjentFeil
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
@@ -31,7 +32,7 @@ import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.features.authorize
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeSak
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.tilResultat
 import java.time.LocalDate
@@ -52,7 +53,7 @@ internal fun Route.stansUtbetaling(
                     val revurderingsårsak = Revurderingsårsak.tryCreate(
                         årsak = body.årsak,
                         begrunnelse = body.begrunnelse,
-                    ).getOrElse { return@withSakId call.svar(it.tilResultat()) }
+                    ).getOrElse { return@authorize call.svar(it.tilResultat()) }
 
                     val request = StansYtelseRequest.Opprett(
                         sakId = sakId,
@@ -85,7 +86,7 @@ internal fun Route.stansUtbetaling(
                         val revurderingsårsak = Revurderingsårsak.tryCreate(
                             årsak = body.årsak,
                             begrunnelse = body.begrunnelse,
-                        ).getOrElse { return@withRevurderingId call.svar(it.tilResultat()) }
+                        ).getOrElse { return@authorize call.svar(it.tilResultat()) }
 
                         val request = StansYtelseRequest.Oppdater(
                             sakId = sakId,
@@ -138,9 +139,7 @@ internal class StansUtbetalingBody(
 
 private fun KunneIkkeStanseYtelse.tilResultat(): Resultat {
     return when (this) {
-        KunneIkkeStanseYtelse.FantIkkeRevurdering -> {
-            Revurderingsfeilresponser.fantIkkeRevurdering
-        }
+        KunneIkkeStanseYtelse.FantIkkeRevurdering -> fantIkkeRevurdering
 
         KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering -> {
             HttpStatusCode.InternalServerError.errorJson(
@@ -149,9 +148,7 @@ private fun KunneIkkeStanseYtelse.tilResultat(): Resultat {
             )
         }
 
-        is KunneIkkeStanseYtelse.SimuleringAvStansFeilet -> {
-            this.feil.tilResultat()
-        }
+        is KunneIkkeStanseYtelse.SimuleringAvStansFeilet -> this.feil.tilResultat()
 
         is KunneIkkeStanseYtelse.UgyldigTypeForOppdatering -> {
             HttpStatusCode.BadRequest.errorJson(
@@ -160,13 +157,9 @@ private fun KunneIkkeStanseYtelse.tilResultat(): Resultat {
             )
         }
 
-        KunneIkkeStanseYtelse.FantIkkeSak -> {
-            fantIkkeSak
-        }
+        KunneIkkeStanseYtelse.FantIkkeSak -> fantIkkeSak
 
-        is KunneIkkeStanseYtelse.UkjentFeil -> {
-            ukjentFeil
-        }
+        is KunneIkkeStanseYtelse.UkjentFeil -> ukjentFeil
 
         KunneIkkeStanseYtelse.FinnesÅpenStansbehandling -> {
             HttpStatusCode.BadRequest.errorJson(
@@ -179,9 +172,7 @@ private fun KunneIkkeStanseYtelse.tilResultat(): Resultat {
 
 private fun KunneIkkeIverksetteStansYtelse.tilResultat(): Resultat {
     return when (this) {
-        KunneIkkeIverksetteStansYtelse.FantIkkeRevurdering -> {
-            Revurderingsfeilresponser.fantIkkeRevurdering
-        }
+        KunneIkkeIverksetteStansYtelse.FantIkkeRevurdering -> fantIkkeRevurdering
 
         is KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale -> {
             when (val kunneIkkeUtbetale = this.feil) {
@@ -209,11 +200,9 @@ private fun KunneIkkeIverksetteStansYtelse.tilResultat(): Resultat {
             )
         }
 
-        is KunneIkkeIverksetteStansYtelse.UkjentFeil -> {
-            ukjentFeil
-        }
+        is KunneIkkeIverksetteStansYtelse.UkjentFeil -> ukjentFeil
 
-        KunneIkkeIverksetteStansYtelse.DetHarKommetNyeOverlappendeVedtak -> Feilresponser.detHarKommetNyeOverlappendeVedtak
+        KunneIkkeIverksetteStansYtelse.DetHarKommetNyeOverlappendeVedtak -> detHarKommetNyeOverlappendeVedtak
     }
 }
 

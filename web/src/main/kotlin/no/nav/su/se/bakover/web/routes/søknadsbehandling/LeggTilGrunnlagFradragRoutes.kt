@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.merge
 import arrow.core.right
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
@@ -98,7 +99,7 @@ internal fun Route.leggTilGrunnlagFradrag(
                                         call.sikkerlogg("Lagret fradrag for behandling $behandlingId på $sakId")
                                         Resultat.json(HttpStatusCode.Created, serialize(it.toJson(satsFactory)))
                                     }
-                            }.getOrElse { it },
+                            }.merge(),
                         )
                     }
                 }

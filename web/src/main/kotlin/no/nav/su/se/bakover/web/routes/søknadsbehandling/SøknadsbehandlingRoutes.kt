@@ -88,7 +88,7 @@ internal fun Route.søknadsbehandlingRoutes(
             call.withSakId { sakId ->
                 call.withBody<OpprettBehandlingBody> { body ->
                     body.soknadId.toUUID().mapLeft {
-                        call.svar(BadRequest.errorJson("soknadId er ikke en gyldig uuid", "ikke_gyldig_uuid"))
+                        return@authorize call.svar(BadRequest.errorJson("soknadId er ikke en gyldig uuid", "ikke_gyldig_uuid"))
                     }.map { søknadId ->
                         søknadsbehandlingService.opprett(
                             OpprettRequest(
@@ -117,7 +117,7 @@ internal fun Route.søknadsbehandlingRoutes(
                 call.withBehandlingId { behandlingId ->
                     call.withBody<OppdaterStønadsperiodeRequest> { body ->
                         body.toDomain(clock).onLeft {
-                            call.svar(it)
+                            return@authorize call.svar(it)
                         }.onRight { partialOppdaterRequest ->
                             søknadsbehandlingService.oppdaterStønadsperiode(
                                 SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
@@ -128,10 +128,10 @@ internal fun Route.søknadsbehandlingRoutes(
                                     saksbehandlersAvgjørelse = partialOppdaterRequest.saksbehandlersAvgjørelse,
                                 ),
                             ).fold(
-                                { call.svar(it.tilResultat()) },
+                                { return@authorize call.svar(it.tilResultat()) },
                                 {
                                     call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                                    call.svar(
+                                    return@authorize call.svar(
                                         Resultat.json(
                                             Created,
                                             serialize(
@@ -184,7 +184,7 @@ internal fun Route.søknadsbehandlingRoutes(
             call.withBehandlingId { behandlingId ->
                 call.withBody<Body> { body ->
                     body.toDomain(behandlingId, call.suUserContext.saksbehandler)
-                        .mapLeft { call.svar(it) }
+                        .mapLeft { return@authorize call.svar(it) }
                         .map { serviceCommand ->
                             søknadsbehandlingService.beregn(serviceCommand)
                                 .mapLeft { kunneIkkeBeregne ->
@@ -209,11 +209,11 @@ internal fun Route.søknadsbehandlingRoutes(
                                             avkortingErUfullstendig
                                         }
                                     }
-                                    call.svar(resultat)
+                                    return@authorize call.svar(resultat)
                                 }.map { behandling ->
                                     call.sikkerlogg("Beregner på søknadsbehandling med id $behandlingId")
                                     call.audit(behandling.fnr, AuditLogEvent.Action.UPDATE, behandling.id)
-                                    call.svar(Created.jsonBody(behandling, satsFactory))
+                                    return@authorize call.svar(Created.jsonBody(behandling, satsFactory))
                                 }
                         }
                 }
@@ -338,7 +338,7 @@ internal fun Route.søknadsbehandlingRoutes(
                 Either.catch { deserialize<UnderkjennBody>(call) }.fold(
                     ifLeft = {
                         log.info("Ugyldig behandling-body: ", it)
-                        call.svar(Feilresponser.ugyldigBody)
+                        return@authorize call.svar(Feilresponser.ugyldigBody)
                     },
                     ifRight = { body ->
                         if (body.valid()) {
@@ -369,7 +369,7 @@ internal fun Route.søknadsbehandlingRoutes(
                                 },
                             )
                         } else {
-                            call.svar(BadRequest.errorJson("Må angi en begrunnelse", "mangler_begrunnelse"))
+                            return@authorize call.svar(BadRequest.errorJson("Må angi en begrunnelse", "mangler_begrunnelse"))
                         }
                     },
                 )

@@ -109,15 +109,15 @@ internal fun Route.leggTilFormueForSøknadsbehandlingRoute(
                 call.withBehandlingId { behandlingId ->
                     call.withBody<List<FormueBody>> { body ->
                         body.toServiceRequest(behandlingId, call.suUserContext.saksbehandler, clock).mapLeft {
-                            call.svar(it)
+                            return@authorize call.svar(it)
                         }.map { request ->
                             søknadsbehandlingService.leggTilFormuevilkår(request)
                                 .map {
                                     call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                                     call.sikkerlogg("Lagret formue for revudering $behandlingId på $sakId")
-                                    call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
+                                    return@authorize call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
                                 }.mapLeft { kunneIkkeLeggeTilFormuegrunnlag ->
-                                    call.svar(kunneIkkeLeggeTilFormuegrunnlag.tilResultat())
+                                    return@authorize call.svar(kunneIkkeLeggeTilFormuegrunnlag.tilResultat())
                                 }
                         }
                     }

@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
-import arrow.core.getOrElse
+import arrow.core.merge
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
@@ -45,7 +45,7 @@ internal fun Route.institusjonsoppholdRoutes(
                                     Resultat.json(HttpStatusCode.Created, it.json(satsFactory))
                                 },
                             )
-                        }.getOrElse { it },
+                        }.merge(),
                     )
                 }
             }

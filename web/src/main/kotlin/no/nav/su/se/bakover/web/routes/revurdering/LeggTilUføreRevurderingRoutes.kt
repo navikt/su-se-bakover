@@ -36,7 +36,7 @@ internal fun Route.leggTilGrunnlagRevurderingRoutes(
                             .flatMap { command ->
                                 revurderingService.leggTilUførevilkår(command)
                                     .mapLeft {
-                                        it.mapFeil()
+                                        it.tilResultat()
                                     }.map {
                                         call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id)
                                         Resultat.json(HttpStatusCode.Created, serialize(it.toJson(satsFactory)))
@@ -76,7 +76,7 @@ internal fun LeggTilUførevurderingerRequest.UgyldigUførevurdering.tilResultat(
         }
     }
 
-private fun KunneIkkeLeggeTilUføreVilkår.mapFeil(): Resultat {
+private fun KunneIkkeLeggeTilUføreVilkår.tilResultat(): Resultat {
     return when (this) {
         KunneIkkeLeggeTilUføreVilkår.FantIkkeBehandling -> {
             Feilresponser.fantIkkeBehandling

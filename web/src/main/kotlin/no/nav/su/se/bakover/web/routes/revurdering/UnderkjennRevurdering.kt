@@ -66,11 +66,11 @@ internal fun Route.underkjennRevurdering(
                 Either.catch { deserialize<UnderkjennBody>(call) }.fold(
                     ifLeft = {
                         log.info("Ugyldig body: ", it)
-                        call.svar(ugyldigBody)
+                        return@authorize call.svar(ugyldigBody)
                     },
                     ifRight = { body ->
                         body.toDomain(navIdent, clock).fold(
-                            ifLeft = { call.svar(it) },
+                            ifLeft = { return@authorize call.svar(it) },
                             ifRight = { underkjent ->
                                 revurderingService.underkjenn(
                                     revurderingId = revurderingId,
@@ -87,12 +87,12 @@ internal fun Route.underkjennRevurdering(
                                             )
                                             KunneIkkeUnderkjenneRevurdering.SaksbehandlerOgAttestantKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
                                         }
-                                        call.svar(resultat)
+                                        return@authorize call.svar(resultat)
                                     },
                                     ifRight = {
                                         call.sikkerlogg("Underkjente behandling med id: $revurderingId")
                                         call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                                        call.svar(
+                                        return@authorize call.svar(
                                             Resultat.json(
                                                 HttpStatusCode.OK,
                                                 serialize(it.toJson(satsFactory)),

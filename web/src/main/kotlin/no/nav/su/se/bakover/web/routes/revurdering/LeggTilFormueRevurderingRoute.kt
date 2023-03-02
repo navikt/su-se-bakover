@@ -103,7 +103,8 @@ internal fun Route.leggTilFormueRevurderingRoute(
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     call.withBody<List<FormueBody>> { body ->
-                        body.toServiceRequest(revurderingId, call.suUserContext.saksbehandler, clock).mapLeft { call.svar(it) }
+                        body.toServiceRequest(revurderingId, call.suUserContext.saksbehandler, clock)
+                            .mapLeft { call.svar(it) }
                             .map { request ->
                                 revurderingService.leggTilFormuegrunnlag(request)
                                     .map {
