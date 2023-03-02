@@ -6,6 +6,8 @@ import io.ktor.server.application.ApplicationCall
 import io.ktor.server.response.respondText
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat.Companion.json
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.sikkerLogg
+import org.slf4j.LoggerFactory
 
 /* forstår seg på hvordan et resultat med en melding blir til en http-response */
 data class Resultat private constructor(
@@ -13,12 +15,25 @@ data class Resultat private constructor(
     private val json: String,
     private val contentType: ContentType,
 ) {
+    private val log = LoggerFactory.getLogger(this::class.java)
+
     init {
         require(httpCode in HttpStatusCode.allStatusCodes) { "Unknown http status code:$httpCode" }
     }
 
-    suspend fun svar(call: ApplicationCall) =
-        call.respondText(contentType = contentType, status = httpCode, text = json)
+    suspend fun svar(call: ApplicationCall) {
+        val isCommitted = call.response.isCommitted
+        val isSent = call.response.isSent
+        if (isCommitted || isSent) {
+            log.error(
+                "Ktor-response already {committed=$isCommitted, sent=$isSent}. Ignored response: See sikkerLogg for more details.",
+                IllegalStateException("Stacktrace for easier debugging."),
+            )
+            sikkerLogg.error("Ktor-response already {committed=$isCommitted, sent=$isSent}. Ignored response: contentType=$contentType, httpCode=$httpCode, json=$json. See main log for stacktrace.")
+        } else {
+            call.respondText(contentType = contentType, status = httpCode, text = json)
+        }
+    }
 
     companion object {
         fun json(httpCode: HttpStatusCode, json: String): Resultat =
