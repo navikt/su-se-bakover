@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeTilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
@@ -247,6 +248,7 @@ fun simulertRevurdering(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
     brevvalg: BrevvalgRevurdering = sendBrev(),
+    skalTilbakekreve: Boolean = true,
 ): Pair<Sak, SimulertRevurdering> {
     return beregnetRevurdering(
         saksnummer = saksnummer,
@@ -276,7 +278,7 @@ fun simulertRevurdering(
                         }
                     },
                 ).getOrFail()
-                oppdaterTilbakekrevingsbehandling(simulert)
+                oppdaterTilbakekrevingsbehandling(simulert, skalTilbakekreve)
             }
 
             is BeregnetRevurdering.Opphørt -> {
@@ -322,6 +324,7 @@ fun revurderingTilAttestering(
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
     brevvalg: BrevvalgRevurdering = sendBrev(),
+    skalTilbakekreve: Boolean = true,
 ): Pair<Sak, RevurderingTilAttestering> {
     return simulertRevurdering(
         saksnummer = saksnummer,
@@ -335,6 +338,7 @@ fun revurderingTilAttestering(
         grunnlagsdataOverrides = grunnlagsdataOverrides,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
         brevvalg = brevvalg,
+        skalTilbakekreve = skalTilbakekreve,
     ).let { (sak, simulert) ->
         val tilAttestering = when (simulert) {
             is SimulertRevurdering.Innvilget -> {
@@ -396,18 +400,32 @@ fun revurderingUnderkjent(
     }
 }
 
-private fun oppdaterTilbakekrevingsbehandling(revurdering: SimulertRevurdering): SimulertRevurdering {
+private fun oppdaterTilbakekrevingsbehandling(
+    revurdering: SimulertRevurdering,
+    skalTilbakekreve: Boolean = true,
+): SimulertRevurdering {
     return when (revurdering.simulering.harFeilutbetalinger()) {
         true -> {
-            revurdering.oppdaterTilbakekrevingsbehandling(
-                tilbakekrevingsbehandling = Tilbakekrev(
-                    id = UUID.randomUUID(),
-                    opprettet = Tidspunkt.now(fixedClock),
-                    sakId = revurdering.sakId,
-                    revurderingId = revurdering.id,
-                    periode = revurdering.periode,
-                ),
-            )
+            when (skalTilbakekreve) {
+                true -> revurdering.oppdaterTilbakekrevingsbehandling(
+                    tilbakekrevingsbehandling = Tilbakekrev(
+                        id = UUID.randomUUID(),
+                        opprettet = Tidspunkt.now(fixedClock),
+                        sakId = revurdering.sakId,
+                        revurderingId = revurdering.id,
+                        periode = revurdering.periode,
+                    ),
+                )
+                false -> revurdering.oppdaterTilbakekrevingsbehandling(
+                    tilbakekrevingsbehandling = IkkeTilbakekrev(
+                        id = UUID.randomUUID(),
+                        opprettet = Tidspunkt.now(fixedClock),
+                        sakId = revurdering.sakId,
+                        revurderingId = revurdering.id,
+                        periode = revurdering.periode,
+                    ),
+                )
+            }
         }
 
         false -> {
@@ -437,6 +455,7 @@ fun iverksattRevurdering(
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
     brevvalg: BrevvalgRevurdering = sendBrev(),
+    skalTilbakekreve: Boolean = true,
 ): Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.UtenKvittering, VedtakSomKanRevurderes.EndringIYtelse> {
     return revurderingTilAttestering(
         saksnummer = saksnummer,
@@ -452,6 +471,7 @@ fun iverksattRevurdering(
         attesteringsoppgaveId = attesteringsoppgaveId,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
         brevvalg = brevvalg,
+        skalTilbakekreve = skalTilbakekreve,
     ).let { (sak, tilAttestering) ->
         sak.iverksettRevurdering(
             revurderingId = tilAttestering.id,

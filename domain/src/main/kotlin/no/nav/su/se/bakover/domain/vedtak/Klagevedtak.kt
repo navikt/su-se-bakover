@@ -20,6 +20,11 @@ sealed interface Klagevedtak : Vedtak {
         override val klage: IverksattAvvistKlage,
         override val dokumenttilstand: Dokumenttilstand,
     ) : Klagevedtak {
+
+        init {
+            require(dokumenttilstand != Dokumenttilstand.SKAL_IKKE_GENERERE)
+            require(klage.skalSendeVedtaksbrev())
+        }
         companion object {
             fun fromIverksattAvvistKlage(
                 iverksattAvvistKlage: IverksattAvvistKlage,

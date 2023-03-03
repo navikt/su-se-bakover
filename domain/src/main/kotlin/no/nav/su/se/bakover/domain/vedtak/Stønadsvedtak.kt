@@ -103,10 +103,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             saksbehandler = søknadsbehandling.saksbehandler,
             attestant = søknadsbehandling.attesteringer.hentSisteAttestering().attestant,
             utbetalingId = utbetalingId,
-            dokumenttilstand = when (søknadsbehandling.skalSendeVedtaksbrev()) {
-                false -> Dokumenttilstand.SKAL_IKKE_GENERERE
-                true -> Dokumenttilstand.IKKE_GENERERT_ENDA
-            },
+            dokumenttilstand = søknadsbehandling.dokumenttilstandForBrevvalg(),
         )
 
         fun from(
@@ -123,10 +120,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             saksbehandler = revurdering.saksbehandler,
             attestant = revurdering.attestering.attestant,
             utbetalingId = utbetalingId,
-            dokumenttilstand = when (revurdering.brevvalgRevurdering) {
-                is BrevvalgRevurdering.Valgt.IkkeSendBrev -> Dokumenttilstand.SKAL_IKKE_GENERERE
-                is BrevvalgRevurdering.Valgt.SendBrev -> Dokumenttilstand.IKKE_GENERERT_ENDA
-            },
+            dokumenttilstand = revurdering.dokumenttilstandForBrevvalg(),
         )
 
         fun from(
@@ -143,10 +137,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             saksbehandler = revurdering.saksbehandler,
             attestant = revurdering.attestering.attestant,
             utbetalingId = utbetalingId,
-            dokumenttilstand = when (revurdering.brevvalgRevurdering) {
-                is BrevvalgRevurdering.Valgt.IkkeSendBrev -> Dokumenttilstand.SKAL_IKKE_GENERERE
-                is BrevvalgRevurdering.Valgt.SendBrev -> Dokumenttilstand.IKKE_GENERERT_ENDA
-            },
+            dokumenttilstand = revurdering.dokumenttilstandForBrevvalg(),
         )
 
         fun from(
@@ -253,14 +244,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                     beregning = beregning,
                     simulering = simulering,
                     utbetalingId = utbetalingId,
-                    dokumenttilstand = when (dokumenttilstand) {
-                        null -> when (behandling.skalSendeVedtaksbrev()) {
-                            true -> Dokumenttilstand.IKKE_GENERERT_ENDA
-                            false -> Dokumenttilstand.SKAL_IKKE_GENERERE
-                        }
-
-                        else -> dokumenttilstand
-                    },
+                    dokumenttilstand = dokumenttilstand.setDokumentTilstandBasertPåBehandlingHvisNull(behandling),
                 )
             }
 
@@ -318,14 +302,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                     beregning = beregning,
                     simulering = simulering,
                     utbetalingId = utbetalingId,
-                    dokumenttilstand = when (dokumenttilstand) {
-                        null -> when (behandling.skalSendeVedtaksbrev()) {
-                            true -> Dokumenttilstand.IKKE_GENERERT_ENDA
-                            false -> Dokumenttilstand.SKAL_IKKE_GENERERE
-                        }
-
-                        else -> dokumenttilstand
-                    },
+                    dokumenttilstand = dokumenttilstand.setDokumentTilstandBasertPåBehandlingHvisNull(behandling),
                 )
             }
 
@@ -373,7 +350,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                 return false
             }
 
-            override val dokumenttilstand: Dokumenttilstand = Dokumenttilstand.SKAL_IKKE_GENERERE
+            override val dokumenttilstand: Dokumenttilstand = behandling.dokumenttilstandForBrevvalg()
 
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
@@ -417,14 +394,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                     beregning = beregning,
                     simulering = simulering,
                     utbetalingId = utbetalingId,
-                    dokumenttilstand = when (dokumenttilstand) {
-                        null -> when (behandling.skalSendeVedtaksbrev()) {
-                            true -> Dokumenttilstand.IKKE_GENERERT_ENDA
-                            false -> Dokumenttilstand.SKAL_IKKE_GENERERE
-                        }
-
-                        else -> dokumenttilstand
-                    },
+                    dokumenttilstand = dokumenttilstand.setDokumentTilstandBasertPåBehandlingHvisNull(behandling),
                 )
             }
 
@@ -476,7 +446,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                 return false
             }
 
-            override val dokumenttilstand: Dokumenttilstand = Dokumenttilstand.SKAL_IKKE_GENERERE
+            override val dokumenttilstand: Dokumenttilstand = behandling.dokumenttilstandForBrevvalg()
 
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
@@ -506,7 +476,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                 return false
             }
 
-            override val dokumenttilstand: Dokumenttilstand = Dokumenttilstand.SKAL_IKKE_GENERERE
+            override val dokumenttilstand: Dokumenttilstand = behandling.dokumenttilstandForBrevvalg()
 
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
@@ -688,6 +658,7 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
         init {
             behandling.grunnlagsdataOgVilkårsvurderinger.krevMinstEttAvslag()
             require(dokumenttilstand != Dokumenttilstand.SKAL_IKKE_GENERERE)
+            require(behandling.skalSendeVedtaksbrev())
         }
 
         companion object {
@@ -708,14 +679,7 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
                 attestant = attestant,
                 periode = periode,
                 avslagsgrunner = avslagsgrunner,
-                dokumenttilstand = when (dokumenttilstand) {
-                    null -> when (behandling.skalSendeVedtaksbrev()) {
-                        true -> Dokumenttilstand.IKKE_GENERERT_ENDA
-                        false -> Dokumenttilstand.SKAL_IKKE_GENERERE
-                    }
-
-                    else -> dokumenttilstand
-                },
+                dokumenttilstand = dokumenttilstand.setDokumentTilstandBasertPåBehandlingHvisNull(behandling),
             )
         }
 
@@ -751,6 +715,7 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
         init {
             behandling.grunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget()
             require(dokumenttilstand != Dokumenttilstand.SKAL_IKKE_GENERERE)
+            require(behandling.skalSendeVedtaksbrev())
         }
 
         companion object {
@@ -773,14 +738,7 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
                 periode = periode,
                 beregning = beregning,
                 avslagsgrunner = avslagsgrunner,
-                dokumenttilstand = when (dokumenttilstand) {
-                    null -> when (behandling.skalSendeVedtaksbrev()) {
-                        true -> Dokumenttilstand.IKKE_GENERERT_ENDA
-                        false -> Dokumenttilstand.SKAL_IKKE_GENERERE
-                    }
-
-                    else -> dokumenttilstand
-                },
+                dokumenttilstand = dokumenttilstand.setDokumentTilstandBasertPåBehandlingHvisNull(behandling),
             )
         }
 
@@ -820,3 +778,18 @@ fun List<VedtakSomKanRevurderes>.lagTidslinje(periode: Periode): Tidslinje<Vedta
             objekter = it,
         )
     }
+
+private fun Dokumenttilstand?.setDokumentTilstandBasertPåBehandlingHvisNull(b: Behandling): Dokumenttilstand =
+    when (this) {
+        null -> when (b.skalSendeVedtaksbrev()) {
+            true -> Dokumenttilstand.IKKE_GENERERT_ENDA
+            false -> Dokumenttilstand.SKAL_IKKE_GENERERE
+        }
+
+        else -> this
+    }
+
+private fun Behandling.dokumenttilstandForBrevvalg(): Dokumenttilstand = when (this.skalSendeVedtaksbrev()) {
+    false -> Dokumenttilstand.SKAL_IKKE_GENERERE
+    true -> Dokumenttilstand.IKKE_GENERERT_ENDA
+}

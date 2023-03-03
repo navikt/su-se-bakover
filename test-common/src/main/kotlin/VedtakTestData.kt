@@ -179,6 +179,7 @@ fun vedtakRevurderingIverksattInnvilget(
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
     brevvalg: BrevvalgRevurdering = sendBrev(),
+    skalTilbakekreve: Boolean = true,
 ): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering> {
     return iverksattRevurdering(
         clock = clock,
@@ -195,6 +196,7 @@ fun vedtakRevurderingIverksattInnvilget(
         attesteringsoppgaveId = attesteringsoppgaveId,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
         brevvalg = brevvalg,
+        skalTilbakekreve = skalTilbakekreve,
     ).let { (sak, _, _, vedtak) ->
         sak to vedtak.shouldBeType()
     }
