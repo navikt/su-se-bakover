@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.kontrollsamtale.application.utløptfrist
 
+import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.periode.DatoIntervall
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -49,13 +50,11 @@ class UtløptFristForKontrollsamtaleServiceImpl(
                 log.info("Fant ${it.count()} uprosesserte kontrollsamtaler med utløp: $dato")
             }
             .fold(initialContext) { context, prosesseres ->
+                val kontrollsamtale = kontrollsamtaler.single { it.id == prosesseres }
                 context.håndter(
-                    kontrollsamtale = kontrollsamtaler.single { it.id == prosesseres },
-                    hentSakInfo = { sakId ->
-                        sakService.hentSakInfo(sakId)
-                            .mapLeft {
-                                UtløptFristForKontrollsamtaleContext.KunneIkkeHåndtereUtløptKontrollsamtale(it::class.java.toString())
-                            }
+                    kontrollsamtale = kontrollsamtale,
+                    sak = sakService.hentSak(kontrollsamtale.sakId).getOrElse {
+                        throw IllegalStateException("fant ikke sak for kontrollsamtale ${kontrollsamtale.id}, sakId ${kontrollsamtale.sakId}")
                     },
                     hentKontrollnotatMottatt = { saksnummer: Saksnummer, periode: DatoIntervall ->
                         journalpostClient.kontrollnotatMotatt(saksnummer, periode)
@@ -99,8 +98,8 @@ class UtløptFristForKontrollsamtaleServiceImpl(
                         kontrollsamtaleJobRepo.lagre(utløptFristForKontrollsamtaleContext, transactionContext)
                     },
                     clock = clock,
-                    lagreKontrollsamtale = { kontrollsamtale: Kontrollsamtale, transactionContext: TransactionContext ->
-                        kontrollsamtaleService.lagre(kontrollsamtale, transactionContext)
+                    lagreKontrollsamtale = { ks: Kontrollsamtale, transactionContext: TransactionContext ->
+                        kontrollsamtaleService.lagre(ks, transactionContext)
                     },
                     hentAktørId = { fnr ->
                         personService.hentAktørIdMedSystembruker(fnr)

@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.førsteINesteMåned
 import no.nav.su.se.bakover.common.periode.DatoIntervall
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.jobcontext.JobContext
 import no.nav.su.se.bakover.domain.jobcontext.NameAndLocalDateId
 import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
@@ -58,13 +59,19 @@ data class UtløptFristForKontrollsamtaleContext(
         val fjernHvisFeilet = feilet.find { it.id == id }?.let { feilet.minus(it) } ?: feilet
         return copy(prosessert = prosessert + id, feilet = fjernHvisFeilet, endret = Tidspunkt.now(clock))
     }
+
     fun prosessert(): Set<UUID> {
         return prosessert
     }
 
     fun ikkeMøtt(id: UUID, clock: Clock): UtløptFristForKontrollsamtaleContext {
         val fjernHvisFeilet = feilet.find { it.id == id }?.let { feilet.minus(it) } ?: feilet
-        return copy(prosessert = prosessert + id, ikkeMøtt = ikkeMøtt + id, feilet = fjernHvisFeilet, endret = Tidspunkt.now(clock))
+        return copy(
+            prosessert = prosessert + id,
+            ikkeMøtt = ikkeMøtt + id,
+            feilet = fjernHvisFeilet,
+            endret = Tidspunkt.now(clock),
+        )
     }
 
     fun ikkeMøtt(): Set<UUID> {
@@ -83,7 +90,11 @@ data class UtløptFristForKontrollsamtaleContext(
 
     fun prosessertMedFeil(id: UUID, clock: Clock, oppgaveId: OppgaveId): UtløptFristForKontrollsamtaleContext {
         return feilet.find { it.id == id }!!.let {
-            copy(prosessert = prosessert + id, feilet = feilet.minus(it) + it.copy(oppgaveId = oppgaveId.toString()), endret = Tidspunkt.now(clock))
+            copy(
+                prosessert = prosessert + id,
+                feilet = feilet.minus(it) + it.copy(oppgaveId = oppgaveId.toString()),
+                endret = Tidspunkt.now(clock),
+            )
         }
     }
 
@@ -129,7 +140,7 @@ data class UtløptFristForKontrollsamtaleContext(
 
     fun håndter(
         kontrollsamtale: Kontrollsamtale,
-        hentSakInfo: (sakId: UUID) -> Either<KunneIkkeHåndtereUtløptKontrollsamtale, SakInfo>,
+        sak: Sak,
         hentKontrollnotatMottatt: (saksnummer: Saksnummer, periode: DatoIntervall) -> Either<KunneIkkeHåndtereUtløptKontrollsamtale, ErKontrollNotatMottatt>,
         sessionFactory: SessionFactory,
         opprettStans: (sakId: UUID, fraOgMed: LocalDate, transactionContext: TransactionContext) -> OpprettStansTransactionCallback,
@@ -140,12 +151,9 @@ data class UtløptFristForKontrollsamtaleContext(
         hentAktørId: (fnr: Fnr) -> Either<KunneIkkeHåndtereUtløptKontrollsamtale, AktørId>,
         opprettOppgave: (oppgaveConfig: OppgaveConfig) -> Either<KunneIkkeHåndtereUtløptKontrollsamtale, OppgaveId>,
     ): UtløptFristForKontrollsamtaleContext {
-        val sakInfo = hentSakInfo(kontrollsamtale.sakId)
-            .getOrElse { throw FeilVedProsesseringAvKontrollsamtaleException(msg = it.feil) }
-
         return Either.catch {
             hentKontrollnotatMottatt(
-                sakInfo.saksnummer,
+                sak.saksnummer,
                 kontrollsamtale.forventetMottattKontrollnotatIPeriode(),
             ).fold(
                 {
@@ -171,7 +179,6 @@ data class UtløptFristForKontrollsamtaleContext(
                                     lagreKontrollsamtale = lagreKontrollsamtale,
                                     tx = tx,
                                     opprettStans = opprettStans,
-                                    sakInfo = sakInfo,
                                     iverksettStans = iverksettStans,
                                     clock = clock,
                                     lagreContext = lagreContext,
@@ -189,7 +196,7 @@ data class UtløptFristForKontrollsamtaleContext(
                             kontrollsamtale = kontrollsamtale,
                             error = error,
                             clock = clock,
-                            sakInfo = sakInfo,
+                            sakInfo = sak.info(),
                             hentAktørId = hentAktørId,
                             opprettOppgave = opprettOppgave,
                             lagreContext = lagreContext,
@@ -224,7 +231,6 @@ data class UtløptFristForKontrollsamtaleContext(
         lagreKontrollsamtale: (kontrollsamtale: Kontrollsamtale, transactionContext: TransactionContext) -> Unit,
         tx: TransactionContext,
         opprettStans: (sakId: UUID, fraOgMed: LocalDate, transactionContext: TransactionContext) -> OpprettStansTransactionCallback,
-        sakInfo: SakInfo,
         iverksettStans: (id: UUID, transactionContext: TransactionContext) -> IverksettStansTransactionCallback,
         clock: Clock,
         lagreContext: (context: UtløptFristForKontrollsamtaleContext, transactionContext: TransactionContext) -> Unit,
@@ -240,7 +246,7 @@ data class UtløptFristForKontrollsamtaleContext(
                         tx,
                     )
                     opprettStans(
-                        sakInfo.sakId,
+                        ikkeMøttKontrollsamtale.sakId,
                         ikkeMøttKontrollsamtale.frist.førsteINesteMåned(),
                         tx,
                     ).let { opprettCallback ->
@@ -300,6 +306,7 @@ data class UtløptFristForKontrollsamtaleContext(
                 },
             )
     }
+
     private fun håndterFeil(
         kontrollsamtale: Kontrollsamtale,
         error: Throwable,
@@ -361,6 +368,7 @@ data class UtløptFristForKontrollsamtaleContext(
         val revurderingId: UUID,
         val sendStatistikkCallback: () -> Unit,
     )
+
     data class IverksettStansTransactionCallback(
         val sendUtbetalingCallback: () -> Either<Any, Utbetalingsrequest>,
         val sendStatistikkCallback: () -> Unit,
