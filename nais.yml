@@ -25,11 +25,12 @@ spec:
   image: {{ image }}
   liveness:
     path: /isalive
-    initialDelay: 20
+    initialDelay: 25
     timeout: 10
   readiness:
     path: /isready
-    initialDelay: 20
+    initialDelay: 25
+    timeout: 10
   replicas:
     min: 1
     max: 1
