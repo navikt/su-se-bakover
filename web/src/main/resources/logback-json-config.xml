@@ -5,8 +5,8 @@
             <includeMdcKeyName>X-Correlation-ID</includeMdcKeyName>
             <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
                 <!-- Making stacktraces shorter, because see https://doc.nais.io/observability/logs/examples#issues-with-long-log-messages -->
-                <maxDepthPerThrowable>30</maxDepthPerThrowable>
-                <maxLength>2048</maxLength>
+                <maxDepthPerThrowable>20</maxDepthPerThrowable>
+                <maxLength>4096</maxLength>
                 <rootCauseFirst>true</rootCauseFirst>
                 <shortenedClassNameLength>20</shortenedClassNameLength>
                 <exclude>^sun\.</exclude>
