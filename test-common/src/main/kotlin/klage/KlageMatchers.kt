@@ -20,8 +20,11 @@ import no.nav.su.se.bakover.domain.klage.VurdertKlageFelter
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import kotlin.reflect.KProperty
 
-fun Klagevedtak.Avvist.shouldBeEqualComparingPublicFieldsAndInterface(expected: Klagevedtak.Avvist) {
-    this.shouldBeEqualToIgnoringFields(expected, Klagevedtak.Avvist::klage)
+fun Klagevedtak.Avvist.shouldBeEqualComparingPublicFieldsAndInterface(
+    expected: Klagevedtak.Avvist,
+    vararg others: KProperty<*>,
+) {
+    this.shouldBeEqualToIgnoringFields(other = expected, property = Klagevedtak.Avvist::klage, others = others)
     this.klage.shouldBeEqualComparingPublicFieldsAndInterface(expected.klage)
 }
 
@@ -59,6 +62,7 @@ fun Klage?.shouldBeEqualComparingPublicFieldsAndInterface(expected: Klage?, igno
             expected,
             ignoreProperty,
         )
+
         is VurdertKlage.Utfylt -> this.castAndCompare<VurdertKlageFelter>(expected, ignoreProperty)
         is VurdertKlage.Bekreftet -> this.castAndCompare<VurdertKlage.UtfyltFelter>(expected, ignoreProperty)
         is KlageTilAttestering.Avvist -> this.castAndCompare<AvvistKlageFelter>(expected, ignoreProperty)
@@ -68,8 +72,12 @@ fun Klage?.shouldBeEqualComparingPublicFieldsAndInterface(expected: Klage?, igno
             // Gjør en spesialsjekk på den underliggende typen som kan variere.
             // Den brukes både ved instansiering fra databasen og serialisering til json.
             this.hentUnderliggendeKlage()
-                .shouldBeEqualComparingPublicFieldsAndInterface((expected as AvsluttetKlage).hentUnderliggendeKlage(), Klage::saksbehandler)
+                .shouldBeEqualComparingPublicFieldsAndInterface(
+                    (expected as AvsluttetKlage).hentUnderliggendeKlage(),
+                    Klage::saksbehandler,
+                )
         }
+
         is OversendtKlage -> this.castAndCompare<VurdertKlage.UtfyltFelter>(expected)
         is IverksattAvvistKlage -> this.castAndCompare<AvvistKlageFelter>(expected)
     }

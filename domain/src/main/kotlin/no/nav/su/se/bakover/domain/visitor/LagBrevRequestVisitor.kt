@@ -415,7 +415,7 @@ class LagBrevRequestVisitor(
                 saksbehandlerNavn = it.saksbehandlerNavn,
                 attestantNavn = it.attestantNavn,
                 revurdertBeregning = beregning,
-                fritekst = if (revurdering.skalSendeBrev()) {
+                fritekst = if (revurdering.skalSendeVedtaksbrev()) {
                     revurdering.brevvalgRevurdering.skalSendeBrev()
                         .getOrElse { throw IllegalStateException("context mismatch: Revurderingen skal sende brev, men brevvalg skal ikke sendes. ${revurdering.id}") }.fritekst
                         ?: ""
@@ -596,7 +596,7 @@ class LagBrevRequestVisitor(
                 person = personOgNavn.person,
                 harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEPS(),
                 beregning = beregning,
-                fritekst = if (revurdering.skalSendeBrev()) {
+                fritekst = if (revurdering.skalSendeVedtaksbrev()) {
                     revurdering.brevvalgRevurdering.skalSendeBrev()
                         .getOrElse { throw IllegalStateException("context mismatch: Revurderingen skal sende brev, men brevvalg skal ikke sendes. ${revurdering.id}") }.fritekst
                         ?: ""

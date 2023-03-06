@@ -27,6 +27,13 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
     abstract val revurderingsårsak: Revurderingsårsak
     abstract val attesteringer: Attesteringshistorikk
 
+    /**
+     * Stans og gjenoppta er ikke ekte vedtak.
+     */
+    override fun skalSendeVedtaksbrev(): Boolean {
+        return false
+    }
+
     fun avslutt(
         begrunnelse: String,
         tidspunktAvsluttet: Tidspunkt,
@@ -60,7 +67,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
         override val revurderingsårsak: Revurderingsårsak = underliggendeStansAvYtelse.revurderingsårsak
         override val attesteringer: Attesteringshistorikk = underliggendeStansAvYtelse.attesteringer
 
-        // vi sender ikke noe brev ved stans/gjenoppta
+        /** vi sender ikke noe brev ved stans/gjenoppta */
         fun skalSendeAvslutningsbrev(): Boolean {
             return false
         }

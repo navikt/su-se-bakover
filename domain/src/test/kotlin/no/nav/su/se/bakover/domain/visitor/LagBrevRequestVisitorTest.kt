@@ -8,12 +8,13 @@ import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Ident
 import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.application.Beløp
 import no.nav.su.se.bakover.common.application.MånedBeløp
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.juli
+import no.nav.su.se.bakover.common.mapFourth
+import no.nav.su.se.bakover.common.mapSecond
 import no.nav.su.se.bakover.common.periode.august
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.juni
@@ -976,14 +977,14 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `lager opphørsvedtak med opphørsgrunn for uførhet`() {
-        val utbetalingId = UUID30.randomUUID()
         val revurderingsperiode = august(2021)..desember(2021)
-        val (_, revurdering) = iverksattRevurdering(
+        val (_, revurdering, _, vedtak) = iverksattRevurdering(
             revurderingsperiode = revurderingsperiode,
             vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = revurderingsperiode)),
             brevvalg = sendBrev(fritekst = "FRITEKST REVURDERING"),
-        ).let { it.first to it.second as IverksattRevurdering.Opphørt }
-        val opphørsvedtak = VedtakSomKanRevurderes.from(revurdering, utbetalingId, fixedClock)
+        ).mapSecond { it as IverksattRevurdering.Opphørt }
+            .mapFourth { it as VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering }
+
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },
             hentNavn = { hentNavn(it) },
@@ -998,7 +999,7 @@ internal class LagBrevRequestVisitorTest {
             hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
-        ).apply { opphørsvedtak.accept(this) }
+        ).apply { vedtak.accept(this) }
 
         brevRevurdering.brevRequest shouldBe brevVedtak.brevRequest
         brevRevurdering.brevRequest shouldBe LagBrevRequest.Opphørsvedtak(

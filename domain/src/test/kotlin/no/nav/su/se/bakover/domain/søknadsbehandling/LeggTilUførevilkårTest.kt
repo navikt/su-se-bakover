@@ -85,15 +85,13 @@ internal class LeggTilUførevilkårTest {
         }
 
         listOf(
-            søknadsbehandlingTilAttesteringInnvilget(),
-            søknadsbehandlingTilAttesteringAvslagMedBeregning(),
-            søknadsbehandlingTilAttesteringAvslagUtenBeregning(),
-            søknadsbehandlingIverksattInnvilget(),
-            søknadsbehandlingIverksattAvslagMedBeregning(),
-            søknadsbehandlingIverksattAvslagUtenBeregning(),
-        ).map {
-            it.second
-        }.forEach {
+            søknadsbehandlingTilAttesteringInnvilget().second,
+            søknadsbehandlingTilAttesteringAvslagMedBeregning().second,
+            søknadsbehandlingTilAttesteringAvslagUtenBeregning().second,
+            søknadsbehandlingIverksattInnvilget().second,
+            søknadsbehandlingIverksattAvslagMedBeregning().second,
+            søknadsbehandlingIverksattAvslagUtenBeregning().second,
+        ).forEach {
             it.leggTilUførevilkår(
                 uførhet = innvilgetUførevilkår(),
                 saksbehandler = saksbehandler,

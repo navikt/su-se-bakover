@@ -78,10 +78,6 @@ sealed class Revurdering :
      */
     abstract fun skalTilbakekreve(): Boolean
 
-    fun årsakErGRegulering(): Boolean {
-        return revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
-    }
-
     open fun lagForhåndsvarsel(
         person: Person,
         saksbehandlerNavn: String,
@@ -703,7 +699,7 @@ sealed class Revurdering :
         }.right()
     }
 
-    abstract fun skalSendeBrev(): Boolean
+    abstract override fun skalSendeVedtaksbrev(): Boolean
 
     fun leggTilBrevvalg(brevvalgRevurdering: BrevvalgRevurdering): Either<KunneIkkeLeggeTilBrevvalg, Revurdering> {
         return when (brevvalgRevurdering) {

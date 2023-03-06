@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.ikkeSendBrev
 import no.nav.su.se.bakover.test.kvittering
 import no.nav.su.se.bakover.test.oversendtUtbetalingMedKvittering
 import no.nav.su.se.bakover.test.shouldBeType
@@ -198,6 +199,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
                 Revurderingsårsak.Begrunnelse.create("Regulering av grunnbeløpet påvirket ytelsen."),
             ),
+            brevvalg = ikkeSendBrev(),
         )
 
         FerdigstillVedtakServiceMocks(

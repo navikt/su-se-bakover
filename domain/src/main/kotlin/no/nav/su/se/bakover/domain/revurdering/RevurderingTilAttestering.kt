@@ -45,7 +45,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
     abstract override val brevvalgRevurdering: BrevvalgRevurdering.Valgt
     abstract val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling
 
-    override fun skalSendeBrev() = !årsakErGRegulering() && brevvalgRevurdering.skalSendeBrev().isRight()
+    override fun skalSendeVedtaksbrev() = brevvalgRevurdering.skalSendeBrev().isRight()
 
     override fun erÅpen() = true
 

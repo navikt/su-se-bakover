@@ -28,6 +28,13 @@ data class IverksattAvvistKlage(
         return fritekstTilVedtaksbrev.right()
     }
 
+    /**
+     * Vi har ikke lagt til noen valgmulighet for ikke å sende brev ved avvisning av klage.
+     */
+    fun skalSendeVedtaksbrev(): Boolean {
+        return true
+    }
+
     override fun lagBrevRequest(
         hentNavnForNavIdent: (saksbehandler: NavIdentBruker.Saksbehandler) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
         hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,

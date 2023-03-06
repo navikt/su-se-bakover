@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.revurdering
 
-import arrow.core.Either
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
@@ -12,7 +11,6 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.tilbakekrevingErVurdert
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
@@ -42,16 +40,15 @@ sealed class IverksattRevurdering : Revurdering() {
     abstract val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet
     abstract override val brevvalgRevurdering: BrevvalgRevurdering.Valgt
 
-    fun tilbakekrevingErVurdert(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
-        return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
+    fun avventerKravgrunnlag(): Boolean {
+        return tilbakekrevingsbehandling.avventerKravgrunnlag()
     }
 
     override fun skalTilbakekreve() = tilbakekrevingsbehandling.skalTilbakekreve().isRight()
 
     abstract override fun accept(visitor: RevurderingVisitor)
 
-    override fun skalSendeBrev() =
-        !årsakErGRegulering() && brevvalgRevurdering.skalSendeBrev().isRight()
+    override fun skalSendeVedtaksbrev() = brevvalgRevurdering.skalSendeBrev().isRight()
 
     override fun erÅpen() = false
 

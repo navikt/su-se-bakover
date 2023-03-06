@@ -64,7 +64,7 @@ internal class NySøknadsbehandlingIT {
                               "tilOgMed":"2021-12-31"
                             },
                             "type":"SØKNAD",
-                            "harDokument": true
+                            "dokumenttilstand": "IKKE_GENERERT_ENDA"
                         }
                     ]
                 """.trimIndent(),

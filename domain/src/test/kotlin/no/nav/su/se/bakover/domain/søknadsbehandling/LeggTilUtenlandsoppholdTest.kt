@@ -86,15 +86,13 @@ class LeggTilUtenlandsoppholdTest {
         }
 
         listOf(
-            søknadsbehandlingTilAttesteringInnvilget(),
-            søknadsbehandlingTilAttesteringAvslagMedBeregning(),
-            søknadsbehandlingTilAttesteringAvslagUtenBeregning(),
-            søknadsbehandlingIverksattInnvilget(),
-            søknadsbehandlingIverksattAvslagMedBeregning(),
-            søknadsbehandlingIverksattAvslagUtenBeregning(),
-        ).map {
-            it.second
-        }.forEach {
+            søknadsbehandlingTilAttesteringInnvilget().second,
+            søknadsbehandlingTilAttesteringAvslagMedBeregning().second,
+            søknadsbehandlingTilAttesteringAvslagUtenBeregning().second,
+            søknadsbehandlingIverksattInnvilget().second,
+            søknadsbehandlingIverksattAvslagMedBeregning().second,
+            søknadsbehandlingIverksattAvslagUtenBeregning().second,
+        ).forEach {
             it.leggTilUtenlandsopphold(
                 utenlandsopphold = utenlandsoppholdInnvilget(),
                 saksbehandler = saksbehandler,

@@ -57,6 +57,10 @@ data class LukketSøknadsbehandling private constructor(
     val lukketTidspunkt = søknad.lukketTidspunkt
     val lukketAv = søknad.lukketAv
 
+    override fun skalSendeVedtaksbrev(): Boolean {
+        return søknad.brevvalg.skalSendeBrev()
+    }
+
     override val beregning = when (underliggendeSøknadsbehandling) {
         is Beregnet.Avslag -> underliggendeSøknadsbehandling.beregning
         is Beregnet.Innvilget -> underliggendeSøknadsbehandling.beregning

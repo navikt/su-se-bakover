@@ -8,4 +8,11 @@ data class AvsluttetRegulering(
 ) : Regulering, Reguleringsfelter by opprettetRegulering {
     override fun erÅpen(): Boolean = false
     override val erFerdigstilt = true
+
+    /**
+     * Skal ikke sende brev ved regulering.
+     */
+    override fun skalSendeVedtaksbrev(): Boolean {
+        return false
+    }
 }

@@ -15,9 +15,7 @@ import java.util.UUID
  * Dersom en revurdering fører til til en feilutbetaling, må vi ta stilling til om vi skal kreve tilbake eller ikke.
  *
  * @property periode Vi støtter i førsteomgang kun en sammenhengende periode, som kan være hele eller deler av en revurderingsperiode.
- * @property oversendtTidspunkt Tidspunktet vi sendte avgjørelsen til oppdrag, ellers null
  */
-
 data class Tilbakekrev(
     override val id: UUID,
     override val opprettet: Tidspunkt,
@@ -366,64 +364,6 @@ sealed interface Tilbakekrevingsbehandling {
 
             sealed interface SendtTilbakekrevingsvedtak : MedKravgrunnlag {
                 val tilbakekrevingsvedtakForsendelse: RåTilbakekrevingsvedtakForsendelse
-            }
-        }
-    }
-}
-
-fun Tilbakekrevingsbehandling.tilbakekrevingErVurdert(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
-    return when (this) {
-        is MottattKravgrunnlag -> {
-            this.avgjort.right()
-        }
-        is SendtTilbakekrevingsvedtak -> {
-            this.avgjort.right()
-        }
-        is AvventerKravgrunnlag -> {
-            this.avgjort.right()
-        }
-        is Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving -> {
-            Unit.left()
-        }
-        is Tilbakekrevingsbehandling.UnderBehandling.IkkeBehovForTilbakekreving -> {
-            Unit.left()
-        }
-        is IkkeTilbakekrev -> {
-            this.right()
-        }
-        is Tilbakekrev -> {
-            this.right()
-        }
-        is IkkeAvgjort -> {
-            Unit.left()
-        }
-    }
-}
-
-@JvmInline
-value class Skattesats private constructor(private val sats: BigDecimal) {
-    init {
-        require(sats in BigDecimal.ZERO..BigDecimal.ONE)
-    }
-
-    fun prosent(): BigDecimal {
-        return sats
-    }
-
-    companion object {
-        operator fun invoke(bigDecimal: BigDecimal): Skattesats {
-            return when (bigDecimal) {
-                in BigDecimal.ZERO..BigDecimal.ONE -> {
-                    Skattesats(bigDecimal)
-                }
-                in BigDecimal.ZERO..BigDecimal(100) -> {
-                    Skattesats(
-                        bigDecimal.divide(BigDecimal(100)).setScale(bigDecimal.scale() + 2, RoundingMode.DOWN),
-                    )
-                }
-                else -> {
-                    throw IllegalArgumentException("Unkjent intervall for skattesats, verdien: $bigDecimal er verken i intervallet 0..1 eller 0..100")
-                }
             }
         }
     }

@@ -1161,6 +1161,10 @@ sealed class Søknadsbehandling :
                 kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
             }
 
+            override fun skalSendeVedtaksbrev(): Boolean {
+                return true
+            }
+
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
             }
@@ -1202,6 +1206,10 @@ sealed class Søknadsbehandling :
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
             override val beregning = null
             override val simulering: Simulering? = null
+
+            override fun skalSendeVedtaksbrev(): Boolean {
+                return true
+            }
 
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
@@ -1311,6 +1319,10 @@ sealed class Søknadsbehandling :
             override val stønadsperiode: Stønadsperiode? = aldersvurdering?.stønadsperiode
             override val beregning = null
             override val simulering: Simulering? = null
+
+            override fun skalSendeVedtaksbrev(): Boolean {
+                return true
+            }
 
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
@@ -1423,6 +1435,10 @@ sealed class Søknadsbehandling :
             override val simulering: Simulering? = null
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
+            override fun skalSendeVedtaksbrev(): Boolean {
+                return true
+            }
+
             init {
                 kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
             }
@@ -1477,6 +1493,10 @@ sealed class Søknadsbehandling :
 
             init {
                 kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
+            }
+
+            override fun skalSendeVedtaksbrev(): Boolean {
+                return true
             }
 
             override fun copyInternal(
@@ -1562,6 +1582,10 @@ sealed class Søknadsbehandling :
 
         init {
             kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
+        }
+
+        override fun skalSendeVedtaksbrev(): Boolean {
+            return true
         }
 
         override fun accept(visitor: SøknadsbehandlingVisitor) {
@@ -1716,6 +1740,10 @@ sealed class Søknadsbehandling :
                 )
             }
 
+            override fun skalSendeVedtaksbrev(): Boolean {
+                return true
+            }
+
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
 
             init {
@@ -1821,6 +1849,10 @@ sealed class Søknadsbehandling :
 
                 init {
                     kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
+                }
+
+                override fun skalSendeVedtaksbrev(): Boolean {
+                    return true
                 }
 
                 override fun accept(visitor: SøknadsbehandlingVisitor) {
@@ -1929,6 +1961,10 @@ sealed class Søknadsbehandling :
 
                 init {
                     kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
+                }
+
+                override fun skalSendeVedtaksbrev(): Boolean {
+                    return true
                 }
 
                 override fun accept(visitor: SøknadsbehandlingVisitor) {
@@ -2068,6 +2104,10 @@ sealed class Søknadsbehandling :
                 visitor.visit(this)
             }
 
+            override fun skalSendeVedtaksbrev(): Boolean {
+                return true
+            }
+
             override fun simuler(
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 clock: Clock,
@@ -2186,6 +2226,10 @@ sealed class Søknadsbehandling :
                     kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
                 }
 
+                override fun skalSendeVedtaksbrev(): Boolean {
+                    return true
+                }
+
                 override fun copyInternal(
                     stønadsperiode: Stønadsperiode,
                     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
@@ -2282,6 +2326,10 @@ sealed class Søknadsbehandling :
                         vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                         søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
                     )
+                }
+
+                override fun skalSendeVedtaksbrev(): Boolean {
+                    return true
                 }
 
                 override val periode: Periode = aldersvurdering.stønadsperiode.periode
@@ -2389,6 +2437,10 @@ sealed class Søknadsbehandling :
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
             }
+
+            override fun skalSendeVedtaksbrev(): Boolean {
+                return true
+            }
         }
 
         sealed class Avslag : Iverksatt(), ErAvslag {
@@ -2418,6 +2470,10 @@ sealed class Søknadsbehandling :
                 init {
                     grunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget()
                     kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
+                }
+
+                override fun skalSendeVedtaksbrev(): Boolean {
+                    return true
                 }
 
                 override fun accept(visitor: SøknadsbehandlingVisitor) {
@@ -2464,6 +2520,10 @@ sealed class Søknadsbehandling :
                 init {
                     grunnlagsdataOgVilkårsvurderinger.krevMinstEttAvslag()
                     kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
+                }
+
+                override fun skalSendeVedtaksbrev(): Boolean {
+                    return true
                 }
 
                 override fun accept(visitor: SøknadsbehandlingVisitor) {

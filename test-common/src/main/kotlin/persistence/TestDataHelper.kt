@@ -1017,6 +1017,14 @@ class TestDataHelper(
         }
     }
 
+    /**
+     * Persisterer:
+     * - sak
+     * - søknad
+     * - iverksatt søknadsbehandling
+     * - vedtak
+     * - Ved innvilgelse: utbetaling
+     */
     fun persisterSøknadsbehandlingIverksatt(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, Søknadsbehandling.Iverksatt, Stønadsvedtak> = { (sak, søknad) ->
@@ -1084,6 +1092,13 @@ class TestDataHelper(
         }
     }
 
+    /**
+     * Persisterer:
+     * - sak
+     * - søknad
+     * - iverksatt søknadsbehandling
+     * - vedtak
+     */
     fun persisterSøknadsbehandlingIverksattAvslagMedBeregning(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
     ): Triple<Sak, Søknadsbehandling.Iverksatt.Avslag.MedBeregning, Avslagsvedtak.AvslagBeregning> {

@@ -62,7 +62,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
 
     abstract fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling): UnderkjentRevurdering
 
-    override fun skalSendeBrev() = !årsakErGRegulering() && brevvalgRevurdering.skalSendeBrev().isRight()
+    override fun skalSendeVedtaksbrev() = brevvalgRevurdering.skalSendeBrev().isRight()
 
     override fun oppdaterUføreOgMarkerSomVurdert(
         uføre: UføreVilkår.Vurdert,

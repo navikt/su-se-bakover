@@ -40,7 +40,9 @@ class FerdigstillVedtakServiceImpl(
     /**
      * Entry point for kvittering consumer.
      */
-    override fun ferdigstillVedtakEtterUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering): Either<KunneIkkeFerdigstilleVedtak, Unit> {
+    override fun ferdigstillVedtakEtterUtbetaling(
+        utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering,
+    ): Either<KunneIkkeFerdigstilleVedtak, Unit> {
         return if (utbetaling.trengerIkkeFerdigstilles()) {
             log.info("Utbetaling ${utbetaling.id} trenger ikke ferdigstilles.")
             Unit.right()
@@ -62,8 +64,7 @@ class FerdigstillVedtakServiceImpl(
     }
 
     private fun ferdigstillVedtak(vedtak: VedtakSomKanRevurderes): Either<KunneIkkeFerdigstilleVedtak, VedtakSomKanRevurderes> {
-        // TODO jm: sjekk om vi allerede har distribuert?
-        return if (vedtak.skalSendeBrev()) {
+        return if (vedtak.skalGenerereDokumentVedFerdigstillelse()) {
             lagreDokument(vedtak).getOrElse { return it.left() }
             lukkOppgaveMedSystembruker(vedtak.behandling)
             vedtak.right()

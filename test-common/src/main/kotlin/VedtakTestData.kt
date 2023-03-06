@@ -62,6 +62,7 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
         vilkårsvurderinger = vilkårsvurderinger,
         clock = clock,
     ).let { (sak, søknadsbehandling) ->
+        // TODO jah: Bruk vedtaket + utbetalingen som kommer fra søknadsbehandlingIverksattInnvilget-kallet
         val utbetaling = simulerUtbetaling(
             sak = sak,
             søknadsbehandling = søknadsbehandling,
@@ -178,6 +179,7 @@ fun vedtakRevurderingIverksattInnvilget(
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
     brevvalg: BrevvalgRevurdering = sendBrev(),
+    skalTilbakekreve: Boolean = true,
 ): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering> {
     return iverksattRevurdering(
         clock = clock,
@@ -194,6 +196,7 @@ fun vedtakRevurderingIverksattInnvilget(
         attesteringsoppgaveId = attesteringsoppgaveId,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
         brevvalg = brevvalg,
+        skalTilbakekreve = skalTilbakekreve,
     ).let { (sak, _, _, vedtak) ->
         sak to vedtak.shouldBeType()
     }

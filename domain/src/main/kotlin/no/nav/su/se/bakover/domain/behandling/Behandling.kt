@@ -34,6 +34,7 @@ interface Behandling {
             type = sakstype,
         )
     }
+    fun skalSendeVedtaksbrev(): Boolean
 }
 
 interface BehandlingMedOppgave : Behandling {

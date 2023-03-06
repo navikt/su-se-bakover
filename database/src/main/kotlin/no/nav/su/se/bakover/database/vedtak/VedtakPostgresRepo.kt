@@ -28,6 +28,8 @@ import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgr
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.dokument.Dokumenttilstand
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -72,24 +74,49 @@ internal class VedtakPostgresRepo(
 
     override fun hentVedtakForId(vedtakId: UUID): Vedtak? {
         return sessionFactory.withSession { session ->
-            """
-                SELECT *
-                FROM vedtak
-                WHERE id = :id
-            """.trimIndent()
-                .hent(mapOf("id" to vedtakId), session) {
-                    it.toVedtak(session)
-                }
+            hentVedtakForIdOgSession(
+                vedtakId = vedtakId,
+                session = session,
+            )
         }
+    }
+
+    internal fun hentVedtakForIdOgSession(
+        vedtakId: UUID,
+        session: Session,
+    ): Vedtak? {
+        return """
+                select
+                  v.*,
+                  d.id as dokumentid,
+                  dd.brevbestillingid,
+                  dd.journalpostid
+                from vedtak v
+                left join dokument d on v.id = d.vedtakid
+                left join dokument_distribusjon dd on d.id = dd.dokumentid
+                where v.id = :vedtakId
+                order by v.opprettet
+        """.trimIndent()
+            .hent(mapOf("vedtakId" to vedtakId), session) {
+                it.toVedtak(session)
+            }
     }
 
     override fun hentForRevurderingId(revurderingId: UUID): Vedtak? {
         return sessionFactory.withSession { session ->
             """
-                select v.* from vedtak v
+                select
+                  v.*,
+                  d.id as dokumentid,
+                  dd.brevbestillingid,
+                  dd.journalpostid
+                from vedtak v
+                left join dokument d on v.id = d.vedtakid
+                left join dokument_distribusjon dd on d.id = dd.dokumentid
                 join behandling_vedtak bv on bv.vedtakid = v.id
                 join revurdering r on r.id = bv.revurderingId
-                where r.id = :revurderingId;
+                where r.id = :revurderingId
+                order by v.opprettet
             """.trimIndent()
                 .hent(mapOf("revurderingId" to revurderingId), session) {
                     it.toVedtak(session)
@@ -99,10 +126,16 @@ internal class VedtakPostgresRepo(
 
     internal fun hentForSakId(sakId: UUID, session: Session): List<Vedtak> =
         """
-            SELECT v.*
-            FROM vedtak v
-            JOIN behandling_vedtak bv ON bv.vedtakid = v.id
-            WHERE bv.sakId = :sakId
+            select
+              v.*,
+              d.id as dokumentid,
+              dd.brevbestillingid,
+              dd.journalpostid
+            from vedtak v
+            left join dokument d on v.id = d.vedtakid
+            left join dokument_distribusjon dd on d.id = dd.dokumentid
+            where v.sakId = :sakId
+            order by v.opprettet
         """.trimIndent()
             .hentListe(mapOf("sakId" to sakId), session) {
                 it.toVedtak(session)
@@ -133,9 +166,16 @@ internal class VedtakPostgresRepo(
         return dbMetrics.timeQuery("hentVedtakForUtbetalingId") {
             sessionFactory.withSession { session ->
                 """
-                SELECT *
-                FROM vedtak
-                WHERE utbetalingId = :utbetalingId
+                select
+                  v.*,
+                  d.id as dokumentid,
+                  dd.brevbestillingid,
+                  dd.journalpostid
+                from vedtak v
+                left join dokument d on v.id = d.vedtakid
+                left join dokument_distribusjon dd on d.id = dd.dokumentid
+                where v.utbetalingId = :utbetalingId
+                order by v.opprettet
                 """.trimIndent()
                     .hent(mapOf("utbetalingId" to utbetalingId), session) {
                         it.toVedtak(session) as VedtakSomKanRevurderes.EndringIYtelse
@@ -144,25 +184,23 @@ internal class VedtakPostgresRepo(
         }
     }
 
+    // TODO jah: Flytt til DokDistRepo?
     override fun hentJournalpostId(vedtakId: UUID): JournalpostId? {
         return dbMetrics.timeQuery("hentJournalpostIdForVedtakId") {
             sessionFactory.withSession { session ->
                 """
-                select journalpostid from dokument inner join dokument_distribusjon dd on dokument.id = dd.dokumentid where vedtakid = :vedtakId
+                select
+                  journalpostid
+                from dokument
+                inner join dokument_distribusjon dd
+                  on dokument.id = dd.dokumentid
+                where vedtakid = :vedtakId
                 """.trimIndent().hent(mapOf("vedtakId" to vedtakId), session) {
                     JournalpostId(it.string("journalpostid"))
                 }
             }
         }
     }
-
-    internal fun hent(id: UUID, session: Session): Vedtak? =
-        """
-            select * from vedtak where id = :id
-        """.trimIndent()
-            .hent(mapOf("id" to id), session) {
-                it.toVedtak(session)
-            }
 
     override fun hentForMåned(måned: Måned): List<ForenkletVedtak> {
         return dbMetrics.timeQuery("hentAktiveVedtak") {
@@ -236,9 +274,19 @@ internal class VedtakPostgresRepo(
         val simulering = deserializeNullable<Simulering>(stringOrNull("simulering"))
         val avslagsgrunner = deserializeListNullable<Avslagsgrunn>(stringOrNull("avslagsgrunner"))
 
+        val journalpostId: JournalpostId? = stringOrNull("journalpostid")?.let { JournalpostId(it) }
+        val brevbestillingId: BrevbestillingId? = stringOrNull("brevbestillingid")?.let { BrevbestillingId(it) }
+        val dokumentId: UUID? = uuidOrNull("dokumentid")
+        val dokumenttilstand: Dokumenttilstand? = when {
+            brevbestillingId != null -> Dokumenttilstand.SENDT
+            journalpostId != null -> Dokumenttilstand.JOURNALFØRT
+            dokumentId != null -> Dokumenttilstand.GENERERT
+            else -> null
+        }
+
         return when (VedtakType.valueOf(string("vedtaktype"))) {
             VedtakType.SØKNAD -> {
-                VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling(
+                VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling.createFromPersistence(
                     id = id,
                     opprettet = opprettet,
                     behandling = behandling as Søknadsbehandling.Iverksatt.Innvilget,
@@ -248,6 +296,7 @@ internal class VedtakPostgresRepo(
                     beregning = beregning!!,
                     simulering = simulering!!,
                     utbetalingId = utbetalingId!!,
+                    dokumenttilstand = dokumenttilstand,
                 )
             }
 
@@ -266,7 +315,7 @@ internal class VedtakPostgresRepo(
             }
 
             VedtakType.ENDRING -> {
-                VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering(
+                VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering.createFromPersistence(
                     id = id,
                     opprettet = opprettet,
                     behandling = behandling as IverksattRevurdering.Innvilget,
@@ -276,11 +325,12 @@ internal class VedtakPostgresRepo(
                     beregning = beregning!!,
                     simulering = simulering!!,
                     utbetalingId = utbetalingId!!,
+                    dokumenttilstand = dokumenttilstand,
                 )
             }
 
             VedtakType.OPPHØR -> {
-                VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering(
+                VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering.createFromPersistence(
                     id = id,
                     opprettet = opprettet,
                     behandling = behandling as IverksattRevurdering.Opphørt,
@@ -290,15 +340,15 @@ internal class VedtakPostgresRepo(
                     beregning = beregning!!,
                     simulering = simulering!!,
                     utbetalingId = utbetalingId!!,
+                    dokumenttilstand = dokumenttilstand,
                 )
             }
 
             VedtakType.AVSLAG -> {
                 if (beregning != null) {
-                    Avslagsvedtak.AvslagBeregning(
+                    Avslagsvedtak.AvslagBeregning.createFromPersistence(
                         id = id,
                         opprettet = opprettet,
-                        // AVSLAG gjelder kun for søknadsbehandling
                         behandling = behandling as Søknadsbehandling.Iverksatt.Avslag.MedBeregning,
                         beregning = beregning,
                         saksbehandler = saksbehandler,
@@ -306,18 +356,19 @@ internal class VedtakPostgresRepo(
                         periode = periode!!,
                         // TODO fjern henting fra behandling etter migrering
                         avslagsgrunner = avslagsgrunner ?: behandling.avslagsgrunner,
+                        dokumenttilstand = dokumenttilstand,
                     )
                 } else {
-                    Avslagsvedtak.AvslagVilkår(
+                    Avslagsvedtak.AvslagVilkår.createFromPersistence(
                         id = id,
                         opprettet = opprettet,
-                        // AVSLAG gjelder kun for søknadsbehandling
                         behandling = behandling as Søknadsbehandling.Iverksatt.Avslag.UtenBeregning,
                         saksbehandler = saksbehandler,
                         attestant = attestant,
                         periode = periode!!,
                         // TODO fjern henting fra behandling etter migrering
                         avslagsgrunner = avslagsgrunner ?: behandling.avslagsgrunner,
+                        dokumenttilstand = dokumenttilstand,
                     )
                 }
             }
@@ -344,12 +395,13 @@ internal class VedtakPostgresRepo(
                 utbetalingId = utbetalingId!!,
             )
 
-            VedtakType.AVVIST_KLAGE -> Klagevedtak.Avvist(
+            VedtakType.AVVIST_KLAGE -> Klagevedtak.Avvist.createFromPersistence(
                 id = id,
                 opprettet = opprettet,
                 saksbehandler = saksbehandler,
                 attestant = attestant,
                 klage = klage as IverksattAvvistKlage,
+                dokumenttilstand = dokumenttilstand,
             )
         }
     }

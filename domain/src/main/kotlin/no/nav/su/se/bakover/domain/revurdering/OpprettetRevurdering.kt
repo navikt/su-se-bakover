@@ -134,7 +134,7 @@ data class OpprettetRevurdering(
         return oppdaterFastOppholdINorgeOgMarkerSomVurdertInternal(vilkår)
     }
 
-    override fun skalSendeBrev() = !årsakErGRegulering() && brevvalgRevurdering.skalSendeBrev().isRight()
+    override fun skalSendeVedtaksbrev() = brevvalgRevurdering.skalSendeBrev().isRight()
 
     override fun oppdater(
         clock: Clock,

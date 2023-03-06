@@ -169,7 +169,7 @@ sealed class SimulertRevurdering : Revurdering() {
         )
     }
 
-    override fun skalSendeBrev() = !årsakErGRegulering() && brevvalgRevurdering.skalSendeBrev().isRight()
+    override fun skalSendeVedtaksbrev() = brevvalgRevurdering.skalSendeBrev().isRight()
 
     data class Innvilget(
         override val id: UUID,

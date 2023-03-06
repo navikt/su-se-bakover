@@ -42,7 +42,9 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsb
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.SaksbehandlersAvgjørelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
@@ -551,7 +553,7 @@ fun søknadsbehandlingIverksattInnvilget(
     clock: Clock = fixedClock,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     sakstype: Sakstype = Sakstype.UFØRE,
-): Pair<Sak, Søknadsbehandling.Iverksatt.Innvilget> {
+): Triple<Sak, Søknadsbehandling.Iverksatt.Innvilget, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling> {
     return iverksattSøknadsbehandling(
         sakOgSøknad = nySakUføre(
             clock = clock,
@@ -568,7 +570,7 @@ fun søknadsbehandlingIverksattInnvilget(
             listOf(it.bosituasjon, it.fradragsgrunnlag).flatten()
         },
         saksbehandler = saksbehandler,
-    ).let { Pair(it.first, it.second as Søknadsbehandling.Iverksatt.Innvilget) }
+    ).let { Triple(it.first, it.second as Søknadsbehandling.Iverksatt.Innvilget, it.third as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling) }
 }
 
 fun søknadsbehandlingIverksattAvslagMedBeregning(
@@ -591,7 +593,7 @@ fun søknadsbehandlingIverksattAvslagMedBeregning(
     ),
     clock: Clock = fixedClock,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-): Pair<Sak, Søknadsbehandling.Iverksatt.Avslag.MedBeregning> {
+): Triple<Sak, Søknadsbehandling.Iverksatt.Avslag.MedBeregning, Avslagsvedtak> {
     return iverksattSøknadsbehandling(
         sakOgSøknad = nySakUføre(
             clock = clock,
@@ -608,7 +610,7 @@ fun søknadsbehandlingIverksattAvslagMedBeregning(
             listOf(it.bosituasjon, it.fradragsgrunnlag).flatten()
         },
         saksbehandler = saksbehandler,
-    ).let { Pair(it.first, it.second as Søknadsbehandling.Iverksatt.Avslag.MedBeregning) }
+    ).let { Triple(it.first, it.second as Søknadsbehandling.Iverksatt.Avslag.MedBeregning, it.third as Avslagsvedtak) }
 }
 
 fun søknadsbehandlingIverksattAvslagUtenBeregning(
@@ -620,7 +622,7 @@ fun søknadsbehandlingIverksattAvslagUtenBeregning(
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode),
     clock: Clock = fixedClock,
-): Pair<Sak, Søknadsbehandling.Iverksatt.Avslag.UtenBeregning> {
+): Triple<Sak, Søknadsbehandling.Iverksatt.Avslag.UtenBeregning, Avslagsvedtak> {
     return iverksattSøknadsbehandling(
         sakOgSøknad = nySakUføre(
             clock = clock,
@@ -636,7 +638,7 @@ fun søknadsbehandlingIverksattAvslagUtenBeregning(
         customGrunnlag = grunnlagsdata.let {
             listOf(it.bosituasjon, it.fradragsgrunnlag).flatten()
         },
-    ).let { Pair(it.first, it.second as Søknadsbehandling.Iverksatt.Avslag.UtenBeregning) }
+    ).let { Triple(it.first, it.second as Søknadsbehandling.Iverksatt.Avslag.UtenBeregning, it.third as Avslagsvedtak) }
 }
 
 /**

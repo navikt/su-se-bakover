@@ -36,4 +36,6 @@ sealed interface AbstraktRevurdering : Behandling {
     fun erÅpen(): Boolean
 
     val brevvalgRevurdering: BrevvalgRevurdering
+
+    abstract override fun skalSendeVedtaksbrev(): Boolean
 }

@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.persistence.hent
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
-import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.ForenkletVedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtakstype
 import no.nav.su.se.bakover.test.fixedClock
@@ -32,7 +31,7 @@ internal class VedtakPostgresRepoTest {
                 testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
 
             dataSource.withSession {
-                vedtakRepo.hent(vedtak.id, it) shouldBe vedtak
+                vedtakRepo.hentVedtakForIdOgSession(vedtak.id, it) shouldBe vedtak
             }
         }
     }
@@ -42,13 +41,11 @@ internal class VedtakPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val vedtakRepo = testDataHelper.vedtakRepo as VedtakPostgresRepo
-            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingIverksattAvslagMedBeregning().second
-            val vedtak = Avslagsvedtak.fromSøknadsbehandlingMedBeregning(søknadsbehandling, fixedClock)
-
-            vedtakRepo.lagre(vedtak)
+            val (sak, _, vedtak) = testDataHelper.persisterSøknadsbehandlingIverksattAvslagMedBeregning()
 
             dataSource.withSession {
-                vedtakRepo.hent(vedtak.id, it) shouldBe vedtak
+                vedtakRepo.hentVedtakForIdOgSession(vedtak.id, it) shouldBe vedtak
+                sak.vedtakListe.single() shouldBe vedtak
             }
         }
     }
@@ -136,11 +133,7 @@ internal class VedtakPostgresRepoTest {
     fun `oppdaterer koblingstabell mellom søknadsbehandling og vedtak ved lagring av vedtak for avslått søknadsbehandling`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val vedtakRepo = testDataHelper.vedtakRepo
-            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingIverksattAvslagMedBeregning().second
-            val vedtak = Avslagsvedtak.fromSøknadsbehandlingMedBeregning(søknadsbehandling, fixedClock)
-
-            vedtakRepo.lagre(vedtak)
+            val (_, søknadsbehandling, vedtak) = testDataHelper.persisterSøknadsbehandlingIverksattAvslagMedBeregning()
 
             dataSource.withSession { session ->
                 """
@@ -161,7 +154,7 @@ internal class VedtakPostgresRepoTest {
             val (_, vedtak) = testDataHelper.persisterIverksattStansOgVedtak()
             val vedtakRepo = testDataHelper.vedtakRepo as VedtakPostgresRepo
             testDataHelper.dataSource.withSession {
-                vedtakRepo.hent(vedtak.id, it) shouldBe vedtak
+                vedtakRepo.hentVedtakForIdOgSession(vedtak.id, it) shouldBe vedtak
             }
         }
     }
@@ -173,7 +166,7 @@ internal class VedtakPostgresRepoTest {
             val vedtak = testDataHelper.persisterVedtakForGjenopptak()
             val vedtakRepo = testDataHelper.vedtakRepo as VedtakPostgresRepo
             testDataHelper.dataSource.withSession {
-                vedtakRepo.hent(vedtak.id, it) shouldBe vedtak
+                vedtakRepo.hentVedtakForIdOgSession(vedtak.id, it) shouldBe vedtak
             }
         }
     }
