@@ -9,18 +9,16 @@
                 <maxLength>2048</maxLength>
                 <rootCauseFirst>true</rootCauseFirst>
                 <shortenedClassNameLength>20</shortenedClassNameLength>
-                <exclude>^sun\.reflect\.</exclude>
+                <exclude>^sun\.</exclude>
                 <exclude>^net\.sf\.cglib\.</exclude>
                 <exclude>^java\.lang\.Thread\.</exclude>
-                <exclude>^kotlin\.jvm\.internal\.</exclude>
-                <exclude>^kotlin\.coroutines\.jvm\.internal\.</exclude>
-                <exclude>^kotlinx\.coroutines\.BuildersKt</exclude>
-                <exclude>^io\.netty\.util\.concurrent\.</exclude>
-                <exclude>^io\.netty\.channel\.</exclude>
-                <exclude>^io\.netty\.util\.internal\.</exclude>
-                <exclude>^io\.ktor\.server\.netty\.</exclude>
-                <exclude>^kotliquery\.LoanPattern\.</exclude>
-                <exclude>^kotliquery\.PackageKt\.</exclude>
+                <exclude>^java\.io\.</exclude>
+                <exclude>^kotlin\.io\.</exclude>
+                <exclude>^kotlin\.jvm\.</exclude>
+                <exclude>^kotlinx\.coroutines\.</exclude>
+                <exclude>^io\.netty\.</exclude>
+                <exclude>^io\.ktor\.</exclude>
+                <exclude>^kotliquery\.</exclude>
             </throwableConverter>
         </encoder>
     </appender>
