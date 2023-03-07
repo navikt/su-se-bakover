@@ -64,7 +64,7 @@ object KryssjekkTidslinjerOgSimulering {
                 log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke generere tidslinjer: $it")
                 return KryssjekkAvTidslinjeOgSimuleringFeilet.KunneIkkeGenerereTidslinje.left()
             }
-            if (!tidslinjeUnderArbeid.ekvivalentMed(tidslinje = tidslinjeEksisterende, periode = rekonstruertPeriode)) {
+            if (!tidslinjeUnderArbeid.ekvivalentMed(tidslinje = tidslinjeEksisterende)) {
                 log.error("Feil ved kryssjekk av tidslinje og simulering. Tidslinje for ny utbetaling er ulik eksisterende. Se sikkerlogg for detaljer")
                 sikkerLogg.error("Feil ved kryssjekk av tidslinje: Tidslinje for ny utbetaling:$tidslinjeUnderArbeid er ulik eksisterende:$tidslinjeEksisterende for rekonstruert periode:$rekonstruertPeriode")
                 return KryssjekkAvTidslinjeOgSimuleringFeilet.RekonstruertUtbetalingsperiodeErUlikOpprinnelig.left()

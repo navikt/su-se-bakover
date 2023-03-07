@@ -136,7 +136,6 @@ class Utbetalingshistorikk(
                 check(tidslinjeGammel.ekvivalentMed(tidslinjeNy)) { "Rekonstuert tidslinje: $tidslinjeNy er ulik original: $tidslinjeGammel" }
             }
     }
-
     private fun List<Utbetalingslinje>.kontrollerAtEksisterendeErKjedetMedNyeUtbetalinger() {
         check(
             sorterteEksisterendeUtbetalingslinjer.lastOrNull()?.let { siste ->

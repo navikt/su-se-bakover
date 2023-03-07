@@ -29,9 +29,24 @@ open class Periode protected constructor(
         validateOrThrow(fraOgMed, tilOgMed)
     }
 
+    /**
+     * @throws IllegalStateException dersom fraOgMed er LocalDate.MIN eller tilOgMed er LocalDate.MAX
+     * @throws ArithmeticException dersom antall måneder er større enn en Int.
+     */
     @JsonIgnore
-    fun getAntallMåneder(): Int = Period.between(fraOgMed, tilOgMed.plusDays(1)).toTotalMonths().toInt()
+    fun getAntallMåneder(): Int {
+        if (fraOgMed == LocalDate.MIN || tilOgMed == LocalDate.MAX) {
+            throw IllegalStateException("Det var sannsynligvis tiltenkt å forholde seg til antall måneder fra MIN eller til MAX. fraOgMed: $fraOgMed, tilOgMed: $tilOgMed ")
+        }
+        return Period.between(fraOgMed, tilOgMed.plusDays(1)).toTotalMonths().let {
+            Math.toIntExact(it)
+        }
+    }
 
+    /**
+     * @throws IllegalStateException dersom fraOgMed er LocalDate.MIN eller tilOgMed er LocalDate.MAX
+     * @throws ArithmeticException dersom antall måneder er større enn en Int.
+     */
     fun måneder(): NonEmptyList<Måned> {
         return (0L until getAntallMåneder()).map {
             val currentMonth = fraOgMed.plusMonths(it)
@@ -264,6 +279,9 @@ fun List<Periode>.harDuplikater(): Boolean {
  * Sjekker om det ikke er hull i periodene.
  * Listen med perioder trenger ikke å være sortert og kan inneholde duplikater
  * En tom liste gir `true`
+ *
+ * @throws IllegalStateException dersom fraOgMed er LocalDate.MIN eller tilOgMed er LocalDate.MAX
+ * @throws ArithmeticException dersom antall måneder er større enn en Int.
  */
 fun List<Periode>.erSammenhengende(): Boolean {
     return if (this.isEmpty()) {
@@ -276,6 +294,9 @@ fun List<Periode>.erSammenhengende(): Boolean {
 
 /**
  * Sjekker om en liste med perioder er sammenhengende, sortert og uten duplikater.
+ *
+ * @throws IllegalStateException dersom fraOgMed er LocalDate.MIN eller tilOgMed er LocalDate.MAX
+ * @throws ArithmeticException dersom antall måneder er større enn en Int.
  */
 fun List<Periode>.erSammenhengendeSortertOgUtenDuplikater(): Boolean {
     return erSammenhengende() && erSortert() && !harDuplikater()

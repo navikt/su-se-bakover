@@ -924,7 +924,7 @@ internal class TidslinjeForUtbetalingerTest {
     }
 
     @Test
-    fun `potpurri`() {
+    fun `blanding av alle utbetalingstypene`() {
         val clock = TikkendeKlokke()
         val førsteTidspunkt = Tidspunkt.now(clock)
         val første = Utbetalingslinje.Ny(
@@ -1135,6 +1135,28 @@ internal class TidslinjeForUtbetalingerTest {
             uføregrad = Uføregrad.parse(50),
         )
         listOf(ny).tidslinje().getOrFail().ekvivalentMed(listOf(ny).tidslinje().getOrFail()) shouldBe true
+        listOf(
+            ny,
+            ny.copy(
+                opprettet = ny.opprettet.plusUnits(1),
+            ),
+        ).tidslinje().getOrFail().ekvivalentMed(
+            listOf(
+                ny,
+                ny.copy(
+                    opprettet = ny.opprettet.plusUnits(1),
+                ),
+            ).tidslinje().getOrFail(),
+        ) shouldBe true
+
+        listOf(ny).tidslinje().getOrFail().ekvivalentMed(
+            listOf(
+                ny,
+                ny.copy(
+                    opprettet = ny.opprettet.plusUnits(1),
+                ),
+            ).tidslinje().getOrFail(),
+        ) shouldBe true
     }
 
     @Test
@@ -1196,7 +1218,7 @@ internal class TidslinjeForUtbetalingerTest {
     }
 
     @Test
-    fun `ekvivalens er avhengig av perioden det sjekkes for`() {
+    fun `rest kombinasjoner`() {
         val clock = TikkendeKlokke()
         val a = Utbetalingslinje.Ny(
             id = UUID30.randomUUID(),
@@ -1225,7 +1247,22 @@ internal class TidslinjeForUtbetalingerTest {
             beløp = 5000,
             uføregrad = Uføregrad.parse(50),
         )
-        listOf(a).tidslinje().getOrFail().ekvivalentMed(listOf(b, c).tidslinje().getOrFail()) shouldBe true
+        listOf(a).tidslinje().getOrFail().ekvivalentMed(listOf(b).tidslinje().getOrFail()) shouldBe true
+        listOf(b).tidslinje().getOrFail().ekvivalentMed(listOf(a).tidslinje().getOrFail()) shouldBe true
+
+        listOf(a).tidslinje().getOrFail().ekvivalentMed(listOf(c).tidslinje().getOrFail()) shouldBe false
+        listOf(c).tidslinje().getOrFail().ekvivalentMed(listOf(a).tidslinje().getOrFail()) shouldBe false
+
+        listOf(b).tidslinje().getOrFail().ekvivalentMed(listOf(c).tidslinje().getOrFail()) shouldBe false
+        listOf(c).tidslinje().getOrFail().ekvivalentMed(listOf(b).tidslinje().getOrFail()) shouldBe false
+
+        listOf(a, b).tidslinje().getOrFail().ekvivalentMed(listOf(c).tidslinje().getOrFail()) shouldBe false
+        listOf(c).tidslinje().getOrFail().ekvivalentMed(listOf(a, b).tidslinje().getOrFail()) shouldBe false
+
         listOf(b, c).tidslinje().getOrFail().ekvivalentMed(listOf(a).tidslinje().getOrFail()) shouldBe false
+        listOf(a).tidslinje().getOrFail().ekvivalentMed(listOf(b, c).tidslinje().getOrFail()) shouldBe false
+
+        listOf(a, c).tidslinje().getOrFail().ekvivalentMed(listOf(b).tidslinje().getOrFail()) shouldBe false
+        listOf(b).tidslinje().getOrFail().ekvivalentMed(listOf(a, c).tidslinje().getOrFail()) shouldBe false
     }
 }

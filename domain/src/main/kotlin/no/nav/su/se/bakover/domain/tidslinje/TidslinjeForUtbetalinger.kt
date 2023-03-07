@@ -34,7 +34,7 @@ data class TidslinjeForUtbetalinger(
 
     private val generertTidslinje = lagTidslinje()
 
-    val tidslinje = generertTidslinje.tidslinje
+    val tidslinje: List<UtbetalingslinjePåTidslinje> = generertTidslinje.tidslinje
 
     private fun lagTidslinje(): Tidslinje<UtbetalingslinjePåTidslinje> {
         val queue = LinkedList(utbetalingslinjerForTidslinje)
@@ -172,22 +172,13 @@ data class TidslinjeForUtbetalinger(
     }
 
     /**
-     * Sjekker om [this] er ekvivalent med [tidslinje] for den spesifiserte perioden.
-     *
-     * @param periode ekvivalens skal sjekkes for, default er perioden definert av [this]
+     * Sjekker om denne tidslinjen er ekvivalent med [tidslinje].
      */
     fun ekvivalentMed(
         tidslinje: TidslinjeForUtbetalinger,
-        periode: Periode = this.periode,
     ): Boolean {
-        return periode.måneder().map {
-            gjeldendeForDato(it.fraOgMed) to tidslinje.gjeldendeForDato(it.fraOgMed)
-        }.map {
-            when {
-                it.first == null && it.second == null -> true
-                (it.first != null && it.second != null) -> it.first!!.ekvivalentMed(it.second!!)
-                else -> false
-            }
-        }.all { it }
+        return this.tidslinje.size == tidslinje.tidslinje.size && this.tidslinje.zip(tidslinje.tidslinje).all {
+            it.first.ekvivalentMed(it.second)
+        }
     }
 }
