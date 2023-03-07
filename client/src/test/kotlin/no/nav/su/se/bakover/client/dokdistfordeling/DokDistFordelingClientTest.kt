@@ -42,5 +42,5 @@ internal class DokDistFordelingClientTest : WiremockBase {
         .withHeader("Authorization", WireMock.equalTo("Bearer token"))
         .withHeader("Content-Type", WireMock.equalTo("application/json"))
         .withHeader("Accept", WireMock.equalTo("application/json"))
-        .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
+        .withHeader("Nav-CallId", WireMock.equalTo("correlationId"))
 }

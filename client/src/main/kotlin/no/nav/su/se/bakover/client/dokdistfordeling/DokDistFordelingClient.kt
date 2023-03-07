@@ -7,7 +7,6 @@ import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.CorrelationId.Companion.getOrCreateCorrelationIdFromThreadLocal
-import no.nav.su.se.bakover.common.CorrelationIdHeader
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.Distribusjonstidspunkt
@@ -34,7 +33,7 @@ class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag
             .authentication().bearer(tokenOppslag.token().value)
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
-            .header(CorrelationIdHeader, getOrCreateCorrelationIdFromThreadLocal())
+            .header("Nav-CallId", getOrCreateCorrelationIdFromThreadLocal())
             .body(body).responseString()
 
         return result.fold(
