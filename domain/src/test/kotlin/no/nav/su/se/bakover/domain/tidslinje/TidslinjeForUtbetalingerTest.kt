@@ -1134,7 +1134,7 @@ internal class TidslinjeForUtbetalingerTest {
             beløp = 1000,
             uføregrad = Uføregrad.parse(50),
         )
-        listOf(ny).tidslinje(clock).getOrFail().ekvivalentMed(listOf(ny).tidslinje(clock).getOrFail()) shouldBe true
+        listOf(ny).tidslinje().getOrFail().ekvivalentMed(listOf(ny).tidslinje().getOrFail()) shouldBe true
     }
 
     @Test
@@ -1158,7 +1158,7 @@ internal class TidslinjeForUtbetalingerTest {
             beløp = 1000,
             uføregrad = Uføregrad.parse(100),
         )
-        listOf(a).tidslinje(clock).getOrFail().ekvivalentMed(listOf(b).tidslinje(clock).getOrFail()) shouldBe true
+        listOf(a).tidslinje().getOrFail().ekvivalentMed(listOf(b).tidslinje().getOrFail()) shouldBe true
     }
 
     @Test
@@ -1191,8 +1191,8 @@ internal class TidslinjeForUtbetalingerTest {
             beløp = 5000,
             uføregrad = Uføregrad.parse(50),
         )
-        listOf(a).tidslinje(clock).getOrFail().ekvivalentMed(listOf(b).tidslinje(clock).getOrFail()) shouldBe false
-        listOf(a).tidslinje(clock).getOrFail().ekvivalentMed(listOf(bb).tidslinje(clock).getOrFail()) shouldBe false
+        listOf(a).tidslinje().getOrFail().ekvivalentMed(listOf(b).tidslinje().getOrFail()) shouldBe false
+        listOf(a).tidslinje().getOrFail().ekvivalentMed(listOf(bb).tidslinje().getOrFail()) shouldBe false
     }
 
     @Test
@@ -1225,7 +1225,7 @@ internal class TidslinjeForUtbetalingerTest {
             beløp = 5000,
             uføregrad = Uføregrad.parse(50),
         )
-        listOf(a).tidslinje(clock).getOrFail().ekvivalentMed(listOf(b, c).tidslinje(clock).getOrFail()) shouldBe true
-        listOf(b, c).tidslinje(clock).getOrFail().ekvivalentMed(listOf(a).tidslinje(clock).getOrFail()) shouldBe false
+        listOf(a).tidslinje().getOrFail().ekvivalentMed(listOf(b, c).tidslinje().getOrFail()) shouldBe true
+        listOf(b, c).tidslinje().getOrFail().ekvivalentMed(listOf(a).tidslinje().getOrFail()) shouldBe false
     }
 }

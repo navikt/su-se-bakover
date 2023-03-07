@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
-import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -81,6 +80,7 @@ sealed interface Utbetaling {
         init {
             kontrollerUtbetalingslinjer()
         }
+
         fun toSimulertUtbetaling(simulering: Simulering) =
             SimulertUtbetaling(
                 this,
@@ -112,6 +112,7 @@ sealed interface Utbetaling {
             init {
                 kontrollerUtbetalingslinjer()
             }
+
             fun toKvittertUtbetaling(kvittering: Kvittering) =
                 MedKvittering(
                     this,
@@ -126,6 +127,7 @@ sealed interface Utbetaling {
             init {
                 kontrollerUtbetalingslinjer()
             }
+
             fun kvittertMedFeilEllerVarsel() =
                 listOf(
                     Kvittering.Utbetalingsstatus.OK_MED_VARSEL,
@@ -162,37 +164,30 @@ internal fun List<Utbetaling>.harUtbetalingerEtter(date: LocalDate): Boolean {
 }
 
 sealed class UtbetalingFeilet {
-    data class SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(val feil: KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet) : UtbetalingFeilet()
+    data class SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(val feil: KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet) :
+        UtbetalingFeilet()
+
     object Protokollfeil : UtbetalingFeilet() {
         override fun toString() = this::class.simpleName!!
     }
+
     data class KunneIkkeSimulere(val simuleringFeilet: SimulerUtbetalingFeilet) : UtbetalingFeilet()
     object FantIkkeSak : UtbetalingFeilet() {
         override fun toString() = this::class.simpleName!!
     }
 }
 
-fun List<Utbetaling>.tidslinje(
-    clock: Clock,
-    periode: Periode? = null,
-): Either<IngenUtbetalinger, TidslinjeForUtbetalinger> {
-    return flatMap { it.utbetalingslinjer }.tidslinje(
-        clock = clock,
-        periode = periode,
-    )
+fun List<Utbetaling>.tidslinje(periode: Periode? = null): Either<IngenUtbetalinger, TidslinjeForUtbetalinger> {
+    return flatMap { it.utbetalingslinjer }.tidslinje(periode = periode)
 }
 
 @JvmName("utbetalingslinjeTidslinje")
-fun List<Utbetalingslinje>.tidslinje(
-    clock: Clock,
-    periode: Periode? = null,
-): Either<IngenUtbetalinger, TidslinjeForUtbetalinger> {
+fun List<Utbetalingslinje>.tidslinje(periode: Periode? = null): Either<IngenUtbetalinger, TidslinjeForUtbetalinger> {
     return ifEmpty { return IngenUtbetalinger.left() }
         .let { utbetalingslinjer ->
             TidslinjeForUtbetalinger(
                 periode = periode ?: utbetalingslinjer.map { it.periode }.minAndMaxOf(),
                 utbetalingslinjer = utbetalingslinjer,
-                clock = clock,
             ).right()
         }
 }
@@ -201,19 +196,12 @@ object IngenUtbetalinger
 
 fun Sak.hentGjeldendeUtbetaling(
     forDato: LocalDate,
-    clock: Clock,
 ): Either<FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje> {
-    return this.utbetalinger.hentGjeldendeUtbetaling(
-        forDato = forDato,
-        clock = clock,
-    )
+    return this.utbetalinger.hentGjeldendeUtbetaling(forDato = forDato)
 }
 
-fun List<Utbetaling>.hentGjeldendeUtbetaling(
-    forDato: LocalDate,
-    clock: Clock,
-): Either<FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje> {
-    return tidslinje(clock).fold(
+fun List<Utbetaling>.hentGjeldendeUtbetaling(forDato: LocalDate): Either<FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje> {
+    return tidslinje().fold(
         { FantIkkeGjeldendeUtbetaling.left() },
         { it.gjeldendeForDato(forDato)?.right() ?: FantIkkeGjeldendeUtbetaling.left() },
     )

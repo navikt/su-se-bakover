@@ -155,7 +155,6 @@ fun Sak.simulerUtbetaling(
     periode: Periode,
     simuler: (utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
     kontrollerMotTidligereSimulering: Simulering?,
-    clock: Clock,
 ): Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
     return simuler(utbetalingForSimulering, periode)
         .mapLeft {
@@ -167,7 +166,6 @@ fun Sak.simulerUtbetaling(
                 underArbeid = utbetalingForSimulering,
                 eksisterende = utbetalinger,
                 simuler = simuler,
-                clock = clock,
             ).getOrElse {
                 return SimulerUtbetalingFeilet.FeilVedKryssjekkAvTidslinjeOgSimulering(it).left()
             }

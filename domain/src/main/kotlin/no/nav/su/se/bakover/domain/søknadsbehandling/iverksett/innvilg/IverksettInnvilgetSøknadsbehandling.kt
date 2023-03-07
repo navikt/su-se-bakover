@@ -75,7 +75,6 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
             periode = iverksattBehandling.periode,
             simuler = simulerUtbetaling,
             kontrollerMotTidligereSimulering = iverksattBehandling.simulering,
-            clock = clock,
         )
     }.getOrElse {
         log.error("Kunne ikke iverksette innvilget søknadsbehandling ${iverksattBehandling.id}. Underliggende feil:$it.")

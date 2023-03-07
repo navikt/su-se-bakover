@@ -327,7 +327,6 @@ fun simuler(
                 )
             },
             kontrollerMotTidligereSimulering = kontrollerMotSimulering,
-            clock = clock,
         )
     } else {
         simulerUtbetaling(

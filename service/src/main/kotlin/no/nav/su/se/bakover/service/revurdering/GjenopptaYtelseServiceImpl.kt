@@ -164,7 +164,6 @@ class GjenopptaYtelseServiceImpl(
                 ),
                 simuler = utbetalingService::simulerUtbetaling,
                 kontrollerMotTidligereSimulering = gjenopptak?.simulering,
-                clock = clock,
             ).mapLeft {
                 SimulerGjenopptakFeil.KunneIkkeSimulere(it)
             }

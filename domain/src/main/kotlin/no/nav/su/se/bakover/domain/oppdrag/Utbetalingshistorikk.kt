@@ -126,12 +126,10 @@ class Utbetalingshistorikk(
                 )
 
                 val tidslinjeGammel = sorterteEksisterendeUtbetalingslinjer.tidslinje(
-                    clock = clock,
                     periode = periode,
                 ).getOrElse { throw RuntimeException("Kunne ikke generere tidslinje: $it") }
 
                 val tidslinjeNy = tidslinje(
-                    clock = clock,
                     periode = periode,
                 ).getOrElse { throw RuntimeException("Kunne ikke generere tidslinje: $it") }
 

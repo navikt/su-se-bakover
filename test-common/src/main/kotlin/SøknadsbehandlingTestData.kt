@@ -302,7 +302,6 @@ fun søknadsbehandlingSimulert(
                         )
                     },
                     kontrollerMotTidligereSimulering = null,
-                    clock = clock,
                 ).map { simulertUtbetaling ->
                     simulertUtbetaling.simulering
                 }
@@ -1071,7 +1070,6 @@ fun simulertSøknadsbehandling(
                         )
                     },
                     kontrollerMotTidligereSimulering = null,
-                    clock = clock,
                 ).map { simulertUtbetaling ->
                     simulertUtbetaling.simulering
                 }

@@ -69,7 +69,6 @@ internal fun Sak.iverksettInnvilgetRevurdering(
                 periode = iverksattRevurdering.periode,
                 simuler = simuler,
                 kontrollerMotTidligereSimulering = iverksattRevurdering.simulering,
-                clock = clock,
             )
         }.mapLeft { feil ->
             KunneIkkeIverksetteRevurdering.Saksfeil.KunneIkkeUtbetale(UtbetalingFeilet.KunneIkkeSimulere(feil))

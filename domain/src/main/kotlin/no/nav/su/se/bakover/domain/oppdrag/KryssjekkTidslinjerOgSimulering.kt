@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
-import java.time.Clock
 
 object KryssjekkTidslinjerOgSimulering {
     fun sjekk(
@@ -20,7 +19,6 @@ object KryssjekkTidslinjerOgSimulering {
         underArbeid: Utbetaling.UtbetalingForSimulering,
         eksisterende: List<Utbetaling>,
         simuler: (utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
-        clock: Clock,
     ): Either<KryssjekkAvTidslinjeOgSimuleringFeilet, Unit> {
         val periode = Periode.create(
             fraOgMed = underArbeid.tidligsteDato(),
@@ -33,7 +31,7 @@ object KryssjekkTidslinjerOgSimulering {
             }
 
         val tidslinjeEksisterendeOgUnderArbeid = (eksisterende + underArbeid)
-            .tidslinje(periode = periode, clock = clock)
+            .tidslinje(periode = periode)
             .getOrElse {
                 log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke generere tidslinjer: $it")
                 return KryssjekkAvTidslinjeOgSimuleringFeilet.KunneIkkeGenerereTidslinje.left()
@@ -55,7 +53,6 @@ object KryssjekkTidslinjerOgSimulering {
             )
             val tidslinjeUnderArbeid = listOf(underArbeid).tidslinje(
                 periode = rekonstruertPeriode,
-                clock = clock,
             ).getOrElse {
                 log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke generere tidslinjer: $it")
                 return KryssjekkAvTidslinjeOgSimuleringFeilet.KunneIkkeGenerereTidslinje.left()
@@ -63,7 +60,6 @@ object KryssjekkTidslinjerOgSimulering {
 
             val tidslinjeEksisterende = eksisterende.tidslinje(
                 periode = rekonstruertPeriode,
-                clock = clock,
             ).getOrElse {
                 log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke generere tidslinjer: $it")
                 return KryssjekkAvTidslinjeOgSimuleringFeilet.KunneIkkeGenerereTidslinje.left()

@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
@@ -48,7 +47,6 @@ internal class UtbetalingTest {
     fun `finner ikke gjeldende utbetaling for en tom liste`() {
         emptyList<Utbetaling>().hentGjeldendeUtbetaling(
             forDato = fixedLocalDate,
-            clock = fixedClock,
         ) shouldBe FantIkkeGjeldendeUtbetaling.left()
     }
 
@@ -56,7 +54,6 @@ internal class UtbetalingTest {
     fun `finner ikke gjeldende utbetaling for dato utenfor tidslinja`() {
         listOf(createUtbetaling()).hentGjeldendeUtbetaling(
             forDato = 1.februar(2021),
-            clock = fixedClock,
         ) shouldBe FantIkkeGjeldendeUtbetaling.left()
     }
 
@@ -64,7 +61,6 @@ internal class UtbetalingTest {
     fun `finner gjeldende utbetaling for dato innenfor tidslinja`() {
         listOf(createUtbetaling()).hentGjeldendeUtbetaling(
             forDato = 31.januar(2021),
-            clock = fixedClock,
         ).shouldBeTypeOf<Either.Right<UtbetalingslinjePåTidslinje.Ny>>()
     }
 

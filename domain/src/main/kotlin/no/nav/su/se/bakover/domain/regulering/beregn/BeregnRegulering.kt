@@ -35,7 +35,6 @@ fun Sak.blirBeregningEndret(
     return !reguleringMedBeregning.beregning!!.getMånedsberegninger().all { månedsberegning ->
         this.hentGjeldendeUtbetaling(
             forDato = månedsberegning.periode.fraOgMed,
-            clock = clock,
         ).fold(
             { false },
             { månedsberegning.getSumYtelse() == it.beløp },

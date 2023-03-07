@@ -38,13 +38,11 @@ class SimuleringStub(
         val tidslinjeEksisterendeUtbetalinger = utbetalingRepo.hentOversendteUtbetalinger(utbetaling.sakId)
             .tidslinje(
                 periode = simuleringsperiode,
-                clock = clock,
             )
 
         val tidslinjeNyUtbetaling = utbetaling.utbetalingslinjer
             .tidslinje(
                 periode = simuleringsperiode,
-                clock = clock,
             )
 
         /**
@@ -57,7 +55,6 @@ class SimuleringStub(
             return (utbetalingRepo.hentOversendteUtbetalinger(utbetaling.sakId) + utbetaling)
                 .tidslinje(
                     periode = simuleringsperiode,
-                    clock = clock,
                 ).fold(
                     { throw RuntimeException("Disse skal eksistere") },
                     { it.gjeldendeForDato(måned.fraOgMed)!!.beløp },

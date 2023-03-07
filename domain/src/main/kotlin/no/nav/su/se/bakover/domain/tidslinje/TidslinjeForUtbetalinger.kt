@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
-import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
 import java.util.LinkedList
@@ -12,7 +11,6 @@ import java.util.LinkedList
 data class TidslinjeForUtbetalinger(
     private val periode: Periode,
     private val utbetalingslinjer: List<Utbetalingslinje>,
-    private val clock: Clock = Clock.systemUTC(),
 ) {
     private val nyesteFørst = Comparator<UtbetalingslinjePåTidslinje> { o1, o2 ->
         o2.opprettet.instant.compareTo(o1.opprettet.instant)

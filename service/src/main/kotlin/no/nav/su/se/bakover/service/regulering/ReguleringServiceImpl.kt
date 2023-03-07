@@ -227,7 +227,6 @@ class ReguleringServiceImpl(
                             periode = regulering.periode,
                             simuler = utbetalingService::simulerUtbetaling,
                             kontrollerMotTidligereSimulering = regulering.simulering,
-                            clock = clock,
                         )
                     }.map { simulertUtbetaling ->
                         simulertUtbetaling.simulering
@@ -338,7 +337,6 @@ class ReguleringServiceImpl(
                     periode = regulering.periode,
                     simuler = utbetalingService::simulerUtbetaling,
                     kontrollerMotTidligereSimulering = regulering.simulering,
-                    clock = clock,
                 )
             }.getOrElse { feil ->
                 throw KunneIkkeSendeTilUtbetalingException(UtbetalingFeilet.KunneIkkeSimulere(feil))

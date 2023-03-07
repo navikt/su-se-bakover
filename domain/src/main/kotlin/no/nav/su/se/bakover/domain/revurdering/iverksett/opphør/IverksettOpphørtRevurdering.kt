@@ -52,7 +52,6 @@ internal fun Sak.iverksettOpphørtRevurdering(
                 periode = revurdering.opphørsperiodeForUtbetalinger,
                 simuler = simuler,
                 kontrollerMotTidligereSimulering = revurdering.simulering,
-                clock = clock,
             )
         }.mapLeft {
             KunneIkkeIverksetteRevurdering.Saksfeil.KunneIkkeUtbetale(UtbetalingFeilet.KunneIkkeSimulere(it))

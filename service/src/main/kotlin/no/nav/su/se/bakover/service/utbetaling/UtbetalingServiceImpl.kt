@@ -79,7 +79,6 @@ class UtbetalingServiceImpl(
     ): Either<FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje> {
         return hentUtbetalingerForSakId(sakId).hentGjeldendeUtbetaling(
             forDato,
-            clock,
         )
     }
 

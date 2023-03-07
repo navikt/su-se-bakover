@@ -193,7 +193,6 @@ class SøknadsbehandlingServiceImpl(
                     periode = beregning.periode,
                     simuler = utbetalingService::simulerUtbetaling,
                     kontrollerMotTidligereSimulering = null,
-                    clock = clock,
                 )
             }.map { simulertUtbetaling ->
                 simulertUtbetaling.simulering

@@ -530,7 +530,6 @@ class RevurderingServiceImpl(
                                         periode = beregnetRevurdering.periode,
                                         simuler = utbetalingService::simulerUtbetaling,
                                         kontrollerMotTidligereSimulering = null,
-                                        clock = clock,
                                     ).map { simulertUtbetaling ->
                                         simulertUtbetaling.simulering
                                     }
@@ -560,7 +559,6 @@ class RevurderingServiceImpl(
                                         periode = opphørsperiode,
                                         simuler = utbetalingService::simulerUtbetaling,
                                         kontrollerMotTidligereSimulering = beregnetRevurdering.simulering,
-                                        clock = clock,
                                     )
                                 }
                             },

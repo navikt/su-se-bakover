@@ -332,7 +332,6 @@ class StansYtelseServiceImpl(
                 ),
                 simuler = utbetalingService::simulerUtbetaling,
                 kontrollerMotTidligereSimulering = stans?.simulering,
-                clock = clock,
             ).mapLeft {
                 SimulerStansFeilet.KunneIkkeSimulere(it)
             }

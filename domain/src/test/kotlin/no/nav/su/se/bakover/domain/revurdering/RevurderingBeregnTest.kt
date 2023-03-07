@@ -593,7 +593,6 @@ internal class RevurderingBeregnTest {
             TidslinjeForUtbetalinger(
                 periode = nyBeregning.periode,
                 utbetalingslinjer = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer },
-                clock = fixedClock,
             ).tidslinje.sumOf { it.beløp * it.periode.getAntallMåneder() }
         }
         return abs((nyBeregningBeløp.toDouble() - eksisterendeBeløp) / eksisterendeBeløp * 100) > 10.0
