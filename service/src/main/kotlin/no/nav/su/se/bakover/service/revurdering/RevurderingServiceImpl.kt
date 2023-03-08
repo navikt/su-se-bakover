@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
@@ -503,7 +504,7 @@ class RevurderingServiceImpl(
                 val potensielleVarsel = listOf(
                     (
                         !VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-                            eksisterendeUtbetalinger = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer },
+                            eksisterendeUtbetalinger = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer }.toNonEmptyList(),
                             nyBeregning = beregnetRevurdering.beregning,
                         ).resultat && !(beregnetRevurdering is BeregnetRevurdering.Opphørt && beregnetRevurdering.opphørSkyldesVilkår())
                         ) to Varselmelding.BeløpsendringUnder10Prosent,

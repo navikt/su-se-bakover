@@ -31,7 +31,7 @@ object KryssjekkTidslinjerOgSimulering {
             }
 
         val tidslinjeEksisterendeOgUnderArbeid = (eksisterende + underArbeid)
-            .tidslinje(periode = periode)
+            .tidslinje()
             .getOrElse {
                 log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke generere tidslinjer: $it")
                 return KryssjekkAvTidslinjeOgSimuleringFeilet.KunneIkkeGenerereTidslinje.left()
@@ -51,20 +51,16 @@ object KryssjekkTidslinjerOgSimulering {
                 fraOgMed = underArbeidEndringsperiode.tilOgMed.førsteINesteMåned(),
                 tilOgMed = eksisterende.maxOf { it.senesteDato() },
             )
-            val tidslinjeUnderArbeid = listOf(underArbeid).tidslinje(
-                periode = rekonstruertPeriode,
-            ).getOrElse {
+            val tidslinjeUnderArbeid = listOf(underArbeid).tidslinje().getOrElse {
                 log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke generere tidslinjer: $it")
                 return KryssjekkAvTidslinjeOgSimuleringFeilet.KunneIkkeGenerereTidslinje.left()
             }
 
-            val tidslinjeEksisterende = eksisterende.tidslinje(
-                periode = rekonstruertPeriode,
-            ).getOrElse {
+            val tidslinjeEksisterende = eksisterende.tidslinje().getOrElse {
                 log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke generere tidslinjer: $it")
                 return KryssjekkAvTidslinjeOgSimuleringFeilet.KunneIkkeGenerereTidslinje.left()
             }
-            if (!tidslinjeUnderArbeid.ekvivalentMed(tidslinje = tidslinjeEksisterende)) {
+            if (!tidslinjeUnderArbeid.ekvivalentMedInnenforPeriode(tidslinjeEksisterende, rekonstruertPeriode)) {
                 log.error("Feil ved kryssjekk av tidslinje og simulering. Tidslinje for ny utbetaling er ulik eksisterende. Se sikkerlogg for detaljer")
                 sikkerLogg.error("Feil ved kryssjekk av tidslinje: Tidslinje for ny utbetaling:$tidslinjeUnderArbeid er ulik eksisterende:$tidslinjeEksisterende for rekonstruert periode:$rekonstruertPeriode")
                 return KryssjekkAvTidslinjeOgSimuleringFeilet.RekonstruertUtbetalingsperiodeErUlikOpprinnelig.left()
@@ -91,6 +87,7 @@ sealed class KryssjekkFeil(val prioritet: Int) : Comparable<KryssjekkFeil> {
         val simulertType: String,
         val tidslinjeType: String,
     ) : KryssjekkFeil(prioritet = 2)
+
     data class SimulertBeløpOgTidslinjeBeløpErForskjellig(
         val periode: Måned,
         val simulertBeløp: Int,

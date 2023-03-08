@@ -48,19 +48,21 @@ internal data class SakJson(
             fnr = fnr.toString(),
             søknader = søknader.map { it.toJson() },
             behandlinger = søknadsbehandlinger.map { it.toJson(satsFactory) },
-            utbetalinger = utbetalingstidslinje().tidslinje.map {
-                UtbetalingJson(
-                    fraOgMed = it.periode.fraOgMed,
-                    tilOgMed = it.periode.tilOgMed,
-                    beløp = it.beløp,
-                    type = when (it) {
-                        is UtbetalingslinjePåTidslinje.Ny -> "NY"
-                        is UtbetalingslinjePåTidslinje.Opphør -> "OPPHØR"
-                        is UtbetalingslinjePåTidslinje.Reaktivering -> "GJENOPPTA"
-                        is UtbetalingslinjePåTidslinje.Stans -> "STANS"
-                    },
-                )
-            },
+            utbetalinger = utbetalingstidslinje()?.let {
+                it.map {
+                    UtbetalingJson(
+                        fraOgMed = it.periode.fraOgMed,
+                        tilOgMed = it.periode.tilOgMed,
+                        beløp = it.beløp,
+                        type = when (it) {
+                            is UtbetalingslinjePåTidslinje.Ny -> "NY"
+                            is UtbetalingslinjePåTidslinje.Opphør -> "OPPHØR"
+                            is UtbetalingslinjePåTidslinje.Reaktivering -> "GJENOPPTA"
+                            is UtbetalingslinjePåTidslinje.Stans -> "STANS"
+                        },
+                    )
+                }
+            } ?: emptyList(),
             utbetalingerKanStansesEllerGjenopptas = kanUtbetalingerStansesEllerGjenopptas(clock),
             revurderinger = revurderinger.map { it.toJson(satsFactory) },
             vedtak = vedtakListe.map { it.toJson() },

@@ -9,8 +9,7 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.and
-import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.minAndMaxOf
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -142,7 +141,7 @@ sealed interface Utbetaling {
  * TODO jah: Ved initialisering e.l. gjør en faktisk verifikasjon på at ref-verdier på utbetalingslinjene har riktig rekkefølge
  */
 internal fun List<Utbetaling>.hentOversendteUtbetalingerUtenFeil(): List<Utbetaling> =
-    this.filter { it is Utbetaling.OversendtUtbetaling.UtenKvittering || it is Utbetaling.OversendtUtbetaling.MedKvittering && it.kvittering.erKvittertOk() }
+    this.filter { it is Utbetaling.OversendtUtbetaling.UtenKvittering || (it is Utbetaling.OversendtUtbetaling.MedKvittering && it.kvittering.erKvittertOk()) }
         .sortedWith(utbetalingsSortering)
 
 internal fun List<Utbetaling>.hentOversendteUtbetalingslinjerUtenFeil(): List<Utbetalingslinje> {
@@ -177,18 +176,15 @@ sealed class UtbetalingFeilet {
     }
 }
 
-fun List<Utbetaling>.tidslinje(periode: Periode? = null): Either<IngenUtbetalinger, TidslinjeForUtbetalinger> {
-    return flatMap { it.utbetalingslinjer }.tidslinje(periode = periode)
+fun List<Utbetaling>.tidslinje(): Either<IngenUtbetalinger, TidslinjeForUtbetalinger> {
+    return flatMap { it.utbetalingslinjer }.tidslinje()
 }
 
 @JvmName("utbetalingslinjeTidslinje")
-fun List<Utbetalingslinje>.tidslinje(periode: Periode? = null): Either<IngenUtbetalinger, TidslinjeForUtbetalinger> {
+fun List<Utbetalingslinje>.tidslinje(): Either<IngenUtbetalinger, TidslinjeForUtbetalinger> {
     return ifEmpty { return IngenUtbetalinger.left() }
         .let { utbetalingslinjer ->
-            TidslinjeForUtbetalinger(
-                periode = periode ?: utbetalingslinjer.map { it.periode }.minAndMaxOf(),
-                utbetalingslinjer = utbetalingslinjer,
-            ).right()
+            TidslinjeForUtbetalinger(utbetalingslinjer = utbetalingslinjer.toNonEmptyList()).right()
         }
 }
 

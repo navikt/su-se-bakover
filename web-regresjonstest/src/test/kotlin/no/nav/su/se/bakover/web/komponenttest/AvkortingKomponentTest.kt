@@ -106,13 +106,8 @@ class AvkortingKomponentTest {
                 )
             }
 
-            saken.utbetalingstidslinje(
-                Periode.create(
-                    behandlingStartDato,
-                    nyBehandlingSluttDato,
-                ),
-            ).tidslinje.let { utbetalingstidslinje ->
-                utbetalingstidslinje[0].shouldBeType<UtbetalingslinjePåTidslinje.Ny>().let {
+            saken.utbetalingstidslinje().let { utbetalingstidslinje ->
+                utbetalingstidslinje!![0].shouldBeType<UtbetalingslinjePåTidslinje.Ny>().let {
                     it.periode shouldBe Periode.create(1.januar(2021), 30.april(2021))
                     it.beløp shouldBe 20946
                 }

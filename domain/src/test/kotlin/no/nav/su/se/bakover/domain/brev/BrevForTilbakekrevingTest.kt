@@ -318,7 +318,8 @@ class BrevForTilbakekrevingTest {
             hentPerson = hentPerson,
             hentNavn = hentNavn,
             hentGjeldendeUtbetaling = { _, forDato ->
-                sak.utbetalingstidslinje().gjeldendeForDato(forDato)!!.beløp.right()
+                // jah: Siden dette er en tilbakekreving, har vi eksisterende utbetalinger
+                sak.utbetalingstidslinje()!!.gjeldendeForDato(forDato)!!.beløp.right()
             },
             clock = clock,
             satsFactory = satsFactoryTestPåDato(),

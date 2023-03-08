@@ -16,9 +16,11 @@ class Utbetalingshistorikk(
     private val clock: Clock,
 ) {
     private val sorterteNyeUtbetalingslinjer = nyeUtbetalingslinjer.sortedWith(utbetalingslinjeSortering)
-    private val sorterteEksisterendeUtbetalingslinjer = eksisterendeUtbetalingslinjer.sortedWith(utbetalingslinjeSortering)
+    private val sorterteEksisterendeUtbetalingslinjer =
+        eksisterendeUtbetalingslinjer.sortedWith(utbetalingslinjeSortering)
     private val rekonstruerEtterDato = rekonstruerEksisterendeUtbetalingerEtterDato()
     private val minimumFraOgMedForRekonstruerteLinjer = minumumFraOgMedDatoForRekonstruerteLinjer()
+
     init {
         nyeUtbetalingslinjer.sjekkIngenNyeOverlapper()
     }
@@ -122,20 +124,17 @@ class Utbetalingshistorikk(
             .ifNotEmpty {
                 val periode = Periode.create(
                     fraOgMed = minimumFraOgMedForRekonstruerteLinjer,
-                    tilOgMed = maxOf { it.periode.tilOgMed },
+                    tilOgMed = this.maxOf { it.periode.tilOgMed },
                 )
+                val tidslinjeGammel = sorterteEksisterendeUtbetalingslinjer.tidslinje()
+                    .getOrElse { throw RuntimeException("Kunne ikke generere tidslinje: $it") }.krympTilPeriode(periode)
 
-                val tidslinjeGammel = sorterteEksisterendeUtbetalingslinjer.tidslinje(
-                    periode = periode,
-                ).getOrElse { throw RuntimeException("Kunne ikke generere tidslinje: $it") }
+                val tidslinjeNy = tidslinje().getOrElse { throw RuntimeException("Kunne ikke generere tidslinje: $it") }.krympTilPeriode(periode)
 
-                val tidslinjeNy = tidslinje(
-                    periode = periode,
-                ).getOrElse { throw RuntimeException("Kunne ikke generere tidslinje: $it") }
-
-                check(tidslinjeGammel.ekvivalentMed(tidslinjeNy)) { "Rekonstuert tidslinje: $tidslinjeNy er ulik original: $tidslinjeGammel" }
+                check(tidslinjeGammel!!.ekvivalentMed(tidslinjeNy!!)) { "Rekonstuert tidslinje: $tidslinjeNy er ulik original: $tidslinjeGammel" }
             }
     }
+
     private fun List<Utbetalingslinje>.kontrollerAtEksisterendeErKjedetMedNyeUtbetalinger() {
         check(
             sorterteEksisterendeUtbetalingslinjer.lastOrNull()?.let { siste ->
@@ -177,6 +176,7 @@ class ForrigeUtbetbetalingslinjeKoblendeListe() : LinkedList<Utbetalingslinje>()
         addLast(element)
         return true
     }
+
     override fun addLast(e: Utbetalingslinje?) {
         checkNotNull(e) { "Kan ikke legge til null" }
         val siste = peekLast()

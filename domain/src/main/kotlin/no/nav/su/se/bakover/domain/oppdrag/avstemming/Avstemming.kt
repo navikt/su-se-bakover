@@ -138,13 +138,14 @@ sealed class Avstemming {
                      * er 1 mnd - i praksis vil dette si at noe som er gyldig midt i en måned også er gyldig ved
                      * starten og slutten av samme måned.
                      */
-                    entry.value to TidslinjeForUtbetalinger(
-                        periode = Periode.create(
-                            fraOgMed = løpendeFraOgMed.toLocalDate(zoneIdOslo).startOfMonth(),
-                            tilOgMed = LocalDate.MAX, // Langt i framtiden
-                        ),
-                        utbetalingslinjer = entry.value.utbetalingslinjer,
-                    ).tidslinje.filterNot {
+                    val utbetalingslinjer = entry.value.utbetalingslinjer
+                    entry.value to (
+                        TidslinjeForUtbetalinger(
+                            utbetalingslinjer = utbetalingslinjer.toNonEmptyList(),
+                        ).krympTilPeriode(
+                            løpendeFraOgMed.toLocalDate(zoneIdOslo).startOfMonth(),
+                        ) ?: emptyList()
+                        ).filterNot {
                         it is UtbetalingslinjePåTidslinje.Opphør
                     }
                 }

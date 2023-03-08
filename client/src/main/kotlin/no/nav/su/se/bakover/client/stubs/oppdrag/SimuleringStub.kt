@@ -36,14 +36,10 @@ class SimuleringStub(
         val utbetaling = request.utbetaling
         val simuleringsperiode = request.simuleringsperiode
         val tidslinjeEksisterendeUtbetalinger = utbetalingRepo.hentOversendteUtbetalinger(utbetaling.sakId)
-            .tidslinje(
-                periode = simuleringsperiode,
-            )
+            .tidslinje()
 
         val tidslinjeNyUtbetaling = utbetaling.utbetalingslinjer
-            .tidslinje(
-                periode = simuleringsperiode,
-            )
+            .tidslinje()
 
         /**
          * Reaktiveringen vil bare bære med seg 1 beløp for utbetaling. Dersom vi reaktiverer over perioder med flere
@@ -53,9 +49,7 @@ class SimuleringStub(
          */
         fun finnBeløpVedReaktivering(måned: Måned): Int {
             return (utbetalingRepo.hentOversendteUtbetalinger(utbetaling.sakId) + utbetaling)
-                .tidslinje(
-                    periode = simuleringsperiode,
-                ).fold(
+                .tidslinje().fold(
                     { throw RuntimeException("Disse skal eksistere") },
                     { it.gjeldendeForDato(måned.fraOgMed)!!.beløp },
                 )
