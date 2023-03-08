@@ -143,7 +143,7 @@ sealed class Avstemming {
                         TidslinjeForUtbetalinger(
                             utbetalingslinjer = utbetalingslinjer.toNonEmptyList(),
                         ).krympTilPeriode(
-                            løpendeFraOgMed.toLocalDate(zoneIdOslo).startOfMonth(),
+                            fraOgMed = løpendeFraOgMed.toLocalDate(zoneIdOslo).startOfMonth(),
                         ) ?: emptyList()
                         ).filterNot {
                         it is UtbetalingslinjePåTidslinje.Opphør

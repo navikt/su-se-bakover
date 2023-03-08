@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import java.time.Clock
 import java.time.LocalDate
 
-sealed class Utbetalingslinje : PeriodisertInformasjon {
+sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingslinje> {
     abstract val id: UUID30 // delytelseId
     abstract val opprettet: Tidspunkt
 
@@ -29,6 +29,10 @@ sealed class Utbetalingslinje : PeriodisertInformasjon {
     abstract val beløp: Int
     abstract val uføregrad: Uføregrad?
     abstract val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger
+
+    override fun compareTo(other: Utbetalingslinje): Int {
+        return this.opprettet.instant.compareTo(other.opprettet.instant)
+    }
 
     /**
      * Original [fraOgMed] som ble satt da linjen ble oversendt til OS.
@@ -325,7 +329,7 @@ fun List<Utbetalingslinje>.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse() {
 }
 
 fun List<Utbetalingslinje>.sjekkSortering() {
-    check(this.sortedWith(utbetalingslinjeSortering) == this) { "Utbetalingslinjer er ikke sortert i stigende rekkefølge" }
+    check(this.sorted() == this) { "Utbetalingslinjer er ikke sortert i stigende rekkefølge" }
 }
 
 fun List<Utbetalingslinje>.sjekkIngenNyeOverlapper() {

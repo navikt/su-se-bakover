@@ -36,7 +36,7 @@ open class Periode protected constructor(
     @JsonIgnore
     fun getAntallMåneder(): Int {
         if (fraOgMed == LocalDate.MIN || tilOgMed == LocalDate.MAX) {
-            throw IllegalStateException("Det var sannsynligvis tiltenkt å forholde seg til antall måneder fra MIN eller til MAX. fraOgMed: $fraOgMed, tilOgMed: $tilOgMed ")
+            throw IllegalStateException("Var dette meningen? Unngår å loope fra LocalDate.MIN og/eller til LocalDate.MAX. fraOgMed: $fraOgMed, tilOgMed: $tilOgMed ")
         }
         return Period.between(fraOgMed, tilOgMed.plusDays(1)).toTotalMonths().let {
             Math.toIntExact(it)

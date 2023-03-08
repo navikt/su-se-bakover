@@ -17,9 +17,13 @@ import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.april
+import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.juni
+import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.common.periode.november
 import no.nav.su.se.bakover.common.periode.oktober
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
@@ -29,7 +33,9 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.tidslinje
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.opphørtUtbetalingslinje
 import no.nav.su.se.bakover.test.plus
+import no.nav.su.se.bakover.test.utbetalingslinje
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.temporal.ChronoUnit
@@ -1236,5 +1242,72 @@ internal class TidslinjeForUtbetalingerTest {
 
         listOf(a, c).tidslinje().getOrFail().ekvivalentMed(listOf(b).tidslinje().getOrFail()) shouldBe false
         listOf(b).tidslinje().getOrFail().ekvivalentMed(listOf(a, c).tidslinje().getOrFail()) shouldBe false
+    }
+
+    @Test
+    fun `periode som er innenfor tidslinjensperiode blir krympet ok`() {
+        TidslinjeForUtbetalinger(nonEmptyListOf(utbetalingslinje())).let {
+            it.periode shouldBe år(2021)
+            it.krympTilPeriode(mai(2021)..november(2021))!!.ekvivalentMed(
+                TidslinjeForUtbetalinger(nonEmptyListOf(utbetalingslinje(periode = mai(2021)..november(2021)))),
+            ) shouldBe true
+        }
+
+        TidslinjeForUtbetalinger(nonEmptyListOf(utbetalingslinje())).let {
+            it.periode shouldBe år(2021)
+            it.krympTilPeriode(1.mai(2021))!!.ekvivalentMed(
+                TidslinjeForUtbetalinger(nonEmptyListOf(utbetalingslinje(periode = mai(2021)..desember(2021)))),
+            ) shouldBe true
+        }
+    }
+
+    @Test
+    fun `tidslinjens periode er ok dersom man kryper til en periode som er større`() {
+        val expectedPeriode = mai(2021)..desember(2021)
+        TidslinjeForUtbetalinger(nonEmptyListOf(utbetalingslinje(periode = expectedPeriode))).let {
+            it.periode shouldBe expectedPeriode
+            it.krympTilPeriode(år(2021))!!.ekvivalentMed(
+                TidslinjeForUtbetalinger(nonEmptyListOf(utbetalingslinje(periode = expectedPeriode))),
+            ) shouldBe true
+        }
+    }
+
+    @Test
+    fun `gir null dersom perioden som skal bli krympet til, ikke er i tidslinjens periode`() {
+        TidslinjeForUtbetalinger(nonEmptyListOf(utbetalingslinje())).let {
+            it.periode shouldBe år(2021)
+            it.krympTilPeriode(mai(2022)..november(2022)) shouldBe null
+        }
+    }
+
+    @Test
+    fun `ekvivalent innenfor periode med seg selv`() {
+        val expectedPeriode = år(2022)
+        val tidslinje = TidslinjeForUtbetalinger(nonEmptyListOf(utbetalingslinje(periode = expectedPeriode)))
+        tidslinje.ekvivalentMedInnenforPeriode(tidslinje, expectedPeriode) shouldBe true
+    }
+
+    @Test
+    fun `ekvivalent innenfor periode der 2 tidslinjer er ulik`() {
+        val tidslinje1 = TidslinjeForUtbetalinger(nonEmptyListOf(utbetalingslinje(periode = år(2022))))
+        val tidslinje2 = TidslinjeForUtbetalinger(
+            nonEmptyListOf(
+                opphørtUtbetalingslinje(periode = januar(2022)..mai(2022)),
+                utbetalingslinje(periode = juni(2022)..desember(2022)),
+            ),
+        )
+        tidslinje1.ekvivalentMedInnenforPeriode(tidslinje2, juni(2022)..desember(2022)) shouldBe true
+    }
+
+    @Test
+    fun `false selv om 2 ulike tidslinjer er ekvivalente, men perioden som sjekkes for har ikke noe relevans`() {
+        val tidslinje1 = TidslinjeForUtbetalinger(nonEmptyListOf(utbetalingslinje(periode = år(2022))))
+        val tidslinje2 = TidslinjeForUtbetalinger(
+            nonEmptyListOf(
+                opphørtUtbetalingslinje(periode = januar(2022)..mai(2022)),
+                utbetalingslinje(periode = juni(2022)..desember(2022)),
+            ),
+        )
+        tidslinje1.ekvivalentMedInnenforPeriode(tidslinje2, juni(2023)..desember(2023)) shouldBe false
     }
 }

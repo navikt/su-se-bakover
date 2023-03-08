@@ -38,7 +38,7 @@ object KryssjekkTidslinjerOgSimulering {
             }
 
         sjekkTidslinjeMotSimulering(
-            tidslinje = tidslinjeEksisterendeOgUnderArbeid,
+            tidslinjeEksisterendeOgUnderArbeid = tidslinjeEksisterendeOgUnderArbeid,
             simulering = simulertUtbetaling.simulering,
         ).getOrElse {
             log.error("Feil (${it.map { it::class.simpleName }}) ved kryssjekk av tidslinje og simulering. Se sikkerlogg for detaljer")
@@ -100,7 +100,7 @@ sealed class KryssjekkFeil(val prioritet: Int) : Comparable<KryssjekkFeil> {
 }
 
 private fun sjekkTidslinjeMotSimulering(
-    tidslinje: TidslinjeForUtbetalinger,
+    tidslinjeEksisterendeOgUnderArbeid: TidslinjeForUtbetalinger,
     simulering: Simulering,
 ): Either<List<KryssjekkFeil>, Unit> {
     val feil = mutableListOf<KryssjekkFeil>()
@@ -108,7 +108,7 @@ private fun sjekkTidslinjeMotSimulering(
     if (simulering.erAlleMånederUtenUtbetaling()) {
         simulering.periode().also { periode ->
             periode.måneder().forEach {
-                val utbetaling = tidslinje.gjeldendeForDato(it.fraOgMed)!!
+                val utbetaling = tidslinjeEksisterendeOgUnderArbeid.gjeldendeForDato(it.fraOgMed)!!
                 if (!(
                     utbetaling is UtbetalingslinjePåTidslinje.Stans ||
                         utbetaling is UtbetalingslinjePåTidslinje.Opphør ||
@@ -128,14 +128,14 @@ private fun sjekkTidslinjeMotSimulering(
         }
     } else {
         simulering.månederMedSimuleringsresultat().forEach { måned ->
-            val utbetaling = tidslinje.gjeldendeForDato(måned.fraOgMed)!!
+            val utbetaling = tidslinjeEksisterendeOgUnderArbeid.gjeldendeForDato(måned.fraOgMed)!!
             if (utbetaling is UtbetalingslinjePåTidslinje.Stans && simulering.harFeilutbetalinger()) {
                 feil.add(KryssjekkFeil.StansMedFeilutbetaling(måned))
             }
         }
 
         simulering.månederMedSimuleringsresultat().forEach { måned ->
-            val utbetaling = tidslinje.gjeldendeForDato(måned.fraOgMed)!!
+            val utbetaling = tidslinjeEksisterendeOgUnderArbeid.gjeldendeForDato(måned.fraOgMed)!!
             if (utbetaling is UtbetalingslinjePåTidslinje.Reaktivering && simulering.harFeilutbetalinger()) {
                 feil.add(KryssjekkFeil.GjenopptakMedFeilutbetaling(måned))
             }
@@ -145,7 +145,7 @@ private fun sjekkTidslinjeMotSimulering(
             kryssjekkBeløp(
                 tolketPeriode = månedsbeløp.periode,
                 simulertUtbetaling = månedsbeløp.beløp.sum(),
-                beløpPåTidslinje = tidslinje.gjeldendeForDato(månedsbeløp.periode.fraOgMed)!!.beløp,
+                beløpPåTidslinje = tidslinjeEksisterendeOgUnderArbeid.gjeldendeForDato(månedsbeløp.periode.fraOgMed)!!.beløp,
             ).getOrElse { feil.add(it) }
         }
     }

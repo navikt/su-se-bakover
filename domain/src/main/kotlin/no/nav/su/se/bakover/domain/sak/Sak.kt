@@ -240,23 +240,27 @@ data class Sak(
     /**
      * Henter minste antall sammenhengende perioder hvor vedtakene ikke er av typen opphør.
      */
-    fun hentIkkeOpphørtePerioder(
-        periode: Periode = Periode.create(
-            fraOgMed = LocalDate.MIN,
-            tilOgMed = LocalDate.MAX,
-        ),
-    ): List<Periode> {
-        return vedtakstidslinje(periode = periode).tidslinje.filterNot { it.erOpphør() }.map { it.periode }
+    fun hentIkkeOpphørtePerioder(): List<Periode> {
+        return vedtakstidslinje().tidslinje
+            .filterNot { it.erOpphør() }
+            .map { it.periode }
             .minsteAntallSammenhengendePerioder()
     }
 
     fun vedtakstidslinje(
-        periode: Periode = Periode.create(
-            fraOgMed = LocalDate.MIN,
-            tilOgMed = LocalDate.MAX,
-        ),
+        fraOgMed: Måned,
+    ): Tidslinje<VedtakSomKanRevurderes.VedtakPåTidslinje> {
+        return vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().lagTidslinje(fraOgMed)
+    }
+
+    fun vedtakstidslinje(
+        periode: Periode,
     ): Tidslinje<VedtakSomKanRevurderes.VedtakPåTidslinje> {
         return vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().lagTidslinje(periode)
+    }
+
+    fun vedtakstidslinje(): Tidslinje<VedtakSomKanRevurderes.VedtakPåTidslinje> {
+        return vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().lagTidslinje()
     }
 
     /** Skal ikke kunne ha mer enn én åpen klage av gangen. */

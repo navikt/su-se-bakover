@@ -2,7 +2,9 @@ package no.nav.su.se.bakover.domain.tidslinje
 
 import no.nav.su.se.bakover.common.application.CopyArgs
 import no.nav.su.se.bakover.common.between
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.Validator.valider
 import java.time.LocalDate
@@ -21,8 +23,9 @@ import java.util.LinkedList
  * @see MaskerFraTidslinje
  */
 class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
-    private val periode: Periode,
     private val objekter: List<KanPlasseresPåTidslinjeMedSegSelv<T>>,
+    // TODO jah: Endre objekter til NEL og fjerne else-casen
+    private val periode: Periode = if (objekter.isNotEmpty()) objekter.map { it.periode }.minAndMaxOf() else Periode.create(LocalDate.MIN, LocalDate.MAX),
 ) {
     companion object {
         @JvmName("intern")
@@ -30,15 +33,42 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
             periode: Periode,
             objekter: List<KanPlasseresPåTidslinjeMedSegSelv<T>>,
         ): Tidslinje<T> {
-            return Tidslinje(periode, objekter)
+            return Tidslinje(
+                objekter = objekter,
+                periode = periode,
+            )
         }
 
-        @JvmName("tidslinje")
+        @JvmName("tidslinjeFraPeriode")
         operator fun <T : KanPlasseresPåTidslinje<T>> invoke(
             periode: Periode,
             objekter: List<KanPlasseresPåTidslinje<T>>,
         ): Tidslinje<T> {
-            return Tidslinje(periode, objekter)
+            return Tidslinje(
+                objekter = objekter,
+                periode = periode,
+            )
+        }
+
+        @JvmName("tidslinjeFraMåned")
+        operator fun <T : KanPlasseresPåTidslinje<T>> invoke(
+            fraOgMed: Måned,
+            objekter: List<KanPlasseresPåTidslinje<T>>,
+        ): Tidslinje<T> {
+            return Tidslinje(
+                objekter = objekter,
+                periode = Periode.create(
+                    fraOgMed = fraOgMed.fraOgMed,
+                    tilOgMed = LocalDate.MAX,
+                ),
+            )
+        }
+
+        @JvmName("tidslinje")
+        operator fun <T : KanPlasseresPåTidslinje<T>> invoke(
+            objekter: List<KanPlasseresPåTidslinje<T>>,
+        ): Tidslinje<T> {
+            return Tidslinje(objekter)
         }
 
         object Validator {

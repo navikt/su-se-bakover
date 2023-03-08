@@ -46,6 +46,25 @@ fun utbetalingslinje(
     uføregrad = Uføregrad.parse(uføregrad),
     utbetalingsinstruksjonForEtterbetalinger = kjøreplan,
 )
+fun opphørtUtbetalingslinje(
+    id: UUID30 = UUID30.randomUUID(),
+    periode: Periode = år(2021),
+    clock: Clock = fixedClock,
+    beløp: Int = 15000,
+    forrigeUtbetalingslinjeId: UUID30? = null,
+    uføregrad: Int = 50,
+    kjøreplan: UtbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+) = Utbetalingslinje.Endring.Opphør(
+    id = id,
+    opprettet = Tidspunkt.now(clock),
+    fraOgMed = periode.fraOgMed,
+    tilOgMed = periode.tilOgMed,
+    forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
+    beløp = beløp,
+    uføregrad = Uføregrad.parse(uføregrad),
+    virkningsperiode = periode,
+    utbetalingsinstruksjonForEtterbetalinger = kjøreplan,
+)
 
 fun nyUtbetalingForSimulering(
     sakOgBehandling: Pair<Sak, Behandling>,

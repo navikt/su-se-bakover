@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.Sak
 import org.slf4j.LoggerFactory
@@ -36,13 +36,13 @@ fun Sak.opprettEllerOppdaterRegulering(
         }
 
     val periode = vedtakstidslinje(
-        periode = Periode.create(
-            fraOgMed = _startDato,
-            tilOgMed = LocalDate.MAX,
-        ),
+        fraOgMed = Måned.fra(_startDato),
     ).tidslinje.let { tidslinje ->
-        tidslinje.filterNot { it.erOpphør() }.map { vedtakUtenOpphør -> vedtakUtenOpphør.periode }
-            .minsteAntallSammenhengendePerioder().ifEmpty {
+        tidslinje
+            .filterNot { it.erOpphør() }
+            .map { vedtakUtenOpphør -> vedtakUtenOpphør.periode }
+            .minsteAntallSammenhengendePerioder()
+            .ifEmpty {
                 log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere fra og med $_startDato")
                 return Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
             }

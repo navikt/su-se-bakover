@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.application.CopyArgs
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Behandling
@@ -761,10 +762,30 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
         }
     }
 }
+fun List<VedtakSomKanRevurderes>.lagTidslinje(): Tidslinje<VedtakSomKanRevurderes.VedtakPåTidslinje> {
+    return Tidslinje(mapTilVedtakPåTidslinjeTyper())
+}
 
-// TODO: ("Må sees i sammenheng med evt endringer knyttet til hvilke vedtakstyper som legges til grunn for revurdering")
-fun List<VedtakSomKanRevurderes>.lagTidslinje(periode: Periode): Tidslinje<VedtakSomKanRevurderes.VedtakPåTidslinje> =
-    map {
+fun List<VedtakSomKanRevurderes>.lagTidslinje(
+    fraOgMed: Måned,
+): Tidslinje<VedtakSomKanRevurderes.VedtakPåTidslinje> {
+    return Tidslinje(
+        fraOgMed = fraOgMed,
+        objekter = mapTilVedtakPåTidslinjeTyper(),
+    )
+}
+
+fun List<VedtakSomKanRevurderes>.lagTidslinje(
+    periode: Periode,
+): Tidslinje<VedtakSomKanRevurderes.VedtakPåTidslinje> {
+    return Tidslinje(
+        periode = periode,
+        objekter = mapTilVedtakPåTidslinjeTyper(),
+    )
+}
+
+private fun List<VedtakSomKanRevurderes>.mapTilVedtakPåTidslinjeTyper(): List<VedtakSomKanRevurderes.VedtakPåTidslinje> {
+    return map {
         VedtakSomKanRevurderes.VedtakPåTidslinje(
             opprettet = it.opprettet,
             periode = it.periode,
@@ -772,12 +793,8 @@ fun List<VedtakSomKanRevurderes>.lagTidslinje(periode: Periode): Tidslinje<Vedta
             vilkårsvurderinger = it.behandling.vilkårsvurderinger,
             originaltVedtak = it,
         )
-    }.let {
-        Tidslinje(
-            periode = periode,
-            objekter = it,
-        )
     }
+}
 
 private fun Dokumenttilstand?.setDokumentTilstandBasertPåBehandlingHvisNull(b: Behandling): Dokumenttilstand =
     when (this) {
