@@ -115,7 +115,7 @@ import no.nav.su.se.bakover.domain.revurdering.vilkår.formue.KunneIkkeLeggeTilF
 import no.nav.su.se.bakover.domain.revurdering.vilkår.fradag.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.domain.revurdering.vilkår.uføre.KunneIkkeLeggeTilUføreVilkår
 import no.nav.su.se.bakover.domain.revurdering.vilkår.utenlandsopphold.KunneIkkeLeggeTilUtenlandsopphold
-import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
+import no.nav.su.se.bakover.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
@@ -354,13 +354,13 @@ open class AccessCheckProxy(
                     return services.sak.opprettSak(sak)
                 }
 
-                override fun hentÅpneBehandlingerForAlleSaker(): List<Behandlingsoversikt> {
+                override fun hentÅpneBehandlingerForAlleSaker(): List<Behandlingssammendrag> {
                     // vi gjør ikke noe assert fordi vi ikke sender noe sensitiv info.
                     // Samtidig som at dem går gjennom hentSak() når de skal saksbehandle
                     return services.sak.hentÅpneBehandlingerForAlleSaker()
                 }
 
-                override fun hentFerdigeBehandlingerForAlleSaker(): List<Behandlingsoversikt> {
+                override fun hentFerdigeBehandlingerForAlleSaker(): List<Behandlingssammendrag> {
                     return services.sak.hentFerdigeBehandlingerForAlleSaker()
                 }
 

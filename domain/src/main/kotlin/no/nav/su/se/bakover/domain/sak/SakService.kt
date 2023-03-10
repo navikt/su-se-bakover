@@ -32,8 +32,8 @@ interface SakService {
     ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak, GjeldendeVedtaksdata>
 
     fun opprettSak(sak: NySak)
-    fun hentÅpneBehandlingerForAlleSaker(): List<Behandlingsoversikt>
-    fun hentFerdigeBehandlingerForAlleSaker(): List<Behandlingsoversikt>
+    fun hentÅpneBehandlingerForAlleSaker(): List<Behandlingssammendrag>
+    fun hentFerdigeBehandlingerForAlleSaker(): List<Behandlingssammendrag>
     fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr): AlleredeGjeldendeSakForBruker
     fun hentSakidOgSaksnummer(fnr: Fnr): Either<FantIkkeSak, SakInfo>
     fun hentSakInfo(sakId: UUID): Either<FantIkkeSak, SakInfo>

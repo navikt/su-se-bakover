@@ -2,8 +2,12 @@ package no.nav.su.se.bakover.database.sak
 
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.februar
+import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.februar
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
-import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
+import no.nav.su.se.bakover.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
@@ -34,26 +38,29 @@ internal class FerdigeBehandlingerRepoTest {
             ferdigeBehandlinger.size shouldBe 3
 
             ferdigeBehandlinger shouldContainExactlyInAnyOrder listOf(
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = Saksnummer(2021),
                     behandlingsId = iverksattSøknadsbehandlingInnvilget.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                     behandlingStartet = iverksattSøknadsbehandlingInnvilget.attesteringer.hentSisteAttestering().opprettet,
-                    status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
+                    status = Behandlingssammendrag.Behandlingsstatus.INNVILGET,
+                    periode = år(2021),
                 ),
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = Saksnummer(2022),
                     behandlingsId = iverksattSøknadsbehadnlingAvslagMedBeregning.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                     behandlingStartet = iverksattSøknadsbehadnlingAvslagMedBeregning.attesteringer.hentSisteAttestering().opprettet,
-                    status = Behandlingsoversikt.Behandlingsstatus.AVSLAG,
+                    status = Behandlingssammendrag.Behandlingsstatus.AVSLAG,
+                    periode = år(2021),
                 ),
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = Saksnummer(2023),
                     behandlingsId = iverksattSøknadsbehadnlingAvslagUtenBeregning.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                     behandlingStartet = iverksattSøknadsbehadnlingAvslagUtenBeregning.attesteringer.hentSisteAttestering().opprettet,
-                    status = Behandlingsoversikt.Behandlingsstatus.AVSLAG,
+                    status = Behandlingssammendrag.Behandlingsstatus.AVSLAG,
+                    periode = år(2021),
                 ),
             )
         }
@@ -79,82 +86,91 @@ internal class FerdigeBehandlingerRepoTest {
             ferdigeBehandlinger shouldContainExactlyInAnyOrder listOf(
                 testDataHelper.vedtakRepo.hentVedtakForId(iverksattRevurderingInnvilget.tilRevurdering)!!
                     .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().behandling.let {
-                        Behandlingsoversikt(
+                        Behandlingssammendrag(
                             saksnummer = Saksnummer(2021),
                             behandlingsId = it.id,
-                            behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                            behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                             behandlingStartet = it.attesteringer.hentSisteAttestering().opprettet,
-                            status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
+                            status = Behandlingssammendrag.Behandlingsstatus.INNVILGET,
+                            periode = år(2021),
                         )
                     },
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = Saksnummer(2021),
                     behandlingsId = iverksattRevurderingInnvilget.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
                     behandlingStartet = iverksattRevurderingInnvilget.attesteringer.hentSisteAttestering().opprettet,
-                    status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
+                    status = Behandlingssammendrag.Behandlingsstatus.INNVILGET,
+                    periode = år(2021),
                 ),
                 testDataHelper.vedtakRepo.hentVedtakForId(iverksattRevurderingOpphørt.tilRevurdering)!!
                     .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().behandling.let {
-                        Behandlingsoversikt(
+                        Behandlingssammendrag(
                             saksnummer = Saksnummer(2022),
                             behandlingsId = it.id,
-                            behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                            behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                             behandlingStartet = it.attesteringer.hentSisteAttestering().opprettet,
-                            status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
+                            status = Behandlingssammendrag.Behandlingsstatus.INNVILGET,
+                            periode = år(2021),
                         )
                     },
 
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = Saksnummer(2022),
                     behandlingsId = iverksattRevurderingOpphørt.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
                     behandlingStartet = iverksattRevurderingOpphørt.attesteringer.hentSisteAttestering().opprettet,
-                    status = Behandlingsoversikt.Behandlingsstatus.OPPHØR,
+                    status = Behandlingssammendrag.Behandlingsstatus.OPPHØR,
+                    periode = år(2021),
                 ),
                 testDataHelper.vedtakRepo.hentVedtakForId(iverksattStansAvYtelse.behandling.tilRevurdering)!!
                     .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().behandling.let {
-                        Behandlingsoversikt(
+                        Behandlingssammendrag(
                             saksnummer = Saksnummer(2023),
                             behandlingsId = it.id,
-                            behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                            behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                             behandlingStartet = it.attesteringer.hentSisteAttestering().opprettet,
-                            status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
+                            status = Behandlingssammendrag.Behandlingsstatus.INNVILGET,
+                            periode = år(2021),
                         )
                     },
 
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = Saksnummer(2023),
                     behandlingsId = iverksattStansAvYtelse.behandling.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
                     behandlingStartet = iverksattStansAvYtelse.behandling.attesteringer.hentSisteAttestering().opprettet,
-                    status = Behandlingsoversikt.Behandlingsstatus.STANS,
+                    status = Behandlingssammendrag.Behandlingsstatus.STANS,
+                    periode = februar(2021)..desember(2021),
                 ),
                 testDataHelper.vedtakRepo.hentVedtakForId(iverksattGjenopptak.tilRevurdering)!!
                     .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().behandling.let {
-                        Behandlingsoversikt(
+                        Behandlingssammendrag(
                             saksnummer = Saksnummer(2024),
                             behandlingsId = it.id,
-                            behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                            behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                             behandlingStartet = it.attesteringer.hentSisteAttestering().opprettet,
-                            status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
+                            status = Behandlingssammendrag.Behandlingsstatus.INNVILGET,
+                            periode = år(2021),
                         )
                     },
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = Saksnummer(2024),
                     behandlingsId = iverksattGjenopptak.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
                     behandlingStartet = iverksattGjenopptak.attesteringer.hentSisteAttestering().opprettet,
-                    status = Behandlingsoversikt.Behandlingsstatus.GJENOPPTAK,
+                    status = Behandlingssammendrag.Behandlingsstatus.GJENOPPTAK,
+                    periode = februar(2021)..desember(2021),
                 ),
                 testDataHelper.vedtakRepo.hentVedtakForId(beregnetRevurdering.tilRevurdering)!!
                     .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().behandling.let {
-                        Behandlingsoversikt(
+                        Behandlingssammendrag(
                             saksnummer = Saksnummer(2025),
                             behandlingsId = it.id,
-                            behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                            behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                             behandlingStartet = it.attesteringer.hentSisteAttestering().opprettet,
-                            status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
+                            status = Behandlingssammendrag.Behandlingsstatus.INNVILGET,
+                            periode = år(2021),
                         )
                     },
             )
@@ -189,47 +205,53 @@ internal class FerdigeBehandlingerRepoTest {
             ferdigeBehandlinger.size shouldBe 6
 
             ferdigeBehandlinger shouldContainExactlyInAnyOrder listOf(
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = Saksnummer(2021),
                     behandlingsId = vedtakSak1.behandling.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                     behandlingStartet = vedtakSak1.behandling.attesteringer.hentSisteAttestering().opprettet,
-                    status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
+                    status = Behandlingssammendrag.Behandlingsstatus.INNVILGET,
+                    periode = år(2021),
                 ),
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = Saksnummer(2021),
                     behandlingsId = oversendtKlage.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.KLAGE,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.KLAGE,
                     behandlingStartet = oversendtKlage.attesteringer.hentSisteAttestering().opprettet,
-                    status = Behandlingsoversikt.Behandlingsstatus.OVERSENDT,
+                    status = Behandlingssammendrag.Behandlingsstatus.OVERSENDT,
+                    periode = null,
                 ),
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = Saksnummer(2022),
                     behandlingsId = vedtakSak2.behandling.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                     behandlingStartet = vedtakSak2.behandling.attesteringer.hentSisteAttestering().opprettet,
-                    status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
+                    status = Behandlingssammendrag.Behandlingsstatus.INNVILGET,
+                    periode = år(2021),
                 ),
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = Saksnummer(2022),
                     behandlingsId = iverksattAvvistKlage.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.KLAGE,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.KLAGE,
                     behandlingStartet = iverksattAvvistKlage.attesteringer.hentSisteAttestering().opprettet,
-                    status = Behandlingsoversikt.Behandlingsstatus.AVSLAG,
+                    status = Behandlingssammendrag.Behandlingsstatus.AVSLAG,
+                    periode = null,
                 ),
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = Saksnummer(2023),
                     behandlingsId = vedtakSak3.behandling.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                     behandlingStartet = vedtakSak3.behandling.attesteringer.hentSisteAttestering().opprettet,
-                    status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
+                    status = Behandlingssammendrag.Behandlingsstatus.INNVILGET,
+                    periode = år(2021),
                 ),
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = Saksnummer(2024),
                     behandlingsId = vedtakSak4.behandling.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                     behandlingStartet = vedtakSak4.behandling.attesteringer.hentSisteAttestering().opprettet,
-                    status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
+                    status = Behandlingssammendrag.Behandlingsstatus.INNVILGET,
+                    periode = år(2021),
                 ),
             )
         }

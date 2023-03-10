@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.database.sak
 
 import kotliquery.Row
+import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.Session
 import no.nav.su.se.bakover.common.persistence.hentListe
@@ -8,7 +10,7 @@ import no.nav.su.se.bakover.common.persistence.tidspunktOrNull
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB
-import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
+import no.nav.su.se.bakover.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import java.util.UUID
 
@@ -18,7 +20,7 @@ internal class ÅpneBehandlingerRepo(
     /**
      * Henter åpne søknadsbehandlinger, åpne revurderinger, åpne klager, og nye søknader
      */
-    fun hentÅpneBehandlinger(session: Session): List<Behandlingsoversikt> {
+    fun hentÅpneBehandlinger(session: Session): List<Behandlingssammendrag> {
         return dbMetrics.timeQuery("hentÅpneBehandlinger") {
             //language=sql
             """
@@ -27,19 +29,19 @@ internal class ÅpneBehandlingerRepo(
                 from sak
             ),
                  behandlinger as (
-                     select sak.sakId, sak.saksnummer, b.id, b.opprettet, b.status as status, 'SØKNADSBEHANDLING' as type
+                     select sak.sakId, sak.saksnummer, b.id, b.opprettet, b.status as status, 'SØKNADSBEHANDLING' as type, (stønadsperiode ->> 'periode')::jsonb as periode
                      from sak
                               join behandling b on b.sakid = sak.sakId
                      where b.status not like ('IVERKSATT%') and b.lukket = false
                  ),
                  revurderinger as (
-                     select sak.sakId, sak.saksnummer, r.id, r.opprettet, r.revurderingstype as status, 'REVURDERING' as type
+                     select sak.sakId, sak.saksnummer, r.id, r.opprettet, r.revurderingstype as status, 'REVURDERING' as type, (r.periode)::jsonb as periode
                      from sak
                               join revurdering r on r.sakid = sak.sakId
                      where r.revurderingstype not like ('IVERKSATT%') and r.avsluttet is null
                  ),
                  klage as (
-                     select sak.sakId, sak.saksnummer, k.id, k.opprettet, k.type as status, 'KLAGE' as type
+                     select sak.sakId, sak.saksnummer, k.id, k.opprettet, k.type as status, 'KLAGE' as type, null::jsonb as periode
                      from sak
                               join klage k on sak.sakId = k.sakid
                      where k.type not like ('iverksatt%') and k.type not like 'oversendt' and k.avsluttet is null
@@ -51,7 +53,8 @@ internal class ÅpneBehandlingerRepo(
                         s.id,
                         null::timestamp as opprettet,
                         'NY_SØKNAD' as status,
-                        'SØKNAD' as type
+                        'SØKNAD' as type,
+                        null::jsonb as periode
                      from sak
                               join søknad s on sak.sakId = s.sakid
                      where s.lukket is null
@@ -78,23 +81,24 @@ internal class ÅpneBehandlingerRepo(
         }
     }
 
-    private fun Row.toBehandlingsoversikt(): Behandlingsoversikt {
+    private fun Row.toBehandlingsoversikt(): Behandlingssammendrag {
         val behandlingstype = BehandlingsTypeDB.valueOf(string("type"))
 
-        return Behandlingsoversikt(
+        return Behandlingssammendrag(
             saksnummer = Saksnummer(long("saksnummer")),
             behandlingsId = UUID.fromString(string("id")),
             behandlingstype = behandlingstype.toBehandlingstype(),
             status = hentÅpenBehandlingStatus(behandlingstype),
             behandlingStartet = tidspunktOrNull("opprettet"),
+            periode = stringOrNull("periode")?.let { deserialize<Periode>(it) },
         )
     }
 
     private fun Row.hentÅpenBehandlingStatus(
         behandlingsTypeDB: BehandlingsTypeDB,
-    ): Behandlingsoversikt.Behandlingsstatus {
+    ): Behandlingssammendrag.Behandlingsstatus {
         return when (behandlingsTypeDB) {
-            BehandlingsTypeDB.SØKNAD -> Behandlingsoversikt.Behandlingsstatus.NY_SØKNAD
+            BehandlingsTypeDB.SØKNAD -> Behandlingssammendrag.Behandlingsstatus.NY_SØKNAD
             BehandlingsTypeDB.SØKNADSBEHANDLING -> SøknadsbehandlingStatusDB.valueOf(string("status")).tilBehandlingsstatus()
             BehandlingsTypeDB.REVURDERING -> RevurderingsType.valueOf(string("status")).tilBehandlingsstatus()
             BehandlingsTypeDB.KLAGE -> KlagePostgresRepo.Tilstand.fromString(string("status")).tilBehandlingsstatus()
@@ -102,7 +106,7 @@ internal class ÅpneBehandlingerRepo(
     }
 }
 
-private fun SøknadsbehandlingStatusDB.tilBehandlingsstatus(): Behandlingsoversikt.Behandlingsstatus {
+private fun SøknadsbehandlingStatusDB.tilBehandlingsstatus(): Behandlingssammendrag.Behandlingsstatus {
     return when (this) {
         SøknadsbehandlingStatusDB.OPPRETTET,
         SøknadsbehandlingStatusDB.VILKÅRSVURDERT_INNVILGET,
@@ -110,15 +114,15 @@ private fun SøknadsbehandlingStatusDB.tilBehandlingsstatus(): Behandlingsoversi
         SøknadsbehandlingStatusDB.BEREGNET_INNVILGET,
         SøknadsbehandlingStatusDB.BEREGNET_AVSLAG,
         SøknadsbehandlingStatusDB.SIMULERT,
-        -> Behandlingsoversikt.Behandlingsstatus.UNDER_BEHANDLING
+        -> Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING
 
         SøknadsbehandlingStatusDB.TIL_ATTESTERING_INNVILGET,
         SøknadsbehandlingStatusDB.TIL_ATTESTERING_AVSLAG,
-        -> Behandlingsoversikt.Behandlingsstatus.TIL_ATTESTERING
+        -> Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING
 
         SøknadsbehandlingStatusDB.UNDERKJENT_INNVILGET,
         SøknadsbehandlingStatusDB.UNDERKJENT_AVSLAG,
-        -> Behandlingsoversikt.Behandlingsstatus.UNDERKJENT
+        -> Behandlingssammendrag.Behandlingsstatus.UNDERKJENT
 
         SøknadsbehandlingStatusDB.IVERKSATT_INNVILGET,
         SøknadsbehandlingStatusDB.IVERKSATT_AVSLAG,
@@ -126,24 +130,24 @@ private fun SøknadsbehandlingStatusDB.tilBehandlingsstatus(): Behandlingsoversi
     }
 }
 
-private fun RevurderingsType.tilBehandlingsstatus(): Behandlingsoversikt.Behandlingsstatus {
+private fun RevurderingsType.tilBehandlingsstatus(): Behandlingssammendrag.Behandlingsstatus {
     return when (this) {
         RevurderingsType.OPPRETTET,
         RevurderingsType.BEREGNET_INNVILGET,
         RevurderingsType.BEREGNET_OPPHØRT,
         RevurderingsType.SIMULERT_INNVILGET,
         RevurderingsType.SIMULERT_OPPHØRT,
-        -> Behandlingsoversikt.Behandlingsstatus.UNDER_BEHANDLING
+        -> Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING
 
         RevurderingsType.SIMULERT_STANS,
         RevurderingsType.SIMULERT_GJENOPPTAK,
         RevurderingsType.TIL_ATTESTERING_INNVILGET,
         RevurderingsType.TIL_ATTESTERING_OPPHØRT,
-        -> Behandlingsoversikt.Behandlingsstatus.TIL_ATTESTERING
+        -> Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING
 
         RevurderingsType.UNDERKJENT_INNVILGET,
         RevurderingsType.UNDERKJENT_OPPHØRT,
-        -> Behandlingsoversikt.Behandlingsstatus.UNDERKJENT
+        -> Behandlingssammendrag.Behandlingsstatus.UNDERKJENT
 
         RevurderingsType.IVERKSATT_STANS,
         RevurderingsType.IVERKSATT_GJENOPPTAK,
@@ -153,7 +157,7 @@ private fun RevurderingsType.tilBehandlingsstatus(): Behandlingsoversikt.Behandl
     }
 }
 
-private fun KlagePostgresRepo.Tilstand.tilBehandlingsstatus(): Behandlingsoversikt.Behandlingsstatus {
+private fun KlagePostgresRepo.Tilstand.tilBehandlingsstatus(): Behandlingssammendrag.Behandlingsstatus {
     return when (this) {
         KlagePostgresRepo.Tilstand.OPPRETTET,
         KlagePostgresRepo.Tilstand.VILKÅRSVURDERT_PÅBEGYNT,
@@ -165,11 +169,11 @@ private fun KlagePostgresRepo.Tilstand.tilBehandlingsstatus(): Behandlingsoversi
         KlagePostgresRepo.Tilstand.VURDERT_UTFYLT,
         KlagePostgresRepo.Tilstand.VURDERT_BEKREFTET,
         KlagePostgresRepo.Tilstand.AVVIST,
-        -> Behandlingsoversikt.Behandlingsstatus.UNDER_BEHANDLING
+        -> Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING
 
         KlagePostgresRepo.Tilstand.TIL_ATTESTERING_TIL_VURDERING,
         KlagePostgresRepo.Tilstand.TIL_ATTESTERING_AVVIST,
-        -> Behandlingsoversikt.Behandlingsstatus.TIL_ATTESTERING
+        -> Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING
 
         KlagePostgresRepo.Tilstand.OVERSENDT,
         KlagePostgresRepo.Tilstand.IVERKSATT_AVVIST,
@@ -184,12 +188,12 @@ private enum class BehandlingsTypeDB {
     KLAGE,
     ;
 
-    fun toBehandlingstype(): Behandlingsoversikt.Behandlingstype {
+    fun toBehandlingstype(): Behandlingssammendrag.Behandlingstype {
         return when (this) {
-            SØKNAD -> Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING
-            SØKNADSBEHANDLING -> Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING
-            REVURDERING -> Behandlingsoversikt.Behandlingstype.REVURDERING
-            KLAGE -> Behandlingsoversikt.Behandlingstype.KLAGE
+            SØKNAD -> Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING
+            SØKNADSBEHANDLING -> Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING
+            REVURDERING -> Behandlingssammendrag.Behandlingstype.REVURDERING
+            KLAGE -> Behandlingssammendrag.Behandlingstype.KLAGE
         }
     }
 }

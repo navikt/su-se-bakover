@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.PersonService
-import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
+import no.nav.su.se.bakover.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
@@ -174,11 +174,11 @@ class SakServiceImpl(
         }
     }
 
-    override fun hentÅpneBehandlingerForAlleSaker(): List<Behandlingsoversikt> {
+    override fun hentÅpneBehandlingerForAlleSaker(): List<Behandlingssammendrag> {
         return sakRepo.hentÅpneBehandlinger()
     }
 
-    override fun hentFerdigeBehandlingerForAlleSaker(): List<Behandlingsoversikt> {
+    override fun hentFerdigeBehandlingerForAlleSaker(): List<Behandlingssammendrag> {
         return sakRepo.hentFerdigeBehandlinger()
     }
 
