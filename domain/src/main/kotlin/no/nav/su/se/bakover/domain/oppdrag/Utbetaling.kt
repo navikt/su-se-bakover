@@ -9,8 +9,7 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.and
-import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.minAndMaxOf
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -21,7 +20,7 @@ import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import java.time.LocalDate
 import java.util.UUID
 
-sealed interface Utbetaling {
+sealed interface Utbetaling : Comparable<Utbetaling> {
     val id: UUID30
     val opprettet: Tidspunkt
     val sakId: UUID
@@ -31,6 +30,10 @@ sealed interface Utbetaling {
     val behandler: NavIdentBruker
     val avstemmingsnøkkel: Avstemmingsnøkkel
     val sakstype: Sakstype
+
+    override fun compareTo(other: Utbetaling): Int {
+        return this.opprettet.instant.compareTo(other.opprettet.instant)
+    }
 
     fun sisteUtbetalingslinje() = utbetalingslinjer.last()
 
@@ -141,9 +144,17 @@ sealed interface Utbetaling {
  * Returnerer utbetalingene sortert økende etter tidspunktet de er sendt til oppdrag. Filtrer bort de som er kvittert feil.
  * TODO jah: Ved initialisering e.l. gjør en faktisk verifikasjon på at ref-verdier på utbetalingslinjene har riktig rekkefølge
  */
-internal fun List<Utbetaling>.hentOversendteUtbetalingerUtenFeil(): List<Utbetaling> =
-    this.filter { it is Utbetaling.OversendtUtbetaling.UtenKvittering || it is Utbetaling.OversendtUtbetaling.MedKvittering && it.kvittering.erKvittertOk() }
-        .sortedWith(utbetalingsSortering)
+internal fun List<Utbetaling>.hentOversendteUtbetalingerUtenFeil(): List<Utbetaling> {
+    return this.filter {
+        when (it) {
+            is Utbetaling.OversendtUtbetaling.MedKvittering -> it.kvittering.erKvittertOk()
+            is Utbetaling.OversendtUtbetaling.UtenKvittering -> true
+            is Utbetaling.SimulertUtbetaling,
+            is Utbetaling.UtbetalingForSimulering,
+            -> false
+        }
+    }.sorted()
+}
 
 internal fun List<Utbetaling>.hentOversendteUtbetalingslinjerUtenFeil(): List<Utbetalingslinje> {
     return hentOversendteUtbetalingerUtenFeil().flatMap { it.utbetalingslinjer }
@@ -177,18 +188,15 @@ sealed class UtbetalingFeilet {
     }
 }
 
-fun List<Utbetaling>.tidslinje(periode: Periode? = null): Either<IngenUtbetalinger, TidslinjeForUtbetalinger> {
-    return flatMap { it.utbetalingslinjer }.tidslinje(periode = periode)
+fun List<Utbetaling>.tidslinje(): Either<IngenUtbetalinger, TidslinjeForUtbetalinger> {
+    return flatMap { it.utbetalingslinjer }.tidslinje()
 }
 
 @JvmName("utbetalingslinjeTidslinje")
-fun List<Utbetalingslinje>.tidslinje(periode: Periode? = null): Either<IngenUtbetalinger, TidslinjeForUtbetalinger> {
+fun List<Utbetalingslinje>.tidslinje(): Either<IngenUtbetalinger, TidslinjeForUtbetalinger> {
     return ifEmpty { return IngenUtbetalinger.left() }
         .let { utbetalingslinjer ->
-            TidslinjeForUtbetalinger(
-                periode = periode ?: utbetalingslinjer.map { it.periode }.minAndMaxOf(),
-                utbetalingslinjer = utbetalingslinjer,
-            ).right()
+            TidslinjeForUtbetalinger(utbetalingslinjer = utbetalingslinjer.toNonEmptyList()).right()
         }
 }
 
@@ -208,14 +216,6 @@ fun List<Utbetaling>.hentGjeldendeUtbetaling(forDato: LocalDate): Either<FantIkk
 }
 
 object FantIkkeGjeldendeUtbetaling
-
-val utbetalingsSortering = Comparator<Utbetaling> { o1, o2 ->
-    o1.opprettet.instant.compareTo(o2.opprettet.instant)
-}
-
-val utbetalingslinjeSortering = Comparator<Utbetalingslinje> { o1, o2 ->
-    o1.opprettet.instant.compareTo(o2.opprettet.instant)
-}
 
 /**
  * @param utbetaling en simulert utbetaling med generert XML for publisering på kø mot oppdragssystemet (OS).

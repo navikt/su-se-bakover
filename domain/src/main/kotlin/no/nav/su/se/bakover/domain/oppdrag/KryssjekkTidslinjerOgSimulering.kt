@@ -31,14 +31,14 @@ object KryssjekkTidslinjerOgSimulering {
             }
 
         val tidslinjeEksisterendeOgUnderArbeid = (eksisterende + underArbeid)
-            .tidslinje(periode = periode)
+            .tidslinje()
             .getOrElse {
                 log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke generere tidslinjer: $it")
                 return KryssjekkAvTidslinjeOgSimuleringFeilet.KunneIkkeGenerereTidslinje.left()
             }
 
         sjekkTidslinjeMotSimulering(
-            tidslinje = tidslinjeEksisterendeOgUnderArbeid,
+            tidslinjeEksisterendeOgUnderArbeid = tidslinjeEksisterendeOgUnderArbeid,
             simulering = simulertUtbetaling.simulering,
         ).getOrElse {
             log.error("Feil (${it.map { it::class.simpleName }}) ved kryssjekk av tidslinje og simulering. Se sikkerlogg for detaljer")
@@ -51,20 +51,16 @@ object KryssjekkTidslinjerOgSimulering {
                 fraOgMed = underArbeidEndringsperiode.tilOgMed.førsteINesteMåned(),
                 tilOgMed = eksisterende.maxOf { it.senesteDato() },
             )
-            val tidslinjeUnderArbeid = listOf(underArbeid).tidslinje(
-                periode = rekonstruertPeriode,
-            ).getOrElse {
+            val tidslinjeUnderArbeid = listOf(underArbeid).tidslinje().getOrElse {
                 log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke generere tidslinjer: $it")
                 return KryssjekkAvTidslinjeOgSimuleringFeilet.KunneIkkeGenerereTidslinje.left()
             }
 
-            val tidslinjeEksisterende = eksisterende.tidslinje(
-                periode = rekonstruertPeriode,
-            ).getOrElse {
+            val tidslinjeEksisterende = eksisterende.tidslinje().getOrElse {
                 log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke generere tidslinjer: $it")
                 return KryssjekkAvTidslinjeOgSimuleringFeilet.KunneIkkeGenerereTidslinje.left()
             }
-            if (!tidslinjeUnderArbeid.ekvivalentMed(tidslinje = tidslinjeEksisterende, periode = rekonstruertPeriode)) {
+            if (!tidslinjeUnderArbeid.ekvivalentMedInnenforPeriode(tidslinjeEksisterende, rekonstruertPeriode)) {
                 log.error("Feil ved kryssjekk av tidslinje og simulering. Tidslinje for ny utbetaling er ulik eksisterende. Se sikkerlogg for detaljer")
                 sikkerLogg.error("Feil ved kryssjekk av tidslinje: Tidslinje for ny utbetaling:$tidslinjeUnderArbeid er ulik eksisterende:$tidslinjeEksisterende for rekonstruert periode:$rekonstruertPeriode")
                 return KryssjekkAvTidslinjeOgSimuleringFeilet.RekonstruertUtbetalingsperiodeErUlikOpprinnelig.left()
@@ -91,6 +87,7 @@ sealed class KryssjekkFeil(val prioritet: Int) : Comparable<KryssjekkFeil> {
         val simulertType: String,
         val tidslinjeType: String,
     ) : KryssjekkFeil(prioritet = 2)
+
     data class SimulertBeløpOgTidslinjeBeløpErForskjellig(
         val periode: Måned,
         val simulertBeløp: Int,
@@ -103,7 +100,7 @@ sealed class KryssjekkFeil(val prioritet: Int) : Comparable<KryssjekkFeil> {
 }
 
 private fun sjekkTidslinjeMotSimulering(
-    tidslinje: TidslinjeForUtbetalinger,
+    tidslinjeEksisterendeOgUnderArbeid: TidslinjeForUtbetalinger,
     simulering: Simulering,
 ): Either<List<KryssjekkFeil>, Unit> {
     val feil = mutableListOf<KryssjekkFeil>()
@@ -111,7 +108,7 @@ private fun sjekkTidslinjeMotSimulering(
     if (simulering.erAlleMånederUtenUtbetaling()) {
         simulering.periode().also { periode ->
             periode.måneder().forEach {
-                val utbetaling = tidslinje.gjeldendeForDato(it.fraOgMed)!!
+                val utbetaling = tidslinjeEksisterendeOgUnderArbeid.gjeldendeForDato(it.fraOgMed)!!
                 if (!(
                     utbetaling is UtbetalingslinjePåTidslinje.Stans ||
                         utbetaling is UtbetalingslinjePåTidslinje.Opphør ||
@@ -131,14 +128,14 @@ private fun sjekkTidslinjeMotSimulering(
         }
     } else {
         simulering.månederMedSimuleringsresultat().forEach { måned ->
-            val utbetaling = tidslinje.gjeldendeForDato(måned.fraOgMed)!!
+            val utbetaling = tidslinjeEksisterendeOgUnderArbeid.gjeldendeForDato(måned.fraOgMed)!!
             if (utbetaling is UtbetalingslinjePåTidslinje.Stans && simulering.harFeilutbetalinger()) {
                 feil.add(KryssjekkFeil.StansMedFeilutbetaling(måned))
             }
         }
 
         simulering.månederMedSimuleringsresultat().forEach { måned ->
-            val utbetaling = tidslinje.gjeldendeForDato(måned.fraOgMed)!!
+            val utbetaling = tidslinjeEksisterendeOgUnderArbeid.gjeldendeForDato(måned.fraOgMed)!!
             if (utbetaling is UtbetalingslinjePåTidslinje.Reaktivering && simulering.harFeilutbetalinger()) {
                 feil.add(KryssjekkFeil.GjenopptakMedFeilutbetaling(måned))
             }
@@ -148,7 +145,7 @@ private fun sjekkTidslinjeMotSimulering(
             kryssjekkBeløp(
                 tolketPeriode = månedsbeløp.periode,
                 simulertUtbetaling = månedsbeløp.beløp.sum(),
-                beløpPåTidslinje = tidslinje.gjeldendeForDato(månedsbeløp.periode.fraOgMed)!!.beløp,
+                beløpPåTidslinje = tidslinjeEksisterendeOgUnderArbeid.gjeldendeForDato(månedsbeløp.periode.fraOgMed)!!.beløp,
             ).getOrElse { feil.add(it) }
         }
     }

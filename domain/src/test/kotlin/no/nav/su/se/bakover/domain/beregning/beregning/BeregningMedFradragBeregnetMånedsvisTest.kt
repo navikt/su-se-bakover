@@ -521,7 +521,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
 
     @Test
     fun `sosialstønad for EPS som gir beløp under minstenivå leder ikke til 0-beløp`() {
-        val periode = Periode.create(1.juni(2021), 31.desember(2021))
+        val periode = juni(2021)..desember(2021)
         val beregning = BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragFactory.nyFradragsperiode(
@@ -546,7 +546,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             ),
         )
 
-        beregning.getSumYtelse() shouldBe periode.getAntallMåneder() * 100
+        beregning.getSumYtelse() shouldBe 700 // Trekt fra 100 kroner hver måned (perioden er 7 måneder)
         beregning.finnMånederMedMerknadForAvslag() shouldBe IngenMerknaderForAvslag.left()
         beregning.finnMånederMedMerknad().getOrFail()
             .map { it.second }

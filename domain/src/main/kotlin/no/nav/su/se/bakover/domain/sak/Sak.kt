@@ -6,6 +6,7 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import arrow.core.toNonEmptyListOrNull
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -95,16 +96,10 @@ data class Sak(
         )
     }
 
-    fun utbetalingstidslinje(
-        periode: Periode = Periode.create(
-            fraOgMed = LocalDate.MIN,
-            tilOgMed = LocalDate.MAX,
-        ),
-    ): TidslinjeForUtbetalinger {
-        return TidslinjeForUtbetalinger(
-            periode = periode,
-            utbetalingslinjer = utbetalinger.hentOversendteUtbetalingslinjerUtenFeil(),
-        )
+    fun utbetalingstidslinje(): TidslinjeForUtbetalinger? {
+        return utbetalinger.hentOversendteUtbetalingslinjerUtenFeil().toNonEmptyListOrNull()?.let {
+            TidslinjeForUtbetalinger(utbetalingslinjer = it)
+        }
     }
 
     fun kopierGjeldendeVedtaksdata(
@@ -245,23 +240,27 @@ data class Sak(
     /**
      * Henter minste antall sammenhengende perioder hvor vedtakene ikke er av typen opphør.
      */
-    fun hentIkkeOpphørtePerioder(
-        periode: Periode = Periode.create(
-            fraOgMed = LocalDate.MIN,
-            tilOgMed = LocalDate.MAX,
-        ),
-    ): List<Periode> {
-        return vedtakstidslinje(periode = periode).tidslinje.filterNot { it.erOpphør() }.map { it.periode }
+    fun hentIkkeOpphørtePerioder(): List<Periode> {
+        return vedtakstidslinje().tidslinje
+            .filterNot { it.erOpphør() }
+            .map { it.periode }
             .minsteAntallSammenhengendePerioder()
     }
 
     fun vedtakstidslinje(
-        periode: Periode = Periode.create(
-            fraOgMed = LocalDate.MIN,
-            tilOgMed = LocalDate.MAX,
-        ),
+        fraOgMed: Måned,
+    ): Tidslinje<VedtakSomKanRevurderes.VedtakPåTidslinje> {
+        return vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().lagTidslinje(fraOgMed)
+    }
+
+    fun vedtakstidslinje(
+        periode: Periode,
     ): Tidslinje<VedtakSomKanRevurderes.VedtakPåTidslinje> {
         return vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().lagTidslinje(periode)
+    }
+
+    fun vedtakstidslinje(): Tidslinje<VedtakSomKanRevurderes.VedtakPåTidslinje> {
+        return vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().lagTidslinje()
     }
 
     /** Skal ikke kunne ha mer enn én åpen klage av gangen. */
@@ -270,7 +269,7 @@ data class Sak(
     fun hentKlage(klageId: UUID): Klage? = klager.find { it.id == klageId }
 
     fun kanUtbetalingerStansesEllerGjenopptas(clock: Clock): KanStansesEllerGjenopptas {
-        return utbetalingstidslinje().tidslinje.let {
+        return utbetalingstidslinje()?.let {
             if (it.isNotEmpty() && ingenKommendeOpphørEllerHull(it, clock)) {
                 if (it.last() is UtbetalingslinjePåTidslinje.Stans) {
                     KanStansesEllerGjenopptas.GJENOPPTA
@@ -280,7 +279,7 @@ data class Sak(
             } else {
                 KanStansesEllerGjenopptas.INGEN
             }
-        }
+        } ?: KanStansesEllerGjenopptas.INGEN
     }
 
     /**

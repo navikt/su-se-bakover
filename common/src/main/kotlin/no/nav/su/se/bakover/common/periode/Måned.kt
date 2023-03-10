@@ -111,3 +111,5 @@ fun Periode.tilMåned(): Måned {
  * @throws NoSuchElementException dersom mappet er tomt.
  */
 fun <T> Map<Måned, T>.periode() = this.keys.toList().minAndMaxOf()
+
+fun LocalDate.toMåned() = Måned.fra(this)

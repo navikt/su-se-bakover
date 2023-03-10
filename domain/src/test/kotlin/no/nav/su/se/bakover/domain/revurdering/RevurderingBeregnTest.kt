@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -591,9 +592,8 @@ internal class RevurderingBeregnTest {
         val nyBeregningBeløp = nyBeregning.getSumYtelse()
         val eksisterendeBeløp = eksisterendeUtbetalinger.sumOf {
             TidslinjeForUtbetalinger(
-                periode = nyBeregning.periode,
-                utbetalingslinjer = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer },
-            ).tidslinje.sumOf { it.beløp * it.periode.getAntallMåneder() }
+                utbetalingslinjer = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer }.toNonEmptyList(),
+            ).sumOf { it.beløp * it.periode.getAntallMåneder() }
         }
         return abs((nyBeregningBeløp.toDouble() - eksisterendeBeløp) / eksisterendeBeløp * 100) > 10.0
     }

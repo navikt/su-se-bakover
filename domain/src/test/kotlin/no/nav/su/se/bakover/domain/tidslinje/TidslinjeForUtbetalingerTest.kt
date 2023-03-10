@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.tidslinje
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -16,9 +17,13 @@ import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.april
+import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.juni
+import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.common.periode.november
 import no.nav.su.se.bakover.common.periode.oktober
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
@@ -28,20 +33,14 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.tidslinje
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.opphørtUtbetalingslinje
 import no.nav.su.se.bakover.test.plus
+import no.nav.su.se.bakover.test.utbetalingslinje
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.temporal.ChronoUnit
 
 internal class TidslinjeForUtbetalingerTest {
-
-    @Test
-    fun `ingen utbetalinger`() {
-        TidslinjeForUtbetalinger(
-            periode = år(2020),
-            utbetalingslinjer = emptyList(),
-        ).tidslinje shouldBe emptyList()
-    }
 
     @Test
     fun `en utbetaling`() {
@@ -55,9 +54,8 @@ internal class TidslinjeForUtbetalingerTest {
             uføregrad = Uføregrad.parse(50),
         )
         TidslinjeForUtbetalinger(
-            periode = år(2020),
-            utbetalingslinjer = listOf(første),
-        ).tidslinje shouldBe listOf(
+            utbetalingslinjer = nonEmptyListOf(første),
+        ) shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
                 kopiertFraId = første.id,
                 opprettet = første.opprettet,
@@ -92,12 +90,11 @@ internal class TidslinjeForUtbetalingerTest {
         )
 
         TidslinjeForUtbetalinger(
-            periode = år(2020),
-            utbetalingslinjer = listOf(
+            utbetalingslinjer = nonEmptyListOf(
                 første,
                 andre,
             ),
-        ).tidslinje shouldBe listOf(
+        ) shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
                 kopiertFraId = første.id,
                 opprettet = første.opprettet,
@@ -146,13 +143,12 @@ internal class TidslinjeForUtbetalingerTest {
         )
 
         TidslinjeForUtbetalinger(
-            periode = år(2020),
-            utbetalingslinjer = listOf(
+            utbetalingslinjer = nonEmptyListOf(
                 første,
                 andre,
                 stans,
             ),
-        ).tidslinje shouldBe listOf(
+        ) shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
                 kopiertFraId = første.id,
                 opprettet = første.opprettet,
@@ -206,14 +202,13 @@ internal class TidslinjeForUtbetalingerTest {
         )
 
         TidslinjeForUtbetalinger(
-            periode = år(2020),
-            utbetalingslinjer = listOf(
+            utbetalingslinjer = nonEmptyListOf(
                 første,
                 andre,
                 stans,
                 reaktivering,
             ),
-        ).tidslinje shouldBe listOf(
+        ) shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
                 kopiertFraId = første.id,
                 opprettet = første.opprettet,
@@ -285,14 +280,13 @@ internal class TidslinjeForUtbetalingerTest {
         )
 
         TidslinjeForUtbetalinger(
-            periode = år(2020),
-            utbetalingslinjer = listOf(
+            utbetalingslinjer = nonEmptyListOf(
                 første,
                 andre,
                 opphør,
                 reaktivering,
             ),
-        ).tidslinje shouldBe listOf(
+        ) shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
                 kopiertFraId = første.id,
                 opprettet = første.opprettet,
@@ -359,13 +353,12 @@ internal class TidslinjeForUtbetalingerTest {
         )
 
         TidslinjeForUtbetalinger(
-            periode = år(2020),
-            utbetalingslinjer = listOf(
+            utbetalingslinjer = nonEmptyListOf(
                 første,
                 andre,
                 opphør,
             ),
-        ).tidslinje shouldBe listOf(
+        ) shouldBe listOf(
             UtbetalingslinjePåTidslinje.Opphør(
                 kopiertFraId = opphør.id,
                 opprettet = opphør.opprettet,
@@ -410,14 +403,13 @@ internal class TidslinjeForUtbetalingerTest {
         )
 
         TidslinjeForUtbetalinger(
-            periode = år(2020),
-            utbetalingslinjer = listOf(
+            utbetalingslinjer = nonEmptyListOf(
                 første,
                 andre,
                 opphør,
                 reaktivering,
             ),
-        ).tidslinje shouldBe listOf(
+        ) shouldBe listOf(
             UtbetalingslinjePåTidslinje.Reaktivering(
                 kopiertFraId = første.id,
                 opprettet = reaktivering.opprettet.plus(
@@ -486,8 +478,7 @@ internal class TidslinjeForUtbetalingerTest {
         )
 
         TidslinjeForUtbetalinger(
-            periode = år(2020),
-            utbetalingslinjer = listOf(
+            utbetalingslinjer = nonEmptyListOf(
                 andre,
                 første,
                 tredje,
@@ -495,7 +486,7 @@ internal class TidslinjeForUtbetalingerTest {
                 andreStans,
                 reaktivering,
             ),
-        ).tidslinje shouldBe listOf(
+        ) shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
                 kopiertFraId = første.id,
                 opprettet = første.opprettet,
@@ -569,15 +560,14 @@ internal class TidslinjeForUtbetalingerTest {
         )
 
         TidslinjeForUtbetalinger(
-            periode = år(2020),
-            utbetalingslinjer = listOf(
+            utbetalingslinjer = nonEmptyListOf(
                 andre,
                 første,
                 førsteStans,
                 andreStans,
                 reaktivering,
             ),
-        ).tidslinje shouldBe listOf(
+        ) shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
                 kopiertFraId = første.id,
                 opprettet = første.opprettet,
@@ -644,15 +634,14 @@ internal class TidslinjeForUtbetalingerTest {
 
         assertThrows<TidslinjeForUtbetalinger.RegenerertInformasjonVilOverskriveOriginaleOpplysningerSomErFerskereException> {
             TidslinjeForUtbetalinger(
-                periode = år(2020),
-                utbetalingslinjer = listOf(
+                utbetalingslinjer = nonEmptyListOf(
                     andre,
                     første,
                     førsteStans,
                     andreStans,
                     reaktivering,
                 ),
-            ).tidslinje
+            )
         }
     }
 
@@ -699,18 +688,14 @@ internal class TidslinjeForUtbetalingerTest {
         )
 
         TidslinjeForUtbetalinger(
-            periode = Periode.create(
-                1.januar(2020),
-                31.desember(2021),
-            ),
-            utbetalingslinjer = listOf(
+            utbetalingslinjer = nonEmptyListOf(
                 andre,
                 første,
                 førsteStans,
                 tredje,
                 reaktivering,
             ),
-        ).tidslinje shouldBe listOf(
+        ) shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
                 kopiertFraId = første.id,
                 opprettet = første.opprettet,
@@ -786,8 +771,7 @@ internal class TidslinjeForUtbetalingerTest {
         )
 
         TidslinjeForUtbetalinger(
-            periode = år(2020),
-            utbetalingslinjer = listOf(
+            utbetalingslinjer = nonEmptyListOf(
                 andre,
                 andreReaktivering,
                 førsteStans,
@@ -795,7 +779,7 @@ internal class TidslinjeForUtbetalingerTest {
                 første,
                 andreStans,
             ),
-        ).tidslinje shouldBe listOf(
+        ) shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
                 kopiertFraId = første.id,
                 opprettet = første.opprettet,
@@ -879,14 +863,13 @@ internal class TidslinjeForUtbetalingerTest {
         )
 
         TidslinjeForUtbetalinger(
-            periode = år(2020),
-            utbetalingslinjer = listOf(
+            utbetalingslinjer = nonEmptyListOf(
                 første,
                 andre,
                 opphør,
                 reaktivering,
             ),
-        ).tidslinje shouldBe listOf(
+        ) shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
                 kopiertFraId = første.id,
                 opprettet = første.opprettet,
@@ -924,7 +907,7 @@ internal class TidslinjeForUtbetalingerTest {
     }
 
     @Test
-    fun `potpurri`() {
+    fun `blanding av alle utbetalingstypene`() {
         val clock = TikkendeKlokke()
         val førsteTidspunkt = Tidspunkt.now(clock)
         val første = Utbetalingslinje.Ny(
@@ -971,8 +954,7 @@ internal class TidslinjeForUtbetalingerTest {
         )
 
         TidslinjeForUtbetalinger(
-            periode = år(2020),
-            utbetalingslinjer = listOf(
+            utbetalingslinjer = nonEmptyListOf(
                 første,
                 andre,
                 opphør,
@@ -980,7 +962,7 @@ internal class TidslinjeForUtbetalingerTest {
                 stans,
                 reaktivering,
             ),
-        ).tidslinje shouldBe listOf(
+        ) shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
                 kopiertFraId = første.id,
                 opprettet = første.opprettet,
@@ -1068,18 +1050,14 @@ internal class TidslinjeForUtbetalingerTest {
         )
 
         TidslinjeForUtbetalinger(
-            periode = Periode.create(
-                1.januar(2020),
-                31.desember(2021),
-            ),
-            utbetalingslinjer = listOf(
+            utbetalingslinjer = nonEmptyListOf(
                 andre,
                 femte,
                 tredje,
                 første,
                 fjerde,
             ),
-        ).tidslinje shouldBe listOf(
+        ) shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
                 kopiertFraId = første.id,
                 opprettet = første.opprettet,
@@ -1135,6 +1113,28 @@ internal class TidslinjeForUtbetalingerTest {
             uføregrad = Uføregrad.parse(50),
         )
         listOf(ny).tidslinje().getOrFail().ekvivalentMed(listOf(ny).tidslinje().getOrFail()) shouldBe true
+        listOf(
+            ny,
+            ny.copy(
+                opprettet = ny.opprettet.plusUnits(1),
+            ),
+        ).tidslinje().getOrFail().ekvivalentMed(
+            listOf(
+                ny,
+                ny.copy(
+                    opprettet = ny.opprettet.plusUnits(1),
+                ),
+            ).tidslinje().getOrFail(),
+        ) shouldBe true
+
+        listOf(ny).tidslinje().getOrFail().ekvivalentMed(
+            listOf(
+                ny,
+                ny.copy(
+                    opprettet = ny.opprettet.plusUnits(1),
+                ),
+            ).tidslinje().getOrFail(),
+        ) shouldBe true
     }
 
     @Test
@@ -1196,7 +1196,7 @@ internal class TidslinjeForUtbetalingerTest {
     }
 
     @Test
-    fun `ekvivalens er avhengig av perioden det sjekkes for`() {
+    fun `rest kombinasjoner`() {
         val clock = TikkendeKlokke()
         val a = Utbetalingslinje.Ny(
             id = UUID30.randomUUID(),
@@ -1225,7 +1225,89 @@ internal class TidslinjeForUtbetalingerTest {
             beløp = 5000,
             uføregrad = Uføregrad.parse(50),
         )
-        listOf(a).tidslinje().getOrFail().ekvivalentMed(listOf(b, c).tidslinje().getOrFail()) shouldBe true
+        listOf(a).tidslinje().getOrFail().ekvivalentMed(listOf(b).tidslinje().getOrFail()) shouldBe true
+        listOf(b).tidslinje().getOrFail().ekvivalentMed(listOf(a).tidslinje().getOrFail()) shouldBe true
+
+        listOf(a).tidslinje().getOrFail().ekvivalentMed(listOf(c).tidslinje().getOrFail()) shouldBe false
+        listOf(c).tidslinje().getOrFail().ekvivalentMed(listOf(a).tidslinje().getOrFail()) shouldBe false
+
+        listOf(b).tidslinje().getOrFail().ekvivalentMed(listOf(c).tidslinje().getOrFail()) shouldBe false
+        listOf(c).tidslinje().getOrFail().ekvivalentMed(listOf(b).tidslinje().getOrFail()) shouldBe false
+
+        listOf(a, b).tidslinje().getOrFail().ekvivalentMed(listOf(c).tidslinje().getOrFail()) shouldBe false
+        listOf(c).tidslinje().getOrFail().ekvivalentMed(listOf(a, b).tidslinje().getOrFail()) shouldBe false
+
         listOf(b, c).tidslinje().getOrFail().ekvivalentMed(listOf(a).tidslinje().getOrFail()) shouldBe false
+        listOf(a).tidslinje().getOrFail().ekvivalentMed(listOf(b, c).tidslinje().getOrFail()) shouldBe false
+
+        listOf(a, c).tidslinje().getOrFail().ekvivalentMed(listOf(b).tidslinje().getOrFail()) shouldBe false
+        listOf(b).tidslinje().getOrFail().ekvivalentMed(listOf(a, c).tidslinje().getOrFail()) shouldBe false
+    }
+
+    @Test
+    fun `periode som er innenfor tidslinjensperiode blir krympet ok`() {
+        TidslinjeForUtbetalinger(nonEmptyListOf(utbetalingslinje())).let {
+            it.periode shouldBe år(2021)
+            it.krympTilPeriode(mai(2021)..november(2021))!!.ekvivalentMed(
+                TidslinjeForUtbetalinger(nonEmptyListOf(utbetalingslinje(periode = mai(2021)..november(2021)))),
+            ) shouldBe true
+        }
+
+        TidslinjeForUtbetalinger(nonEmptyListOf(utbetalingslinje())).let {
+            it.periode shouldBe år(2021)
+            it.krympTilPeriode(1.mai(2021))!!.ekvivalentMed(
+                TidslinjeForUtbetalinger(nonEmptyListOf(utbetalingslinje(periode = mai(2021)..desember(2021)))),
+            ) shouldBe true
+        }
+    }
+
+    @Test
+    fun `tidslinjens periode er ok dersom man kryper til en periode som er større`() {
+        val expectedPeriode = mai(2021)..desember(2021)
+        TidslinjeForUtbetalinger(nonEmptyListOf(utbetalingslinje(periode = expectedPeriode))).let {
+            it.periode shouldBe expectedPeriode
+            it.krympTilPeriode(år(2021))!!.ekvivalentMed(
+                TidslinjeForUtbetalinger(nonEmptyListOf(utbetalingslinje(periode = expectedPeriode))),
+            ) shouldBe true
+        }
+    }
+
+    @Test
+    fun `gir null dersom perioden som skal bli krympet til, ikke er i tidslinjens periode`() {
+        TidslinjeForUtbetalinger(nonEmptyListOf(utbetalingslinje())).let {
+            it.periode shouldBe år(2021)
+            it.krympTilPeriode(mai(2022)..november(2022)) shouldBe null
+        }
+    }
+
+    @Test
+    fun `ekvivalent innenfor periode med seg selv`() {
+        val expectedPeriode = år(2022)
+        val tidslinje = TidslinjeForUtbetalinger(nonEmptyListOf(utbetalingslinje(periode = expectedPeriode)))
+        tidslinje.ekvivalentMedInnenforPeriode(tidslinje, expectedPeriode) shouldBe true
+    }
+
+    @Test
+    fun `ekvivalent innenfor periode der 2 tidslinjer er ulik`() {
+        val tidslinje1 = TidslinjeForUtbetalinger(nonEmptyListOf(utbetalingslinje(periode = år(2022))))
+        val tidslinje2 = TidslinjeForUtbetalinger(
+            nonEmptyListOf(
+                opphørtUtbetalingslinje(periode = januar(2022)..mai(2022)),
+                utbetalingslinje(periode = juni(2022)..desember(2022)),
+            ),
+        )
+        tidslinje1.ekvivalentMedInnenforPeriode(tidslinje2, juni(2022)..desember(2022)) shouldBe true
+    }
+
+    @Test
+    fun `false selv om 2 ulike tidslinjer er ekvivalente, men perioden som sjekkes for har ikke noe relevans`() {
+        val tidslinje1 = TidslinjeForUtbetalinger(nonEmptyListOf(utbetalingslinje(periode = år(2022))))
+        val tidslinje2 = TidslinjeForUtbetalinger(
+            nonEmptyListOf(
+                opphørtUtbetalingslinje(periode = januar(2022)..mai(2022)),
+                utbetalingslinje(periode = juni(2022)..desember(2022)),
+            ),
+        )
+        tidslinje1.ekvivalentMedInnenforPeriode(tidslinje2, juni(2023)..desember(2023)) shouldBe false
     }
 }

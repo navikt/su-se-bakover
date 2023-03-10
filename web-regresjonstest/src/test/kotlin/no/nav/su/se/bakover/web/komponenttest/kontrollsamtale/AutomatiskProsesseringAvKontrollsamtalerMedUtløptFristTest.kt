@@ -221,13 +221,15 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
                     kontrollsamtaleService = appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService as KontrollsamtaleServiceImpl,
                 )
                 assertMøttTilSamtale(
-                    saker = testController.kontrollsamtaler.filterNot { it.erFeil(kjøring) }.filter { it.data.møtt }.map { it.sakId },
+                    saker = testController.kontrollsamtaler.filterNot { it.erFeil(kjøring) }.filter { it.data.møtt }
+                        .map { it.sakId },
                     periode = Periode.create(stønadStart, stønadSlutt),
                     sakService = appComponents.services.sak,
                     kontrollsamtaleService = appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService as KontrollsamtaleServiceImpl,
                 )
                 assertIkkeMøttTilSamtale(
-                    saker = testController.kontrollsamtaler.filterNot { it.erFeil(kjøring) }.filterNot { it.data.møtt }.map { it.sakId },
+                    saker = testController.kontrollsamtaler.filterNot { it.erFeil(kjøring) }.filterNot { it.data.møtt }
+                        .map { it.sakId },
                     periode = Periode.create(utløpsfristKontrollsamtale.førsteINesteMåned(), stønadSlutt),
                     sakService = appComponents.services.sak,
                     kontrollsamtaleService = appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService as KontrollsamtaleServiceImpl,
@@ -499,7 +501,7 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
                 sak.vedtakListe.single { it is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse }
                 sak.vedtakstidslinje().also { vedtakstidslinje ->
                     periode.måneder().map {
-                        vedtakstidslinje.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak to sak.utbetalingstidslinje(it)
+                        vedtakstidslinje.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak to sak.utbetalingstidslinje()!!
                             .gjeldendeForDato(it.fraOgMed)
                     }.forEach { (vedtak, utbetaling) ->
                         (vedtak is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse && utbetaling is UtbetalingslinjePåTidslinje.Stans) shouldBe true
@@ -525,7 +527,7 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
                 sak.vedtakListe.single()
                 sak.vedtakstidslinje().also { vedtakstidslinje ->
                     periode.måneder().map {
-                        vedtakstidslinje.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak to sak.utbetalingstidslinje(it)
+                        vedtakstidslinje.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak to sak.utbetalingstidslinje()!!
                             .gjeldendeForDato(it.fraOgMed)
                     }.forEach { (vedtak, utbetaling) ->
                         (vedtak is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling && utbetaling is UtbetalingslinjePåTidslinje.Ny) shouldBe true
@@ -551,7 +553,7 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
                 sak.vedtakListe.single()
                 sak.vedtakstidslinje().let { tidslinje ->
                     periode.måneder().map {
-                        tidslinje.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak to sak.utbetalingstidslinje(it)
+                        tidslinje.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak to sak.utbetalingstidslinje()!!
                             .gjeldendeForDato(it.fraOgMed)
                     }.forEach { (vedtak, utbetaling) ->
                         (vedtak is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling && utbetaling is UtbetalingslinjePåTidslinje.Ny) shouldBe true

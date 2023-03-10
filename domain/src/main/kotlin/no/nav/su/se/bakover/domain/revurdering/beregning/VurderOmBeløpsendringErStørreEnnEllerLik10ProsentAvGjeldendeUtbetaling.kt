@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.revurdering.beregning
 
+import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
@@ -10,22 +11,20 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 data class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-    private val eksisterendeUtbetalinger: List<Utbetalingslinje>,
+    private val eksisterendeUtbetalinger: NonEmptyList<Utbetalingslinje>,
     private val nyBeregning: Beregning,
 ) {
     val resultat: Boolean
 
     init {
-        val utbetalingstidslinje = TidslinjeForUtbetalinger(
-            periode = nyBeregning.periode,
-            utbetalingslinjer = eksisterendeUtbetalinger,
-        )
+        val utbetalingstidslinje =
+            TidslinjeForUtbetalinger(utbetalingslinjer = eksisterendeUtbetalinger).krympTilPeriode(nyBeregning.periode)
 
         val førsteMånedsberegning = nyBeregning.getMånedsberegninger()
             .minByOrNull { it.periode.fraOgMed }!!
 
         val gjeldendeUtbetaling =
-            utbetalingstidslinje.gjeldendeForDato(førsteMånedsberegning.periode.fraOgMed)?.beløp ?: 0
+            utbetalingstidslinje?.gjeldendeForDato(førsteMånedsberegning.periode.fraOgMed)?.beløp ?: 0
 
         val førsteMånedsbeløp = førsteMånedsberegning.finnBeløpFor10ProsentSjekk()
 
@@ -33,12 +32,15 @@ data class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetal
             førsteMånedsbeløp == 0 && gjeldendeUtbetaling == 0 -> {
                 false
             }
+
             førsteMånedsbeløp == 0 && gjeldendeUtbetaling != 0 -> {
                 true
             }
+
             førsteMånedsbeløp != 0 && gjeldendeUtbetaling == 0 -> {
                 true
             }
+
             else -> {
                 abs(førsteMånedsbeløp - gjeldendeUtbetaling) >= (0.1 * gjeldendeUtbetaling)
             }
