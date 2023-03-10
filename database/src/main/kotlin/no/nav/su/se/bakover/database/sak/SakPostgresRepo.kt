@@ -21,7 +21,7 @@ import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
-import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
+import no.nav.su.se.bakover.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
@@ -206,7 +206,7 @@ internal class SakPostgresRepo(
         }
     }
 
-    override fun hentÅpneBehandlinger(): List<Behandlingsoversikt> {
+    override fun hentÅpneBehandlinger(): List<Behandlingssammendrag> {
         return dbMetrics.timeQuery("hentÅpneBehandlinger") {
             sessionFactory.withSession { session ->
                 åpneBehandlingerRepo.hentÅpneBehandlinger(session)
@@ -214,7 +214,7 @@ internal class SakPostgresRepo(
         }
     }
 
-    override fun hentFerdigeBehandlinger(): List<Behandlingsoversikt> {
+    override fun hentFerdigeBehandlinger(): List<Behandlingssammendrag> {
         return dbMetrics.timeQuery("hentFerdigeBehandlinger") {
             sessionFactory.withSession { session ->
                 ferdigeBehandlingerRepo.hentFerdigeBehandlinger(session)

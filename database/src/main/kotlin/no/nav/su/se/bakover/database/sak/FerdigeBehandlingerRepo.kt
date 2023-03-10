@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.database.sak
 
 import kotliquery.Row
+import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.Session
 import no.nav.su.se.bakover.common.persistence.hentListe
@@ -8,7 +10,7 @@ import no.nav.su.se.bakover.common.persistence.tidspunkt
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB
-import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
+import no.nav.su.se.bakover.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import java.util.UUID
 
@@ -19,7 +21,7 @@ internal class FerdigeBehandlingerRepo(
     /**
      * Innvilget, avslått, opphørt og avsluttede/lukkede behandlinger.
      */
-    fun hentFerdigeBehandlinger(session: Session): List<Behandlingsoversikt> {
+    fun hentFerdigeBehandlinger(session: Session): List<Behandlingssammendrag> {
         return dbMetrics.timeQuery("hentFerdigeBehandlinger") {
             //language=sql
             """
@@ -33,7 +35,8 @@ internal class FerdigeBehandlingerRepo(
                             b.id,
                             b.status            as status,
                             'SØKNADSBEHANDLING' as type,
-                            (select (obj->>'opprettet')::timestamptz from jsonb_array_elements(b.attestering) obj where obj->>'type' = 'Iverksatt') as iverksattOpprettet
+                            (select (obj->>'opprettet')::timestamptz from jsonb_array_elements(b.attestering) obj where obj->>'type' = 'Iverksatt') as iverksattOpprettet,
+                            (stønadsperiode ->> 'periode')::jsonb as periode
                      from sak
                               join behandling b on b.sakid = sak.sakId
                      where b.status like ('IVERKSATT%')
@@ -44,7 +47,8 @@ internal class FerdigeBehandlingerRepo(
                             r.id,
                             r.revurderingstype                                         as status,
                             'REVURDERING'                                              as type,
-                            (select (obj->>'opprettet')::timestamptz from jsonb_array_elements(r.attestering) obj where obj->>'type' = 'Iverksatt') as iverksattOpprettet
+                            (select (obj->>'opprettet')::timestamptz from jsonb_array_elements(r.attestering) obj where obj->>'type' = 'Iverksatt') as iverksattOpprettet,
+                            (r.periode)::jsonb as periode
                      from sak
                               join revurdering r on r.sakid = sak.sakid
                      where r.revurderingstype like ('IVERKSATT%')
@@ -55,7 +59,8 @@ internal class FerdigeBehandlingerRepo(
                             k.id,
                             k.type                                                     as status,
                             'KLAGE'                                                    as type,
-                            (select (obj->>'opprettet')::timestamptz from jsonb_array_elements(k.attestering) obj where obj->>'type' = 'Iverksatt') as iverksattOpprettet
+                            (select (obj->>'opprettet')::timestamptz from jsonb_array_elements(k.attestering) obj where obj->>'type' = 'Iverksatt') as iverksattOpprettet,
+                            null::jsonb as periode
                      from sak
                               join klage k on sak.sakId = k.sakid
                      where k.type like ('iverksatt%')
@@ -79,32 +84,35 @@ internal class FerdigeBehandlingerRepo(
         }
     }
 
-    private fun Row.toBehandlingsoversikt(): Behandlingsoversikt {
+    private fun Row.toBehandlingsoversikt(): Behandlingssammendrag {
         val behandlingstype = BehandlingsTypeDB.valueOf(string("type"))
 
-        return Behandlingsoversikt(
+        return Behandlingssammendrag(
             saksnummer = Saksnummer(long("saksnummer")),
             behandlingsId = UUID.fromString(string("id")),
             behandlingstype = behandlingstype.toBehandlingstype(),
             status = hentStatus(behandlingstype),
             behandlingStartet = tidspunkt("iverksattOpprettet"),
+            periode = stringOrNull("periode")?.let { deserialize<Periode>(it) },
         )
     }
 
     private fun Row.hentStatus(
         behandlingsTypeDB: BehandlingsTypeDB,
-    ): Behandlingsoversikt.Behandlingsstatus {
+    ): Behandlingssammendrag.Behandlingsstatus {
         return when (behandlingsTypeDB) {
             BehandlingsTypeDB.SØKNADSBEHANDLING -> SøknadsbehandlingStatusDB.valueOf(string("status"))
                 .tilBehandlingsoversiktStatus()
+
             BehandlingsTypeDB.REVURDERING -> RevurderingsType.valueOf(string("status"))
                 .tilBehandlingsoversiktStatus()
+
             BehandlingsTypeDB.KLAGE -> KlagePostgresRepo.Tilstand.fromString(string("status"))
                 .tilBehandlingsoversiktStatus()
         }
     }
 
-    private fun SøknadsbehandlingStatusDB.tilBehandlingsoversiktStatus(): Behandlingsoversikt.Behandlingsstatus {
+    private fun SøknadsbehandlingStatusDB.tilBehandlingsoversiktStatus(): Behandlingssammendrag.Behandlingsstatus {
         return when (this) {
             SøknadsbehandlingStatusDB.OPPRETTET,
             SøknadsbehandlingStatusDB.VILKÅRSVURDERT_INNVILGET,
@@ -118,13 +126,13 @@ internal class FerdigeBehandlingerRepo(
             SøknadsbehandlingStatusDB.UNDERKJENT_AVSLAG,
             -> throw IllegalStateException("Behandlinger som ikke er iverksatt, avslått, eller avsluttet er ikke en ferdig behandling")
 
-            SøknadsbehandlingStatusDB.IVERKSATT_INNVILGET -> Behandlingsoversikt.Behandlingsstatus.INNVILGET
+            SøknadsbehandlingStatusDB.IVERKSATT_INNVILGET -> Behandlingssammendrag.Behandlingsstatus.INNVILGET
 
-            SøknadsbehandlingStatusDB.IVERKSATT_AVSLAG -> Behandlingsoversikt.Behandlingsstatus.AVSLAG
+            SøknadsbehandlingStatusDB.IVERKSATT_AVSLAG -> Behandlingssammendrag.Behandlingsstatus.AVSLAG
         }
     }
 
-    private fun RevurderingsType.tilBehandlingsoversiktStatus(): Behandlingsoversikt.Behandlingsstatus {
+    private fun RevurderingsType.tilBehandlingsoversiktStatus(): Behandlingssammendrag.Behandlingsstatus {
         return when (this) {
             RevurderingsType.OPPRETTET,
             RevurderingsType.BEREGNET_INNVILGET,
@@ -139,17 +147,17 @@ internal class FerdigeBehandlingerRepo(
             RevurderingsType.UNDERKJENT_OPPHØRT,
             -> throw IllegalStateException("Behandlinger som ikke er iverksatt, avslått, eller avsluttet er ikke en ferdig behandling")
 
-            RevurderingsType.IVERKSATT_STANS -> Behandlingsoversikt.Behandlingsstatus.STANS
+            RevurderingsType.IVERKSATT_STANS -> Behandlingssammendrag.Behandlingsstatus.STANS
 
-            RevurderingsType.IVERKSATT_OPPHØRT -> Behandlingsoversikt.Behandlingsstatus.OPPHØR
+            RevurderingsType.IVERKSATT_OPPHØRT -> Behandlingssammendrag.Behandlingsstatus.OPPHØR
 
-            RevurderingsType.IVERKSATT_GJENOPPTAK -> Behandlingsoversikt.Behandlingsstatus.GJENOPPTAK
+            RevurderingsType.IVERKSATT_GJENOPPTAK -> Behandlingssammendrag.Behandlingsstatus.GJENOPPTAK
 
-            RevurderingsType.IVERKSATT_INNVILGET -> Behandlingsoversikt.Behandlingsstatus.INNVILGET
+            RevurderingsType.IVERKSATT_INNVILGET -> Behandlingssammendrag.Behandlingsstatus.INNVILGET
         }
     }
 
-    private fun KlagePostgresRepo.Tilstand.tilBehandlingsoversiktStatus(): Behandlingsoversikt.Behandlingsstatus {
+    private fun KlagePostgresRepo.Tilstand.tilBehandlingsoversiktStatus(): Behandlingssammendrag.Behandlingsstatus {
         return when (this) {
             KlagePostgresRepo.Tilstand.OPPRETTET,
             KlagePostgresRepo.Tilstand.VILKÅRSVURDERT_PÅBEGYNT,
@@ -165,9 +173,9 @@ internal class FerdigeBehandlingerRepo(
             KlagePostgresRepo.Tilstand.TIL_ATTESTERING_AVVIST,
             -> throw IllegalStateException("Behandlinger som ikke er iverksatt, avslått, eller avsluttet er ikke en ferdig behandling")
 
-            KlagePostgresRepo.Tilstand.OVERSENDT -> Behandlingsoversikt.Behandlingsstatus.OVERSENDT
+            KlagePostgresRepo.Tilstand.OVERSENDT -> Behandlingssammendrag.Behandlingsstatus.OVERSENDT
 
-            KlagePostgresRepo.Tilstand.IVERKSATT_AVVIST -> Behandlingsoversikt.Behandlingsstatus.AVSLAG
+            KlagePostgresRepo.Tilstand.IVERKSATT_AVVIST -> Behandlingssammendrag.Behandlingsstatus.AVSLAG
         }
     }
 
@@ -177,11 +185,11 @@ internal class FerdigeBehandlingerRepo(
         KLAGE,
         ;
 
-        fun toBehandlingstype(): Behandlingsoversikt.Behandlingstype {
+        fun toBehandlingstype(): Behandlingssammendrag.Behandlingstype {
             return when (this) {
-                SØKNADSBEHANDLING -> Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING
-                REVURDERING -> Behandlingsoversikt.Behandlingstype.REVURDERING
-                KLAGE -> Behandlingsoversikt.Behandlingstype.KLAGE
+                SØKNADSBEHANDLING -> Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING
+                REVURDERING -> Behandlingssammendrag.Behandlingstype.REVURDERING
+                KLAGE -> Behandlingssammendrag.Behandlingstype.KLAGE
             }
         }
     }

@@ -4,8 +4,9 @@ import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
+import no.nav.su.se.bakover.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
@@ -114,12 +115,13 @@ internal class SakPostgresRepoTest {
             åpneBehandlinger.size shouldBe 1
 
             åpneBehandlinger shouldBe listOf(
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = Saksnummer(2021),
                     behandlingsId = sak.søknad.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                     behandlingStartet = null,
-                    status = Behandlingsoversikt.Behandlingsstatus.NY_SØKNAD,
+                    status = Behandlingssammendrag.Behandlingsstatus.NY_SØKNAD,
+                    periode = null,
                 ),
             )
         }
@@ -156,77 +158,87 @@ internal class SakPostgresRepoTest {
             alleRestanser.size shouldBe 10
 
             alleRestanser shouldContainExactlyInAnyOrder listOf(
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2021),
                     behandlingsId = sak.søknad.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
-                    status = Behandlingsoversikt.Behandlingsstatus.NY_SØKNAD,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
+                    status = Behandlingssammendrag.Behandlingsstatus.NY_SØKNAD,
                     behandlingStartet = null,
+                    periode = null,
                 ),
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2022),
                     behandlingsId = søknadsbehandling.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
-                    status = Behandlingsoversikt.Behandlingsstatus.UNDER_BEHANDLING,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
+                    status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = søknadsbehandling.opprettet,
+                    periode = år(2021),
                 ),
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2023),
                     behandlingsId = underkjent.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
-                    status = Behandlingsoversikt.Behandlingsstatus.UNDERKJENT,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
+                    status = Behandlingssammendrag.Behandlingsstatus.UNDERKJENT,
                     behandlingStartet = underkjent.opprettet,
+                    periode = år(2021),
                 ),
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2024),
                     behandlingsId = tilAttestering.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
-                    status = Behandlingsoversikt.Behandlingsstatus.TIL_ATTESTERING,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
+                    status = Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING,
                     behandlingStartet = tilAttestering.opprettet,
+                    periode = år(2021),
                 ),
                 // Vi hopper over 1 saksnummer siden den blir lagret som en del når vi lager en revurdering gjennom
                 // hjelpe funksjoner
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2026),
                     behandlingsId = opprettetRevurdering.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
-                    status = Behandlingsoversikt.Behandlingsstatus.UNDER_BEHANDLING,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
+                    status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = opprettetRevurdering.opprettet,
+                    periode = år(2021),
                 ),
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2027),
                     behandlingsId = tilAttesteringRevurdering.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
-                    status = Behandlingsoversikt.Behandlingsstatus.TIL_ATTESTERING,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
+                    status = Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING,
                     behandlingStartet = tilAttesteringRevurdering.opprettet,
+                    periode = år(2021),
                 ),
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2028),
                     behandlingsId = underkjentRevurdering.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
-                    status = Behandlingsoversikt.Behandlingsstatus.UNDERKJENT,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
+                    status = Behandlingssammendrag.Behandlingsstatus.UNDERKJENT,
                     behandlingStartet = underkjentRevurdering.opprettet,
+                    periode = år(2021),
                 ),
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2030),
                     behandlingsId = opprettetKlage.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.KLAGE,
-                    status = Behandlingsoversikt.Behandlingsstatus.UNDER_BEHANDLING,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.KLAGE,
+                    status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = opprettetKlage.opprettet,
+                    periode = null,
                 ),
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2031),
                     behandlingsId = vurdertKlage.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.KLAGE,
-                    status = Behandlingsoversikt.Behandlingsstatus.UNDER_BEHANDLING,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.KLAGE,
+                    status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = vurdertKlage.opprettet,
+                    periode = null,
                 ),
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2032),
                     behandlingsId = klageTilAttestering.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.KLAGE,
-                    status = Behandlingsoversikt.Behandlingsstatus.TIL_ATTESTERING,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.KLAGE,
+                    status = Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING,
                     behandlingStartet = klageTilAttestering.opprettet,
+                    periode = null,
                 ),
             )
         }

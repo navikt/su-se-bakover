@@ -4,12 +4,13 @@ import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.AktørId
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.PersonService
-import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
+import no.nav.su.se.bakover.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
@@ -87,12 +88,13 @@ internal class SakServiceImplTest {
         val nySakMedjournalførtSøknadOgOppgave = nySakMedjournalførtSøknadOgOppgave().second
         val sakRepo: SakRepo = mock {
             on { hentÅpneBehandlinger() } doReturn listOf(
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2021),
                     behandlingsId = nySakMedjournalførtSøknadOgOppgave.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
-                    status = Behandlingsoversikt.Behandlingsstatus.NY_SØKNAD,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
+                    status = Behandlingssammendrag.Behandlingsstatus.NY_SØKNAD,
                     behandlingStartet = nySakMedjournalførtSøknadOgOppgave.opprettet,
+                    periode = år(2021),
                 ),
             )
         }
@@ -101,12 +103,13 @@ internal class SakServiceImplTest {
         val sakMedÅpenSøknad = sakService.hentÅpneBehandlingerForAlleSaker()
 
         sakMedÅpenSøknad shouldBe listOf(
-            Behandlingsoversikt(
+            Behandlingssammendrag(
                 saksnummer = Saksnummer(nummer = 2021),
                 behandlingsId = nySakMedjournalførtSøknadOgOppgave.id,
-                behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
-                status = Behandlingsoversikt.Behandlingsstatus.NY_SØKNAD,
+                behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
+                status = Behandlingssammendrag.Behandlingsstatus.NY_SØKNAD,
                 behandlingStartet = nySakMedjournalførtSøknadOgOppgave.opprettet,
+                periode = år(2021),
             ),
         )
     }
@@ -122,26 +125,29 @@ internal class SakServiceImplTest {
 
         val sakRepo: SakRepo = mock {
             on { hentÅpneBehandlinger() } doReturn listOf(
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = saksnr1,
                     behandlingsId = uavklartSøkandsbehandling.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
-                    status = Behandlingsoversikt.Behandlingsstatus.UNDER_BEHANDLING,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
+                    status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = uavklartSøkandsbehandling.opprettet,
+                    periode = år(2021),
                 ),
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = saksnr1,
                     behandlingsId = underkjentSøknadsbehandling.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
-                    status = Behandlingsoversikt.Behandlingsstatus.UNDERKJENT,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
+                    status = Behandlingssammendrag.Behandlingsstatus.UNDERKJENT,
                     behandlingStartet = underkjentSøknadsbehandling.opprettet,
+                    periode = år(2021),
                 ),
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = saksnr2,
                     behandlingsId = tilAttesteringSøknadsbehandling.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
-                    status = Behandlingsoversikt.Behandlingsstatus.TIL_ATTESTERING,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
+                    status = Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING,
                     behandlingStartet = tilAttesteringSøknadsbehandling.opprettet,
+                    periode = år(2021),
                 ),
             )
         }
@@ -150,26 +156,29 @@ internal class SakServiceImplTest {
         val sakerMedÅpneBehandlinger = sakService.hentÅpneBehandlingerForAlleSaker()
 
         sakerMedÅpneBehandlinger shouldBe listOf(
-            Behandlingsoversikt(
+            Behandlingssammendrag(
                 saksnummer = saksnr1,
                 behandlingsId = uavklartSøkandsbehandling.id,
-                behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
-                status = Behandlingsoversikt.Behandlingsstatus.UNDER_BEHANDLING,
+                behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
+                status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                 behandlingStartet = uavklartSøkandsbehandling.opprettet,
+                periode = år(2021),
             ),
-            Behandlingsoversikt(
+            Behandlingssammendrag(
                 saksnummer = saksnr1,
                 behandlingsId = underkjentSøknadsbehandling.id,
-                behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
-                status = Behandlingsoversikt.Behandlingsstatus.UNDERKJENT,
+                behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
+                status = Behandlingssammendrag.Behandlingsstatus.UNDERKJENT,
                 behandlingStartet = underkjentSøknadsbehandling.opprettet,
+                periode = år(2021),
             ),
-            Behandlingsoversikt(
+            Behandlingssammendrag(
                 saksnummer = saksnr2,
                 behandlingsId = tilAttesteringSøknadsbehandling.id,
-                behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
-                status = Behandlingsoversikt.Behandlingsstatus.TIL_ATTESTERING,
+                behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
+                status = Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING,
                 behandlingStartet = tilAttesteringSøknadsbehandling.opprettet,
+                periode = år(2021),
             ),
         )
     }
@@ -203,33 +212,37 @@ internal class SakServiceImplTest {
 
         val sakRepo: SakRepo = mock {
             on { hentÅpneBehandlinger() } doReturn listOf(
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = saknr1,
                     behandlingsId = opprettetRevurdering.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
-                    status = Behandlingsoversikt.Behandlingsstatus.UNDER_BEHANDLING,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
+                    status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = opprettetRevurdering.opprettet,
+                    periode = år(2021),
                 ),
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = saknr1,
                     behandlingsId = simulertRevurdering.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
-                    status = Behandlingsoversikt.Behandlingsstatus.UNDER_BEHANDLING,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
+                    status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = simulertRevurdering.opprettet,
+                    periode = år(2021),
                 ),
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = saknr2,
                     behandlingsId = underkjentInnvilgetRevurdering.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
-                    status = Behandlingsoversikt.Behandlingsstatus.UNDERKJENT,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
+                    status = Behandlingssammendrag.Behandlingsstatus.UNDERKJENT,
                     behandlingStartet = underkjentInnvilgetRevurdering.opprettet,
+                    periode = år(2021),
                 ),
-                Behandlingsoversikt(
+                Behandlingssammendrag(
                     saksnummer = saknr2,
                     behandlingsId = tilAttesteringRevurdering.id,
-                    behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
-                    status = Behandlingsoversikt.Behandlingsstatus.TIL_ATTESTERING,
+                    behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
+                    status = Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING,
                     behandlingStartet = tilAttesteringRevurdering.opprettet,
+                    periode = år(2021),
                 ),
             )
         }
@@ -238,33 +251,37 @@ internal class SakServiceImplTest {
         val sakerMedÅpneRevurderinger = sakService.hentÅpneBehandlingerForAlleSaker()
 
         sakerMedÅpneRevurderinger shouldBe listOf(
-            Behandlingsoversikt(
+            Behandlingssammendrag(
                 saksnummer = saknr1,
                 behandlingsId = opprettetRevurdering.id,
-                behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
-                status = Behandlingsoversikt.Behandlingsstatus.UNDER_BEHANDLING,
+                behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
+                status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                 behandlingStartet = opprettetRevurdering.opprettet,
+                periode = år(2021),
             ),
-            Behandlingsoversikt(
+            Behandlingssammendrag(
                 saksnummer = saknr1,
                 behandlingsId = simulertRevurdering.id,
-                behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
-                status = Behandlingsoversikt.Behandlingsstatus.UNDER_BEHANDLING,
+                behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
+                status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                 behandlingStartet = simulertRevurdering.opprettet,
+                periode = år(2021),
             ),
-            Behandlingsoversikt(
+            Behandlingssammendrag(
                 saksnummer = saknr2,
                 behandlingsId = underkjentInnvilgetRevurdering.id,
-                behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
-                status = Behandlingsoversikt.Behandlingsstatus.UNDERKJENT,
+                behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
+                status = Behandlingssammendrag.Behandlingsstatus.UNDERKJENT,
                 behandlingStartet = underkjentInnvilgetRevurdering.opprettet,
+                periode = år(2021),
             ),
-            Behandlingsoversikt(
+            Behandlingssammendrag(
                 saksnummer = saknr2,
                 behandlingsId = tilAttesteringRevurdering.id,
-                behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
-                status = Behandlingsoversikt.Behandlingsstatus.TIL_ATTESTERING,
+                behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
+                status = Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING,
                 behandlingStartet = tilAttesteringRevurdering.opprettet,
+                periode = år(2021),
             ),
         )
     }

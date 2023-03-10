@@ -1,14 +1,16 @@
 package no.nav.su.se.bakover.domain.sak
 
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.periode.Periode
 import java.util.UUID
 
 /**
  * @param behandlingStartet Dette skulle egentlig vært sistEndret
  */
-data class Behandlingsoversikt(
+data class Behandlingssammendrag(
     val saksnummer: Saksnummer,
     val behandlingsId: UUID,
+    val periode: Periode?,
     val behandlingstype: Behandlingstype,
     val behandlingStartet: Tidspunkt?,
     val status: Behandlingsstatus,
