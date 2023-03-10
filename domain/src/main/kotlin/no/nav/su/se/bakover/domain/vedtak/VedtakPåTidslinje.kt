@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
  * Ved plassering på tidslinja gjennom [KanPlasseresPåTidslinje], er objektet ansvarlig for at alle periodiserbare
  * opplysninger som ligger til grunn for vedtaket justeres i henhold til aktuell periode gitt av [CopyArgs.Tidslinje].
  */
-data class VedtakPåTidslinje(
+data class VedtakPåTidslinje private constructor(
     override val opprettet: Tidspunkt,
     override val periode: Periode,
     val grunnlagsdata: Grunnlagsdata,
@@ -35,95 +35,82 @@ data class VedtakPåTidslinje(
     val originaltVedtak: VedtakSomKanRevurderes,
 ) : KanPlasseresPåTidslinje<VedtakPåTidslinje> {
 
-    override fun copy(args: CopyArgs.Tidslinje): VedtakPåTidslinje =
-        when (args) {
-            CopyArgs.Tidslinje.Full -> {
-                copy(
-                    periode = periode,
-                    grunnlagsdata = Grunnlagsdata.create(
-                        bosituasjon = grunnlagsdata.bosituasjon.map {
-                            it.fullstendigOrThrow()
-                        }.lagTidslinje(periode),
-                        /**
-                         * TODO("dette ser ut som en bug, bør vel kvitte oss med forventet inntekt her og")
-                         * Se hva vi gjør for NyPeriode litt lenger ned i denne funksjonen.
-                         * Dersom dette grunnlaget brukes til en ny revurdering ønsker vi vel at forventet inntekt
-                         * utledes på nytt fra grunnlaget i uførevilkåret? Kan vi potensielt ende opp med at vi
-                         * får dobbelt opp med fradrag for forventet inntekt?
-                         */
-                        fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.mapNotNull {
-                            it.copy(args = CopyArgs.Snitt(periode))
-                        },
-                    ),
-                    vilkårsvurderinger = vilkårsvurderinger.lagTidslinje(periode),
-                    originaltVedtak = originaltVedtak,
-                )
-            }
-
-            is CopyArgs.Tidslinje.NyPeriode -> {
-                copy(
-                    periode = args.periode,
-                    grunnlagsdata = Grunnlagsdata.create(
-                        bosituasjon = grunnlagsdata.bosituasjon.map {
-                            it.fullstendigOrThrow()
-                        }.lagTidslinje(args.periode),
-                        fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.filterNot {
-                            it.fradragstype == Fradragstype.ForventetInntekt
-                        }.mapNotNull {
-                            it.copy(args = CopyArgs.Snitt(args.periode))
-                        },
-                    ),
-                    vilkårsvurderinger = vilkårsvurderinger.lagTidslinje(args.periode),
-                    originaltVedtak = originaltVedtak,
-                )
-            }
-
-            is CopyArgs.Tidslinje.Maskert -> {
-                copy(args.args).copy(opprettet = opprettet.plusUnits(1))
-            }
-        }
-
-    fun erOpphør(): Boolean {
-        return originaltVedtak.erOpphør()
+    override fun copy(args: CopyArgs.Tidslinje): VedtakPåTidslinje = when (args) {
+        CopyArgs.Tidslinje.Full -> kopi()
+        is CopyArgs.Tidslinje.NyPeriode -> nyPeriode(args.periode)
+        is CopyArgs.Tidslinje.Maskert -> copy(args.args).copy(opprettet = opprettet.plusUnits(1))
     }
 
-    fun erStans(): Boolean {
-        return originaltVedtak.erStans()
-    }
+    fun erOpphør(): Boolean = originaltVedtak.erOpphør()
+    fun erStans(): Boolean = originaltVedtak.erStans()
+    fun erGjenopptak(): Boolean = originaltVedtak.erGjenopptak()
 
-    fun erGjenopptak(): Boolean {
-        return originaltVedtak.erGjenopptak()
-    }
-
-    fun uføreVilkår(): Either<Vilkårsvurderinger.VilkårEksistererIkke, UføreVilkår> {
-        return vilkårsvurderinger.uføreVilkår()
-    }
-
+    fun uføreVilkår(): Either<Vilkårsvurderinger.VilkårEksistererIkke, UføreVilkår> = vilkårsvurderinger.uføreVilkår()
     fun lovligOppholdVilkår() = vilkårsvurderinger.lovligOppholdVilkår()
-
-    fun formueVilkår(): FormueVilkår {
-        return vilkårsvurderinger.formueVilkår()
-    }
-
-    fun utenlandsoppholdVilkår(): UtenlandsoppholdVilkår {
-        return vilkårsvurderinger.utenlandsoppholdVilkår()
-    }
-
-    fun opplysningspliktVilkår(): OpplysningspliktVilkår {
-        return vilkårsvurderinger.opplysningspliktVilkår()
-    }
-
+    fun formueVilkår(): FormueVilkår = vilkårsvurderinger.formueVilkår()
+    fun utenlandsoppholdVilkår(): UtenlandsoppholdVilkår = vilkårsvurderinger.utenlandsoppholdVilkår()
+    fun opplysningspliktVilkår(): OpplysningspliktVilkår = vilkårsvurderinger.opplysningspliktVilkår()
     fun pensjonsVilkår() = vilkårsvurderinger.pensjonsVilkår()
-
     fun familiegjenforeningvilkår() = vilkårsvurderinger.familiegjenforening()
-
-    fun flyktningVilkår(): Either<Vilkårsvurderinger.VilkårEksistererIkke, FlyktningVilkår> {
-        return vilkårsvurderinger.flyktningVilkår()
-    }
+    fun flyktningVilkår(): Either<Vilkårsvurderinger.VilkårEksistererIkke, FlyktningVilkår> =
+        vilkårsvurderinger.flyktningVilkår()
 
     fun fastOppholdVilkår() = vilkårsvurderinger.fastOppholdVilkår()
+    fun personligOppmøteVilkår(): PersonligOppmøteVilkår = vilkårsvurderinger.personligOppmøteVilkår()
 
-    fun personligOppmøteVilkår(): PersonligOppmøteVilkår {
-        return vilkårsvurderinger.personligOppmøteVilkår()
+    /**
+     * Til bruk for [copy]
+     * Til bruk dersom man vil ha denne i sin helhet 'uten' endring.
+     */
+    private fun kopi(): VedtakPåTidslinje {
+        return copy(
+            grunnlagsdata = Grunnlagsdata.create(
+                bosituasjon = grunnlagsdata.bosituasjon
+                    .map { it.fullstendigOrThrow() }
+                    .lagTidslinje(periode),
+                /**
+                 * TODO("dette ser ut som en bug, bør vel kvitte oss med forventet inntekt her og")
+                 * Se hva vi gjør for [nyPeriode] i denne funksjonen.
+                 * Dersom dette grunnlaget brukes til en ny revurdering ønsker vi vel at forventet inntekt
+                 * utledes på nytt fra grunnlaget i uførevilkåret? Kan vi potensielt ende opp med at vi
+                 * får dobbelt opp med fradrag for forventet inntekt?
+                 */
+                fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag
+                    .mapNotNull { it.copy(args = CopyArgs.Snitt(periode)) },
+            ),
+            vilkårsvurderinger = vilkårsvurderinger.lagTidslinje(periode),
+        )
+    }
+
+    /**
+     * Til bruk for [copy]
+     * Kopierer seg selv med ny periode
+     */
+    private fun nyPeriode(p: Periode): VedtakPåTidslinje {
+        return copy(
+            periode = p,
+            grunnlagsdata = Grunnlagsdata.create(
+                bosituasjon = grunnlagsdata.bosituasjon
+                    .map { it.fullstendigOrThrow() }
+                    .lagTidslinje(p),
+                fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag
+                    .filterNot { it.fradragstype == Fradragstype.ForventetInntekt }
+                    .mapNotNull { it.copy(args = CopyArgs.Snitt(p)) },
+            ),
+            vilkårsvurderinger = vilkårsvurderinger.lagTidslinje(p),
+            originaltVedtak = originaltVedtak,
+        )
+    }
+
+    companion object {
+        fun VedtakSomKanRevurderes.tilVedtakPåTidslinje(): VedtakPåTidslinje {
+            return VedtakPåTidslinje(
+                opprettet = opprettet,
+                periode = periode,
+                grunnlagsdata = behandling.grunnlagsdata,
+                vilkårsvurderinger = behandling.vilkårsvurderinger,
+                originaltVedtak = this,
+            )
+        }
     }
 }

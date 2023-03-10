@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje.Companion.tilVedtakPåTidslinje
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 import java.util.UUID
@@ -661,17 +662,8 @@ fun List<VedtakSomKanRevurderes>.lagTidslinje(
     )
 }
 
-private fun List<VedtakSomKanRevurderes>.mapTilVedtakPåTidslinjeTyper(): List<VedtakPåTidslinje> {
-    return map {
-        VedtakPåTidslinje(
-            opprettet = it.opprettet,
-            periode = it.periode,
-            grunnlagsdata = it.behandling.grunnlagsdata,
-            vilkårsvurderinger = it.behandling.vilkårsvurderinger,
-            originaltVedtak = it,
-        )
-    }
-}
+private fun List<VedtakSomKanRevurderes>.mapTilVedtakPåTidslinjeTyper(): List<VedtakPåTidslinje> =
+    map { it.tilVedtakPåTidslinje() }
 
 private fun Dokumenttilstand?.setDokumentTilstandBasertPåBehandlingHvisNull(b: Behandling): Dokumenttilstand =
     when (this) {
