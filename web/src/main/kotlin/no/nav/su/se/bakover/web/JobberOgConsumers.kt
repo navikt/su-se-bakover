@@ -58,6 +58,7 @@ internal fun startJobberOgConsumers(
     val personhendelseService = PersonhendelseService(
         sakRepo = databaseRepos.sak,
         personhendelseRepo = databaseRepos.personhendelseRepo,
+        vedtakRepo = databaseRepos.vedtakRepo,
         oppgaveServiceImpl = services.oppgave,
         personService = services.person,
         clock = clock,

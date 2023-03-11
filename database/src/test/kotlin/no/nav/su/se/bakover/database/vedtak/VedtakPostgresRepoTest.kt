@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.persistence.hent
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
-import no.nav.su.se.bakover.domain.vedtak.ForenkletVedtak
+import no.nav.su.se.bakover.domain.vedtak.Vedtaksammendrag
 import no.nav.su.se.bakover.domain.vedtak.Vedtakstype
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.iverksattRevurdering
@@ -119,11 +119,13 @@ internal class VedtakPostgresRepoTest {
 
             vedtakRepo.hentForMåned(februar(2021)).also {
                 it.size shouldBe 1
-                it.first() shouldBe ForenkletVedtak(
+                it.first() shouldBe Vedtaksammendrag(
                     opprettet = vedtakSomErAktivt.opprettet,
                     periode = vedtakSomErAktivt.periode,
                     fødselsnummer = vedtakSomErAktivt.behandling.fnr,
-                    vedtakstype = Vedtakstype.SØKNADSBEHANDLING,
+                    vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
+                    sakId = vedtakSomErAktivt.sakId,
+                    saksnummer = vedtakSomErAktivt.saksnummer,
                 )
             }
         }

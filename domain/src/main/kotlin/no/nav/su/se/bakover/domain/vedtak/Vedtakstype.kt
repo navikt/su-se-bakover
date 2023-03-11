@@ -7,7 +7,7 @@ package no.nav.su.se.bakover.domain.vedtak
  * Vi utelukker også reguleringer, da disse ikke skal endre om en bruker har rett på stønad.
  */
 enum class Vedtakstype {
-    SØKNADSBEHANDLING,
+    SØKNADSBEHANDLING_INNVILGELSE,
     REVURDERING_INNVILGELSE,
     REVURDERING_OPPHØR,
 }
