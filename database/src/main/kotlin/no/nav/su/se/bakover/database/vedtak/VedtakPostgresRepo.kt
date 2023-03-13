@@ -39,15 +39,16 @@ import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
-import no.nav.su.se.bakover.domain.vedtak.ForenkletVedtak
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.Vedtaksammendrag
 import no.nav.su.se.bakover.domain.vedtak.Vedtakstype
 import java.util.UUID
 
@@ -202,8 +203,8 @@ internal class VedtakPostgresRepo(
         }
     }
 
-    override fun hentForMåned(måned: Måned): List<ForenkletVedtak> {
-        return dbMetrics.timeQuery("hentAktiveVedtak") {
+    override fun hentForMåned(måned: Måned): List<Vedtaksammendrag> {
+        return dbMetrics.timeQuery("hentForMåned") {
             sessionFactory.withSession { session ->
                 """
                   select
@@ -211,7 +212,9 @@ internal class VedtakPostgresRepo(
                     v.fraogmed,
                     v.tilogmed,
                     v.vedtaktype,
-                    s.fnr
+                    s.fnr,
+                    s.id as sakid,
+                    s.saksnummer
                   from vedtak v
                     left join sak s on s.id = v.sakid
                   where
@@ -219,16 +222,65 @@ internal class VedtakPostgresRepo(
                     :dato between fraogmed and tilogmed
                 """.trimIndent()
                     .hentListe(mapOf("dato" to måned.fraOgMed), session) {
-                        ForenkletVedtak(
+                        Vedtaksammendrag(
                             opprettet = it.tidspunkt("opprettet"),
                             periode = Periode.create(it.localDate("fraogmed"), it.localDate("tilogmed")),
                             fødselsnummer = Fnr(it.string("fnr")),
                             vedtakstype = when (val v = it.string("vedtaktype")) {
-                                "SØKNAD" -> Vedtakstype.SØKNADSBEHANDLING
+                                "SØKNAD" -> Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE
                                 "ENDRING" -> Vedtakstype.REVURDERING_INNVILGELSE
                                 "OPPHØR" -> Vedtakstype.REVURDERING_OPPHØR
                                 else -> throw IllegalStateException("Hentet ukjent vedtakstype fra databasen: $v")
                             },
+                            sakId = it.uuid("sakid"),
+                            saksnummer = Saksnummer(it.long("saksnummer")),
+                        )
+                    }
+            }
+        }
+    }
+
+    override fun hentForFødselsnumreOgFraOgMedMåned(
+        fødselsnumre: List<Fnr>,
+        fraOgMed: Måned,
+    ): List<Vedtaksammendrag> {
+        return dbMetrics.timeQuery("hentForFødselsnumreOgFraOgMedMåned") {
+            sessionFactory.withSession { session ->
+                """
+                  select
+                    v.opprettet,
+                    v.fraogmed,
+                    v.tilogmed,
+                    v.vedtaktype,
+                    s.fnr,
+                    s.id as sakid,
+                    s.saksnummer
+                  from vedtak v
+                    left join sak s on s.id = v.sakid
+                  where
+                    v.vedtaktype IN ('SØKNAD','ENDRING','OPPHØR') and
+                    s.fnr in (:fnr) and
+                    :dato >= fraogmed
+                """.trimIndent()
+                    .hentListe(
+                        mapOf(
+                            "dato" to fraOgMed.fraOgMed,
+                            "fnr" to fødselsnumre.joinToString { "," },
+                        ),
+                        session,
+                    ) {
+                        Vedtaksammendrag(
+                            opprettet = it.tidspunkt("opprettet"),
+                            periode = Periode.create(it.localDate("fraogmed"), it.localDate("tilogmed")),
+                            fødselsnummer = Fnr(it.string("fnr")),
+                            vedtakstype = when (val v = it.string("vedtaktype")) {
+                                "SØKNAD" -> Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE
+                                "ENDRING" -> Vedtakstype.REVURDERING_INNVILGELSE
+                                "OPPHØR" -> Vedtakstype.REVURDERING_OPPHØR
+                                else -> throw IllegalStateException("Hentet ukjent vedtakstype fra databasen: $v")
+                            },
+                            sakId = it.uuid("sakid"),
+                            saksnummer = Saksnummer(it.long("saksnummer")),
                         )
                     }
             }

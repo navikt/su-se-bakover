@@ -37,6 +37,11 @@ sealed interface Stønadsvedtak : Vedtak, Visitable<VedtakVisitor> {
     val periode: Periode
     val behandling: Behandling
 
+    val sakId get() = behandling.sakId
+    val fnr get() = behandling.fnr
+    val saksnummer get() = behandling.saksnummer
+    val sakstype get() = behandling.sakstype
+
     fun erOpphør() = this is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering
     fun erStans() = this is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse
     fun erGjenopptak() = this is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse

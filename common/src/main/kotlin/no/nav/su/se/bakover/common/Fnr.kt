@@ -22,7 +22,15 @@ constructor(private val fnr: String) {
     }
 
     // tilgjengeliggjør for test
-    companion object
+    companion object {
+        fun tryCreate(fnr: String): Fnr? {
+            return try {
+                Fnr(fnr)
+            } catch (e: UgyldigFnrException) {
+                null
+            }
+        }
+    }
 }
 
 class UgyldigFnrException(fnr: String?) : RuntimeException("Ugyldig fnr: $fnr")

@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.service.personhendelser
 
+import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -7,6 +9,8 @@ import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.vedtak.tilInnvilgetForMånedEllerSenere
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
@@ -14,6 +18,7 @@ import java.util.UUID
 class PersonhendelseService(
     private val sakRepo: SakRepo,
     private val personhendelseRepo: PersonhendelseRepo,
+    private val vedtakRepo: VedtakRepo,
     private val oppgaveServiceImpl: OppgaveService,
     private val personService: PersonService,
     private val clock: Clock,
@@ -21,10 +26,18 @@ class PersonhendelseService(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun prosesserNyHendelse(personhendelse: Personhendelse.IkkeTilknyttetSak) {
-        val eksisterendeSakIdOgNummer =
-            sakRepo.hentSakInfoForIdenter(personhendelse.metadata.personidenter) ?: return Unit.also {
-                sikkerLogg.debug("Personhendelse ikke knyttet til sak: $personhendelse")
+        val fødselsnumre = personhendelse.metadata.personidenter.mapNotNull { Fnr.tryCreate(it) }
+        val fraOgMedEllerSenere = Måned.now(clock)
+        val eksisterendeSakIdOgNummer = vedtakRepo.hentForFødselsnumreOgFraOgMedMåned(
+            fødselsnumre = fødselsnumre,
+            fraOgMed = fraOgMedEllerSenere,
+        ).tilInnvilgetForMånedEllerSenere(fraOgMedEllerSenere).sakInfo.filter {
+            fødselsnumre.contains(it.fnr)
+        }.ifEmpty {
+            return Unit.also {
+                sikkerLogg.debug("Forkaster personhendelse som ikke er knyttet til aktiv/løpende sak: $personhendelse")
             }
+        }.single()
         sikkerLogg.debug("Personhendelse for sak: $personhendelse")
         personhendelseRepo.lagre(
             personhendelse = personhendelse.tilknyttSak(UUID.randomUUID(), eksisterendeSakIdOgNummer),
