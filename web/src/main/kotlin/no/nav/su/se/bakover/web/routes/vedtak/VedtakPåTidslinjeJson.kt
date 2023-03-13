@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.web.routes.vedtak
 
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson.Companion.toJson
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje
 
 internal data class VedtakPåTidslinjeJson(
     val periode: PeriodeJson,
@@ -10,7 +10,7 @@ internal data class VedtakPåTidslinjeJson(
     val vedtakType: VedtakTypeJson,
 )
 
-internal fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.toJson(): List<VedtakPåTidslinjeJson> {
+internal fun List<VedtakPåTidslinje>.toJson(): List<VedtakPåTidslinjeJson> {
     return this.map {
         VedtakPåTidslinjeJson(
             periode = it.periode.toJson(),

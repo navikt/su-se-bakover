@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.test
 
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje
 
-fun VedtakSomKanRevurderes.VedtakPåTidslinje.shouldBeEqualToExceptId(expected: VedtakSomKanRevurderes.VedtakPåTidslinje) {
+fun VedtakPåTidslinje.shouldBeEqualToExceptId(expected: VedtakPåTidslinje) {
     this.shouldBeEqualToIgnoringFields(
         expected,
-        VedtakSomKanRevurderes.VedtakPåTidslinje::vilkårsvurderinger,
-        VedtakSomKanRevurderes.VedtakPåTidslinje::grunnlagsdata,
+        VedtakPåTidslinje::vilkårsvurderinger,
+        VedtakPåTidslinje::grunnlagsdata,
     )
     this.grunnlagsdata.shouldBeEqualToExceptId(expected.grunnlagsdata)
     this.vilkårsvurderinger.shouldBeEqualToExceptId(expected.vilkårsvurderinger)

@@ -52,6 +52,7 @@ import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.beregningKanVæreGjeldende
 import no.nav.su.se.bakover.domain.vedtak.hentBeregningForGjeldendeVedtak
@@ -249,17 +250,17 @@ data class Sak(
 
     fun vedtakstidslinje(
         fraOgMed: Måned,
-    ): Tidslinje<VedtakSomKanRevurderes.VedtakPåTidslinje> {
+    ): Tidslinje<VedtakPåTidslinje> {
         return vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().lagTidslinje(fraOgMed)
     }
 
     fun vedtakstidslinje(
         periode: Periode,
-    ): Tidslinje<VedtakSomKanRevurderes.VedtakPåTidslinje> {
+    ): Tidslinje<VedtakPåTidslinje> {
         return vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().lagTidslinje(periode)
     }
 
-    fun vedtakstidslinje(): Tidslinje<VedtakSomKanRevurderes.VedtakPåTidslinje> {
+    fun vedtakstidslinje(): Tidslinje<VedtakPåTidslinje> {
         return vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().lagTidslinje()
     }
 

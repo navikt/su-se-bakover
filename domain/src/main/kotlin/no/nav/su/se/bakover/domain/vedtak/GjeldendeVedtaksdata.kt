@@ -38,10 +38,10 @@ data class GjeldendeVedtaksdata(
     val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering
 
-    private val tidslinje: Tidslinje<VedtakSomKanRevurderes.VedtakPåTidslinje> = vedtakListe
+    private val tidslinje: Tidslinje<VedtakPåTidslinje> = vedtakListe
         .lagTidslinje(periode)
 
-    private val vedtakPåTidslinje: List<VedtakSomKanRevurderes.VedtakPåTidslinje> = tidslinje.tidslinje
+    private val vedtakPåTidslinje: List<VedtakPåTidslinje> = tidslinje.tidslinje
 
     val pågåendeAvkortingEllerBehovForFremtidigAvkorting: Boolean =
         vedtakPåTidslinje.any { it.originaltVedtak.harPågåendeAvkorting() || it.originaltVedtak.harIdentifisertBehovForFremtidigAvkorting() }
@@ -75,6 +75,7 @@ data class GjeldendeVedtaksdata(
                         institusjonsopphold = it.institusjonsoppholdVilkår(),
                     )
                 }
+
                 vedtakPåTidslinje.all {
                     it.vilkårsvurderinger is Vilkårsvurderinger.Søknadsbehandling.Alder ||
                         it.vilkårsvurderinger is Vilkårsvurderinger.Revurdering.Alder
@@ -90,6 +91,7 @@ data class GjeldendeVedtaksdata(
                         personligOppmøte = it.personligOppmøteVilkår(),
                     )
                 }
+
                 else -> {
                     throw IllegalStateException("Kan ikke hente gjeldende vedtaksdata for blanding av uføre og alder.")
                 }
@@ -137,13 +139,15 @@ data class GjeldendeVedtaksdata(
 
     /** Tar kun høyde for månedene i [periode]. */
     fun inneholderOpphørsvedtakMedAvkortingUtenlandsopphold(): Boolean {
-        return tidslinje.tidslinje.map { it.originaltVedtak }.filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()
+        return tidslinje.tidslinje.map { it.originaltVedtak }
+            .filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()
             .any { it.harIdentifisertBehovForFremtidigAvkorting(periode) }
     }
 
     /** Tar kun høyde for månedene i [periode]. */
     fun inneholderOpphørsvedtakMedFeilutbetaling(): Boolean {
-        return tidslinje.tidslinje.map { it.originaltVedtak }.filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()
+        return tidslinje.tidslinje.map { it.originaltVedtak }
+            .filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()
             .any { it.førteTilFeilutbetaling(periode) }
     }
 
@@ -172,7 +176,7 @@ data class GjeldendeVedtaksdata(
     }
 }
 
-private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.uføreVilkår(): UføreVilkår {
+private fun List<VedtakPåTidslinje>.uføreVilkår(): UføreVilkår {
     return flatMap { vedtak ->
         vedtak.uføreVilkår().fold(
             {
@@ -199,7 +203,7 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.uføreVilkår(): Uf�
     }
 }
 
-private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.lovligoppholdVilkår(): LovligOppholdVilkår {
+private fun List<VedtakPåTidslinje>.lovligoppholdVilkår(): LovligOppholdVilkår {
     return map { it.lovligOppholdVilkår() }
         .filterIsInstance<LovligOppholdVilkår.Vurdert>()
         .flatMap { it.vurderingsperioder }
@@ -215,7 +219,7 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.lovligoppholdVilkår
         }
 }
 
-private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.formueVilkår(): FormueVilkår {
+private fun List<VedtakPåTidslinje>.formueVilkår(): FormueVilkår {
     return map { it.formueVilkår() }
         .filterIsInstance<FormueVilkår.Vurdert>()
         .flatMap { it.vurderingsperioder }
@@ -231,7 +235,7 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.formueVilkår(): For
         }
 }
 
-private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.utenlandsoppholdVilkår(): UtenlandsoppholdVilkår {
+private fun List<VedtakPåTidslinje>.utenlandsoppholdVilkår(): UtenlandsoppholdVilkår {
     return map { it.utenlandsoppholdVilkår() }
         .filterIsInstance<UtenlandsoppholdVilkår.Vurdert>()
         .flatMap { it.vurderingsperioder }
@@ -247,7 +251,7 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.utenlandsoppholdVilk
         }
 }
 
-private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.opplysningspliktVilkår(): OpplysningspliktVilkår {
+private fun List<VedtakPåTidslinje>.opplysningspliktVilkår(): OpplysningspliktVilkår {
     return map { it.opplysningspliktVilkår() }
         .filterIsInstance<OpplysningspliktVilkår.Vurdert>()
         .flatMap { it.vurderingsperioder }
@@ -263,7 +267,7 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.opplysningspliktVilk
         }
 }
 
-private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.pensjonsVilkår(): PensjonsVilkår {
+private fun List<VedtakPåTidslinje>.pensjonsVilkår(): PensjonsVilkår {
     return flatMap { vedtak ->
         vedtak.pensjonsVilkår().fold(
             {
@@ -289,7 +293,7 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.pensjonsVilkår(): P
     }
 }
 
-private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.familiegjenforeningvilkår(): FamiliegjenforeningVilkår {
+private fun List<VedtakPåTidslinje>.familiegjenforeningvilkår(): FamiliegjenforeningVilkår {
     return flatMap { vedtak ->
         vedtak.familiegjenforeningvilkår().fold(
             {
@@ -315,7 +319,7 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.familiegjenforeningv
     }
 }
 
-private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.flyktningVilkår(): FlyktningVilkår {
+private fun List<VedtakPåTidslinje>.flyktningVilkår(): FlyktningVilkår {
     return flatMap { vedtak ->
         vedtak.flyktningVilkår().fold(
             {
@@ -340,7 +344,7 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.flyktningVilkår(): 
     }
 }
 
-private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.fastOppholdINorgeVilkår(): FastOppholdINorgeVilkår {
+private fun List<VedtakPåTidslinje>.fastOppholdINorgeVilkår(): FastOppholdINorgeVilkår {
     return map { it.fastOppholdVilkår() }
         .filterIsInstance<FastOppholdINorgeVilkår.Vurdert>()
         .flatMap { it.vurderingsperioder }
@@ -357,7 +361,7 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.fastOppholdINorgeVil
         }
 }
 
-private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.personligOppmøteVilkår(): PersonligOppmøteVilkår {
+private fun List<VedtakPåTidslinje>.personligOppmøteVilkår(): PersonligOppmøteVilkår {
     return map { it.personligOppmøteVilkår() }
         .filterIsInstance<PersonligOppmøteVilkår.Vurdert>()
         .flatMap { it.vurderingsperioder }
@@ -372,7 +376,7 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.personligOppmøteVil
         }
 }
 
-private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.institusjonsoppholdVilkår(): InstitusjonsoppholdVilkår {
+private fun List<VedtakPåTidslinje>.institusjonsoppholdVilkår(): InstitusjonsoppholdVilkår {
     return map { it.vilkårsvurderinger.institusjonsopphold }
         .filterIsInstance<InstitusjonsoppholdVilkår.Vurdert>()
         .flatMap { it.vurderingsperioder }
