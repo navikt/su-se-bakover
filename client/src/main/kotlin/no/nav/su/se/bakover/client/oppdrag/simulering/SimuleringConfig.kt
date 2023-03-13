@@ -4,6 +4,9 @@ import no.nav.su.se.bakover.client.oppdrag.sts.wrapInStsClient
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerFpService
 import org.apache.cxf.jaxws.JaxWsProxyFactoryBean
+import org.apache.cxf.transport.http.HttpConduitConfig
+import org.apache.cxf.transport.http.HttpConduitFeature
+import org.apache.cxf.transports.http.configuration.HTTPClientPolicy
 import org.apache.cxf.ws.addressing.WSAddressingFeature
 import org.slf4j.LoggerFactory
 import javax.xml.namespace.QName
@@ -31,7 +34,17 @@ class SimuleringConfig(
             serviceName = SERVICE
             endpointName = PORT
             serviceClass = SimulerFpService::class.java
-            features = listOf(WSAddressingFeature()) // Add LoggingFeature() to enable full logging of req/resp
+            features = listOf(
+                HttpConduitFeature().apply {
+                    HttpConduitConfig().apply {
+                        clientPolicy = HTTPClientPolicy().apply {
+                            connectionTimeout = 2000
+                            receiveTimeout = 5000
+                        }
+                    }
+                },
+                WSAddressingFeature(), // Add LoggingFeature() to enable full logging of req/resp
+            )
         }.wrapInStsClient(stsSoapUrl, serviceUser, disableCNCheck)
     }
 }
