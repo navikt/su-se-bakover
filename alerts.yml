@@ -1,39 +1,53 @@
-apiVersion: nais.io/v1
-kind: Alert
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
 metadata:
   name: su-se-bakover
   namespace: supstonad
   labels:
     team: supstonad
 spec:
-  receivers:
-    slack:
-      channel: '{{SLACK_ALERTS_CHANNEL}}'
-      prependText: 'alerts.yml: '
-  alerts:
-    - alert: su-se-bakover-metrics-scrape-feilet
-      expr: sum(up{app="su-se-bakover", job="kubernetes-pods"}) < 1
-      for: 1m
-      description: "su-se-bakover sitt /metrics endepunktet har vært utilgjengelig i minst 1 minutt"
-      action: "`kubectl describe pod {{ $labels.kubernetes_pod_name }}` for events, og `kubectl logs {{ $labels.kubernetes_pod_name }}` for logger"
-    - alert: su-se-bakover-error-logg
-      expr: 'sum(max_over_time(logd_messages_total{log_app="su-se-bakover",log_level="Error"}[15m])
-              or vector(0)) -
-             sum(max_over_time(logd_messages_total{log_app="su-se-bakover",log_level="Error"}[15m]
-             offset 15m) or vector(0)) > 0'
-      for: 1s
-      description: "su-se-bakover har fått en ny error i loggen siste 15 min"
-      action: "Det er logget en melding i Kibana. Sjekk logger her: `{{LOGS_URL}}`"
-    - alert: su-datapakke-soknad-error-logg
-      expr: 'sum(max_over_time(logd_messages_total{log_app="su-datapakke-soknad",log_level="Error"}[15m])
-              or vector(0)) -
-             sum(max_over_time(logd_messages_total{log_app="su-datapakke-soknad",log_level="Error"}[15m]
-             offset 15m) or vector(0)) > 0'
-      for: 1s
-      description: "su-datapakke-soknad har fått en ny error i loggen siste 15 min"
-      action: "Det er logget en melding i Kibana. Sjekk logger her: `{{LOGS_URL}}`"
-    - alert: su-se-bakover-pods-available
-      expr: sum(kube_deployment_status_replicas_available{deployment="su-se-bakover"}) < 1
-      for: 1m
-      description: "Tilgjengelige kubernetes pods for su-se-bakover er mindre enn 1"
-      action: "`kubectl describe pod {{ $labels.kubernetes_pod_name }}` for events, og `kubectl logs {{ $labels.kubernetes_pod_name }}` for logger"
+  groups:
+    - name: su-se-bakover
+      rules:
+      - alert: su-se-bakover-metrics-scrape-feilet
+        expr: sum(up{app="su-se-bakover", job="kubernetes-pods"}) < 1
+        for: 1m
+        annotations:
+          consequence: "su-se-bakover sitt /metrics endepunktet har vært utilgjengelig i minst 1 minutt"
+          action: "`kubectl describe pod {{ $labels.kubernetes_pod_name }}` for events, og `kubectl logs {{ $labels.kubernetes_pod_name }}` for logger"
+        labels:
+          namespace: supstonad
+          severity: critical
+      - alert: su-se-bakover-error-logg
+        expr: 'sum(max_over_time(logd_messages_total{log_app="su-se-bakover",log_level="Error"}[15m])
+                or vector(0)) -
+               sum(max_over_time(logd_messages_total{log_app="su-se-bakover",log_level="Error"}[15m]
+               offset 15m) or vector(0)) > 0'
+        for: 1s
+        annotations:
+          consequence: "su-se-bakover har fått en ny error i loggen siste 15 min"
+          action: "Det er logget en melding i Kibana. Sjekk logger her: `{{LOGS_URL}}`"
+        labels:
+          namespace: supstonad
+          severity: critical
+      - alert: su-datapakke-soknad-error-logg
+        expr: 'sum(max_over_time(logd_messages_total{log_app="su-datapakke-soknad",log_level="Error"}[15m])
+                or vector(0)) -
+               sum(max_over_time(logd_messages_total{log_app="su-datapakke-soknad",log_level="Error"}[15m]
+               offset 15m) or vector(0)) > 0'
+        for: 1s
+        annotations:
+          consequence: "su-datapakke-soknad har fått en ny error i loggen siste 15 min"
+          action: "Det er logget en melding i Kibana. Sjekk logger her: `{{LOGS_URL}}`"
+        labels:
+          namespace: supstonad
+          severity: critical
+      - alert: su-se-bakover-pods-available
+        expr: sum(kube_deployment_status_replicas_available{deployment="su-se-bakover"}) < 1
+        for: 1m
+        annotations:
+          consequence: "Tilgjengelige kubernetes pods for su-se-bakover er mindre enn 1"
+          action: "`kubectl describe pod {{ $labels.kubernetes_pod_name }}` for events, og `kubectl logs {{ $labels.kubernetes_pod_name }}` for logger"
+        labels:
+          namespace: supstonad
+          severity: critical
