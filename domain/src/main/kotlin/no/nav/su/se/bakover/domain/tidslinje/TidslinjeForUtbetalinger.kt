@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
+import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import java.time.Instant
 import java.time.LocalDate
 import java.util.LinkedList
@@ -90,7 +91,7 @@ data class TidslinjeForUtbetalinger private constructor(
         ): TidslinjeForUtbetalinger {
             return TidslinjeForUtbetalinger(
                 utbetalingslinjer = utbetalingslinjer,
-                utbetalingslinjerPåTidslinje = lagTidslinje(utbetalingslinjer).tidslinje.toNonEmptyList(),
+                utbetalingslinjerPåTidslinje = lagTidslinje(utbetalingslinjer).toNonEmptyList(),
             )
         }
 
@@ -104,16 +105,12 @@ data class TidslinjeForUtbetalinger private constructor(
             val nyeUtbetalingslinjer = utbetalingslinjer
                 .map { it.mapTilTidslinje() }
                 .filterIsInstance<UtbetalingslinjePåTidslinje.Ny>()
+                .toNonEmptyList()
 
             val andreUtbetalingslinjer = utbetalingslinjer
                 .map { it.mapTilTidslinje() }
                 .filterNot { it is UtbetalingslinjePåTidslinje.Ny }
-            // TODO: Flytt perioden inn i TIdslinje
-            val periode = utbetalingslinjer.map { it.periode }.minAndMaxOf()
-            val tidslinjeForNyeUtbetalinger = Tidslinje(
-                periode = periode,
-                objekter = nyeUtbetalingslinjer,
-            ).tidslinje
+            val tidslinjeForNyeUtbetalinger = nyeUtbetalingslinjer.lagTidslinje()
 
             val utbetalingslinjerForTidslinje = tidslinjeForNyeUtbetalinger.union(andreUtbetalingslinjer)
                 .sortedWith(nyesteFørst)
@@ -191,10 +188,7 @@ data class TidslinjeForUtbetalinger private constructor(
                 }
             }
 
-            return Tidslinje(
-                periode = periode,
-                objekter = result,
-            )
+            return result.lagTidslinje()!!
         }
 
         private fun List<UtbetalingslinjePåTidslinje>.harOverlappendeMedOpprettetITidsintervall(

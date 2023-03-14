@@ -78,7 +78,7 @@ data class VedtakPåTidslinje private constructor(
             grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = grunnlagsdata.bosituasjon
                     .map { it.fullstendigOrThrow() }
-                    .lagTidslinje(periode),
+                    .lagTidslinje(),
                 /**
                  * TODO("dette ser ut som en bug, bør vel kvitte oss med forventet inntekt her og")
                  * Se hva vi gjør for [nyPeriode] i denne funksjonen.
@@ -103,7 +103,7 @@ data class VedtakPåTidslinje private constructor(
             grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = grunnlagsdata.bosituasjon
                     .map { it.fullstendigOrThrow() }
-                    .lagTidslinje(p),
+                    .lagTidslinje(),
                 fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag
                     .filterNot { it.fradragstype == Fradragstype.ForventetInntekt }
                     .mapNotNull { it.copy(args = CopyArgs.Snitt(p)) },

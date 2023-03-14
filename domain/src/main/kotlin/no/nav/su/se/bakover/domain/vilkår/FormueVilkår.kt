@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
-import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import java.time.LocalDate
 
 sealed class FormueVilkår : Vilkår() {
@@ -98,14 +98,8 @@ sealed class FormueVilkår : Vilkår() {
             )
         }
 
-        override fun lagTidslinje(periode: Periode): Vurdert {
-            return Vurdert(
-                vurderingsperioder = Tidslinje(
-                    periode = periode,
-                    objekter = vurderingsperioder,
-                ).tidslinje.toNonEmptyList(),
-            )
-        }
+        override fun lagTidslinje(periode: Periode): Vurdert =
+            Vurdert(vurderingsperioder = vurderingsperioder.lagTidslinje().krympTilPeriode(periode)!!.toNonEmptyList())
 
         override fun leggTilTomEPSFormueHvisDetMangler(perioder: List<Periode>): Vurdert {
             return Vurdert(

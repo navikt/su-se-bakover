@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.grunnlag.Pensjonsgrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
-import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import java.time.LocalDate
 import java.util.UUID
 
@@ -52,15 +52,9 @@ sealed class PensjonsVilkår : Vilkår() {
         val vurderingsperioder: Nel<VurderingsperiodePensjon>,
     ) : PensjonsVilkår() {
 
-        override val grunnlag: List<Pensjonsgrunnlag> = vurderingsperioder.mapNotNull { it.grunnlag }
-        override fun lagTidslinje(periode: Periode): PensjonsVilkår {
-            return copy(
-                vurderingsperioder = Tidslinje(
-                    periode = periode,
-                    objekter = vurderingsperioder,
-                ).tidslinje.toNonEmptyList(),
-            )
-        }
+        override val grunnlag: List<Pensjonsgrunnlag> = vurderingsperioder.map { it.grunnlag }
+        override fun lagTidslinje(periode: Periode): PensjonsVilkår =
+            copy(vurderingsperioder = vurderingsperioder.lagTidslinje().krympTilPeriode(periode)!!.toNonEmptyList())
 
         override val erInnvilget: Boolean = vurderingsperioder.all { it.vurdering == Vurdering.Innvilget }
         override val erAvslag: Boolean = vurderingsperioder.any { it.vurdering == Vurdering.Avslag }

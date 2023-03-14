@@ -37,7 +37,7 @@ fun Sak.opprettEllerOppdaterRegulering(
 
     val periode = vedtakstidslinje(
         fraOgMed = Måned.fra(_startDato),
-    ).tidslinje.let { tidslinje ->
+    ).let { tidslinje ->
         tidslinje
             .filterNot { it.erOpphør() }
             .map { vedtakUtenOpphør -> vedtakUtenOpphør.periode }

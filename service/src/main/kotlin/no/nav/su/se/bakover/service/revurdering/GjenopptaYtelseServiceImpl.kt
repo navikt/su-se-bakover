@@ -57,7 +57,7 @@ class GjenopptaYtelseServiceImpl(
         val sak = sakService.hentSak(request.sakId)
             .getOrElse { return KunneIkkeSimulereGjenopptakAvYtelse.FantIkkeSak.left() }
 
-        val sisteVedtakPåTidslinje = sak.vedtakstidslinje().tidslinje.lastOrNull()
+        val sisteVedtakPåTidslinje = sak.vedtakstidslinje().lastOrNull()
             ?: return KunneIkkeSimulereGjenopptakAvYtelse.FantIngenVedtak.left()
 
         if (sisteVedtakPåTidslinje.originaltVedtak !is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse) {
@@ -181,7 +181,7 @@ class GjenopptaYtelseServiceImpl(
 
         return when (revurdering) {
             is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> {
-                val sisteVedtakPåTidslinje = sak.vedtakstidslinje().tidslinje.lastOrNull()
+                val sisteVedtakPåTidslinje = sak.vedtakstidslinje().lastOrNull()
                     ?: throw IllegalStateException("Fant siste vedtak på tidslinje ved iverksettelse av stans på sak ${sak.id}")
                 val gjeldendeVedtaksdata: GjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(
                     sak = sak,

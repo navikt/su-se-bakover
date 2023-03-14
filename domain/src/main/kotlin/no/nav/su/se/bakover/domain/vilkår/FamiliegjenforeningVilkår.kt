@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import java.time.LocalDate
 
 sealed class FamiliegjenforeningVilkår : Vilkår() {
@@ -47,12 +48,8 @@ sealed class FamiliegjenforeningVilkår : Vilkår() {
             .map { it.periode.fraOgMed }
             .minByOrNull { it }
 
-        override fun lagTidslinje(periode: Periode) = copy(
-            vurderingsperioder = Tidslinje(
-                periode = periode,
-                objekter = vurderingsperioder,
-            ).tidslinje.toNonEmptyList(),
-        )
+        override fun lagTidslinje(periode: Periode): Vurdert =
+            copy(vurderingsperioder = vurderingsperioder.lagTidslinje().krympTilPeriode(periode)!!.toNonEmptyList())
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FamiliegjenforeningVilkår {
             check(vurderingsperioder.count() == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med mer enn én vurdering" }

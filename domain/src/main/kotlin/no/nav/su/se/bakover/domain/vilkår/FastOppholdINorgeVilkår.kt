@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.grunnlag.FastOppholdINorgeGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import java.time.LocalDate
 import java.util.UUID
 
@@ -51,14 +52,9 @@ sealed class FastOppholdINorgeVilkår : Vilkår() {
         val vurderingsperioder: Nel<VurderingsperiodeFastOppholdINorge>,
     ) : FastOppholdINorgeVilkår() {
         override val grunnlag: List<FastOppholdINorgeGrunnlag> = vurderingsperioder.mapNotNull { it.grunnlag }
-        override fun lagTidslinje(periode: Periode): FastOppholdINorgeVilkår {
-            return copy(
-                vurderingsperioder = Tidslinje(
-                    periode = periode,
-                    objekter = vurderingsperioder,
-                ).tidslinje.toNonEmptyList(),
-            )
-        }
+        override fun lagTidslinje(periode: Periode): FastOppholdINorgeVilkår = copy(
+            vurderingsperioder = vurderingsperioder.lagTidslinje().krympTilPeriode(periode)!!.toNonEmptyList(),
+        )
 
         override val erInnvilget: Boolean = vurderingsperioder.all { it.vurdering == Vurdering.Innvilget }
 
@@ -138,6 +134,7 @@ data class VurderingsperiodeFastOppholdINorge private constructor(
                 grunnlag = grunnlag?.copy(args),
             )
         }
+
         is CopyArgs.Tidslinje.NyPeriode -> {
             copy(
                 id = UUID.randomUUID(),

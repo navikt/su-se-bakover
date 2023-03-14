@@ -38,10 +38,9 @@ data class GjeldendeVedtaksdata(
     val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering
 
-    private val tidslinje: Tidslinje<VedtakPåTidslinje> = vedtakListe
-        .lagTidslinje(periode)
+    private val tidslinje: Tidslinje<VedtakPåTidslinje> = vedtakListe.lagTidslinje()?.krympTilPeriode(periode) ?: emptyList<VedtakPåTidslinje>() as Tidslinje<VedtakPåTidslinje>
 
-    private val vedtakPåTidslinje: List<VedtakPåTidslinje> = tidslinje.tidslinje
+    private val vedtakPåTidslinje: List<VedtakPåTidslinje> = tidslinje
 
     val pågåendeAvkortingEllerBehovForFremtidigAvkorting: Boolean =
         vedtakPåTidslinje.any { it.originaltVedtak.harPågåendeAvkorting() || it.originaltVedtak.harIdentifisertBehovForFremtidigAvkorting() }
@@ -139,14 +138,14 @@ data class GjeldendeVedtaksdata(
 
     /** Tar kun høyde for månedene i [periode]. */
     fun inneholderOpphørsvedtakMedAvkortingUtenlandsopphold(): Boolean {
-        return tidslinje.tidslinje.map { it.originaltVedtak }
+        return tidslinje.map { it.originaltVedtak }
             .filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()
             .any { it.harIdentifisertBehovForFremtidigAvkorting(periode) }
     }
 
     /** Tar kun høyde for månedene i [periode]. */
     fun inneholderOpphørsvedtakMedFeilutbetaling(): Boolean {
-        return tidslinje.tidslinje.map { it.originaltVedtak }
+        return tidslinje.map { it.originaltVedtak }
             .filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()
             .any { it.førteTilFeilutbetaling(periode) }
     }

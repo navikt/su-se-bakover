@@ -4,11 +4,10 @@ import arrow.core.Nel
 import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.application.CopyArgs
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
-import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 
 fun Nel<Vurderingsperiode>.minsteAntallSammenhengendePerioder() =
     this.map { it.periode }.minsteAntallSammenhengendePerioder()
@@ -22,10 +21,7 @@ fun <T : Vurderingsperiode> Nel<T>.kronologisk(): NonEmptyList<T> {
 }
 
 fun <T> List<T>.slåSammenLikePerioder(): Nel<T> where T : Vurderingsperiode, T : KanPlasseresPåTidslinje<T> {
-    return Tidslinje(
-        periode = map { it.periode }.minAndMaxOf(),
-        objekter = this,
-    ).tidslinje.fold(mutableListOf<T>()) { acc, t ->
+    return this.lagTidslinje()!!.fold(mutableListOf<T>()) { acc, t ->
         if (acc.isEmpty()) {
             acc.add(t)
         } else if (acc.last().tilstøterOgErLik(t)) {
