@@ -38,7 +38,6 @@ data class VedtakPåTidslinje private constructor(
     override fun copy(args: CopyArgs.Tidslinje): VedtakPåTidslinje = when (args) {
         CopyArgs.Tidslinje.Full -> kopi()
         is CopyArgs.Tidslinje.NyPeriode -> nyPeriode(args.periode)
-        is CopyArgs.Tidslinje.Maskert -> copy(args.args).copy(opprettet = opprettet.plusUnits(1))
     }
 
     fun erOpphør(): Boolean = originaltVedtak.erOpphør()

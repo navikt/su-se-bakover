@@ -250,9 +250,6 @@ sealed class UtbetalingslinjePåTidslinje : KanPlasseresPåTidslinje<Utbetalings
             is CopyArgs.Tidslinje.NyPeriode -> this.copy(
                 periode = args.periode,
             )
-            is CopyArgs.Tidslinje.Maskert -> {
-                copy(args.args).copy(opprettet = opprettet.plusUnits(1))
-            }
         }
     }
 
@@ -271,9 +268,6 @@ sealed class UtbetalingslinjePåTidslinje : KanPlasseresPåTidslinje<Utbetalings
             is CopyArgs.Tidslinje.NyPeriode -> this.copy(
                 periode = args.periode,
             )
-            is CopyArgs.Tidslinje.Maskert -> {
-                copy(args.args).copy(opprettet = opprettet.plusUnits(1))
-            }
         }
     }
 
@@ -292,9 +286,6 @@ sealed class UtbetalingslinjePåTidslinje : KanPlasseresPåTidslinje<Utbetalings
             is CopyArgs.Tidslinje.NyPeriode -> this.copy(
                 periode = args.periode,
             )
-            is CopyArgs.Tidslinje.Maskert -> {
-                copy(args.args).copy(opprettet = opprettet.plusUnits(1))
-            }
         }
     }
 
@@ -313,9 +304,6 @@ sealed class UtbetalingslinjePåTidslinje : KanPlasseresPåTidslinje<Utbetalings
             is CopyArgs.Tidslinje.NyPeriode -> this.copy(
                 periode = args.periode,
             )
-            is CopyArgs.Tidslinje.Maskert -> {
-                copy(args.args).copy(opprettet = opprettet.plusUnits(1))
-            }
         }
     }
 }

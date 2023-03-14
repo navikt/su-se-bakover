@@ -20,7 +20,6 @@ import java.util.LinkedList
  *
  * @see KanPlasseresPåTidslinjeMedSegSelv
  * @see KanPlasseresPåTidslinje
- * @see MaskerFraTidslinje
  */
 class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
     private val objekter: List<KanPlasseresPåTidslinjeMedSegSelv<T>>,

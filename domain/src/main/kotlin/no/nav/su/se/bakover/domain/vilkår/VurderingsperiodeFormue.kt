@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
-import no.nav.su.se.bakover.domain.tidslinje.masker
+import no.nav.su.se.bakover.domain.tidslinje.fjernPerioder
 import java.util.UUID
 
 /**
@@ -71,9 +71,6 @@ data class VurderingsperiodeFormue private constructor(
                 grunnlag = grunnlag.copy(args),
             )
         }
-        is CopyArgs.Tidslinje.Maskert -> {
-            copy(args.args).copy(opprettet = opprettet.plusUnits(1))
-        }
     }
 
     override fun erLik(other: Vurderingsperiode): Boolean {
@@ -87,8 +84,8 @@ data class VurderingsperiodeFormue private constructor(
     }
 
     fun leggTilTomEPSFormueHvisDetMangler(perioder: List<Periode>): Nel<VurderingsperiodeFormue> {
-        val uendret = masker(perioder)
-        val endret = leggTilTomEPSFormueHvisDetMangler().masker(
+        val uendret = fjernPerioder(perioder)
+        val endret = leggTilTomEPSFormueHvisDetMangler().fjernPerioder(
             perioder = uendret.map { it.periode }
                 .minsteAntallSammenhengendePerioder(),
         )
@@ -106,9 +103,9 @@ data class VurderingsperiodeFormue private constructor(
      * med/uten endring til en komplett oversikt for [periode].
      */
     fun fjernEPSFormue(perioder: List<Periode>): Nel<VurderingsperiodeFormue> {
-        val uendret = masker(perioder = perioder)
+        val uendret = fjernPerioder(perioder = perioder)
         val endret =
-            fjernEPSFormue().masker(perioder = uendret.map { it.periode }.minsteAntallSammenhengendePerioder())
+            fjernEPSFormue().fjernPerioder(perioder = uendret.map { it.periode }.minsteAntallSammenhengendePerioder())
         return Tidslinje(periode, uendret + endret).tidslinje.toNonEmptyList()
     }
 

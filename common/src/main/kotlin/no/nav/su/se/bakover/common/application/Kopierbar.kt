@@ -30,18 +30,6 @@ sealed class CopyArgs {
          * Kopier aktuelt objekt som det er.
          */
         object Full : Tidslinje()
-
-        /**
-         * Spesielt argument for å kunne maskere elementer fra en [no.nav.su.se.bakover.domain.tidslinje.Tidslinje].
-         * @throws IllegalArgumentException dersom [args] er av typen [Maskert] da dette vil føre til rekursiv loop.
-         *
-         * @see implementasjoner av [KopierbarForTidslinje.copy]
-         */
-        data class Maskert(val args: Tidslinje) : Tidslinje() {
-            init {
-                require(args !is Maskert) { "Ugyldig argument for maskering. Kaster for å forhindre rekursiv loop." }
-            }
-        }
     }
 
     /**

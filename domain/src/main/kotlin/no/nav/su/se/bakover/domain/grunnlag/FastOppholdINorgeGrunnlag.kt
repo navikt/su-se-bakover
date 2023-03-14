@@ -30,9 +30,6 @@ data class FastOppholdINorgeGrunnlag(
         is CopyArgs.Tidslinje.NyPeriode -> {
             copy(id = UUID.randomUUID(), periode = args.periode)
         }
-        is CopyArgs.Tidslinje.Maskert -> {
-            copy(args.args).copy(opprettet = opprettet.plusUnits(1))
-        }
     }
 
     override fun erLik(other: Grunnlag): Boolean {

@@ -41,14 +41,12 @@ private data class Tidslinjeobjekt(
     override fun copy(args: CopyArgs.Tidslinje): Tidslinjeobjekt = when (args) {
         CopyArgs.Tidslinje.Full -> this.copy()
         is CopyArgs.Tidslinje.NyPeriode -> this.copy(periode = args.periode)
-        is CopyArgs.Tidslinje.Maskert -> {
-            copy(args.args).copy(opprettet = opprettet.plusUnits(1))
-        }
     }
+
+    fun fjernPeriode(): List<Tidslinjeobjekt> = fjernPerioder(listOf(periode))
 }
 
 internal class TidslinjeTest {
-
     private val tikkendeKlokke = TikkendeKlokke(fixedClock)
 
     /**
@@ -1245,7 +1243,7 @@ internal class TidslinjeTest {
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.mars(2021),
                 ),
-                objekter = a.masker(),
+                objekter = a.fjernPeriode(),
             ).tidslinje shouldBe emptyList()
         }
 
@@ -1264,7 +1262,7 @@ internal class TidslinjeTest {
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.mars(2021),
                 ),
-                objekter = a.masker(listOf(februar(2021))),
+                objekter = a.fjernPerioder(listOf(februar(2021))),
             ).tidslinje shouldBe listOf(
                 Tidslinjeobjekt(
                     opprettet = a.opprettet,
@@ -1297,7 +1295,7 @@ internal class TidslinjeTest {
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.mars(2021),
                 ),
-                objekter = a.masker() + b,
+                objekter = a.fjernPeriode() + b,
             ).tidslinje shouldBe listOf(
                 Tidslinjeobjekt(
                     opprettet = b.opprettet,
@@ -1336,7 +1334,7 @@ internal class TidslinjeTest {
 
             Tidslinje(
                 periode = år(2021),
-                objekter = listOf(a) + b.masker() + c.masker() + listOf(d),
+                objekter = listOf(a) + b.fjernPeriode() + c.fjernPeriode() + listOf(d),
             ).tidslinje shouldBe listOf(
                 Tidslinjeobjekt(
                     opprettet = a.opprettet,
@@ -1362,7 +1360,7 @@ internal class TidslinjeTest {
                 periode = år(2021),
             )
 
-            a.masker(listOf(Periode.create(1.desember(2022), 31.mars(2023)))) shouldBe listOf(a)
+            a.fjernPerioder(listOf(Periode.create(1.desember(2022), 31.mars(2023)))) shouldBe listOf(a)
         }
     }
 }

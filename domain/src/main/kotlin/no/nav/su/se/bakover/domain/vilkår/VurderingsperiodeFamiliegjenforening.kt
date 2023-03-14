@@ -19,7 +19,6 @@ data class VurderingsperiodeFamiliegjenforening private constructor(
     override fun copy(args: CopyArgs.Tidslinje): VurderingsperiodeFamiliegjenforening {
         return when (args) {
             CopyArgs.Tidslinje.Full -> copy(id = UUID.randomUUID())
-            is CopyArgs.Tidslinje.Maskert -> copy(args.args).copy(opprettet = opprettet.plusUnits(1))
             is CopyArgs.Tidslinje.NyPeriode -> copy(id = UUID.randomUUID(), periode = args.periode)
         }
     }

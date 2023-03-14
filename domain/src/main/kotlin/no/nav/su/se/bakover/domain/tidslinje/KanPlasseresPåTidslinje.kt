@@ -21,27 +21,13 @@ interface KanPlasseresPåTidslinjeMedSegSelv<Type> :
  * plasseres på en tidslinje sammen med andre elementer enn seg selv. I praksis betyr dette at det må/bør være meningen
  * at elementer av [Type] med nyere [opprettet] skal overskrive eldre elementer med overlappende [periode].
  */
-interface KanPlasseresPåTidslinje<Type> : KanPlasseresPåTidslinjeMedSegSelv<Type>
+interface KanPlasseresPåTidslinje<out Type> : KanPlasseresPåTidslinjeMedSegSelv<Type>
 
 /**
- * Wrapper for elementer som skal maskeres fra en tidslinje.
- */
-data class MaskerFraTidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>>(
-    private val objekt: KanPlasseresPåTidslinjeMedSegSelv<T>,
-) : KanPlasseresPåTidslinjeMedSegSelv<T> by objekt {
-
-    @Suppress("UNCHECKED_CAST")
-    override fun copy(args: CopyArgs.Tidslinje): T {
-        return MaskerFraTidslinje(objekt.copy(CopyArgs.Tidslinje.Maskert(args))) as T
-    }
-}
-
-fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> KanPlasseresPåTidslinjeMedSegSelv<T>.masker(): List<T> {
-    return masker(listOf(periode))
-}
-
-/**
- * Maskerer/fjerner elementet for periodene definert av [perioder] og re-periodiserer for eventuelle gjenværende perioder.
+ * Fjerner angitte perioder fra dette objektet
+ * @param perioder Periodene som skal fjernes fra dette elementet
+ *
+ * TODO jah: Her trenger vi egentlig ikke å assosiere med tidslinje. Det hadde holdt med KopierbarForTidslinje og PeriodisertInformasjon
  */
 fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> KanPlasseresPåTidslinjeMedSegSelv<T>.masker(perioder: List<Periode>): List<T> {
     return perioder.filter { periode overlapper it }

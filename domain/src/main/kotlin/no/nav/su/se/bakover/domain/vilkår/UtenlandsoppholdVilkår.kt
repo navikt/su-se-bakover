@@ -161,9 +161,6 @@ data class VurderingsperiodeUtenlandsopphold private constructor(
                 grunnlag = grunnlag?.copy(args),
             )
         }
-        is CopyArgs.Tidslinje.Maskert -> {
-            copy(args.args).copy(opprettet = opprettet.plusUnits(1))
-        }
     }
 
     override fun erLik(other: Vurderingsperiode): Boolean {

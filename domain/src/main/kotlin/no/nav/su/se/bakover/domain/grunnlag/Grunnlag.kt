@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.satser.Satskategori
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinjeMedSegSelv
-import no.nav.su.se.bakover.domain.tidslinje.masker
+import no.nav.su.se.bakover.domain.tidslinje.fjernPerioder
 import org.jetbrains.annotations.TestOnly
 import java.time.Clock
 import java.util.UUID
@@ -63,9 +63,6 @@ sealed class Grunnlag {
             }
             is CopyArgs.Tidslinje.NyPeriode -> {
                 this.copy(id = UUID.randomUUID(), periode = args.periode)
-            }
-            is CopyArgs.Tidslinje.Maskert -> {
-                copy(args.args).copy(opprettet = opprettet.plusUnits(1))
             }
         }
 
@@ -156,7 +153,7 @@ sealed class Grunnlag {
         fun fjernFradragEPS(perioder: List<Periode>): List<Fradragsgrunnlag> {
             return when (tilhørerEps()) {
                 true -> {
-                    masker(perioder = perioder)
+                    fjernPerioder(perioder = perioder)
                 }
                 false -> {
                     listOf(this)
@@ -260,9 +257,6 @@ sealed class Grunnlag {
                  * den som kaller kvitter seg med perioder som ikke overlapper først.
                  */
                 copy(id = UUID.randomUUID(), fradrag = fradrag.copy(CopyArgs.Snitt(args.periode))!!)
-            }
-            is CopyArgs.Tidslinje.Maskert -> {
-                copy(args.args).copy(opprettet = opprettet.plusUnits(1))
             }
         }
     }
@@ -377,9 +371,6 @@ sealed class Grunnlag {
                             is CopyArgs.Tidslinje.NyPeriode -> {
                                 copy(id = UUID.randomUUID(), periode = args.periode)
                             }
-                            is CopyArgs.Tidslinje.Maskert -> {
-                                copy(args.args).copy(opprettet = opprettet.plusUnits(1))
-                            }
                         }
                     }
 
@@ -405,9 +396,6 @@ sealed class Grunnlag {
                             }
                             is CopyArgs.Tidslinje.NyPeriode -> {
                                 copy(id = UUID.randomUUID(), periode = args.periode)
-                            }
-                            is CopyArgs.Tidslinje.Maskert -> {
-                                copy(args.args).copy(opprettet = opprettet.plusUnits(1))
                             }
                         }
                     }
@@ -435,9 +423,6 @@ sealed class Grunnlag {
                         }
                         is CopyArgs.Tidslinje.NyPeriode -> {
                             copy(id = UUID.randomUUID(), periode = args.periode)
-                        }
-                        is CopyArgs.Tidslinje.Maskert -> {
-                            copy(args.args).copy(opprettet = opprettet.plusUnits(1))
                         }
                     }
                 }
@@ -467,9 +452,6 @@ sealed class Grunnlag {
                     is CopyArgs.Tidslinje.NyPeriode -> {
                         copy(id = UUID.randomUUID(), periode = args.periode)
                     }
-                    is CopyArgs.Tidslinje.Maskert -> {
-                        copy(args.args).copy(opprettet = opprettet.plusUnits(1))
-                    }
                 }
             }
 
@@ -495,9 +477,6 @@ sealed class Grunnlag {
                     }
                     is CopyArgs.Tidslinje.NyPeriode -> {
                         copy(id = UUID.randomUUID(), periode = args.periode)
-                    }
-                    is CopyArgs.Tidslinje.Maskert -> {
-                        copy(args.args).copy(opprettet = opprettet.plusUnits(1))
                     }
                 }
             }
