@@ -5,13 +5,14 @@ import no.nav.su.se.bakover.common.application.KopierbarForTidslinje
 import no.nav.su.se.bakover.common.application.OriginaltTidsstempel
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
+import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 
 /**
  * Egenskaper som kreves for at et element skal kunne periodiseres av [Tidslinje].
  * Som et minimum må elementet være stand til å kunne plasseres på en [Tidslinje] med bare seg selv og utføre re-periodisering
- * vha. [Tidslinje.periode] og [MaskerFraTidslinje]
+ * vha. [Tidslinje.periode]
  */
-interface KanPlasseresPåTidslinjeMedSegSelv<Type> :
+interface KanPlasseresPåTidslinjeMedSegSelv<out Type> :
     OriginaltTidsstempel,
     PeriodisertInformasjon,
     KopierbarForTidslinje<Type>
@@ -29,14 +30,18 @@ interface KanPlasseresPåTidslinje<out Type> : KanPlasseresPåTidslinjeMedSegSel
  *
  * TODO jah: Her trenger vi egentlig ikke å assosiere med tidslinje. Det hadde holdt med KopierbarForTidslinje og PeriodisertInformasjon
  */
-fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> KanPlasseresPåTidslinjeMedSegSelv<T>.masker(perioder: List<Periode>): List<T> {
-    return perioder.filter { periode overlapper it }
-        .map {
-            MaskerFraTidslinje(copy(CopyArgs.Tidslinje.NyPeriode(it)))
-        }.let { maskert ->
-            Tidslinje(
-                periode = periode,
-                objekter = maskert + this,
-            ).tidslinje.filterNot { it is MaskerFraTidslinje<*> }
+@Suppress("UNCHECKED_CAST")
+fun <T> KanPlasseresPåTidslinjeMedSegSelv<T>.fjernPerioder(perioder: List<Periode>): List<T> {
+    return when {
+        this.periode overlapper perioder -> {
+            this.periode.måneder()
+                .filterNot { it overlapper perioder }
+                .minsteAntallSammenhengendePerioder()
+                .map {
+                    this.copy(CopyArgs.Tidslinje.NyPeriode(it))
+                }
         }
+
+        else -> listOf(this as T)
+    }
 }

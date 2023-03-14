@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.common.periode.Periode
  *
  * @see [CopyArgs.Tidslinje]
  */
-interface KopierbarForTidslinje<Type> {
+interface KopierbarForTidslinje<out Type> {
     fun copy(args: CopyArgs.Tidslinje): Type
 }
 
