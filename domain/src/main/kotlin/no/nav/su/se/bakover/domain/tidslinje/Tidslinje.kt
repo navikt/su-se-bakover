@@ -70,6 +70,8 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
             return lagTidslinje(this)
         }
 
+
+        /*
         @JvmName("lagTidslinjeKanPlasseresMedSegSelvList")
         fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> List<KanPlasseresPåTidslinjeMedSegSelv<T>>.lagTidslinje(): Tidslinje<T>? {
             return this.toNonEmptyListOrNull()?.let {
@@ -77,7 +79,9 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
                 lagTidslinje(it as NonEmptyList<T>)
             }
         }
+         */
 
+        @JvmName("topkek")
         fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> List<T>.lagTidslinje(): Tidslinje<T>? {
             return this.toNonEmptyListOrNull()?.let {
                 lagTidslinje(it)

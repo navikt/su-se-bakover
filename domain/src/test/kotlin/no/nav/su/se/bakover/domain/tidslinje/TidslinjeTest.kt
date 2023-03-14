@@ -1085,7 +1085,7 @@ internal class TidslinjeTest {
                 periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.mars(2021)),
             )
 
-            a.masker(listOf(februar(2021))).lagTidslinje()!!.krympTilPeriode(
+            a.fjernPerioder(listOf(februar(2021))).lagTidslinje()!!.krympTilPeriode(
                 Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.mars(2021)),
             ) shouldBe listOf(
                 Tidslinjeobjekt(opprettet = a.opprettet, periode = januar(2021)),
