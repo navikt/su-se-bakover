@@ -4,6 +4,7 @@ import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
 import no.nav.su.se.bakover.common.application.CopyArgs
 import no.nav.su.se.bakover.common.between
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -13,25 +14,26 @@ import java.time.LocalDate
 import java.util.LinkedList
 
 /**
- * Konstruerer en tidslinje av periodiserte opplysninger innenfor angitt [periode].
- * Periodiseringen vil ta hensyn til to hovedparametere; [KanPlasseresPåTidslinjeMedSegSelv.periode] og [KanPlasseresPåTidslinjeMedSegSelv.opprettet].
+ * Konstruerer en tidslinje av periodiserte opplysninger, begrenset innen for opplysningenes totale periode.
+ * Periodiseringen vil ta hensyn til to hovedparametere; [KanPlasseresPåTidslinjeMedSegSelv.periode], [KanPlasseresPåTidslinjeMedSegSelv.opprettet] og [KanPlasseresPåTidslinjeMedSegSelv.copy].
  * Dersom [KanPlasseresPåTidslinjeMedSegSelv.periode] er overlappende for to elementer, vil elementet med nyeste [KanPlasseresPåTidslinjeMedSegSelv.opprettet]
- * få presedens og følgelig overskrive det første elementet for perioden som overlapper. Perioder uten overlapp for elementer forblir uberørt.
+ * få presedens og følgelig overskrive det første elementet for perioden som overlapper.
+ * Perioder uten overlapp for elementer forblir uberørt.
+ * Merk at tidslinjen kan ha hull.
  *
- * @property periode "utsnittet" tidslinjen skal konstrueres for.
+ * @property periode Denne perioden vil strekke seg fra første til siste utbetalingsmåned. Merk at den kan ha hull, så funksjoner som gjeldendeForDato og krymp kan gi null.
  *
  * @see KanPlasseresPåTidslinjeMedSegSelv
  * @see KanPlasseresPåTidslinje
  */
 class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
-    private val input: NonEmptyList<KanPlasseresPåTidslinjeMedSegSelv<T>>,
-    private val output: NonEmptyList<T>,
-) : List<T> by output {
+    private val tidslinjeperioder: NonEmptyList<T>,
+) : List<T> by tidslinjeperioder {
 
-    private val periode = this.output.map { it.periode }.minAndMaxOf()
+    private val periode = this.tidslinjeperioder.map { it.periode }.minAndMaxOf()
 
     init {
-        valider(this.output)
+        valider(this.tidslinjeperioder)
     }
 
     fun gjeldendeForDato(dato: LocalDate): T? = this.firstOrNull { dato.between(it.periode) }
@@ -41,19 +43,19 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
      * @return Dersom perioden som sendes inn ikke finnes i tidslinjen, så null
      */
     fun krympTilPeriode(
-        mindrePerioden: Periode,
+        periodenDetSkalKrympesTil: Periode,
     ): Tidslinje<T>? {
-        return this.output.mapNotNull {
-            if (mindrePerioden inneholder it.periode) {
+        return this.tidslinjeperioder.mapNotNull {
+            if (periodenDetSkalKrympesTil inneholder it.periode) {
                 it
-            } else if (mindrePerioden overlapper it.periode) {
-                it.copy(CopyArgs.Tidslinje.NyPeriode(mindrePerioden.snitt(it.periode)!!))
+            } else if (periodenDetSkalKrympesTil overlapper it.periode) {
+                it.copy(CopyArgs.Tidslinje.NyPeriode(periodenDetSkalKrympesTil.snitt(it.periode)!!))
             } else {
                 null
             }
         }.let {
             it.toNonEmptyListOrNull()?.let {
-                Tidslinje(input, it)
+                Tidslinje(it)
             }
         }
     }
@@ -61,7 +63,8 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
     /**
      * [krympTilPeriode]
      */
-    fun krympTilPeriode(fraOgMed: LocalDate): Tidslinje<T>? = krympTilPeriode(Periode.create(fraOgMed, periode.tilOgMed))
+    fun krympTilPeriode(fraOgMed: Måned): Tidslinje<T>? =
+        krympTilPeriode(Periode.create(fraOgMed.fraOgMed, periode.tilOgMed))
 
     companion object {
 
@@ -70,18 +73,6 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
             return lagTidslinje(this)
         }
 
-
-        /*
-        @JvmName("lagTidslinjeKanPlasseresMedSegSelvList")
-        fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> List<KanPlasseresPåTidslinjeMedSegSelv<T>>.lagTidslinje(): Tidslinje<T>? {
-            return this.toNonEmptyListOrNull()?.let {
-                @Suppress("UNCHECKED_CAST")
-                lagTidslinje(it as NonEmptyList<T>)
-            }
-        }
-         */
-
-        @JvmName("topkek")
         fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> List<T>.lagTidslinje(): Tidslinje<T>? {
             return this.toNonEmptyListOrNull()?.let {
                 lagTidslinje(it)
@@ -95,8 +86,7 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
 
             val periodisert = periodiser(delvisOverlappende)
             return Tidslinje(
-                input = input,
-                output = periodisert.sortedWith(stigendeFraOgMed()).toNonEmptyList(),
+                tidslinjeperioder = periodisert.sortedWith(stigendeFraOgMed()).toNonEmptyList(),
             )
         }
 
@@ -113,7 +103,6 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
         private fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> periodiser(
             tempResult: NonEmptyList<T>,
         ): NonEmptyList<T> {
-
             val nyesteFørst = Comparator<T> { o1, o2 -> o2.opprettet.instant.compareTo(o1.opprettet.instant) }
 
             val queue = LinkedList(tempResult.sortedWith(stigendeFraOgMed<T>().then(nyesteFørst)))
@@ -272,47 +261,11 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
             }
         }
 
-//        private fun <T: KanPlasseresPåTidslinjeMedSegSelv<T>> List<T>.justerFraOgMedForElementerDelvisUtenforPeriode(): List<T> {
-//            return map {
-//                if (it.periode starterTidligere periode) {
-//                    it.copy(
-//                        CopyArgs.Tidslinje.NyPeriode(
-//                            periode = Periode.create(
-//                                fraOgMed = periode.fraOgMed,
-//                                tilOgMed = it.periode.tilOgMed,
-//                            ),
-//                        ),
-//                    )
-//                } else {
-//                    it.copy(CopyArgs.Tidslinje.Full)
-//                }
-//            }
-//        }
-//
-//        private fun <T: KanPlasseresPåTidslinjeMedSegSelv<T>> List<T>.justerTilOgMedForElementerDelvisUtenforPeriode(): List<T> {
-//            return map {
-//                if (it.periode slutterEtter periode) {
-//                    it.copy(
-//                        CopyArgs.Tidslinje.NyPeriode(
-//                            periode = Periode.create(
-//                                fraOgMed = it.periode.fraOgMed,
-//                                tilOgMed = periode.tilOgMed,
-//                            ),
-//                        ),
-//                    )
-//                } else {
-//                    it.copy(CopyArgs.Tidslinje.Full)
-//                }
-//            }
-//        }
-
-
         private fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> List<T>.overlappMedAndreEksisterer(): Boolean {
-            return filter { t1 ->
+            return any { t1 ->
                 any { t2 -> t1 != t2 && t1.periode overlapper t2.periode }
-            }.isNotEmpty()
+            }
         }
-
 
         object Validator {
             fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> valider(elementer: List<T>) {
@@ -334,7 +287,4 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
             }
         }
     }
-
-
 }
-

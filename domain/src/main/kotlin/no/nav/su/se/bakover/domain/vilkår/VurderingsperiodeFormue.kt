@@ -15,8 +15,8 @@ import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
-import no.nav.su.se.bakover.domain.tidslinje.fjernPerioder
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
+import no.nav.su.se.bakover.domain.tidslinje.fjernPerioder
 import java.util.UUID
 
 /**
@@ -108,7 +108,7 @@ data class VurderingsperiodeFormue private constructor(
         val uendret = fjernPerioder(perioder = perioder)
         val endret =
             fjernEPSFormue().fjernPerioder(perioder = uendret.map { it.periode }.minsteAntallSammenhengendePerioder())
-        return (uendret + endret).lagTidslinje()!!.toNonEmptyList()
+        return (uendret + endret).lagTidslinje()!!.krympTilPeriode(periode)!!.toNonEmptyList()
     }
 
     private fun fjernEPSFormue(): VurderingsperiodeFormue {
@@ -184,8 +184,8 @@ data class VurderingsperiodeFormue private constructor(
                 id = id,
                 opprettet = grunnlag.opprettet,
                 vurdering = if (grunnlag.periode.måneder().all {
-                        grunnlag.sumFormue() <= formuegrenserFactory.forMåned(it).formuegrense.avrund()
-                    }
+                    grunnlag.sumFormue() <= formuegrenserFactory.forMåned(it).formuegrense.avrund()
+                }
                 ) {
                     Vurdering.Innvilget
                 } else {

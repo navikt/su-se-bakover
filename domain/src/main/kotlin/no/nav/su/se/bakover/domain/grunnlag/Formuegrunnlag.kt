@@ -166,7 +166,7 @@ data class Formuegrunnlag private constructor(
                 /*
                  * Mismatch å sjekke 1 fradragsgrunnlag mot mange bosituasjoner, men gir mening innenfor samme periode.
                  */
-                bosituasjon = bosituasjon.lagTidslinje(),
+                bosituasjon = bosituasjon.lagTidslinje(periode),
                 formuegrunnlag = listOf(formuegrunnlag),
             ).getOrElse { return it.left() }
 

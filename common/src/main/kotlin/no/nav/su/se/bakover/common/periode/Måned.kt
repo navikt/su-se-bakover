@@ -113,3 +113,5 @@ fun Periode.tilMåned(): Måned {
 fun <T> Map<Måned, T>.periode() = this.keys.toList().minAndMaxOf()
 
 fun LocalDate.toMåned() = Måned.fra(this)
+
+fun YearMonth.tilMåned() = Måned.fra(this)

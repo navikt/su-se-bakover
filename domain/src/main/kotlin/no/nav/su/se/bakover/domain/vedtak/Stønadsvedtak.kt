@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
@@ -24,9 +23,6 @@ import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
-import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
-import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
-import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje.Companion.tilVedtakPåTidslinje
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 import java.util.UUID
@@ -822,26 +818,4 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
             visitor.visit(this)
         }
     }
-}
-
-fun List<VedtakSomKanRevurderes>.lagTidslinje(): Tidslinje<VedtakPåTidslinje>? {
-    return mapTilVedtakPåTidslinjeTyper().lagTidslinje()
-}
-
-private fun List<VedtakSomKanRevurderes>.mapTilVedtakPåTidslinjeTyper(): List<VedtakPåTidslinje> =
-    map { it.tilVedtakPåTidslinje() }
-
-private fun Dokumenttilstand?.setDokumentTilstandBasertPåBehandlingHvisNull(b: Behandling): Dokumenttilstand =
-    when (this) {
-        null -> when (b.skalSendeVedtaksbrev()) {
-            true -> Dokumenttilstand.IKKE_GENERERT_ENDA
-            false -> Dokumenttilstand.SKAL_IKKE_GENERERE
-        }
-
-        else -> this
-    }
-
-private fun Behandling.dokumenttilstandForBrevvalg(): Dokumenttilstand = when (this.skalSendeVedtaksbrev()) {
-    false -> Dokumenttilstand.SKAL_IKKE_GENERERE
-    true -> Dokumenttilstand.IKKE_GENERERT_ENDA
 }

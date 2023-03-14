@@ -384,7 +384,6 @@ internal class TidslinjeTest {
             ),
         )
 
-
         listOf(a, b, c, d).lagTidslinje()!!.krympTilPeriode(
             Periode.create(
                 fraOgMed = 1.januar(2021),
@@ -606,7 +605,6 @@ internal class TidslinjeTest {
                 tilOgMed = 31.desember(2021),
             ),
         )
-
 
         listOf(b, a, c, d).lagTidslinje()!!.krympTilPeriode(år(2021)) shouldBe listOf(
             Tidslinjeobjekt(
@@ -1073,9 +1071,10 @@ internal class TidslinjeTest {
                 periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.mars(2021)),
             )
 
-            a.fjernPeriode().lagTidslinje()!!.krympTilPeriode(
-                Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.mars(2021)),
-            ) shouldBe emptyList()
+            a.fjernPeriode().let {
+                it shouldBe emptyList()
+                it.lagTidslinje() shouldBe null
+            }
         }
 
         @Test

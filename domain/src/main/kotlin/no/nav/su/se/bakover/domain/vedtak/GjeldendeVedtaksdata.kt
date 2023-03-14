@@ -38,9 +38,9 @@ data class GjeldendeVedtaksdata(
     val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering
 
-    private val tidslinje: Tidslinje<VedtakPåTidslinje> = vedtakListe.lagTidslinje()?.krympTilPeriode(periode) ?: emptyList<VedtakPåTidslinje>() as Tidslinje<VedtakPåTidslinje>
+    private val tidslinje: Tidslinje<VedtakPåTidslinje>? = vedtakListe.lagTidslinje()?.krympTilPeriode(periode)
 
-    private val vedtakPåTidslinje: List<VedtakPåTidslinje> = tidslinje
+    private val vedtakPåTidslinje: List<VedtakPåTidslinje> = tidslinje ?: emptyList()
 
     val pågåendeAvkortingEllerBehovForFremtidigAvkorting: Boolean =
         vedtakPåTidslinje.any { it.originaltVedtak.harPågåendeAvkorting() || it.originaltVedtak.harIdentifisertBehovForFremtidigAvkorting() }
@@ -116,7 +116,7 @@ data class GjeldendeVedtaksdata(
     }
 
     fun gjeldendeVedtakPåDato(dato: LocalDate): VedtakSomKanRevurderes? =
-        tidslinje.gjeldendeForDato(dato)?.originaltVedtak
+        tidslinje?.gjeldendeForDato(dato)?.originaltVedtak
 
     fun gjeldendeVedtakMånedsvis(): Map<Måned, VedtakSomKanRevurderes?> {
         return periode.måneder().associateWith { gjeldendeVedtakPåDato(it.fraOgMed) }
@@ -138,16 +138,16 @@ data class GjeldendeVedtaksdata(
 
     /** Tar kun høyde for månedene i [periode]. */
     fun inneholderOpphørsvedtakMedAvkortingUtenlandsopphold(): Boolean {
-        return tidslinje.map { it.originaltVedtak }
-            .filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()
-            .any { it.harIdentifisertBehovForFremtidigAvkorting(periode) }
+        return tidslinje?.map { it.originaltVedtak }
+            ?.filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()
+            ?.any { it.harIdentifisertBehovForFremtidigAvkorting(periode) } ?: false
     }
 
     /** Tar kun høyde for månedene i [periode]. */
     fun inneholderOpphørsvedtakMedFeilutbetaling(): Boolean {
-        return tidslinje.map { it.originaltVedtak }
-            .filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()
-            .any { it.førteTilFeilutbetaling(periode) }
+        return tidslinje?.map { it.originaltVedtak }
+            ?.filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()
+            ?.any { it.førteTilFeilutbetaling(periode) } ?: false
     }
 
     fun vedtaksperioder(): List<Periode> {

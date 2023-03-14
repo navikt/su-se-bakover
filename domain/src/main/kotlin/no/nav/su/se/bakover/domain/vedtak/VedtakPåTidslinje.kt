@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.vedtak
 import arrow.core.Either
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.application.CopyArgs
-import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -11,6 +10,7 @@ import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow
 import no.nav.su.se.bakover.domain.grunnlag.lagTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje.Companion.tilVedtakPåTidslinje
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
@@ -78,7 +78,7 @@ data class VedtakPåTidslinje private constructor(
             grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = grunnlagsdata.bosituasjon
                     .map { it.fullstendigOrThrow() }
-                    .lagTidslinje(),
+                    .lagTidslinje(periode),
                 /**
                  * TODO("dette ser ut som en bug, bør vel kvitte oss med forventet inntekt her og")
                  * Se hva vi gjør for [nyPeriode] i denne funksjonen.
@@ -103,7 +103,7 @@ data class VedtakPåTidslinje private constructor(
             grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = grunnlagsdata.bosituasjon
                     .map { it.fullstendigOrThrow() }
-                    .lagTidslinje(),
+                    .lagTidslinje(p),
                 fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag
                     .filterNot { it.fradragstype == Fradragstype.ForventetInntekt }
                     .mapNotNull { it.copy(args = CopyArgs.Snitt(p)) },
@@ -126,26 +126,8 @@ data class VedtakPåTidslinje private constructor(
     }
 }
 
-fun List<VedtakSomKanRevurderes>.lagTidslinje(): Tidslinje<VedtakPåTidslinje> {
-    return Tidslinje(mapTilVedtakPåTidslinjeTyper())
-}
-
-fun List<VedtakSomKanRevurderes>.lagTidslinje(
-    fraOgMed: Måned,
-): Tidslinje<VedtakPåTidslinje> {
-    return Tidslinje(
-        fraOgMed = fraOgMed,
-        objekter = mapTilVedtakPåTidslinjeTyper(),
-    )
-}
-
-fun List<VedtakSomKanRevurderes>.lagTidslinje(
-    periode: Periode,
-): Tidslinje<VedtakPåTidslinje> {
-    return Tidslinje(
-        periode = periode,
-        objekter = mapTilVedtakPåTidslinjeTyper(),
-    )
+fun List<VedtakSomKanRevurderes>.lagTidslinje(): Tidslinje<VedtakPåTidslinje>? {
+    return mapTilVedtakPåTidslinjeTyper().lagTidslinje()
 }
 
 private fun List<VedtakSomKanRevurderes>.mapTilVedtakPåTidslinjeTyper(): List<VedtakPåTidslinje> {

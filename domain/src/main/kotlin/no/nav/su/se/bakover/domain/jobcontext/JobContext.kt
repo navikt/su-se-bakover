@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.jobcontext
 
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.Måned
+import no.nav.su.se.bakover.common.periode.tilMåned
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -20,12 +21,7 @@ data class NameAndYearMonthId(
         return """$name$yearMonth"""
     }
 
-    fun tilPeriode(): Periode {
-        return Periode.create(
-            fraOgMed = yearMonth.atDay(1),
-            tilOgMed = yearMonth.atEndOfMonth(),
-        )
-    }
+    fun tilPeriode(): Måned = yearMonth.tilMåned()
 }
 
 data class NameAndLocalDateId(

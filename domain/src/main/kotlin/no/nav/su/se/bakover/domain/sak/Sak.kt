@@ -242,23 +242,15 @@ data class Sak(
      * Henter minste antall sammenhengende perioder hvor vedtakene ikke er av typen opphør.
      */
     fun hentIkkeOpphørtePerioder(): List<Periode> =
-        vedtakstidslinje().filterNot { it.erOpphør() }.map { it.periode }.minsteAntallSammenhengendePerioder()
+        vedtakstidslinje()?.filterNot { it.erOpphør() }?.map { it.periode }?.minsteAntallSammenhengendePerioder() ?: emptyList()
 
     fun vedtakstidslinje(
         fraOgMed: Måned,
-    ): Tidslinje<VedtakPåTidslinje> =
+    ): Tidslinje<VedtakPåTidslinje>? =
         vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().lagTidslinje()?.krympTilPeriode(fraOgMed)
-            ?: emptyList<VedtakPåTidslinje>() as Tidslinje<VedtakPåTidslinje>
 
-    fun vedtakstidslinje(
-        periode: Periode,
-    ): Tidslinje<VedtakPåTidslinje> =
-        vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().lagTidslinje()?.krympTilPeriode(periode)
-            ?: emptyList<VedtakPåTidslinje>() as Tidslinje<VedtakPåTidslinje>
-
-    fun vedtakstidslinje(): Tidslinje<VedtakPåTidslinje> =
+    fun vedtakstidslinje(): Tidslinje<VedtakPåTidslinje>? =
         vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().lagTidslinje()
-            ?: emptyList<VedtakPåTidslinje>() as Tidslinje<VedtakPåTidslinje>
 
     /** Skal ikke kunne ha mer enn én åpen klage av gangen. */
     fun kanOppretteKlage(): Boolean = klager.none { it.erÅpen() }
@@ -301,7 +293,7 @@ data class Sak(
         return true
     }
 
-    fun ytelseUtløperVedUtløpAv(periode: Periode): Boolean = vedtakstidslinje().lastOrNull()?.let {
+    fun ytelseUtløperVedUtløpAv(periode: Periode): Boolean = vedtakstidslinje()?.lastOrNull()?.let {
         !it.erOpphør() && it.periode slutterSamtidig periode
     } ?: false
 

@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
-import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import java.time.LocalDate
 

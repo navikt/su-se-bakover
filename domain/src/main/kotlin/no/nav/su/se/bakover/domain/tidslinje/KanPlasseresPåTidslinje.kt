@@ -21,6 +21,7 @@ interface KanPlasseresPåTidslinjeMedSegSelv<out Type> :
  * Et syntetisk supersett av [KanPlasseresPåTidslinjeMedSegSelv] hvis intensjon er å markere at elementer av typen [Type] er ment å
  * plasseres på en tidslinje sammen med andre elementer enn seg selv. I praksis betyr dette at det må/bør være meningen
  * at elementer av [Type] med nyere [opprettet] skal overskrive eldre elementer med overlappende [periode].
+ * TODO jah: Fjern denne?
  */
 interface KanPlasseresPåTidslinje<out Type> : KanPlasseresPåTidslinjeMedSegSelv<Type>
 

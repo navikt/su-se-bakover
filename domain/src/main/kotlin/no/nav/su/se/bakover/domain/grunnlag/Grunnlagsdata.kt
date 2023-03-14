@@ -163,6 +163,6 @@ fun List<Fradragsgrunnlag>.fjernFradragEPS(perioderUtenEPS: List<Periode>): List
     return flatMap { it.fjernFradragEPS(perioderUtenEPS) }
 }
 
-fun List<Bosituasjon.Fullstendig>.lagTidslinje(): List<Bosituasjon.Fullstendig> {
-    return this.lagTidslinje()?.toList() ?: emptyList()
+fun List<Bosituasjon.Fullstendig>.lagTidslinje(periode: Periode): List<Bosituasjon.Fullstendig> {
+    return this.lagTidslinje()?.krympTilPeriode(periode) ?: emptyList()
 }

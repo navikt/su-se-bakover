@@ -501,7 +501,7 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
                 sak.vedtakListe.single { it is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse }
                 sak.vedtakstidslinje().also { vedtakstidslinje ->
                     periode.måneder().map {
-                        vedtakstidslinje.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak to sak.utbetalingstidslinje()!!
+                        vedtakstidslinje!!.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak to sak.utbetalingstidslinje()!!
                             .gjeldendeForDato(it.fraOgMed)
                     }.forEach { (vedtak, utbetaling) ->
                         (vedtak is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse && utbetaling is UtbetalingslinjePåTidslinje.Stans) shouldBe true
@@ -527,7 +527,7 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
                 sak.vedtakListe.single()
                 sak.vedtakstidslinje().also { vedtakstidslinje ->
                     periode.måneder().map {
-                        vedtakstidslinje.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak to sak.utbetalingstidslinje()!!
+                        vedtakstidslinje!!.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak to sak.utbetalingstidslinje()!!
                             .gjeldendeForDato(it.fraOgMed)
                     }.forEach { (vedtak, utbetaling) ->
                         (vedtak is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling && utbetaling is UtbetalingslinjePåTidslinje.Ny) shouldBe true
@@ -553,7 +553,7 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
                 sak.vedtakListe.single()
                 sak.vedtakstidslinje().let { tidslinje ->
                     periode.måneder().map {
-                        tidslinje.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak to sak.utbetalingstidslinje()!!
+                        tidslinje!!.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak to sak.utbetalingstidslinje()!!
                             .gjeldendeForDato(it.fraOgMed)
                     }.forEach { (vedtak, utbetaling) ->
                         (vedtak is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling && utbetaling is UtbetalingslinjePåTidslinje.Ny) shouldBe true
