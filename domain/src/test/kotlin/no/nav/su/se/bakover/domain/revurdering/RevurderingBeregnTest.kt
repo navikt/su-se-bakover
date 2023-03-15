@@ -475,9 +475,9 @@ internal class RevurderingBeregnTest {
                         id = beregnet.grunnlagsdata.fradragsgrunnlag[0].id,
                         opprettet = beregnet.grunnlagsdata.fradragsgrunnlag[0].opprettet,
                         fradrag = FradragFactory.nyFradragsperiode(
-                            fradragstype = Fradragstype.Arbeidsinntekt,
-                            månedsbeløp = 3750.0,
-                            periode = januar(2022)..desember(2022),
+                            fradragstype = Fradragstype.AvkortingUtenlandsopphold,
+                            månedsbeløp = 17196.0,
+                            periode = januar(2022),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
                         ),
@@ -486,13 +486,14 @@ internal class RevurderingBeregnTest {
                         id = beregnet.grunnlagsdata.fradragsgrunnlag[1].id,
                         opprettet = beregnet.grunnlagsdata.fradragsgrunnlag[1].opprettet,
                         fradrag = FradragFactory.nyFradragsperiode(
-                            fradragstype = Fradragstype.AvkortingUtenlandsopphold,
-                            månedsbeløp = 17196.0,
-                            periode = januar(2022),
+                            fradragstype = Fradragstype.Arbeidsinntekt,
+                            månedsbeløp = 3750.0,
+                            periode = januar(2022)..desember(2022),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
                         ),
                     ),
+
                     Grunnlag.Fradragsgrunnlag.create(
                         id = beregnet.grunnlagsdata.fradragsgrunnlag[2].id,
                         opprettet = beregnet.grunnlagsdata.fradragsgrunnlag[2].opprettet,

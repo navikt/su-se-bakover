@@ -5,7 +5,7 @@ import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.inneholderAlle
+import no.nav.su.se.bakover.common.periode.inneholder
 import no.nav.su.se.bakover.common.periode.måneder
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
@@ -123,7 +123,7 @@ fun Sak.unngåRevurderingAvPeriodeDetErPågåendeAvkortingFor(
                         .måneder() + vedtak.behandling.grunnlagsdata.fradragsgrunnlag.filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
                         .periode()
                     ).distinct().måneder()
-                if (!revurderingsperiode.inneholderAlle(periodeSomMåOverlappes)) {
+                if (!revurderingsperiode.inneholder(periodeSomMåOverlappes)) {
                     return KanIkkeRevurderePgaAvkorting.PågåendeAvkortingForPeriode(
                         periode = revurderingsperiode,
                         vedtakId = vedtak.id,

@@ -23,7 +23,7 @@ import java.util.LinkedList
 open class Periode protected constructor(
     fraOgMed: LocalDate,
     tilOgMed: LocalDate,
-) : DatoIntervall(fraOgMed, tilOgMed), Comparable<Periode> {
+) : DatoIntervall(fraOgMed, tilOgMed) {
 
     constructor(måned: YearMonth) : this(måned.atDay(1), måned.atEndOfMonth()) {
         validateOrThrow(fraOgMed, tilOgMed)
@@ -54,14 +54,6 @@ open class Periode protected constructor(
         }.toNonEmptyList()
     }
 
-    infix fun tilstøter(other: Periode): Boolean {
-        val sluttStart = Period.between(tilOgMed, other.fraOgMed)
-        val startSlutt = Period.between(fraOgMed, other.tilOgMed)
-        val plussEnDag = Period.ofDays(1)
-        val minusEnDag = Period.ofDays(-1)
-        return this == other || sluttStart == plussEnDag || sluttStart == minusEnDag || startSlutt == plussEnDag || startSlutt == minusEnDag
-    }
-
     infix fun fullstendigOverlapp(other: Periode): Boolean =
         this fullstendigOverlapp listOf(other)
 
@@ -86,25 +78,17 @@ open class Periode protected constructor(
         }
     }
 
-    /**
-     * Slår sammen to perioder dersom minst en måned overlapper eller periodene er tilstøtende.
-     */
-    infix fun slåSammen(other: Periode): Either<PerioderKanIkkeSlåsSammen, Periode> {
-        return if (overlapper(other) || tilstøter(other)) {
-            create(
-                fraOgMed = minOf(this.fraOgMed, other.fraOgMed),
-                tilOgMed = maxOf(this.tilOgMed, other.tilOgMed),
-            ).right()
-        } else {
-            PerioderKanIkkeSlåsSammen.left()
-        }
-    }
-
-    object PerioderKanIkkeSlåsSammen
-
     infix fun minus(other: Periode): List<Periode> {
         return (måneder() - other.måneder().toSet()).minsteAntallSammenhengendePerioder()
     }
+
+    infix fun slåSammen(
+        other: Periode,
+    ): Either<PerioderKanIkkeSlåsSammen, Periode> {
+        return slåSammen(other) { fraOgMed, tilOgMed -> create(fraOgMed, tilOgMed) }.mapLeft { PerioderKanIkkeSlåsSammen }
+    }
+
+    object PerioderKanIkkeSlåsSammen
 
     /**
      * Forskyver en periode n hele måneder angitt av parameteret [måneder].
@@ -164,8 +148,6 @@ open class Periode protected constructor(
         }
     }
 
-    override fun compareTo(other: Periode) = fraOgMed.compareTo(other.fraOgMed)
-
     override fun equals(other: Any?) = other is Periode && fraOgMed == other.fraOgMed && tilOgMed == other.tilOgMed
 
     override fun hashCode() = 31 * fraOgMed.hashCode() + tilOgMed.hashCode()
@@ -191,17 +173,7 @@ fun List<Periode>.minAndMaxOf(): Periode {
  * definert av [Periode.slåSammen].
  */
 fun List<Periode>.minsteAntallSammenhengendePerioder(): List<Periode> {
-    return sorted().fold(mutableListOf()) { slåttSammen: MutableList<Periode>, periode: Periode ->
-        if (slåttSammen.isEmpty()) {
-            slåttSammen.add(periode)
-        } else if (slåttSammen.last().slåSammen(periode).isRight()) {
-            val last = slåttSammen.removeLast()
-            slåttSammen.add(last.slåSammen(periode).getOrElse { throw IllegalStateException("Skulle gått bra") })
-        } else {
-            slåttSammen.add(periode)
-        }
-        slåttSammen
-    }
+    return minsteAntallSammenhengendePerioder { fraOgMed, tilOgMed -> Periode.create(fraOgMed, tilOgMed) }
 }
 
 fun Nel<Periode>.minsteAntallSammenhengendePerioder(): Nel<Periode> {
@@ -216,26 +188,6 @@ operator fun List<Periode>.minus(other: List<Periode>): List<Periode> {
     return (flatMap { it.måneder() }.toSet() - other.flatMap { it.måneder() }.toSet())
         .toList()
         .minsteAntallSammenhengendePerioder()
-}
-
-fun Periode.inneholderAlle(other: List<Periode>): Boolean {
-    return måneder().inneholderAlle(other)
-}
-
-fun List<Periode>.inneholderAlle(other: List<Periode>): Boolean {
-    val denne = flatMap { it.måneder() }.toSet()
-    val andre = other.flatMap { it.måneder() }.toSet()
-    return when {
-        other.isEmpty() -> {
-            true
-        }
-        denne.count() >= andre.count() -> {
-            (andre - denne).isEmpty()
-        }
-        else -> {
-            false
-        }
-    }
 }
 
 /**

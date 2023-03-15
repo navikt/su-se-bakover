@@ -91,25 +91,6 @@ internal class PeriodeTest {
     }
 
     @Test
-    fun `periode inneholder en annen periode`() {
-        år(2021) inneholder januar(2021) shouldBe true
-        år(2021) inneholder år(2021) shouldBe true
-        år(2021) inneholder desember(2021) shouldBe true
-        år(2021) inneholder Periode.create(
-            1.juli(2021),
-            31.august(2021),
-        ) shouldBe true
-        år(2022) inneholder Periode.create(
-            1.juli(2021),
-            31.august(2021),
-        ) shouldBe false
-        år(2021) inneholder Periode.create(
-            1.juli(2022),
-            31.august(2022),
-        ) shouldBe false
-    }
-
-    @Test
     fun `periode kan ikke være mer enn 12 måneder`() {
         shouldThrowExactly<IllegalArgumentException> { Periode.create(1.januar(2021), 1.januar(2022)) }
     }
@@ -619,14 +600,6 @@ internal class PeriodeTest {
     }
 
     @Test
-    fun `periode inneholder dato`() {
-        januar(2021) inneholder 15.januar(2021) shouldBe true
-        januar(2021) inneholder 15.desember(2021) shouldBe false
-        år(2021) inneholder 15.januar(2021) shouldBe true
-        år(2021) inneholder 15.desember(2021) shouldBe true
-    }
-
-    @Test
     fun `minus`() {
         januar(2021) minus februar(2021) shouldBe listOf(januar(2021))
         januar(2021) minus januar(2021) shouldBe emptyList()
@@ -675,73 +648,6 @@ internal class PeriodeTest {
             Periode.create(1.september(2021), 31.desember(2021)),
             Periode.create(1.april(2022), 31.mai(2022)),
         )
-    }
-
-    @Test
-    fun `inneholder alle`() {
-        år(2021).inneholderAlle(
-            listOf(
-                januar(2021),
-                februar(2021),
-                Periode.create(1.mars(2021), 31.desember(2021)),
-            ),
-        ) shouldBe true
-
-        år(2021).inneholderAlle(
-            listOf(
-                januar(2021),
-                februar(2021),
-                Periode.create(1.mars(2021), 31.desember(2021)),
-                januar(2022),
-            ),
-        ) shouldBe false
-
-        år(2021).inneholderAlle(
-            emptyList(),
-        ) shouldBe true
-
-        listOf(
-            januar(2021),
-        ).inneholderAlle(
-            listOf(
-                januar(2021),
-                januar(2021),
-            ),
-        ) shouldBe true
-
-        listOf(
-            år(2021),
-        ).inneholderAlle(
-            listOf(
-                år(2021),
-                år(2021),
-            ),
-        ) shouldBe true
-
-        listOf(
-            år(2021),
-            år(2021),
-        ).inneholderAlle(
-            listOf(
-                år(2021),
-            ),
-        ) shouldBe true
-
-        emptyList<Periode>().inneholderAlle(
-            listOf(
-                år(2021),
-            ),
-        ) shouldBe false
-
-        listOf(
-            Periode.create(1.mai(2021), 31.januar(2022)),
-            Periode.create(1.februar(2022), 30.april(2022)),
-        ).inneholderAlle(
-            listOf(
-                Periode.create(1.mai(2021), 31.desember(2021)),
-                Periode.create(1.mars(2022), 30.april(2022)),
-            ),
-        ) shouldBe true
     }
 
     @Test

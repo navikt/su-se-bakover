@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.inneholder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.oppdaterBosituasjonsperiode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag
@@ -32,6 +33,22 @@ data class Grunnlagsdata private constructor(
      * Men dersom vi har minst en bosituasjon, betyr det at den lovlig kan iverksettes.
      */
     val erUtfylt: Boolean = bosituasjon.isNotEmpty()
+
+    init {
+        val bosituasjonsperiode = bosituasjon.map { it.periode }
+        bosituasjonsperiode.zipWithNext { a, b ->
+            require(!a.overlapper(b)) {
+                "Bosituasjonsperioder i grunnlagsdata overlapper. Perioder: $bosituasjon"
+            }
+        }
+        val fradragsperiode = fradragsgrunnlag.map { it.periode }
+
+        if (fradragsperiode.isNotEmpty() && bosituasjonsperiode.isNotEmpty()) {
+            require(bosituasjonsperiode inneholder fradragsperiode) {
+                "Bosituasjonsperiodene: $bosituasjonsperiode må inneholde fradragsperiodene: $fradragsperiode."
+            }
+        }
+    }
 
     // TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
     fun oppdaterGrunnlagsperioder(

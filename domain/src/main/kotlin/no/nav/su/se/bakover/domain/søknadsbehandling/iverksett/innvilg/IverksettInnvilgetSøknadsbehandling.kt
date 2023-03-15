@@ -80,7 +80,7 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
         log.error("Kunne ikke iverksette innvilget søknadsbehandling ${iverksattBehandling.id}. Underliggende feil:$it.")
         return KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale(UtbetalingFeilet.KunneIkkeSimulere(it)).left()
     }
-    val vedtak = VedtakSomKanRevurderes.fromSøknadsbehandling(
+    val vedtak = VedtakSomKanRevurderes.from(
         søknadsbehandling = iverksattBehandling,
         utbetalingId = simulertUtbetaling.id,
         clock = clock,

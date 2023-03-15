@@ -3,12 +3,15 @@ package no.nav.su.se.bakover.domain.vedtak
 import arrow.core.Either
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.application.CopyArgs
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow
 import no.nav.su.se.bakover.domain.grunnlag.lagTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
+import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje.Companion.tilVedtakPåTidslinje
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
@@ -34,6 +37,15 @@ data class VedtakPåTidslinje private constructor(
      */
     val originaltVedtak: VedtakSomKanRevurderes,
 ) : KanPlasseresPåTidslinje<VedtakPåTidslinje> {
+
+    init {
+        require(grunnlagsdata.erUtfylt && vilkårsvurderinger.erVurdert) {
+            "Grunnlagsdata og vilkårsvurderinger må være utfylt/vurdert for å kunne opprette et vedtak på tidslinje"
+        }
+        require(grunnlagsdata.periode == periode && vilkårsvurderinger.periode == periode) {
+            "Grunnlagsdata og vilkårsvurderinger må ha samme periode som vedtakstidslinjen"
+        }
+    }
 
     override fun copy(args: CopyArgs.Tidslinje): VedtakPåTidslinje = when (args) {
         CopyArgs.Tidslinje.Full -> kopi()
@@ -112,4 +124,30 @@ data class VedtakPåTidslinje private constructor(
             )
         }
     }
+}
+
+fun List<VedtakSomKanRevurderes>.lagTidslinje(): Tidslinje<VedtakPåTidslinje> {
+    return Tidslinje(mapTilVedtakPåTidslinjeTyper())
+}
+
+fun List<VedtakSomKanRevurderes>.lagTidslinje(
+    fraOgMed: Måned,
+): Tidslinje<VedtakPåTidslinje> {
+    return Tidslinje(
+        fraOgMed = fraOgMed,
+        objekter = mapTilVedtakPåTidslinjeTyper(),
+    )
+}
+
+fun List<VedtakSomKanRevurderes>.lagTidslinje(
+    periode: Periode,
+): Tidslinje<VedtakPåTidslinje> {
+    return Tidslinje(
+        periode = periode,
+        objekter = mapTilVedtakPåTidslinjeTyper(),
+    )
+}
+
+private fun List<VedtakSomKanRevurderes>.mapTilVedtakPåTidslinjeTyper(): List<VedtakPåTidslinje> {
+    return map { it.tilVedtakPåTidslinje() }
 }

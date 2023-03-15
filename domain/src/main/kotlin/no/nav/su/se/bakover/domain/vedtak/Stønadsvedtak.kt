@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.vedtak
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Behandling
@@ -11,6 +10,8 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.dokument.Dokumenttilstand
+import no.nav.su.se.bakover.domain.dokument.dokumenttilstandForBrevvalg
+import no.nav.su.se.bakover.domain.dokument.setDokumentTilstandBasertPåBehandlingHvisNull
 import no.nav.su.se.bakover.domain.grunnlag.krevAlleVilkårInnvilget
 import no.nav.su.se.bakover.domain.grunnlag.krevMinstEttAvslag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -22,8 +23,6 @@ import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
-import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
-import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje.Companion.tilVedtakPåTidslinje
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 import java.util.UUID
@@ -83,55 +82,34 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
     }
 
     companion object {
-        fun fromSøknadsbehandling(
+        fun from(
             søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
             utbetalingId: UUID30,
             clock: Clock,
-        ) = EndringIYtelse.InnvilgetSøknadsbehandling(
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(clock),
-            periode = søknadsbehandling.periode,
-            behandling = søknadsbehandling,
-            beregning = søknadsbehandling.beregning,
-            simulering = søknadsbehandling.simulering,
-            saksbehandler = søknadsbehandling.saksbehandler,
-            attestant = søknadsbehandling.attesteringer.hentSisteAttestering().attestant,
+        ) = EndringIYtelse.InnvilgetSøknadsbehandling.fromSøknadsbehandling(
+            søknadsbehandling = søknadsbehandling,
             utbetalingId = utbetalingId,
-            dokumenttilstand = søknadsbehandling.dokumenttilstandForBrevvalg(),
+            clock = clock,
         )
 
         fun from(
             revurdering: IverksattRevurdering.Innvilget,
             utbetalingId: UUID30,
             clock: Clock,
-        ) = EndringIYtelse.InnvilgetRevurdering(
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(clock),
-            behandling = revurdering,
-            periode = revurdering.periode,
-            beregning = revurdering.beregning,
-            simulering = revurdering.simulering,
-            saksbehandler = revurdering.saksbehandler,
-            attestant = revurdering.attestering.attestant,
+        ) = EndringIYtelse.InnvilgetRevurdering.from(
+            revurdering = revurdering,
             utbetalingId = utbetalingId,
-            dokumenttilstand = revurdering.dokumenttilstandForBrevvalg(),
+            clock = clock,
         )
 
         fun from(
             revurdering: IverksattRevurdering.Opphørt,
             utbetalingId: UUID30,
             clock: Clock,
-        ) = EndringIYtelse.OpphørtRevurdering(
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(clock),
-            behandling = revurdering,
-            periode = revurdering.periode,
-            beregning = revurdering.beregning,
-            simulering = revurdering.simulering,
-            saksbehandler = revurdering.saksbehandler,
-            attestant = revurdering.attestering.attestant,
+        ) = EndringIYtelse.OpphørtRevurdering.from(
+            revurdering = revurdering,
             utbetalingId = utbetalingId,
-            dokumenttilstand = revurdering.dokumenttilstandForBrevvalg(),
+            clock = clock,
         )
 
         fun from(
@@ -139,15 +117,10 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             utbetalingId: UUID30,
             clock: Clock,
         ): EndringIYtelse.StansAvYtelse {
-            return EndringIYtelse.StansAvYtelse(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(clock),
-                behandling = revurdering,
-                periode = revurdering.periode,
-                simulering = revurdering.simulering,
-                saksbehandler = revurdering.saksbehandler,
-                attestant = revurdering.attesteringer.hentSisteAttestering().attestant,
+            return EndringIYtelse.StansAvYtelse.from(
+                revurdering = revurdering,
                 utbetalingId = utbetalingId,
+                clock = clock,
             )
         }
 
@@ -156,15 +129,10 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             utbetalingId: UUID30,
             clock: Clock,
         ): EndringIYtelse.GjenopptakAvYtelse {
-            return EndringIYtelse.GjenopptakAvYtelse(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(clock),
-                behandling = revurdering,
-                periode = revurdering.periode,
-                simulering = revurdering.simulering,
-                saksbehandler = revurdering.saksbehandler,
-                attestant = revurdering.attesteringer.hentSisteAttestering().attestant,
+            return EndringIYtelse.GjenopptakAvYtelse.from(
+                revurdering = revurdering,
                 utbetalingId = utbetalingId,
+                clock = clock,
             )
         }
 
@@ -173,16 +141,10 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             utbetalingId: UUID30,
             clock: Clock,
         ): EndringIYtelse.InnvilgetRegulering {
-            return EndringIYtelse.InnvilgetRegulering(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(clock),
-                behandling = regulering,
-                periode = regulering.periode,
-                beregning = regulering.beregning,
-                simulering = regulering.simulering,
-                saksbehandler = regulering.saksbehandler,
-                attestant = NavIdentBruker.Attestant(regulering.saksbehandler.toString()),
+            return EndringIYtelse.InnvilgetRegulering.from(
+                regulering = regulering,
                 utbetalingId = utbetalingId,
+                clock = clock,
             )
         }
     }
@@ -197,7 +159,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         val simulering: Simulering
         val utbetalingId: UUID30
 
-        data class InnvilgetSøknadsbehandling(
+        data class InnvilgetSøknadsbehandling private constructor(
             override val id: UUID,
             override val opprettet: Tidspunkt,
             override val behandling: Søknadsbehandling.Iverksatt.Innvilget,
@@ -213,9 +175,28 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             init {
                 behandling.grunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget()
                 require(dokumenttilstand != Dokumenttilstand.SKAL_IKKE_GENERERE)
+                require(periode == behandling.periode)
             }
 
             companion object {
+
+                fun fromSøknadsbehandling(
+                    id: UUID = UUID.randomUUID(),
+                    søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
+                    utbetalingId: UUID30,
+                    clock: Clock,
+                ) = InnvilgetSøknadsbehandling(
+                    id = id,
+                    opprettet = Tidspunkt.now(clock),
+                    periode = søknadsbehandling.periode,
+                    behandling = søknadsbehandling,
+                    beregning = søknadsbehandling.beregning,
+                    simulering = søknadsbehandling.simulering,
+                    saksbehandler = søknadsbehandling.saksbehandler,
+                    attestant = søknadsbehandling.attesteringer.hentSisteAttestering().attestant,
+                    utbetalingId = utbetalingId,
+                    dokumenttilstand = søknadsbehandling.dokumenttilstandForBrevvalg(),
+                )
 
                 fun createFromPersistence(
                     id: UUID,
@@ -261,7 +242,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             }
         }
 
-        data class InnvilgetRevurdering(
+        data class InnvilgetRevurdering private constructor(
             override val id: UUID,
             override val opprettet: Tidspunkt,
             override val behandling: IverksattRevurdering.Innvilget,
@@ -274,7 +255,29 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val dokumenttilstand: Dokumenttilstand,
         ) : EndringIYtelse {
 
+            init {
+                require(periode == behandling.periode)
+            }
+
             companion object {
+
+                fun from(
+                    revurdering: IverksattRevurdering.Innvilget,
+                    utbetalingId: UUID30,
+                    clock: Clock,
+                ) = InnvilgetRevurdering(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(clock),
+                    behandling = revurdering,
+                    periode = revurdering.periode,
+                    beregning = revurdering.beregning,
+                    simulering = revurdering.simulering,
+                    saksbehandler = revurdering.saksbehandler,
+                    attestant = revurdering.attestering.attestant,
+                    utbetalingId = utbetalingId,
+                    dokumenttilstand = revurdering.dokumenttilstandForBrevvalg(),
+                )
+
                 fun createFromPersistence(
                     id: UUID,
                     opprettet: Tidspunkt,
@@ -328,7 +331,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             }
         }
 
-        data class InnvilgetRegulering(
+        data class InnvilgetRegulering private constructor(
             override val id: UUID,
             override val opprettet: Tidspunkt,
             override val behandling: IverksattRegulering,
@@ -339,6 +342,55 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
+
+            init {
+                behandling.grunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget()
+                require(periode == behandling.periode)
+            }
+
+            companion object {
+                fun from(
+                    regulering: IverksattRegulering,
+                    utbetalingId: UUID30,
+                    clock: Clock,
+                ): InnvilgetRegulering {
+                    return InnvilgetRegulering(
+                        id = UUID.randomUUID(),
+                        opprettet = Tidspunkt.now(clock),
+                        behandling = regulering,
+                        periode = regulering.periode,
+                        beregning = regulering.beregning,
+                        simulering = regulering.simulering,
+                        saksbehandler = regulering.saksbehandler,
+                        attestant = NavIdentBruker.Attestant(regulering.saksbehandler.toString()),
+                        utbetalingId = utbetalingId,
+                    )
+                }
+
+                fun createFromPersistence(
+                    id: UUID,
+                    opprettet: Tidspunkt,
+                    behandling: IverksattRegulering,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                    attestant: NavIdentBruker.Attestant,
+                    periode: Periode,
+                    beregning: Beregning,
+                    simulering: Simulering,
+                    utbetalingId: UUID30,
+                ): InnvilgetRegulering {
+                    return InnvilgetRegulering(
+                        id = id,
+                        opprettet = opprettet,
+                        behandling = behandling,
+                        saksbehandler = saksbehandler,
+                        attestant = attestant,
+                        periode = periode,
+                        beregning = beregning,
+                        simulering = simulering,
+                        utbetalingId = utbetalingId,
+                    )
+                }
+            }
 
             override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
                 return false
@@ -353,7 +405,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             }
         }
 
-        data class OpphørtRevurdering(
+        data class OpphørtRevurdering private constructor(
             override val id: UUID,
             override val opprettet: Tidspunkt,
             override val behandling: IverksattRevurdering.Opphørt,
@@ -366,7 +418,29 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val dokumenttilstand: Dokumenttilstand,
         ) : EndringIYtelse {
 
+            init {
+                require(periode == behandling.periode)
+            }
+
             companion object {
+
+                fun from(
+                    revurdering: IverksattRevurdering.Opphørt,
+                    utbetalingId: UUID30,
+                    clock: Clock,
+                ) = OpphørtRevurdering(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(clock),
+                    behandling = revurdering,
+                    periode = revurdering.periode,
+                    beregning = revurdering.beregning,
+                    simulering = revurdering.simulering,
+                    saksbehandler = revurdering.saksbehandler,
+                    attestant = revurdering.attestering.attestant,
+                    utbetalingId = utbetalingId,
+                    dokumenttilstand = revurdering.dokumenttilstandForBrevvalg(),
+                )
+
                 fun createFromPersistence(
                     id: UUID,
                     opprettet: Tidspunkt,
@@ -419,7 +493,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             }
         }
 
-        data class StansAvYtelse(
+        data class StansAvYtelse private constructor(
             override val id: UUID,
             override val opprettet: Tidspunkt,
             override val behandling: StansAvYtelseRevurdering.IverksattStansAvYtelse,
@@ -434,6 +508,46 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                 // Avhengige typer. Vi ønsker få feil dersom den endres.
                 @Suppress("USELESS_IS_CHECK")
                 require(behandling.brevvalgRevurdering is BrevvalgRevurdering.Valgt.IkkeSendBrev)
+                require(periode == behandling.periode)
+            }
+
+            companion object {
+                fun from(
+                    revurdering: StansAvYtelseRevurdering.IverksattStansAvYtelse,
+                    utbetalingId: UUID30,
+                    clock: Clock,
+                ): StansAvYtelse {
+                    return StansAvYtelse(
+                        id = UUID.randomUUID(),
+                        opprettet = Tidspunkt.now(clock),
+                        behandling = revurdering,
+                        periode = revurdering.periode,
+                        simulering = revurdering.simulering,
+                        saksbehandler = revurdering.saksbehandler,
+                        attestant = revurdering.attesteringer.hentSisteAttestering().attestant,
+                        utbetalingId = utbetalingId,
+                    )
+                }
+
+                fun createFromPersistence(
+                    id: UUID,
+                    opprettet: Tidspunkt,
+                    behandling: StansAvYtelseRevurdering.IverksattStansAvYtelse,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                    attestant: NavIdentBruker.Attestant,
+                    periode: Periode,
+                    simulering: Simulering,
+                    utbetalingId: UUID30,
+                ) = StansAvYtelse(
+                    id = id,
+                    opprettet = opprettet,
+                    behandling = behandling,
+                    saksbehandler = saksbehandler,
+                    attestant = attestant,
+                    periode = periode,
+                    simulering = simulering,
+                    utbetalingId = utbetalingId,
+                )
             }
 
             override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
@@ -449,7 +563,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             }
         }
 
-        data class GjenopptakAvYtelse(
+        data class GjenopptakAvYtelse private constructor(
             override val id: UUID,
             override val opprettet: Tidspunkt,
             override val behandling: GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse,
@@ -464,6 +578,46 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                 // Avhengige typer. Vi ønsker få feil dersom den endres.
                 @Suppress("USELESS_IS_CHECK")
                 require(behandling.brevvalgRevurdering is BrevvalgRevurdering.Valgt.IkkeSendBrev)
+                require(periode == behandling.periode)
+            }
+
+            companion object {
+                fun from(
+                    revurdering: GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse,
+                    utbetalingId: UUID30,
+                    clock: Clock,
+                ): GjenopptakAvYtelse {
+                    return GjenopptakAvYtelse(
+                        id = UUID.randomUUID(),
+                        opprettet = Tidspunkt.now(clock),
+                        behandling = revurdering,
+                        periode = revurdering.periode,
+                        simulering = revurdering.simulering,
+                        saksbehandler = revurdering.saksbehandler,
+                        attestant = revurdering.attesteringer.hentSisteAttestering().attestant,
+                        utbetalingId = utbetalingId,
+                    )
+                }
+
+                fun createFromPersistence(
+                    id: UUID,
+                    opprettet: Tidspunkt,
+                    behandling: GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                    attestant: NavIdentBruker.Attestant,
+                    periode: Periode,
+                    simulering: Simulering,
+                    utbetalingId: UUID30,
+                ) = GjenopptakAvYtelse(
+                    id = id,
+                    opprettet = opprettet,
+                    behandling = behandling,
+                    saksbehandler = saksbehandler,
+                    attestant = attestant,
+                    periode = periode,
+                    simulering = simulering,
+                    utbetalingId = utbetalingId,
+                )
             }
 
             override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
@@ -496,39 +650,22 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
         fun fromSøknadsbehandlingMedBeregning(
             avslag: Søknadsbehandling.Iverksatt.Avslag.MedBeregning,
             clock: Clock,
-        ) = AvslagBeregning(
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(clock),
-            behandling = avslag,
-            beregning = avslag.beregning,
-            saksbehandler = avslag.saksbehandler,
-            attestant = avslag.attesteringer.hentSisteAttestering().attestant,
-            periode = avslag.periode,
-            avslagsgrunner = avslag.avslagsgrunner,
-            // Per tidspunkt er det implisitt at vi genererer og lagrer brev samtidig som vi oppretter vedtaket.
-            // TODO jah: Hvis vi heller flytter brevgenereringen ut til ferdigstill-jobben, blir det mer riktig og sette denne til IKKE_GENERERT_ENDA
-            dokumenttilstand = Dokumenttilstand.GENERERT,
+        ) = AvslagBeregning.from(
+            avslag = avslag,
+            clock = clock,
         )
 
         fun fromSøknadsbehandlingUtenBeregning(
             avslag: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning,
             clock: Clock,
         ) =
-            AvslagVilkår(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(clock),
-                behandling = avslag,
-                saksbehandler = avslag.saksbehandler,
-                attestant = avslag.attesteringer.hentSisteAttestering().attestant,
-                periode = avslag.periode,
-                avslagsgrunner = avslag.avslagsgrunner,
-                // Per tidspunkt er det implisitt at vi genererer og lagrer brev samtidig som vi oppretter vedtaket.
-                // TODO jah: Hvis vi heller flytter brevgenereringen ut til ferdigstill-jobben, blir det mer riktig og sette denne til IKKE_GENERERT_ENDA
-                dokumenttilstand = Dokumenttilstand.GENERERT,
+            AvslagVilkår.from(
+                avslag = avslag,
+                clock = clock,
             )
     }
 
-    data class AvslagVilkår(
+    data class AvslagVilkår private constructor(
         override val id: UUID,
         override val opprettet: Tidspunkt,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
@@ -542,9 +679,28 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
             behandling.grunnlagsdataOgVilkårsvurderinger.krevMinstEttAvslag()
             require(dokumenttilstand != Dokumenttilstand.SKAL_IKKE_GENERERE)
             require(behandling.skalSendeVedtaksbrev())
+            require(periode == behandling.periode)
         }
 
         companion object {
+            fun from(
+                avslag: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning,
+                clock: Clock,
+            ): AvslagVilkår {
+                return AvslagVilkår(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(clock),
+                    behandling = avslag,
+                    saksbehandler = avslag.saksbehandler,
+                    attestant = avslag.attesteringer.hentSisteAttestering().attestant,
+                    periode = avslag.periode,
+                    avslagsgrunner = avslag.avslagsgrunner,
+                    // Per tidspunkt er det implisitt at vi genererer og lagrer brev samtidig som vi oppretter vedtaket.
+                    // TODO jah: Hvis vi heller flytter brevgenereringen ut til ferdigstill-jobben, blir det mer riktig og sette denne til IKKE_GENERERT_ENDA
+                    dokumenttilstand = Dokumenttilstand.GENERERT,
+                )
+            }
+
             fun createFromPersistence(
                 id: UUID,
                 opprettet: Tidspunkt,
@@ -584,7 +740,7 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
         }
     }
 
-    data class AvslagBeregning(
+    data class AvslagBeregning private constructor(
         override val id: UUID,
         override val opprettet: Tidspunkt,
         override val behandling: Søknadsbehandling.Iverksatt.Avslag.MedBeregning,
@@ -599,9 +755,28 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
             behandling.grunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget()
             require(dokumenttilstand != Dokumenttilstand.SKAL_IKKE_GENERERE)
             require(behandling.skalSendeVedtaksbrev())
+            require(periode == behandling.periode)
         }
 
         companion object {
+
+            fun from(
+                avslag: Søknadsbehandling.Iverksatt.Avslag.MedBeregning,
+                clock: Clock,
+            ) = AvslagBeregning(
+                id = UUID.randomUUID(),
+                opprettet = Tidspunkt.now(clock),
+                behandling = avslag,
+                beregning = avslag.beregning,
+                saksbehandler = avslag.saksbehandler,
+                attestant = avslag.attesteringer.hentSisteAttestering().attestant,
+                periode = avslag.periode,
+                avslagsgrunner = avslag.avslagsgrunner,
+                // Per tidspunkt er det implisitt at vi genererer og lagrer brev samtidig som vi oppretter vedtaket.
+                // TODO jah: Hvis vi heller flytter brevgenereringen ut til ferdigstill-jobben, blir det mer riktig og sette denne til IKKE_GENERERT_ENDA
+                dokumenttilstand = Dokumenttilstand.GENERERT,
+            )
+
             fun createFromPersistence(
                 id: UUID,
                 opprettet: Tidspunkt,
@@ -643,44 +818,4 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
             visitor.visit(this)
         }
     }
-}
-
-fun List<VedtakSomKanRevurderes>.lagTidslinje(): Tidslinje<VedtakPåTidslinje> {
-    return Tidslinje(mapTilVedtakPåTidslinjeTyper())
-}
-
-fun List<VedtakSomKanRevurderes>.lagTidslinje(
-    fraOgMed: Måned,
-): Tidslinje<VedtakPåTidslinje> {
-    return Tidslinje(
-        fraOgMed = fraOgMed,
-        objekter = mapTilVedtakPåTidslinjeTyper(),
-    )
-}
-
-fun List<VedtakSomKanRevurderes>.lagTidslinje(
-    periode: Periode,
-): Tidslinje<VedtakPåTidslinje> {
-    return Tidslinje(
-        periode = periode,
-        objekter = mapTilVedtakPåTidslinjeTyper(),
-    )
-}
-
-private fun List<VedtakSomKanRevurderes>.mapTilVedtakPåTidslinjeTyper(): List<VedtakPåTidslinje> =
-    map { it.tilVedtakPåTidslinje() }
-
-private fun Dokumenttilstand?.setDokumentTilstandBasertPåBehandlingHvisNull(b: Behandling): Dokumenttilstand =
-    when (this) {
-        null -> when (b.skalSendeVedtaksbrev()) {
-            true -> Dokumenttilstand.IKKE_GENERERT_ENDA
-            false -> Dokumenttilstand.SKAL_IKKE_GENERERE
-        }
-
-        else -> this
-    }
-
-private fun Behandling.dokumenttilstandForBrevvalg(): Dokumenttilstand = when (this.skalSendeVedtaksbrev()) {
-    false -> Dokumenttilstand.SKAL_IKKE_GENERERE
-    true -> Dokumenttilstand.IKKE_GENERERT_ENDA
 }
