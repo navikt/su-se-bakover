@@ -1,17 +1,16 @@
 package no.nav.su.se.bakover.client.skatteetaten
 
 import arrow.core.Either
-import arrow.core.Nel
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
+import no.nav.su.se.bakover.domain.skatt.Stadie
 import java.time.Year
 
 interface Skatteoppslag {
     fun hentSamletSkattegrunnlag(
         fnr: Fnr,
         inntektsÅr: Year,
-        stadie: Nel<Stadie>
-    ): Either<SkatteoppslagFeil, Skattegrunnlag>
+    ): List<Pair<Either<SkatteoppslagFeil, Skattegrunnlag>, Stadie>>
 
 //    fun hentSamletSkattegrunnlag(
 //        fnr: Fnr,

@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.client.skatteetaten
 
 import arrow.core.Either
-import arrow.core.Nel
 import arrow.core.flatMap
 import arrow.core.left
 import kotlinx.coroutines.Dispatchers
@@ -15,6 +14,7 @@ import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.token.JwtToken
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
+import no.nav.su.se.bakover.domain.skatt.Stadie
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -46,20 +46,24 @@ class SkatteClient(
     override fun hentSamletSkattegrunnlag(
         fnr: Fnr,
         inntektsÅr: Year,
-        stadie: Nel<Stadie>,
-    ): Either<SkatteoppslagFeil, Skattegrunnlag> {
+    ): List<Pair<Either<SkatteoppslagFeil, Skattegrunnlag>, Stadie>> {
         return runBlocking {
-            val first =
-                async(Dispatchers.Default) { hentSamletSkattegrunnlagFraSkatt(fnr, inntektsÅr, stadie.first()) }.await()
-            val second = if (stadie.size > 1)
-                async(Dispatchers.Default) { hentSamletSkattegrunnlagFraSkatt(fnr, inntektsÅr, stadie[1]) }.await()
-            else null
-            val third = if (stadie.size > 2)
-                async(Dispatchers.Default) { hentSamletSkattegrunnlagFraSkatt(fnr, inntektsÅr, stadie.last()) }.await()
-            else null
+            val samletSkattFastsatt = async(Dispatchers.Default) {
+                hentSamletSkattegrunnlagFraSkatt(fnr, inntektsÅr, Stadie.FASTSATT)
+            }.await()
+            val samletSkattOppgjør = async(Dispatchers.Default) {
+                hentSamletSkattegrunnlagFraSkatt(fnr, inntektsÅr, Stadie.OPPGJØR)
+            }.await()
+            val samletSkattUtkast = async(Dispatchers.Default) {
+                hentSamletSkattegrunnlagFraSkatt(fnr, inntektsÅr, Stadie.UTKAST)
+            }.await()
 
-            listOf(first, second, third).mapNotNull { it }
-        }.first()
+            listOf(
+                samletSkattFastsatt to Stadie.FASTSATT,
+                samletSkattOppgjør to Stadie.OPPGJØR,
+                samletSkattUtkast to Stadie.UTKAST,
+            )
+        }
     }
 
     private fun hentSamletSkattegrunnlagFraSkatt(

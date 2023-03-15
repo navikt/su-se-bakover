@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
+import no.nav.su.se.bakover.domain.skatt.Stadie
 import no.nav.su.se.bakover.test.fixedClock
 import java.time.Clock
 import java.time.Year

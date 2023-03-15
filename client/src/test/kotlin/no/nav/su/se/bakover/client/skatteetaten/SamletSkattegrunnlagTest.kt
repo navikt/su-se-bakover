@@ -127,7 +127,7 @@ internal class SamletSkattegrunnlagTest {
         client.hentSamletSkattegrunnlag(
             fnr = fnr,
             inntektsÅr = Year.of(2021),
-        ).onLeft {
+        ).first().first.onLeft {
             it.shouldBeInstanceOf<SkatteoppslagFeil.UkjentFeil>()
             it.throwable.shouldBeInstanceOf<DateTimeParseException>()
         }.onRight { fail("Forventet left") }
@@ -152,7 +152,7 @@ internal class SamletSkattegrunnlagTest {
         client.hentSamletSkattegrunnlag(
             fnr = fnr,
             inntektsÅr = Year.of(2021),
-        ).onLeft {
+        ).first().first.onLeft {
             it.shouldBeInstanceOf<SkatteoppslagFeil.UkjentFeil>()
             it.throwable.shouldBeInstanceOf<MissingKotlinParameterException>()
             it.throwable.message shouldContain "non-nullable type"
