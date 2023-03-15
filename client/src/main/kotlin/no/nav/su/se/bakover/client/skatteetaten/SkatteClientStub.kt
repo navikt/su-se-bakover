@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client.skatteetaten
 
 import arrow.core.Either
+import arrow.core.Nel
 import arrow.core.right
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -14,6 +15,7 @@ class SkatteClientStub(
     override fun hentSamletSkattegrunnlag(
         fnr: Fnr,
         inntektsÅr: Year,
+        stadie: Nel<Stadie>
     ): Either<SkatteoppslagFeil, Skattegrunnlag> {
         return Skattegrunnlag(
             fnr = Fnr(fnr = "04900148157"),

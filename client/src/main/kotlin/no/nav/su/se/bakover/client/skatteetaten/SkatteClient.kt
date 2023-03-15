@@ -1,10 +1,12 @@
 package no.nav.su.se.bakover.client.skatteetaten
 
 import arrow.core.Either
+import arrow.core.Nel
 import arrow.core.flatMap
-import arrow.core.flatten
 import arrow.core.left
-import arrow.core.right
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.ApplicationConfig.ClientsConfig.SkatteetatenConfig
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.Fnr
@@ -44,6 +46,26 @@ class SkatteClient(
     override fun hentSamletSkattegrunnlag(
         fnr: Fnr,
         inntektsÅr: Year,
+        stadie: Nel<Stadie>,
+    ): Either<SkatteoppslagFeil, Skattegrunnlag> {
+        return runBlocking {
+            val first =
+                async(Dispatchers.Default) { hentSamletSkattegrunnlagFraSkatt(fnr, inntektsÅr, stadie.first()) }.await()
+            val second = if (stadie.size > 1)
+                async(Dispatchers.Default) { hentSamletSkattegrunnlagFraSkatt(fnr, inntektsÅr, stadie[1]) }.await()
+            else null
+            val third = if (stadie.size > 2)
+                async(Dispatchers.Default) { hentSamletSkattegrunnlagFraSkatt(fnr, inntektsÅr, stadie.last()) }.await()
+            else null
+
+            listOf(first, second, third).mapNotNull { it }
+        }.first()
+    }
+
+    private fun hentSamletSkattegrunnlagFraSkatt(
+        fnr: Fnr,
+        inntektsÅr: Year,
+        stadie: Stadie,
     ): Either<SkatteoppslagFeil, Skattegrunnlag> {
         val token = azureAd.onBehalfOfToken(hentBrukerToken().toString(), "srvsigrun")
         val getRequest = HttpRequest.newBuilder()
@@ -55,6 +77,7 @@ class SkatteClient(
             .header("x-rettighetspakke", skatteetatenConfig.rettighetspakke)
             .header("Nav-Call-Id", CorrelationId.getOrCreateCorrelationIdFromThreadLocal().toString())
             .header("Nav-Consumer-Id", skatteetatenConfig.consumerId)
+            .header("stadie", stadie.verdi)
             .GET()
             .build()
 
@@ -69,15 +92,16 @@ class SkatteClient(
             SkatteoppslagFeil.Nettverksfeil(it)
         }.flatMap { response ->
             handleResponse(response, getRequest, fnr, inntektsÅr)
-        }.flatten()
+        }
     }
+
 
     private fun handleResponse(
         response: HttpResponse<String>,
         getRequest: HttpRequest?,
         fnr: Fnr,
         inntektsÅr: Year,
-    ): Either<SkatteoppslagFeil, Either<SkatteoppslagFeil, Skattegrunnlag>> {
+    ): Either<SkatteoppslagFeil, Skattegrunnlag> {
         fun logError(throwable: Throwable? = RuntimeException("Genererer en stacktrace.")) {
             log.error("Kall mot Sigrun/skatteetatens api feilet med statuskode ${response.statusCode()}. Se sikkerlogg.")
             sikkerLogg.error(
@@ -92,7 +116,8 @@ class SkatteClient(
                 clock = clock,
                 fnr = fnr,
                 inntektsår = inntektsÅr,
-            ).right()
+            ).mapLeft { it }
+                .map { it }
 
             400 -> SkatteoppslagFeil.UkjentFeil(IllegalArgumentException("Fikk 400 fra Sigrun.")).also {
                 logError(it.throwable)

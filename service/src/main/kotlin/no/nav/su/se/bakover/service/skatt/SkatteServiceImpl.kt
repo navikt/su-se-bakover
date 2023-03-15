@@ -1,7 +1,9 @@
 package no.nav.su.se.bakover.service.skatt
 
 import arrow.core.Either
+import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.client.skatteetaten.Skatteoppslag
+import no.nav.su.se.bakover.client.skatteetaten.Stadie
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import java.time.Clock
@@ -16,7 +18,7 @@ class SkatteServiceImpl(
         fnr: Fnr,
     ): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag> {
         // TODO jah: Flytt domenelogikken til domenet
-        return skatteClient.hentSamletSkattegrunnlag(fnr, Year.now(clock))
+        return skatteClient.hentSamletSkattegrunnlag(fnr, Year.now(clock), nonEmptyListOf(Stadie.UTKAST))
             .mapLeft { feil -> KunneIkkeHenteSkattemelding.KallFeilet(feil) }
         // .map { hentInntektOgFradrag(it) }
     }
