@@ -37,8 +37,8 @@ fun Sak.opprettEllerOppdaterRegulering(
 
     val periode = vedtakstidslinje(
         fraOgMed = Måned.fra(_startDato),
-    ).tidslinje.let { tidslinje ->
-        tidslinje
+    ).let { tidslinje ->
+        (tidslinje ?: emptyList())
             .filterNot { it.erOpphør() }
             .map { vedtakUtenOpphør -> vedtakUtenOpphør.periode }
             .minsteAntallSammenhengendePerioder()

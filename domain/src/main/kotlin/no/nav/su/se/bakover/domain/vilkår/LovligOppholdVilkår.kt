@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.grunnlag.LovligOppholdGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
-import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import java.time.LocalDate
 
 sealed class LovligOppholdVilkår : Vilkår() {
@@ -50,14 +50,8 @@ sealed class LovligOppholdVilkår : Vilkår() {
     ) : LovligOppholdVilkår() {
 
         override val grunnlag: List<LovligOppholdGrunnlag> = vurderingsperioder.mapNotNull { it.grunnlag }
-        override fun lagTidslinje(periode: Periode): LovligOppholdVilkår {
-            return copy(
-                vurderingsperioder = Tidslinje(
-                    periode = periode,
-                    objekter = vurderingsperioder,
-                ).tidslinje.toNonEmptyList(),
-            )
-        }
+        override fun lagTidslinje(periode: Periode): LovligOppholdVilkår =
+            copy(vurderingsperioder = vurderingsperioder.lagTidslinje().krympTilPeriode(periode)!!.toNonEmptyList())
 
         override val erInnvilget: Boolean = vurderingsperioder.all { it.vurdering == Vurdering.Innvilget }
 

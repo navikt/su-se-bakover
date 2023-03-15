@@ -71,7 +71,7 @@ internal data class SakJson(
                 it.toJson(satsFactory)
             },
             sakstype = type.toJson(),
-            vedtakPåTidslinje = this.vedtakstidslinje().tidslinje.toJson(),
+            vedtakPåTidslinje = this.vedtakstidslinje()?.toJson() ?: emptyList(),
             utenlandsopphold = this.utenlandsopphold.toJson(),
             versjon = this.versjon.value,
         )

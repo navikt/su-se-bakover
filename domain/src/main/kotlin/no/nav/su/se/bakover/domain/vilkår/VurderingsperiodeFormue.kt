@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.fjernPerioder
 import java.util.UUID
 
@@ -64,6 +65,7 @@ data class VurderingsperiodeFormue private constructor(
                 grunnlag = grunnlag.copy(args),
             )
         }
+
         is CopyArgs.Tidslinje.NyPeriode -> {
             copy(
                 id = UUID.randomUUID(),
@@ -89,7 +91,7 @@ data class VurderingsperiodeFormue private constructor(
             perioder = uendret.map { it.periode }
                 .minsteAntallSammenhengendePerioder(),
         )
-        return Tidslinje(periode, uendret + endret).tidslinje.toNonEmptyList()
+        return (uendret + endret).lagTidslinje()!!.toNonEmptyList()
     }
 
     private fun leggTilTomEPSFormueHvisDetMangler(): VurderingsperiodeFormue {
@@ -106,7 +108,7 @@ data class VurderingsperiodeFormue private constructor(
         val uendret = fjernPerioder(perioder = perioder)
         val endret =
             fjernEPSFormue().fjernPerioder(perioder = uendret.map { it.periode }.minsteAntallSammenhengendePerioder())
-        return Tidslinje(periode, uendret + endret).tidslinje.toNonEmptyList()
+        return (uendret + endret).lagTidslinje()!!.krympTilPeriode(periode)!!.toNonEmptyList()
     }
 
     private fun fjernEPSFormue(): VurderingsperiodeFormue {

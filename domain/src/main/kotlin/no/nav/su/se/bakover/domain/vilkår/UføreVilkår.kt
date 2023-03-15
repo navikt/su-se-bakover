@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.periode.minus
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
-import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import java.time.LocalDate
 
 const val uføretrygdMinsteAlder = 18
@@ -185,13 +185,7 @@ sealed class UføreVilkår : Vilkår() {
             }
         }
 
-        override fun lagTidslinje(periode: Periode): Vurdert {
-            return Vurdert(
-                vurderingsperioder = Tidslinje(
-                    periode = periode,
-                    objekter = vurderingsperioder,
-                ).tidslinje.toNonEmptyList(),
-            )
-        }
+        override fun lagTidslinje(periode: Periode): Vurdert =
+            Vurdert(vurderingsperioder = vurderingsperioder.lagTidslinje().krympTilPeriode(periode)!!.toNonEmptyList())
     }
 }

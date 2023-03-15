@@ -10,19 +10,24 @@ import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
+import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import java.time.Instant
 import java.time.LocalDate
 import java.util.LinkedList
 
+/**
+ * Merk en tidslinje kan ha hull.
+ * @property periode Denne perioden vil strekke seg fra første til siste utbetalingsmåned. Merk at den kan ha hull, så funksjoner som gjeldendeForDato og krymp kan gi null.
+ */
 data class TidslinjeForUtbetalinger private constructor(
-    private val utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
-    private val utbetalingslinjerPåTidslinje: NonEmptyList<UtbetalingslinjePåTidslinje>,
-) : List<UtbetalingslinjePåTidslinje> by utbetalingslinjerPåTidslinje {
+    private val tidslinjeperioder: NonEmptyList<UtbetalingslinjePåTidslinje>,
+) : List<UtbetalingslinjePåTidslinje> by tidslinjeperioder {
 
-    val periode = utbetalingslinjerPåTidslinje.map { it.periode }.minAndMaxOf()
+    val periode = tidslinjeperioder.map { it.periode }.minAndMaxOf()
 
-    fun gjeldendeForDato(dato: LocalDate): UtbetalingslinjePåTidslinje? =
-        utbetalingslinjerPåTidslinje.firstOrNull { dato.between(it.periode) }
+    fun gjeldendeForDato(dato: LocalDate): UtbetalingslinjePåTidslinje? {
+        return tidslinjeperioder.firstOrNull { dato.between(it.periode) }
+    }
 
     /**
      * Sjekker om denne tidslinjen er ekvivalent med [tidslinje].
@@ -30,8 +35,8 @@ data class TidslinjeForUtbetalinger private constructor(
     fun ekvivalentMed(
         tidslinje: TidslinjeForUtbetalinger,
     ): Boolean {
-        return this.utbetalingslinjerPåTidslinje.size == tidslinje.utbetalingslinjerPåTidslinje.size && this.utbetalingslinjerPåTidslinje.zip(
-            tidslinje.utbetalingslinjerPåTidslinje,
+        return this.tidslinjeperioder.size == tidslinje.tidslinjeperioder.size && this.tidslinjeperioder.zip(
+            tidslinje.tidslinjeperioder,
         ).all {
             it.first.ekvivalentMed(it.second)
         }
@@ -58,19 +63,19 @@ data class TidslinjeForUtbetalinger private constructor(
      * @return Dersom perioden som sendes inn ikke finnes i tidslinjen, så null
      */
     fun krympTilPeriode(
-        mindrePerioden: Periode,
+        periodenDetSkalKrympesTil: Periode,
     ): TidslinjeForUtbetalinger? {
-        return this.utbetalingslinjerPåTidslinje.mapNotNull {
-            if (mindrePerioden inneholder it.periode) {
+        return this.tidslinjeperioder.mapNotNull {
+            if (periodenDetSkalKrympesTil inneholder it.periode) {
                 it
-            } else if (mindrePerioden overlapper it.periode) {
-                it.copy(CopyArgs.Tidslinje.NyPeriode(mindrePerioden.snitt(it.periode)!!))
+            } else if (periodenDetSkalKrympesTil overlapper it.periode) {
+                it.copy(CopyArgs.Tidslinje.NyPeriode(periodenDetSkalKrympesTil.snitt(it.periode)!!))
             } else {
                 null
             }
         }.let {
             it.toNonEmptyListOrNull()?.let {
-                TidslinjeForUtbetalinger(utbetalingslinjer, it)
+                TidslinjeForUtbetalinger(it)
             }
         }
     }
@@ -89,8 +94,7 @@ data class TidslinjeForUtbetalinger private constructor(
             utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
         ): TidslinjeForUtbetalinger {
             return TidslinjeForUtbetalinger(
-                utbetalingslinjer = utbetalingslinjer,
-                utbetalingslinjerPåTidslinje = lagTidslinje(utbetalingslinjer).tidslinje.toNonEmptyList(),
+                tidslinjeperioder = lagTidslinje(utbetalingslinjer).toNonEmptyList(),
             )
         }
 
@@ -108,12 +112,8 @@ data class TidslinjeForUtbetalinger private constructor(
             val andreUtbetalingslinjer = utbetalingslinjer
                 .map { it.mapTilTidslinje() }
                 .filterNot { it is UtbetalingslinjePåTidslinje.Ny }
-            // TODO: Flytt perioden inn i TIdslinje
-            val periode = utbetalingslinjer.map { it.periode }.minAndMaxOf()
-            val tidslinjeForNyeUtbetalinger = Tidslinje(
-                periode = periode,
-                objekter = nyeUtbetalingslinjer,
-            ).tidslinje
+
+            val tidslinjeForNyeUtbetalinger = nyeUtbetalingslinjer.lagTidslinje() ?: emptyList()
 
             val utbetalingslinjerForTidslinje = tidslinjeForNyeUtbetalinger.union(andreUtbetalingslinjer)
                 .sortedWith(nyesteFørst)
@@ -191,10 +191,7 @@ data class TidslinjeForUtbetalinger private constructor(
                 }
             }
 
-            return Tidslinje(
-                periode = periode,
-                objekter = result,
-            )
+            return result.lagTidslinje()!!
         }
 
         private fun List<UtbetalingslinjePåTidslinje>.harOverlappendeMedOpprettetITidsintervall(

@@ -128,8 +128,8 @@ internal class VedtakstidslinjeTest {
             ),
         )
 
-        sak.vedtakstidslinje(år(2021)).tidslinje.also { tidslinje ->
-            tidslinje.single().also { vedtakPåTidslinje ->
+        sak.vedtakstidslinje().also { tidslinje ->
+            tidslinje!!.single().also { vedtakPåTidslinje ->
                 vedtakPåTidslinje.copy(CopyArgs.Tidslinje.Full).let { kopi ->
                     kopi.opprettet shouldBe kopi.opprettet
                     kopi.periode shouldBe kopi.periode
@@ -325,8 +325,8 @@ internal class VedtakstidslinjeTest {
             ),
         )
 
-        sak.vedtakstidslinje(mai(2021)..juli(2021)).tidslinje.also { tidslinje ->
-            tidslinje.single().also { vedtakPåTidslinje ->
+        sak.vedtakstidslinje()!!.krympTilPeriode(mai(2021)..juli(2021)).also { tidslinje ->
+            tidslinje!!.single().also { vedtakPåTidslinje ->
                 vedtakPåTidslinje.copy(CopyArgs.Tidslinje.NyPeriode(Periode.create(1.mai(2021), 31.juli(2021))))
                     .let { kopi ->
                         kopi.opprettet shouldBe vedtakPåTidslinje.opprettet
@@ -490,8 +490,8 @@ internal class VedtakstidslinjeTest {
             ),
         )
 
-        sakMedToVedtak.vedtakstidslinje(år(2021)).tidslinje.also { tidslinje ->
-            tidslinje shouldHaveSize 2
+        sakMedToVedtak.vedtakstidslinje().also { tidslinje ->
+            tidslinje!! shouldHaveSize 2
             tidslinje.first().also { a ->
                 val førstePeriode = januar(2021)..april(2021)
                 a.periode shouldBe førstePeriode
@@ -531,8 +531,8 @@ internal class VedtakstidslinjeTest {
             sakOgVedtakSomKanRevurderes = sak to første as VedtakSomKanRevurderes,
         )
 
-        sakMedToVedtak.vedtakstidslinje(år(2021)).tidslinje.also { tidslinje ->
-            tidslinje.single().also {
+        sakMedToVedtak.vedtakstidslinje().also { tidslinje ->
+            tidslinje!!.single().also {
                 it.periode shouldBe år(2021)
                 it.originaltVedtak shouldBe andre
             }

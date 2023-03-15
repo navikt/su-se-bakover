@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import java.time.LocalDate
 import java.util.UUID
 
@@ -49,14 +50,8 @@ sealed class InstitusjonsoppholdVilkår : Vilkår() {
         val vurderingsperioder: Nel<VurderingsperiodeInstitusjonsopphold>,
     ) : InstitusjonsoppholdVilkår() {
 
-        override fun lagTidslinje(periode: Periode): InstitusjonsoppholdVilkår {
-            return copy(
-                vurderingsperioder = Tidslinje(
-                    periode = periode,
-                    objekter = vurderingsperioder,
-                ).tidslinje.toNonEmptyList(),
-            )
-        }
+        override fun lagTidslinje(periode: Periode): InstitusjonsoppholdVilkår =
+            copy(vurderingsperioder = vurderingsperioder.lagTidslinje().krympTilPeriode(periode)!!.toNonEmptyList())
 
         override val erInnvilget: Boolean = vurderingsperioder.all { it.vurdering == Vurdering.Innvilget }
 

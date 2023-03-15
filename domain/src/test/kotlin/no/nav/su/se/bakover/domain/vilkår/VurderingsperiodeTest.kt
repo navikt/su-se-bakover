@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
@@ -123,10 +124,7 @@ internal class VurderingsperiodeTest {
             periode = desember(2021),
         )
 
-        Tidslinje(
-            periode = år(2021),
-            objekter = listOf(a, b, c),
-        ).tidslinje.let {
+        listOf(a, b, c).lagTidslinje()!!.krympTilPeriode(år(2021))?.let {
             it[0].let { copy ->
                 copy.id shouldNotBe a.id
                 copy.id shouldNotBe b.id

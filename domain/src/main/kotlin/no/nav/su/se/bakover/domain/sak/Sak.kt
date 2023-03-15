@@ -241,28 +241,16 @@ data class Sak(
     /**
      * Henter minste antall sammenhengende perioder hvor vedtakene ikke er av typen opphør.
      */
-    fun hentIkkeOpphørtePerioder(): List<Periode> {
-        return vedtakstidslinje().tidslinje
-            .filterNot { it.erOpphør() }
-            .map { it.periode }
-            .minsteAntallSammenhengendePerioder()
-    }
+    fun hentIkkeOpphørtePerioder(): List<Periode> =
+        vedtakstidslinje()?.filterNot { it.erOpphør() }?.map { it.periode }?.minsteAntallSammenhengendePerioder() ?: emptyList()
 
     fun vedtakstidslinje(
         fraOgMed: Måned,
-    ): Tidslinje<VedtakPåTidslinje> {
-        return vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().lagTidslinje(fraOgMed)
-    }
+    ): Tidslinje<VedtakPåTidslinje>? =
+        vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().lagTidslinje()?.krympTilPeriode(fraOgMed)
 
-    fun vedtakstidslinje(
-        periode: Periode,
-    ): Tidslinje<VedtakPåTidslinje> {
-        return vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().lagTidslinje(periode)
-    }
-
-    fun vedtakstidslinje(): Tidslinje<VedtakPåTidslinje> {
-        return vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().lagTidslinje()
-    }
+    fun vedtakstidslinje(): Tidslinje<VedtakPåTidslinje>? =
+        vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().lagTidslinje()
 
     /** Skal ikke kunne ha mer enn én åpen klage av gangen. */
     fun kanOppretteKlage(): Boolean = klager.none { it.erÅpen() }
@@ -305,11 +293,9 @@ data class Sak(
         return true
     }
 
-    fun ytelseUtløperVedUtløpAv(periode: Periode): Boolean {
-        return vedtakstidslinje().tidslinje.lastOrNull()?.let {
-            !it.erOpphør() && it.periode slutterSamtidig periode
-        } ?: false
-    }
+    fun ytelseUtløperVedUtløpAv(periode: Periode): Boolean = vedtakstidslinje()?.lastOrNull()?.let {
+        !it.erOpphør() && it.periode slutterSamtidig periode
+    } ?: false
 
     sealed interface KunneIkkeOppretteEllerOppdatereRegulering {
         object FinnesIngenVedtakSomKanRevurderesForValgtPeriode : KunneIkkeOppretteEllerOppdatereRegulering

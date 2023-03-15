@@ -711,7 +711,7 @@ fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
 
     // TODO jah: Vi bør ikke replikere så mange linjer med produksjonskode i GjenopptaYtelseServiceImpl. Vi bør flytte domenekoden fra nevnte fil og kun beholde sideeffektene i servicen.
     return sakOgVedtakSomKanRevurderes.let { (sak, _) ->
-        val sisteVedtakPåTidslinje = sak.vedtakstidslinje().tidslinje.lastOrNull() ?: fail("Fant ingen vedtak")
+        val sisteVedtakPåTidslinje = sak.vedtakstidslinje()?.lastOrNull() ?: fail("Fant ingen vedtak")
 
         if (sisteVedtakPåTidslinje.originaltVedtak !is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse) {
             fail("Siste vedtak er ikke stans")

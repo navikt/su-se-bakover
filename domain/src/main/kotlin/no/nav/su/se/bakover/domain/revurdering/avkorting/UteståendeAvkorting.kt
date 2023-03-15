@@ -106,12 +106,14 @@ fun Sak.unngåRevurderingAvPeriodeDetErPågåendeAvkortingFor(
 ): Either<KanIkkeRevurderePgaAvkorting.PågåendeAvkortingForPeriode, Unit> {
     val pågåendeAvkorting: List<Pair<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående>> =
         vedtakstidslinje()
-            .tidslinje
+            .let { it ?: throw IllegalStateException("Kunne ikke konstruere vedtakstidslinje for saksnummer $saksnummer. feilet med $it") }
+            .asSequence()
             .map { it.originaltVedtak }
             .filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>()
             .map { it to it.behandling.avkorting }
             .filter { (_, avkorting) -> avkorting is AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående }
             .filterIsInstance<Pair<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående>>()
+            .toList()
 
     return if (pågåendeAvkorting.isEmpty()) {
         Unit.right()
