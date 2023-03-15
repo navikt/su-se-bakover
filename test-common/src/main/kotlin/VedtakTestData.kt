@@ -74,7 +74,7 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
                 .toKvittertUtbetaling(kvittering())
         }
 
-        val vedtak = VedtakSomKanRevurderes.fromSøknadsbehandling(
+        val vedtak = VedtakSomKanRevurderes.from(
             søknadsbehandling = søknadsbehandling,
             utbetalingId = utbetaling.id,
             clock = clock,

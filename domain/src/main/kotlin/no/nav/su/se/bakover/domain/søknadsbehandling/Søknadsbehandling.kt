@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.inneholderAlle
+import no.nav.su.se.bakover.common.periode.inneholder
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsplan
@@ -122,7 +122,7 @@ sealed class Søknadsbehandling :
 
     private fun validerFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Unit> {
         if (fradragsgrunnlag.isNotEmpty()) {
-            if (!periode.inneholderAlle(fradragsgrunnlag.perioder())) {
+            if (!periode.inneholder(fradragsgrunnlag.perioder())) {
                 return KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden.left()
             }
         }

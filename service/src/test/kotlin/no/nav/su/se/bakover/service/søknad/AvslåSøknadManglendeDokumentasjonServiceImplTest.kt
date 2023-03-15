@@ -166,7 +166,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 ),
             )
 
-            val expectedVedtak = Avslagsvedtak.AvslagVilkår(
+            val expectedVedtak = Avslagsvedtak.AvslagVilkår.createFromPersistence(
                 id = actualSak.vedtakListe[0].id,
                 opprettet = fixedTidspunkt,
                 behandling = expectedSøknadsbehandling,
@@ -307,7 +307,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 ),
             )
 
-            val expectedVedtak = Avslagsvedtak.AvslagVilkår(
+            val expectedVedtak = Avslagsvedtak.AvslagVilkår.createFromPersistence(
                 id = actualSak.vedtakListe[0].id,
                 opprettet = fixedTidspunkt,
                 behandling = expectedSøknadsbehandling,

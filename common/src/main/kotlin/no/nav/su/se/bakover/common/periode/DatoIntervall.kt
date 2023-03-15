@@ -1,6 +1,11 @@
 package no.nav.su.se.bakover.common.periode
 
+import arrow.core.Either
+import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import java.time.LocalDate
+import java.time.Period
 import java.time.temporal.ChronoUnit
 
 /**
@@ -10,17 +15,24 @@ import java.time.temporal.ChronoUnit
 open class DatoIntervall(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
-) {
+) : Comparable<DatoIntervall> {
 
     init {
         require(fraOgMed <= tilOgMed) {
             "fraOgMed må være før eller samme dag som tilOgMed"
         }
     }
+
+    override fun compareTo(other: DatoIntervall) = compareValuesBy(this, other, { it.fraOgMed }, { it.tilOgMed })
+
     infix fun inneholder(dato: LocalDate): Boolean = dato in fraOgMed..tilOgMed
 
     infix fun inneholder(other: DatoIntervall): Boolean =
         starterSamtidigEllerTidligere(other) && slutterSamtidigEllerSenere(other)
+
+    infix fun inneholder(other: List<DatoIntervall>): Boolean {
+        return other.all { this inneholder it }
+    }
 
     /**
      * true: Det finnes minst en dag som overlapper
@@ -68,4 +80,69 @@ open class DatoIntervall(
 
     /** Inkluderer første og siste dag. */
     fun antallDager(): Long = ChronoUnit.DAYS.between(fraOgMed, tilOgMed.plusDays(1))
+
+    infix fun tilstøter(other: DatoIntervall): Boolean {
+        val sluttStart = Period.between(tilOgMed, other.fraOgMed)
+        val startSlutt = Period.between(fraOgMed, other.tilOgMed)
+        val plussEnDag = Period.ofDays(1)
+        val minusEnDag = Period.ofDays(-1)
+        return this == other || sluttStart == plussEnDag || sluttStart == minusEnDag || startSlutt == plussEnDag || startSlutt == minusEnDag
+    }
+
+    infix fun slåSammen(
+        other: DatoIntervall,
+    ): Either<DatoIntervallKanIkkeSlåsSammen, DatoIntervall> {
+        return slåSammen(other) { fraOgMed, tilOgMed -> DatoIntervall(fraOgMed, tilOgMed) }
+    }
+
+    /**
+     * Slår sammen to perioder dersom minst en måned overlapper eller periodene er tilstøtende.
+     */
+    fun <T : DatoIntervall> slåSammen(
+        other: T,
+        create: (fraOgMed: LocalDate, tilOgMed: LocalDate) -> T,
+    ): Either<DatoIntervallKanIkkeSlåsSammen, T> {
+        return if (overlapper(other) || tilstøter(other)) {
+            create(
+                minOf(this.fraOgMed, other.fraOgMed),
+                maxOf(this.tilOgMed, other.tilOgMed),
+            ).right()
+        } else {
+            DatoIntervallKanIkkeSlåsSammen.left()
+        }
+    }
+
+    object DatoIntervallKanIkkeSlåsSammen
 }
+
+fun List<DatoIntervall>.minsteAntallSammenhengendePerioder(): List<DatoIntervall> {
+    return minsteAntallSammenhengendePerioder { fraOgMed, tilOgMed -> DatoIntervall(fraOgMed, tilOgMed) }
+}
+
+/**
+ * Finner minste antall sammenhengende datointervaller fra en liste med [DatoIntervall] ved å slå sammen elementer etter reglene
+ * definert av [DatoIntervall.slåSammen].
+ */
+fun <T : DatoIntervall> List<T>.minsteAntallSammenhengendePerioder(
+    create: (fraOgMed: LocalDate, tilOgMed: LocalDate) -> T,
+): List<T> {
+    return sorted().fold(mutableListOf()) { slåttSammen: MutableList<T>, datoIntervall: T ->
+        if (slåttSammen.isEmpty()) {
+            slåttSammen.add(datoIntervall)
+        } else if (slåttSammen.last().slåSammen(datoIntervall).isRight()) {
+            val last = slåttSammen.removeLast()
+            slåttSammen.add(
+                last.slåSammen(datoIntervall, create).getOrElse { throw IllegalStateException("Skulle gått bra") },
+            )
+        } else {
+            slåttSammen.add(datoIntervall)
+        }
+        slåttSammen
+    }
+}
+
+infix fun List<DatoIntervall>.inneholder(other: List<DatoIntervall>): Boolean =
+    other.minsteAntallSammenhengendePerioder().all { this.minsteAntallSammenhengendePerioder() inneholder it }
+
+infix fun List<DatoIntervall>.inneholder(other: DatoIntervall): Boolean =
+    this.minsteAntallSammenhengendePerioder().any { it inneholder other }

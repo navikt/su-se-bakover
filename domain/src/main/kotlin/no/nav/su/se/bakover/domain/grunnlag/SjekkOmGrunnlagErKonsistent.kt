@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import arrow.core.separateEither
-import no.nav.su.se.bakover.common.periode.inneholderAlle
+import no.nav.su.se.bakover.common.periode.inneholder
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag.Verdier.Companion.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harOverlappende
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
@@ -128,11 +128,11 @@ data class SjekkOmGrunnlagErKonsistent(
         }
 
         private fun gyldigKombinasjonAvBosituasjonOgFradrag(): Boolean {
-            return bosituasjon.perioderMedEPS().inneholderAlle(fradrag.allePerioderMedEPS())
+            return bosituasjon.perioderMedEPS().inneholder(fradrag.allePerioderMedEPS())
         }
 
         private fun harBosituasjonForAllePerioder(): Boolean {
-            return bosituasjon.minsteAntallSammenhengendePerioder().inneholderAlle(fradrag.perioder())
+            return bosituasjon.minsteAntallSammenhengendePerioder().inneholder(fradrag.perioder())
         }
     }
 
@@ -170,7 +170,7 @@ data class SjekkOmGrunnlagErKonsistent(
         }
 
         private fun gyldigKombinasjonAvBosituasjonOgFormue(): Boolean {
-            return bosituasjon.perioderMedEPS().inneholderAlle(formue.perioderMedEPS())
+            return bosituasjon.perioderMedEPS().inneholder(formue.perioderMedEPS())
         }
 
         private fun harFormueForAllePerioder(): Boolean {

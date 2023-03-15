@@ -102,6 +102,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
     ) : IverksattRevurdering() {
+
         override val erOpphørt = true
 
         override fun accept(visitor: RevurderingVisitor) {

@@ -353,7 +353,7 @@ internal class VedtakPostgresRepo(
             }
 
             VedtakType.REGULERING -> {
-                VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering(
+                VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering.createFromPersistence(
                     id = id,
                     opprettet = opprettet,
                     behandling = behandling as IverksattRegulering,
@@ -425,7 +425,7 @@ internal class VedtakPostgresRepo(
                 }
             }
 
-            VedtakType.STANS_AV_YTELSE -> VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse(
+            VedtakType.STANS_AV_YTELSE -> VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse.createFromPersistence(
                 id = id,
                 opprettet = opprettet,
                 behandling = behandling as StansAvYtelseRevurdering.IverksattStansAvYtelse,
@@ -436,7 +436,7 @@ internal class VedtakPostgresRepo(
                 utbetalingId = utbetalingId!!,
             )
 
-            VedtakType.GJENOPPTAK_AV_YTELSE -> VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse(
+            VedtakType.GJENOPPTAK_AV_YTELSE -> VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse.createFromPersistence(
                 id = id,
                 opprettet = opprettet,
                 behandling = behandling as GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse,
