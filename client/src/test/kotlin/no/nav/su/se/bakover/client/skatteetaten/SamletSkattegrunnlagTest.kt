@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.suSeBakoverConsumerId
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.skatt.skattegrunnlag
+import no.nav.su.se.bakover.test.skatt.nySkattegrunnlag
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
@@ -228,7 +228,7 @@ internal class SamletSkattegrunnlagTest {
         client.hentSamletSkattegrunnlag(
             fnr = Fnr(fnr = "04900148157"),
             inntektsÅr = Year.of(2021),
-        ) shouldBe skattegrunnlag(fnr = Fnr("04900148157")).right()
+        ) shouldBe nySkattegrunnlag(fnr = Fnr("04900148157")).right()
     }
 
     @BeforeEach

@@ -45,19 +45,5 @@ data class SamletSkattegrunnlagResponseMedStadie(
 
             return SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left()
         }
-
-        private fun SkatteoppslagFeil.mapTilOmFeilKanSkippesEllerReturneres(): SkatteoppslagFeilMediator {
-            return when (this) {
-                SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr -> SkatteoppslagFeilMediator.KanSkippes
-                SkatteoppslagFeil.ManglerRettigheter -> SkatteoppslagFeilMediator.SkalReturneres
-                is SkatteoppslagFeil.Nettverksfeil -> SkatteoppslagFeilMediator.SkalReturneres
-                is SkatteoppslagFeil.UkjentFeil -> SkatteoppslagFeilMediator.SkalReturneres
-            }
-        }
-
-        sealed interface SkatteoppslagFeilMediator {
-            object KanSkippes : SkatteoppslagFeilMediator
-            object SkalReturneres : SkatteoppslagFeilMediator
-        }
     }
 }

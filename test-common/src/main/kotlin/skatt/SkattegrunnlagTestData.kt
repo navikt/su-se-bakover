@@ -7,66 +7,114 @@ import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.skatt.Stadie
 import no.nav.su.se.bakover.test.fixedClock
 import java.time.Clock
+import java.time.LocalDate
 import java.time.Year
 
-fun skattegrunnlag(
-    fnr: Fnr,
+fun nySkattegrunnlag(
+    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     stadie: Stadie = Stadie.FASTSATT,
+    årsgrunnlag: Skattegrunnlag.Årsgrunnlag = nyÅrsgrunnlag(),
     clock: Clock = fixedClock,
+    hentetTidspunkt: Tidspunkt = Tidspunkt.now(clock),
 ): Skattegrunnlag {
     return Skattegrunnlag(
         fnr = fnr,
-        hentetTidspunkt = Tidspunkt.now(clock),
+        hentetTidspunkt = hentetTidspunkt,
         stadie = stadie,
-        årsgrunnlag = Skattegrunnlag.Årsgrunnlag(
-            inntektsår = Year.of(2021),
-            skatteoppgjørsdato = 1.april(2021),
-            grunnlag = Skattegrunnlag.Grunnlagsliste(
-                inntekt = listOf(
-                    Skattegrunnlag.Grunnlag.Inntekt(
-                        navn = "alminneligInntektFoerSaerfradrag",
-                        beløp = "1000",
-                    ),
-                ),
-                formue = listOf(
-                    Skattegrunnlag.Grunnlag.Formue(
-                        navn = "bruttoformue",
-                        beløp = "1238",
-                    ),
-                    Skattegrunnlag.Grunnlag.Formue(
-                        navn = "formuesverdiForKjoeretoey",
-                        beløp = "20000",
-                        spesifisering = listOf(
-                            Skattegrunnlag.Spesifisering.Kjøretøy(
-                                beløp = "15000",
-                                registreringsnummer = "AB12345",
-                                fabrikatnavn = "Troll",
-                                årForFørstegangsregistrering = "1957",
-                                formuesverdi = "15000",
-                            ),
-                            Skattegrunnlag.Spesifisering.Kjøretøy(
-                                beløp = "5000",
-                                registreringsnummer = "BC67890",
-                                fabrikatnavn = "Think",
-                                årForFørstegangsregistrering = "2003",
-                                formuesverdi = "5000",
-                            ),
-                        ),
-                    ),
-                ),
-                formuesfradrag = listOf(
-                    Skattegrunnlag.Grunnlag.Formuesfradrag(
-                        navn = "samletAnnenGjeld",
-                        beløp = "6000",
-                    ),
-                ),
-                inntektsfradrag = listOf(
-                    Skattegrunnlag.Grunnlag.Inntektsfradrag(
-                        navn = "fradragForFagforeningskontingent",
-                        beløp = "4000",
-                    ),
-                ),
-            ),
-        ),
+        årsgrunnlag = årsgrunnlag,
     )
 }
+
+fun nyÅrsgrunnlag(
+    inntektsÅr: Year = Year.of(2021),
+    skatteoppgjørsdato: LocalDate = 1.april(2021),
+    grunnlag: Skattegrunnlag.Grunnlagsliste = nyGrunnlagsliste(),
+) = Skattegrunnlag.Årsgrunnlag(
+    inntektsår = inntektsÅr,
+    skatteoppgjørsdato = skatteoppgjørsdato,
+    grunnlag = grunnlag,
+)
+
+fun nyGrunnlagsliste(
+    inntekt: List<Skattegrunnlag.Grunnlag.Inntekt> = nyListeAvSkattegrunnlagInntekt(),
+    formue: List<Skattegrunnlag.Grunnlag.Formue> = nyListeAvSkattegrunnlagFormue(),
+    formuesFradrag: List<Skattegrunnlag.Grunnlag.Formuesfradrag> = nyListeAvFormuesfradrag(),
+    inntektsFradrag: List<Skattegrunnlag.Grunnlag.Inntektsfradrag> = nyListeAvInntektsfradrag(),
+) = Skattegrunnlag.Grunnlagsliste(
+    inntekt = inntekt,
+    formue = formue,
+    formuesfradrag = formuesFradrag,
+    inntektsfradrag = inntektsFradrag,
+)
+
+fun nyListeAvSkattegrunnlagInntekt(
+    input: List<Skattegrunnlag.Grunnlag.Inntekt> = listOf(nySkattegrunnlagInntekt()),
+) = input
+
+fun nySkattegrunnlagInntekt(
+    navn: String = "alminneligInntektFoerSaerfradrag",
+    beløp: String = "1000",
+) = Skattegrunnlag.Grunnlag.Inntekt(
+    navn = navn,
+    beløp = beløp,
+)
+
+fun nyListeAvSkattegrunnlagFormue(
+    input: List<Skattegrunnlag.Grunnlag.Formue> = listOf(
+        nySkattegrunnlagFormue(),
+        nySkattegrunnlagFormue(
+            navn = "formuesverdiForKjoeretoey",
+            beløp = "20000",
+            spesifisering = nyListeAvSpesifiseringKjøretøy(),
+        ),
+    ),
+) = input
+
+fun nySkattegrunnlagFormue(
+    navn: String = "buttoFormue",
+    beløp: String = "1238",
+    spesifisering: List<Skattegrunnlag.Spesifisering.Kjøretøy> = emptyList(),
+) = Skattegrunnlag.Grunnlag.Formue(navn = navn, beløp = beløp, spesifisering)
+
+fun nyListeAvSpesifiseringKjøretøy(
+    input: List<Skattegrunnlag.Spesifisering.Kjøretøy> = listOf(
+        nySpesifiseringKjøretøy(
+            beløp = "15000", registreringsnummer = "AB12345",
+            fabrikatnavn = "Troll", årForFørstegangsregistrering = "1957",
+            formuesverdi = "15000",
+        ),
+        nySpesifiseringKjøretøy(),
+    ),
+) = input
+
+fun nySpesifiseringKjøretøy(
+    beløp: String = "5000",
+    registreringsnummer: String = "BC67890",
+    fabrikatnavn: String = "Think",
+    årForFørstegangsregistrering: String = "2003",
+    formuesverdi: String = "5000",
+) = Skattegrunnlag.Spesifisering.Kjøretøy(
+    beløp = beløp,
+    registreringsnummer = registreringsnummer,
+    fabrikatnavn = fabrikatnavn,
+    årForFørstegangsregistrering = årForFørstegangsregistrering,
+    formuesverdi = formuesverdi,
+)
+
+fun nyListeAvFormuesfradrag(
+    formuesFradrag: List<Skattegrunnlag.Grunnlag.Formuesfradrag> = listOf(nyFormuesfradrag()),
+) = formuesFradrag
+
+fun nyFormuesfradrag(
+    navn: String = "samletAnnenGjeld",
+    beløp: String = "6000",
+) = Skattegrunnlag.Grunnlag.Formuesfradrag(navn = navn, beløp = beløp)
+
+fun nyListeAvInntektsfradrag(
+    inntektsfradrager: List<Skattegrunnlag.Grunnlag.Inntektsfradrag> = listOf(nyInntektsFradrag()),
+) = inntektsfradrager
+
+fun nyInntektsFradrag(
+    navn: String = "fradragForFagforeningskontingent",
+    beløp: String = "4000",
+) = Skattegrunnlag.Grunnlag.Inntektsfradrag(navn = navn, beløp = beløp)
