@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.client.skatteetaten
 
-import arrow.core.Either
-import arrow.core.Nel
 import arrow.core.right
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -16,12 +14,14 @@ class SkatteClientStub(
     override fun hentSamletSkattegrunnlag(
         fnr: Fnr,
         inntektsÅr: Year,
-    ): List<Pair<Either<SkatteoppslagFeil, Skattegrunnlag>, Stadie>> {
+    ): List<SamletSkattegrunnlagResponseMedStadie> {
         return listOf(
-            Pair(
-                Skattegrunnlag(
+            SamletSkattegrunnlagResponseMedStadie(
+                stadie = Stadie.FASTSATT,
+                oppslag = Skattegrunnlag(
                     fnr = Fnr(fnr = "04900148157"),
                     hentetTidspunkt = Tidspunkt.now(clock),
+                    stadie = Stadie.FASTSATT,
                     årsgrunnlag = Skattegrunnlag.Årsgrunnlag(
                         inntektsår = Year.of(2021),
                         skatteoppgjørsdato = null,
@@ -73,7 +73,6 @@ class SkatteClientStub(
                         ),
                     ),
                 ).right(),
-                Stadie.FASTSATT,
             ),
         )
     }

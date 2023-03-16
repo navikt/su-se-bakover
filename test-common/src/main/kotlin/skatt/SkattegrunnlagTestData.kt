@@ -11,11 +11,13 @@ import java.time.Year
 
 fun skattegrunnlag(
     fnr: Fnr,
+    stadie: Stadie = Stadie.FASTSATT,
     clock: Clock = fixedClock,
 ): Skattegrunnlag {
     return Skattegrunnlag(
         fnr = fnr,
         hentetTidspunkt = Tidspunkt.now(clock),
+        stadie = stadie,
         årsgrunnlag = Skattegrunnlag.Årsgrunnlag(
             inntektsår = Year.of(2021),
             skatteoppgjørsdato = 1.april(2021),

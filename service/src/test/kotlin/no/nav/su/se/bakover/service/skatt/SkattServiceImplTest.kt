@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.skatt
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.client.skatteetaten.SamletSkattegrunnlagResponseMedStadie
 import no.nav.su.se.bakover.client.skatteetaten.SkatteClient
 import no.nav.su.se.bakover.client.skatteetaten.SkatteoppslagFeil
 import no.nav.su.se.bakover.domain.skatt.Stadie
@@ -13,7 +14,6 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-
 
 class SkattServiceImplTest {
     /**
@@ -29,9 +29,9 @@ class SkattServiceImplTest {
         mockedSkatteClient(
             mock {
                 on { hentSamletSkattegrunnlag(any(), any()) } doReturn listOf(
-                    Pair(nettverksfeil.left(), Stadie.FASTSATT),
-                    Pair(skattegrunnlag(fnr).right(), Stadie.OPPGJØR),
-                    Pair(skattegrunnlag(fnr).right(), Stadie.UTKAST),
+                    SamletSkattegrunnlagResponseMedStadie(nettverksfeil.left(), Stadie.FASTSATT),
+                    SamletSkattegrunnlagResponseMedStadie(skattegrunnlag(fnr, Stadie.OPPGJØR).right(), Stadie.OPPGJØR),
+                    SamletSkattegrunnlagResponseMedStadie(skattegrunnlag(fnr, Stadie.UTKAST).right(), Stadie.UTKAST),
                 )
             },
         ).hentSamletSkattegrunnlag(fnr) shouldBe KunneIkkeHenteSkattemelding.KallFeilet(nettverksfeil).left()
@@ -42,9 +42,9 @@ class SkattServiceImplTest {
         mockedSkatteClient(
             mock {
                 on { hentSamletSkattegrunnlag(any(), any()) } doReturn listOf(
-                    Pair(skattegrunnlag(fnr).right(), Stadie.FASTSATT),
-                    Pair(skattegrunnlag(fnr).right(), Stadie.OPPGJØR),
-                    Pair(skattegrunnlag(fnr).right(), Stadie.UTKAST),
+                    SamletSkattegrunnlagResponseMedStadie(skattegrunnlag(fnr).right(), Stadie.FASTSATT),
+                    SamletSkattegrunnlagResponseMedStadie(skattegrunnlag(fnr, Stadie.OPPGJØR).right(), Stadie.OPPGJØR),
+                    SamletSkattegrunnlagResponseMedStadie(skattegrunnlag(fnr, Stadie.UTKAST).right(), Stadie.UTKAST),
                 )
             },
         ).hentSamletSkattegrunnlag(fnr) shouldBe skattegrunnlag(fnr).right()
@@ -55,9 +55,12 @@ class SkattServiceImplTest {
         mockedSkatteClient(
             mock {
                 on { hentSamletSkattegrunnlag(any(), any()) } doReturn listOf(
-                    Pair(SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(), Stadie.FASTSATT),
-                    Pair(nettverksfeil.left(), Stadie.OPPGJØR),
-                    Pair(skattegrunnlag(fnr).right(), Stadie.UTKAST),
+                    SamletSkattegrunnlagResponseMedStadie(
+                        SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                        Stadie.FASTSATT,
+                    ),
+                    SamletSkattegrunnlagResponseMedStadie(nettverksfeil.left(), Stadie.OPPGJØR),
+                    SamletSkattegrunnlagResponseMedStadie(skattegrunnlag(fnr, Stadie.UTKAST).right(), Stadie.UTKAST),
                 )
             },
         ).hentSamletSkattegrunnlag(fnr) shouldBe KunneIkkeHenteSkattemelding.KallFeilet(nettverksfeil).left()
@@ -68,13 +71,15 @@ class SkattServiceImplTest {
         mockedSkatteClient(
             mock {
                 on { hentSamletSkattegrunnlag(any(), any()) } doReturn listOf(
-                    Pair(SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(), Stadie.FASTSATT),
-                    Pair(skattegrunnlag(fnr).right(), Stadie.OPPGJØR),
-                    Pair(skattegrunnlag(fnr).right(), Stadie.UTKAST),
+                    SamletSkattegrunnlagResponseMedStadie(
+                        SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                        Stadie.FASTSATT,
+                    ),
+                    SamletSkattegrunnlagResponseMedStadie(skattegrunnlag(fnr, Stadie.OPPGJØR).right(), Stadie.OPPGJØR),
+                    SamletSkattegrunnlagResponseMedStadie(skattegrunnlag(fnr, Stadie.UTKAST).right(), Stadie.UTKAST),
                 )
             },
-        ).hentSamletSkattegrunnlag(fnr) shouldBe skattegrunnlag(fnr).right()
-
+        ).hentSamletSkattegrunnlag(fnr) shouldBe skattegrunnlag(fnr, Stadie.OPPGJØR).right()
     }
 
     @Test
@@ -82,9 +87,15 @@ class SkattServiceImplTest {
         mockedSkatteClient(
             mock {
                 on { hentSamletSkattegrunnlag(any(), any()) } doReturn listOf(
-                    Pair(SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(), Stadie.FASTSATT),
-                    Pair(SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(), Stadie.OPPGJØR),
-                    Pair(nettverksfeil.left(), Stadie.UTKAST),
+                    SamletSkattegrunnlagResponseMedStadie(
+                        SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                        Stadie.FASTSATT,
+                    ),
+                    SamletSkattegrunnlagResponseMedStadie(
+                        SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                        Stadie.OPPGJØR,
+                    ),
+                    SamletSkattegrunnlagResponseMedStadie(nettverksfeil.left(), Stadie.UTKAST),
                 )
             },
         ).hentSamletSkattegrunnlag(fnr) shouldBe KunneIkkeHenteSkattemelding.KallFeilet(nettverksfeil).left()
@@ -95,12 +106,18 @@ class SkattServiceImplTest {
         mockedSkatteClient(
             mock {
                 on { hentSamletSkattegrunnlag(any(), any()) } doReturn listOf(
-                    Pair(SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(), Stadie.FASTSATT),
-                    Pair(SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(), Stadie.OPPGJØR),
-                    Pair(skattegrunnlag(fnr).right(), Stadie.UTKAST),
+                    SamletSkattegrunnlagResponseMedStadie(
+                        SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                        Stadie.FASTSATT,
+                    ),
+                    SamletSkattegrunnlagResponseMedStadie(
+                        SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                        Stadie.OPPGJØR,
+                    ),
+                    SamletSkattegrunnlagResponseMedStadie(skattegrunnlag(fnr, Stadie.UTKAST).right(), Stadie.UTKAST),
                 )
             },
-        ).hentSamletSkattegrunnlag(fnr) shouldBe skattegrunnlag(fnr).right()
+        ).hentSamletSkattegrunnlag(fnr) shouldBe skattegrunnlag(fnr, Stadie.UTKAST).right()
     }
 
     @Test
@@ -108,14 +125,22 @@ class SkattServiceImplTest {
         mockedSkatteClient(
             mock {
                 on { hentSamletSkattegrunnlag(any(), any()) } doReturn listOf(
-                    Pair(SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(), Stadie.FASTSATT),
-                    Pair(SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(), Stadie.OPPGJØR),
-                    Pair(SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(), Stadie.UTKAST),
+                    SamletSkattegrunnlagResponseMedStadie(
+                        SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                        Stadie.FASTSATT,
+                    ),
+                    SamletSkattegrunnlagResponseMedStadie(
+                        SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                        Stadie.OPPGJØR,
+                    ),
+                    SamletSkattegrunnlagResponseMedStadie(
+                        SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                        Stadie.UTKAST,
+                    ),
                 )
             },
         ).hentSamletSkattegrunnlag(fnr) shouldBe
             KunneIkkeHenteSkattemelding.KallFeilet(SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr).left()
-
     }
 
     private fun mockedSkatteClient(

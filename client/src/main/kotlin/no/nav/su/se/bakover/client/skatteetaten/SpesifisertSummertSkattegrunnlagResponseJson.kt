@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
+import no.nav.su.se.bakover.domain.skatt.Stadie
 import java.time.Clock
 import java.time.LocalDate
 import java.time.Year
@@ -134,6 +135,7 @@ internal data class SpesifisertSummertSkattegrunnlagResponseJson(
             clock: Clock,
             fnr: Fnr,
             inntektsår: Year,
+            stadie: Stadie,
         ): Either<SkatteoppslagFeil, Skattegrunnlag> {
             return Either.catch {
                 deserialize<SpesifisertSummertSkattegrunnlagResponseJson>(json)
@@ -142,6 +144,7 @@ internal data class SpesifisertSummertSkattegrunnlagResponseJson(
                     clock = clock,
                     fnr = fnr,
                     inntektsår = inntektsår,
+                    stadie = stadie,
                 )
             }.mapLeft {
                 log.error("Feil skjedde under deserialisering/mapping av data fra Sigrun/Skatteetaten. Se sikkerlogg.")
@@ -177,10 +180,12 @@ private fun SpesifisertSummertSkattegrunnlagResponseJson.toDomain(
     clock: Clock,
     fnr: Fnr,
     inntektsår: Year,
+    stadie: Stadie,
 ): Either<Throwable, Skattegrunnlag> {
     return Either.catch {
         Skattegrunnlag(
             fnr = fnr,
+            stadie = stadie,
             hentetTidspunkt = Tidspunkt.now(clock),
             årsgrunnlag = nonEmptyListOf(
                 Skattegrunnlag.Årsgrunnlag(

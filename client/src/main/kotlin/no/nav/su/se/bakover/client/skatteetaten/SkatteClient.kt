@@ -46,7 +46,7 @@ class SkatteClient(
     override fun hentSamletSkattegrunnlag(
         fnr: Fnr,
         inntektsÅr: Year,
-    ): List<Pair<Either<SkatteoppslagFeil, Skattegrunnlag>, Stadie>> {
+    ): List<SamletSkattegrunnlagResponseMedStadie> {
         return runBlocking {
             val samletSkattFastsatt = async(Dispatchers.Default) {
                 hentSamletSkattegrunnlagFraSkatt(fnr, inntektsÅr, Stadie.FASTSATT)
@@ -59,9 +59,9 @@ class SkatteClient(
             }.await()
 
             listOf(
-                samletSkattFastsatt to Stadie.FASTSATT,
-                samletSkattOppgjør to Stadie.OPPGJØR,
-                samletSkattUtkast to Stadie.UTKAST,
+                SamletSkattegrunnlagResponseMedStadie(samletSkattFastsatt, Stadie.FASTSATT),
+                SamletSkattegrunnlagResponseMedStadie(samletSkattOppgjør, Stadie.OPPGJØR),
+                SamletSkattegrunnlagResponseMedStadie(samletSkattUtkast, Stadie.UTKAST),
             )
         }
     }
@@ -95,16 +95,16 @@ class SkatteClient(
             )
             SkatteoppslagFeil.Nettverksfeil(it)
         }.flatMap { response ->
-            handleResponse(response, getRequest, fnr, inntektsÅr)
+            handleResponse(response, getRequest, fnr, inntektsÅr, stadie)
         }
     }
-
 
     private fun handleResponse(
         response: HttpResponse<String>,
         getRequest: HttpRequest?,
         fnr: Fnr,
         inntektsÅr: Year,
+        stadie: Stadie,
     ): Either<SkatteoppslagFeil, Skattegrunnlag> {
         fun logError(throwable: Throwable? = RuntimeException("Genererer en stacktrace.")) {
             log.error("Kall mot Sigrun/skatteetatens api feilet med statuskode ${response.statusCode()}. Se sikkerlogg.")
@@ -120,6 +120,7 @@ class SkatteClient(
                 clock = clock,
                 fnr = fnr,
                 inntektsår = inntektsÅr,
+                stadie = stadie,
             ).mapLeft { it }
                 .map { it }
 

@@ -11,12 +11,14 @@ data class Skattegrunnlag(
     val fnr: Fnr,
     val hentetTidspunkt: Tidspunkt,
     val årsgrunnlag: NonEmptyList<Årsgrunnlag>,
+    val stadie: Stadie,
 ) {
     constructor(
         fnr: Fnr,
         hentetTidspunkt: Tidspunkt,
         årsgrunnlag: Årsgrunnlag,
-    ) : this(fnr, hentetTidspunkt, nonEmptyListOf(årsgrunnlag))
+        stadie: Stadie,
+    ) : this(fnr, hentetTidspunkt, nonEmptyListOf(årsgrunnlag), stadie)
 
     data class Årsgrunnlag(
         val inntektsår: Year,
