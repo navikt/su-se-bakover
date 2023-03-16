@@ -35,7 +35,7 @@ subprojects {
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
         implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jacksonVersion")
-        implementation("ch.qos.logback:logback-classic:1.4.5")
+        implementation("ch.qos.logback:logback-classic:1.4.6")
         implementation("net.logstash.logback:logstash-logback-encoder:7.3")
         implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
         implementation("com.networknt:json-schema-validator:1.0.78")
