@@ -12,7 +12,6 @@ import java.time.Year
 
 fun nySkattegrunnlag(
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
-    stadie: Stadie = Stadie.FASTSATT,
     årsgrunnlag: Skattegrunnlag.Årsgrunnlag = nyÅrsgrunnlag(),
     clock: Clock = fixedClock,
     hentetTidspunkt: Tidspunkt = Tidspunkt.now(clock),
@@ -20,7 +19,6 @@ fun nySkattegrunnlag(
     return Skattegrunnlag(
         fnr = fnr,
         hentetTidspunkt = hentetTidspunkt,
-        stadie = stadie,
         årsgrunnlag = årsgrunnlag,
     )
 }
@@ -29,10 +27,12 @@ fun nyÅrsgrunnlag(
     inntektsÅr: Year = Year.of(2021),
     skatteoppgjørsdato: LocalDate = 1.april(2021),
     grunnlag: Skattegrunnlag.Grunnlagsliste = nyGrunnlagsliste(),
+    stadie: Stadie = Stadie.FASTSATT
 ) = Skattegrunnlag.Årsgrunnlag(
     inntektsår = inntektsÅr,
     skatteoppgjørsdato = skatteoppgjørsdato,
     grunnlag = grunnlag,
+    stadie = stadie,
 )
 
 fun nyGrunnlagsliste(

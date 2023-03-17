@@ -3,7 +3,11 @@ package no.nav.su.se.bakover.client.skatteetaten
 import arrow.core.right
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.YearRange
+import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedStadie
+import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedYear
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
+import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
 import no.nav.su.se.bakover.domain.skatt.Stadie
 import java.time.Clock
 import java.time.Year
@@ -14,68 +18,87 @@ class SkatteClientStub(
     override fun hentSamletSkattegrunnlag(
         fnr: Fnr,
         inntektsÅr: Year,
-    ): List<SamletSkattegrunnlagResponseMedStadie> {
-        return listOf(
+    ): SamletSkattegrunnlagResponseMedYear {
+        return samletYear(inntektsÅr)
+    }
+
+    override fun hentSamletSkattegrunnlagForÅrsperiode(
+        fnr: Fnr,
+        yearRange: YearRange,
+    ): List<SamletSkattegrunnlagResponseMedYear> {
+        return yearRange.map { samletYear(it) }
+    }
+
+    private fun samletYear(år: Year) = SamletSkattegrunnlagResponseMedYear(
+        skatteResponser = listOf(
             SamletSkattegrunnlagResponseMedStadie(
-                stadie = Stadie.FASTSATT,
-                oppslag = Skattegrunnlag(
-                    fnr = Fnr(fnr = "04900148157"),
-                    hentetTidspunkt = Tidspunkt.now(clock),
-                    stadie = Stadie.FASTSATT,
-                    årsgrunnlag = Skattegrunnlag.Årsgrunnlag(
-                        inntektsår = Year.of(2021),
-                        skatteoppgjørsdato = null,
-                        grunnlag = Skattegrunnlag.Grunnlagsliste(
-                            inntekt = listOf(
-                                Skattegrunnlag.Grunnlag.Inntekt(
-                                    navn = "alminneligInntektFoerSaerfradrag",
-                                    beløp = "1000",
-                                ),
-                            ),
-                            formue = listOf(
-                                Skattegrunnlag.Grunnlag.Formue(
-                                    navn = "bruttoformue",
-                                    beløp = "1238",
-                                ),
-                                Skattegrunnlag.Grunnlag.Formue(
-                                    navn = "formuesverdiForKjoeretoey",
-                                    beløp = "20000",
-                                    spesifisering = listOf(
-                                        Skattegrunnlag.Spesifisering.Kjøretøy(
-                                            beløp = "15000",
-                                            registreringsnummer = "AB12345",
-                                            fabrikatnavn = "Troll",
-                                            årForFørstegangsregistrering = "1957",
-                                            formuesverdi = "15000",
-                                        ),
-                                        Skattegrunnlag.Spesifisering.Kjøretøy(
-                                            beløp = "5000",
-                                            registreringsnummer = "BC67890",
-                                            fabrikatnavn = "Think",
-                                            årForFørstegangsregistrering = "2003",
-                                            formuesverdi = "5000",
-                                        ),
-                                    ),
-                                ),
-                            ),
-                            formuesfradrag = listOf(
-                                Skattegrunnlag.Grunnlag.Formuesfradrag(
-                                    navn = "samletAnnenGjeld",
-                                    beløp = "6000",
-                                ),
-                            ),
-                            inntektsfradrag = listOf(
-                                Skattegrunnlag.Grunnlag.Inntektsfradrag(
-                                    navn = "fradragForFagforeningskontingent",
-                                    beløp = "4000",
-                                ),
-                            ),
+                stadie = Stadie.FASTSATT, oppslag = årsgrunnlag(år, Stadie.FASTSATT).right(),
+            ),
+            SamletSkattegrunnlagResponseMedStadie(
+                stadie = Stadie.OPPGJØR, oppslag = årsgrunnlag(år, Stadie.OPPGJØR).right(),
+            ),
+            SamletSkattegrunnlagResponseMedStadie(
+                stadie = Stadie.UTKAST, oppslag = årsgrunnlag(år, Stadie.UTKAST).right(),
+            ),
+        ),
+        år = år,
+    )
+
+    private fun årsgrunnlag(
+        inntektsÅr: Year,
+        stadie: Stadie,
+    ) = Skattegrunnlag.Årsgrunnlag(
+        stadie = stadie,
+        inntektsår = inntektsÅr,
+        skatteoppgjørsdato = null,
+        grunnlag = Skattegrunnlag.Grunnlagsliste(
+            inntekt = listOf(
+                Skattegrunnlag.Grunnlag.Inntekt(
+                    navn = "alminneligInntektFoerSaerfradrag",
+                    beløp = "1000",
+                ),
+            ),
+            formue = listOf(
+                Skattegrunnlag.Grunnlag.Formue(
+                    navn = "bruttoformue",
+                    beløp = "1238",
+                ),
+                Skattegrunnlag.Grunnlag.Formue(
+                    navn = "formuesverdiForKjoeretoey",
+                    beløp = "20000",
+                    spesifisering = listOf(
+                        Skattegrunnlag.Spesifisering.Kjøretøy(
+                            beløp = "15000",
+                            registreringsnummer = "AB12345",
+                            fabrikatnavn = "Troll",
+                            årForFørstegangsregistrering = "1957",
+                            formuesverdi = "15000",
+                        ),
+                        Skattegrunnlag.Spesifisering.Kjøretøy(
+                            beløp = "5000",
+                            registreringsnummer = "BC67890",
+                            fabrikatnavn = "Think",
+                            årForFørstegangsregistrering = "2003",
+                            formuesverdi = "5000",
                         ),
                     ),
-                ).right(),
+                ),
             ),
-        )
-    }
+            formuesfradrag = listOf(
+                Skattegrunnlag.Grunnlag.Formuesfradrag(
+                    navn = "samletAnnenGjeld",
+                    beløp = "6000",
+                ),
+            ),
+            inntektsfradrag = listOf(
+                Skattegrunnlag.Grunnlag.Inntektsfradrag(
+                    navn = "fradragForFagforeningskontingent",
+                    beløp = "4000",
+                ),
+            ),
+        ),
+    )
+
 
 //    override fun hentSamletSkattegrunnlag(
 //        fnr: Fnr,

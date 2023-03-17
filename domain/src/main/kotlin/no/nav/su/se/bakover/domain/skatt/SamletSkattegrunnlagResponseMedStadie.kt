@@ -1,10 +1,8 @@
-package no.nav.su.se.bakover.client.skatteetaten
+package no.nav.su.se.bakover.domain.skatt
 
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
-import no.nav.su.se.bakover.domain.skatt.Stadie
 
 data class SamletSkattegrunnlagResponseMedStadie(
     val oppslag: Either<SkatteoppslagFeil, Skattegrunnlag>,

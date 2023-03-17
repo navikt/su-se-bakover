@@ -17,8 +17,7 @@ data class Skattegrunnlag(
         fnr: Fnr,
         hentetTidspunkt: Tidspunkt,
         årsgrunnlag: Årsgrunnlag,
-        stadie: Stadie,
-    ) : this(fnr, hentetTidspunkt, nonEmptyListOf(årsgrunnlag), stadie)
+    ) : this(fnr, hentetTidspunkt, nonEmptyListOf(årsgrunnlag))
 
     data class Årsgrunnlag(
         val inntektsår: Year,

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.client.skatteetaten
+package no.nav.su.se.bakover.domain.skatt
 
 sealed interface SkatteoppslagFeil {
     data class Nettverksfeil(val throwable: Throwable) : SkatteoppslagFeil

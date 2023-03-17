@@ -1,18 +1,20 @@
-package no.nav.su.se.bakover.client.skatteetaten
+package no.nav.su.se.bakover.domain.skatt
 
 import arrow.core.Either
 import arrow.core.left
-import no.nav.su.se.bakover.client.skatteetaten.SamletSkattegrunnlagResponseMedStadie.Companion.hentMestGyldigeSkattegrunnlag
-import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
+import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedStadie.Companion.hentMestGyldigeSkattegrunnlag
 import java.time.Year
-import java.util.concurrent.ConcurrentLinkedQueue
 
 data class SamletSkattegrunnlagResponseMedYear(
     val skatteResponser: List<SamletSkattegrunnlagResponseMedStadie>,
     val år: Year,
 ) {
+
+    fun hentMestGyldigeSkattegrunnlag(): Either<SkatteoppslagFeil, Skattegrunnlag.Årsgrunnlag> =
+        this.skatteResponser.hentMestGyldigeSkattegrunnlag()
+
     companion object {
-        fun ConcurrentLinkedQueue<SamletSkattegrunnlagResponseMedYear>.hentMestGyldigeSkattegrunnlag(): Either<SkatteoppslagFeil, Skattegrunnlag> {
+        fun List<SamletSkattegrunnlagResponseMedYear>.hentMestGyldigeSkattegrunnlag(): Either<SkatteoppslagFeil, Skattegrunnlag.Årsgrunnlag> {
             val sortert = this.sortedByDescending { it.år }
 
             for (i in sortert) {

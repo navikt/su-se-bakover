@@ -6,14 +6,20 @@ import arrow.core.left
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import no.nav.su.se.bakover.common.ApplicationConfig.ClientsConfig.SkatteetatenConfig
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.YearRange
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.token.JwtToken
+import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedStadie
+import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedYear
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
+import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
+import no.nav.su.se.bakover.domain.skatt.SkatteoppslagFeil
 import no.nav.su.se.bakover.domain.skatt.Stadie
 import java.net.URI
 import java.net.http.HttpClient
@@ -46,25 +52,49 @@ class SkatteClient(
     override fun hentSamletSkattegrunnlag(
         fnr: Fnr,
         inntektsÅr: Year,
-    ): List<SamletSkattegrunnlagResponseMedStadie> {
-        return runBlocking {
-            val samletSkattFastsatt = async(Dispatchers.Default) {
-                hentSamletSkattegrunnlagFraSkatt(fnr, inntektsÅr, Stadie.FASTSATT)
-            }.await()
-            val samletSkattOppgjør = async(Dispatchers.Default) {
-                hentSamletSkattegrunnlagFraSkatt(fnr, inntektsÅr, Stadie.OPPGJØR)
-            }.await()
-            val samletSkattUtkast = async(Dispatchers.Default) {
-                hentSamletSkattegrunnlagFraSkatt(fnr, inntektsÅr, Stadie.UTKAST)
-            }.await()
+    ): SamletSkattegrunnlagResponseMedYear {
+        return runBlocking { hentSkattedataForAlleStadier(fnr, inntektsÅr) }
+    }
 
-            listOf(
-                SamletSkattegrunnlagResponseMedStadie(samletSkattFastsatt, Stadie.FASTSATT),
-                SamletSkattegrunnlagResponseMedStadie(samletSkattOppgjør, Stadie.OPPGJØR),
-                SamletSkattegrunnlagResponseMedStadie(samletSkattUtkast, Stadie.UTKAST),
-            )
+    override fun hentSamletSkattegrunnlagForÅrsperiode(
+        fnr: Fnr,
+        yearRange: YearRange,
+    ): List<SamletSkattegrunnlagResponseMedYear> {
+        return runBlocking {
+            withContext(Dispatchers.IO) {
+                yearRange.map {
+                    async(Dispatchers.IO) {
+                        hentSkattedataForAlleStadier(fnr, it)
+                    }
+                }.awaitAll()
+            }
         }
     }
+
+    private suspend fun hentSkattedataForAlleStadier(
+        fnr: Fnr,
+        inntektsÅr: Year,
+    ): SamletSkattegrunnlagResponseMedYear {
+        return withContext(Dispatchers.IO) {
+            val samletSkattFastsatt = async(Dispatchers.IO) {
+                Pair(hentSamletSkattegrunnlagFraSkatt(fnr, inntektsÅr, Stadie.FASTSATT), Stadie.FASTSATT)
+            }
+            val samletSkattOppgjør = async(Dispatchers.IO) {
+                Pair(hentSamletSkattegrunnlagFraSkatt(fnr, inntektsÅr, Stadie.OPPGJØR), Stadie.OPPGJØR)
+            }
+            val samletSkattUtkast = async(Dispatchers.IO) {
+                Pair(hentSamletSkattegrunnlagFraSkatt(fnr, inntektsÅr, Stadie.UTKAST), Stadie.UTKAST)
+            }
+            listOf(samletSkattFastsatt, samletSkattOppgjør, samletSkattUtkast)
+                .awaitAll().let {
+                    SamletSkattegrunnlagResponseMedYear(
+                        it.map { SamletSkattegrunnlagResponseMedStadie(it.first, it.second) },
+                        inntektsÅr,
+                    )
+                }
+        }
+    }
+
 
     private fun hentSamletSkattegrunnlagFraSkatt(
         fnr: Fnr,

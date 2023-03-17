@@ -1,19 +1,15 @@
 package no.nav.su.se.bakover.service.skatt
 
 import arrow.core.Either
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import no.nav.su.se.bakover.client.skatteetaten.SamletSkattegrunnlagResponseMedStadie.Companion.hentMestGyldigeSkattegrunnlag
-import no.nav.su.se.bakover.client.skatteetaten.SamletSkattegrunnlagResponseMedYear
-import no.nav.su.se.bakover.client.skatteetaten.SamletSkattegrunnlagResponseMedYear.Companion.hentMestGyldigeSkattegrunnlag
-import no.nav.su.se.bakover.client.skatteetaten.Skatteoppslag
+import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedStadie.Companion.hentMestGyldigeSkattegrunnlag
+import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedYear.Companion.hentMestGyldigeSkattegrunnlag
+import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
 import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.YearRange
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import java.time.Clock
 import java.time.Year
-import java.util.concurrent.ConcurrentLinkedQueue
 
 class SkatteServiceImpl(
     private val skatteClient: Skatteoppslag,
@@ -25,7 +21,9 @@ class SkatteServiceImpl(
     ): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag> {
         // TODO jah: Flytt domenelogikken til domenet
         return skatteClient.hentSamletSkattegrunnlag(fnr, Year.now(clock))
-            .hentMestGyldigeSkattegrunnlag()
+            .hentMestGyldigeSkattegrunnlag().map {
+                Skattegrunnlag(fnr = fnr, hentetTidspunkt = Tidspunkt.now(clock), årsgrunnlag = it)
+            }
             .mapLeft { KunneIkkeHenteSkattemelding.KallFeilet(it) }
     }
 
@@ -33,19 +31,11 @@ class SkatteServiceImpl(
         fnr: Fnr,
         yearRange: YearRange,
     ): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag> {
-        val response = ConcurrentLinkedQueue<SamletSkattegrunnlagResponseMedYear>()
-        runBlocking {
-            yearRange.forEach {
-                launch(Dispatchers.IO) {
-                    response.add(
-                        SamletSkattegrunnlagResponseMedYear(skatteClient.hentSamletSkattegrunnlag(fnr, it), it),
-                    )
-                }
+        return skatteClient.hentSamletSkattegrunnlagForÅrsperiode(fnr, yearRange)
+            .hentMestGyldigeSkattegrunnlag().map {
+                Skattegrunnlag(fnr = fnr, hentetTidspunkt = Tidspunkt.now(clock), årsgrunnlag = it)
             }
-        }
-        return response.hentMestGyldigeSkattegrunnlag().mapLeft {
-            KunneIkkeHenteSkattemelding.KallFeilet(it)
-        }
+            .mapLeft { KunneIkkeHenteSkattemelding.KallFeilet(it) }
     }
 
 

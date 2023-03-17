@@ -2,16 +2,14 @@ package no.nav.su.se.bakover.client.skatteetaten
 
 import arrow.core.Either
 import arrow.core.flatMap
-import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.client.skatteetaten.SpesifisertSummertSkattegrunnlagResponseJson.SpesifisertSummertSkattegrunnlagsobjekt.Companion.toDomain
 import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
+import no.nav.su.se.bakover.domain.skatt.SkatteoppslagFeil
 import no.nav.su.se.bakover.domain.skatt.Stadie
-import java.time.Clock
 import java.time.LocalDate
 import java.time.Year
 import no.nav.su.se.bakover.client.skatteetaten.SpesifisertSummertSkattegrunnlagResponseJson.SpesifisertSummertSkattegrunnlagsobjekt.Spesifisering as EksternSpesifisering
@@ -183,17 +181,11 @@ private fun SpesifisertSummertSkattegrunnlagResponseJson.toDomain(
     stadie: Stadie,
 ): Either<Throwable, Skattegrunnlag> {
     return Either.catch {
-        Skattegrunnlag(
-            fnr = fnr,
+        Skattegrunnlag.Årsgrunnlag(
+            inntektsår = inntektsår,
+            grunnlag = grunnlag.toDomain() + svalbardGrunnlag.toDomain(),
+            skatteoppgjørsdato = skatteoppgjoersdato?.let { LocalDate.parse(it) },
             stadie = stadie,
-            hentetTidspunkt = Tidspunkt.now(clock),
-            årsgrunnlag = nonEmptyListOf(
-                Skattegrunnlag.Årsgrunnlag(
-                    inntektsår = inntektsår,
-                    grunnlag = grunnlag.toDomain() + svalbardGrunnlag.toDomain(),
-                    skatteoppgjørsdato = skatteoppgjoersdato?.let { LocalDate.parse(it) },
-                ),
-            ),
         )
     }
 }
