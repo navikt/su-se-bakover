@@ -7,7 +7,6 @@ import io.ktor.server.application.call
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-import no.nav.su.se.bakover.client.skatteetaten.SkatteoppslagFeil
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
@@ -19,30 +18,34 @@ import no.nav.su.se.bakover.common.infrastructure.web.parameter
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.toggle.domain.ToggleClient
+import no.nav.su.se.bakover.domain.skatt.SkatteoppslagFeil
 import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.web.features.authorize
+import java.util.UUID
 
 internal const val skattPath = "/skatt"
 
 internal fun Route.skattRoutes(skatteService: SkatteService, toggleService: ToggleClient) {
-    get("$skattPath/{fnr}") {
+    get("$skattPath/{behandlingId}") {
         if (!toggleService.isEnabled("supstonad.skattemelding")) {
             call.respond(HttpStatusCode.NotFound)
             return@get
         }
 
         authorize(Brukerrolle.Saksbehandler) {
-            call.parameter("fnr")
+            call.parameter("behandlingId")
                 .flatMap {
-                    Either.catch { Fnr(it) }
-                        .mapLeft { Feilresponser.ugyldigFødselsnummer }
+                    Either.catch { UUID.fromString(it) }
+                        //TODO: Riktig feilmelding
+                        .mapLeft { Feilresponser.fantIkkeBehandling }
                 }
-                .map { fnr ->
-                    skatteService.hentSamletSkattegrunnlag(fnr)
+                .map { id ->
+                    skatteService.hentSamletSkattegrunnlagForBehandling(id)
                         .fold(
                             ifLeft = {
-                                call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
+                                //TODO: trenger Fnr for audit
+                                //call.audit(id, AuditLogEvent.Action.SEARCH, id)
                                 val feilmelding = when (it) {
                                     is KunneIkkeHenteSkattemelding.KallFeilet -> {
                                         when (it.feil) {
@@ -71,7 +74,8 @@ internal fun Route.skattRoutes(skatteService: SkatteService, toggleService: Togg
                                 call.svar(feilmelding)
                             },
                             ifRight = {
-                                call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
+                                //TODO: trenger fnr for audit
+                                //call.audit(id, AuditLogEvent.Action.ACCESS, null)
                                 call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJSON())))
                             },
                         )

@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.suSeBakoverConsumerId
+import no.nav.su.se.bakover.domain.skatt.SkatteoppslagFeil
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.skatt.nySkattegrunnlag
 import org.junit.jupiter.api.BeforeEach
@@ -37,7 +38,6 @@ internal class SamletSkattegrunnlagTest {
                 apiBaseUrl = wireMockServer.baseUrl(),
                 consumerId = suSeBakoverConsumerId,
             ),
-            fixedClock,
             azureAd = azureAdMock,
         )
     val fnr = Fnr("21839199217")
@@ -127,7 +127,7 @@ internal class SamletSkattegrunnlagTest {
         client.hentSamletSkattegrunnlag(
             fnr = fnr,
             inntektsÅr = Year.of(2021),
-        ).first().oppslag.onLeft {
+        ).skatteResponser.first().oppslag.onLeft {
             it.shouldBeInstanceOf<SkatteoppslagFeil.UkjentFeil>()
             it.throwable.shouldBeInstanceOf<DateTimeParseException>()
         }.onRight { fail("Forventet left") }
@@ -152,7 +152,7 @@ internal class SamletSkattegrunnlagTest {
         client.hentSamletSkattegrunnlag(
             fnr = fnr,
             inntektsÅr = Year.of(2021),
-        ).first().oppslag.onLeft {
+        ).skatteResponser.first().oppslag.onLeft {
             it.shouldBeInstanceOf<SkatteoppslagFeil.UkjentFeil>()
             it.throwable.shouldBeInstanceOf<MissingKotlinParameterException>()
             it.throwable.message shouldContain "non-nullable type"

@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.YearRange
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionContext
@@ -1082,6 +1083,19 @@ open class AccessCheckProxy(
                 ): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag> {
                     assertHarTilgangTilPerson(fnr)
                     return services.skatteService.hentSamletSkattegrunnlag(fnr)
+                }
+
+                override fun hentSamletSkattegrunnlagForÅr(
+                    fnr: Fnr,
+                    yearRange: YearRange,
+                ): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag> {
+                    assertHarTilgangTilPerson(fnr)
+                    return services.skatteService.hentSamletSkattegrunnlagForÅr(fnr, yearRange)
+                }
+
+                override fun hentSamletSkattegrunnlagForBehandling(behandlingId: UUID): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag> {
+                    assertHarTilgangTilBehandling(behandlingId)
+                    return services.skatteService.hentSamletSkattegrunnlagForBehandling(behandlingId)
                 }
             },
             kontrollsamtaleSetup = object : KontrollsamtaleSetup {

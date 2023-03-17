@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.YearRange
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.skatt.SkatteoppslagFeil
+import java.util.UUID
 
 interface SkatteService {
     fun hentSamletSkattegrunnlag(
@@ -15,6 +16,11 @@ interface SkatteService {
         fnr: Fnr,
         yearRange: YearRange
     ): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag>
+
+    fun hentSamletSkattegrunnlagForBehandling(
+        behandlingId: UUID
+    ): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag>
+
 }
 
 sealed interface KunneIkkeHenteSkattemelding {

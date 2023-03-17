@@ -270,6 +270,7 @@ class SkatteServiceImplTest {
         skatteClient: SkatteClient,
     ): SkatteService = SkatteServiceImpl(
         skatteClient = skatteClient,
+        søknadsbehandlingService = mock(),
         clock = fixedClock,
     )
 }

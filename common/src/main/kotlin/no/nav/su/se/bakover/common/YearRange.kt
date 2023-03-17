@@ -43,3 +43,4 @@ operator fun Year.inc(): Year = this.plusYears(1)
 
 operator fun Year.rangeTo(endInclusive: Year): YearRange = YearRange(this, endInclusive)
 fun Year.until(endExclusive: Year) = YearRange(this, endExclusive.minusYears(1))
+fun Year.toRange() = YearRange(this, this)
