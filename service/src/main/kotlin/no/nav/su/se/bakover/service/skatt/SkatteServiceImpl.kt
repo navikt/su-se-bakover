@@ -1,10 +1,8 @@
 package no.nav.su.se.bakover.service.skatt
 
 import arrow.core.Either
-import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
-import arrow.core.right
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.YearRange

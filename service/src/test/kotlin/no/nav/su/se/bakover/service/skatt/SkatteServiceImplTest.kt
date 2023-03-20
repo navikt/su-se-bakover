@@ -171,7 +171,6 @@ class SkatteServiceImplTest {
             KunneIkkeHenteSkattemelding.KallFeilet(SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr).left()
     }
 
-
     @Test
     fun `ingen skattedata for periode over 3 år`() {
         mockedSkatteClient(
@@ -200,7 +199,6 @@ class SkatteServiceImplTest {
             KunneIkkeHenteSkattemelding.KallFeilet(SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr).left()
     }
 
-
     @Test
     fun `henter skattedata for et år (2021)`() {
         mockedSkatteClient(
@@ -215,7 +213,6 @@ class SkatteServiceImplTest {
         ).hentSamletSkattegrunnlagForÅr(fnr, YearRange(Year.of(2021), Year.of(2021))) shouldBe
             nySkattegrunnlag(fnr).right()
     }
-
 
     @Test
     fun `henter skattedata over 3 år (2020-2022)`() {
@@ -260,7 +257,6 @@ class SkatteServiceImplTest {
         ).hentSamletSkattegrunnlagForÅr(fnr, YearRange(Year.of(2020), Year.of(2022))) shouldBe
             nySkattegrunnlag(årsgrunnlag = nyÅrsgrunnlag(inntektsÅr = Year.of(2022), stadie = Stadie.UTKAST)).right()
     }
-
 
     private fun samletFastsatt() = SamletSkattegrunnlagResponseMedStadie(fastsatt().right(), Stadie.FASTSATT)
     private fun samletOppgjør() = SamletSkattegrunnlagResponseMedStadie(oppgjør().right(), Stadie.OPPGJØR)

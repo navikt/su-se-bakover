@@ -283,14 +283,14 @@ internal class SamletSkattegrunnlagTest {
             år = Year.of(2021),
         ) shouldBe SamletSkattegrunnlagResponseMedYear(
             skatteResponser = listOf(
+                SamletSkattegrunnlagResponseMedStadie(oppslag = nyÅrsgrunnlag().right(), stadie = Stadie.FASTSATT),
                 SamletSkattegrunnlagResponseMedStadie(
-                    oppslag = nyÅrsgrunnlag().right(), stadie = Stadie.FASTSATT,
+                    oppslag = nyÅrsgrunnlag(stadie = Stadie.OPPGJØR).right(),
+                    stadie = Stadie.OPPGJØR,
                 ),
                 SamletSkattegrunnlagResponseMedStadie(
-                    oppslag = nyÅrsgrunnlag(stadie = Stadie.OPPGJØR).right(), stadie = Stadie.OPPGJØR,
-                ),
-                SamletSkattegrunnlagResponseMedStadie(
-                    oppslag = nyÅrsgrunnlag(stadie = Stadie.UTKAST).right(), stadie = Stadie.UTKAST,
+                    oppslag = nyÅrsgrunnlag(stadie = Stadie.UTKAST).right(),
+                    stadie = Stadie.UTKAST,
                 ),
             ),
             år = Year.of(2021),

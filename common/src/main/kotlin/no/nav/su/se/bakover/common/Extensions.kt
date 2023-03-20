@@ -75,5 +75,4 @@ fun LocalDate.sisteIForrigeMåned(): LocalDate {
     return this.minusMonths(1).endOfMonth()
 }
 
-
 infix fun Year.erI(yearRange: YearRange): Boolean = yearRange.any { it == this }

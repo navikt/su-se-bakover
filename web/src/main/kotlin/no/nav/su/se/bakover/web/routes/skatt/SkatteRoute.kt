@@ -1,31 +1,24 @@
 package no.nav.su.se.bakover.web.routes.skatt
 
-import arrow.core.Either
-import arrow.core.flatMap
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.su.se.bakover.common.Brukerrolle
-import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
-import no.nav.su.se.bakover.common.infrastructure.web.parameter
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.toggle.domain.ToggleClient
-import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.skatt.SkatteoppslagFeil
 import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.tilResultat
-import java.util.UUID
 
 internal const val skattPath = "/skatt"
 
@@ -54,7 +47,6 @@ internal fun Route.skattRoutes(skatteService: SkatteService, toggleService: Togg
         }
     }
 }
-
 
 internal fun KunneIkkeHenteSkattemelding.tilResultat() = when (this) {
     is KunneIkkeHenteSkattemelding.KallFeilet -> {

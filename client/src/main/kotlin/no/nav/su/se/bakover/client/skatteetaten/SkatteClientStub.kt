@@ -33,13 +33,16 @@ class SkatteClientStub(
     private fun samletYear(år: Year) = SamletSkattegrunnlagResponseMedYear(
         skatteResponser = listOf(
             SamletSkattegrunnlagResponseMedStadie(
-                stadie = Stadie.FASTSATT, oppslag = årsgrunnlag(år, Stadie.FASTSATT).right(),
+                stadie = Stadie.FASTSATT,
+                oppslag = årsgrunnlag(år, Stadie.FASTSATT).right(),
             ),
             SamletSkattegrunnlagResponseMedStadie(
-                stadie = Stadie.OPPGJØR, oppslag = årsgrunnlag(år, Stadie.OPPGJØR).right(),
+                stadie = Stadie.OPPGJØR,
+                oppslag = årsgrunnlag(år, Stadie.OPPGJØR).right(),
             ),
             SamletSkattegrunnlagResponseMedStadie(
-                stadie = Stadie.UTKAST, oppslag = årsgrunnlag(år, Stadie.UTKAST).right(),
+                stadie = Stadie.UTKAST,
+                oppslag = årsgrunnlag(år, Stadie.UTKAST).right(),
             ),
         ),
         år = år,
@@ -99,7 +102,6 @@ class SkatteClientStub(
             ),
         ),
     )
-
 
 //    override fun hentSamletSkattegrunnlag(
 //        fnr: Fnr,

@@ -34,8 +34,6 @@ data class SamletSkattegrunnlagResponseMedYear(
     }
 }
 
-
-
 fun List<SamletSkattegrunnlagResponseMedYear>.toYearRange(): YearRange {
     return YearRange(this.minOf { it.år }, this.maxOf { it.år })
 }

@@ -152,7 +152,6 @@ internal class SkatteClient(
         }
     }
 
-
     private fun hentSamletSkattegrunnlagFraSkatt(
         fnr: Fnr,
         inntektsÅr: Year,

@@ -27,7 +27,7 @@ fun nyÅrsgrunnlag(
     inntektsÅr: Year = Year.of(2021),
     skatteoppgjørsdato: LocalDate = 1.april(2021),
     grunnlag: Skattegrunnlag.Grunnlagsliste = nyGrunnlagsliste(),
-    stadie: Stadie = Stadie.FASTSATT
+    stadie: Stadie = Stadie.FASTSATT,
 ) = Skattegrunnlag.Årsgrunnlag(
     inntektsår = inntektsÅr,
     skatteoppgjørsdato = skatteoppgjørsdato,
@@ -79,8 +79,10 @@ fun nySkattegrunnlagFormue(
 fun nyListeAvSpesifiseringKjøretøy(
     input: List<Skattegrunnlag.Spesifisering.Kjøretøy> = listOf(
         nySpesifiseringKjøretøy(
-            beløp = "15000", registreringsnummer = "AB12345",
-            fabrikatnavn = "Troll", årForFørstegangsregistrering = "1957",
+            beløp = "15000",
+            registreringsnummer = "AB12345",
+            fabrikatnavn = "Troll",
+            årForFørstegangsregistrering = "1957",
             formuesverdi = "15000",
         ),
         nySpesifiseringKjøretøy(),

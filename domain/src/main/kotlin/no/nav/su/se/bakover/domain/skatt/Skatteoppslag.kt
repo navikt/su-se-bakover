@@ -13,9 +13,8 @@ interface Skatteoppslag {
 
     fun hentSamletSkattegrunnlagForÅrsperiode(
         fnr: Fnr,
-        yearRange: YearRange
+        yearRange: YearRange,
     ): Either<SkatteoppslagFeil, List<SamletSkattegrunnlagResponseMedYear>>
-
 
 //    fun hentSamletSkattegrunnlag(
 //        fnr: Fnr,

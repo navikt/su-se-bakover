@@ -21,21 +21,24 @@ class SkattIT {
             val sakId = NySøknadJson.Response.hentSakId(søknadResponseJson)
             val søknadId = NySøknadJson.Response.hentSøknadId(søknadResponseJson)
             val nySøknadsbehandlingResponseJson = nySøknadsbehandling(
-                sakId = sakId, søknadId = søknadId, client = client,
+                sakId = sakId,
+                søknadId = søknadId,
+                client = client,
             )
             val behandlingId = BehandlingJson.hentBehandlingId(nySøknadsbehandlingResponseJson)
             leggTilVirkningstidspunkt(
-                sakId = sakId, behandlingId = behandlingId, client = client,
+                sakId = sakId,
+                behandlingId = behandlingId,
+                client = client,
             )
             val actual = hentSkattegrunnlagForÅr(behandlingId = behandlingId, client = client)
             assertSkattegrunnlag(
                 expectedFnr = fnr,
-                actual = actual
+                actual = actual,
             )
         }
     }
 }
-
 
 fun assertSkattegrunnlag(
     expectedFnr: String,
@@ -109,7 +112,8 @@ fun assertSkattegrunnlag(
                  }
               }
            ]
-        }""".trimMargin(),
+        }
+        """.trimMargin(),
         actual,
     )
 }
