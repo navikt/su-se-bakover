@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.domain.dokument.Dokumenttilstand
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes.EndringIYtelse
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
@@ -48,7 +47,7 @@ class StønadsvedtakTest {
 
     @Test
     fun `vedtak for innvilget revurdering med brev`() {
-        (iverksattRevurdering().fourth as EndringIYtelse.InnvilgetRevurdering).let {
+        (iverksattRevurdering().fourth as VedtakInnvilgetRevurdering).let {
             it.dokumenttilstand shouldBe Dokumenttilstand.IKKE_GENERERT_ENDA
             it.skalGenerereDokumentVedFerdigstillelse() shouldBe true
         }
@@ -62,7 +61,7 @@ class StønadsvedtakTest {
                     begrunnelse = "test-begrunnelse",
                     bestemtAv = BrevvalgRevurdering.BestemtAv.Behandler("test-ident"),
                 ),
-            ).fourth as EndringIYtelse.InnvilgetRevurdering
+            ).fourth as VedtakInnvilgetRevurdering
             ).let {
             it.dokumenttilstand shouldBe Dokumenttilstand.SKAL_IKKE_GENERERE
             it.skalGenerereDokumentVedFerdigstillelse() shouldBe false
@@ -76,7 +75,7 @@ class StønadsvedtakTest {
                 grunnlagsdataOverrides = listOf(
                     fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 500000.0),
                 ),
-            ).fourth as EndringIYtelse.OpphørtRevurdering
+            ).fourth as VedtakOpphørtRevurdering
             ).let {
             it.dokumenttilstand shouldBe Dokumenttilstand.IKKE_GENERERT_ENDA
             it.skalGenerereDokumentVedFerdigstillelse() shouldBe true
@@ -94,7 +93,7 @@ class StønadsvedtakTest {
                     begrunnelse = "test-begrunnelse",
                     bestemtAv = BrevvalgRevurdering.BestemtAv.Behandler("test-ident"),
                 ),
-            ).fourth as EndringIYtelse.OpphørtRevurdering
+            ).fourth as VedtakOpphørtRevurdering
             ).let {
             it.dokumenttilstand shouldBe Dokumenttilstand.SKAL_IKKE_GENERERE
             it.skalGenerereDokumentVedFerdigstillelse() shouldBe false
@@ -138,7 +137,7 @@ class StønadsvedtakTest {
                 fradragsgrunnlagArbeidsinntekt(periode = mai(2021)..desember(2021), arbeidsinntekt = 5000.0),
             ),
             utbetalingerKjørtTilOgMed = 1.juli(2021),
-        ).mapSecond { it as EndringIYtelse.InnvilgetRevurdering }.also {
+        ).mapSecond { it as VedtakInnvilgetRevurdering }.also {
             it.second.behandling.tilbakekrevingsbehandling.skalTilbakekreve().shouldBeRight()
             it.first.avventerKravgrunnlag().shouldBeTrue()
             it.second.dokumenttilstand shouldBe Dokumenttilstand.IKKE_GENERERT_ENDA

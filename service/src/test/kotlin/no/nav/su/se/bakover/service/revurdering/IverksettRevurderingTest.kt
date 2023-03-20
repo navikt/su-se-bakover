@@ -18,7 +18,8 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeIverksetteRevurdering
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.attestant
@@ -113,7 +114,7 @@ internal class IverksettRevurderingTest {
             transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
         )
         verify(serviceAndMocks.vedtakRepo).lagreITransaksjon(
-            vedtak = argThat { it should beOfType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>() },
+            vedtak = argThat { it should beOfType<VedtakInnvilgetRevurdering>() },
             sessionContext = argThat { TestSessionFactory.transactionContext },
         )
         verify(serviceAndMocks.revurderingRepo).lagre(
@@ -182,7 +183,7 @@ internal class IverksettRevurderingTest {
             transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
         )
         verify(serviceAndMocks.vedtakRepo).lagreITransaksjon(
-            vedtak = argThat { it should beOfType<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>() },
+            vedtak = argThat { it should beOfType<VedtakOpphørtRevurdering>() },
             sessionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
         )
         verify(serviceAndMocks.annullerKontrollsamtaleService).annuller(

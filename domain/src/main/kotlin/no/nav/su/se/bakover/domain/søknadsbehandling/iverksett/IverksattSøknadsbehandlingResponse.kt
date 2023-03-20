@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 
 interface IverksattSøknadsbehandlingResponse<T : Søknadsbehandling.Iverksatt> {
     val sak: Sak
@@ -28,6 +28,6 @@ interface IverksattSøknadsbehandlingResponse<T : Søknadsbehandling.Iverksatt> 
         statistikkObservers: List<StatistikkEventObserver>,
         lagreDokument: (Dokument.MedMetadata, TransactionContext) -> Unit,
         lukkOppgave: (Søknadsbehandling.Iverksatt.Avslag) -> Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit>,
-        opprettPlanlagtKontrollsamtale: (VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, TransactionContext) -> Unit,
+        opprettPlanlagtKontrollsamtale: (VedtakInnvilgetSøknadsbehandling, TransactionContext) -> Unit,
     )
 }

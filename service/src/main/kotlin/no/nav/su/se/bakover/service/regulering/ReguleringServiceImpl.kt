@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -312,7 +313,7 @@ class ReguleringServiceImpl(
     private fun lagVedtakOgUtbetal(
         regulering: IverksattRegulering,
         sak: Sak,
-    ): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale, Pair<IverksattRegulering, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering>> {
+    ): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale, Pair<IverksattRegulering, VedtakInnvilgetRegulering>> {
         return Either.catch {
             val utbetaling = sak.lagNyUtbetaling(
                 saksbehandler = regulering.saksbehandler,

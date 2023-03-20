@@ -73,7 +73,14 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterSt
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagBeregning
+import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
+import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
+import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.beregnetRevurdering
@@ -323,9 +330,9 @@ class TestDataHelper(
                 sakOgSøknad = sak to søknad,
             )
         },
-    ): Triple<Sak, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, Utbetaling.OversendtUtbetaling.MedKvittering> {
+    ): Triple<Sak, VedtakInnvilgetSøknadsbehandling, Utbetaling.OversendtUtbetaling.MedKvittering> {
         return persisterSøknadsbehandlingIverksatt(sakOgSøknad) { søknadsbehandling(it) }.let { (sak, _, vedtak) ->
-            (vedtak as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling).let {
+            (vedtak as VedtakInnvilgetSøknadsbehandling).let {
                 databaseRepos.utbetaling.hentOversendtUtbetalingForUtbetalingId(vedtak.utbetalingId)
                     .let { utbetalingUtenKvittering ->
                         (utbetalingUtenKvittering as Utbetaling.OversendtUtbetaling.UtenKvittering).toKvittertUtbetaling(
@@ -335,7 +342,7 @@ class TestDataHelper(
                             databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
                                 Triple(
                                     persistertSak!!,
-                                    persistertSak.vedtakListe.single { it.id == vedtak.id } as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
+                                    persistertSak.vedtakListe.single { it.id == vedtak.id } as VedtakInnvilgetSøknadsbehandling,
                                     persistertSak.utbetalinger.single { it.id == utbetalingUtenKvittering.id } as Utbetaling.OversendtUtbetaling.MedKvittering,
                                 )
                             }
@@ -353,12 +360,12 @@ class TestDataHelper(
      * 1. [VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering]
      */
     fun persisterVedtakMedInnvilgetRevurderingOgOversendtUtbetalingMedKvittering(
-        sakOgRevurdering: Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.UtenKvittering, VedtakSomKanRevurderes.EndringIYtelse> = persisterIverksattRevurdering(),
-    ): Pair<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering> {
+        sakOgRevurdering: Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.UtenKvittering, VedtakEndringIYtelse> = persisterIverksattRevurdering(),
+    ): Pair<VedtakInnvilgetRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering> {
         return sakOgRevurdering.let { (sak, _, utbetaling, vedtak) ->
             databaseRepos.utbetaling.oppdaterMedKvittering(utbetaling.toKvittertUtbetaling(kvittering()))
             databaseRepos.sak.hentSak(sak.id)!!.let { persistertSak ->
-                persistertSak.vedtakListe.single { it.id == vedtak.id } as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering to persistertSak.utbetalinger.single { it.id == utbetaling.id } as Utbetaling.OversendtUtbetaling.MedKvittering
+                persistertSak.vedtakListe.single { it.id == vedtak.id } as VedtakInnvilgetRevurdering to persistertSak.utbetalinger.single { it.id == utbetaling.id } as Utbetaling.OversendtUtbetaling.MedKvittering
             }
         }
     }
@@ -380,7 +387,7 @@ class TestDataHelper(
         avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
         utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje(periode = periode)),
         utbetalingId: UUID30 = UUID30.randomUUID(),
-    ): VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse {
+    ): VedtakGjenopptakAvYtelse {
         oversendtUtbetalingUtenKvittering(
             id = utbetalingId,
             fnr = stans.fnr,
@@ -449,10 +456,10 @@ class TestDataHelper(
     }
 
     fun persisterRevurderingOpprettet(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
-        sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse>) -> Pair<Sak, OpprettetRevurdering> = {
+        sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakEndringIYtelse>) -> Pair<Sak, OpprettetRevurdering> = {
             opprettetRevurdering(sakOgVedtakSomKanRevurderes = it, clock = clock)
         },
     ): Pair<Sak, OpprettetRevurdering> {
@@ -465,10 +472,10 @@ class TestDataHelper(
     }
 
     fun persisterBeregnetRevurdering(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
-        sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse>) -> Pair<Sak, BeregnetRevurdering> = {
+        sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakEndringIYtelse>) -> Pair<Sak, BeregnetRevurdering> = {
             beregnetRevurdering(sakOgVedtakSomKanRevurderes = it, clock = clock)
         },
     ): Pair<Sak, BeregnetRevurdering> {
@@ -481,10 +488,10 @@ class TestDataHelper(
     }
 
     fun persisterSimulertRevurdering(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
-        sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse>) -> Pair<Sak, SimulertRevurdering> = {
+        sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakEndringIYtelse>) -> Pair<Sak, SimulertRevurdering> = {
             simulertRevurdering(sakOgVedtakSomKanRevurderes = it, clock = clock)
         },
     ): Pair<Sak, SimulertRevurdering> {
@@ -498,10 +505,10 @@ class TestDataHelper(
 
     @Suppress("MemberVisibilityCanBePrivate")
     fun persisterRevurderingTilAttestering(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
-        sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse>) -> Pair<Sak, RevurderingTilAttestering> = {
+        sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakEndringIYtelse>) -> Pair<Sak, RevurderingTilAttestering> = {
             revurderingTilAttestering(sakOgVedtakSomKanRevurderes = it, clock = clock)
         },
     ): Pair<Sak, RevurderingTilAttestering> {
@@ -517,13 +524,13 @@ class TestDataHelper(
      * Oppretter sak, søknad og søknadsbehandlingsvedtak dersom dette ikke sendes eksplisitt inn.
      */
     fun persisterIverksattRevurdering(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
-        sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse>) -> Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.UtenKvittering, VedtakSomKanRevurderes.EndringIYtelse> = {
+        sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakEndringIYtelse>) -> Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.UtenKvittering, VedtakEndringIYtelse> = {
             iverksattRevurdering(clock = clock, sakOgVedtakSomKanRevurderes = it)
         },
-    ): Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.UtenKvittering, VedtakSomKanRevurderes.EndringIYtelse> {
+    ): Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.UtenKvittering, VedtakEndringIYtelse> {
         return sakOgRevurdering(sakOgVedtak).let { (sak, revurdering, utbetaling, vedtak) ->
             databaseRepos.revurderingRepo.lagre(revurdering)
             databaseRepos.utbetaling.opprettUtbetaling(utbetaling)
@@ -533,17 +540,17 @@ class TestDataHelper(
                     first = persistertSak!!,
                     second = persistertSak.revurderinger.single { it.id == revurdering.id } as IverksattRevurdering,
                     third = persistertSak.utbetalinger.single { it.id == utbetaling.id } as Utbetaling.OversendtUtbetaling.UtenKvittering,
-                    fourth = persistertSak.vedtakListe.single { it.id == vedtak.id } as VedtakSomKanRevurderes.EndringIYtelse,
+                    fourth = persistertSak.vedtakListe.single { it.id == vedtak.id } as VedtakEndringIYtelse,
                 )
             }
         }
     }
 
     private fun persisterUnderkjentRevurdering(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
-        sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse>) -> Pair<Sak, UnderkjentRevurdering> = {
+        sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakEndringIYtelse>) -> Pair<Sak, UnderkjentRevurdering> = {
             revurderingUnderkjent(sakOgVedtakSomKanRevurderes = it, clock = clock)
         },
     ): Pair<Sak, UnderkjentRevurdering> {
@@ -556,7 +563,7 @@ class TestDataHelper(
     }
 
     fun persisterRevurderingBeregnetOpphørt(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
     ): Pair<Sak, BeregnetRevurdering.Opphørt> {
@@ -572,7 +579,7 @@ class TestDataHelper(
     }
 
     fun persisterRevurderingSimulertInnvilget(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
     ): Pair<Sak, SimulertRevurdering.Innvilget> {
@@ -582,7 +589,7 @@ class TestDataHelper(
     }
 
     fun persisterRevurderingSimulertOpphørt(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
     ): Pair<Sak, SimulertRevurdering.Opphørt> {
@@ -598,7 +605,7 @@ class TestDataHelper(
     }
 
     fun persisterRevurderingTilAttesteringInnvilget(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
     ): Pair<Sak, RevurderingTilAttestering.Innvilget> {
@@ -608,7 +615,7 @@ class TestDataHelper(
     }
 
     fun persisterRevurderingTilAttesteringOpphørt(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
     ): Pair<Sak, RevurderingTilAttestering.Opphørt> {
@@ -627,16 +634,16 @@ class TestDataHelper(
      * Oppretter sak, søknad og søknadsbehandlingsvedtak dersom dette ikke sendes eksplisitt inn.
      */
     fun persisterRevurderingIverksattInnvilget(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
-    ): Tuple4<Sak, IverksattRevurdering.Innvilget, Utbetaling, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering> {
+    ): Tuple4<Sak, IverksattRevurdering.Innvilget, Utbetaling, VedtakInnvilgetRevurdering> {
         @Suppress("UNCHECKED_CAST")
-        return persisterIverksattRevurdering(sakOgVedtak) as Tuple4<Sak, IverksattRevurdering.Innvilget, Utbetaling, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>
+        return persisterIverksattRevurdering(sakOgVedtak) as Tuple4<Sak, IverksattRevurdering.Innvilget, Utbetaling, VedtakInnvilgetRevurdering>
     }
 
     fun persisterRevurderingIverksattOpphørt(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
     ): IverksattRevurdering.Opphørt {
@@ -652,7 +659,7 @@ class TestDataHelper(
     }
 
     fun persisterRevurderingUnderkjentInnvilget(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
     ): Pair<Sak, UnderkjentRevurdering.Innvilget> {
@@ -678,7 +685,7 @@ class TestDataHelper(
     }
 
     fun persisterSimulertStansAvYtelse(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
     ): Pair<Sak, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
@@ -694,10 +701,10 @@ class TestDataHelper(
     }
 
     fun persisterIverksattStansOgVedtak(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
-    ): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse> {
+    ): Pair<Sak, VedtakStansAvYtelse> {
         return vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             sakOgVedtakSomKanRevurderes = sakOgVedtak.first to sakOgVedtak.second,
             clock = clock,
@@ -1036,7 +1043,7 @@ class TestDataHelper(
     ): Triple<Sak, Søknadsbehandling.Iverksatt, Stønadsvedtak> {
         return søknadsbehandling(sakOgSøknad).let { (sak, søknadsbehandling, vedtak) ->
             databaseRepos.søknadsbehandling.lagre(søknadsbehandling)
-            if (vedtak is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling) {
+            if (vedtak is VedtakInnvilgetSøknadsbehandling) {
                 databaseRepos.utbetaling.opprettUtbetaling(sak.utbetalinger.single { it.id == vedtak.utbetalingId } as Utbetaling.OversendtUtbetaling.UtenKvittering)
             }
             databaseRepos.vedtakRepo.lagre(vedtak)
@@ -1064,19 +1071,19 @@ class TestDataHelper(
                 sakOgSøknad = sak to søknad,
             )
         },
-    ): Triple<Sak, Søknadsbehandling.Iverksatt, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling> {
+    ): Triple<Sak, Søknadsbehandling.Iverksatt, VedtakInnvilgetSøknadsbehandling> {
         return persisterSøknadsbehandlingIverksatt(sakOgSøknad) { søknadsbehandling(it) }.let { (sak, søknadsbehandling, vedtak) ->
             Triple(
                 sak,
                 søknadsbehandling as Søknadsbehandling.Iverksatt.Innvilget,
-                vedtak as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
+                vedtak as VedtakInnvilgetSøknadsbehandling,
             )
         }
     }
 
     fun persisterSøknadsbehandlingIverksattAvslagUtenBeregning(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
-    ): Triple<Sak, Søknadsbehandling.Iverksatt.Avslag.UtenBeregning, Avslagsvedtak.AvslagVilkår> {
+    ): Triple<Sak, Søknadsbehandling.Iverksatt.Avslag.UtenBeregning, VedtakAvslagVilkår> {
         return persisterSøknadsbehandlingIverksatt(sakOgSøknad) { (sak, søknad) ->
             iverksattSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
@@ -1087,7 +1094,7 @@ class TestDataHelper(
             Triple(
                 sak,
                 søknadsbehandling as Søknadsbehandling.Iverksatt.Avslag.UtenBeregning,
-                vedtak as Avslagsvedtak.AvslagVilkår,
+                vedtak as VedtakAvslagVilkår,
             )
         }
     }
@@ -1101,7 +1108,7 @@ class TestDataHelper(
      */
     fun persisterSøknadsbehandlingIverksattAvslagMedBeregning(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
-    ): Triple<Sak, Søknadsbehandling.Iverksatt.Avslag.MedBeregning, Avslagsvedtak.AvslagBeregning> {
+    ): Triple<Sak, Søknadsbehandling.Iverksatt.Avslag.MedBeregning, VedtakAvslagBeregning> {
         return persisterSøknadsbehandlingIverksatt(sakOgSøknad) { (sak, søknad) ->
             iverksattSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
@@ -1112,7 +1119,7 @@ class TestDataHelper(
             Triple(
                 sak,
                 søknadsbehandling as Søknadsbehandling.Iverksatt.Avslag.MedBeregning,
-                vedtak as Avslagsvedtak.AvslagBeregning,
+                vedtak as VedtakAvslagBeregning,
             )
         }
     }
@@ -1218,7 +1225,7 @@ class TestDataHelper(
     }
 
     fun persisterKlageOpprettet(
-        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
+        vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
     ): OpprettetKlage {
         return Klage.ny(
             sakId = vedtak.behandling.sakId,
@@ -1235,7 +1242,7 @@ class TestDataHelper(
     }
 
     fun persisterKlageVilkårsvurdertUtfyltTilVurdering(
-        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
+        vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
     ): VilkårsvurdertKlage.Utfylt.TilVurdering {
         return persisterKlageOpprettet(vedtak = vedtak).vilkårsvurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVilkårsvurdertKlage"),
@@ -1255,7 +1262,7 @@ class TestDataHelper(
     }
 
     fun persisterKlageVilkårsvurdertUtfyltAvvist(
-        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
+        vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
     ): VilkårsvurdertKlage.Utfylt.Avvist {
         return persisterKlageOpprettet(vedtak).vilkårsvurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltAvvistVilkårsvurdertKlage"),
@@ -1275,7 +1282,7 @@ class TestDataHelper(
     }
 
     fun persisterKlageVilkårsvurdertBekreftetTilVurdering(
-        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
+        vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
     ): VilkårsvurdertKlage.Bekreftet.TilVurdering {
         return persisterKlageVilkårsvurdertUtfyltTilVurdering(vedtak = vedtak).bekreftVilkårsvurderinger(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerBekreftetVilkårsvurdertKlage"),
@@ -1288,7 +1295,7 @@ class TestDataHelper(
     }
 
     fun persisterKlageVilkårsvurdertBekreftetAvvist(
-        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
+        vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
     ): VilkårsvurdertKlage.Bekreftet.Avvist {
         return persisterKlageVilkårsvurdertUtfyltAvvist(vedtak).bekreftVilkårsvurderinger(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerBekreftetAvvistVilkårsvurdertKlage"),
@@ -1301,7 +1308,7 @@ class TestDataHelper(
     }
 
     fun persisterKlageVurdertPåbegynt(
-        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
+        vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
     ): VurdertKlage.Påbegynt {
         return persisterKlageVilkårsvurdertBekreftetTilVurdering(vedtak = vedtak).vurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVUrdertKlage"),
@@ -1318,7 +1325,7 @@ class TestDataHelper(
     }
 
     fun persisterKlageVurdertUtfylt(
-        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
+        vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
     ): VurdertKlage.Utfylt {
         return persisterKlageVurdertPåbegynt(vedtak = vedtak).vurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVUrdertKlage"),
@@ -1339,7 +1346,7 @@ class TestDataHelper(
     }
 
     fun persisterKlageVurdertBekreftet(
-        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
+        vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
     ): VurdertKlage.Bekreftet {
         return persisterKlageVurdertUtfylt(vedtak = vedtak).bekreftVurderinger(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerBekreftetVurdertKlage"),
@@ -1352,7 +1359,7 @@ class TestDataHelper(
      * underliggende klage: [persisterKlageVurdertBekreftet]
      */
     fun persisterKlageAvsluttet(
-        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
+        vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
         begrunnelse: String = "Begrunnelse for å avslutte klagen.",
         tidspunktAvsluttet: Tidspunkt = Tidspunkt.now(clock),
     ): AvsluttetKlage {
@@ -1366,7 +1373,7 @@ class TestDataHelper(
     }
 
     fun persisterKlageAvvist(
-        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
+        vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
         saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerAvvistKlage"),
         fritekstTilBrev: String = "en god, og lang fritekst",
     ): AvvistKlage {
@@ -1379,7 +1386,7 @@ class TestDataHelper(
     }
 
     fun persisterKlageTilAttesteringVurdert(
-        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
+        vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
         oppgaveId: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
     ): KlageTilAttestering.Vurdert {
         return persisterKlageVurdertBekreftet(vedtak = vedtak).sendTilAttestering(
@@ -1394,7 +1401,7 @@ class TestDataHelper(
     }
 
     fun persisterKlageTilAttesteringAvvist(
-        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
+        vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
         oppgaveId: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
         saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerAvvistKlageTilAttestering"),
         fritekstTilBrev: String = "en god, og lang fritekst",
@@ -1408,7 +1415,7 @@ class TestDataHelper(
     }
 
     fun persisterKlageUnderkjentVurdert(
-        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
+        vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
         oppgaveId: OppgaveId = OppgaveId("underkjentKlageOppgaveId"),
     ): VurdertKlage.Bekreftet {
         return persisterKlageTilAttesteringVurdert(vedtak = vedtak, oppgaveId = oppgaveId).underkjenn(
@@ -1424,7 +1431,7 @@ class TestDataHelper(
     }
 
     fun persisterKlageUnderkjentAvvist(
-        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
+        vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
         oppgaveId: OppgaveId = OppgaveId("underkjentKlageOppgaveId"),
     ): AvvistKlage {
         return persisterKlageTilAttesteringAvvist(vedtak, oppgaveId).underkjenn(
@@ -1440,7 +1447,7 @@ class TestDataHelper(
     }
 
     fun persisterKlageOversendt(
-        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
+        vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
         oppgaveId: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
     ): OversendtKlage {
         return persisterKlageTilAttesteringVurdert(vedtak = vedtak, oppgaveId = oppgaveId).oversend(
@@ -1454,7 +1461,7 @@ class TestDataHelper(
     }
 
     fun persisterKlageIverksattAvvist(
-        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
+        vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
         oppgaveId: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
     ): IverksattAvvistKlage {
         return persisterKlageTilAttesteringAvvist(vedtak, oppgaveId).iverksett(

@@ -42,7 +42,7 @@ import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -305,7 +305,7 @@ internal class StansAvYtelseServiceTest {
             transactionContext = argThat { TestSessionFactory.transactionContext },
         )
         verify(serviceAndMocks.vedtakService).lagreITransaksjon(
-            vedtak = argThat { it.shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse>() },
+            vedtak = argThat { it.shouldBeType<VedtakStansAvYtelse>() },
             sessionContext = argThat { TestSessionFactory.transactionContext },
         )
 
@@ -314,7 +314,7 @@ internal class StansAvYtelseServiceTest {
         verify(serviceAndMocks.observer, times(2)).handle(eventCaptor.capture())
         val iverksatt = eventCaptor.allValues[0]
         iverksatt.shouldBeType<StatistikkEvent.Behandling.Stans.Iverksatt>().also {
-            it.vedtak.shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse>()
+            it.vedtak.shouldBeType<VedtakStansAvYtelse>()
             it.revurdering shouldBe response
         }
         eventCaptor.allValues[1].shouldBeTypeOf<StatistikkEvent.Stønadsvedtak>()

@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.innvilg.iverksettInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.opphør.iverksettOpphørtRevurdering
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
 import java.time.Clock
 import java.util.UUID
 
@@ -21,7 +21,7 @@ fun Sak.iverksettRevurdering(
     attestant: NavIdentBruker.Attestant,
     clock: Clock,
     simuler: (utbetaling: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
-): Either<KunneIkkeIverksetteRevurdering.Saksfeil, IverksettRevurderingResponse<VedtakSomKanRevurderes.EndringIYtelse>> {
+): Either<KunneIkkeIverksetteRevurdering.Saksfeil, IverksettRevurderingResponse<VedtakEndringIYtelse>> {
     return either.eager {
         val revurdering = finnRevurderingOgValiderTilstand(revurderingId).bind()
         when (revurdering) {

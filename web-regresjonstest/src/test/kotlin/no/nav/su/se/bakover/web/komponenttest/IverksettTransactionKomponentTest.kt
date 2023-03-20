@@ -16,7 +16,9 @@ import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -156,7 +158,7 @@ internal class IverksettTransactionKomponentTest {
 
                 appComponents.services.sak.hentSak(UUID.fromString(sakId)).getOrFail().also { sak ->
                     sak.søknadsbehandlinger.single().shouldBeType<Søknadsbehandling.Iverksatt.Innvilget>()
-                    sak.vedtakListe.single().shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().also {
+                    sak.vedtakListe.single().shouldBeType<VedtakInnvilgetSøknadsbehandling>().also {
                         sak.utbetalinger.single().id shouldBe it.utbetalingId
                     }
                     sak.revurderinger.single().shouldBeType<RevurderingTilAttestering.Innvilget>()
@@ -233,7 +235,7 @@ internal class IverksettTransactionKomponentTest {
 
                 appComponents.services.sak.hentSak(UUID.fromString(sakId)).getOrFail().also { sak ->
                     sak.søknadsbehandlinger.single().shouldBeType<Søknadsbehandling.Iverksatt.Innvilget>()
-                    sak.vedtakListe.single().shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().also {
+                    sak.vedtakListe.single().shouldBeType<VedtakInnvilgetSøknadsbehandling>().also {
                         sak.utbetalinger.single().id shouldBe it.utbetalingId
                     }
                     sak.revurderinger.single().shouldBeType<RevurderingTilAttestering.Opphørt>()
@@ -295,11 +297,11 @@ internal class IverksettTransactionKomponentTest {
                 appComponents.services.sak.hentSak(UUID.fromString(sakId)).getOrFail().also { sak ->
                     sak.søknadsbehandlinger.single().shouldBeType<Søknadsbehandling.Iverksatt.Innvilget>()
                     sak.vedtakListe.also { vedtakListe ->
-                        vedtakListe.single { it is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling }
+                        vedtakListe.single { it is VedtakInnvilgetSøknadsbehandling }
                     }
                     sak.utbetalinger.also { utbetalinger ->
                         utbetalinger shouldHaveSize 1
-                        utbetalinger.map { it.id }.shouldContainAll(sak.vedtakListe.map { (it as VedtakSomKanRevurderes.EndringIYtelse).utbetalingId })
+                        utbetalinger.map { it.id }.shouldContainAll(sak.vedtakListe.map { (it as VedtakEndringIYtelse).utbetalingId })
                     }
                     sak.revurderinger.also { revurderinger ->
                         revurderinger shouldHaveSize 1
@@ -364,12 +366,12 @@ internal class IverksettTransactionKomponentTest {
                     sak.søknadsbehandlinger.single().shouldBeType<Søknadsbehandling.Iverksatt.Innvilget>()
                     sak.vedtakListe.also { vedtakListe ->
                         vedtakListe shouldHaveSize 2
-                        vedtakListe.single { it is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling }
-                        vedtakListe.single { it is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse }
+                        vedtakListe.single { it is VedtakInnvilgetSøknadsbehandling }
+                        vedtakListe.single { it is VedtakStansAvYtelse }
                     }
                     sak.utbetalinger.also { utbetalinger ->
                         utbetalinger shouldHaveSize 2
-                        utbetalinger.map { it.id }.shouldContainAll(sak.vedtakListe.map { (it as VedtakSomKanRevurderes.EndringIYtelse).utbetalingId })
+                        utbetalinger.map { it.id }.shouldContainAll(sak.vedtakListe.map { (it as VedtakEndringIYtelse).utbetalingId })
                     }
                     sak.revurderinger.also { revurderinger ->
                         revurderinger shouldHaveSize 2

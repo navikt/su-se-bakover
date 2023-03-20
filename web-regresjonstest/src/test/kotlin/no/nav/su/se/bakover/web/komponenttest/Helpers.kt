@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.toYtelsekode
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingsmeldingMapper
@@ -55,7 +55,7 @@ internal fun lagUtbetalingsKvittering(utbetalingsrequest: Utbetalingsrequest): S
 }
 
 internal fun lagKravgrunnlag(
-    vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering,
+    vedtak: VedtakInnvilgetRevurdering,
     lagPerioder: () -> String,
 ): String {
     return """

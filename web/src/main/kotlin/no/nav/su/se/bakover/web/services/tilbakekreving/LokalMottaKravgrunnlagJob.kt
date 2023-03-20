@@ -14,7 +14,8 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Kravgrunnlag
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import org.slf4j.LoggerFactory
@@ -47,11 +48,11 @@ internal class LokalMottaKravgrunnlagJob(
                         .map {
                             vedtakService.hentForRevurderingId(it.avgjort.revurderingId)!!.let { vedtak ->
                                 when (vedtak) {
-                                    is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> {
+                                    is VedtakInnvilgetRevurdering -> {
                                         kravgrunnlag(vedtak)
                                     }
 
-                                    is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> {
+                                    is VedtakOpphørtRevurdering -> {
                                         kravgrunnlag(vedtak)
                                     }
 
@@ -68,7 +69,7 @@ internal class LokalMottaKravgrunnlagJob(
         }
     }
 
-    private fun kravgrunnlag(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering): String {
+    private fun kravgrunnlag(vedtak: VedtakInnvilgetRevurdering): String {
         return lagKravgrunnlagXml(
             revurdering = vedtak.behandling,
             simulering = vedtak.simulering,
@@ -76,7 +77,7 @@ internal class LokalMottaKravgrunnlagJob(
         )
     }
 
-    private fun kravgrunnlag(vedtak: VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering): String {
+    private fun kravgrunnlag(vedtak: VedtakOpphørtRevurdering): String {
         return lagKravgrunnlagXml(
             revurdering = vedtak.behandling,
             simulering = vedtak.simulering,

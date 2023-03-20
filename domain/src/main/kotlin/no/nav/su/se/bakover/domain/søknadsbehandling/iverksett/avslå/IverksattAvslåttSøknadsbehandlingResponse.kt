@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattSøknad
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import org.slf4j.LoggerFactory
 
 data class IverksattAvslåttSøknadsbehandlingResponse(
@@ -44,7 +44,7 @@ data class IverksattAvslåttSøknadsbehandlingResponse(
         lagreDokument: (Dokument.MedMetadata, TransactionContext) -> Unit,
         lukkOppgave: (Søknadsbehandling.Iverksatt.Avslag) -> Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit>,
         // Denne er kun brukt ved innvilgelse, men må være med i interfacet for slippe å ha denne domenelogikken i servicelaget. På sikt bør denne gjøres asynkront.
-        opprettPlanlagtKontrollsamtale: (VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, TransactionContext) -> Unit,
+        opprettPlanlagtKontrollsamtale: (VedtakInnvilgetSøknadsbehandling, TransactionContext) -> Unit,
     ) {
         sessionFactory.withTransactionContext { tx ->
             /**

@@ -33,7 +33,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglende
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
-import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
@@ -166,7 +166,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 ),
             )
 
-            val expectedVedtak = Avslagsvedtak.AvslagVilkår.createFromPersistence(
+            val expectedVedtak = VedtakAvslagVilkår.createFromPersistence(
                 id = actualSak.vedtakListe[0].id,
                 opprettet = fixedTidspunkt,
                 behandling = expectedSøknadsbehandling,
@@ -307,7 +307,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 ),
             )
 
-            val expectedVedtak = Avslagsvedtak.AvslagVilkår.createFromPersistence(
+            val expectedVedtak = VedtakAvslagVilkår.createFromPersistence(
                 id = actualSak.vedtakListe[0].id,
                 opprettet = fixedTidspunkt,
                 behandling = expectedSøknadsbehandling,

@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import java.time.Clock
 
@@ -107,7 +107,7 @@ internal class BeregnRevurderingStrategyDecider(
         return revurdering.periode.måneder()
             .map { gjeldendeVedtaksdata.gjeldendeVedtakPåDato(it.fraOgMed) }
             .distinct()
-            .filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()
+            .filterIsInstance<VedtakOpphørtRevurdering>()
             .map { it.behandling.avkorting }
             .filterIsInstance<AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel>()
     }

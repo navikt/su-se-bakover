@@ -39,7 +39,8 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.Saksnummer
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleServiceImpl
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleJobRepo
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
@@ -498,13 +499,13 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
         saker.forEach { sakId ->
             sakService.hentSak(sakId).getOrFail().also { sak ->
                 sak.revurderinger.single().shouldBeType<StansAvYtelseRevurdering.IverksattStansAvYtelse>()
-                sak.vedtakListe.single { it is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse }
+                sak.vedtakListe.single { it is VedtakStansAvYtelse }
                 sak.vedtakstidslinje().also { vedtakstidslinje ->
                     periode.måneder().map {
                         vedtakstidslinje!!.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak to sak.utbetalingstidslinje()!!
                             .gjeldendeForDato(it.fraOgMed)
                     }.forEach { (vedtak, utbetaling) ->
-                        (vedtak is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse && utbetaling is UtbetalingslinjePåTidslinje.Stans) shouldBe true
+                        (vedtak is VedtakStansAvYtelse && utbetaling is UtbetalingslinjePåTidslinje.Stans) shouldBe true
                     }
                 }
                 kontrollsamtaleService.hentForSak(sak.id)
@@ -530,7 +531,7 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
                         vedtakstidslinje!!.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak to sak.utbetalingstidslinje()!!
                             .gjeldendeForDato(it.fraOgMed)
                     }.forEach { (vedtak, utbetaling) ->
-                        (vedtak is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling && utbetaling is UtbetalingslinjePåTidslinje.Ny) shouldBe true
+                        (vedtak is VedtakInnvilgetSøknadsbehandling && utbetaling is UtbetalingslinjePåTidslinje.Ny) shouldBe true
                     }
                 }
                 kontrollsamtaleService.hentForSak(sak.id).single { it.status == Kontrollsamtalestatus.GJENNOMFØRT }
@@ -556,7 +557,7 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
                         tidslinje!!.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak to sak.utbetalingstidslinje()!!
                             .gjeldendeForDato(it.fraOgMed)
                     }.forEach { (vedtak, utbetaling) ->
-                        (vedtak is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling && utbetaling is UtbetalingslinjePåTidslinje.Ny) shouldBe true
+                        (vedtak is VedtakInnvilgetSøknadsbehandling && utbetaling is UtbetalingslinjePåTidslinje.Ny) shouldBe true
                     }
                 }
                 kontrollsamtaleService.hentForSak(sak.id).forEach {

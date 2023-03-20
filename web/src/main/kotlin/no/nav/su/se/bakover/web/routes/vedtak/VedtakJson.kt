@@ -6,7 +6,16 @@ import no.nav.su.se.bakover.domain.dokument.Dokumenttilstand
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagBeregning
+import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
+import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
+import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.BeregningJson
@@ -49,9 +58,9 @@ internal enum class VedtakTypeJson(private val beskrivelse: String) {
 
 internal fun Vedtak.toJson(): VedtakJson {
     return when (this) {
-        is Avslagsvedtak.AvslagBeregning -> this.toJson()
-        is Avslagsvedtak.AvslagVilkår -> this.toJson()
-        is VedtakSomKanRevurderes.EndringIYtelse -> this.toJson()
+        is VedtakAvslagBeregning -> this.toJson()
+        is VedtakAvslagVilkår -> this.toJson()
+        is VedtakEndringIYtelse -> this.toJson()
         is Klagevedtak.Avvist -> this.toJson()
     }
 }
@@ -73,7 +82,7 @@ internal fun Avslagsvedtak.toJson(): VedtakJson = VedtakJson(
     dokumenttilstand = this.dokumenttilstand.toJson(),
 )
 
-internal fun Avslagsvedtak.AvslagBeregning.toJson(): VedtakJson = VedtakJson(
+internal fun VedtakAvslagBeregning.toJson(): VedtakJson = VedtakJson(
     id = id.toString(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
     beregning = beregning.toJson(),
@@ -90,16 +99,16 @@ internal fun Avslagsvedtak.AvslagBeregning.toJson(): VedtakJson = VedtakJson(
     dokumenttilstand = this.dokumenttilstand.toJson(),
 )
 
-internal fun VedtakSomKanRevurderes.EndringIYtelse.toJson(): VedtakJson = VedtakJson(
+internal fun VedtakEndringIYtelse.toJson(): VedtakJson = VedtakJson(
     id = id.toString(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
     beregning = when (this) {
-        is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> null
-        is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> this.beregning.toJson()
-        is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> this.beregning.toJson()
-        is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> this.beregning.toJson()
-        is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> null
-        is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> this.beregning.toJson()
+        is VedtakGjenopptakAvYtelse -> null
+        is VedtakInnvilgetRevurdering -> this.beregning.toJson()
+        is VedtakInnvilgetSøknadsbehandling -> this.beregning.toJson()
+        is VedtakOpphørtRevurdering -> this.beregning.toJson()
+        is VedtakStansAvYtelse -> null
+        is VedtakInnvilgetRegulering -> this.beregning.toJson()
     },
     simulering = simulering.toJson(),
     attestant = attestant.navIdent,
@@ -111,12 +120,12 @@ internal fun VedtakSomKanRevurderes.EndringIYtelse.toJson(): VedtakJson = Vedtak
     fnr = behandling.fnr.toString(),
     periode = periode.toJson(),
     type = when (this) {
-        is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> VedtakTypeJson.GJENOPPTAK_AV_YTELSE.toString()
-        is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> VedtakTypeJson.ENDRING.toString()
-        is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> VedtakTypeJson.SØKNAD.toString()
-        is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> VedtakTypeJson.OPPHØR.toString()
-        is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> VedtakTypeJson.STANS_AV_YTELSE.toString()
-        is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> VedtakTypeJson.REGULERING.toString()
+        is VedtakGjenopptakAvYtelse -> VedtakTypeJson.GJENOPPTAK_AV_YTELSE.toString()
+        is VedtakInnvilgetRevurdering -> VedtakTypeJson.ENDRING.toString()
+        is VedtakInnvilgetSøknadsbehandling -> VedtakTypeJson.SØKNAD.toString()
+        is VedtakOpphørtRevurdering -> VedtakTypeJson.OPPHØR.toString()
+        is VedtakStansAvYtelse -> VedtakTypeJson.STANS_AV_YTELSE.toString()
+        is VedtakInnvilgetRegulering -> VedtakTypeJson.REGULERING.toString()
     },
     dokumenttilstand = this.dokumenttilstand.toJson(),
 )
@@ -139,16 +148,16 @@ internal fun Klagevedtak.toJson(): VedtakJson = VedtakJson(
 )
 
 internal fun VedtakSomKanRevurderes.toJson(): VedtakJson = when (this) {
-    is VedtakSomKanRevurderes.EndringIYtelse -> this.toJson()
+    is VedtakEndringIYtelse -> this.toJson()
 }
 
 internal fun VedtakSomKanRevurderes.toVedtakTypeJson(): VedtakTypeJson = when (this) {
-    is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> VedtakTypeJson.GJENOPPTAK_AV_YTELSE
-    is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> VedtakTypeJson.REGULERING
-    is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> VedtakTypeJson.ENDRING
-    is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> VedtakTypeJson.SØKNAD
-    is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> VedtakTypeJson.OPPHØR
-    is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> VedtakTypeJson.STANS_AV_YTELSE
+    is VedtakGjenopptakAvYtelse -> VedtakTypeJson.GJENOPPTAK_AV_YTELSE
+    is VedtakInnvilgetRegulering -> VedtakTypeJson.REGULERING
+    is VedtakInnvilgetRevurdering -> VedtakTypeJson.ENDRING
+    is VedtakInnvilgetSøknadsbehandling -> VedtakTypeJson.SØKNAD
+    is VedtakOpphørtRevurdering -> VedtakTypeJson.OPPHØR
+    is VedtakStansAvYtelse -> VedtakTypeJson.STANS_AV_YTELSE
 }
 
 private fun Dokumenttilstand.toJson(): String {

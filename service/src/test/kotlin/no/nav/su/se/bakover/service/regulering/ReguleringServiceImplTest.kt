@@ -35,7 +35,7 @@ import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
@@ -499,7 +499,7 @@ internal class ReguleringServiceImplTest {
                 // hack det til og snik inn masse fradrag i grunnlaget til saken slik at vi  får fremprovisert en feilutbetaling ved simulering
                 vedtakListe = if (lagFeilutbetaling) {
                     listOf(
-                        (sak.vedtakListe.first() as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling).let { vedtak ->
+                        (sak.vedtakListe.first() as VedtakInnvilgetSøknadsbehandling).let { vedtak ->
                             vedtak.copy(
                                 behandling = vedtak.behandling.let {
                                     it.copy(

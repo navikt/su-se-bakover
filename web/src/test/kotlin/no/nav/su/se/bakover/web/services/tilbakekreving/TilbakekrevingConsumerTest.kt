@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.getOrFail
@@ -61,7 +61,7 @@ internal class TilbakekrevingConsumerTest {
             ),
             utbetalingerKjørtTilOgMed = 1.juli(2021),
         ).let {
-            requireType<Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>>(it)
+            requireType<Pair<Sak, VedtakInnvilgetRevurdering>>(it)
         }
 
         TilbakekrevingConsumer(
@@ -90,7 +90,7 @@ internal class TilbakekrevingConsumerTest {
             ),
             utbetalingerKjørtTilOgMed = 1.juli(2021),
         ).let {
-            requireType<Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>>(it)
+            requireType<Pair<Sak, VedtakInnvilgetRevurdering>>(it)
         }
 
         TilbakekrevingConsumer(

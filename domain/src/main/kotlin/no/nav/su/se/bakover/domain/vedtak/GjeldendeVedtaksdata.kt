@@ -104,7 +104,7 @@ data class GjeldendeVedtaksdata(
 
     fun harStans(): Boolean {
         return vedtakPåTidslinje.map { it.originaltVedtak }
-            .filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse>().isNotEmpty()
+            .filterIsInstance<VedtakStansAvYtelse>().isNotEmpty()
     }
 
     fun helePeriodenErOpphør(): Boolean {
@@ -139,14 +139,14 @@ data class GjeldendeVedtaksdata(
     /** Tar kun høyde for månedene i [periode]. */
     fun inneholderOpphørsvedtakMedAvkortingUtenlandsopphold(): Boolean {
         return tidslinje?.map { it.originaltVedtak }
-            ?.filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()
+            ?.filterIsInstance<VedtakOpphørtRevurdering>()
             ?.any { it.harIdentifisertBehovForFremtidigAvkorting(periode) } ?: false
     }
 
     /** Tar kun høyde for månedene i [periode]. */
     fun inneholderOpphørsvedtakMedFeilutbetaling(): Boolean {
         return tidslinje?.map { it.originaltVedtak }
-            ?.filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()
+            ?.filterIsInstance<VedtakOpphørtRevurdering>()
             ?.any { it.førteTilFeilutbetaling(periode) } ?: false
     }
 

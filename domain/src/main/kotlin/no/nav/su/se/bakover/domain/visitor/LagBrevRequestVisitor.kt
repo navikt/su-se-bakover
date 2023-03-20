@@ -39,8 +39,14 @@ import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingVisitor
-import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagBeregning
+import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
+import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakVisitor
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -251,14 +257,14 @@ class LagBrevRequestVisitor(
         )
     }
 
-    override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling) {
+    override fun visit(vedtak: VedtakInnvilgetSøknadsbehandling) {
         brevRequest = this.innvilgetSøknadsbehandling(
             søknadsbehandling = vedtak.behandling,
             beregning = vedtak.behandling.beregning,
         )
     }
 
-    override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering) {
+    override fun visit(vedtak: VedtakInnvilgetRevurdering) {
         brevRequest = this.innvilgetRevurdering(
             revurdering = vedtak.behandling,
             beregning = vedtak.behandling.beregning,
@@ -266,11 +272,11 @@ class LagBrevRequestVisitor(
         )
     }
 
-    override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering) {
+    override fun visit(vedtak: VedtakInnvilgetRegulering) {
         throw KanIkkeLageBrevrequestForInstans(vedtak::class)
     }
 
-    override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering) {
+    override fun visit(vedtak: VedtakOpphørtRevurdering) {
         brevRequest = this.opphørtRevurdering(
             revurdering = vedtak.behandling,
             beregning = vedtak.behandling.beregning,
@@ -279,7 +285,7 @@ class LagBrevRequestVisitor(
         )
     }
 
-    override fun visit(vedtak: Avslagsvedtak.AvslagVilkår) {
+    override fun visit(vedtak: VedtakAvslagVilkår) {
         brevRequest = this.avslåttSøknadsbehandling(
             søknadsbehandling = vedtak.behandling,
             avslagsgrunner = vedtak.behandling.avslagsgrunner,
@@ -288,7 +294,7 @@ class LagBrevRequestVisitor(
         )
     }
 
-    override fun visit(vedtak: Avslagsvedtak.AvslagBeregning) {
+    override fun visit(vedtak: VedtakAvslagBeregning) {
         brevRequest = this.avslåttSøknadsbehandling(
             søknadsbehandling = vedtak.behandling,
             avslagsgrunner = vedtak.behandling.avslagsgrunner,
@@ -317,11 +323,11 @@ class LagBrevRequestVisitor(
         }
     }
 
-    override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse) {
+    override fun visit(vedtak: VedtakStansAvYtelse) {
         throw KanIkkeLageBrevrequestForInstans(vedtak::class)
     }
 
-    override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse) {
+    override fun visit(vedtak: VedtakGjenopptakAvYtelse) {
         throw KanIkkeLageBrevrequestForInstans(vedtak::class)
     }
 

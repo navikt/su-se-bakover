@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIv
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
@@ -25,10 +25,10 @@ private val log = LoggerFactory.getLogger("IverksettInnvilgetRevurderingResponse
 
 data class IverksettInnvilgetRevurderingResponse(
     override val sak: Sak,
-    override val vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering,
+    override val vedtak: VedtakInnvilgetRevurdering,
     override val utbetaling: Utbetaling.SimulertUtbetaling,
 
-) : IverksettRevurderingResponse<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering> {
+) : IverksettRevurderingResponse<VedtakInnvilgetRevurdering> {
     override val statistikkhendelser: Nel<StatistikkEvent> = nonEmptyListOf(
         StatistikkEvent.Stønadsvedtak(vedtak) { sak },
         StatistikkEvent.Behandling.Revurdering.Iverksatt.Innvilget(vedtak),
@@ -37,7 +37,7 @@ data class IverksettInnvilgetRevurderingResponse(
     override fun ferdigstillIverksettelseITransaksjon(
         sessionFactory: SessionFactory,
         klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
-        lagreVedtak: (vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering, tx: TransactionContext) -> Unit,
+        lagreVedtak: (vedtak: VedtakInnvilgetRevurdering, tx: TransactionContext) -> Unit,
         lagreRevurdering: (revurdering: IverksattRevurdering, tx: TransactionContext) -> Unit,
         annullerKontrollsamtale: (sakId: UUID, tx: TransactionContext) -> Unit,
         statistikkObservers: () -> List<StatistikkEventObserver>,

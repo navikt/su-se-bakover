@@ -29,10 +29,10 @@ fun VedtakSomKanRevurderes.hentBeregningForGjeldendeVedtak(): Beregning {
     return beregningKanVæreGjeldende().getOrElse { throw IllegalStateException("${this::class} har ikke beregning") }
         .let {
             when (it) {
-                is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> it.beregning
-                is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> it.beregning
-                is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> it.beregning
-                is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> it.beregning
+                is VedtakInnvilgetRevurdering -> it.beregning
+                is VedtakInnvilgetSøknadsbehandling -> it.beregning
+                is VedtakOpphørtRevurdering -> it.beregning
+                is VedtakInnvilgetRegulering -> it.beregning
                 else -> throw IllegalStateException("Inkonsistens mellom beregningKanVæreGjeldende() hentBeregningForGjeldendeVedtak()")
             }
         }
@@ -43,15 +43,15 @@ fun VedtakSomKanRevurderes.hentBeregningForGjeldendeVedtak(): Beregning {
  */
 fun Vedtak.beregningKanVæreGjeldende(): Either<Unit, VedtakSomKanRevurderes> {
     return when (this) {
-        is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> this.right()
-        is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> this.right()
-        is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> this.right()
-        is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> this.right()
-        is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse, // ingen beregning, stanser utbetalinger beregnet av et annet vedtak
-        is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse, // ingen beregning, gjenopptar utbetalinger beregnet av et annet vedtak
+        is VedtakInnvilgetRevurdering -> this.right()
+        is VedtakInnvilgetSøknadsbehandling -> this.right()
+        is VedtakOpphørtRevurdering -> this.right()
+        is VedtakInnvilgetRegulering -> this.right()
+        is VedtakStansAvYtelse, // ingen beregning, stanser utbetalinger beregnet av et annet vedtak
+        is VedtakGjenopptakAvYtelse, // ingen beregning, gjenopptar utbetalinger beregnet av et annet vedtak
         is Klagevedtak.Avvist,
-        is Avslagsvedtak.AvslagBeregning,
-        is Avslagsvedtak.AvslagVilkår,
+        is VedtakAvslagBeregning,
+        is VedtakAvslagVilkår,
         -> {
             Unit.left()
         }

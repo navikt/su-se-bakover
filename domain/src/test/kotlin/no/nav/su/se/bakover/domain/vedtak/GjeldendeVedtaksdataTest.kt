@@ -187,7 +187,7 @@ internal class GjeldendeVedtaksdataTest {
             ),
         )
         val søknadsbehandlingsvedtak1 =
-            sak.vedtakListe.first() as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling
+            sak.vedtakListe.first() as VedtakInnvilgetSøknadsbehandling
         val (oppdatertSak, _, nyttSøknadsbehandlingsvedtak) = iverksattSøknadsbehandling(
             // Hopper over mai for å lage et hull
             stønadsperiode = Stønadsperiode.create(juni(2021)),

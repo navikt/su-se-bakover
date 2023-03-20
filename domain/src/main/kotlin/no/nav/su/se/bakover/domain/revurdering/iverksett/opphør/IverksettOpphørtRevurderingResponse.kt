@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIv
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
@@ -25,9 +25,9 @@ private val log = LoggerFactory.getLogger("IverksettOpphørtRevurderingResponse"
 
 data class IverksettOpphørtRevurderingResponse(
     override val sak: Sak,
-    override val vedtak: VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering,
+    override val vedtak: VedtakOpphørtRevurdering,
     override val utbetaling: Utbetaling.SimulertUtbetaling,
-) : IverksettRevurderingResponse<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering> {
+) : IverksettRevurderingResponse<VedtakOpphørtRevurdering> {
     override val statistikkhendelser: Nel<StatistikkEvent> = nonEmptyListOf(
         StatistikkEvent.Stønadsvedtak(vedtak) { sak },
         StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt(vedtak),
@@ -36,7 +36,7 @@ data class IverksettOpphørtRevurderingResponse(
     override fun ferdigstillIverksettelseITransaksjon(
         sessionFactory: SessionFactory,
         klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
-        lagreVedtak: (vedtak: VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering, tx: TransactionContext) -> Unit,
+        lagreVedtak: (vedtak: VedtakOpphørtRevurdering, tx: TransactionContext) -> Unit,
         lagreRevurdering: (revurdering: IverksattRevurdering, tx: TransactionContext) -> Unit,
         annullerKontrollsamtale: (sakId: UUID, tx: TransactionContext) -> Unit,
         statistikkObservers: () -> List<StatistikkEventObserver>,

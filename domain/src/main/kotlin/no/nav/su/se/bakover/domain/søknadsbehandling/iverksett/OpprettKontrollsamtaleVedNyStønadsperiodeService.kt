@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett
 
 import no.nav.su.se.bakover.common.persistence.SessionContext
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 
 /**
  * Ideélt sett bør det heller sendes en hendelse om et nytt stønadsvedtak på saken (sakId).
@@ -13,7 +13,7 @@ interface OpprettKontrollsamtaleVedNyStønadsperiodeService {
      * Dersom det gjøres må de som kaller funksjonen håndtere det i tilfelle det må gjøres en throw for å bryte transaksjonen.
      */
     fun opprett(
-        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
+        vedtak: VedtakInnvilgetSøknadsbehandling,
         sessionContext: SessionContext,
     )
 }

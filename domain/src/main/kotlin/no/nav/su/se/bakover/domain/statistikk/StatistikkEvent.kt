@@ -17,7 +17,12 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
+import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.domain.søknad.Søknad as DomeneSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling as DomeneSøknadsbehandling
 
@@ -80,7 +85,7 @@ sealed interface StatistikkEvent {
                 val vedtak: no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 
                 data class Innvilget(
-                    override val vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
+                    override val vedtak: VedtakInnvilgetSøknadsbehandling,
                 ) : Iverksatt {
                     override val søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget
                         get() = vedtak.behandling
@@ -122,17 +127,17 @@ sealed interface StatistikkEvent {
             }
 
             sealed interface Iverksatt : Revurdering {
-                val vedtak: VedtakSomKanRevurderes.EndringIYtelse
+                val vedtak: VedtakEndringIYtelse
 
                 data class Innvilget(
-                    override val vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering,
+                    override val vedtak: VedtakInnvilgetRevurdering,
                 ) : Iverksatt {
                     override val revurdering: IverksattRevurdering.Innvilget
                         get() = vedtak.behandling
                 }
 
                 data class Opphørt(
-                    override val vedtak: VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering,
+                    override val vedtak: VedtakOpphørtRevurdering,
                 ) : Iverksatt {
                     override val revurdering: IverksattRevurdering.Opphørt
                         get() = vedtak.behandling
@@ -154,7 +159,7 @@ sealed interface StatistikkEvent {
             ) : Stans
 
             data class Iverksatt(
-                val vedtak: VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse,
+                val vedtak: VedtakStansAvYtelse,
             ) : Stans {
                 override val revurdering: StansAvYtelseRevurdering.IverksattStansAvYtelse
                     get() = vedtak.behandling
@@ -173,7 +178,7 @@ sealed interface StatistikkEvent {
             ) : Gjenoppta
 
             data class Iverksatt(
-                val vedtak: VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse,
+                val vedtak: VedtakGjenopptakAvYtelse,
             ) : Gjenoppta {
                 override val revurdering: GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse
                     get() = vedtak.behandling
@@ -203,5 +208,5 @@ sealed interface StatistikkEvent {
     /**
      * Brukes til stønadsstatistikk
      */
-    data class Stønadsvedtak(val vedtak: VedtakSomKanRevurderes.EndringIYtelse, val hentSak: () -> Sak) : StatistikkEvent
+    data class Stønadsvedtak(val vedtak: VedtakEndringIYtelse, val hentSak: () -> Sak) : StatistikkEvent
 }

@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import java.time.Clock
 import java.time.LocalDate
@@ -60,7 +61,7 @@ class GjenopptaYtelseServiceImpl(
         val sisteVedtakPåTidslinje = sak.vedtakstidslinje()?.lastOrNull()
             ?: return KunneIkkeSimulereGjenopptakAvYtelse.FantIngenVedtak.left()
 
-        if (sisteVedtakPåTidslinje.originaltVedtak !is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse) {
+        if (sisteVedtakPåTidslinje.originaltVedtak !is VedtakStansAvYtelse) {
             return KunneIkkeSimulereGjenopptakAvYtelse.SisteVedtakErIkkeStans.left()
         } else {
             val simulertRevurdering = when (request) {

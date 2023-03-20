@@ -16,7 +16,8 @@ import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.generer
@@ -92,15 +93,15 @@ class AvkortingKomponentTest {
 
             saken.vedtakListe.let {
                 it.size shouldBe 3
-                it[0].shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().periode shouldBe Periode.create(
+                it[0].shouldBeType<VedtakInnvilgetSøknadsbehandling>().periode shouldBe Periode.create(
                     behandlingStartDato,
                     behandlingSluttDato,
                 )
-                it[1].shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>().periode shouldBe Periode.create(
+                it[1].shouldBeType<VedtakOpphørtRevurdering>().periode shouldBe Periode.create(
                     opphørStartDato,
                     behandlingSluttDato,
                 )
-                it[2].shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().periode shouldBe Periode.create(
+                it[2].shouldBeType<VedtakInnvilgetSøknadsbehandling>().periode shouldBe Periode.create(
                     nyBehandlingStartDato,
                     nyBehandlingSluttDato,
                 )

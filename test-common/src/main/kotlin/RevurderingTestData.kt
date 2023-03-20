@@ -45,7 +45,9 @@ import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
+import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
@@ -456,7 +458,7 @@ fun iverksattRevurdering(
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
     brevvalg: BrevvalgRevurdering = sendBrev(),
     skalTilbakekreve: Boolean = true,
-): Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.UtenKvittering, VedtakSomKanRevurderes.EndringIYtelse> {
+): Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.UtenKvittering, VedtakEndringIYtelse> {
     return revurderingTilAttestering(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -707,13 +709,13 @@ fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
         begrunnelse = "valid",
     ),
 ): Pair<Sak, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
-    require(sakOgVedtakSomKanRevurderes.first.vedtakListe.last() is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse)
+    require(sakOgVedtakSomKanRevurderes.first.vedtakListe.last() is VedtakStansAvYtelse)
 
     // TODO jah: Vi bør ikke replikere så mange linjer med produksjonskode i GjenopptaYtelseServiceImpl. Vi bør flytte domenekoden fra nevnte fil og kun beholde sideeffektene i servicen.
     return sakOgVedtakSomKanRevurderes.let { (sak, _) ->
         val sisteVedtakPåTidslinje = sak.vedtakstidslinje()?.lastOrNull() ?: fail("Fant ingen vedtak")
 
-        if (sisteVedtakPåTidslinje.originaltVedtak !is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse) {
+        if (sisteVedtakPåTidslinje.originaltVedtak !is VedtakStansAvYtelse) {
             fail("Siste vedtak er ikke stans")
         }
         val gjeldendeVedtaksdata: GjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(

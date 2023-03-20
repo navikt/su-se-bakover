@@ -10,10 +10,10 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
 import java.util.UUID
 
-interface IverksettRevurderingResponse<out T : VedtakSomKanRevurderes.EndringIYtelse> {
+interface IverksettRevurderingResponse<out T : VedtakEndringIYtelse> {
     val sak: Sak
     val vedtak: T
     val utbetaling: Utbetaling.SimulertUtbetaling

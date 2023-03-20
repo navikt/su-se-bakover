@@ -5,7 +5,6 @@ import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.inneholder
 import no.nav.su.se.bakover.common.periode.måneder
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
@@ -14,7 +13,7 @@ import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.periode
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import java.util.UUID
 
 /**
@@ -104,15 +103,15 @@ sealed interface KanIkkeRevurderePgaAvkorting {
 fun Sak.unngåRevurderingAvPeriodeDetErPågåendeAvkortingFor(
     revurderingsperiode: Periode,
 ): Either<KanIkkeRevurderePgaAvkorting.PågåendeAvkortingForPeriode, Unit> {
-    val pågåendeAvkorting: List<Pair<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående>> =
+    val pågåendeAvkorting: List<Pair<VedtakInnvilgetSøknadsbehandling, AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående>> =
         vedtakstidslinje()
             .let { it ?: throw IllegalStateException("Kunne ikke konstruere vedtakstidslinje for saksnummer $saksnummer. feilet med $it") }
             .asSequence()
             .map { it.originaltVedtak }
-            .filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>()
+            .filterIsInstance<VedtakInnvilgetSøknadsbehandling>()
             .map { it to it.behandling.avkorting }
             .filter { (_, avkorting) -> avkorting is AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående }
-            .filterIsInstance<Pair<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående>>()
+            .filterIsInstance<Pair<VedtakInnvilgetSøknadsbehandling, AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående>>()
             .toList()
 
     return if (pågåendeAvkorting.isEmpty()) {

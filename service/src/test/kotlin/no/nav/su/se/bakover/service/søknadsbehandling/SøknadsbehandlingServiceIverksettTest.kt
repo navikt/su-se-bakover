@@ -38,8 +38,9 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrollsamtaleVedNyStønadsperiodeService
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagBeregning
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -284,10 +285,10 @@ internal class SøknadsbehandlingServiceIverksettTest {
             ).getOrFail().second shouldBe expectedAvslag
 
             verify(serviceAndMocks.sakService).hentSakForSøknadsbehandling(avslagTilAttestering.id)
-            verify(serviceAndMocks.brevService).lagDokument(argThat<Visitable<LagBrevRequestVisitor>> { it shouldBe beOfType<Avslagsvedtak.AvslagBeregning>() })
+            verify(serviceAndMocks.brevService).lagDokument(argThat<Visitable<LagBrevRequestVisitor>> { it shouldBe beOfType<VedtakAvslagBeregning>() })
             verify(serviceAndMocks.søknadsbehandlingRepo).lagre(eq(expectedAvslag), anyOrNull())
             verify(serviceAndMocks.vedtakRepo).lagreITransaksjon(
-                argThat { it is Avslagsvedtak.AvslagBeregning },
+                argThat { it is VedtakAvslagBeregning },
                 anyOrNull(),
             )
             verify(serviceAndMocks.brevService).lagreDokument(
@@ -424,7 +425,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     ),
                 ).getOrFail().let {
                     @Suppress("UNCHECKED_CAST")
-                    it as Triple<Sak, Søknadsbehandling.Iverksatt.Innvilget, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>
+                    it as Triple<Sak, Søknadsbehandling.Iverksatt.Innvilget, VedtakInnvilgetSøknadsbehandling>
                 }
 
             actualSøknadsbehandling.attesteringer shouldBe Attesteringshistorikk.create(listOf(attestering))

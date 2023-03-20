@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.KryssjekkSaksbehandlersOgAttestantsSimulering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
@@ -134,7 +135,7 @@ class KryssjekkSaksbehandlersOgAttestantsSimuleringTest {
             clock = clock,
         )
 
-        val saksbehandlerSimulering = (søknadsbehandling as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling).simulering // bruker simulering fra søknadsbehandling
+        val saksbehandlerSimulering = (søknadsbehandling as VedtakInnvilgetSøknadsbehandling).simulering // bruker simulering fra søknadsbehandling
         val attestantSimulertUtbetaling = nyUtbetalingSimulert(
             sakOgBehandling = sak2 to revurdering,
             beregning = revurdering.beregning,

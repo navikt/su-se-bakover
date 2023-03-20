@@ -22,7 +22,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.attestant
@@ -283,7 +283,7 @@ class BrevForTilbakekrevingTest {
                 ),
                 utbetalingerKjørtTilOgMed = 1.juli(2021),
             ).also { (sak, vedtak) ->
-                requireType<Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>>(sak to vedtak)
+                requireType<Pair<Sak, VedtakInnvilgetRevurdering>>(sak to vedtak)
                 val bruttobrev = requireType<LagBrevRequest.TilbakekrevingAvPenger>(
                     lagVisitor(sak = sak).let { visitor ->
                         vedtak.accept(visitor)

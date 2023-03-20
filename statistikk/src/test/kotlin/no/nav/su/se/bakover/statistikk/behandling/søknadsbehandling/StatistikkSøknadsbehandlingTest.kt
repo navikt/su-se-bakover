@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.GitCommit
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
@@ -139,7 +139,7 @@ internal class StatistikkSøknadsbehandlingTest {
     @Test
     fun `publiserer iverksatt innvilget søknadsbehandling`() {
         val vedtak =
-            vedtakSøknadsbehandlingIverksattInnvilget().first.vedtakListe.first() as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling
+            vedtakSøknadsbehandlingIverksattInnvilget().first.vedtakListe.first() as VedtakInnvilgetSøknadsbehandling
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Søknad.Iverksatt.Innvilget(vedtak),
             behandlingStatus = "IVERKSATT",

@@ -17,12 +17,12 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import org.slf4j.LoggerFactory
 
 data class IverksattInnvilgetSøknadsbehandlingResponse(
     override val sak: Sak,
-    override val vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
+    override val vedtak: VedtakInnvilgetSøknadsbehandling,
     val statistikk: Nel<StatistikkEvent>,
     val utbetaling: Utbetaling.SimulertUtbetaling,
 ) : IverksattSøknadsbehandlingResponse<Søknadsbehandling.Iverksatt.Innvilget> {
@@ -40,7 +40,7 @@ data class IverksattInnvilgetSøknadsbehandlingResponse(
         // lagreDokument og lukkOppgave er kun i bruk for avslag, men den må være med hvis vi ikke skal trekke domenelogikk ut i domenet. På sikt bør disse gjøres asynkront.
         lagreDokument: (Dokument.MedMetadata, TransactionContext) -> Unit,
         lukkOppgave: (Søknadsbehandling.Iverksatt.Avslag) -> Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit>,
-        opprettPlanlagtKontrollsamtale: (VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, TransactionContext) -> Unit,
+        opprettPlanlagtKontrollsamtale: (VedtakInnvilgetSøknadsbehandling, TransactionContext) -> Unit,
     ) {
         val søknadsbehandling = vedtak.behandling
         sessionFactory.withTransactionContext { tx ->

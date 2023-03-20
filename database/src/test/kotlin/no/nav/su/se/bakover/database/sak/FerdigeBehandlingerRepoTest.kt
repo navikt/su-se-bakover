@@ -2,13 +2,13 @@ package no.nav.su.se.bakover.database.sak
 
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
@@ -85,7 +85,7 @@ internal class FerdigeBehandlingerRepoTest {
 
             ferdigeBehandlinger shouldContainExactlyInAnyOrder listOf(
                 testDataHelper.vedtakRepo.hentVedtakForId(iverksattRevurderingInnvilget.tilRevurdering)!!
-                    .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().behandling.let {
+                    .shouldBeType<VedtakInnvilgetSøknadsbehandling>().behandling.let {
                         Behandlingssammendrag(
                             saksnummer = Saksnummer(2021),
                             behandlingsId = it.id,
@@ -104,7 +104,7 @@ internal class FerdigeBehandlingerRepoTest {
                     periode = år(2021),
                 ),
                 testDataHelper.vedtakRepo.hentVedtakForId(iverksattRevurderingOpphørt.tilRevurdering)!!
-                    .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().behandling.let {
+                    .shouldBeType<VedtakInnvilgetSøknadsbehandling>().behandling.let {
                         Behandlingssammendrag(
                             saksnummer = Saksnummer(2022),
                             behandlingsId = it.id,
@@ -124,7 +124,7 @@ internal class FerdigeBehandlingerRepoTest {
                     periode = år(2021),
                 ),
                 testDataHelper.vedtakRepo.hentVedtakForId(iverksattStansAvYtelse.behandling.tilRevurdering)!!
-                    .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().behandling.let {
+                    .shouldBeType<VedtakInnvilgetSøknadsbehandling>().behandling.let {
                         Behandlingssammendrag(
                             saksnummer = Saksnummer(2023),
                             behandlingsId = it.id,
@@ -144,7 +144,7 @@ internal class FerdigeBehandlingerRepoTest {
                     periode = februar(2021)..desember(2021),
                 ),
                 testDataHelper.vedtakRepo.hentVedtakForId(iverksattGjenopptak.tilRevurdering)!!
-                    .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().behandling.let {
+                    .shouldBeType<VedtakInnvilgetSøknadsbehandling>().behandling.let {
                         Behandlingssammendrag(
                             saksnummer = Saksnummer(2024),
                             behandlingsId = it.id,
@@ -163,7 +163,7 @@ internal class FerdigeBehandlingerRepoTest {
                     periode = februar(2021)..desember(2021),
                 ),
                 testDataHelper.vedtakRepo.hentVedtakForId(beregnetRevurdering.tilRevurdering)!!
-                    .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().behandling.let {
+                    .shouldBeType<VedtakInnvilgetSøknadsbehandling>().behandling.let {
                         Behandlingssammendrag(
                             saksnummer = Saksnummer(2025),
                             behandlingsId = it.id,

@@ -18,7 +18,13 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForMåned
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
+import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.statistikk.SchemaValidator
 import no.nav.su.se.bakover.statistikk.StønadsklassifiseringDto
 import no.nav.su.se.bakover.statistikk.StønadsklassifiseringDto.Companion.stønadsklassifisering
@@ -57,7 +63,7 @@ internal fun StatistikkEvent.Stønadsvedtak.toStønadstatistikkDto(
 }
 
 private fun toDto(
-    vedtak: VedtakSomKanRevurderes.EndringIYtelse,
+    vedtak: VedtakEndringIYtelse,
     aktørId: AktørId,
     hentSak: () -> Sak,
     clock: Clock,
@@ -75,56 +81,56 @@ private fun toDto(
         vedtaksdato = vedtak.opprettet.toLocalDate(zoneIdOslo),
         vedtakstype = vedtakstype(vedtak),
         vedtaksresultat = when (vedtak) {
-            is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> StønadstatistikkDto.Vedtaksresultat.GJENOPPTATT
-            is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> StønadstatistikkDto.Vedtaksresultat.INNVILGET
-            is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> StønadstatistikkDto.Vedtaksresultat.INNVILGET
-            is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> StønadstatistikkDto.Vedtaksresultat.OPPHØRT
-            is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> StønadstatistikkDto.Vedtaksresultat.STANSET
-            is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> StønadstatistikkDto.Vedtaksresultat.REGULERT
+            is VedtakGjenopptakAvYtelse -> StønadstatistikkDto.Vedtaksresultat.GJENOPPTATT
+            is VedtakInnvilgetRevurdering -> StønadstatistikkDto.Vedtaksresultat.INNVILGET
+            is VedtakInnvilgetSøknadsbehandling -> StønadstatistikkDto.Vedtaksresultat.INNVILGET
+            is VedtakOpphørtRevurdering -> StønadstatistikkDto.Vedtaksresultat.OPPHØRT
+            is VedtakStansAvYtelse -> StønadstatistikkDto.Vedtaksresultat.STANSET
+            is VedtakInnvilgetRegulering -> StønadstatistikkDto.Vedtaksresultat.REGULERT
         },
         behandlendeEnhetKode = "4815",
-        ytelseVirkningstidspunkt = sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse>()
+        ytelseVirkningstidspunkt = sak.vedtakListe.filterIsInstance<VedtakEndringIYtelse>()
             .minOf { it.periode.fraOgMed },
         gjeldendeStonadVirkningstidspunkt = vedtak.behandling.periode.fraOgMed,
         gjeldendeStonadStopptidspunkt = vedtak.behandling.periode.tilOgMed,
         gjeldendeStonadUtbetalingsstart = vedtak.behandling.periode.fraOgMed,
         gjeldendeStonadUtbetalingsstopp = vedtak.behandling.periode.tilOgMed,
         månedsbeløp = when (vedtak) {
-            is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> mapBeregning(vedtak, vedtak.beregning)
-            is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> mapBeregning(
+            is VedtakInnvilgetRevurdering -> mapBeregning(vedtak, vedtak.beregning)
+            is VedtakInnvilgetSøknadsbehandling -> mapBeregning(
                 vedtak,
                 vedtak.beregning,
             )
 
             /** TODO ai 10.11.2021: Endre når revurdering ikke trenger å opphøre behandlingen fra 'fraDato':en */
-            is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> emptyList()
+            is VedtakOpphørtRevurdering -> emptyList()
 
-            is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> emptyList()
-            is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> mapBeregning(
+            is VedtakStansAvYtelse -> emptyList()
+            is VedtakGjenopptakAvYtelse -> mapBeregning(
                 vedtak = vedtak,
                 hentSak = { sak },
                 clock = clock,
             )
 
-            is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> mapBeregning(vedtak, vedtak.beregning)
+            is VedtakInnvilgetRegulering -> mapBeregning(vedtak, vedtak.beregning)
         },
         versjon = gitCommit?.value,
         opphorsgrunn = when (vedtak) {
-            is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> vedtak.behandling.utledOpphørsgrunner(
+            is VedtakOpphørtRevurdering -> vedtak.behandling.utledOpphørsgrunner(
                 clock,
             ).joinToString()
 
             else -> null
         },
         opphorsdato = when (vedtak) {
-            is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> vedtak.behandling.utledOpphørsdato(clock)
+            is VedtakOpphørtRevurdering -> vedtak.behandling.utledOpphørsdato(clock)
             else -> null
         },
     )
 }
 
 private fun mapBeregning(
-    vedtak: VedtakSomKanRevurderes.EndringIYtelse,
+    vedtak: VedtakEndringIYtelse,
     beregning: Beregning,
 ): List<StønadstatistikkDto.Månedsbeløp> {
     val alleFradrag = beregning.tilFradragPerMåned()
@@ -171,7 +177,7 @@ private fun Beregning?.tilFradragPerMåned(): Map<Måned, List<FradragForMåned>
 }?.groupBy { it.måned } ?: emptyMap()
 
 private fun mapBeregning(
-    vedtak: VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse,
+    vedtak: VedtakGjenopptakAvYtelse,
     hentSak: () -> Sak,
     clock: Clock,
 ): List<StønadstatistikkDto.Månedsbeløp> {
@@ -186,13 +192,13 @@ private fun mapBeregning(
     return vedtak.periode.måneder().map { gjeldendeBeregningForMåned[it.fraOgMed.toString()]!! }
 }
 
-private fun vedtakstype(vedtak: VedtakSomKanRevurderes.EndringIYtelse) = when (vedtak) {
-    is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> StønadstatistikkDto.Vedtakstype.GJENOPPTAK
-    is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> StønadstatistikkDto.Vedtakstype.REVURDERING
-    is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> StønadstatistikkDto.Vedtakstype.SØKNAD
-    is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> StønadstatistikkDto.Vedtakstype.REVURDERING
-    is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> StønadstatistikkDto.Vedtakstype.STANS
-    is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> StønadstatistikkDto.Vedtakstype.REGULERING
+private fun vedtakstype(vedtak: VedtakEndringIYtelse) = when (vedtak) {
+    is VedtakGjenopptakAvYtelse -> StønadstatistikkDto.Vedtakstype.GJENOPPTAK
+    is VedtakInnvilgetRevurdering -> StønadstatistikkDto.Vedtakstype.REVURDERING
+    is VedtakInnvilgetSøknadsbehandling -> StønadstatistikkDto.Vedtakstype.SØKNAD
+    is VedtakOpphørtRevurdering -> StønadstatistikkDto.Vedtakstype.REVURDERING
+    is VedtakStansAvYtelse -> StønadstatistikkDto.Vedtakstype.STANS
+    is VedtakInnvilgetRegulering -> StønadstatistikkDto.Vedtakstype.REGULERING
 }
 
 private fun stønadsklassifisering(

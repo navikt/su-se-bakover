@@ -28,7 +28,14 @@ import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagBeregning
+import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
+import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
+import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
@@ -51,7 +58,7 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
         bosituasjon = grunnlagsdata.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }.toNonEmptyList(),
     ),
     clock: Clock = tikkendeFixedClock(),
-): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling> {
+): Pair<Sak, VedtakInnvilgetSøknadsbehandling> {
     require(
         grunnlagsdata.bosituasjon.all { it is Grunnlag.Bosituasjon.Fullstendig },
     )
@@ -108,7 +115,7 @@ fun vedtakSøknadsbehandlingIverksattAvslagMedBeregning(
         ),
     ),
     clock: Clock = fixedClock,
-): Pair<Sak, Avslagsvedtak.AvslagBeregning> {
+): Pair<Sak, VedtakAvslagBeregning> {
     return søknadsbehandlingIverksattAvslagMedBeregning(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -137,7 +144,7 @@ fun vedtakSøknadsbehandlingIverksattAvslagUtenBeregning(
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode),
     clock: Clock = fixedClock,
-): Pair<Sak, Avslagsvedtak.AvslagVilkår> {
+): Pair<Sak, VedtakAvslagVilkår> {
     return søknadsbehandlingIverksattAvslagUtenBeregning(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -180,7 +187,7 @@ fun vedtakRevurderingIverksattInnvilget(
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
     brevvalg: BrevvalgRevurdering = sendBrev(),
     skalTilbakekreve: Boolean = true,
-): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering> {
+): Pair<Sak, VedtakInnvilgetRevurdering> {
     return iverksattRevurdering(
         clock = clock,
         saksnummer = saksnummer,
@@ -211,7 +218,7 @@ fun vedtakIverksattAutomatiskRegulering(
         vilkårsvurderingerRevurderingInnvilget(periode = regulerFraOgMed),
     ),
     utbetalingId: UUID30 = UUID30.randomUUID(),
-): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> {
+): Pair<Sak, VedtakEndringIYtelse> {
     assert(stønadsperiode.inneholder(regulerFraOgMed))
 
     return vedtakSøknadsbehandlingIverksattInnvilget(
@@ -259,7 +266,7 @@ fun vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
     ),
     attestering: Attestering = attesteringIverksatt(clock = clock),
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
-): Triple<Sak, VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse, Utbetaling.OversendtUtbetaling.UtenKvittering> {
+): Triple<Sak, VedtakStansAvYtelse, Utbetaling.OversendtUtbetaling.UtenKvittering> {
     return iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode = periode,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
@@ -306,7 +313,7 @@ fun vedtakIverksattGjenopptakAvYtelseFraIverksattStans(
         clock = clock,
     ).let { it.first to it.second },
     attestering: Attestering = attesteringIverksatt(clock = clock),
-): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse> {
+): Pair<Sak, VedtakGjenopptakAvYtelse> {
     return iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse(
         periode = periode,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,

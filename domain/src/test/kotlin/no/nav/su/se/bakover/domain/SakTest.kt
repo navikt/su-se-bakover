@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.desember
@@ -31,7 +30,10 @@ import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
@@ -145,7 +147,7 @@ internal class SakTest {
 
             val (sakEtterRevurdering, revurdering) = vedtakRevurderingIverksattInnvilget(
                 revurderingsperiode = Periode.create(1.november(2021), 31.desember(2021)),
-                sakOgVedtakSomKanRevurderes = sakEtterNyPeriode to nyPeriode as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
+                sakOgVedtakSomKanRevurderes = sakEtterNyPeriode to nyPeriode as VedtakInnvilgetSøknadsbehandling,
                 clock = tikkendeKlokke,
             )
 
@@ -422,7 +424,7 @@ internal class SakTest {
                     ),
                 ),
             ).let { (sak, vedtak) ->
-                vedtak shouldBe beOfType<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()
+                vedtak shouldBe beOfType<VedtakOpphørtRevurdering>()
 
                 stønadsperiode.periode.måneder().none {
                     sak.ytelseUtløperVedUtløpAv(it)
@@ -444,7 +446,7 @@ internal class SakTest {
                     periode = mai(2021)..juli(2021),
                     clock = fixedClock,
                 ).also { gjeldendeMånedsberegninger ->
-                    vedtak.shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().also {
+                    vedtak.shouldBeType<VedtakInnvilgetSøknadsbehandling>().also {
                         gjeldendeMånedsberegninger shouldBe listOf(
                             it.beregning.getMånedsberegninger()[4],
                             it.beregning.getMånedsberegninger()[5],
@@ -477,9 +479,9 @@ internal class SakTest {
                         periode = november(2021)..januar(2022),
                         clock = fixedClock,
                     ).also { gjeldendeMånedsberegninger ->
-                        vedtak2.shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().also {
+                        vedtak2.shouldBeType<VedtakInnvilgetSøknadsbehandling>().also {
                             gjeldendeMånedsberegninger shouldBe listOf(
-                                (vedtak1 as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling).beregning.getMånedsberegninger()[10],
+                                (vedtak1 as VedtakInnvilgetSøknadsbehandling).beregning.getMånedsberegninger()[10],
                                 it.beregning.getMånedsberegninger()[0],
                             )
                         }
@@ -502,7 +504,7 @@ internal class SakTest {
                         periode = mai(2021)..juli(2021),
                         clock = fixedClock,
                     ).also { gjeldendeMånedsberegninger ->
-                        vedtakSøknadsbehandling.shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>()
+                        vedtakSøknadsbehandling.shouldBeType<VedtakInnvilgetSøknadsbehandling>()
                             .also { søknadsbehandling ->
                                 gjeldendeMånedsberegninger shouldBe listOf(
                                     søknadsbehandling.beregning.getMånedsberegninger()[4].also {
@@ -519,7 +521,7 @@ internal class SakTest {
                                     },
                                 )
                             }
-                        vedtakStans.shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse>()
+                        vedtakStans.shouldBeType<VedtakStansAvYtelse>()
                     }
                 }
             }

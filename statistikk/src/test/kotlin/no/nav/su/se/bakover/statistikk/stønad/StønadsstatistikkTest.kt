@@ -15,6 +15,8 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
+import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -115,7 +117,7 @@ internal class StønadsstatistikkTest {
             stønadsperiode = Stønadsperiode.create(stønadsperiode),
             clock = clock,
         )
-        lateinit var gjenopptakVedtak: VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse
+        lateinit var gjenopptakVedtak: VedtakGjenopptakAvYtelse
         // revurderer 0 -> 7500 i arbeidsinntekt i februar
         sakOgVedtak = vedtakRevurderingIverksattInnvilget(
             sakOgVedtakSomKanRevurderes = sakOgVedtak,
@@ -193,7 +195,7 @@ internal class StønadsstatistikkTest {
             clock = clock,
         )
         val stansOgGjenopptagelsesperiode = Periode.create(1.februar(2021), 28.februar(2021))
-        lateinit var gjenopptakVedtak: VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse
+        lateinit var gjenopptakVedtak: VedtakGjenopptakAvYtelse
         sakOgVedtak = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             sakOgVedtakSomKanRevurderes = sakOgVedtak,
             periode = stansOgGjenopptagelsesperiode,
@@ -339,7 +341,7 @@ internal class StønadsstatistikkTest {
             ),
             revurderingsperiode = januar(2021),
             vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = januar(2021))),
-        ).let { (sak, vedtak) -> sak to vedtak as VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering }
+        ).let { (sak, vedtak) -> sak to vedtak as VedtakOpphørtRevurdering }
         assert(
             event = StatistikkEvent.Stønadsvedtak(revurdering) { sak },
             vedtakstype = "REVURDERING",

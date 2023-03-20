@@ -44,7 +44,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadspe
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
@@ -552,7 +552,7 @@ fun søknadsbehandlingIverksattInnvilget(
     clock: Clock = fixedClock,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     sakstype: Sakstype = Sakstype.UFØRE,
-): Triple<Sak, Søknadsbehandling.Iverksatt.Innvilget, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling> {
+): Triple<Sak, Søknadsbehandling.Iverksatt.Innvilget, VedtakInnvilgetSøknadsbehandling> {
     return iverksattSøknadsbehandling(
         sakOgSøknad = nySakUføre(
             clock = clock,
@@ -569,7 +569,7 @@ fun søknadsbehandlingIverksattInnvilget(
             listOf(it.bosituasjon, it.fradragsgrunnlag).flatten()
         },
         saksbehandler = saksbehandler,
-    ).let { Triple(it.first, it.second as Søknadsbehandling.Iverksatt.Innvilget, it.third as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling) }
+    ).let { Triple(it.first, it.second as Søknadsbehandling.Iverksatt.Innvilget, it.third as VedtakInnvilgetSøknadsbehandling) }
 }
 
 fun søknadsbehandlingIverksattAvslagMedBeregning(

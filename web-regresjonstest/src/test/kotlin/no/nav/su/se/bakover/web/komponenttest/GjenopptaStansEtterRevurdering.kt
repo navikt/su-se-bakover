@@ -11,7 +11,9 @@ import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.november
 import no.nav.su.se.bakover.common.periode.september
 import no.nav.su.se.bakover.common.september
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
@@ -81,15 +83,15 @@ class GjenopptaStansEtterRevurdering {
             appComponents.services.sak.hentSak(UUID.fromString(sakId)).getOrFail().vedtakstidslinje()!!
                 .map { Pair(it.originaltVedtak::class, it.periode) } shouldBe listOf(
                 Pair(
-                    VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse::class,
+                    VedtakStansAvYtelse::class,
                     januar(2021)..august(2021),
                 ),
                 Pair(
-                    VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering::class,
+                    VedtakInnvilgetRevurdering::class,
                     september(2021)..november(2021),
                 ),
                 Pair(
-                    VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse::class,
+                    VedtakGjenopptakAvYtelse::class,
                     desember(2021),
                 ),
             )

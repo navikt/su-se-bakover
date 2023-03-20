@@ -5,11 +5,18 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.sak.Saksnummer
-import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagBeregning
+import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
+import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
+import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.Vedtaksammendrag
 import no.nav.su.se.bakover.domain.vedtak.Vedtakstype
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -96,20 +103,20 @@ fun List<Vedtak>.toVedtaksammendrag(): List<Vedtaksammendrag> {
 
 fun Stønadsvedtak.toVedtaksammendrag(): Vedtaksammendrag? {
     return when (this) {
-        is Avslagsvedtak.AvslagBeregning,
-        is Avslagsvedtak.AvslagVilkår,
-        is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse,
-        is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse,
-        is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering,
+        is VedtakAvslagBeregning,
+        is VedtakAvslagVilkår,
+        is VedtakGjenopptakAvYtelse,
+        is VedtakStansAvYtelse,
+        is VedtakInnvilgetRegulering,
         -> null
 
-        is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> toVedtaksammendrag(Vedtakstype.REVURDERING_INNVILGELSE)
-        is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> toVedtaksammendrag(Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE)
-        is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> toVedtaksammendrag(Vedtakstype.REVURDERING_OPPHØR)
+        is VedtakInnvilgetRevurdering -> toVedtaksammendrag(Vedtakstype.REVURDERING_INNVILGELSE)
+        is VedtakInnvilgetSøknadsbehandling -> toVedtaksammendrag(Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE)
+        is VedtakOpphørtRevurdering -> toVedtaksammendrag(Vedtakstype.REVURDERING_OPPHØR)
     }
 }
 
-private fun VedtakSomKanRevurderes.EndringIYtelse.toVedtaksammendrag(
+private fun VedtakEndringIYtelse.toVedtaksammendrag(
     vedtakstype: Vedtakstype,
 ): Vedtaksammendrag {
     return Vedtaksammendrag(

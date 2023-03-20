@@ -13,7 +13,8 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.ikkeSendBrev
@@ -39,7 +40,7 @@ internal class RevurderingPostgresRepoTest {
             TestDataHelper(dataSource).also { tdh ->
                 val (sak, _, vedtak) = tdh.persisterSøknadsbehandlingIverksatt()
                 simulertRevurdering(
-                    sakOgVedtakSomKanRevurderes = sak to vedtak as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
+                    sakOgVedtakSomKanRevurderes = sak to vedtak as VedtakInnvilgetSøknadsbehandling,
                     saksbehandler = Saksbehandler("kjella"),
                 ).also { (_, revurdering) ->
                     revurdering.shouldBeType<SimulertRevurdering.Innvilget>().also { simulert ->
@@ -72,7 +73,7 @@ internal class RevurderingPostgresRepoTest {
                 val (sak, _, vedtak) = tdh.persisterSøknadsbehandlingIverksatt()
 
                 val opprettet = opprettetRevurdering(
-                    sakOgVedtakSomKanRevurderes = sak to vedtak as VedtakSomKanRevurderes.EndringIYtelse,
+                    sakOgVedtakSomKanRevurderes = sak to vedtak as VedtakEndringIYtelse,
                 ).second.copy(id = revurderingId)
                 tdh.revurderingRepo.lagre(opprettet).also {
                     tdh.revurderingRepo.hent(revurderingId) shouldBe opprettet.also {
@@ -104,7 +105,7 @@ internal class RevurderingPostgresRepoTest {
                 val (sak, _, vedtak) = tdh.persisterSøknadsbehandlingIverksatt()
 
                 val opprettet = opprettetRevurdering(
-                    sakOgVedtakSomKanRevurderes = sak to vedtak as VedtakSomKanRevurderes.EndringIYtelse,
+                    sakOgVedtakSomKanRevurderes = sak to vedtak as VedtakEndringIYtelse,
                     clock = tdh.clock,
                 ).second.copy(id = revurderingId)
                 tdh.revurderingRepo.lagre(opprettet).also {

@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.kontrollsamtale.application.opprett
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrollsamtaleVedNyStønadsperiodeService
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleServiceImpl
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleRepo
@@ -21,7 +21,7 @@ class OpprettPlanlagtKontrollsamtaleServiceImpl(
 ) : OpprettKontrollsamtaleVedNyStønadsperiodeService {
 
     override fun opprett(
-        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
+        vedtak: VedtakInnvilgetSøknadsbehandling,
         sessionContext: SessionContext,
     ) {
         // hentNestePlanlagteKontrollsamtale(...) henter kun PLANLAGT_INNKALLING
