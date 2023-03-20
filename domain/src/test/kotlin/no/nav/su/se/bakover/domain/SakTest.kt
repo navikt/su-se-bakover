@@ -32,7 +32,7 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
@@ -451,7 +451,7 @@ internal class SakTest {
                     ),
                 ),
             ).let { (sak, vedtak) ->
-                vedtak shouldBe beOfType<VedtakOpphørtRevurdering>()
+                vedtak shouldBe beOfType<VedtakOpphørMedUtbetaling>()
 
                 stønadsperiode.periode.måneder().none {
                     sak.ytelseUtløperVedUtløpAv(it)

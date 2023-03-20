@@ -249,7 +249,7 @@ class GjenopptaYtelseServiceImpl(
                         )
                         vedtakRepo.lagreITransaksjon(
                             vedtak = vedtak,
-                            sessionContext = tx,
+                            tx = tx,
                         )
 
                         gjenopptak.sendUtbetaling().getOrElse {

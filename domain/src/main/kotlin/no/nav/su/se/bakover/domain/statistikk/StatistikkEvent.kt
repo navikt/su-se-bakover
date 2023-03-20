@@ -20,11 +20,11 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandli
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
-import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
+import no.nav.su.se.bakover.domain.vedtak.Opphørsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.domain.søknad.Søknad as DomeneSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling as DomeneSøknadsbehandling
@@ -130,7 +130,7 @@ sealed interface StatistikkEvent {
             }
 
             sealed interface Iverksatt : Revurdering {
-                val vedtak: VedtakEndringIYtelse
+                val vedtak: VedtakSomKanRevurderes
 
                 data class Innvilget(
                     override val vedtak: VedtakInnvilgetRevurdering,
@@ -140,7 +140,7 @@ sealed interface StatistikkEvent {
                 }
 
                 data class Opphørt(
-                    override val vedtak: VedtakOpphørtRevurdering,
+                    override val vedtak: Opphørsvedtak,
                 ) : Iverksatt {
                     override val revurdering: IverksattRevurdering.Opphørt
                         get() = vedtak.behandling
@@ -211,5 +211,5 @@ sealed interface StatistikkEvent {
     /**
      * Brukes til stønadsstatistikk
      */
-    data class Stønadsvedtak(val vedtak: VedtakEndringIYtelse, val hentSak: () -> Sak) : StatistikkEvent
+    data class Stønadsvedtak(val vedtak: VedtakSomKanRevurderes, val hentSak: () -> Sak) : StatistikkEvent
 }

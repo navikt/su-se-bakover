@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.vedtak
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.application.CopyArgs
 import no.nav.su.se.bakover.common.periode.Periode
@@ -130,6 +131,14 @@ fun List<VedtakSomKanRevurderes>.lagTidslinje(): Tidslinje<VedtakPåTidslinje>? 
     return mapTilVedtakPåTidslinjeTyper().lagTidslinje()
 }
 
+fun NonEmptyList<VedtakSomKanRevurderes>.lagTidslinje(): Tidslinje<VedtakPåTidslinje> {
+    return mapTilVedtakPåTidslinjeTyper().lagTidslinje()
+}
+
 private fun List<VedtakSomKanRevurderes>.mapTilVedtakPåTidslinjeTyper(): List<VedtakPåTidslinje> {
+    return map { it.tilVedtakPåTidslinje() }
+}
+
+private fun NonEmptyList<VedtakSomKanRevurderes>.mapTilVedtakPåTidslinjeTyper(): NonEmptyList<VedtakPåTidslinje> {
     return map { it.tilVedtakPåTidslinje() }
 }

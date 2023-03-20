@@ -37,7 +37,7 @@ import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.IverksettRevurderingResponse
 import no.nav.su.se.bakover.domain.revurdering.iverksett.innvilg.IverksettInnvilgetRevurderingResponse
 import no.nav.su.se.bakover.domain.revurdering.iverksett.iverksettRevurdering
-import no.nav.su.se.bakover.domain.revurdering.iverksett.opphør.IverksettOpphørtRevurderingResponse
+import no.nav.su.se.bakover.domain.revurdering.iverksett.opphør.medUtbetaling.IverksettOpphørtRevurderingMedUtbetalingResponse
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.toVedtakSomRevurderesMånedsvis
@@ -47,7 +47,7 @@ import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
+import no.nav.su.se.bakover.domain.vedtak.Revurderingsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
@@ -467,7 +467,7 @@ fun iverksattRevurdering(
     brevvalg: BrevvalgRevurdering = sendBrev(),
     skalTilbakekreve: Boolean = true,
     kvittering: Kvittering? = kvittering(clock = clock),
-): Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling, VedtakEndringIYtelse> {
+): Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling, Revurderingsvedtak> {
     return revurderingTilAttestering(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -502,7 +502,7 @@ fun iverksattRevurdering(
              * TODO: se om vi får til noe som oppfører seg som [IverksettRevurderingResponse.ferdigstillIverksettelseITransaksjon]?
              */
             val oversendtUtbetaling =
-                response.utbetaling.toOversendtUtbetaling(UtbetalingStub.generateRequest(response.utbetaling)).let {
+                response.utbetaling!!.toOversendtUtbetaling(UtbetalingStub.generateRequest(response.utbetaling!!)).let {
                     if (kvittering != null) {
                         it.toKvittertUtbetaling(kvittering)
                     } else {
@@ -528,7 +528,7 @@ fun iverksattRevurdering(
                         response.vedtak.behandling
                     }
 
-                    is IverksettOpphørtRevurderingResponse -> {
+                    is IverksettOpphørtRevurderingMedUtbetalingResponse -> {
                         response.vedtak.behandling
                     }
 

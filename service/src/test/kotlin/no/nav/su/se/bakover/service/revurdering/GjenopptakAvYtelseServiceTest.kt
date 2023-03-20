@@ -454,7 +454,7 @@ internal class GjenopptakAvYtelseServiceTest {
                         VedtakSomKanRevurderes::opprettet,
                     )
                 },
-                sessionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
+                tx = argThat { it shouldBe TestSessionFactory.transactionContext },
             )
             verify(callback).invoke(any())
 

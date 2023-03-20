@@ -78,6 +78,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadspe
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
+import no.nav.su.se.bakover.domain.vedtak.Revurderingsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagBeregning
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
@@ -365,7 +366,7 @@ class TestDataHelper(
      * 1. [Utbetaling.OversendtUtbetaling]:
      *    1. [Utbetaling.OversendtUtbetaling.UtenKvittering]
      *    1. [Utbetaling.OversendtUtbetaling.MedKvittering]
-     * 1. [VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering]
+     * 1. [VedtakInnvilgetRevurdering]
      */
     fun persisterVedtakMedInnvilgetRevurderingOgOversendtUtbetalingMedKvittering(
         sakOgRevurdering: Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse> = persisterIverksattRevurdering(),
@@ -532,7 +533,7 @@ class TestDataHelper(
         sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
-        sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakEndringIYtelse>) -> Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling, VedtakEndringIYtelse> = {
+        sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakEndringIYtelse>) -> Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling, Revurderingsvedtak> = {
             iverksattRevurdering(clock = clock, sakOgVedtakSomKanRevurderes = it)
         },
     ): Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse> {

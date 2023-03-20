@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.domain.avkorting
 
 import no.nav.su.se.bakover.common.periode.Periode
 import java.util.UUID
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 
 /**
  * Representerer tilstander for håndtering av et eller flere [Avkortingsvarsel] i kontekst av en revurdering.
@@ -240,6 +242,15 @@ sealed class AvkortingVedRevurdering {
 
     sealed class Iverksatt : AvkortingVedRevurdering() {
 
+        @OptIn(ExperimentalContracts::class)
+        fun skalAvkortes(): Boolean {
+            contract {
+                returns(true) implies (this@Iverksatt is HarProdusertNyttAvkortingsvarsel)
+                returns(false) implies (this@Iverksatt !is HarProdusertNyttAvkortingsvarsel)
+            }
+            return this is HarProdusertNyttAvkortingsvarsel
+        }
+
         interface HarProdusertNyttAvkortingsvarsel {
             fun avkortingsvarsel(): Avkortingsvarsel.Utenlandsopphold.SkalAvkortes
             fun periode(): Periode
@@ -303,7 +314,9 @@ sealed class AvkortingVedRevurdering {
          * Ingen nye varsel er produsert som følge av denne revurderingen. Ei heller er det gjort noen håndtering av
          * utestående varsel.
          */
-        object IngenNyEllerUtestående : Iverksatt()
+        object IngenNyEllerUtestående : Iverksatt() {
+            override fun toString() = this::class.simpleName!!
+        }
 
         /**
          * Revurderinger ikke i stand til å håndtere avkorting. Kan f.eks skyldes at revurdering selv er i en

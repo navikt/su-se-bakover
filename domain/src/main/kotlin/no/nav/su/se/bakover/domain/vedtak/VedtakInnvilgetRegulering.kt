@@ -20,7 +20,7 @@ data class VedtakInnvilgetRegulering private constructor(
     override val saksbehandler: NavIdentBruker.Saksbehandler,
     override val attestant: NavIdentBruker.Attestant,
     override val periode: Periode,
-    val beregning: Beregning,
+    override val beregning: Beregning,
     override val simulering: Simulering,
     override val utbetalingId: UUID30,
 ) : VedtakEndringIYtelse {
@@ -85,4 +85,8 @@ data class VedtakInnvilgetRegulering private constructor(
     override fun accept(visitor: VedtakVisitor) {
         visitor.visit(this)
     }
+
+    override fun erOpphør(): Boolean = false
+    override fun erStans(): Boolean = false
+    override fun erGjenopptak(): Boolean = false
 }

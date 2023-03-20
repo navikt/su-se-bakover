@@ -21,6 +21,8 @@ data class VedtakAvslagVilkår private constructor(
     override val periode: Periode,
     override val dokumenttilstand: Dokumenttilstand,
 ) : Avslagsvedtak {
+
+    override val utbetalingId = null
     init {
         behandling.grunnlagsdataOgVilkårsvurderinger.krevMinstEttAvslag()
         require(dokumenttilstand != Dokumenttilstand.SKAL_IKKE_GENERERE)
@@ -84,4 +86,8 @@ data class VedtakAvslagVilkår private constructor(
     override fun accept(visitor: VedtakVisitor) {
         visitor.visit(this)
     }
+
+    override fun erOpphør(): Boolean = false
+    override fun erStans(): Boolean = false
+    override fun erGjenopptak(): Boolean = false
 }

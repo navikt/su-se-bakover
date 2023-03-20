@@ -27,6 +27,9 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
 import java.time.LocalDate
 
+/**
+ * Gjeldende vedtaksdata, krympet til ønsket periode.
+ */
 data class GjeldendeVedtaksdata(
     // TODO Finne et bedre navn. Dette er ikke all vedtaksdata, men kun det som kan Revurderes og Reguleres
     // Perioden vi ønsker å finne gjeldende vedtaksdata for. Det er ikke gitt at man har kontinuerlig ytelse innenfor denne perioden.
@@ -38,7 +41,7 @@ data class GjeldendeVedtaksdata(
     val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering
 
-    private val tidslinje: Tidslinje<VedtakPåTidslinje>? = vedtakListe.lagTidslinje()?.krympTilPeriode(periode)
+    private val tidslinje: Tidslinje<VedtakPåTidslinje>? = vedtakListe.lagTidslinje().krympTilPeriode(periode)
 
     private val vedtakPåTidslinje: List<VedtakPåTidslinje> = tidslinje ?: emptyList()
 
@@ -115,11 +118,19 @@ data class GjeldendeVedtaksdata(
         return !helePeriodenErOpphør() && vedtakPåTidslinje.any { it.erOpphør() }
     }
 
+    /**
+     * Bruk heller [gjeldendeVedtakForMåned]
+     * Beholdes inntil vi har fjernet AbstractRevurdering.tilRevurdering
+     */
     fun gjeldendeVedtakPåDato(dato: LocalDate): VedtakSomKanRevurderes? =
         tidslinje?.gjeldendeForDato(dato)?.originaltVedtak
 
+    fun gjeldendeVedtakForMåned(måned: Måned): VedtakSomKanRevurderes? =
+        tidslinje?.gjeldendeForMåned(måned)?.originaltVedtak
+
+    @Suppress("MemberVisibilityCanBePrivate")
     fun gjeldendeVedtakMånedsvis(): Map<Måned, VedtakSomKanRevurderes?> {
-        return periode.måneder().associateWith { gjeldendeVedtakPåDato(it.fraOgMed) }
+        return periode.måneder().associateWith { gjeldendeVedtakForMåned(it) }
     }
 
     fun gjeldendeVedtakMånedsvisMedPotensielleHull(): Map<Måned, VedtakSomKanRevurderes> {
@@ -131,7 +142,7 @@ data class GjeldendeVedtaksdata(
     }
 
     fun harVedtakIHelePerioden(): Boolean {
-        return periode.måneder().map { gjeldendeVedtakPåDato(it.fraOgMed) }.none { it == null } &&
+        return periode.måneder().map { gjeldendeVedtakForMåned(it) }.none { it == null } &&
             tidslinjeForVedtakErSammenhengende() &&
             periode == garantertSammenhengendePeriode()
     }
@@ -139,14 +150,15 @@ data class GjeldendeVedtaksdata(
     /** Tar kun høyde for månedene i [periode]. */
     fun inneholderOpphørsvedtakMedAvkortingUtenlandsopphold(): Boolean {
         return tidslinje?.map { it.originaltVedtak }
-            ?.filterIsInstance<VedtakOpphørtRevurdering>()
+            ?.filterIsInstance<Opphørsvedtak>()
             ?.any { it.harIdentifisertBehovForFremtidigAvkorting(periode) } ?: false
     }
 
     /** Tar kun høyde for månedene i [periode]. */
     fun inneholderOpphørsvedtakMedFeilutbetaling(): Boolean {
         return tidslinje?.map { it.originaltVedtak }
-            ?.filterIsInstance<VedtakOpphørtRevurdering>()
+            // Her ønsker vi kun de opphørsvedtakene vi har oversendt til oppdrag. De rene avkortingsvedtakene ikke kan føre til feilutbetaling, siden de ikke har utbetaling.
+            ?.filterIsInstance<VedtakOpphørMedUtbetaling>()
             ?.any { it.førteTilFeilutbetaling(periode) } ?: false
     }
 

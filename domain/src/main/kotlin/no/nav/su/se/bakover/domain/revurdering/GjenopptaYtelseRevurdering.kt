@@ -23,7 +23,7 @@ import java.util.UUID
 sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
 
     abstract val saksbehandler: NavIdentBruker.Saksbehandler
-    abstract val simulering: Simulering
+    abstract override val simulering: Simulering
     abstract val revurderingsårsak: Revurderingsårsak
     abstract val attesteringer: Attesteringshistorikk
 
@@ -66,6 +66,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
         override val simulering: Simulering = underliggendeStansAvYtelse.simulering
         override val revurderingsårsak: Revurderingsårsak = underliggendeStansAvYtelse.revurderingsårsak
         override val attesteringer: Attesteringshistorikk = underliggendeStansAvYtelse.attesteringer
+        override val beregning = underliggendeStansAvYtelse.beregning
 
         /** vi sender ikke noe brev ved stans/gjenoppta */
         fun skalSendeAvslutningsbrev(): Boolean {
@@ -112,6 +113,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
         ),
     ) : GjenopptaYtelseRevurdering() {
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
+        override val beregning = null
 
         override fun erÅpen() = true
 
@@ -156,6 +158,8 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
             bestemtAv = BrevvalgRevurdering.BestemtAv.Systembruker,
         ),
     ) : GjenopptaYtelseRevurdering(), BehandlingMedAttestering {
+
+        override val beregning = null
         override fun erÅpen() = false
     }
 }

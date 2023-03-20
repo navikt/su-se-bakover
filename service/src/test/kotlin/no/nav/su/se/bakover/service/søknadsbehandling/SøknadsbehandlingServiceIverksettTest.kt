@@ -448,7 +448,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 vedtak = argThat {
                     it shouldBe actualVedtak
                 },
-                sessionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
+                tx = argThat { it shouldBe TestSessionFactory.transactionContext },
             )
             verify(serviceAndMocks.opprettPlanlagtKontrollsamtaleService).opprett(
                 vedtak = argThat {
@@ -487,7 +487,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 )
                 verify(serviceAndMocks.vedtakRepo).lagreITransaksjon(
                     vedtak = any(),
-                    sessionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
+                    tx = argThat { it shouldBe TestSessionFactory.transactionContext },
                 )
 
                 verify(serviceAndMocks.opprettPlanlagtKontrollsamtaleService).opprett(

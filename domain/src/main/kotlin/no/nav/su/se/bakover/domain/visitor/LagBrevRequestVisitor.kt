@@ -51,7 +51,8 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørAvkorting
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakVisitor
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
@@ -282,7 +283,16 @@ class LagBrevRequestVisitor(
         throw KanIkkeLageBrevrequestForInstans(vedtak::class)
     }
 
-    override fun visit(vedtak: VedtakOpphørtRevurdering) {
+    override fun visit(vedtak: VedtakOpphørMedUtbetaling) {
+        brevRequest = this.opphørtRevurdering(
+            revurdering = vedtak.behandling,
+            beregning = vedtak.behandling.beregning,
+            opphørsgrunner = vedtak.behandling.utledOpphørsgrunner(clock),
+            simulering = vedtak.simulering,
+        )
+    }
+
+    override fun visit(vedtak: VedtakOpphørAvkorting) {
         brevRequest = this.opphørtRevurdering(
             revurdering = vedtak.behandling,
             beregning = vedtak.behandling.beregning,

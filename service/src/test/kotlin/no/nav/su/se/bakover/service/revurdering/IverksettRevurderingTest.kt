@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
-import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
@@ -116,7 +116,7 @@ internal class IverksettRevurderingTest {
         )
         verify(serviceAndMocks.vedtakRepo).lagreITransaksjon(
             vedtak = argThat { it should beOfType<VedtakInnvilgetRevurdering>() },
-            sessionContext = argThat { TestSessionFactory.transactionContext },
+            tx = argThat { TestSessionFactory.transactionContext },
         )
         verify(serviceAndMocks.revurderingRepo).lagre(
             revurdering = argThat { it shouldBe response },
@@ -184,8 +184,8 @@ internal class IverksettRevurderingTest {
             transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
         )
         verify(serviceAndMocks.vedtakRepo).lagreITransaksjon(
-            vedtak = argThat { it should beOfType<VedtakOpphørtRevurdering>() },
-            sessionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
+            vedtak = argThat { it should beOfType<VedtakOpphørMedUtbetaling>() },
+            tx = argThat { it shouldBe TestSessionFactory.transactionContext },
         )
         verify(serviceAndMocks.annullerKontrollsamtaleService).annuller(
             sakId = argThat { it shouldBe revurdering.sakId },
@@ -320,7 +320,7 @@ internal class IverksettRevurderingTest {
         inOrder(*serviceAndMocks.all(), utbetalingKlargjortForOversendelse.callback) {
             verify(serviceAndMocks.vedtakRepo).lagreITransaksjon(
                 vedtak = any(),
-                sessionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
+                tx = argThat { it shouldBe TestSessionFactory.transactionContext },
             )
             verify(serviceAndMocks.revurderingRepo).lagre(
                 revurdering = any(),

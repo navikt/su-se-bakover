@@ -25,7 +25,7 @@ import no.nav.su.se.bakover.domain.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
 import no.nav.su.se.bakover.test.enUkeEtterFixedClock
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
@@ -111,7 +111,7 @@ internal class OpprettRevurderingTest {
             ),
             utbetalingerKjørtTilOgMed = oktober(2021).fraOgMed,
             clock = clock,
-        ).shouldBeType<Pair<Sak, VedtakOpphørtRevurdering>>().also {
+        ).shouldBeType<Pair<Sak, VedtakOpphørMedUtbetaling>>().also {
             it.second.behandling.avkorting.shouldBeType<AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel>()
                 .also { nyttVarsel ->
                     nyttVarsel.periode() shouldBe mai(2021)..september(2021)

@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
+import no.nav.su.se.bakover.domain.vedtak.Opphørsvedtak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import java.time.Clock
 
@@ -104,10 +104,12 @@ internal class BeregnRevurderingStrategyDecider(
         revurdering: Revurdering,
         gjeldendeVedtaksdata: GjeldendeVedtaksdata,
     ): List<AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel> {
+        @Suppress("ConvertCallChainIntoSequence")
         return revurdering.periode.måneder()
-            .map { gjeldendeVedtaksdata.gjeldendeVedtakPåDato(it.fraOgMed) }
+            .mapNotNull { gjeldendeVedtaksdata.gjeldendeVedtakForMåned(it) }
             .distinct()
-            .filterIsInstance<VedtakOpphørtRevurdering>()
+            // Det er foreløpig kun tidligere utenlandsopphør som har ført til avkorting.
+            .filterIsInstance<Opphørsvedtak>()
             .map { it.behandling.avkorting }
             .filterIsInstance<AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel>()
     }

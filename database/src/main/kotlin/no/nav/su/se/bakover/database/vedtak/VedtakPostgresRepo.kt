@@ -45,16 +45,19 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandlin
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
+import no.nav.su.se.bakover.domain.vedtak.Opphørsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagBeregning
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
 import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
+import no.nav.su.se.bakover.domain.vedtak.VedtakIngenEndringIYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørAvkorting
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
@@ -165,11 +168,13 @@ internal class VedtakPostgresRepo(
         }
     }
 
-    override fun lagreITransaksjon(vedtak: Vedtak, sessionContext: TransactionContext) {
+    override fun lagreITransaksjon(vedtak: Vedtak, tx: TransactionContext) {
         return dbMetrics.timeQuery("lagreVedtak") {
-            sessionContext.withSession { tx ->
+            tx.withSession { tx ->
                 when (vedtak) {
+                    // TODO jah: Erstatt med én felles insert-function
                     is VedtakEndringIYtelse -> lagreInternt(vedtak, tx)
+                    is VedtakIngenEndringIYtelse -> lagreInternt(vedtak, tx)
                     is Avslagsvedtak -> lagreInternt(vedtak, tx)
                     is Klagevedtak.Avvist -> lagreInternt(vedtak, tx)
                 }
@@ -178,7 +183,7 @@ internal class VedtakPostgresRepo(
     }
 
     /**
-     * Det er kun [VedtakSomKanRevurderes.EndringIYtelse] som inneholder en utbetalingId
+     * Det er kun [VedtakEndringIYtelse] som inneholder en utbetalingId
      */
     override fun hentForUtbetaling(utbetalingId: UUID30): VedtakEndringIYtelse? {
         return dbMetrics.timeQuery("hentVedtakForUtbetalingId") {
@@ -400,18 +405,32 @@ internal class VedtakPostgresRepo(
             }
 
             VedtakType.OPPHØR -> {
-                VedtakOpphørtRevurdering.createFromPersistence(
-                    id = id,
-                    opprettet = opprettet,
-                    behandling = behandling as IverksattRevurdering.Opphørt,
-                    saksbehandler = saksbehandler,
-                    attestant = attestant,
-                    periode = periode!!,
-                    beregning = beregning!!,
-                    simulering = simulering!!,
-                    utbetalingId = utbetalingId!!,
-                    dokumenttilstand = dokumenttilstand,
-                )
+                if (utbetalingId != null) {
+                    VedtakOpphørMedUtbetaling.createFromPersistence(
+                        id = id,
+                        opprettet = opprettet,
+                        behandling = behandling as IverksattRevurdering.Opphørt,
+                        saksbehandler = saksbehandler,
+                        attestant = attestant,
+                        periode = periode!!,
+                        beregning = beregning!!,
+                        simulering = simulering!!,
+                        utbetalingId = utbetalingId,
+                        dokumenttilstand = dokumenttilstand,
+                    )
+                } else {
+                    VedtakOpphørAvkorting.createFromPersistence(
+                        id = id,
+                        opprettet = opprettet,
+                        behandling = behandling as IverksattRevurdering.Opphørt,
+                        saksbehandler = saksbehandler,
+                        attestant = attestant,
+                        periode = periode!!,
+                        beregning = beregning!!,
+                        simulering = simulering!!,
+                        dokumenttilstand = dokumenttilstand,
+                    )
+                }
             }
 
             VedtakType.AVSLAG -> {
@@ -476,7 +495,7 @@ internal class VedtakPostgresRepo(
         }
     }
 
-    private fun lagreInternt(vedtak: VedtakEndringIYtelse, session: Session) {
+    private fun lagreInternt(vedtak: VedtakSomKanRevurderes, session: Session) {
         """
                 INSERT INTO vedtak(
                     id,
@@ -515,30 +534,13 @@ internal class VedtakPostgresRepo(
                     "attestant" to vedtak.attestant,
                     "utbetalingid" to vedtak.utbetalingId,
                     "simulering" to vedtak.simulering.serializeSimulering(),
-                    "beregning" to when (vedtak) {
-                        is VedtakGjenopptakAvYtelse ->
-                            null
-
-                        is VedtakStansAvYtelse ->
-                            null
-
-                        is VedtakInnvilgetRevurdering ->
-                            vedtak.beregning
-
-                        is VedtakInnvilgetSøknadsbehandling ->
-                            vedtak.beregning
-
-                        is VedtakOpphørtRevurdering ->
-                            vedtak.beregning
-
-                        is VedtakInnvilgetRegulering ->
-                            vedtak.beregning
-                    },
+                    "beregning" to vedtak.beregning,
                     "vedtaktype" to when (vedtak) {
                         is VedtakGjenopptakAvYtelse -> VedtakType.GJENOPPTAK_AV_YTELSE
                         is VedtakInnvilgetRevurdering -> VedtakType.ENDRING
                         is VedtakInnvilgetSøknadsbehandling -> VedtakType.SØKNAD
-                        is VedtakOpphørtRevurdering -> VedtakType.OPPHØR
+                        is Opphørsvedtak -> VedtakType.OPPHØR
+
                         is VedtakStansAvYtelse -> VedtakType.STANS_AV_YTELSE
                         is VedtakInnvilgetRegulering -> VedtakType.REGULERING
                     },
@@ -549,10 +551,6 @@ internal class VedtakPostgresRepo(
     }
 
     private fun lagreInternt(vedtak: Avslagsvedtak, session: Session) {
-        val beregning = when (vedtak) {
-            is VedtakAvslagBeregning -> vedtak.beregning
-            is VedtakAvslagVilkår -> null
-        }
         """
                 insert into vedtak(
                     id,
@@ -591,7 +589,7 @@ internal class VedtakPostgresRepo(
                     "tilOgMed" to vedtak.periode.tilOgMed,
                     "saksbehandler" to vedtak.saksbehandler,
                     "attestant" to vedtak.attestant,
-                    "beregning" to beregning,
+                    "beregning" to vedtak.beregning,
                     "vedtaktype" to VedtakType.AVSLAG,
                     "avslagsgrunner" to vedtak.avslagsgrunner.serialize(),
                 ),

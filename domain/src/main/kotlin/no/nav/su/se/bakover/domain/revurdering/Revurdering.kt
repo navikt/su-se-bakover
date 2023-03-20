@@ -71,8 +71,8 @@ sealed class Revurdering :
     abstract val informasjonSomRevurderes: InformasjonSomRevurderes
     abstract val avkorting: AvkortingVedRevurdering
     abstract val erOpphørt: Boolean
-    abstract val beregning: Beregning?
-    abstract val simulering: Simulering?
+    abstract override val beregning: Beregning?
+    abstract override val simulering: Simulering?
 
     /**
      * Har saksbehandler vurdert saken dithen at penger skal tilbakekreves?
@@ -647,7 +647,7 @@ sealed class Revurdering :
             return when (erOpphør) {
                 is OpphørVedRevurdering.Ja -> {
                     /**
-                     * Kontroller er at vi ikke opphører noe som inneholder planlagte avkortinger, da dette vil føre til at
+                     * Kontrollerer at vi ikke opphører noe som inneholder planlagte avkortinger, da dette vil føre til at
                      * beløpene aldri vil avkortes. //TODO må sannsynligvis støtte dette på et eller annet tidspunkt
                      */
                     if (beregning.getFradrag().any { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }) {

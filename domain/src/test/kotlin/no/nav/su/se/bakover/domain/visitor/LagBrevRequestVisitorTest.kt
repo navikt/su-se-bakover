@@ -51,7 +51,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttes
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
-import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
@@ -923,7 +923,7 @@ internal class LagBrevRequestVisitorTest {
             ),
             brevvalg = sendBrev(fritekst = "FRITEKST REVURDERING"),
         ).let { (_, v) ->
-            v.shouldBeType<VedtakOpphørtRevurdering>().let {
+            v.shouldBeType<VedtakOpphørMedUtbetaling>().let {
                 it.behandling to it
             }
         }
@@ -988,7 +988,7 @@ internal class LagBrevRequestVisitorTest {
             vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = revurderingsperiode)),
             brevvalg = sendBrev(fritekst = "FRITEKST REVURDERING"),
         ).mapSecond { it as IverksattRevurdering.Opphørt }
-            .mapFourth { it as VedtakOpphørtRevurdering }
+            .mapFourth { it as VedtakOpphørMedUtbetaling }
 
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -1158,7 +1158,7 @@ internal class LagBrevRequestVisitorTest {
                 ),
             ),
             utbetalingerKjørtTilOgMed = 1.juli(2021),
-        ).second.shouldBeType<VedtakOpphørtRevurdering>()
+        ).second.shouldBeType<VedtakOpphørMedUtbetaling>()
 
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },

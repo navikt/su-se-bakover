@@ -23,6 +23,7 @@ data class VedtakGjenopptakAvYtelse private constructor(
     override val utbetalingId: UUID30,
 ) : VedtakEndringIYtelse {
 
+    override val beregning = null
     init {
         // Avhengige typer. Vi ønsker få feil dersom den endres.
         @Suppress("USELESS_IS_CHECK")
@@ -80,4 +81,8 @@ data class VedtakGjenopptakAvYtelse private constructor(
     override fun accept(visitor: VedtakVisitor) {
         visitor.visit(this)
     }
+
+    override fun erOpphør(): Boolean = false
+    override fun erStans(): Boolean = false
+    override fun erGjenopptak(): Boolean = true
 }

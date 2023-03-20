@@ -75,7 +75,7 @@ class StønadsvedtakTest {
                 grunnlagsdataOverrides = listOf(
                     fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 500000.0),
                 ),
-            ).fourth as VedtakOpphørtRevurdering
+            ).fourth as VedtakOpphørMedUtbetaling
             ).let {
             it.dokumenttilstand shouldBe Dokumenttilstand.IKKE_GENERERT_ENDA
             it.skalGenerereDokumentVedFerdigstillelse() shouldBe true
@@ -93,7 +93,7 @@ class StønadsvedtakTest {
                     begrunnelse = "test-begrunnelse",
                     bestemtAv = BrevvalgRevurdering.BestemtAv.Behandler("test-ident"),
                 ),
-            ).fourth as VedtakOpphørtRevurdering
+            ).fourth as VedtakOpphørMedUtbetaling
             ).let {
             it.dokumenttilstand shouldBe Dokumenttilstand.SKAL_IKKE_GENERERE
             it.skalGenerereDokumentVedFerdigstillelse() shouldBe false

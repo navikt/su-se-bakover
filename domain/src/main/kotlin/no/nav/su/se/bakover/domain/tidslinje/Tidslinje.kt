@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.Validator.valider
 import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje
@@ -37,7 +38,27 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
         valider(this.tidslinjeperioder)
     }
 
-    fun gjeldendeForDato(dato: LocalDate): T? = this.firstOrNull { dato.between(it.periode) }
+    fun gjeldendeForDato(dato: LocalDate): T? = this.filter { dato.between(it.periode) }.let {
+        when {
+            it.isEmpty() -> null
+            it.size == 1 -> it.single()
+            else -> {
+                sikkerLogg.error("Flere elementer i tidslinjen for dato $dato. Se vanlig logg for stacktrace. $it")
+                throw IllegalStateException("Flere elementer i tidslinjen for dato $dato. Se sikkerlogg for mer informasjon.")
+            }
+        }
+    }
+
+    fun gjeldendeForMåned(måned: Måned): T? = this.filter { it.periode inneholder måned }.let {
+        when {
+            it.isEmpty() -> null
+            it.size == 1 -> it.single()
+            else -> {
+                sikkerLogg.error("Flere elementer i tidslinjen for måned $måned. Se vanlig logg for stacktrace. $it")
+                throw IllegalStateException("Flere elementer i tidslinjen for måned $måned. Se sikkerlogg for mer informasjon.")
+            }
+        }
+    }
 
     /**
      * En variant av 'copy' som kopierer innholdet i tidslinjen, men krymper på perioden

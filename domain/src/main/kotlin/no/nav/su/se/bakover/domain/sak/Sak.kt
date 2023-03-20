@@ -50,10 +50,9 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurd
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.domain.vedtak.beregningKanVæreGjeldende
-import no.nav.su.se.bakover.domain.vedtak.hentBeregningForGjeldendeVedtak
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrerteUtenlandsopphold
@@ -185,7 +184,7 @@ data class Sak(
     /**
      * Brukes for å hente den seneste gjeldenden/brukte beregningen for en gitt måned i saken.
      *
-     * Per nå så er det kun Vedtak i form av [no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse] som bidrar til dette.
+     * Per nå så er det kun Vedtak i form av [no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse] og [no.nav.su.se.bakover.domain.vedtak.VedtakIngenEndringIYtelse] som bidrar til dette.
      *
      * ##NB
      * */
@@ -196,9 +195,9 @@ data class Sak(
         return GjeldendeVedtaksdata(
             periode = måned,
             vedtakListe = vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
-                .filter { it.beregningKanVæreGjeldende().isRight() }.ifEmpty { return null }.toNonEmptyList(),
+                .filter { it.beregning != null }.ifEmpty { return null }.toNonEmptyList(),
             clock = clock,
-        ).gjeldendeVedtakPåDato(måned.fraOgMed)?.hentBeregningForGjeldendeVedtak()
+        ).gjeldendeVedtakForMåned(måned)?.beregning!!
     }
 
     fun hentGjeldendeMånedsberegninger(
@@ -208,11 +207,11 @@ data class Sak(
         return GjeldendeVedtaksdata(
             periode = periode,
             vedtakListe = vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
-                .filter { it.beregningKanVæreGjeldende().isRight() }.ifEmpty { return emptyList() }.toNonEmptyList(),
+                .filter { it.beregning != null }.ifEmpty { return emptyList() }.toNonEmptyList(),
             clock = clock,
         ).let { gjeldendeVedtaksdata ->
             periode.måneder().mapNotNull { måned ->
-                gjeldendeVedtaksdata.gjeldendeVedtakPåDato(måned.fraOgMed)?.hentBeregningForGjeldendeVedtak()
+                gjeldendeVedtaksdata.gjeldendeVedtakForMåned(måned)?.beregning
                     ?.getMånedsberegninger()?.single { it.måned == måned }
             }
         }
@@ -527,6 +526,13 @@ data class Sak(
         return revurderinger.filterIsInstance<IverksattRevurdering>()
             .any { it.tilbakekrevingsbehandling.avventerKravgrunnlag() }
     }
+
+    /**
+     * fraOgMed fra det første søknadsbehandlingsvedtaket, null hvis vi ikke har noen vedtak enda.
+     */
+    val førsteYtelsesdato: LocalDate? = vedtakListe
+        .filterIsInstance<VedtakInnvilgetSøknadsbehandling>()
+        .minOfOrNull { it.periode.fraOgMed }
 }
 
 data class AlleredeGjeldendeSakForBruker(

@@ -18,12 +18,13 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForMåned
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.vedtak.Opphørsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.statistikk.SchemaValidator
 import no.nav.su.se.bakover.statistikk.StønadsklassifiseringDto
@@ -63,7 +64,7 @@ internal fun StatistikkEvent.Stønadsvedtak.toStønadstatistikkDto(
 }
 
 private fun toDto(
-    vedtak: VedtakEndringIYtelse,
+    vedtak: VedtakSomKanRevurderes,
     aktørId: AktørId,
     hentSak: () -> Sak,
     clock: Clock,
@@ -84,13 +85,13 @@ private fun toDto(
             is VedtakGjenopptakAvYtelse -> StønadstatistikkDto.Vedtaksresultat.GJENOPPTATT
             is VedtakInnvilgetRevurdering -> StønadstatistikkDto.Vedtaksresultat.INNVILGET
             is VedtakInnvilgetSøknadsbehandling -> StønadstatistikkDto.Vedtaksresultat.INNVILGET
-            is VedtakOpphørtRevurdering -> StønadstatistikkDto.Vedtaksresultat.OPPHØRT
+            is Opphørsvedtak -> StønadstatistikkDto.Vedtaksresultat.OPPHØRT
+
             is VedtakStansAvYtelse -> StønadstatistikkDto.Vedtaksresultat.STANSET
             is VedtakInnvilgetRegulering -> StønadstatistikkDto.Vedtaksresultat.REGULERT
         },
         behandlendeEnhetKode = "4815",
-        ytelseVirkningstidspunkt = sak.vedtakListe.filterIsInstance<VedtakEndringIYtelse>()
-            .minOf { it.periode.fraOgMed },
+        ytelseVirkningstidspunkt = sak.førsteYtelsesdato!!,
         gjeldendeStonadVirkningstidspunkt = vedtak.behandling.periode.fraOgMed,
         gjeldendeStonadStopptidspunkt = vedtak.behandling.periode.tilOgMed,
         gjeldendeStonadUtbetalingsstart = vedtak.behandling.periode.fraOgMed,
@@ -103,7 +104,8 @@ private fun toDto(
             )
 
             /** TODO ai 10.11.2021: Endre når revurdering ikke trenger å opphøre behandlingen fra 'fraDato':en */
-            is VedtakOpphørtRevurdering -> emptyList()
+            // TODO jah: Vi bør ta en avklaring med stønadsstatistikk-teamet hva slags statistikk de forventer for opphørte måneder med avkortingsvarsel (vi sender ikke utbetalingslinjer for disse månedene).
+            is Opphørsvedtak -> emptyList()
 
             is VedtakStansAvYtelse -> emptyList()
             is VedtakGjenopptakAvYtelse -> mapBeregning(
@@ -116,14 +118,14 @@ private fun toDto(
         },
         versjon = gitCommit?.value,
         opphorsgrunn = when (vedtak) {
-            is VedtakOpphørtRevurdering -> vedtak.behandling.utledOpphørsgrunner(
+            is Opphørsvedtak -> vedtak.behandling.utledOpphørsgrunner(
                 clock,
             ).joinToString()
 
             else -> null
         },
         opphorsdato = when (vedtak) {
-            is VedtakOpphørtRevurdering -> vedtak.behandling.utledOpphørsdato(clock)
+            is Opphørsvedtak -> vedtak.behandling.utledOpphørsdato(clock)
             else -> null
         },
     )
@@ -192,11 +194,13 @@ private fun mapBeregning(
     return vedtak.periode.måneder().map { gjeldendeBeregningForMåned[it.fraOgMed.toString()]!! }
 }
 
-private fun vedtakstype(vedtak: VedtakEndringIYtelse) = when (vedtak) {
+private fun vedtakstype(vedtak: VedtakSomKanRevurderes) = when (vedtak) {
     is VedtakGjenopptakAvYtelse -> StønadstatistikkDto.Vedtakstype.GJENOPPTAK
-    is VedtakInnvilgetRevurdering -> StønadstatistikkDto.Vedtakstype.REVURDERING
     is VedtakInnvilgetSøknadsbehandling -> StønadstatistikkDto.Vedtakstype.SØKNAD
-    is VedtakOpphørtRevurdering -> StønadstatistikkDto.Vedtakstype.REVURDERING
+    is VedtakInnvilgetRevurdering,
+    is Opphørsvedtak,
+    -> StønadstatistikkDto.Vedtakstype.REVURDERING
+
     is VedtakStansAvYtelse -> StønadstatistikkDto.Vedtakstype.STANS
     is VedtakInnvilgetRegulering -> StønadstatistikkDto.Vedtakstype.REGULERING
 }
