@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.client.skatteetaten
 
-import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
@@ -10,38 +9,27 @@ import com.github.tomakehurst.wiremock.http.Fault
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
-import no.nav.su.se.bakover.client.AccessToken
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
-import no.nav.su.se.bakover.client.azure.AzureClient
-import no.nav.su.se.bakover.client.kodeverk.Kodeverk
-import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
-import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
-import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregisterClient
-import no.nav.su.se.bakover.client.person.PdlClientConfig
-import no.nav.su.se.bakover.client.person.PersonClient
-import no.nav.su.se.bakover.client.person.PersonClientConfig
-import no.nav.su.se.bakover.client.skjerming.SkjermingClient
-import no.nav.su.se.bakover.client.sts.StsClient
-import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.suSeBakoverConsumerId
-import no.nav.su.se.bakover.common.token.JwtToken
 import no.nav.su.se.bakover.domain.person.PersonOppslag
+import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedStadie
+import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedYear
 import no.nav.su.se.bakover.domain.skatt.SkatteoppslagFeil
-import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.domain.skatt.Stadie
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.person
-import no.nav.su.se.bakover.test.skatt.nySkattegrunnlag
-import org.json.JSONObject
-import org.junit.jupiter.api.BeforeEach
+import no.nav.su.se.bakover.test.skatt.nyÅrsgrunnlag
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.slf4j.MDC
+import java.io.IOException
 import java.time.Year
 import java.time.format.DateTimeParseException
 
@@ -63,18 +51,26 @@ internal class SamletSkattegrunnlagTest {
                 consumerId = suSeBakoverConsumerId,
             ),
             azureAd = azureAdMock,
-            //hentBrukerToken = { JwtToken.BrukerToken("lawl") }
         )
     val fnr = Fnr("21839199217")
 
     @Test
     fun `nettverks feil håndteres`() {
         wireMockServer.stubFor(
-            WireMock.get(wireMockServer.baseUrl())
+            WireMock.get("/api/spesifisertsummertskattegrunnlag")
                 .willReturn(WireMock.aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)),
         )
-        client.hentSamletSkattegrunnlag(fnr, Year.of(2021))
-            .shouldBeInstanceOf<Either.Left<SkatteoppslagFeil.Nettverksfeil>>()
+
+        val nettverksfeil = SkatteoppslagFeil.Nettverksfeil(IOException("Connection reset"))
+
+        client.hentSamletSkattegrunnlag(fnr, Year.of(2021)) shouldBe SamletSkattegrunnlagResponseMedYear(
+            skatteResponser = listOf(
+                SamletSkattegrunnlagResponseMedStadie(oppslag = nettverksfeil.left(), stadie = Stadie.FASTSATT),
+                SamletSkattegrunnlagResponseMedStadie(oppslag = nettverksfeil.left(), stadie = Stadie.OPPGJØR),
+                SamletSkattegrunnlagResponseMedStadie(oppslag = nettverksfeil.left(), stadie = Stadie.UTKAST),
+            ),
+            år = Year.of(2021),
+        ).right()
     }
 
     @Test
@@ -102,7 +98,23 @@ internal class SamletSkattegrunnlagTest {
         client.hentSamletSkattegrunnlag(
             fnr = fnr,
             år = Year.of(2021),
-        ) shouldBe SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left()
+        ) shouldBe SamletSkattegrunnlagResponseMedYear(
+            skatteResponser = listOf(
+                SamletSkattegrunnlagResponseMedStadie(
+                    oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                    stadie = Stadie.FASTSATT,
+                ),
+                SamletSkattegrunnlagResponseMedStadie(
+                    oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                    stadie = Stadie.OPPGJØR,
+                ),
+                SamletSkattegrunnlagResponseMedStadie(
+                    oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                    stadie = Stadie.UTKAST,
+                ),
+            ),
+            år = Year.of(2021),
+        ).right()
     }
 
     @Test
@@ -130,7 +142,23 @@ internal class SamletSkattegrunnlagTest {
         client.hentSamletSkattegrunnlag(
             fnr = fnr,
             år = Year.of(2021),
-        ) shouldBe SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left()
+        ) shouldBe SamletSkattegrunnlagResponseMedYear(
+            skatteResponser = listOf(
+                SamletSkattegrunnlagResponseMedStadie(
+                    oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                    stadie = Stadie.FASTSATT,
+                ),
+                SamletSkattegrunnlagResponseMedStadie(
+                    oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                    stadie = Stadie.OPPGJØR,
+                ),
+                SamletSkattegrunnlagResponseMedStadie(
+                    oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                    stadie = Stadie.UTKAST,
+                ),
+            ),
+            år = Year.of(2021),
+        ).right()
     }
 
     @Test
@@ -253,11 +281,27 @@ internal class SamletSkattegrunnlagTest {
         client.hentSamletSkattegrunnlag(
             fnr = Fnr(fnr = "04900148157"),
             år = Year.of(2021),
-        ) shouldBe nySkattegrunnlag(fnr = Fnr("04900148157")).right()
+        ) shouldBe SamletSkattegrunnlagResponseMedYear(
+            skatteResponser = listOf(
+                SamletSkattegrunnlagResponseMedStadie(
+                    oppslag = nyÅrsgrunnlag().right(), stadie = Stadie.FASTSATT,
+                ),
+                SamletSkattegrunnlagResponseMedStadie(
+                    oppslag = nyÅrsgrunnlag(stadie = Stadie.OPPGJØR).right(), stadie = Stadie.OPPGJØR,
+                ),
+                SamletSkattegrunnlagResponseMedStadie(
+                    oppslag = nyÅrsgrunnlag(stadie = Stadie.UTKAST).right(), stadie = Stadie.UTKAST,
+                ),
+            ),
+            år = Year.of(2021),
+        ).right()
     }
 
-    @BeforeEach
-    fun beforeEach() {
-        MDC.put("Authorization", "Bearer abc")
+    companion object {
+        @JvmStatic
+        @BeforeAll
+        fun beforeAll() {
+            MDC.put("Authorization", "Bearer abc")
+        }
     }
 }

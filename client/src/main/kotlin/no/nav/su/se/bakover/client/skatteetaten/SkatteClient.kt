@@ -103,11 +103,14 @@ internal class SkatteClient(
     }
 
     private fun hentForÅrsperiode(fnr: Fnr, yearRange: YearRange): List<SamletSkattegrunnlagResponseMedYear> {
+        val correlationId = CorrelationId.getOrCreateCorrelationIdFromThreadLocal()
+        val token = azureAd.onBehalfOfToken(hentBrukerToken().toString(), "srvsigrun")
+
         return runBlocking {
             withContext(Dispatchers.IO) {
                 yearRange.map {
                     async(Dispatchers.IO) {
-                        hentSkattedataForAlleStadier(fnr, it)
+                        hentSkattedataForAlleStadier(fnr, it, token, correlationId)
                     }
                 }.awaitAll()
             }
@@ -117,16 +120,27 @@ internal class SkatteClient(
     private suspend fun hentSkattedataForAlleStadier(
         fnr: Fnr,
         inntektsÅr: Year,
+        token: String,
+        correlationId: CorrelationId,
     ): SamletSkattegrunnlagResponseMedYear {
         return withContext(Dispatchers.IO) {
             val samletSkattFastsatt = async(Dispatchers.IO) {
-                Pair(hentSamletSkattegrunnlagFraSkatt(fnr, inntektsÅr, Stadie.FASTSATT), Stadie.FASTSATT)
+                Pair(
+                    hentSamletSkattegrunnlagFraSkatt(fnr, inntektsÅr, Stadie.FASTSATT, token, correlationId),
+                    Stadie.FASTSATT,
+                )
             }
             val samletSkattOppgjør = async(Dispatchers.IO) {
-                Pair(hentSamletSkattegrunnlagFraSkatt(fnr, inntektsÅr, Stadie.OPPGJØR), Stadie.OPPGJØR)
+                Pair(
+                    hentSamletSkattegrunnlagFraSkatt(fnr, inntektsÅr, Stadie.OPPGJØR, token, correlationId),
+                    Stadie.OPPGJØR,
+                )
             }
             val samletSkattUtkast = async(Dispatchers.IO) {
-                Pair(hentSamletSkattegrunnlagFraSkatt(fnr, inntektsÅr, Stadie.UTKAST), Stadie.UTKAST)
+                Pair(
+                    hentSamletSkattegrunnlagFraSkatt(fnr, inntektsÅr, Stadie.UTKAST, token, correlationId),
+                    Stadie.UTKAST,
+                )
             }
             listOf(samletSkattFastsatt, samletSkattOppgjør, samletSkattUtkast)
                 .awaitAll().let {
@@ -143,8 +157,9 @@ internal class SkatteClient(
         fnr: Fnr,
         inntektsÅr: Year,
         stadie: Stadie,
+        token: String,
+        correlationId: CorrelationId,
     ): Either<SkatteoppslagFeil, Skattegrunnlag.Årsgrunnlag> {
-        val token = azureAd.onBehalfOfToken(hentBrukerToken().toString(), "srvsigrun")
         val getRequest = HttpRequest.newBuilder()
             .uri(URI.create("${skatteetatenConfig.apiBaseUrl}/api/spesifisertsummertskattegrunnlag"))
             .header("Accept", "application/json")
@@ -152,7 +167,7 @@ internal class SkatteClient(
             .header("x-naturligident", fnr.toString())
             .header("x-inntektsaar", inntektsÅr.toString())
             .header("x-rettighetspakke", skatteetatenConfig.rettighetspakke)
-            .header("Nav-Call-Id", CorrelationId.getOrCreateCorrelationIdFromThreadLocal().toString())
+            .header("Nav-Call-Id", correlationId.toString())
             .header("Nav-Consumer-Id", skatteetatenConfig.consumerId)
             .header("stadie", stadie.verdi)
             .GET()

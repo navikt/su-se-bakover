@@ -71,7 +71,7 @@ fun nyListeAvSkattegrunnlagFormue(
 ) = input
 
 fun nySkattegrunnlagFormue(
-    navn: String = "buttoFormue",
+    navn: String = "bruttoformue",
     beløp: String = "1238",
     spesifisering: List<Skattegrunnlag.Spesifisering.Kjøretøy> = emptyList(),
 ) = Skattegrunnlag.Grunnlag.Formue(navn = navn, beløp = beløp, spesifisering)

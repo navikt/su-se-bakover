@@ -3,11 +3,16 @@ package no.nav.su.se.bakover.domain.skatt
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 
 sealed interface SkatteoppslagFeil {
-    data class Nettverksfeil(val throwable: Throwable) : SkatteoppslagFeil
+    data class Nettverksfeil(val throwable: Throwable) : SkatteoppslagFeil {
+        override fun equals(other: Any?): Boolean {
+            return other != null && other is Nettverksfeil && this.throwable::class == other.throwable::class && this.throwable.message == other.throwable.message
+        }
+    }
+
     object FantIkkeSkattegrunnlagForPersonOgÅr : SkatteoppslagFeil
     data class UkjentFeil(val throwable: Throwable) : SkatteoppslagFeil
     object ManglerRettigheter : SkatteoppslagFeil
-    data class PersonFeil(val feil: KunneIkkeHentePerson): SkatteoppslagFeil
+    data class PersonFeil(val feil: KunneIkkeHentePerson) : SkatteoppslagFeil
 }
 
 /**
