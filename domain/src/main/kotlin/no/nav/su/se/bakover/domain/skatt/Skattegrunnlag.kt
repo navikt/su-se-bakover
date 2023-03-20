@@ -11,7 +11,6 @@ data class Skattegrunnlag(
     val fnr: Fnr,
     val hentetTidspunkt: Tidspunkt,
     val årsgrunnlag: NonEmptyList<Årsgrunnlag>,
-    val stadie: Stadie,
 ) {
     constructor(
         fnr: Fnr,
@@ -23,6 +22,7 @@ data class Skattegrunnlag(
         val inntektsår: Year,
         val skatteoppgjørsdato: LocalDate?,
         val grunnlag: Grunnlagsliste,
+        val stadie: Stadie,
     )
 
     data class Grunnlagsliste(

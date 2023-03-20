@@ -6,6 +6,7 @@ import arrow.core.left
 import com.github.benmanes.caffeine.cache.Cache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import no.nav.su.se.bakover.client.cache.newCache
@@ -41,7 +42,6 @@ import java.time.Year
  */
 class SkatteClient(
     private val skatteetatenConfig: SkatteetatenConfig,
-    private val clock: Clock,
     private val hentBrukerToken: () -> JwtToken.BrukerToken = {
         JwtToken.BrukerToken.fraMdc()
     },
@@ -131,7 +131,7 @@ class SkatteClient(
         fnr: Fnr,
         inntektsÅr: Year,
         stadie: Stadie,
-    ): Either<SkatteoppslagFeil, Skattegrunnlag> {
+    ): Either<SkatteoppslagFeil, Skattegrunnlag.Årsgrunnlag> {
         val token = azureAd.onBehalfOfToken(hentBrukerToken().toString(), "srvsigrun")
         val getRequest = HttpRequest.newBuilder()
             .uri(URI.create("${skatteetatenConfig.apiBaseUrl}/api/spesifisertsummertskattegrunnlag"))
@@ -166,11 +166,11 @@ class SkatteClient(
         fnr: Fnr,
         inntektsÅr: Year,
         stadie: Stadie,
-    ): Either<SkatteoppslagFeil, Skattegrunnlag> {
+    ): Either<SkatteoppslagFeil, Skattegrunnlag.Årsgrunnlag> {
         fun logError(throwable: Throwable? = RuntimeException("Genererer en stacktrace.")) {
             log.error("Kall mot Sigrun/skatteetatens api feilet med statuskode ${response.statusCode()}. Se sikkerlogg.")
             sikkerLogg.error(
-                "Kall mot Sigrun/skatteetatens api feilet med statuskode ${response.statusCode()} og følgende feil: ${response.body()}. " +
+                "Kall mot Sigrun/skatteetatens api feilet med statuskode ${response.statusCode()}, Fnr: $fnr, Inntektsår: $inntektsÅr, Stadie: $stadie og følgende feil: ${response.body()}. " +
                     "Request $getRequest er forespørselen mot skatteetaten som feilet.",
                 throwable,
             )
@@ -178,12 +178,10 @@ class SkatteClient(
         return when (val status = response.statusCode()) {
             200 -> SpesifisertSummertSkattegrunnlagResponseJson.fromJson(
                 json = response.body(),
-                clock = clock,
                 fnr = fnr,
                 inntektsår = inntektsÅr,
                 stadie = stadie,
-            ).mapLeft { it }
-                .map { it }
+            )
 
             400 -> SkatteoppslagFeil.UkjentFeil(IllegalArgumentException("Fikk 400 fra Sigrun.")).also {
                 logError(it.throwable)

@@ -7,8 +7,8 @@ import java.time.Year
 interface Skatteoppslag {
     fun hentSamletSkattegrunnlag(
         fnr: Fnr,
-        inntektsÅr: Year,
-    ): List<SamletSkattegrunnlagResponseMedStadie>
+        år: Year,
+    ): SamletSkattegrunnlagResponseMedYear
 
     fun hentSamletSkattegrunnlagForÅrsperiode(
         fnr: Fnr,

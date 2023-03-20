@@ -5,11 +5,11 @@ import arrow.core.left
 import arrow.core.right
 
 data class SamletSkattegrunnlagResponseMedStadie(
-    val oppslag: Either<SkatteoppslagFeil, Skattegrunnlag>,
+    val oppslag: Either<SkatteoppslagFeil, Skattegrunnlag.Årsgrunnlag>,
     val stadie: Stadie,
 ) {
     companion object {
-        fun List<SamletSkattegrunnlagResponseMedStadie>.hentMestGyldigeSkattegrunnlag(): Either<SkatteoppslagFeil, Skattegrunnlag> {
+        fun List<SamletSkattegrunnlagResponseMedStadie>.hentMestGyldigeSkattegrunnlag(): Either<SkatteoppslagFeil, Skattegrunnlag.Årsgrunnlag> {
             this.single { it.stadie == Stadie.FASTSATT }.let {
                 it.oppslag.mapLeft {
                     when (it.mapTilOmFeilKanSkippesEllerReturneres()) {

@@ -130,23 +130,20 @@ internal data class SpesifisertSummertSkattegrunnlagResponseJson(
     companion object {
         fun fromJson(
             json: String,
-            clock: Clock,
             fnr: Fnr,
             inntektsår: Year,
             stadie: Stadie,
-        ): Either<SkatteoppslagFeil, Skattegrunnlag> {
+        ): Either<SkatteoppslagFeil, Skattegrunnlag.Årsgrunnlag> {
             return Either.catch {
                 deserialize<SpesifisertSummertSkattegrunnlagResponseJson>(json)
             }.flatMap {
                 it.toDomain(
-                    clock = clock,
-                    fnr = fnr,
                     inntektsår = inntektsår,
                     stadie = stadie,
                 )
             }.mapLeft {
                 log.error("Feil skjedde under deserialisering/mapping av data fra Sigrun/Skatteetaten. Se sikkerlogg.")
-                sikkerLogg.error("Feil skjedde under deserialisering/mapping av data fra Sigrun/Skatteetaten.", it)
+                sikkerLogg.error("Feil skjedde under deserialisering/mapping av data fra Sigrun/Skatteetaten. Fnr: $fnr, Inntekstår:$inntektsår, Stadie: $stadie, Json: $json", it)
                 SkatteoppslagFeil.UkjentFeil(it)
             }
         }
@@ -175,11 +172,9 @@ private fun List<EksternSpesifisering>.toDomain(): List<Skattegrunnlag.Spesifise
 }
 
 private fun SpesifisertSummertSkattegrunnlagResponseJson.toDomain(
-    clock: Clock,
-    fnr: Fnr,
     inntektsår: Year,
     stadie: Stadie,
-): Either<Throwable, Skattegrunnlag> {
+): Either<Throwable, Skattegrunnlag.Årsgrunnlag> {
     return Either.catch {
         Skattegrunnlag.Årsgrunnlag(
             inntektsår = inntektsår,
