@@ -49,7 +49,7 @@ internal class SkatteClient(
     private val azureAd: AzureAd,
     private val fnrOgListeAvSkattegrunnlagCache: Cache<Fnr, List<SamletSkattegrunnlagResponseMedYear>> = newCache(
         cacheName = "fnrTilSkattegrunnlag",
-        expireAfterWrite = Duration.ofMinutes(30),
+        expireAfterWrite = Duration.ofDays(1),
     ),
 ) : Skatteoppslag {
 
