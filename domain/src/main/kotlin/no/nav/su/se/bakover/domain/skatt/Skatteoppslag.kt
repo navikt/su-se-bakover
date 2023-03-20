@@ -15,9 +15,4 @@ interface Skatteoppslag {
         fnr: Fnr,
         yearRange: YearRange,
     ): Either<SkatteoppslagFeil, List<SamletSkattegrunnlagResponseMedYear>>
-
-//    fun hentSamletSkattegrunnlag(
-//        fnr: Fnr,
-//        inntektsÅr: YearRange,
-//    ): Either<SkatteoppslagFeil, Skattegrunnlag>
 }

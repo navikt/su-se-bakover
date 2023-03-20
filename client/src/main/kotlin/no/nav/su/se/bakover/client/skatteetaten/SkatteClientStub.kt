@@ -57,16 +57,10 @@ class SkatteClientStub(
         skatteoppgjørsdato = null,
         grunnlag = Skattegrunnlag.Grunnlagsliste(
             inntekt = listOf(
-                Skattegrunnlag.Grunnlag.Inntekt(
-                    navn = "alminneligInntektFoerSaerfradrag",
-                    beløp = "1000",
-                ),
+                Skattegrunnlag.Grunnlag.Inntekt(navn = "alminneligInntektFoerSaerfradrag", beløp = "1000"),
             ),
             formue = listOf(
-                Skattegrunnlag.Grunnlag.Formue(
-                    navn = "bruttoformue",
-                    beløp = "1238",
-                ),
+                Skattegrunnlag.Grunnlag.Formue(navn = "bruttoformue", beløp = "1238"),
                 Skattegrunnlag.Grunnlag.Formue(
                     navn = "formuesverdiForKjoeretoey",
                     beløp = "20000",
@@ -89,24 +83,11 @@ class SkatteClientStub(
                 ),
             ),
             formuesfradrag = listOf(
-                Skattegrunnlag.Grunnlag.Formuesfradrag(
-                    navn = "samletAnnenGjeld",
-                    beløp = "6000",
-                ),
+                Skattegrunnlag.Grunnlag.Formuesfradrag(navn = "samletAnnenGjeld", beløp = "6000"),
             ),
             inntektsfradrag = listOf(
-                Skattegrunnlag.Grunnlag.Inntektsfradrag(
-                    navn = "fradragForFagforeningskontingent",
-                    beløp = "4000",
-                ),
+                Skattegrunnlag.Grunnlag.Inntektsfradrag(navn = "fradragForFagforeningskontingent", beløp = "4000"),
             ),
         ),
     )
-
-//    override fun hentSamletSkattegrunnlag(
-//        fnr: Fnr,
-//        inntektsÅr: YearRange,
-//    ): Either<SkatteoppslagFeil, Skattegrunnlag> {
-//        TODO("")
-//    }
 }

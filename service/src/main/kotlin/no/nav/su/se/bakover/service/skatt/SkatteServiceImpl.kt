@@ -65,13 +65,3 @@ class SkatteServiceImpl(
         )
     }
 }
-
-/* TODO jah: Finn ut om vi skal filtrere bort ting på dette nivået.
-private fun hentInntektOgFradrag(skattegrunnlag: Skattegrunnlag): Skattegrunnlag {
-    return skattegrunnlag.copy(
-        grunnlag = skattegrunnlag.grunnlag.filter {
-            it.spesifisering.contains(Skattegrunnlag.Spesifisering.INNTEKT) ||
-                it.spesifisering.contains(Skattegrunnlag.Spesifisering.FORMUE)
-        },
-    )
-}*/
