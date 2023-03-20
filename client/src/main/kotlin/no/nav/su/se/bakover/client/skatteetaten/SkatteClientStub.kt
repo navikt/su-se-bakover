@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.client.skatteetaten
 
 import arrow.core.right
 import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.YearRange
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedStadie
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedYear
@@ -17,9 +16,9 @@ class SkatteClientStub(
 ) : Skatteoppslag {
     override fun hentSamletSkattegrunnlag(
         fnr: Fnr,
-        inntektsÅr: Year,
+        år: Year,
     ): SamletSkattegrunnlagResponseMedYear {
-        return samletYear(inntektsÅr)
+        return samletYear(år)
     }
 
     override fun hentSamletSkattegrunnlagForÅrsperiode(

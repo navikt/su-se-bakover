@@ -37,6 +37,9 @@ data class YearRange(override val start: Year, override val endInclusive: Year) 
             }
         }
     }
+
+    infix fun inneholder(other: YearRange): Boolean =
+        this.minOf { it.value } <= other.minOf { it.value } && this.maxOf { it.value } >= other.maxOf { it.value }
 }
 
 operator fun Year.inc(): Year = this.plusYears(1)

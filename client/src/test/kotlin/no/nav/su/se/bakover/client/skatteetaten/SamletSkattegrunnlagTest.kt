@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.suSeBakoverConsumerId
 import no.nav.su.se.bakover.domain.skatt.SkatteoppslagFeil
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.skatt.nySkattegrunnlag
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -76,7 +75,7 @@ internal class SamletSkattegrunnlagTest {
 
         client.hentSamletSkattegrunnlag(
             fnr = fnr,
-            inntektsÅr = Year.of(2021),
+            år = Year.of(2021),
         ) shouldBe SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left()
     }
 
@@ -104,7 +103,7 @@ internal class SamletSkattegrunnlagTest {
 
         client.hentSamletSkattegrunnlag(
             fnr = fnr,
-            inntektsÅr = Year.of(2021),
+            år = Year.of(2021),
         ) shouldBe SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left()
     }
 
@@ -126,7 +125,7 @@ internal class SamletSkattegrunnlagTest {
 
         client.hentSamletSkattegrunnlag(
             fnr = fnr,
-            inntektsÅr = Year.of(2021),
+            år = Year.of(2021),
         ).skatteResponser.first().oppslag.onLeft {
             it.shouldBeInstanceOf<SkatteoppslagFeil.UkjentFeil>()
             it.throwable.shouldBeInstanceOf<DateTimeParseException>()
@@ -151,7 +150,7 @@ internal class SamletSkattegrunnlagTest {
 
         client.hentSamletSkattegrunnlag(
             fnr = fnr,
-            inntektsÅr = Year.of(2021),
+            år = Year.of(2021),
         ).skatteResponser.first().oppslag.onLeft {
             it.shouldBeInstanceOf<SkatteoppslagFeil.UkjentFeil>()
             it.throwable.shouldBeInstanceOf<MissingKotlinParameterException>()
@@ -227,7 +226,7 @@ internal class SamletSkattegrunnlagTest {
 
         client.hentSamletSkattegrunnlag(
             fnr = Fnr(fnr = "04900148157"),
-            inntektsÅr = Year.of(2021),
+            år = Year.of(2021),
         ) shouldBe nySkattegrunnlag(fnr = Fnr("04900148157")).right()
     }
 

@@ -3,17 +3,21 @@ package no.nav.su.se.bakover.client.skatteetaten
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.left
+import com.github.benmanes.caffeine.cache.Cache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import no.nav.su.se.bakover.client.cache.newCache
 import no.nav.su.se.bakover.common.ApplicationConfig.ClientsConfig.SkatteetatenConfig
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.YearRange
 import no.nav.su.se.bakover.common.auth.AzureAd
+import no.nav.su.se.bakover.common.erI
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.common.toRange
 import no.nav.su.se.bakover.common.token.JwtToken
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedStadie
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedYear
@@ -21,11 +25,11 @@ import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
 import no.nav.su.se.bakover.domain.skatt.SkatteoppslagFeil
 import no.nav.su.se.bakover.domain.skatt.Stadie
+import no.nav.su.se.bakover.domain.skatt.toYearRange
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
-import java.time.Clock
 import java.time.Duration
 import java.time.Year
 
@@ -42,6 +46,10 @@ class SkatteClient(
         JwtToken.BrukerToken.fraMdc()
     },
     private val azureAd: AzureAd,
+    private val fnrOgListeAvSkattegrunnlagCache: Cache<Fnr, List<SamletSkattegrunnlagResponseMedYear>> = newCache(
+        cacheName = "fnrTilSkattegrunnlag",
+        expireAfterWrite = Duration.ofMinutes(30),
+    ),
 ) : Skatteoppslag {
 
     private val client = HttpClient.newBuilder()
@@ -51,15 +59,38 @@ class SkatteClient(
 
     override fun hentSamletSkattegrunnlag(
         fnr: Fnr,
-        inntektsÅr: Year,
-    ): SamletSkattegrunnlagResponseMedYear {
-        return runBlocking { hentSkattedataForAlleStadier(fnr, inntektsÅr) }
-    }
+        år: Year,
+    ): SamletSkattegrunnlagResponseMedYear = hentSkatteMeldingFraCacheForÅrEllerSøkOpp(fnr, år.toRange()).single()
 
     override fun hentSamletSkattegrunnlagForÅrsperiode(
         fnr: Fnr,
         yearRange: YearRange,
+    ): List<SamletSkattegrunnlagResponseMedYear> = hentSkatteMeldingFraCacheForÅrEllerSøkOpp(fnr, yearRange)
+
+    private fun hentSkatteMeldingFraCacheForÅrEllerSøkOpp(
+        fnr: Fnr,
+        yearRange: YearRange,
     ): List<SamletSkattegrunnlagResponseMedYear> {
+        return fnrOgListeAvSkattegrunnlagCache.getIfPresent(fnr)?.let { skatteListe ->
+            if (skatteListe.toYearRange().inneholder(yearRange)) {
+                skatteListe.filter { it.år erI yearRange }
+            } else {
+                hentSkattemeldingForÅrsperiodeOgLeggInnICache(fnr, yearRange)
+            }
+        } ?: hentSkattemeldingForÅrsperiodeOgLeggInnICache(fnr, yearRange)
+    }
+
+    private fun hentSkattemeldingForÅrsperiodeOgLeggInnICache(
+        fnr: Fnr,
+        yearRange: YearRange,
+    ): List<SamletSkattegrunnlagResponseMedYear> {
+        return hentForÅrsperiode(fnr, yearRange).let {
+            fnrOgListeAvSkattegrunnlagCache.put(fnr, it)
+            it
+        }
+    }
+
+    private fun hentForÅrsperiode(fnr: Fnr, yearRange: YearRange): List<SamletSkattegrunnlagResponseMedYear> {
         return runBlocking {
             withContext(Dispatchers.IO) {
                 yearRange.map {

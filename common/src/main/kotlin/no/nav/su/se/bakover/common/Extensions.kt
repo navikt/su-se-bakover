@@ -9,6 +9,7 @@ import java.lang.Double.min
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
+import java.time.Year
 
 fun Double.positiveOrZero(): Double = max(0.0, this)
 fun Double.limitedUpwardsTo(limit: Double): Double = min(limit, this)
@@ -73,3 +74,6 @@ fun LocalDate.førsteINesteMåned(): LocalDate {
 fun LocalDate.sisteIForrigeMåned(): LocalDate {
     return this.minusMonths(1).endOfMonth()
 }
+
+
+infix fun Year.erI(yearRange: YearRange): Boolean = yearRange.any { it == this }

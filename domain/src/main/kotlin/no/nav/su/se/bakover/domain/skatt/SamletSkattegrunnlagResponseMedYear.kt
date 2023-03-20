@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.skatt
 
 import arrow.core.Either
 import arrow.core.left
+import no.nav.su.se.bakover.common.YearRange
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedStadie.Companion.hentMestGyldigeSkattegrunnlag
 import java.time.Year
 
@@ -31,4 +32,10 @@ data class SamletSkattegrunnlagResponseMedYear(
             return SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left()
         }
     }
+}
+
+
+
+fun List<SamletSkattegrunnlagResponseMedYear>.toYearRange(): YearRange {
+    return YearRange(this.minOf { it.år }, this.maxOf { it.år })
 }

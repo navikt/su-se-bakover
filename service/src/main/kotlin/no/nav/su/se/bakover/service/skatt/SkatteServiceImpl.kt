@@ -2,13 +2,13 @@ package no.nav.su.se.bakover.service.skatt
 
 import arrow.core.Either
 import arrow.core.getOrElse
-import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedYear.Companion.hentMestGyldigeSkattegrunnlag
-import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.YearRange
 import no.nav.su.se.bakover.common.toRange
+import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedYear.Companion.hentMestGyldigeSkattegrunnlag
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
+import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import java.time.Clock
 import java.time.Year
