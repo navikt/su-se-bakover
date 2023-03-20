@@ -14,12 +14,12 @@ interface SkatteService {
 
     fun hentSamletSkattegrunnlagForÅr(
         fnr: Fnr,
-        yearRange: YearRange
+        yearRange: YearRange,
     ): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag>
 
     fun hentSamletSkattegrunnlagForBehandling(
-        behandlingId: UUID
-    ): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag>
+        behandlingId: UUID,
+    ): Pair<Fnr, Either<KunneIkkeHenteSkattemelding, Skattegrunnlag>>
 
 }
 

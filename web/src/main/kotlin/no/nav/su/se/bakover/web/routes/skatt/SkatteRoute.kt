@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.parameter
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.toggle.domain.ToggleClient
+import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.skatt.SkatteoppslagFeil
 import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.service.skatt.SkatteService
@@ -40,12 +41,11 @@ internal fun Route.skattRoutes(skatteService: SkatteService, toggleService: Togg
                         //TODO: Riktig feilmelding
                         .mapLeft { Feilresponser.fantIkkeBehandling }
                 }
-                .map { id ->
-                    skatteService.hentSamletSkattegrunnlagForBehandling(id)
-                        .fold(
+                .map { behandlingId ->
+                    skatteService.hentSamletSkattegrunnlagForBehandling(behandlingId).let { pair ->
+                        pair.second.fold(
                             ifLeft = {
-                                //TODO: trenger Fnr for audit
-                                //call.audit(id, AuditLogEvent.Action.SEARCH, id)
+                                call.audit(pair.first, AuditLogEvent.Action.SEARCH, behandlingId)
                                 val feilmelding = when (it) {
                                     is KunneIkkeHenteSkattemelding.KallFeilet -> {
                                         when (it.feil) {
@@ -74,11 +74,11 @@ internal fun Route.skattRoutes(skatteService: SkatteService, toggleService: Togg
                                 call.svar(feilmelding)
                             },
                             ifRight = {
-                                //TODO: trenger fnr for audit
-                                //call.audit(id, AuditLogEvent.Action.ACCESS, null)
+                                call.audit(pair.first, AuditLogEvent.Action.ACCESS, behandlingId)
                                 call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJSON())))
                             },
                         )
+                    }
                 }
         }
     }

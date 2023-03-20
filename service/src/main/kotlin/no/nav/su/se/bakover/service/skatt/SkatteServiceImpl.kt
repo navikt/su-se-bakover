@@ -2,8 +2,6 @@ package no.nav.su.se.bakover.service.skatt
 
 import arrow.core.Either
 import arrow.core.getOrElse
-import arrow.core.right
-import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedStadie.Companion.hentMestGyldigeSkattegrunnlag
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedYear.Companion.hentMestGyldigeSkattegrunnlag
 import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
 import no.nav.su.se.bakover.common.Fnr
@@ -44,25 +42,20 @@ class SkatteServiceImpl(
             .mapLeft { KunneIkkeHenteSkattemelding.KallFeilet(it) }
     }
 
-    override fun hentSamletSkattegrunnlagForBehandling(behandlingId: UUID): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag> {
+    override fun hentSamletSkattegrunnlagForBehandling(behandlingId: UUID): Pair<Fnr, Either<KunneIkkeHenteSkattemelding, Skattegrunnlag>> {
         val søknadsbehandling =
-            søknadsbehandlingService.hent(SøknadsbehandlingService.HentRequest(behandlingId)).getOrElse {
-                throw IllegalStateException("Fant ikke behandling $behandlingId")
-            }
+            søknadsbehandlingService.hent(SøknadsbehandlingService.HentRequest(behandlingId))
+                .getOrElse { throw IllegalStateException("Fant ikke behandling $behandlingId") }
 
-        return søknadsbehandlingService.hent(SøknadsbehandlingService.HentRequest(behandlingId)).map {
-            return hentSamletSkattegrunnlagForÅr(
-                fnr = søknadsbehandling.fnr,
-                yearRange = Year.of(
-                    Math.min(
-                        Year.now(clock).minusYears(1).value,
-                        søknadsbehandling.stønadsperiode?.periode?.tilOgMed?.year ?: Year.now(clock).value,
-                    ),
-                ).toRange(),
-            )
-        }.mapLeft {
-            throw IllegalStateException("Fant ikke behandling $behandlingId")
-        }
+        return søknadsbehandling.fnr to hentSamletSkattegrunnlagForÅr(
+            fnr = søknadsbehandling.fnr,
+            yearRange = Year.of(
+                Math.min(
+                    Year.now(clock).minusYears(1).value,
+                    søknadsbehandling.stønadsperiode?.periode?.tilOgMed?.year ?: Year.now(clock).value,
+                ),
+            ).toRange(),
+        )
     }
 }
 

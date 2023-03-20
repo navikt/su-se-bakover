@@ -1093,7 +1093,7 @@ open class AccessCheckProxy(
                     return services.skatteService.hentSamletSkattegrunnlagForÅr(fnr, yearRange)
                 }
 
-                override fun hentSamletSkattegrunnlagForBehandling(behandlingId: UUID): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag> {
+                override fun hentSamletSkattegrunnlagForBehandling(behandlingId: UUID): Pair<Fnr, Either<KunneIkkeHenteSkattemelding, Skattegrunnlag>> {
                     assertHarTilgangTilBehandling(behandlingId)
                     return services.skatteService.hentSamletSkattegrunnlagForBehandling(behandlingId)
                 }
