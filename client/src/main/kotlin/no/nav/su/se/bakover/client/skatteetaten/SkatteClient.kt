@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.common.token.JwtToken
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedStadie
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedYear
+import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedYear.Companion.hentMestGyldigeSkattegrunnlag
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
 import no.nav.su.se.bakover.domain.skatt.SkatteoppslagFeil
@@ -93,9 +94,11 @@ internal class SkatteClient(
         fnr: Fnr,
         yearRange: YearRange,
     ): List<SamletSkattegrunnlagResponseMedYear> {
-        return hentForÅrsperiode(fnr, yearRange).let {
-            fnrOgListeAvSkattegrunnlagCache.put(fnr, it)
-            it
+        return hentForÅrsperiode(fnr, yearRange).let { skatteliste ->
+            skatteliste.hentMestGyldigeSkattegrunnlag().map {
+                fnrOgListeAvSkattegrunnlagCache.put(fnr, skatteliste)
+            }
+            skatteliste
         }
     }
 
