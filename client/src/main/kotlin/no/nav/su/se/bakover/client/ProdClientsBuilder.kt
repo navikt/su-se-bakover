@@ -148,6 +148,7 @@ data class ProdClientsBuilder(
                 clock = clock,
             ),
             skatteOppslag = SkatteClient(
+                personOppslag = personOppslag,
                 skatteetatenConfig = applicationConfig.clientsConfig.skatteetatenConfig,
                 azureAd = oAuth,
             ),

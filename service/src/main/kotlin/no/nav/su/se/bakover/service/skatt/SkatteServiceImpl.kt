@@ -1,7 +1,10 @@
 package no.nav.su.se.bakover.service.skatt
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.YearRange
@@ -24,22 +27,28 @@ class SkatteServiceImpl(
         fnr: Fnr,
     ): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag> {
         // TODO jah: Flytt domenelogikken til domenet
-        return skatteClient.hentSamletSkattegrunnlag(fnr, Year.now(clock))
-            .hentMestGyldigeSkattegrunnlag().map {
-                Skattegrunnlag(fnr = fnr, hentetTidspunkt = Tidspunkt.now(clock), årsgrunnlag = it)
-            }
-            .mapLeft { KunneIkkeHenteSkattemelding.KallFeilet(it) }
+        return skatteClient.hentSamletSkattegrunnlag(fnr, Year.now(clock)).fold(
+            { KunneIkkeHenteSkattemelding.KallFeilet(it).left() },
+            {
+                it.hentMestGyldigeSkattegrunnlag()
+                    .map { Skattegrunnlag(fnr = fnr, hentetTidspunkt = Tidspunkt.now(clock), årsgrunnlag = it) }
+                    .mapLeft { KunneIkkeHenteSkattemelding.KallFeilet(it) }
+            },
+        )
     }
 
     override fun hentSamletSkattegrunnlagForÅr(
         fnr: Fnr,
         yearRange: YearRange,
     ): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag> {
-        return skatteClient.hentSamletSkattegrunnlagForÅrsperiode(fnr, yearRange)
-            .hentMestGyldigeSkattegrunnlag().map {
-                Skattegrunnlag(fnr = fnr, hentetTidspunkt = Tidspunkt.now(clock), årsgrunnlag = it)
-            }
-            .mapLeft { KunneIkkeHenteSkattemelding.KallFeilet(it) }
+        return skatteClient.hentSamletSkattegrunnlagForÅrsperiode(fnr, yearRange).fold(
+            { KunneIkkeHenteSkattemelding.KallFeilet(it).left() },
+            {
+                it.hentMestGyldigeSkattegrunnlag()
+                    .map { Skattegrunnlag(fnr = fnr, hentetTidspunkt = Tidspunkt.now(clock), årsgrunnlag = it) }
+                    .mapLeft { KunneIkkeHenteSkattemelding.KallFeilet(it) }
+            },
+        )
     }
 
     override fun hentSamletSkattegrunnlagForBehandling(behandlingId: UUID): Pair<Fnr, Either<KunneIkkeHenteSkattemelding, Skattegrunnlag>> {

@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.toRange
 import no.nav.su.se.bakover.common.token.JwtToken
+import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedStadie
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedYear
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
@@ -40,11 +41,10 @@ import java.time.Year
  * https://skatteetaten.github.io/datasamarbeid-api-dokumentasjon/data_summertskattegrunnlag2021
  * https://github.com/navikt/sigrun/pull/50
  */
-class SkatteClient(
+internal class SkatteClient(
     private val skatteetatenConfig: SkatteetatenConfig,
-    private val hentBrukerToken: () -> JwtToken.BrukerToken = {
-        JwtToken.BrukerToken.fraMdc()
-    },
+    private val personOppslag: PersonOppslag,
+    private val hentBrukerToken: () -> JwtToken.BrukerToken = { JwtToken.BrukerToken.fraMdc() },
     private val azureAd: AzureAd,
     private val fnrOgListeAvSkattegrunnlagCache: Cache<Fnr, List<SamletSkattegrunnlagResponseMedYear>> = newCache(
         cacheName = "fnrTilSkattegrunnlag",
@@ -60,12 +60,21 @@ class SkatteClient(
     override fun hentSamletSkattegrunnlag(
         fnr: Fnr,
         år: Year,
-    ): SamletSkattegrunnlagResponseMedYear = hentSkatteMeldingFraCacheForÅrEllerSøkOpp(fnr, år.toRange()).single()
+    ): Either<SkatteoppslagFeil, SamletSkattegrunnlagResponseMedYear> = personOppslag.sjekkTilgangTilPerson(fnr).map {
+        hentSkatteMeldingFraCacheForÅrEllerSøkOpp(fnr, år.toRange()).single()
+    }.mapLeft {
+        SkatteoppslagFeil.PersonFeil(it)
+    }
 
     override fun hentSamletSkattegrunnlagForÅrsperiode(
         fnr: Fnr,
         yearRange: YearRange,
-    ): List<SamletSkattegrunnlagResponseMedYear> = hentSkatteMeldingFraCacheForÅrEllerSøkOpp(fnr, yearRange)
+    ): Either<SkatteoppslagFeil, List<SamletSkattegrunnlagResponseMedYear>> =
+        personOppslag.sjekkTilgangTilPerson(fnr).map {
+            hentSkatteMeldingFraCacheForÅrEllerSøkOpp(fnr, yearRange)
+        }.mapLeft {
+            SkatteoppslagFeil.PersonFeil(it)
+        }
 
     private fun hentSkatteMeldingFraCacheForÅrEllerSøkOpp(
         fnr: Fnr,

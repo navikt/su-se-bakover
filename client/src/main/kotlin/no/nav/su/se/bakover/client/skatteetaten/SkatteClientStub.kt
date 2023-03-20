@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.skatteetaten
 
+import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.YearRange
@@ -7,6 +8,7 @@ import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedStadie
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedYear
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
+import no.nav.su.se.bakover.domain.skatt.SkatteoppslagFeil
 import no.nav.su.se.bakover.domain.skatt.Stadie
 import java.time.Clock
 import java.time.Year
@@ -17,15 +19,15 @@ class SkatteClientStub(
     override fun hentSamletSkattegrunnlag(
         fnr: Fnr,
         år: Year,
-    ): SamletSkattegrunnlagResponseMedYear {
-        return samletYear(år)
+    ): Either<SkatteoppslagFeil, SamletSkattegrunnlagResponseMedYear> {
+        return samletYear(år).right()
     }
 
     override fun hentSamletSkattegrunnlagForÅrsperiode(
         fnr: Fnr,
         yearRange: YearRange,
-    ): List<SamletSkattegrunnlagResponseMedYear> {
-        return yearRange.map { samletYear(it) }
+    ): Either<SkatteoppslagFeil, List<SamletSkattegrunnlagResponseMedYear>> {
+        return yearRange.map { samletYear(it) }.right()
     }
 
     private fun samletYear(år: Year) = SamletSkattegrunnlagResponseMedYear(

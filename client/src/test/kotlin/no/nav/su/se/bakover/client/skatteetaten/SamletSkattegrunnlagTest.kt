@@ -10,13 +10,31 @@ import com.github.tomakehurst.wiremock.http.Fault
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
+import no.nav.su.se.bakover.client.AccessToken
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
+import no.nav.su.se.bakover.client.azure.AzureClient
+import no.nav.su.se.bakover.client.kodeverk.Kodeverk
+import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
+import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
+import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregisterClient
+import no.nav.su.se.bakover.client.person.PdlClientConfig
+import no.nav.su.se.bakover.client.person.PersonClient
+import no.nav.su.se.bakover.client.person.PersonClientConfig
+import no.nav.su.se.bakover.client.skjerming.SkjermingClient
+import no.nav.su.se.bakover.client.sts.StsClient
+import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.suSeBakoverConsumerId
+import no.nav.su.se.bakover.common.token.JwtToken
+import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.skatt.SkatteoppslagFeil
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.skatt.nySkattegrunnlag
+import org.json.JSONObject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
@@ -31,13 +49,21 @@ internal class SamletSkattegrunnlagTest {
     private val azureAdMock = mock<AzureAd> {
         on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
     }
+
+    private val personClientMock = mock<PersonOppslag> {
+        on { this.person(any()) } doReturn person().right()
+        on { this.sjekkTilgangTilPerson(any()) } doReturn Unit.right()
+    }
+
     val client =
         SkatteClient(
+            personOppslag = personClientMock,
             skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(
                 apiBaseUrl = wireMockServer.baseUrl(),
                 consumerId = suSeBakoverConsumerId,
             ),
             azureAd = azureAdMock,
+            //hentBrukerToken = { JwtToken.BrukerToken("lawl") }
         )
     val fnr = Fnr("21839199217")
 
@@ -126,14 +152,14 @@ internal class SamletSkattegrunnlagTest {
         client.hentSamletSkattegrunnlag(
             fnr = fnr,
             år = Year.of(2021),
-        ).skatteResponser.first().oppslag.onLeft {
+        ).getOrFail().skatteResponser.first().oppslag.onLeft {
             it.shouldBeInstanceOf<SkatteoppslagFeil.UkjentFeil>()
             it.throwable.shouldBeInstanceOf<DateTimeParseException>()
         }.onRight { fail("Forventet left") }
     }
 
     @Test
-    fun `feil i deserializeringr håndteres`() {
+    fun `feil i deserializering håndteres`() {
         wireMockServer.stubFor(
             WireMock.get("/api/spesifisertsummertskattegrunnlag")
                 .willReturn(
@@ -151,7 +177,7 @@ internal class SamletSkattegrunnlagTest {
         client.hentSamletSkattegrunnlag(
             fnr = fnr,
             år = Year.of(2021),
-        ).skatteResponser.first().oppslag.onLeft {
+        ).getOrFail().skatteResponser.first().oppslag.onLeft {
             it.shouldBeInstanceOf<SkatteoppslagFeil.UkjentFeil>()
             it.throwable.shouldBeInstanceOf<MissingKotlinParameterException>()
             it.throwable.message shouldContain "non-nullable type"

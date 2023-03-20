@@ -3,10 +3,10 @@ package no.nav.su.se.bakover.service.skatt
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.skatteetaten.SkatteClient
 import no.nav.su.se.bakover.common.YearRange
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedStadie
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedYear
+import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
 import no.nav.su.se.bakover.domain.skatt.SkatteoppslagFeil
 import no.nav.su.se.bakover.domain.skatt.Stadie
 import no.nav.su.se.bakover.test.fixedClock
@@ -26,7 +26,8 @@ class SkatteServiceImplTest {
      * false = har ikke tilgjengelig
      */
 
-    private val nettverksfeil = SkatteoppslagFeil.Nettverksfeil(IllegalArgumentException("ok"))
+    private val nettverksfeil =
+        SkatteoppslagFeil.Nettverksfeil(IllegalArgumentException("Her skjedde det en nettverskfeil"))
 
     @Test
     fun `spør for et år - {fastsatt - error, oppgjør - true, utkast - true} - Vi svarer med error`() {
@@ -39,7 +40,7 @@ class SkatteServiceImplTest {
                         samletUtkast(),
                     ),
                     år = Year.of(2021),
-                )
+                ).right()
             },
         ).hentSamletSkattegrunnlag(fnr) shouldBe KunneIkkeHenteSkattemelding.KallFeilet(nettverksfeil).left()
     }
@@ -51,7 +52,7 @@ class SkatteServiceImplTest {
                 on { hentSamletSkattegrunnlag(any(), any()) } doReturn SamletSkattegrunnlagResponseMedYear(
                     listOf(samletFastsatt(), samletOppgjør(), samletUtkast()),
                     Year.of(2021),
-                )
+                ).right()
             },
         ).hentSamletSkattegrunnlag(fnr) shouldBe nySkattegrunnlag(fnr).right()
     }
@@ -70,7 +71,7 @@ class SkatteServiceImplTest {
                         samletUtkast(),
                     ),
                     Year.of(2021),
-                )
+                ).right()
             },
         ).hentSamletSkattegrunnlag(fnr) shouldBe KunneIkkeHenteSkattemelding.KallFeilet(nettverksfeil).left()
     }
@@ -89,7 +90,7 @@ class SkatteServiceImplTest {
                         samletUtkast(),
                     ),
                     Year.of(2021),
-                )
+                ).right()
             },
         ).hentSamletSkattegrunnlag(fnr) shouldBe nySkattegrunnlag(
             fnr,
@@ -114,7 +115,7 @@ class SkatteServiceImplTest {
                         SamletSkattegrunnlagResponseMedStadie(nettverksfeil.left(), Stadie.UTKAST),
                     ),
                     Year.of(2021),
-                )
+                ).right()
             },
         ).hentSamletSkattegrunnlag(fnr) shouldBe KunneIkkeHenteSkattemelding.KallFeilet(nettverksfeil).left()
     }
@@ -136,7 +137,7 @@ class SkatteServiceImplTest {
                         samletUtkast(),
                     ),
                     Year.of(2021),
-                )
+                ).right()
             },
         ).hentSamletSkattegrunnlag(fnr) shouldBe nySkattegrunnlag(
             fnr,
@@ -164,7 +165,7 @@ class SkatteServiceImplTest {
                         ),
                     ),
                     Year.of(2021),
-                )
+                ).right()
             },
         ).hentSamletSkattegrunnlag(fnr) shouldBe
             KunneIkkeHenteSkattemelding.KallFeilet(SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr).left()
@@ -175,23 +176,25 @@ class SkatteServiceImplTest {
     fun `ingen skattedata for periode over 3 år`() {
         mockedSkatteClient(
             mock {
-                on { hentSamletSkattegrunnlag(any(), any()) } doReturn SamletSkattegrunnlagResponseMedYear(
-                    listOf(
-                        SamletSkattegrunnlagResponseMedStadie(
-                            SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
-                            Stadie.FASTSATT,
+                on { hentSamletSkattegrunnlagForÅrsperiode(any(), any()) } doReturn listOf(
+                    SamletSkattegrunnlagResponseMedYear(
+                        listOf(
+                            SamletSkattegrunnlagResponseMedStadie(
+                                SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                                Stadie.FASTSATT,
+                            ),
+                            SamletSkattegrunnlagResponseMedStadie(
+                                SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                                Stadie.OPPGJØR,
+                            ),
+                            SamletSkattegrunnlagResponseMedStadie(
+                                SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                                Stadie.UTKAST,
+                            ),
                         ),
-                        SamletSkattegrunnlagResponseMedStadie(
-                            SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
-                            Stadie.OPPGJØR,
-                        ),
-                        SamletSkattegrunnlagResponseMedStadie(
-                            SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
-                            Stadie.UTKAST,
-                        ),
+                        Year.of(2021),
                     ),
-                    Year.of(2021),
-                )
+                ).right()
             },
         ).hentSamletSkattegrunnlagForÅr(fnr, YearRange(Year.of(2020), Year.of(2023))) shouldBe
             KunneIkkeHenteSkattemelding.KallFeilet(SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr).left()
@@ -207,7 +210,7 @@ class SkatteServiceImplTest {
                         listOf(samletFastsatt(), samletOppgjør(), samletUtkast()),
                         Year.of(2021),
                     ),
-                )
+                ).right()
             },
         ).hentSamletSkattegrunnlagForÅr(fnr, YearRange(Year.of(2021), Year.of(2021))) shouldBe
             nySkattegrunnlag(fnr).right()
@@ -252,7 +255,7 @@ class SkatteServiceImplTest {
                         ),
                         Year.of(2022),
                     ),
-                )
+                ).right()
             },
         ).hentSamletSkattegrunnlagForÅr(fnr, YearRange(Year.of(2020), Year.of(2022))) shouldBe
             nySkattegrunnlag(årsgrunnlag = nyÅrsgrunnlag(inntektsÅr = Year.of(2022), stadie = Stadie.UTKAST)).right()
@@ -267,7 +270,7 @@ class SkatteServiceImplTest {
     private fun utkast() = nyÅrsgrunnlag(stadie = Stadie.UTKAST)
 
     private fun mockedSkatteClient(
-        skatteClient: SkatteClient,
+        skatteClient: Skatteoppslag,
     ): SkatteService = SkatteServiceImpl(
         skatteClient = skatteClient,
         søknadsbehandlingService = mock(),
