@@ -8,8 +8,6 @@ import no.nav.su.se.bakover.client.kabal.KlageClientStub
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
-import no.nav.su.se.bakover.client.maskinporten.MaskinportenClient
-import no.nav.su.se.bakover.client.maskinporten.MaskinportenClientStub
 import no.nav.su.se.bakover.client.pdf.PdfClient
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.skatteetaten.SkatteClient
@@ -94,7 +92,6 @@ class StubClientsBuilder(
             journalpostClient = JournalpostClientStub.also { log.warn("********** Using stub for ${JournalpostClientStub::class.java} **********") },
             tilbakekrevingClient = TilbakekrevingClientStub(clock).also { log.warn("********** Using stub for ${TilbakekrevingClient::class.java} **********") },
             skatteOppslag = SkatteClientStub(clock).also { log.warn("********** Using stub for ${SkatteClient::class.java} **********") },
-            maskinportenClient = MaskinportenClientStub(clock).also { log.warn("********** Using stub for ${MaskinportenClient::class.java} **********") },
         )
     }
 }

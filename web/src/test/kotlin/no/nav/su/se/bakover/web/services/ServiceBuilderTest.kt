@@ -68,7 +68,6 @@ internal class ServiceBuilderTest {
                 journalpostClient = mock(),
                 tilbakekrevingClient = mock(),
                 skatteOppslag = mock(),
-                maskinportenClient = mock(),
             ),
             behandlingMetrics = mock(),
             søknadMetrics = mock(),

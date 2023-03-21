@@ -81,15 +81,6 @@ fun applicationConfig() = ApplicationConfig(
             url = "safUrl",
             clientId = "safClientId",
         ),
-        maskinportenConfig = ApplicationConfig.ClientsConfig.MaskinportenConfig(
-            clientId = "maskinportenClientId",
-            scopes = "maskinportenScopes",
-            clientJwk = "maskinportenClientJwk",
-            wellKnownUrl = "maskinportenWellKnownUrl",
-            issuer = "maskinportenIssuer",
-            jwksUri = "maskinportenJwksUri",
-            tokenEndpoint = "maskinporteTokenEndpointn",
-        ),
         skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(
             apiBaseUrl = "a",
             consumerId = suSeBakoverConsumerId,

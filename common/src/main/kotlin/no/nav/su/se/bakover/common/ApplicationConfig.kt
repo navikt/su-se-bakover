@@ -342,7 +342,6 @@ data class ApplicationConfig(
         val kontaktOgReservasjonsregisterConfig: KontaktOgReservasjonsregisterConfig,
         val kabalConfig: KabalConfig,
         val safConfig: SafConfig,
-        val maskinportenConfig: MaskinportenConfig,
         val skatteetatenConfig: SkatteetatenConfig,
     ) {
         companion object {
@@ -361,7 +360,6 @@ data class ApplicationConfig(
                 kontaktOgReservasjonsregisterConfig = KontaktOgReservasjonsregisterConfig.createFromEnvironmentVariables(),
                 kabalConfig = KabalConfig.createFromEnvironmentVariables(),
                 safConfig = SafConfig.createFromEnvironmentVariables(),
-                maskinportenConfig = MaskinportenConfig.createFromEnvironmentVariables(),
                 skatteetatenConfig = SkatteetatenConfig.createFromEnvironmentVariables(),
             )
 
@@ -380,7 +378,6 @@ data class ApplicationConfig(
                 kontaktOgReservasjonsregisterConfig = KontaktOgReservasjonsregisterConfig.createLocalConfig(),
                 kabalConfig = KabalConfig.createLocalConfig(),
                 safConfig = SafConfig.createLocalConfig(),
-                maskinportenConfig = MaskinportenConfig.createLocalConfig(),
                 skatteetatenConfig = SkatteetatenConfig.createLocalConfig(),
             )
         }
@@ -491,46 +488,6 @@ data class ApplicationConfig(
                     apiBaseUrl = "mocked",
                     consumerId = NavIdentBruker.Saksbehandler.systembruker().toString(),
                 )
-            }
-        }
-
-        data class MaskinportenConfig(
-            val clientId: String,
-            val scopes: String,
-            val clientJwk: String,
-            val wellKnownUrl: String,
-            val issuer: String,
-            val jwksUri: String,
-            val tokenEndpoint: String,
-        ) {
-            companion object {
-                fun createFromEnvironmentVariables() = MaskinportenConfig(
-                    clientId = getEnvironmentVariableOrDefault("MASKINPORTEN_CLIENT_ID", "maskinporten_client_id"),
-                    scopes = getEnvironmentVariableOrDefault("MASKINPORTEN_SCOPES", "maskinporten_scopes"),
-                    clientJwk = getEnvironmentVariableOrDefault("MASKINPORTEN_CLIENT_JWK", "maskinporten_client_jwk"),
-                    wellKnownUrl = getEnvironmentVariableOrDefault(
-                        "MASKINPORTEN_WELL_KNOWN_URL",
-                        "maskinporten_well_known_url",
-                    ),
-                    issuer = getEnvironmentVariableOrDefault("MASKINPORTEN_ISSUER", "maskinporten_issuer"),
-                    jwksUri = getEnvironmentVariableOrDefault("MASKINPORTEN_JWKS_URI", "maskinporten_jwks_uri"),
-                    tokenEndpoint = getEnvironmentVariableOrDefault(
-                        "MASKINPORTEN_TOKEN_ENDPOINT",
-                        "maskinporten_token_endpoint",
-                    ),
-                )
-
-                fun createLocalConfig(): MaskinportenConfig {
-                    return MaskinportenConfig(
-                        clientId = "mocked",
-                        scopes = "mocked",
-                        clientJwk = "mocked",
-                        wellKnownUrl = "mocked",
-                        issuer = "mocked",
-                        jwksUri = "mocked",
-                        tokenEndpoint = "mocked",
-                    )
-                }
             }
         }
     }
