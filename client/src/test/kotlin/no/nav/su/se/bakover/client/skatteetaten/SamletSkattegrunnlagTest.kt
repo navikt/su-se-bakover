@@ -7,6 +7,7 @@ import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.http.Body
 import com.github.tomakehurst.wiremock.http.Fault
+import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -74,8 +75,14 @@ internal class SamletSkattegrunnlagTest {
 
         client.hentSamletSkattegrunnlag(fnr, Year.of(2021)).let {
             it.shouldBeInstanceOf<Either.Right<SamletSkattegrunnlagResponseMedYear>>()
-            it.value.skatteResponser shouldBe expected.skatteResponser
             it.value.år shouldBe expected.år
+
+            it.value.skatteResponser.first().stadie shouldBe Stadie.FASTSATT
+            it.value.skatteResponser.first().oppslag.shouldBeLeft()
+            it.value.skatteResponser[1].stadie shouldBe Stadie.OPPGJØR
+            it.value.skatteResponser[1].oppslag.shouldBeLeft()
+            it.value.skatteResponser.last().stadie shouldBe Stadie.UTKAST
+            it.value.skatteResponser.last().oppslag.shouldBeLeft()
         }
     }
 
