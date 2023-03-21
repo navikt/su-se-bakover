@@ -165,7 +165,7 @@ internal class SkatteClient(
             .uri(URI.create("${skatteetatenConfig.apiBaseUrl}/api/spesifisertsummertskattegrunnlag"))
             .header("Accept", "application/json")
             .header("Authorization", "Bearer $token")
-            .header("x-naturligident", fnr.toString())
+            .header("naturligident", fnr.toString())
             .header("inntektsaar", inntektsÅr.toString())
             .header("rettighetspakke", skatteetatenConfig.rettighetspakke)
             .header("Nav-Call-Id", correlationId.toString())
