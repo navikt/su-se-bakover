@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.skatteetaten
 
+import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
@@ -62,15 +63,20 @@ internal class SamletSkattegrunnlagTest {
         )
 
         val nettverksfeil = SkatteoppslagFeil.Nettverksfeil(IOException("Connection reset"))
-
-        client.hentSamletSkattegrunnlag(fnr, Year.of(2021)) shouldBe SamletSkattegrunnlagResponseMedYear(
+        val expected = SamletSkattegrunnlagResponseMedYear(
             skatteResponser = listOf(
                 SamletSkattegrunnlagResponseMedStadie(oppslag = nettverksfeil.left(), stadie = Stadie.FASTSATT),
                 SamletSkattegrunnlagResponseMedStadie(oppslag = nettverksfeil.left(), stadie = Stadie.OPPGJØR),
                 SamletSkattegrunnlagResponseMedStadie(oppslag = nettverksfeil.left(), stadie = Stadie.UTKAST),
             ),
             år = Year.of(2021),
-        ).right()
+        )
+
+        client.hentSamletSkattegrunnlag(fnr, Year.of(2021)).let {
+            it.shouldBeInstanceOf<Either.Right<SamletSkattegrunnlagResponseMedYear>>()
+            it.value.skatteResponser shouldBe expected.skatteResponser
+            it.value.år shouldBe expected.år
+        }
     }
 
     @Test
