@@ -25,16 +25,20 @@ internal class SimuleringResponseMapper private constructor(
     val clock: Clock,
 ) {
     constructor(
+        rawXml: String,
         oppdragResponse: SimulerBeregningResponse,
         clock: Clock,
-    ) : this(oppdragResponse.toSimulering(), clock)
+    ) : this(oppdragResponse.toSimulering(rawXml), clock)
 
     constructor(
         utbetaling: Utbetaling,
         simuleringsperiode: SimulerBeregningRequest.SimuleringsPeriode,
         clock: Clock,
     ) : this(
-        utbetaling.mapTomResponsFraOppdrag(simuleringsperiode.toPeriode(), clock),
+        utbetaling.mapTomResponsFraOppdrag(
+            simuleringsperiode = simuleringsperiode.toPeriode(),
+            clock = clock,
+        ),
         clock,
     )
 }
@@ -42,13 +46,14 @@ internal class SimuleringResponseMapper private constructor(
 private fun SimulerBeregningRequest.SimuleringsPeriode.toPeriode() =
     Periode.create(LocalDate.parse(datoSimulerFom), LocalDate.parse(datoSimulerTom))
 
-private fun SimulerBeregningResponse.toSimulering() =
+private fun SimulerBeregningResponse.toSimulering(rawXml: String) =
     Simulering(
         gjelderId = Fnr(simulering.gjelderId),
         gjelderNavn = simulering.gjelderNavn.trim(),
         datoBeregnet = LocalDate.parse(simulering.datoBeregnet),
         nettoBeløp = simulering.belop.toInt(),
         periodeList = simulering.beregningsPeriode.map { it.toSimulertPeriode() },
+        rawXml = rawXml,
     )
 
 private fun BeregningsPeriode.toSimulertPeriode() =
@@ -96,7 +101,10 @@ private fun BeregningStoppnivaaDetaljer.toSimulertDetalj() =
  * Return something with meaning for our domain for cases where simulering returns an empty response.
  * In functional terms, an empty response means that OS/UR won't perform any payments for the period in question.
  */
-private fun Utbetaling.mapTomResponsFraOppdrag(simuleringsperiode: Periode, clock: Clock): Simulering {
+private fun Utbetaling.mapTomResponsFraOppdrag(
+    simuleringsperiode: Periode,
+    clock: Clock,
+): Simulering {
     return Simulering(
         gjelderId = fnr,
         gjelderNavn = fnr.toString(), // Usually returned by response, which in this case is empty.
@@ -109,5 +117,6 @@ private fun Utbetaling.mapTomResponsFraOppdrag(simuleringsperiode: Periode, cloc
                 utbetaling = emptyList(),
             ),
         ),
+        rawXml = "Tom respons fra oppdrag.",
     )
 }

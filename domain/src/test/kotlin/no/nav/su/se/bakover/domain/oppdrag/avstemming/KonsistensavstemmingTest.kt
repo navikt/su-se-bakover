@@ -978,6 +978,7 @@ internal class KonsistensavstemmingTest {
                         utbetaling = listOf(),
                     ),
                 ),
+                rawXml = "KonsistensavstemmingTest baserer ikke denne på rå XML.",
             ),
         ).toOversendtUtbetaling(
             oppdragsmelding = Utbetalingsrequest(value = ""),

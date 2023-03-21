@@ -110,6 +110,7 @@ internal class SimuleringSoapClientTest {
                     utbetaling = emptyList(),
                 ),
             ),
+            rawXml = "Tom respons fra oppdrag.",
         ).right()
     }
 
@@ -250,6 +251,7 @@ internal class SimuleringSoapClientTest {
                     utbetaling = emptyList(),
                 ),
             ),
+            rawXml = "Tom respons fra oppdrag.",
         ).right()
     }
 

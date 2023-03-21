@@ -373,6 +373,7 @@ class SimuleringStub(
                             ),
                         )
                     },
+                    rawXml = "SimuleringStub forholder seg ikke til XML, men oppretter domenetypene direkte",
                 ).let { simulering ->
                     /**
                      * Setter bare netto til halvparten av brutto for at det skal oppføre seg ca som OS.

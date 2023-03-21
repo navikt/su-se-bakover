@@ -74,6 +74,7 @@ internal class LokalKvitteringJobTest {
                     utbetaling = emptyList(),
                 ),
             ),
+            rawXml = "LokalKvitterinJobTest baserer ikke denne på rå XML.",
         ),
     ).toOversendtUtbetaling(
         oppdragsmelding = Utbetalingsrequest(value = ""),

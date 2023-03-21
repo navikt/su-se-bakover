@@ -1,10 +1,12 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import com.ctc.wstx.exc.WstxEOFException
 import io.getunleash.Unleash
+import no.nav.su.se.bakover.client.oppdrag.XmlMapper
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingRequest
@@ -44,7 +46,15 @@ internal class SimuleringSoapClient(
                         """.trimIndent(),
                     )
                 }
-                SimuleringResponseMapper(it, clock).simulering.right()
+                // TODO jah: Ideelt sett burde vi fått tak i den rå XMLen, men CXF gjør det ikke så lett for oss (OutInterceptor).
+                val rawXml: String = Either.catch {
+                    XmlMapper.writeValueAsString(it)
+                }.getOrElse {
+                    log.error("Kunne ikke simulere SimulerBeregningResponse til xml, se sikkerlogg for stacktrace.")
+                    sikkerLogg.error("Kunne ikke simulere SimulerBeregningResponse til xml.", it)
+                    "Kunne ikke simulere SimulerBeregningResponse til xml, se sikkerlogg for stacktrace."
+                }
+                SimuleringResponseMapper(rawXml, it, clock).simulering.right()
             } ?: SimuleringResponseMapper(
                 utbetaling = request.utbetaling,
                 simuleringsperiode = simulerRequest.request.simuleringsPeriode,

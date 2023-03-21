@@ -46,7 +46,12 @@ internal class SimuleringResponseMapperTest {
             GrensesnittResponse::class.java,
         ).response
 
-        SimuleringResponseMapper(responseMedFremtidigUtbetaling, fixedClock).simulering shouldBe Simulering(
+        val rawXml = xmlResponseMedFremtidigUtbetaling
+        SimuleringResponseMapper(
+            xmlResponseMedFremtidigUtbetaling,
+            responseMedFremtidigUtbetaling,
+            fixedClock,
+        ).simulering shouldBe Simulering(
             gjelderId = fnr,
             gjelderNavn = navn,
             datoBeregnet = 14.april(2021),
@@ -82,6 +87,7 @@ internal class SimuleringResponseMapperTest {
                     ),
                 ),
             ),
+            rawXml = rawXml,
         ).also {
             it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(
@@ -124,8 +130,8 @@ internal class SimuleringResponseMapperTest {
             xmlResponseMedFremtidigUtbetaling.replace("SUUFORE", "SUALDER"),
             GrensesnittResponse::class.java,
         ).response
-
-        SimuleringResponseMapper(responseMedFremtidigUtbetaling, fixedClock).simulering shouldBe Simulering(
+        val rawXml = xmlResponseMedFremtidigUtbetaling
+        SimuleringResponseMapper(rawXml, responseMedFremtidigUtbetaling, fixedClock).simulering shouldBe Simulering(
             gjelderId = fnr,
             gjelderNavn = navn,
             datoBeregnet = 14.april(2021),
@@ -161,6 +167,7 @@ internal class SimuleringResponseMapperTest {
                     ),
                 ),
             ),
+            rawXml = rawXml,
         ).also {
             it.kontooppstilling() shouldBe mapOf(
                 april(2021) to Kontooppstilling(
@@ -273,7 +280,8 @@ internal class SimuleringResponseMapperTest {
             GrensesnittResponse::class.java,
         ).response
 
-        SimuleringResponseMapper(responseMedFeilutbetaling, fixedClock).simulering shouldBe Simulering(
+        val rawXml = xmlResponseMedFeilutbetaling
+        SimuleringResponseMapper(rawXml, responseMedFeilutbetaling, fixedClock).simulering shouldBe Simulering(
             gjelderId = fnr,
             gjelderNavn = navn,
             datoBeregnet = 14.april(2021),
@@ -394,6 +402,7 @@ internal class SimuleringResponseMapperTest {
                     ),
                 ),
             ),
+            rawXml = rawXml,
         ).also {
             it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(
@@ -727,7 +736,8 @@ internal class SimuleringResponseMapperTest {
             GrensesnittResponse::class.java,
         ).response
 
-        SimuleringResponseMapper(responseMedEtterbetaling, fixedClock).simulering shouldBe Simulering(
+        val rawXml = xmlResponseMedEtterbetaling
+        SimuleringResponseMapper(rawXml, responseMedEtterbetaling, fixedClock).simulering shouldBe Simulering(
             gjelderId = fnr,
             gjelderNavn = navn,
             datoBeregnet = 14.april(2021),
@@ -806,6 +816,7 @@ internal class SimuleringResponseMapperTest {
                     ),
                 ),
             ),
+            rawXml = rawXml,
         ).also {
             it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(
@@ -1084,7 +1095,8 @@ internal class SimuleringResponseMapperTest {
             GrensesnittResponse::class.java,
         ).response
 
-        SimuleringResponseMapper(responseMedFremtidigUtbetaling, fixedClock).simulering shouldBe Simulering(
+        val rawXml = xmlResponseMedUinteressanteKoder
+        SimuleringResponseMapper(rawXml, responseMedFremtidigUtbetaling, fixedClock).simulering shouldBe Simulering(
             gjelderId = fnr,
             gjelderNavn = navn,
             datoBeregnet = 14.april(2021),
@@ -1120,6 +1132,7 @@ internal class SimuleringResponseMapperTest {
                     ),
                 ),
             ),
+            rawXml = rawXml,
         ).also {
             it.kontooppstilling() shouldBe mapOf(
                 april(2021).tilPeriode() to Kontooppstilling(
@@ -1257,7 +1270,12 @@ internal class SimuleringResponseMapperTest {
             jsonMedÅpenFeilkonto,
             SimulerBeregningResponse::class.java,
         )
-        SimuleringResponseMapper(oppdragResponse = responseMedÅpenFeilkonto, clock = fixedClock).simulering.also {
+        val rawXml = jsonMedÅpenFeilkonto
+        SimuleringResponseMapper(
+            rawXml,
+            oppdragResponse = responseMedÅpenFeilkonto,
+            clock = fixedClock,
+        ).simulering.also {
             it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(emptyList())
             it.hentTotalUtbetaling() shouldBe Månedsbeløp(
@@ -1463,7 +1481,12 @@ internal class SimuleringResponseMapperTest {
             jsonMedÅpenFeilkontoOgEtterbetaling,
             SimulerBeregningResponse::class.java,
         )
-        SimuleringResponseMapper(oppdragResponse = responseMedÅpenFeilkonto, clock = fixedClock).simulering.also {
+        val rawXml = jsonMedÅpenFeilkontoOgEtterbetaling
+        SimuleringResponseMapper(
+            rawXml,
+            oppdragResponse = responseMedÅpenFeilkonto,
+            clock = fixedClock,
+        ).simulering.also {
             it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(
                 listOf(
@@ -1694,7 +1717,12 @@ internal class SimuleringResponseMapperTest {
             jsonMedReduksjonAvFeilkonto,
             SimulerBeregningResponse::class.java,
         )
-        SimuleringResponseMapper(oppdragResponse = responseMedÅpenFeilkonto, clock = fixedClock).simulering.also {
+        val rawXml = jsonMedReduksjonAvFeilkonto
+        SimuleringResponseMapper(
+            rawXml = rawXml,
+            oppdragResponse = responseMedÅpenFeilkonto,
+            clock = fixedClock,
+        ).simulering.also {
             it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(emptyList())
             it.hentTotalUtbetaling() shouldBe Månedsbeløp(
