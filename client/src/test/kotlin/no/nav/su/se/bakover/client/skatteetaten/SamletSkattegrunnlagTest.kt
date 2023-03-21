@@ -50,6 +50,7 @@ internal class SamletSkattegrunnlagTest {
             personOppslag = personClientMock,
             skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(
                 apiBaseUrl = wireMockServer.baseUrl(),
+                clientId = "mocked",
                 consumerId = suSeBakoverConsumerId,
             ),
             azureAd = azureAdMock,

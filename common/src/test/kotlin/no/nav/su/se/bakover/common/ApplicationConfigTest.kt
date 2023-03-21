@@ -92,6 +92,7 @@ class ApplicationConfigTest {
             ),
             skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(
                 apiBaseUrl = "skatteetatenUrl",
+                clientId = "skattClientId",
                 consumerId = suSeBakoverConsumerId,
             ),
         ),
@@ -211,6 +212,7 @@ class ApplicationConfigTest {
                 "NAIS_APP_IMAGE" to "ghcr.io/navikt/su-se-bakover/su-se-bakover:87a3a5155bf00b4d6854efcc24e8b929549c9302",
                 "KAFKA_SCHEMA_REGISTRY" to "some-schema-url",
                 "SKATTEETATEN_URL" to "skatteetatenUrl",
+                "SKATT_CLIENT_ID" to "skattClientId",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
@@ -293,6 +295,7 @@ class ApplicationConfigTest {
                     ),
                     skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(
                         apiBaseUrl = "mocked",
+                        clientId = "mocked",
                         consumerId = "srvsupstonad",
                     ),
                 ),

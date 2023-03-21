@@ -472,20 +472,24 @@ data class ApplicationConfig(
 
         data class SkatteetatenConfig(
             val apiBaseUrl: String,
+            val clientId: String,
             val consumerId: String,
             val rettighetspakke: String = "navSupplerendeStoenad",
         ) {
             companion object {
                 fun createFromEnvironmentVariables(): SkatteetatenConfig {
                     val apiBaseUrl = getEnvironmentVariableOrThrow("SKATTEETATEN_URL")
+                    val clientId = getEnvironmentVariableOrThrow("SKATT_CLIENT_ID")
                     return SkatteetatenConfig(
                         apiBaseUrl = apiBaseUrl,
+                        clientId = clientId,
                         consumerId = NavIdentBruker.Saksbehandler.systembruker().toString(),
                     )
                 }
 
                 fun createLocalConfig() = SkatteetatenConfig(
                     apiBaseUrl = "mocked",
+                    clientId = "mocked",
                     consumerId = NavIdentBruker.Saksbehandler.systembruker().toString(),
                 )
             }

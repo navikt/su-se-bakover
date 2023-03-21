@@ -41,6 +41,8 @@ import java.time.Year
  * https://skatteetaten.github.io/datasamarbeid-api-dokumentasjon/data_spesifisertsummertskattegrunnlag.html
  * https://skatteetaten.github.io/datasamarbeid-api-dokumentasjon/data_summertskattegrunnlag2021
  * https://github.com/navikt/sigrun/pull/50
+ *
+ * https://confluence.adeo.no/display/FEL/Sigrun+-+Tjeneste+REST+SummertSkattegrunnlag
  */
 internal class SkatteClient(
     private val skatteetatenConfig: SkatteetatenConfig,
@@ -104,7 +106,7 @@ internal class SkatteClient(
 
     private fun hentForÅrsperiode(fnr: Fnr, yearRange: YearRange): List<SamletSkattegrunnlagResponseMedYear> {
         val correlationId = CorrelationId.getOrCreateCorrelationIdFromThreadLocal()
-        val token = azureAd.onBehalfOfToken(hentBrukerToken().toString(), "srvsigrun")
+        val token = azureAd.onBehalfOfToken(hentBrukerToken().toString(), skatteetatenConfig.clientId)
 
         return runBlocking {
             withContext(Dispatchers.IO) {

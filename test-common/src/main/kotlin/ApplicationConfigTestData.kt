@@ -83,6 +83,7 @@ fun applicationConfig() = ApplicationConfig(
         ),
         skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(
             apiBaseUrl = "a",
+            clientId = "skattClientId",
             consumerId = suSeBakoverConsumerId,
         ),
     ),
