@@ -136,6 +136,13 @@ suspend inline fun ApplicationCall.withStringParam(parameterName: String, ifRigh
     )
 }
 
+inline fun ApplicationCall.withFnr(ifRight: (Fnr) -> Unit) {
+    this.parameter("fnr").fold(
+        { it },
+        { Fnr.tryCreate(it)?.let(ifRight) ?: Either.Left("Ugyldig fødselsnummer format") },
+    )
+}
+
 suspend inline fun ApplicationCall.withSakId(ifRight: (UUID) -> Unit) {
     this.lesUUID("sakId").fold(
         ifLeft = { this.svar(HttpStatusCode.BadRequest.errorJson(it, "sakId_mangler_eller_feil_format")) },

@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
+import no.nav.su.se.bakover.common.infrastructure.web.withFnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.toggle.domain.ToggleClient
 import no.nav.su.se.bakover.domain.skatt.SkatteoppslagFeil
@@ -23,12 +24,30 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.tilResultat
 internal const val skattPath = "/skatt"
 
 internal fun Route.skattRoutes(skatteService: SkatteService, toggleService: ToggleClient) {
+    get("$skattPath/{fnr}") {
+        if (!toggleService.isEnabled("supstonad.skattemelding")) {
+            call.respond(HttpStatusCode.NotFound)
+            return@get
+        }
+        call.withFnr { fnr ->
+            skatteService.hentSamletSkattegrunnlag(fnr).fold(
+                {
+                    call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
+                    call.svar(it.tilResultat())
+                },
+                {
+                    call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
+                    call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJSON())))
+                },
+            )
+        }
+    }
+
     get("$skattPath/{behandlingId}") {
         if (!toggleService.isEnabled("supstonad.skattemelding")) {
             call.respond(HttpStatusCode.NotFound)
             return@get
         }
-
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 skatteService.hentSamletSkattegrunnlagForBehandling(behandlingId).let { pair ->

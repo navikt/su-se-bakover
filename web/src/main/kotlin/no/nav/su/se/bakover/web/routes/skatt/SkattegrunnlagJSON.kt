@@ -13,6 +13,7 @@ internal data class SkattegrunnlagJSON(
         val inntektsår: Year,
         val skatteoppgjørsdato: LocalDate?,
         val grunnlag: Grunnlagsliste,
+        val stadie: String,
     )
 
     data class Grunnlagsliste(
@@ -59,6 +60,7 @@ internal fun Skattegrunnlag.toJSON() = SkattegrunnlagJSON(
                 oppjusteringAvEierinntekter = it.grunnlag.oppjusteringAvEierinntekter.toGrunnlagJson(),
                 annet = it.grunnlag.annet.toGrunnlagJson(),
             ),
+            stadie = it.stadie.verdi,
         )
     },
 )
