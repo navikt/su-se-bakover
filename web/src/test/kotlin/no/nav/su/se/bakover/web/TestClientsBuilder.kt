@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ClientsBuilder
 import no.nav.su.se.bakover.client.journalpost.JournalpostClientStub
 import no.nav.su.se.bakover.client.kabal.KlageClientStub
-import no.nav.su.se.bakover.client.maskinporten.MaskinportenClientStub
 import no.nav.su.se.bakover.client.skatteetaten.SkatteClientStub
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
@@ -56,7 +55,6 @@ data class TestClientsBuilder(
         journalpostClient = JournalpostClientStub,
         tilbakekrevingClient = TilbakekrevingClientStub(clock),
         skatteOppslag = SkatteClientStub(clock),
-        maskinportenClient = MaskinportenClientStub(clock),
     )
 
     override fun build(applicationConfig: ApplicationConfig): Clients = testClients

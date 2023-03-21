@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.revurdering.brev
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.suSeBakoverConsumerId
 
 sealed interface BrevvalgRevurdering {
 
@@ -32,7 +33,7 @@ sealed interface BrevvalgRevurdering {
     sealed class BestemtAv {
         object Systembruker : BestemtAv() {
             override fun toString(): String {
-                return "srvsupstonad"
+                return suSeBakoverConsumerId
             }
         }
         data class Behandler(val ident: String) : BestemtAv() {

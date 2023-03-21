@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.client.kabal.KabalHttpClient
 import no.nav.su.se.bakover.client.kafka.KafkaPublisherClient
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregisterClient
-import no.nav.su.se.bakover.client.maskinporten.MaskinportenHTTPClient
 import no.nav.su.se.bakover.client.nais.LeaderPodLookupClient
 import no.nav.su.se.bakover.client.oppdrag.IbmMqPublisher
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher.MqPublisherConfig
@@ -30,6 +29,7 @@ import no.nav.su.se.bakover.client.skjerming.SkjermingClient
 import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.JmsConfig
+import no.nav.su.se.bakover.common.suSeBakoverConsumerId
 import no.nav.su.se.bakover.domain.metrics.ClientMetrics
 import java.time.Clock
 
@@ -41,8 +41,6 @@ data class ProdClientsBuilder(
 ) : ClientsBuilder {
 
     override fun build(applicationConfig: ApplicationConfig): Clients {
-        val consumerId = "srvsupstonad"
-
         val clientsConfig = applicationConfig.clientsConfig
         val azureConfig = applicationConfig.azure
         val oAuth = AzureClient(
@@ -52,7 +50,7 @@ data class ProdClientsBuilder(
         )
         val kodeverk = KodeverkHttpClient(
             baseUrl = clientsConfig.kodeverkUrl,
-            consumerId = consumerId,
+            consumerId = suSeBakoverConsumerId,
         )
         val serviceUser = applicationConfig.serviceUser
         val tokenOppslag = StsClient(
@@ -149,12 +147,9 @@ data class ProdClientsBuilder(
                 clock = clock,
             ),
             skatteOppslag = SkatteClient(
+                personOppslag = personOppslag,
                 skatteetatenConfig = applicationConfig.clientsConfig.skatteetatenConfig,
-                clock = clock,
-            ),
-            maskinportenClient = MaskinportenHTTPClient(
-                maskinportenConfig = applicationConfig.clientsConfig.maskinportenConfig,
-                clock = clock,
+                azureAd = oAuth,
             ),
         )
     }

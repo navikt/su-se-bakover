@@ -15,5 +15,7 @@ sealed interface JwtToken {
                 return BrukerToken(MDC.get("Authorization"))
             }
         }
+
+        override fun toString() = value
     }
 }

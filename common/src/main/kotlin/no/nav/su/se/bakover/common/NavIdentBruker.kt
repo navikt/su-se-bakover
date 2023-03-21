@@ -32,7 +32,7 @@ sealed class NavIdentBruker {
         }
 
         companion object {
-            fun systembruker() = Saksbehandler("srvsupstonad")
+            fun systembruker() = Saksbehandler(suSeBakoverConsumerId)
         }
 
         override fun toString(): String = navIdent

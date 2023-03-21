@@ -224,8 +224,11 @@ object ServiceBuilder {
             sessionFactory = databaseRepos.sessionFactory,
             clock = clock,
         )
-        val skatteServiceImpl =
-            SkatteServiceImpl(skatteClient = clients.skatteOppslag, maskinportenClient = clients.maskinportenClient)
+        val skatteServiceImpl = SkatteServiceImpl(
+            skatteClient = clients.skatteOppslag,
+            søknadsbehandlingService = søknadsbehandlingService,
+            clock = clock,
+        )
         val iverksettSøknadsbehandlingService = IverksettSøknadsbehandlingServiceImpl(
             søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
             utbetalingService = utbetalingService,

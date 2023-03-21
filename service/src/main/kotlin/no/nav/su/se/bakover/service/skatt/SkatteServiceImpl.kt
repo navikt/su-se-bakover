@@ -1,47 +1,67 @@
 package no.nav.su.se.bakover.service.skatt
 
 import arrow.core.Either
-import arrow.core.flatMap
-import arrow.core.right
-import no.nav.su.se.bakover.client.ExpiringTokenResponse
-import no.nav.su.se.bakover.client.isValid
-import no.nav.su.se.bakover.client.maskinporten.KunneIkkeHenteToken
-import no.nav.su.se.bakover.client.maskinporten.MaskinportenClient
-import no.nav.su.se.bakover.client.skatteetaten.Skatteoppslag
+import arrow.core.getOrElse
+import arrow.core.left
 import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.YearRange
+import no.nav.su.se.bakover.common.toRange
+import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedYear.Companion.hentMestGyldigeSkattegrunnlag
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
+import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import java.time.Clock
+import java.time.Year
+import java.util.UUID
 
 class SkatteServiceImpl(
     private val skatteClient: Skatteoppslag,
-    private val maskinportenClient: MaskinportenClient,
+    private val søknadsbehandlingService: SøknadsbehandlingService,
+    val clock: Clock,
 ) : SkatteService {
 
-    private var maskinportenToken: ExpiringTokenResponse? = null
-
-    @Synchronized
-    private fun hentMaskinportenToken(): Either<KunneIkkeHenteToken, ExpiringTokenResponse> {
-        if (maskinportenToken.isValid()) {
-            return maskinportenToken!!.right()
-        }
-        return maskinportenClient.hentNyttToken()
-            .onRight { maskinportenToken = it }
-    }
-
-    override fun hentSamletSkattegrunnlag(fnr: Fnr): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag> {
-        return hentMaskinportenToken()
-            .mapLeft { KunneIkkeHenteSkattemelding.KunneIkkeHenteAccessToken(it) }
-            .flatMap { tokenResponse ->
-                skatteClient.hentSamletSkattegrunnlag(tokenResponse.accessToken, fnr)
-                    .mapLeft { feil -> KunneIkkeHenteSkattemelding.KallFeilet(feil) }
-                    .map { hentInntektOgFradrag(it) }
-            }
-    }
-
-    private fun hentInntektOgFradrag(skattegrunnlag: Skattegrunnlag): Skattegrunnlag =
-        skattegrunnlag.copy(
-            grunnlag = skattegrunnlag.grunnlag.filter {
-                it.kategori.contains(Skattegrunnlag.Kategori.INNTEKT) ||
-                    it.kategori.contains(Skattegrunnlag.Kategori.FORMUE)
+    override fun hentSamletSkattegrunnlag(
+        fnr: Fnr,
+    ): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag> {
+        // TODO jah: Flytt domenelogikken til domenet
+        return skatteClient.hentSamletSkattegrunnlag(fnr, Year.now(clock)).fold(
+            { KunneIkkeHenteSkattemelding.KallFeilet(it).left() },
+            {
+                it.hentMestGyldigeSkattegrunnlag()
+                    .map { Skattegrunnlag(fnr = fnr, hentetTidspunkt = Tidspunkt.now(clock), årsgrunnlag = it) }
+                    .mapLeft { KunneIkkeHenteSkattemelding.KallFeilet(it) }
             },
         )
+    }
+
+    override fun hentSamletSkattegrunnlagForÅr(
+        fnr: Fnr,
+        yearRange: YearRange,
+    ): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag> {
+        return skatteClient.hentSamletSkattegrunnlagForÅrsperiode(fnr, yearRange).fold(
+            { KunneIkkeHenteSkattemelding.KallFeilet(it).left() },
+            {
+                it.hentMestGyldigeSkattegrunnlag()
+                    .map { Skattegrunnlag(fnr = fnr, hentetTidspunkt = Tidspunkt.now(clock), årsgrunnlag = it) }
+                    .mapLeft { KunneIkkeHenteSkattemelding.KallFeilet(it) }
+            },
+        )
+    }
+
+    override fun hentSamletSkattegrunnlagForBehandling(behandlingId: UUID): Pair<Fnr, Either<KunneIkkeHenteSkattemelding, Skattegrunnlag>> {
+        val søknadsbehandling =
+            søknadsbehandlingService.hent(SøknadsbehandlingService.HentRequest(behandlingId))
+                .getOrElse { throw IllegalStateException("Fant ikke behandling $behandlingId") }
+
+        return søknadsbehandling.fnr to hentSamletSkattegrunnlagForÅr(
+            fnr = søknadsbehandling.fnr,
+            yearRange = Year.of(
+                Math.min(
+                    Year.now(clock).minusYears(1).value,
+                    søknadsbehandling.stønadsperiode?.periode?.tilOgMed?.year ?: Year.now(clock).value,
+                ),
+            ).toRange(),
+        )
+    }
 }

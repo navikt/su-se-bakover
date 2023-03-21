@@ -90,16 +90,10 @@ class ApplicationConfigTest {
                 url = "safUrl",
                 clientId = "safClientId",
             ),
-            maskinportenConfig = ApplicationConfig.ClientsConfig.MaskinportenConfig(
-                clientId = "maskinporten_client_id",
-                scopes = "maskinporten_scopes",
-                clientJwk = "maskinporten_client_jwk",
-                wellKnownUrl = "maskinporten_well_known_url",
-                issuer = "maskinporten_issuer",
-                jwksUri = "maskinporten_jwks_uri",
-                tokenEndpoint = "maskinporten_token_endpoint",
+            skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(
+                apiBaseUrl = "skatteetatenUrl",
+                consumerId = suSeBakoverConsumerId,
             ),
-            skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(apiUri = "https://api-test.sits.no"),
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(
@@ -212,17 +206,11 @@ class ApplicationConfigTest {
                 "HOSTNAME" to "hostname",
                 "MQ_TILBAKEKREVING_MOTTAK" to "tilbakekrevingMottak",
                 "TILBAKEKREVING_URL" to "tilbakekrevingUrl",
-                "MASKINPORTEN_CLIENT_ID" to "maskinporten_client_id",
-                "MASKINPORTEN_SCOPES" to "maskinporten_scopes",
-                "MASKINPORTEN_CLIENT_JWK" to "maskinporten_client_jwk",
-                "MASKINPORTEN_WELL_KNOWN_URL" to "maskinporten_well_known_url",
-                "MASKINPORTEN_ISSUER" to "maskinporten_issuer",
-                "MASKINPORTEN_JWKS_URI" to "maskinporten_jwks_uri",
-                "MASKINPORTEN_TOKEN_ENDPOINT" to "maskinporten_token_endpoint",
                 "KRR_URL" to "krrUrl",
                 "KRR_APP_ID" to "krrId",
                 "NAIS_APP_IMAGE" to "ghcr.io/navikt/su-se-bakover/su-se-bakover:87a3a5155bf00b4d6854efcc24e8b929549c9302",
                 "KAFKA_SCHEMA_REGISTRY" to "some-schema-url",
+                "SKATTEETATEN_URL" to "skatteetatenUrl",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
@@ -303,16 +291,10 @@ class ApplicationConfigTest {
                         url = "mocked",
                         clientId = "mocked",
                     ),
-                    maskinportenConfig = ApplicationConfig.ClientsConfig.MaskinportenConfig(
-                        clientId = "mocked",
-                        scopes = "mocked",
-                        clientJwk = "mocked",
-                        wellKnownUrl = "mocked",
-                        issuer = "mocked",
-                        jwksUri = "mocked",
-                        tokenEndpoint = "mocked",
+                    skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(
+                        apiBaseUrl = "mocked",
+                        consumerId = "srvsupstonad",
                     ),
-                    skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(apiUri = "mocked"),
                 ),
                 kafkaConfig = ApplicationConfig.KafkaConfig(
                     producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap())),

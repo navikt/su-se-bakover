@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.client.stubs.azure
 
-import no.nav.su.se.bakover.client.azure.AzureAd
+import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.stubs.AuthStubCommonConfig
 import org.json.JSONObject
 

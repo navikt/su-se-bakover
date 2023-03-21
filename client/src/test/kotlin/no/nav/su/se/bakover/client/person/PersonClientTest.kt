@@ -7,7 +7,6 @@ import com.github.benmanes.caffeine.cache.Cache
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.kotest.matchers.types.shouldNotBeSameInstanceAs
-import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.client.cache.newCache
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
@@ -18,6 +17,7 @@ import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Ident
+import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.common.token.JwtToken

@@ -1,16 +1,14 @@
 package no.nav.su.se.bakover.client
 
-import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
-import no.nav.su.se.bakover.client.maskinporten.MaskinportenClient
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
-import no.nav.su.se.bakover.client.skatteetaten.Skatteoppslag
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.infrastructure.nais.LeaderPodLookup
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.klage.KlageClient
@@ -21,6 +19,7 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.PersonOppslag
+import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
 
 interface ClientsBuilder {
     fun build(applicationConfig: ApplicationConfig): Clients
@@ -46,5 +45,4 @@ data class Clients(
     val journalpostClient: JournalpostClient,
     val tilbakekrevingClient: TilbakekrevingClient,
     val skatteOppslag: Skatteoppslag,
-    val maskinportenClient: MaskinportenClient,
 )

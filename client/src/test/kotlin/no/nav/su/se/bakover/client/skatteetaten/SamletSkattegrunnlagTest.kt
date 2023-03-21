@@ -3,36 +3,93 @@ package no.nav.su.se.bakover.client.skatteetaten
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.http.Body
 import com.github.tomakehurst.wiremock.http.Fault
+import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
-import no.nav.su.se.bakover.client.AccessToken
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
-import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.common.auth.AzureAd
+import no.nav.su.se.bakover.common.suSeBakoverConsumerId
+import no.nav.su.se.bakover.domain.person.PersonOppslag
+import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedStadie
+import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedYear
+import no.nav.su.se.bakover.domain.skatt.SkatteoppslagFeil
+import no.nav.su.se.bakover.domain.skatt.Stadie
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.person
+import no.nav.su.se.bakover.test.skatt.nyÅrsgrunnlag
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
+import org.junit.jupiter.api.fail
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.slf4j.MDC
+import java.io.IOException
+import java.time.Year
+import java.time.format.DateTimeParseException
 
 internal class SamletSkattegrunnlagTest {
+    private val azureAdMock = mock<AzureAd> {
+        on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
+    }
+
+    private val personClientMock = mock<PersonOppslag> {
+        on { this.person(any()) } doReturn person().right()
+        on { this.sjekkTilgangTilPerson(any()) } doReturn Unit.right()
+    }
+
     val client =
-        SkatteClient(skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(apiUri = wireMockServer.baseUrl()), fixedClock)
+        SkatteClient(
+            personOppslag = personClientMock,
+            skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(
+                apiBaseUrl = wireMockServer.baseUrl(),
+                consumerId = suSeBakoverConsumerId,
+            ),
+            azureAd = azureAdMock,
+        )
     val fnr = Fnr("21839199217")
 
     @Test
     fun `nettverks feil håndteres`() {
-        wireMockServer.stubFor(WireMock.get(wireMockServer.baseUrl()).willReturn(WireMock.aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)))
-        client.hentSamletSkattegrunnlag(AccessToken("mockedJWT"), fnr).shouldBeInstanceOf<Either.Left<SkatteoppslagFeil.Nettverksfeil>>()
+        wireMockServer.stubFor(
+            WireMock.get("/api/spesifisertsummertskattegrunnlag")
+                .willReturn(WireMock.aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)),
+        )
+
+        val nettverksfeil = SkatteoppslagFeil.Nettverksfeil(IOException("Connection reset"))
+        val expected = SamletSkattegrunnlagResponseMedYear(
+            skatteResponser = listOf(
+                SamletSkattegrunnlagResponseMedStadie(oppslag = nettverksfeil.left(), stadie = Stadie.FASTSATT),
+                SamletSkattegrunnlagResponseMedStadie(oppslag = nettverksfeil.left(), stadie = Stadie.OPPGJØR),
+                SamletSkattegrunnlagResponseMedStadie(oppslag = nettverksfeil.left(), stadie = Stadie.UTKAST),
+            ),
+            år = Year.of(2021),
+        )
+
+        client.hentSamletSkattegrunnlag(fnr, Year.of(2021)).let {
+            it.shouldBeInstanceOf<Either.Right<SamletSkattegrunnlagResponseMedYear>>()
+            it.value.år shouldBe expected.år
+
+            it.value.skatteResponser.first().stadie shouldBe Stadie.FASTSATT
+            it.value.skatteResponser.first().oppslag.shouldBeLeft()
+            it.value.skatteResponser[1].stadie shouldBe Stadie.OPPGJØR
+            it.value.skatteResponser[1].oppslag.shouldBeLeft()
+            it.value.skatteResponser.last().stadie shouldBe Stadie.UTKAST
+            it.value.skatteResponser.last().oppslag.shouldBeLeft()
+        }
     }
 
     @Test
     fun `ukjent fnr returnerer feilkode og tilsvarende skatteoppslagsfeil`() {
         wireMockServer.stubFor(
-            WireMock.get("/api/formueinntekt/summertskattegrunnlag/nav/2021/$fnr")
+            WireMock.get("/api/spesifisertsummertskattegrunnlag")
                 .willReturn(
                     WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
@@ -52,15 +109,31 @@ internal class SamletSkattegrunnlagTest {
         )
 
         client.hentSamletSkattegrunnlag(
-            accessToken = AccessToken("mockJWT"),
             fnr = fnr,
-        ) shouldBe SkatteoppslagFeil.FantIkkePerson.left()
+            år = Year.of(2021),
+        ) shouldBe SamletSkattegrunnlagResponseMedYear(
+            skatteResponser = listOf(
+                SamletSkattegrunnlagResponseMedStadie(
+                    oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                    stadie = Stadie.FASTSATT,
+                ),
+                SamletSkattegrunnlagResponseMedStadie(
+                    oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                    stadie = Stadie.OPPGJØR,
+                ),
+                SamletSkattegrunnlagResponseMedStadie(
+                    oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                    stadie = Stadie.UTKAST,
+                ),
+            ),
+            år = Year.of(2021),
+        ).right()
     }
 
     @Test
     fun `hvis skattegrunnlag ikke eksisterer for fnr og gitt år så mapper vi til tilsvarende skatteoppslagsfeil`() {
         wireMockServer.stubFor(
-            WireMock.get("/api/formueinntekt/summertskattegrunnlag/nav/2021/$fnr")
+            WireMock.get("/api/spesifisertsummertskattegrunnlag")
                 .willReturn(
                     WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
@@ -80,49 +153,36 @@ internal class SamletSkattegrunnlagTest {
         )
 
         client.hentSamletSkattegrunnlag(
-            accessToken = AccessToken("mockJWT"),
             fnr = fnr,
-        ) shouldBe SkatteoppslagFeil.FantIkkeSkattegrunnlagForGittÅr.left()
-    }
-
-    @Test
-    fun `feil i deserializering håndteres`() {
-        val feilFormatPåBody = """
-            {
-             "personidentifikator": "$fnr",
-             "ggruunnllaagg": []
-            }
-        """.trimIndent()
-        wireMockServer.stubFor(
-            WireMock.get("/api/formueinntekt/summertskattegrunnlag/nav/2021/$fnr")
-                .willReturn(
-                    WireMock.ok(feilFormatPåBody)
-                        .withHeader("Content-Type", "application/json"),
+            år = Year.of(2021),
+        ) shouldBe SamletSkattegrunnlagResponseMedYear(
+            skatteResponser = listOf(
+                SamletSkattegrunnlagResponseMedStadie(
+                    oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                    stadie = Stadie.FASTSATT,
                 ),
-        )
-
-        val response = client.hentSamletSkattegrunnlag(
-            accessToken = AccessToken("mockJWT"),
-            fnr = fnr,
-        )
-
-        response.shouldBeInstanceOf<Either.Left<SkatteoppslagFeil.DeserializeringFeil>>()
+                SamletSkattegrunnlagResponseMedStadie(
+                    oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                    stadie = Stadie.OPPGJØR,
+                ),
+                SamletSkattegrunnlagResponseMedStadie(
+                    oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                    stadie = Stadie.UTKAST,
+                ),
+            ),
+            år = Year.of(2021),
+        ).right()
     }
 
     @Test
-    fun `feil i data-mappingen håndteres`() {
-        val feilformatertFnr = "123 x 567 y"
+    fun `feil i mapping håndteres`() {
         wireMockServer.stubFor(
-            WireMock.get("/api/formueinntekt/summertskattegrunnlag/nav/2021/$fnr")
+            WireMock.get("/api/spesifisertsummertskattegrunnlag")
                 .willReturn(
                     WireMock.ok(
                         """
                         {
-                          "personidentifikator": "$feilformatertFnr",
-                          "inntektsaar": "2021",
-                          "skjermet": false,
-                          "grunnlag": [],
-                          "skatteoppgjoersdato": "2022-02-10"
+                         "skatteoppgjoersdato":"en-dato-som-ikke-kan-parses"
                         }
                         """.trimIndent(),
                     )
@@ -131,39 +191,99 @@ internal class SamletSkattegrunnlagTest {
         )
 
         client.hentSamletSkattegrunnlag(
-            accessToken = AccessToken("mockJWT"),
             fnr = fnr,
-        ) shouldBe SkatteoppslagFeil.MappingFeil.left()
+            år = Year.of(2021),
+        ).getOrFail().skatteResponser.first().oppslag.onLeft {
+            it.shouldBeInstanceOf<SkatteoppslagFeil.UkjentFeil>()
+            it.throwable.shouldBeInstanceOf<DateTimeParseException>()
+        }.onRight { fail("Forventet left") }
+    }
+
+    @Test
+    fun `feil i deserializering håndteres`() {
+        wireMockServer.stubFor(
+            WireMock.get("/api/spesifisertsummertskattegrunnlag")
+                .willReturn(
+                    WireMock.ok(
+                        """
+                        {
+                         "grunnlag":[{}]
+                        }
+                        """.trimIndent(),
+                    )
+                        .withHeader("Content-Type", "application/json"),
+                ),
+        )
+
+        client.hentSamletSkattegrunnlag(
+            fnr = fnr,
+            år = Year.of(2021),
+        ).getOrFail().skatteResponser.first().oppslag.onLeft {
+            it.shouldBeInstanceOf<SkatteoppslagFeil.UkjentFeil>()
+            it.throwable.shouldBeInstanceOf<MissingKotlinParameterException>()
+            it.throwable.message shouldContain "non-nullable type"
+        }.onRight { fail("Forventet left") }
     }
 
     @Test
     fun `success response gir mapped data`() {
         wireMockServer.stubFor(
-            WireMock.get("/api/formueinntekt/summertskattegrunnlag/nav/2021/$fnr")
+            WireMock.get("/api/spesifisertsummertskattegrunnlag")
                 .willReturn(
+                    // language=JSON
                     WireMock.ok(
                         """
                         {
-                          "personidentifikator": "21839199217",
-                          "inntektsaar": "2021",
-                          "skjermet": false,
                           "grunnlag": [
+                          {
+                            "kategori": ["formue"],
+                            "tekniskNavn": "bruttoformue",
+                            "beloep": "1238"
+                          },
                             {
-                              "tekniskNavn": "samletLoennsinntektMedTrygdeavgiftspliktOgMedTrekkplikt",
-                              "beloep": 762732,
-                              "kategori": [
-                                "inntekt"
-                              ]
+                              "beloep": "1000",
+                              "tekniskNavn": "alminneligInntektFoerSaerfradrag",
+                              "kategori": ["inntekt"]
                             },
                             {
-                              "tekniskNavn": "minstefradragIInntekt",
-                              "beloep": 106750,
-                              "kategori": [
-                                "inntektsfradrag"
-                              ]
+                              "beloep": "6000",
+                              "tekniskNavn": "samletAnnenGjeld",
+                              "kategori": ["formuesfradrag"]
+                            },
+                            {
+                              "beloep": "4000",
+                              "tekniskNavn": "fradragForFagforeningskontingent",
+                              "kategori": ["inntektsfradrag"]
                             }
                           ],
-                          "skatteoppgjoersdato": "2022-02-10"
+                          "skatteoppgjoersdato": "2021-04-01",
+                          "svalbardGrunnlag": [
+                            {
+                              "beloep": "20000",
+                              "tekniskNavn": "formuesverdiForKjoeretoey",
+                              "kategori": ["formue"],
+                              "spesifisering": [
+                                {
+                                  "type": "Kjoeretoey",
+                                  "aarForFoerstegangsregistrering": "1957",
+                                  "beloep": "15000",
+                                  "fabrikatnavn": "Troll",
+                                  "formuesverdi": "15000",
+                                  "registreringsnummer": "AB12345"
+                                },
+                                  {
+                                  "type": "Kjoeretoey",
+                                  "aarForFoerstegangsregistrering": "2003",
+                                  "antattMarkedsverdi": null,
+                                  "antattVerdiSomNytt": null,
+                                  "beloep": "5000",
+                                  "fabrikatnavn": "Think",
+                                  "formuesverdi": "5000",
+                                  "registreringsnummer": "BC67890"
+                                }
+                              ]
+                            }
+                          ]
                         }
                         """.trimIndent(),
                     )
@@ -172,25 +292,29 @@ internal class SamletSkattegrunnlagTest {
         )
 
         client.hentSamletSkattegrunnlag(
-            accessToken = AccessToken("mockJWT"),
-            fnr = fnr,
-        ) shouldBe Skattegrunnlag(
-            fnr = fnr,
-            inntektsår = 2021,
-            grunnlag = listOf(
-                Skattegrunnlag.Grunnlag(
-                    navn = "samletLoennsinntektMedTrygdeavgiftspliktOgMedTrekkplikt",
-                    beløp = 762732,
-                    kategori = listOf(Skattegrunnlag.Kategori.INNTEKT),
+            fnr = Fnr(fnr = "04900148157"),
+            år = Year.of(2021),
+        ) shouldBe SamletSkattegrunnlagResponseMedYear(
+            skatteResponser = listOf(
+                SamletSkattegrunnlagResponseMedStadie(oppslag = nyÅrsgrunnlag().right(), stadie = Stadie.FASTSATT),
+                SamletSkattegrunnlagResponseMedStadie(
+                    oppslag = nyÅrsgrunnlag(stadie = Stadie.OPPGJØR).right(),
+                    stadie = Stadie.OPPGJØR,
                 ),
-                Skattegrunnlag.Grunnlag(
-                    navn = "minstefradragIInntekt",
-                    beløp = 106750,
-                    kategori = listOf(Skattegrunnlag.Kategori.INNTEKTSFRADRAG),
+                SamletSkattegrunnlagResponseMedStadie(
+                    oppslag = nyÅrsgrunnlag(stadie = Stadie.UTKAST).right(),
+                    stadie = Stadie.UTKAST,
                 ),
             ),
-            skatteoppgjoersdato = LocalDate.of(2022, 2, 10),
-            hentetDato = fixedTidspunkt,
+            år = Year.of(2021),
         ).right()
+    }
+
+    companion object {
+        @JvmStatic
+        @BeforeAll
+        fun beforeAll() {
+            MDC.put("Authorization", "Bearer abc")
+        }
     }
 }
