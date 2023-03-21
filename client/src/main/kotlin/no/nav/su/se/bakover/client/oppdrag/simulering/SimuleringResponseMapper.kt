@@ -17,6 +17,9 @@ import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.
 import java.time.Clock
 import java.time.LocalDate
 
+/**
+ * https://confluence.adeo.no/display/OKSY/Returdata+fra+Oppdragssystemet+til+fagrutinen
+ */
 internal class SimuleringResponseMapper private constructor(
     val simulering: Simulering,
     val clock: Clock,

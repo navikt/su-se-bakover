@@ -14,6 +14,9 @@ import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningRequest
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningRequest as SimulerBeregningGrensesnittRequest
 
+/**
+ * https://confluence.adeo.no/display/OKSY/Inputdata+fra+fagrutinen+til+Oppdragssystemet
+ */
 internal class SimuleringRequestBuilder(
     private val simuleringsperiode: Periode,
     private val mappedRequest: UtbetalingRequest.OppdragRequest,
