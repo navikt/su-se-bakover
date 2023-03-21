@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.web.SharedRegressionTestData
 fun hentSkattegrunnlagForÅr(
     behandlingId: String,
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
-    url: String = "/skatt/$behandlingId",
+    url: String = "/skatt/soknadsbehandling/$behandlingId",
     client: HttpClient,
 ): String {
     return runBlocking {

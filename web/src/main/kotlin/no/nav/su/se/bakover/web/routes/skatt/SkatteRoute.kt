@@ -24,7 +24,7 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.tilResultat
 internal const val skattPath = "/skatt"
 
 internal fun Route.skattRoutes(skatteService: SkatteService, toggleService: ToggleClient) {
-    get("$skattPath/{fnr}") {
+    get("$skattPath/person/{fnr}") {
         if (!toggleService.isEnabled("supstonad.skattemelding")) {
             call.respond(HttpStatusCode.NotFound)
             return@get
@@ -43,7 +43,7 @@ internal fun Route.skattRoutes(skatteService: SkatteService, toggleService: Togg
         }
     }
 
-    get("$skattPath/{behandlingId}") {
+    get("$skattPath/soknadsbehandling/{behandlingId}") {
         if (!toggleService.isEnabled("supstonad.skattemelding")) {
             call.respond(HttpStatusCode.NotFound)
             return@get

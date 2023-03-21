@@ -53,6 +53,7 @@ fun assertSkattegrunnlag(
               {
                  "inntektsår":"2020",
                  "skatteoppgjørsdato":null,
+                 "stadie": "fastsatt",
                  "grunnlag":{
                     "formue":[
                        {
