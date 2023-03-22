@@ -199,7 +199,7 @@ internal class SkatteClient(
             log.error("Kall mot Sigrun/skatteetatens api feilet med statuskode ${response.statusCode()}. Se sikkerlogg.")
             sikkerLogg.error(
                 "Kall mot Sigrun/skatteetatens api feilet med statuskode ${response.statusCode()}, Fnr: $fnr, Inntektsår: $inntektsÅr, Stadie: $stadie og følgende feil: ${response.body()}. " +
-                    "Request $getRequest er forespørselen mot skatteetaten som feilet.",
+                    "Request $getRequest er forespørselen mot skatteetaten som feilet. headere ${getRequest?.headers()}",
                 throwable,
             )
         }
