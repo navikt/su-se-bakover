@@ -18,7 +18,7 @@ data class Simulering(
     val datoBeregnet: LocalDate,
     val nettoBeløp: Int,
     val periodeList: List<SimulertPeriode>,
-    val rawXml: String,
+    val rawXml: String? = "Simuleringen utført før rawXml ble lagt til",
 ) {
     private val tolkning = TolketSimulering(this)
 
