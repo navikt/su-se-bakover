@@ -1,0 +1,22 @@
+name: Build and deploy to dev
+
+on:
+  workflow_dispatch
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}/su-se-bakover:${{ github.sha }}
+
+jobs:
+  deploy_to_dev:
+    name: Deploy to dev
+    needs: build
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: nais/deploy/actions/deploy@v1
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: dev-fss
+          RESOURCE: nais.yml
+          VARS: nais-dev.json

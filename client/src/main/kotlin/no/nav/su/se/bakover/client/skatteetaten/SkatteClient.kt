@@ -180,7 +180,7 @@ internal class SkatteClient(
             log.warn("Fikk en exception ${it.message} i henting av data fra Sigrun/skatteetaten. Se sikkerlogg.", it)
             sikkerLogg.warn(
                 "Fikk en exception ${it.message} i henting av data fra Sigrun/skatteetaten. " +
-                    "Request $getRequest er forespørselen mot skatteetaten som feilet.",
+                    "Request $getRequest er forespørselen mot skatteetaten som feilet. Headere ${getRequest.headers()}",
             )
             SkatteoppslagFeil.Nettverksfeil(it)
         }.flatMap { response ->
