@@ -47,14 +47,14 @@ internal class SimuleringSoapClient(
                     )
                 }
                 // TODO jah: Ideelt sett burde vi fått tak i den rå XMLen, men CXF gjør det ikke så lett for oss (OutInterceptor).
-                val rawXml: String = Either.catch {
+                val rawResponse: String = Either.catch {
                     XmlMapper.writeValueAsString(it)
                 }.getOrElse {
                     log.error("Kunne ikke simulere SimulerBeregningResponse til xml, se sikkerlogg for stacktrace.")
                     sikkerLogg.error("Kunne ikke simulere SimulerBeregningResponse til xml.", it)
                     "Kunne ikke simulere SimulerBeregningResponse til xml, se sikkerlogg for stacktrace."
                 }
-                SimuleringResponseMapper(rawXml, it, clock).simulering.right()
+                SimuleringResponseMapper(rawResponse, it, clock).simulering.right()
             } ?: SimuleringResponseMapper(
                 utbetaling = request.utbetaling,
                 simuleringsperiode = simulerRequest.request.simuleringsPeriode,

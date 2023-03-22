@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.domain.sak.Sakstype
 import java.time.LocalDate
 
 /**
- * @param rawXml den rå XMLen slik den kom fra oppdragssystemet.
+ * @param rawResponse den rå responsen slik den kom fra oppdragssystemet.
  */
 data class Simulering(
     val gjelderId: Fnr,
@@ -18,7 +18,7 @@ data class Simulering(
     val datoBeregnet: LocalDate,
     val nettoBeløp: Int,
     val periodeList: List<SimulertPeriode>,
-    val rawXml: String? = "Simuleringen utført før rawXml ble lagt til",
+    val rawResponse: String? = "Simuleringen utført før feltet rawResponse ble lagt til",
 ) {
     private val tolkning = TolketSimulering(this)
 

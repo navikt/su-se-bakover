@@ -46,7 +46,7 @@ internal class SimuleringResponseMapperTest {
             GrensesnittResponse::class.java,
         ).response
 
-        val rawXml = xmlResponseMedFremtidigUtbetaling
+        val rawResponse = xmlResponseMedFremtidigUtbetaling
         SimuleringResponseMapper(
             xmlResponseMedFremtidigUtbetaling,
             responseMedFremtidigUtbetaling,
@@ -87,7 +87,7 @@ internal class SimuleringResponseMapperTest {
                     ),
                 ),
             ),
-            rawXml = rawXml,
+            rawResponse = rawResponse,
         ).also {
             it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(
@@ -130,8 +130,8 @@ internal class SimuleringResponseMapperTest {
             xmlResponseMedFremtidigUtbetaling.replace("SUUFORE", "SUALDER"),
             GrensesnittResponse::class.java,
         ).response
-        val rawXml = xmlResponseMedFremtidigUtbetaling
-        SimuleringResponseMapper(rawXml, responseMedFremtidigUtbetaling, fixedClock).simulering shouldBe Simulering(
+        val rawResponse = xmlResponseMedFremtidigUtbetaling
+        SimuleringResponseMapper(rawResponse, responseMedFremtidigUtbetaling, fixedClock).simulering shouldBe Simulering(
             gjelderId = fnr,
             gjelderNavn = navn,
             datoBeregnet = 14.april(2021),
@@ -167,7 +167,7 @@ internal class SimuleringResponseMapperTest {
                     ),
                 ),
             ),
-            rawXml = rawXml,
+            rawResponse = rawResponse,
         ).also {
             it.kontooppstilling() shouldBe mapOf(
                 april(2021) to Kontooppstilling(
@@ -280,8 +280,8 @@ internal class SimuleringResponseMapperTest {
             GrensesnittResponse::class.java,
         ).response
 
-        val rawXml = xmlResponseMedFeilutbetaling
-        SimuleringResponseMapper(rawXml, responseMedFeilutbetaling, fixedClock).simulering shouldBe Simulering(
+        val rawResponse = xmlResponseMedFeilutbetaling
+        SimuleringResponseMapper(rawResponse, responseMedFeilutbetaling, fixedClock).simulering shouldBe Simulering(
             gjelderId = fnr,
             gjelderNavn = navn,
             datoBeregnet = 14.april(2021),
@@ -402,7 +402,7 @@ internal class SimuleringResponseMapperTest {
                     ),
                 ),
             ),
-            rawXml = rawXml,
+            rawResponse = rawResponse,
         ).also {
             it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(
@@ -736,8 +736,8 @@ internal class SimuleringResponseMapperTest {
             GrensesnittResponse::class.java,
         ).response
 
-        val rawXml = xmlResponseMedEtterbetaling
-        SimuleringResponseMapper(rawXml, responseMedEtterbetaling, fixedClock).simulering shouldBe Simulering(
+        val rawResponse = xmlResponseMedEtterbetaling
+        SimuleringResponseMapper(rawResponse, responseMedEtterbetaling, fixedClock).simulering shouldBe Simulering(
             gjelderId = fnr,
             gjelderNavn = navn,
             datoBeregnet = 14.april(2021),
@@ -816,7 +816,7 @@ internal class SimuleringResponseMapperTest {
                     ),
                 ),
             ),
-            rawXml = rawXml,
+            rawResponse = rawResponse,
         ).also {
             it.erAlleMånederUtenUtbetaling() shouldBe false
             it.hentTilUtbetaling() shouldBe Månedsbeløp(
@@ -1095,8 +1095,8 @@ internal class SimuleringResponseMapperTest {
             GrensesnittResponse::class.java,
         ).response
 
-        val rawXml = xmlResponseMedUinteressanteKoder
-        SimuleringResponseMapper(rawXml, responseMedFremtidigUtbetaling, fixedClock).simulering shouldBe Simulering(
+        val rawResponse = xmlResponseMedUinteressanteKoder
+        SimuleringResponseMapper(rawResponse, responseMedFremtidigUtbetaling, fixedClock).simulering shouldBe Simulering(
             gjelderId = fnr,
             gjelderNavn = navn,
             datoBeregnet = 14.april(2021),
@@ -1132,7 +1132,7 @@ internal class SimuleringResponseMapperTest {
                     ),
                 ),
             ),
-            rawXml = rawXml,
+            rawResponse = rawResponse,
         ).also {
             it.kontooppstilling() shouldBe mapOf(
                 april(2021).tilPeriode() to Kontooppstilling(
@@ -1270,9 +1270,9 @@ internal class SimuleringResponseMapperTest {
             jsonMedÅpenFeilkonto,
             SimulerBeregningResponse::class.java,
         )
-        val rawXml = jsonMedÅpenFeilkonto
+        val rawResponse = jsonMedÅpenFeilkonto
         SimuleringResponseMapper(
-            rawXml,
+            rawResponse,
             oppdragResponse = responseMedÅpenFeilkonto,
             clock = fixedClock,
         ).simulering.also {
@@ -1481,9 +1481,9 @@ internal class SimuleringResponseMapperTest {
             jsonMedÅpenFeilkontoOgEtterbetaling,
             SimulerBeregningResponse::class.java,
         )
-        val rawXml = jsonMedÅpenFeilkontoOgEtterbetaling
+        val rawResponse = jsonMedÅpenFeilkontoOgEtterbetaling
         SimuleringResponseMapper(
-            rawXml,
+            rawResponse,
             oppdragResponse = responseMedÅpenFeilkonto,
             clock = fixedClock,
         ).simulering.also {
@@ -1717,9 +1717,9 @@ internal class SimuleringResponseMapperTest {
             jsonMedReduksjonAvFeilkonto,
             SimulerBeregningResponse::class.java,
         )
-        val rawXml = jsonMedReduksjonAvFeilkonto
+        val rawResponse = jsonMedReduksjonAvFeilkonto
         SimuleringResponseMapper(
-            rawXml = rawXml,
+            rawResponse = rawResponse,
             oppdragResponse = responseMedÅpenFeilkonto,
             clock = fixedClock,
         ).simulering.also {

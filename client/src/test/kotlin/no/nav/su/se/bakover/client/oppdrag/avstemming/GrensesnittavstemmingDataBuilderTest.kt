@@ -177,7 +177,7 @@ private val simulering = Simulering(
             utbetaling = listOf(),
         ),
     ),
-    rawXml = "GrensesnittavstemmingDataBuilderTest baserer seg ikke på rå XML.",
+    rawResponse = "GrensesnittavstemmingDataBuilderTest baserer seg ikke på rå XML.",
 )
 
 internal fun alleUtbetalinger() = listOf(

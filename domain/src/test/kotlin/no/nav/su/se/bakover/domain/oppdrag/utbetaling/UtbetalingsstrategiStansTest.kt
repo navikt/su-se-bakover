@@ -419,7 +419,7 @@ internal class UtbetalingsstrategiStansTest {
                         utbetaling = listOf(),
                     ),
                 ),
-                rawXml = "UtbetalingsstrategiStansTest baserer ikke denne på rå XML.",
+                rawResponse = "UtbetalingsstrategiStansTest baserer ikke denne på rå XML.",
             ),
         ).toOversendtUtbetaling(
             oppdragsmelding = Utbetalingsrequest(

@@ -435,7 +435,7 @@ fun simulering(
         datoBeregnet = fixedLocalDate,
         nettoBeløp = 0,
         periodeList = simulertePerioder,
-        rawXml = "SimuleringTestData baserer seg ikke på rå XML.",
+        rawResponse = "SimuleringTestData baserer seg ikke på rå XML.",
     ).settFiktivNetto()
 }
 
@@ -450,7 +450,7 @@ fun simuleringFeilutbetaling(
         datoBeregnet = fixedLocalDate,
         nettoBeløp = 0,
         periodeList = simulertePerioder,
-        rawXml = "SimuleringTestData baserer seg ikke på rå XML.",
+        rawResponse = "SimuleringTestData baserer seg ikke på rå XML.",
     ).settFiktivNetto()
 }
 

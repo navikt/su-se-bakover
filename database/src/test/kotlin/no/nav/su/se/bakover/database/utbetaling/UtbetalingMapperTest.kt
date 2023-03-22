@@ -50,7 +50,7 @@ internal class UtbetalingMapperTest {
                         utbetaling = listOf(),
                     ),
                 ),
-                rawXml = "UtbetalingMapperTest baserer ikke denne på rå XML.",
+                rawResponse = "UtbetalingMapperTest baserer ikke denne på rå XML.",
             ),
             utbetalingsrequest = Utbetalingsrequest(
                 value = "",
@@ -86,7 +86,7 @@ internal class UtbetalingMapperTest {
                         utbetaling = listOf(),
                     ),
                 ),
-                rawXml = "UtbetalingsstrategiGjenopptaTest baserer ikke denne på rå XML.",
+                rawResponse = "UtbetalingsstrategiGjenopptaTest baserer ikke denne på rå XML.",
             ),
             utbetalingsrequest = Utbetalingsrequest(
                 value = "",

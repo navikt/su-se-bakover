@@ -171,7 +171,7 @@ class AvstemmingPublisherTest {
                             utbetaling = listOf(),
                         ),
                     ),
-                    rawXml = "AvstemmingPublisherTest baserer seg ikke på rå XML",
+                    rawResponse = "AvstemmingPublisherTest baserer seg ikke på rå XML",
                 ),
             ).toOversendtUtbetaling(
                 oppdragsmelding = Utbetalingsrequest(value = ""),

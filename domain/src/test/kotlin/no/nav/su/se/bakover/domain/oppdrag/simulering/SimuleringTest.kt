@@ -70,7 +70,7 @@ internal class SimuleringTest {
                             ),
                         ),
                     ),
-                    rawXml = "SimuleringTest baserer ikke denne på rå XML.",
+                    rawResponse = "SimuleringTest baserer ikke denne på rå XML.",
                 ).let {
                     it.hentTotalUtbetaling() shouldBe Månedsbeløp(
                         listOf(
@@ -129,7 +129,7 @@ internal class SimuleringTest {
                             ),
                         ),
                     ),
-                    rawXml = "SimuleringTest baserer ikke denne på rå XML.",
+                    rawResponse = "SimuleringTest baserer ikke denne på rå XML.",
                 ).let {
                     it.hentTotalUtbetaling() shouldBe Månedsbeløp(
                         listOf(
@@ -254,7 +254,7 @@ internal class SimuleringTest {
                             ),
                         ),
                     ),
-                    rawXml = "SimuleringTest baserer ikke denne på rå XML.",
+                    rawResponse = "SimuleringTest baserer ikke denne på rå XML.",
                 ).let {
                     it.hentTotalUtbetaling() shouldBe Månedsbeløp(
                         listOf(
@@ -350,7 +350,7 @@ internal class SimuleringTest {
                             ),
                         ),
                     ),
-                    rawXml = "SimuleringTest baserer ikke denne på rå XML.",
+                    rawResponse = "SimuleringTest baserer ikke denne på rå XML.",
                 ).let {
                     it.hentTotalUtbetaling() shouldBe Månedsbeløp(emptyList())
                     it.hentFeilutbetalteBeløp() shouldBe Månedsbeløp(
@@ -452,7 +452,7 @@ internal class SimuleringTest {
                             ),
                         ),
                     ),
-                    rawXml = "SimuleringTest baserer ikke denne på rå XML.",
+                    rawResponse = "SimuleringTest baserer ikke denne på rå XML.",
                 ).let {
                     it.hentTotalUtbetaling() shouldBe Månedsbeløp(
                         listOf(
@@ -560,7 +560,7 @@ internal class SimuleringTest {
                             ),
                         ),
                     ),
-                    rawXml = "SimuleringTest baserer ikke denne på rå XML.",
+                    rawResponse = "SimuleringTest baserer ikke denne på rå XML.",
                 ).let {
                     it.hentTotalUtbetaling() shouldBe Månedsbeløp(
                         listOf(
@@ -600,7 +600,7 @@ internal class SimuleringTest {
                             utbetaling = emptyList(),
                         ),
                     ),
-                    rawXml = "SimuleringTest baserer ikke denne på rå XML.",
+                    rawResponse = "SimuleringTest baserer ikke denne på rå XML.",
                 ).let {
                     it.kontooppstilling() shouldBe mapOf(
                         år(2021) to Kontooppstilling(

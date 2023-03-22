@@ -25,10 +25,10 @@ internal class SimuleringResponseMapper private constructor(
     val clock: Clock,
 ) {
     constructor(
-        rawXml: String,
+        rawResponse: String,
         oppdragResponse: SimulerBeregningResponse,
         clock: Clock,
-    ) : this(oppdragResponse.toSimulering(rawXml), clock)
+    ) : this(oppdragResponse.toSimulering(rawResponse), clock)
 
     constructor(
         utbetaling: Utbetaling,
@@ -46,15 +46,18 @@ internal class SimuleringResponseMapper private constructor(
 private fun SimulerBeregningRequest.SimuleringsPeriode.toPeriode() =
     Periode.create(LocalDate.parse(datoSimulerFom), LocalDate.parse(datoSimulerTom))
 
-private fun SimulerBeregningResponse.toSimulering(rawXml: String) =
-    Simulering(
+private fun SimulerBeregningResponse.toSimulering(
+    rawResponse: String,
+): Simulering {
+    return Simulering(
         gjelderId = Fnr(simulering.gjelderId),
         gjelderNavn = simulering.gjelderNavn.trim(),
         datoBeregnet = LocalDate.parse(simulering.datoBeregnet),
         nettoBeløp = simulering.belop.toInt(),
         periodeList = simulering.beregningsPeriode.map { it.toSimulertPeriode() },
-        rawXml = rawXml,
+        rawResponse = rawResponse,
     )
+}
 
 private fun BeregningsPeriode.toSimulertPeriode() =
     SimulertPeriode(
@@ -117,6 +120,6 @@ private fun Utbetaling.mapTomResponsFraOppdrag(
                 utbetaling = emptyList(),
             ),
         ),
-        rawXml = "Tom respons fra oppdrag.",
+        rawResponse = "Tom respons fra oppdrag.",
     )
 }
