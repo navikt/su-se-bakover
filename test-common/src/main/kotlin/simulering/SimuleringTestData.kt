@@ -47,6 +47,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 private data class UtbetalingRepoMock(
@@ -133,7 +134,8 @@ fun simulerUtbetaling(
 ): Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
     return simulerNyUtbetaling(
         sak = sak,
-        beregning = søknadsbehandling.beregning ?: throw IllegalArgumentException("Kan ikke simulere, søknadsbehandling har ingen beregning"),
+        beregning = søknadsbehandling.beregning
+            ?: throw IllegalArgumentException("Kan ikke simulere, søknadsbehandling har ingen beregning"),
         kontrollerMotSimulering = søknadsbehandling.simulering,
         uføregrunnlag = søknadsbehandling.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag.toNonEmptyList(),
         simuleringsperiode = simuleringsperiode,
@@ -157,7 +159,8 @@ fun simulerUtbetaling(
 ): Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
     return simulerNyUtbetaling(
         sak = sak,
-        beregning = revurdering.beregning ?: throw IllegalArgumentException("Kan ikke simulere, revurdering har ingen beregning"),
+        beregning = revurdering.beregning
+            ?: throw IllegalArgumentException("Kan ikke simulere, revurdering har ingen beregning"),
         kontrollerMotSimulering = revurdering.simulering,
         uføregrunnlag = revurdering.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag.toNonEmptyList(),
         simuleringsperiode = simuleringsperiode,
@@ -182,7 +185,8 @@ fun simulerUtbetaling(
 ): Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
     return simulerNyUtbetaling(
         sak = sak,
-        beregning = regulering.beregning ?: throw IllegalArgumentException("Kan ikke simulere, regulering har ingen beregning"),
+        beregning = regulering.beregning
+            ?: throw IllegalArgumentException("Kan ikke simulere, regulering har ingen beregning"),
         kontrollerMotSimulering = regulering.simulering,
         uføregrunnlag = regulering.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag.toNonEmptyList(),
         simuleringsperiode = simuleringsperiode,
@@ -404,9 +408,7 @@ fun simuleringOpphørt(
         periode = opphørsperiode,
         sakstype = Sakstype.UFØRE, // TODO("simulering_utbetaling_alder utled fra sak/behandling")
     ).generate().let {
-        val opphør = it.utbetalingslinjer
-            .filterIsInstance<Utbetalingslinje.Endring.Opphør>()
-            .single()
+        val opphør = it.utbetalingslinjer.filterIsInstance<Utbetalingslinje.Endring.Opphør>().single()
 
         SimuleringStub(
             clock = nåtidForSimuleringStub, // Overstyr klokke slik at vi kan simulere feilutbetalinger tilbake i tid,
@@ -456,7 +458,7 @@ fun simuleringFeilutbetaling(
 
 fun simulertPeriode(
     periode: Periode,
-    simulerteUtbetalinger: List<SimulertUtbetaling> = listOf(simulertUtbetaling(periode)),
+    simulerteUtbetalinger: SimulertUtbetaling? = simulertUtbetaling(periode),
 ): SimulertPeriode = SimulertPeriode(
     fraOgMed = periode.fraOgMed,
     tilOgMed = periode.tilOgMed,
@@ -465,14 +467,12 @@ fun simulertPeriode(
 
 fun simulertPeriodeFeilutbetaling(
     periode: Periode,
-    simulerteUtbetalinger: List<SimulertUtbetaling> = listOf(
-        simulertUtbetaling(
-            periode = periode,
-            simulertDetaljer = listOf(
-                simulertDetaljFeilutbetaling(periode, 15000),
-                simulertDetaljTilbakeføring(periode, 15000),
-                simulertDetaljOrdinær(periode, 7000),
-            ),
+    simulerteUtbetalinger: SimulertUtbetaling? = simulertUtbetaling(
+        periode = periode,
+        simulertDetaljer = listOf(
+            simulertDetaljFeilutbetaling(periode, 15000),
+            simulertDetaljTilbakeføring(periode, 15000),
+            simulertDetaljOrdinær(periode, 7000),
         ),
     ),
 ): SimulertPeriode = SimulertPeriode(
@@ -564,3 +564,338 @@ fun simulertDetaljTilbakeføring(
     klassekodeBeskrivelse = "",
     klasseType = KlasseType.YTEL,
 )
+
+data class SimuleringResponseData(
+    var gjelderId: String = fnr.toString(),
+    var gjelderNavn: String = "Test Testesen",
+    var datoBeregnet: String = "2021-01-02",
+    var kodeFaggruppe: String = "INNT",
+    var belop: String = "19611.00",
+    var perioder: List<Periode> = emptyList(),
+) {
+    fun periode(init: Periode.() -> Unit) {
+        perioder += Periode().apply(init)
+    }
+
+    data class Periode(
+        var periodeFom: String = "2021-01-01",
+        var periodeTom: String = "2021-01-31",
+        var stoppnivåer: List<Stoppnivå> = emptyList(),
+    ) {
+        init {
+            require(
+                no.nav.su.se.bakover.common.periode.Periode.tryCreate(
+                    LocalDate.parse(periodeFom),
+                    LocalDate.parse(periodeTom),
+                ).isRight(),
+            )
+        }
+
+        fun stoppnivå(init: Stoppnivå.() -> Unit) {
+            stoppnivåer += Stoppnivå().apply(init)
+        }
+
+        data class Stoppnivå(
+            var kodeFagomraade: String = "SUUFORE",
+            var fagsystemId: String = saksnummer.toString(),
+            var forfall: String = "2021-01-15",
+            var feilkonto: String = "false",
+            var utbetalesTilNavn: String = "Test Testesen",
+            var utbetalesTilId: String = fnr.toString(),
+            var detaljer: List<Detalj> = emptyList(),
+        ) {
+            /**
+             * @param belop må være 0/positivt
+             */
+            fun Periode.ordinær(
+                belop: Int,
+                klassekode: String = "SUUFORE",
+                typeKlasse: String = "YTEL",
+            ) {
+                require(belop >= 0)
+
+                detaljer += Detalj(
+                    faktiskFom = periodeFom,
+                    faktiskTom = periodeTom,
+                    kontoStreng = "4952000",
+                    behandlingskode = "2",
+                    belop = "$belop.00",
+                    korrigering = "",
+                    tilbakeforing = "false",
+                    linjeId = "4",
+                    sats = "$belop.00",
+                    typeSats = "MND",
+                    antallSats = "1.00",
+                    uforeGrad = "100",
+                    klassekode = klassekode,
+                    klasseKodeBeskrivelse = "Supplerende stønad Uføre",
+                    typeKlasse = typeKlasse,
+                    typeKlasseBeskrivelse = "Klassetype for ytelseskonti",
+                )
+            }
+
+            /**
+             * Vil være samme beløp som KL_KODE_FEIL_INNT og motsatt av TBMOTOBS.
+             * Dukker kun og alltid opp ved feilutbetaling.
+             *
+             * @param belop må være positivt
+             */
+            fun Periode.debetFeilutbetaling(belop: Int) {
+                require(belop > 0)
+
+                detaljer += Detalj(
+                    faktiskFom = periodeFom,
+                    faktiskTom = periodeTom,
+                    kontoStreng = "4952000",
+                    behandlingskode = "2",
+                    belop = "$belop.00",
+                    korrigering = "",
+                    tilbakeforing = "false",
+                    linjeId = "0",
+                    sats = "0.00",
+                    typeSats = "",
+                    antallSats = "0.00",
+                    uforeGrad = "0",
+                    klassekode = "SUUFORE",
+                    klasseKodeBeskrivelse = "Supplerende stønad Uføre",
+                    typeKlasse = "YTEL",
+                    typeKlasseBeskrivelse = "Klassetype for ytelseskonti",
+                )
+            }
+
+            /**
+             * Beløp vil være motsatt av KL_KODE_FEIL_INNT.
+             * Dukker kun og alltid opp ved feilutbetaling.
+             *
+             * @param belop må være negativt
+             */
+            fun Periode.motposteringskonto(belop: Int) {
+                require(belop < 0) { "Skattedetaljer belop må være negativt og motsatt av feilutbetaling" }
+
+                detaljer += Detalj(
+                    faktiskFom = periodeFom,
+                    faktiskTom = periodeTom,
+                    kontoStreng = "0902900",
+                    behandlingskode = "0",
+                    belop = "$belop.00",
+                    korrigering = "",
+                    tilbakeforing = "false",
+                    linjeId = "0",
+                    sats = "0.00",
+                    typeSats = "",
+                    antallSats = "0.00",
+                    uforeGrad = "0",
+                    klassekode = "TBMOTOBS",
+                    klasseKodeBeskrivelse = "Feilutbetaling motkonto til OBS konto",
+                    typeKlasse = "MOTP",
+                    typeKlasseBeskrivelse = "Klassetype for motposteringskonto",
+                )
+            }
+
+            /**
+             * Også kalt tilbakeføring.
+             * Denne dukker opp dersom det har blitt utbetalt et beløp før.
+             * Dette vil da blir trukket fra, før det nye beløpet legges til (så lenge ikke det nye beløpet er 0).
+             *
+             * @param belop må være negativt
+             */
+            fun Periode.tidligereUtbetalt(belop: Int) {
+                require(belop < 0) { "tidligere utbetalt belop må være negativt" }
+
+                detaljer += Detalj(
+                    faktiskFom = periodeFom,
+                    faktiskTom = periodeTom,
+                    kontoStreng = "4952000",
+                    behandlingskode = "2",
+                    belop = "$belop.00",
+                    korrigering = "",
+                    tilbakeforing = "true",
+                    linjeId = "1",
+                    sats = "${abs(belop)}.00",
+                    typeSats = "MND",
+                    antallSats = "0.00",
+                    uforeGrad = "100",
+                    klassekode = "SUUFORE",
+                    klasseKodeBeskrivelse = "Supplerende stønad Uføre",
+                    typeKlasse = "YTEL",
+                    typeKlasseBeskrivelse = "Klassetype for ytelseskonti",
+                )
+            }
+
+            /**
+             * Dette skjer kun ved feilutbetaling, ved nedjustering av tidligere utbetalt beløp. Inkl. nedjustert til 0 (opphør)
+             *
+             * @param belop må være positivt
+             */
+            fun Periode.feilutbetaling(belop: Int) {
+                require(belop > 0)
+
+                detaljer += Detalj(
+                    faktiskFom = periodeFom,
+                    faktiskTom = periodeTom,
+                    kontoStreng = "0630986",
+                    behandlingskode = "0",
+                    belop = "$belop.00",
+                    korrigering = "J",
+                    tilbakeforing = "false",
+                    linjeId = "0",
+                    sats = "0.00",
+                    typeSats = "",
+                    antallSats = "0.00",
+                    uforeGrad = "0",
+                    klassekode = "KL_KODE_FEIL_INNT",
+                    klasseKodeBeskrivelse = "Feilutbetaling Inntektsytelser",
+                    typeKlasse = "FEIL",
+                    typeKlasseBeskrivelse = "Klassetype for feilkontoer",
+                )
+            }
+
+            /**
+             * Vi filtrerer vekk SKAT i alle tilfeller.
+             * Tilfeller man får detaljen SKAT i simuleringen (de tilfellene hvor bruker får oppjustert stønad):
+             * - Ny måned fram/tilbake i tid (en "oppjustering" fra 0).
+             * - Overskriving med oppjustering fram/tilbake i tid.
+             * - Overskriving med nedjustering fram i tid.
+             */
+            fun Periode.skattedetalj(belop: Int) {
+                require(belop < 0) { "Skattedetaljer belop må være negativt" }
+
+                detaljer += Detalj(
+                    faktiskFom = periodeFom,
+                    faktiskTom = periodeTom,
+                    kontoStreng = "0510000",
+                    behandlingskode = "0",
+                    belop = "$belop.00",
+                    korrigering = "",
+                    tilbakeforing = "false",
+                    linjeId = "0",
+                    sats = "0.00",
+                    typeSats = "MND",
+                    antallSats = LocalDate.parse(periodeTom).dayOfMonth.toString(),
+                    uforeGrad = "0",
+                    klassekode = "FSKTSKAT",
+                    klasseKodeBeskrivelse = "Forskuddskatt",
+                    typeKlasse = "SKAT",
+                    typeKlasseBeskrivelse = "Klassetype for skatt",
+                )
+            }
+
+            data class Detalj(
+                var faktiskFom: String,
+                var faktiskTom: String,
+                var kontoStreng: String,
+                var behandlingskode: String,
+                var belop: String,
+                /** Denne er kun J ved KL_KODE_FEIL_INNT */
+                var korrigering: String,
+                var tilbakeforing: String,
+                var linjeId: String,
+                var sats: String,
+                var typeSats: String,
+                var antallSats: String,
+                var uforeGrad: String,
+                var klassekode: String,
+                var klasseKodeBeskrivelse: String,
+                var typeKlasse: String,
+                var typeKlasseBeskrivelse: String,
+            ) {
+                init {
+                    // Validerer måneden
+                    no.nav.su.se.bakover.common.periode.Måned.fra(
+                        LocalDate.parse(faktiskFom),
+                        LocalDate.parse(faktiskTom),
+                    )
+                }
+            }
+        }
+    }
+
+    companion object {
+        fun simuleringXml(
+            init: SimuleringResponseData.() -> Unit,
+        ): String {
+            return SimuleringResponseData().apply(init).let {
+                // language=XML
+                """
+                  <simulerBeregningResponse xmlns="http://nav.no/system/os/tjenester/simulerFpService/simulerFpServiceGrensesnitt">
+                    <response xmlns="">
+                      <simulering>
+                        <gjelderId>${it.gjelderId}</gjelderId>
+                        <gjelderNavn>${it.gjelderNavn}</gjelderNavn>
+                        <datoBeregnet>${it.datoBeregnet}</datoBeregnet>
+                        <kodeFaggruppe>${it.kodeFaggruppe}</kodeFaggruppe>
+                        <belop>${it.belop}</belop>
+                        ${
+                it.perioder.joinToString("") {
+                    // language=XML
+                    """
+                        <beregningsPeriode xmlns="http://nav.no/system/os/entiteter/beregningSkjema">
+                          <periodeFom xmlns="">${it.periodeFom}</periodeFom>
+                          <periodeTom xmlns="">${it.periodeTom}</periodeTom>
+                          ${
+                    it.stoppnivåer.joinToString("\n") {
+                        // language=XML
+                        """
+                          <beregningStoppnivaa>
+                            <kodeFagomraade xmlns="">${it.kodeFagomraade}</kodeFagomraade>
+                            <stoppNivaaId xmlns="">1</stoppNivaaId>
+                            <behandlendeEnhet xmlns="">8020</behandlendeEnhet>
+                            <oppdragsId xmlns="">53387554</oppdragsId>
+                            <fagsystemId xmlns="">${it.fagsystemId}</fagsystemId>
+                            <kid xmlns=""/>
+                            <utbetalesTilId xmlns="">${it.utbetalesTilId}</utbetalesTilId>
+                            <utbetalesTilNavn xmlns="">${it.utbetalesTilNavn}</utbetalesTilNavn>
+                            <bilagsType xmlns="">U</bilagsType>
+                            <forfall xmlns="">${it.forfall}</forfall>
+                            <feilkonto xmlns="">${it.feilkonto}</feilkonto>
+                            ${
+                        it.detaljer.joinToString("\n") {
+                            """
+                            <beregningStoppnivaaDetaljer>
+                              <faktiskFom xmlns="">${it.faktiskFom}</faktiskFom>
+                              <faktiskTom xmlns="">${it.faktiskTom}</faktiskTom>
+                              <kontoStreng xmlns="">${it.kontoStreng}</kontoStreng>
+                              <behandlingskode xmlns="">${it.behandlingskode}</behandlingskode>
+                              <belop xmlns="">${it.belop}</belop>
+                              <trekkVedtakId xmlns="">0</trekkVedtakId>
+                              <stonadId xmlns=""></stonadId>
+                              <korrigering xmlns="">${it.korrigering}</korrigering>
+                              <tilbakeforing xmlns="">${it.tilbakeforing}</tilbakeforing>
+                              <linjeId xmlns="">${it.linjeId}</linjeId>
+                              <sats xmlns="">${it.sats}</sats>
+                              <typeSats xmlns="">${it.typeSats}</typeSats>
+                              <antallSats xmlns="">${it.antallSats}</antallSats>
+                              <saksbehId xmlns="">ignored</saksbehId>
+                              <uforeGrad xmlns="">${it.uforeGrad}</uforeGrad>
+                              <kravhaverId xmlns=""></kravhaverId>
+                              <delytelseId xmlns=""></delytelseId>
+                              <bostedsenhet xmlns="">8020</bostedsenhet>
+                              <skykldnerId xmlns=""></skykldnerId>
+                              <klassekode xmlns="">${it.klassekode}</klassekode>
+                              <klasseKodeBeskrivelse xmlns="">${it.klasseKodeBeskrivelse}</klasseKodeBeskrivelse>
+                              <typeKlasse xmlns="">${it.typeKlasse}</typeKlasse>
+                              <typeKlasseBeskrivelse xmlns="">${it.typeKlasseBeskrivelse}</typeKlasseBeskrivelse>
+                              <refunderesOrgNr xmlns=""></refunderesOrgNr>
+                            </beregningStoppnivaaDetaljer>
+                            """.trimIndent()
+                        }
+                        }
+                          </beregningStoppnivaa>
+                        """.trimIndent()
+                    }
+                    }
+                        </beregningsPeriode>
+                    """.trimIndent()
+                }
+                }
+                      </simulering>
+                      <infomelding>
+                         <beskrMelding>Simulering er utført uten skattevedtak. Nominell sats benyttet.</beskrMelding>
+                      </infomelding>
+                    </response>
+                  </simulerBeregningResponse>
+                """.trimIndent()
+            }
+        }
+    }
+}

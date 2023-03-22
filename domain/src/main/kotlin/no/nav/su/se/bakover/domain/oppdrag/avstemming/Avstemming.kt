@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.domain.oppdrag.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -218,12 +219,6 @@ data class OppdragslinjeForKonsistensavstemming(
     val attestanter: NonEmptyList<NavIdentBruker>,
     val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger,
 )
-
-enum class Fagområde {
-    SUALDER,
-    SUUFORE,
-    ;
-}
 
 fun Sakstype.toFagområde(): Fagområde {
     return when (this) {

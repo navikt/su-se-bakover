@@ -107,7 +107,7 @@ internal class SimuleringSoapClientTest {
                 SimulertPeriode(
                     fraOgMed = 1.januar(2018),
                     tilOgMed = 31.desember(2020),
-                    utbetaling = emptyList(),
+                    utbetaling = null,
                 ),
             ),
             rawResponse = "Tom respons fra oppdrag.",
@@ -248,7 +248,7 @@ internal class SimuleringSoapClientTest {
                 SimulertPeriode(
                     fraOgMed = 1.oktober(2020),
                     tilOgMed = 31.desember(2020),
-                    utbetaling = emptyList(),
+                    utbetaling = null,
                 ),
             ),
             rawResponse = "Tom respons fra oppdrag.",

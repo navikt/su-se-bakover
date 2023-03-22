@@ -6,8 +6,8 @@ import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.infrastructure.nais.LeaderPodLookupFeil
 import no.nav.su.se.bakover.common.jobs.infrastructure.RunCheckFactory
+import no.nav.su.se.bakover.domain.oppdrag.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test

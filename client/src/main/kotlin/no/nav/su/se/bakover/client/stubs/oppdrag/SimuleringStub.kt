@@ -353,7 +353,7 @@ class SimuleringStub(
                     SimulertPeriode(
                         fraOgMed = periode.fraOgMed,
                         tilOgMed = periode.tilOgMed,
-                        utbetaling = listOf(simulertUtbetaling),
+                        utbetaling = simulertUtbetaling,
                     )
                 }
             }
@@ -369,7 +369,7 @@ class SimuleringStub(
                             SimulertPeriode(
                                 fraOgMed = simuleringsperiode.fraOgMed,
                                 tilOgMed = simuleringsperiode.tilOgMed,
-                                utbetaling = emptyList(),
+                                utbetaling = null,
                             ),
                         )
                     },

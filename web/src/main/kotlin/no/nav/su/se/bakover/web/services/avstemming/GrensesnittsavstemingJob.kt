@@ -4,7 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.CorrelationId.Companion.withCorrelationId
 import no.nav.su.se.bakover.common.jobs.infrastructure.RunCheckFactory
 import no.nav.su.se.bakover.common.jobs.infrastructure.shouldRun
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
+import no.nav.su.se.bakover.domain.oppdrag.Fagområde
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
