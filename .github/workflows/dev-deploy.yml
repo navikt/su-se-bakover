@@ -9,8 +9,6 @@ env:
 jobs:
   deploy_to_dev:
     name: Deploy to dev
-    needs: build
-    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
