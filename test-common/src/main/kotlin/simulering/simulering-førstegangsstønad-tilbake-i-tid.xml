@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Første søknadsbehandling med forfall på utførelsesdagen (etterbetaling) måned februar 2023. Utført 2023-03-24. Fra 0 til 23039. -->
+<SimulerBeregningResponse>
+    <simulering>
+        <gjelderId>28478718197</gjelderId>
+        <gjelderNavn>Filmomtale Artig</gjelderNavn>
+        <datoBeregnet>2023-03-24</datoBeregnet>
+        <kodeFaggruppe>INNT</kodeFaggruppe>
+        <belop>11520.00</belop>
+        <beregningsPeriode>
+            <periodeFom>2023-02-01</periodeFom>
+            <periodeTom>2023-02-28</periodeTom>
+            <beregningStoppnivaa>
+                <kodeFagomraade>SUUFORE</kodeFagomraade>
+                <stoppNivaaId>1</stoppNivaaId>
+                <behandlendeEnhet>8020</behandlendeEnhet>
+                <oppdragsId>64993465</oppdragsId>
+                <fagsystemId>10002141</fagsystemId>
+                <kid />
+                <utbetalesTilId>28478718197</utbetalesTilId>
+                <utbetalesTilNavn>Filmomtale Artig</utbetalesTilNavn>
+                <bilagsType>U</bilagsType>
+                <forfall>2023-03-24</forfall>
+                <feilkonto>false</feilkonto>
+                <beregningStoppnivaaDetaljer>
+                    <faktiskFom>2023-02-01</faktiskFom>
+                    <faktiskTom>2023-02-28</faktiskTom>
+                    <kontoStreng>0510000</kontoStreng>
+                    <behandlingskode>0</behandlingskode>
+                    <belop>-11519.00</belop>
+                    <trekkVedtakId>12626992</trekkVedtakId>
+                    <stonadId />
+                    <korrigering />
+                    <tilbakeforing>false</tilbakeforing>
+                    <linjeId>0</linjeId>
+                    <sats>0.00</sats>
+                    <typeSats>MND</typeSats>
+                    <antallSats>28.00</antallSats>
+                    <saksbehId>SU</saksbehId>
+                    <uforeGrad>0</uforeGrad>
+                    <kravhaverId />
+                    <delytelseId />
+                    <bostedsenhet>8020</bostedsenhet>
+                    <skykldnerId />
+                    <klassekode>FSKTSKAT</klassekode>
+                    <klasseKodeBeskrivelse>Forskuddskatt</klasseKodeBeskrivelse>
+                    <typeKlasse>SKAT</typeKlasse>
+                    <typeKlasseBeskrivelse>Klassetype for skatt</typeKlasseBeskrivelse>
+                    <refunderesOrgNr />
+                </beregningStoppnivaaDetaljer>
+                <beregningStoppnivaaDetaljer>
+                    <faktiskFom>2023-02-01</faktiskFom>
+                    <faktiskTom>2023-02-28</faktiskTom>
+                    <kontoStreng>4952000</kontoStreng>
+                    <behandlingskode>2</behandlingskode>
+                    <belop>23039.00</belop>
+                    <trekkVedtakId>0</trekkVedtakId>
+                    <stonadId />
+                    <korrigering />
+                    <tilbakeforing>false</tilbakeforing>
+                    <linjeId>1</linjeId>
+                    <sats>23039.00</sats>
+                    <typeSats>MND</typeSats>
+                    <antallSats>1.00</antallSats>
+                    <saksbehId>SU</saksbehId>
+                    <uforeGrad>100</uforeGrad>
+                    <kravhaverId />
+                    <delytelseId>3aaf5ad1-3d04-4770-b108-402a9e</delytelseId>
+                    <bostedsenhet>8020</bostedsenhet>
+                    <skykldnerId />
+                    <klassekode>SUUFORE</klassekode>
+                    <klasseKodeBeskrivelse>Supplerende stønad Uføre</klasseKodeBeskrivelse>
+                    <typeKlasse>YTEL</typeKlasse>
+                    <typeKlasseBeskrivelse>Klassetype for ytelseskonti</typeKlasseBeskrivelse>
+                    <refunderesOrgNr />
+                </beregningStoppnivaaDetaljer>
+            </beregningStoppnivaa>
+        </beregningsPeriode>
+    </simulering>
+    <infomelding>
+        <beskrMelding>Simulering er utført uten skattevedtak. Nominell sats benyttet.</beskrMelding>
+    </infomelding>
+</SimulerBeregningResponse>

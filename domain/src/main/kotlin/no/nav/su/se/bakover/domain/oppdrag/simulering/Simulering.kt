@@ -127,10 +127,10 @@ data class SimulertPeriode(
     val fraOgMed: LocalDate,
     @JsonAlias("tilOgMed", "tom")
     val tilOgMed: LocalDate,
-    val utbetaling: List<SimulertUtbetaling>,
+    val utbetaling: SimulertUtbetaling?,
 ) {
     internal fun tolk(): TolketPeriode {
-        return if (utbetaling.isEmpty()) {
+        return if (utbetaling == null) {
             TolketPeriodeUtenUtbetalinger(periode = Periode.create(fraOgMed, tilOgMed))
         } else {
             /**
@@ -139,7 +139,7 @@ data class SimulertPeriode(
              */
             TolketPeriodeMedUtbetalinger(
                 måned = Måned.fra(fraOgMed, tilOgMed),
-                utbetaling = utbetaling.single().tolk(),
+                utbetaling = utbetaling.tolk(),
             )
         }
     }
@@ -206,7 +206,7 @@ enum class KlasseKode {
     ;
 
     companion object {
-        fun skalIkkeFiltreres() = setOf(SUUFORE, KL_KODE_FEIL_INNT, SUALDER, KL_KODE_FEIL, TBMOTOBS)
+        fun skalIkkeFiltreres() = setOf(SUUFORE, KL_KODE_FEIL_INNT, SUALDER, KL_KODE_FEIL, TBMOTOBS).map { it.name }
     }
 }
 

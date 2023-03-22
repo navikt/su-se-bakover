@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.oppdrag.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.ForrigeUtbetbetalingslinjeKoblendeListe
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -975,7 +976,7 @@ internal class KonsistensavstemmingTest {
                     SimulertPeriode(
                         fraOgMed = utbetalingsLinjer.minOf { it.periode.fraOgMed },
                         tilOgMed = utbetalingsLinjer.maxOf { it.periode.tilOgMed },
-                        utbetaling = listOf(),
+                        utbetaling = null,
                     ),
                 ),
                 rawXml = "KonsistensavstemmingTest baserer ikke denne på rå XML.",

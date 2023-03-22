@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Endringsrevurdering (oppjustering av stønad) for ikke-utbetalt måned november 2023. Utført 2023-03-24. Fra 14514 til 21180. -->
+<SimulerBeregningResponse>
+    <simulering>
+        <gjelderId>25516631743</gjelderId>
+        <gjelderNavn />
+        <datoBeregnet>2023-11-20</datoBeregnet>
+        <kodeFaggruppe>INNT</kodeFaggruppe>
+        <belop>10590.00</belop>
+        <beregningsPeriode>
+            <periodeFom>2023-11-01</periodeFom>
+            <periodeTom>2023-11-30</periodeTom>
+            <beregningStoppnivaa>
+                <kodeFagomraade>SUUFORE</kodeFagomraade>
+                <stoppNivaaId>1</stoppNivaaId>
+                <behandlendeEnhet>8020</behandlendeEnhet>
+                <oppdragsId>64918628</oppdragsId>
+                <fagsystemId>10002094</fagsystemId>
+                <kid />
+                <utbetalesTilId>25516631743</utbetalesTilId>
+                <utbetalesTilNavn>Navn ikke funnet</utbetalesTilNavn>
+                <bilagsType>U</bilagsType>
+                <forfall>2023-11-17</forfall>
+                <feilkonto>false</feilkonto>
+                <beregningStoppnivaaDetaljer>
+                    <faktiskFom>2023-11-01</faktiskFom>
+                    <faktiskTom>2023-11-30</faktiskTom>
+                    <kontoStreng>0510000</kontoStreng>
+                    <behandlingskode>0</behandlingskode>
+                    <belop>-10590.00</belop>
+                    <trekkVedtakId>12616312</trekkVedtakId>
+                    <stonadId />
+                    <korrigering />
+                    <tilbakeforing>false</tilbakeforing>
+                    <linjeId>0</linjeId>
+                    <sats>0.00</sats>
+                    <typeSats>MND</typeSats>
+                    <antallSats>30.00</antallSats>
+                    <saksbehId>SU</saksbehId>
+                    <uforeGrad>0</uforeGrad>
+                    <kravhaverId />
+                    <delytelseId />
+                    <bostedsenhet>8020</bostedsenhet>
+                    <skykldnerId />
+                    <klassekode>FSKTSKAT</klassekode>
+                    <klasseKodeBeskrivelse>Forskuddskatt</klasseKodeBeskrivelse>
+                    <typeKlasse>SKAT</typeKlasse>
+                    <typeKlasseBeskrivelse>Klassetype for skatt</typeKlasseBeskrivelse>
+                    <refunderesOrgNr />
+                </beregningStoppnivaaDetaljer>
+                <beregningStoppnivaaDetaljer>
+                    <faktiskFom>2023-11-01</faktiskFom>
+                    <faktiskTom>2023-11-30</faktiskTom>
+                    <kontoStreng>4952000</kontoStreng>
+                    <behandlingskode>2</behandlingskode>
+                    <belop>21180.00</belop>
+                    <trekkVedtakId>0</trekkVedtakId>
+                    <stonadId />
+                    <korrigering />
+                    <tilbakeforing>false</tilbakeforing>
+                    <linjeId>4</linjeId>
+                    <sats>21180.00</sats>
+                    <typeSats>MND</typeSats>
+                    <antallSats>1.00</antallSats>
+                    <saksbehId>SU</saksbehId>
+                    <uforeGrad>100</uforeGrad>
+                    <kravhaverId />
+                    <delytelseId>3b8c5a5a-62c2-462f-9bc0-6181f1</delytelseId>
+                    <bostedsenhet>8020</bostedsenhet>
+                    <skykldnerId />
+                    <klassekode>SUUFORE</klassekode>
+                    <klasseKodeBeskrivelse>Supplerende stønad Uføre</klasseKodeBeskrivelse>
+                    <typeKlasse>YTEL</typeKlasse>
+                    <typeKlasseBeskrivelse>Klassetype for ytelseskonti</typeKlasseBeskrivelse>
+                    <refunderesOrgNr />
+                </beregningStoppnivaaDetaljer>
+            </beregningStoppnivaa>
+        </beregningsPeriode>
+    </simulering>
+    <infomelding>
+        <beskrMelding>Simulering er utført uten skattevedtak. Nominell sats benyttet.</beskrMelding>
+    </infomelding>
+</SimulerBeregningResponse>

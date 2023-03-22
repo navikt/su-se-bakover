@@ -416,7 +416,7 @@ internal class UtbetalingsstrategiStansTest {
                     SimulertPeriode(
                         fraOgMed = utbetalingslinjer.minOf { it.periode.fraOgMed },
                         tilOgMed = utbetalingslinjer.maxOf { it.periode.tilOgMed },
-                        utbetaling = listOf(),
+                        utbetaling = null,
                     ),
                 ),
                 rawXml = "UtbetalingsstrategiStansTest baserer ikke denne på rå XML.",

@@ -310,7 +310,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                     SimulertPeriode(
                         fraOgMed = utbetalingslinjer.minOf { it.periode.fraOgMed },
                         tilOgMed = utbetalingslinjer.maxOf { it.periode.tilOgMed },
-                        utbetaling = listOf(),
+                        utbetaling = null,
                     ),
                 ),
                 rawXml = "UtbetalingsstrategiGjenopptaTest baserer ikke denne på rå XML.",

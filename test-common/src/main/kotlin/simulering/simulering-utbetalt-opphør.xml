@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Opphørsrevurdering av utbetalt måned februar 2023. Utført 2023-03-24. Fra 23039 til 0. -->
+<SimulerBeregningResponse>
+    <simulering>
+        <gjelderId>25516631743</gjelderId>
+        <gjelderNavn>Garasje Oransje</gjelderNavn>
+        <datoBeregnet>2023-03-24</datoBeregnet>
+        <kodeFaggruppe>INNT</kodeFaggruppe>
+        <belop>0.00</belop>
+        <beregningsPeriode>
+            <periodeFom>2023-02-01</periodeFom>
+            <periodeTom>2023-02-28</periodeTom>
+            <beregningStoppnivaa>
+                <kodeFagomraade>SUUFORE</kodeFagomraade>
+                <stoppNivaaId>1</stoppNivaaId>
+                <behandlendeEnhet>8020</behandlendeEnhet>
+                <oppdragsId>64918628</oppdragsId>
+                <fagsystemId>10002094</fagsystemId>
+                <kid />
+                <utbetalesTilId>25516631743</utbetalesTilId>
+                <utbetalesTilNavn>Garasje Oransje</utbetalesTilNavn>
+                <bilagsType>U</bilagsType>
+                <forfall>2023-03-24</forfall>
+                <feilkonto>true</feilkonto>
+                <beregningStoppnivaaDetaljer>
+                    <faktiskFom>2023-02-01</faktiskFom>
+                    <faktiskTom>2023-02-28</faktiskTom>
+                    <kontoStreng>0630986</kontoStreng>
+                    <behandlingskode>0</behandlingskode>
+                    <belop>23039.00</belop>
+                    <trekkVedtakId>0</trekkVedtakId>
+                    <stonadId />
+                    <korrigering>J</korrigering>
+                    <tilbakeforing>false</tilbakeforing>
+                    <linjeId>0</linjeId>
+                    <sats>0.00</sats>
+                    <typeSats />
+                    <antallSats>0.00</antallSats>
+                    <saksbehId>K231B215</saksbehId>
+                    <uforeGrad>0</uforeGrad>
+                    <kravhaverId />
+                    <delytelseId />
+                    <bostedsenhet>8020</bostedsenhet>
+                    <skykldnerId />
+                    <klassekode>KL_KODE_FEIL_INNT</klassekode>
+                    <klasseKodeBeskrivelse>Feilutbetaling Inntektsytelser</klasseKodeBeskrivelse>
+                    <typeKlasse>FEIL</typeKlasse>
+                    <typeKlasseBeskrivelse>Klassetype for feilkontoer</typeKlasseBeskrivelse>
+                    <refunderesOrgNr />
+                </beregningStoppnivaaDetaljer>
+                <beregningStoppnivaaDetaljer>
+                    <faktiskFom>2023-02-01</faktiskFom>
+                    <faktiskTom>2023-02-28</faktiskTom>
+                    <kontoStreng>4952000</kontoStreng>
+                    <behandlingskode>2</behandlingskode>
+                    <belop>23039.00</belop>
+                    <trekkVedtakId>0</trekkVedtakId>
+                    <stonadId />
+                    <korrigering />
+                    <tilbakeforing>false</tilbakeforing>
+                    <linjeId>0</linjeId>
+                    <sats>0.00</sats>
+                    <typeSats />
+                    <antallSats>0.00</antallSats>
+                    <saksbehId>K231B215</saksbehId>
+                    <uforeGrad>0</uforeGrad>
+                    <kravhaverId />
+                    <delytelseId />
+                    <bostedsenhet>8020</bostedsenhet>
+                    <skykldnerId />
+                    <klassekode>SUUFORE</klassekode>
+                    <klasseKodeBeskrivelse>Supplerende stønad Uføre</klasseKodeBeskrivelse>
+                    <typeKlasse>YTEL</typeKlasse>
+                    <typeKlasseBeskrivelse>Klassetype for ytelseskonti</typeKlasseBeskrivelse>
+                    <refunderesOrgNr />
+                </beregningStoppnivaaDetaljer>
+                <beregningStoppnivaaDetaljer>
+                    <faktiskFom>2023-02-01</faktiskFom>
+                    <faktiskTom>2023-02-28</faktiskTom>
+                    <kontoStreng>0902900</kontoStreng>
+                    <behandlingskode>0</behandlingskode>
+                    <belop>-23039.00</belop>
+                    <trekkVedtakId>0</trekkVedtakId>
+                    <stonadId />
+                    <korrigering />
+                    <tilbakeforing>false</tilbakeforing>
+                    <linjeId>0</linjeId>
+                    <sats>0.00</sats>
+                    <typeSats />
+                    <antallSats>0.00</antallSats>
+                    <saksbehId>K231B215</saksbehId>
+                    <uforeGrad>0</uforeGrad>
+                    <kravhaverId />
+                    <delytelseId />
+                    <bostedsenhet>8020</bostedsenhet>
+                    <skykldnerId />
+                    <klassekode>TBMOTOBS</klassekode>
+                    <klasseKodeBeskrivelse>Feilutbetaling motkonto til OBS konto</klasseKodeBeskrivelse>
+                    <typeKlasse>MOTP</typeKlasse>
+                    <typeKlasseBeskrivelse>Klassetype for motposteringskonto</typeKlasseBeskrivelse>
+                    <refunderesOrgNr />
+                </beregningStoppnivaaDetaljer>
+                <beregningStoppnivaaDetaljer>
+                    <faktiskFom>2023-02-01</faktiskFom>
+                    <faktiskTom>2023-02-28</faktiskTom>
+                    <kontoStreng>4952000</kontoStreng>
+                    <behandlingskode>2</behandlingskode>
+                    <belop>-23039.00</belop>
+                    <trekkVedtakId>0</trekkVedtakId>
+                    <stonadId />
+                    <korrigering />
+                    <tilbakeforing>true</tilbakeforing>
+                    <linjeId>1</linjeId>
+                    <sats>23039.00</sats>
+                    <typeSats>MND</typeSats>
+                    <antallSats>0.00</antallSats>
+                    <saksbehId>K231B215</saksbehId>
+                    <uforeGrad>100</uforeGrad>
+                    <kravhaverId />
+                    <delytelseId />
+                    <bostedsenhet>8020</bostedsenhet>
+                    <skykldnerId />
+                    <klassekode>SUUFORE</klassekode>
+                    <klasseKodeBeskrivelse>Supplerende stønad Uføre</klasseKodeBeskrivelse>
+                    <typeKlasse>YTEL</typeKlasse>
+                    <typeKlasseBeskrivelse>Klassetype for ytelseskonti</typeKlasseBeskrivelse>
+                    <refunderesOrgNr />
+                </beregningStoppnivaaDetaljer>
+            </beregningStoppnivaa>
+        </beregningsPeriode>
+    </simulering>
+</SimulerBeregningResponse>

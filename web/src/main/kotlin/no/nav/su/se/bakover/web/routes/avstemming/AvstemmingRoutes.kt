@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.mapBoth
 import no.nav.su.se.bakover.common.startOfDay
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
+import no.nav.su.se.bakover.domain.oppdrag.Fagområde
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.web.features.authorize
 import java.time.Clock
