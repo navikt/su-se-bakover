@@ -42,7 +42,6 @@ import java.time.Year
  * https://skatteetaten.github.io/datasamarbeid-api-dokumentasjon/data_summertskattegrunnlag2021
  * https://github.com/navikt/sigrun/pull/50
  *
- * https://confluence.adeo.no/display/FEL/Sigrun+-+Tjeneste+REST+SummertSkattegrunnlag
  */
 internal class SkatteClient(
     private val skatteetatenConfig: SkatteetatenConfig,
@@ -165,7 +164,7 @@ internal class SkatteClient(
             .uri(URI.create("${skatteetatenConfig.apiBaseUrl}/api/spesifisertsummertskattegrunnlag"))
             .setHeader("Accept", "application/json")
             .setHeader("Authorization", "Bearer $token")
-            .setHeader("naturligident", fnr.toString())
+            .setHeader("Nav-Personident", fnr.toString())
             .setHeader("inntektsaar", inntektsÅr.toString())
             .setHeader("rettighetspakke", skatteetatenConfig.rettighetspakke)
             .setHeader("Nav-Call-Id", correlationId.toString())
