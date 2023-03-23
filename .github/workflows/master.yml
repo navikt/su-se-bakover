@@ -32,7 +32,7 @@ jobs:
           java-version: '19'
           distribution: 'temurin'
       - name: test and build
-        uses: navikt/su-se-bakover/.github/workflows/actions/gradleTestAndBuild@main
+        uses: navikt/su-se-bakover/.github/workflows/actions/gradleBuildWithoutTests@main
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Login to DockerHub

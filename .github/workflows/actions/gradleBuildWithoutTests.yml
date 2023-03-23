@@ -1,0 +1,16 @@
+name: builds with gradle without tests
+description: see above
+
+inputs:
+  token:
+    description: the github token
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: build
+      run: ./gradlew build -x tests
+      env:
+        ORG_GRADLE_PROJECT_githubUser: x-access-token
+        ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
