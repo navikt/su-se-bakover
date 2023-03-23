@@ -16,6 +16,7 @@ env:
 jobs:
   build:
     name: Build and push Docker container
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
@@ -31,7 +32,7 @@ jobs:
           java-version: '19'
           distribution: 'temurin'
       - name: build
-        uses: navikt/su-se-bakover/.github/workflows/actions/gradleBuildWithoutTests@main
+        uses: .actions/builds with gradle without tests
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Login to DockerHub
