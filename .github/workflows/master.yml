@@ -1,14 +1,6 @@
 name: Build and deploy to preprod on push to master
 
-on:
-  # Trigger the workflow on push or pull request,
-  # but only for the master branch
-  push:
-    branches:
-      - master
-    paths-ignore:
-      - '.github/workflows/datapakker.yml'
-      - 'datapakker/**'
+on: workflow_dispatch
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}/su-se-bakover:${{ github.sha }}
@@ -64,20 +56,6 @@ jobs:
         with:
           args: --all-sub-projects --org=supstonad --sarif-file-output=${{ github.workspace }}/snyk.sarif
           command: monitor
-
-  deploy_to_dev:
-    name: Deploy to dev
-    needs: build
-    if: github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: nais/deploy/actions/deploy@v1
-        env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-          CLUSTER: dev-fss
-          RESOURCE: nais.yml
-          VARS: nais-dev.json
 
   generate-draft-release:
     name: Generate/update draft release
