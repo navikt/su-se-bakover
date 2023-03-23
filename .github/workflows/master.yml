@@ -32,7 +32,7 @@ jobs:
           java-version: '19'
           distribution: 'temurin'
       - name: build
-      - uses: ./.github/actions/gradleBuildWithoutTests.yml
+        uses: ./.github/actions/gradleBuildWithoutTests.yml
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Login to DockerHub
