@@ -1,0 +1,25 @@
+name: gradle build
+description: bygger uten kjøring av tester. Denne er ment for bruk når du har behov for rask deploy, med minimalt med endringer
+
+inputs:
+  token:
+    description: github secret tokenet. send inn tokene som #${{ secrets.GITHUB_TOKEN }}
+    required: true
+  run:
+    description: command that you want to run instead of the default
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: builds with default commands
+      shell: bash
+      if: ${{inputs.run == ''}}
+      run: ./gradlew build -x test
+    - name: builds with passed commands
+      shell: bash
+      if: ${{inputs.run != ''}}
+      run: ${{inputs.run}}
+      env:
+        ORG_GRADLE_PROJECT_githubUser: x-access-token
+        ORG_GRADLE_PROJECT_githubPassword: ${{ inputs.token }}

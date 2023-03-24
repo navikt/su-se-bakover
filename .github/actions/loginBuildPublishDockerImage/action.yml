@@ -1,0 +1,34 @@
+name: Logg inn, bygg, og publiser docker image
+description: Logger inn i Dockerhub, bygger og publiserer immage
+
+inputs:
+  token:
+    description: github secret tokenet. send inn tokene som #${{ secrets.GITHUB_TOKEN }}
+    required: true
+  image:
+    description: env imaget. send inn imaget som #${{env.IMAGE}}
+    required: true
+  repo:
+    description: github repository. send inn repoet som #${{ github.repository }}
+    required: true
+  dockerfile:
+    description: the dockerfile path to be published??
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Login to DockerHub
+      uses: docker/login-action@v2.1.0
+      with:
+        registry: ghcr.io
+        username: ${{ inputs.repo }}
+        password: ${{ inputs.token }}
+    - name: Build and publish Docker image
+      uses: docker/build-push-action@v4.0.0
+      with:
+        context: .
+        file: ${{inputs.dockerfile}}
+        push: true
+        pull: true
+        tags: ${{inputs.image}}

@@ -1,0 +1,49 @@
+name: builds and tests (can be omitted)
+
+on:
+  workflow_call:
+    inputs:
+      withoutTests:
+        required: false
+        type: boolean
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}/su-se-bakover:${{ github.sha }}
+
+jobs:
+  build:
+    name: gradle build and tests(can be omitted), and builds and publish docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('gradle.properties', 'settings.gradle.kts', '**/build.gradle.kts', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      - uses: actions/setup-java@v3
+        with:
+          java-version: '19'
+          distribution: 'temurin'
+
+      - name: builds and tests
+        if: ${{inputs.withoutTests == 'false' || inputs.withoutTests == '' }}
+        uses: ./.github/actions/gradleBuildTest
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: builds
+        if: ${{inputs.withoutTests == 'true' || inputs.withoutTests != '' }}
+        uses: ./.github/actions/gradleBuild
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login, Build and publish Docker image
+        uses: ./.github/actions/loginBuildPublishDockerImage
+        with:
+          repo: ${{ github.repository }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          image: ${{env.IMAGE}}
