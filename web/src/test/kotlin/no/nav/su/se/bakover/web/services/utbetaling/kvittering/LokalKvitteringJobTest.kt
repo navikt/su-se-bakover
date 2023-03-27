@@ -71,7 +71,7 @@ internal class LokalKvitteringJobTest {
                 SimulertPeriode(
                     fraOgMed = januar(2021).fraOgMed,
                     tilOgMed = januar(2021).tilOgMed,
-                    utbetaling = emptyList(),
+                    utbetaling = null,
                 ),
             ),
             rawResponse = "LokalKvitterinJobTest baserer ikke denne på rå XML.",

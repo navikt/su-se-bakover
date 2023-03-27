@@ -54,7 +54,12 @@ internal class SimuleringSoapClient(
                     sikkerLogg.error("Kunne ikke simulere SimulerBeregningResponse til xml.", it)
                     "Kunne ikke simulere SimulerBeregningResponse til xml, se sikkerlogg for stacktrace."
                 }
-                SimuleringResponseMapper(rawResponse, it, clock).simulering.right()
+                SimuleringResponseMapper(
+                    rawResponse = rawResponse,
+                    oppdragResponse = it,
+                    clock = clock,
+                    saksnummer = request.utbetaling.saksnummer,
+                ).simulering.right()
             } ?: SimuleringResponseMapper(
                 utbetaling = request.utbetaling,
                 simuleringsperiode = simulerRequest.request.simuleringsPeriode,

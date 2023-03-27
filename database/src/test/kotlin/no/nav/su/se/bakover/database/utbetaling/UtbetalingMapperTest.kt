@@ -47,7 +47,7 @@ internal class UtbetalingMapperTest {
                     SimulertPeriode(
                         fraOgMed = januar(2021).fraOgMed,
                         tilOgMed = januar(2021).tilOgMed,
-                        utbetaling = listOf(),
+                        utbetaling = null,
                     ),
                 ),
                 rawResponse = "UtbetalingMapperTest baserer ikke denne på rå XML.",
@@ -83,7 +83,7 @@ internal class UtbetalingMapperTest {
                     SimulertPeriode(
                         fraOgMed = januar(2021).fraOgMed,
                         tilOgMed = januar(2021).tilOgMed,
-                        utbetaling = listOf(),
+                        utbetaling = null,
                     ),
                 ),
                 rawResponse = "UtbetalingsstrategiGjenopptaTest baserer ikke denne på rå XML.",
