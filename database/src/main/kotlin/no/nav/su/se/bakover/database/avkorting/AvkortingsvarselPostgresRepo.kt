@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.database.avkorting
 
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.persistence.Session
@@ -12,7 +11,8 @@ import no.nav.su.se.bakover.common.persistence.hentListe
 import no.nav.su.se.bakover.common.persistence.insert
 import no.nav.su.se.bakover.common.persistence.oppdatering
 import no.nav.su.se.bakover.common.persistence.tidspunkt
-import no.nav.su.se.bakover.common.serializeNullable
+import no.nav.su.se.bakover.database.simulering.deserializeSimulering
+import no.nav.su.se.bakover.database.simulering.serializeNullableSimulering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -95,7 +95,7 @@ internal class AvkortingsvarselPostgresRepo(
                         "opprettet" to opprettet,
                         "sakId" to sakId,
                         "revurderingId" to revurderingId,
-                        "simulering" to serializeNullable(simulering),
+                        "simulering" to simulering.serializeNullableSimulering(),
                         "status" to Status.SKAL_AVKORTES.toString(),
                     ),
                     tx,
@@ -187,7 +187,7 @@ internal class AvkortingsvarselPostgresRepo(
             sakId = uuid("sakId"),
             revurderingId = uuid("revurderingId"),
             opprettet = tidspunkt("opprettet"),
-            simulering = deserialize(string("simulering")),
+            simulering = string("simulering").deserializeSimulering(),
         )
         return when (Status.valueOf(string("status"))) {
             Status.SKAL_AVKORTES -> {

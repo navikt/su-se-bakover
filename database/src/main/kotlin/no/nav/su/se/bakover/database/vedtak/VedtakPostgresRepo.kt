@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.deserializeListNullable
-import no.nav.su.se.bakover.common.deserializeNullable
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.DbMetrics
@@ -24,6 +23,8 @@ import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.regulering.ReguleringPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
+import no.nav.su.se.bakover.database.simulering.deserializeNullableSimulering
+import no.nav.su.se.bakover.database.simulering.serializeSimulering
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
@@ -32,7 +33,6 @@ import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.dokument.Dokumenttilstand
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
@@ -332,7 +332,7 @@ internal class VedtakPostgresRepo(
                 satsFactory = satsFactory.gjeldende(opprettet),
                 sakstype = behandling!!.sakstype,
             )
-        val simulering = deserializeNullable<Simulering>(stringOrNull("simulering"))
+        val simulering = stringOrNull("simulering").deserializeNullableSimulering()
         val avslagsgrunner = deserializeListNullable<Avslagsgrunn>(stringOrNull("avslagsgrunner"))
 
         val journalpostId: JournalpostId? = stringOrNull("journalpostid")?.let { JournalpostId(it) }
@@ -505,7 +505,7 @@ internal class VedtakPostgresRepo(
                     "saksbehandler" to vedtak.saksbehandler,
                     "attestant" to vedtak.attestant,
                     "utbetalingid" to vedtak.utbetalingId,
-                    "simulering" to serialize(vedtak.simulering),
+                    "simulering" to vedtak.simulering.serializeSimulering(),
                     "beregning" to when (vedtak) {
                         is VedtakGjenopptakAvYtelse ->
                             null

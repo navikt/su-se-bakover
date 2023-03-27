@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.persistence.hentListe
 import no.nav.su.se.bakover.common.persistence.tidspunkt
 import no.nav.su.se.bakover.common.persistence.uuid30
 import no.nav.su.se.bakover.common.toNonEmptyList
+import no.nav.su.se.bakover.database.simulering.deserializeSimulering
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -20,7 +21,6 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalin
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import java.util.UUID
@@ -62,7 +62,7 @@ internal object UtbetalingInternalRepo {
 internal fun Row.toUtbetaling(session: Session): Utbetaling.OversendtUtbetaling {
     val utbetalingId = uuid30("id")
     val opprettet = tidspunkt("opprettet")
-    val simulering = deserialize<Simulering>(string("simulering"))
+    val simulering = string("simulering").deserializeSimulering()
     val kvittering = deserializeNullable<Kvittering>(stringOrNull("kvittering"))
     val utbetalingsrequest = deserialize<Utbetalingsrequest>(string("utbetalingsrequest"))
     val utbetalingslinjer = UtbetalingInternalRepo.hentUtbetalingslinjer(utbetalingId, session)
