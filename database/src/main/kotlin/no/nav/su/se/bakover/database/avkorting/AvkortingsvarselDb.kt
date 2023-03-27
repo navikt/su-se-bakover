@@ -4,8 +4,9 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.database.simulering.SimuleringDatabaseJson
+import no.nav.su.se.bakover.database.simulering.SimuleringDatabaseJson.Companion.toDatabaseJson
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import java.util.UUID
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
@@ -15,13 +16,13 @@ import java.util.UUID
     JsonSubTypes.Type(AvkortingsvarselDb.Avkortet::class),
     JsonSubTypes.Type(AvkortingsvarselDb.Annullert::class),
 )
-sealed class AvkortingsvarselDb {
+internal sealed class AvkortingsvarselDb {
 
     abstract val id: UUID
     abstract val sakId: UUID
     abstract val revurderingId: UUID
     abstract val opprettet: Tidspunkt
-    abstract val simulering: Simulering
+    abstract val simulering: SimuleringDatabaseJson
 
     @JsonTypeName("OPPRETTET")
     data class Opprettet(
@@ -29,7 +30,7 @@ sealed class AvkortingsvarselDb {
         override val sakId: UUID,
         override val revurderingId: UUID,
         override val opprettet: Tidspunkt,
-        override val simulering: Simulering,
+        override val simulering: SimuleringDatabaseJson,
     ) : AvkortingsvarselDb()
 
     @JsonTypeName("SKAL_AVKORTES")
@@ -38,7 +39,7 @@ sealed class AvkortingsvarselDb {
         override val sakId: UUID,
         override val revurderingId: UUID,
         override val opprettet: Tidspunkt,
-        override val simulering: Simulering,
+        override val simulering: SimuleringDatabaseJson,
     ) : AvkortingsvarselDb()
 
     @JsonTypeName("AVKORTET")
@@ -47,7 +48,7 @@ sealed class AvkortingsvarselDb {
         override val sakId: UUID,
         override val revurderingId: UUID,
         override val opprettet: Tidspunkt,
-        override val simulering: Simulering,
+        override val simulering: SimuleringDatabaseJson,
         val behandlingId: UUID,
     ) : AvkortingsvarselDb()
 
@@ -57,7 +58,7 @@ sealed class AvkortingsvarselDb {
         override val sakId: UUID,
         override val revurderingId: UUID,
         override val opprettet: Tidspunkt,
-        override val simulering: Simulering,
+        override val simulering: SimuleringDatabaseJson,
         val behandlingId: UUID,
     ) : AvkortingsvarselDb()
 }
@@ -85,7 +86,7 @@ internal fun Avkortingsvarsel.Utenlandsopphold.SkalAvkortes.toDb(): Avkortingsva
         sakId = sakId,
         revurderingId = revurderingId,
         opprettet = opprettet,
-        simulering = simulering,
+        simulering = simulering.toDatabaseJson(),
     )
 }
 
@@ -95,7 +96,7 @@ internal fun Avkortingsvarsel.Utenlandsopphold.Avkortet.toDb(): Avkortingsvarsel
         sakId = sakId,
         revurderingId = revurderingId,
         opprettet = opprettet,
-        simulering = simulering,
+        simulering = simulering.toDatabaseJson(),
         behandlingId = behandlingId,
     )
 }
@@ -106,7 +107,7 @@ internal fun Avkortingsvarsel.Utenlandsopphold.Opprettet.toDb(): Avkortingsvarse
         sakId = sakId,
         revurderingId = revurderingId,
         opprettet = opprettet,
-        simulering = simulering,
+        simulering = simulering.toDatabaseJson(),
     )
 }
 
@@ -116,7 +117,7 @@ internal fun Avkortingsvarsel.Utenlandsopphold.Annullert.toDb(): Avkortingsvarse
         sakId = sakId,
         revurderingId = revurderingId,
         opprettet = opprettet,
-        simulering = simulering,
+        simulering = simulering.toDatabaseJson(),
         behandlingId = behandlingId,
     )
 }
@@ -144,7 +145,7 @@ internal fun AvkortingsvarselDb.SkalAvkortes.toDomain(): Avkortingsvarsel.Utenla
         sakId = sakId,
         revurderingId = revurderingId,
         opprettet = opprettet,
-        simulering = simulering,
+        simulering = simulering.toDomain(),
     ).skalAvkortes()
 }
 
@@ -154,7 +155,7 @@ internal fun AvkortingsvarselDb.Opprettet.toDomain(): Avkortingsvarsel.Utenlands
         sakId = sakId,
         revurderingId = revurderingId,
         opprettet = opprettet,
-        simulering = simulering,
+        simulering = simulering.toDomain(),
     )
 }
 
@@ -164,7 +165,7 @@ internal fun AvkortingsvarselDb.Annullert.toDomain(): Avkortingsvarsel.Utenlands
         sakId = sakId,
         revurderingId = revurderingId,
         opprettet = opprettet,
-        simulering = simulering,
+        simulering = simulering.toDomain(),
     ).skalAvkortes().annuller(behandlingId)
 }
 
@@ -174,6 +175,6 @@ internal fun AvkortingsvarselDb.Avkortet.toDomain(): Avkortingsvarsel.Utenlandso
         sakId = sakId,
         revurderingId = revurderingId,
         opprettet = opprettet,
-        simulering = simulering,
+        simulering = simulering.toDomain(),
     ).skalAvkortes().avkortet(behandlingId)
 }

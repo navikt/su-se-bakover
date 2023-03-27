@@ -23,6 +23,8 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
+import no.nav.su.se.bakover.database.simulering.deserializeNullableSimulering
+import no.nav.su.se.bakover.database.simulering.serializeNullableSimulering
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
@@ -177,7 +179,7 @@ internal class ReguleringPostgresRepo(
                             "opprettet" to regulering.opprettet,
                             "saksbehandler" to regulering.saksbehandler.navIdent,
                             "beregning" to regulering.beregning,
-                            "simulering" to regulering.simulering?.let { serialize(it) },
+                            "simulering" to regulering.simulering.serializeNullableSimulering(),
                             "reguleringType" to when (regulering.reguleringstype) {
                                 is Reguleringstype.AUTOMATISK -> ReguleringstypeDb.AUTOMATISK.name
                                 is Reguleringstype.MANUELL -> ReguleringstypeDb.MANUELL.name
@@ -244,7 +246,7 @@ internal class ReguleringPostgresRepo(
             satsFactory = satsFactory.gjeldende(opprettet),
             sakstype = sakstype,
         )
-        val simulering = deserializeNullable<Simulering>(stringOrNull("simulering"))
+        val simulering = stringOrNull("simulering").deserializeNullableSimulering()
         val saksbehandler = NavIdentBruker.Saksbehandler(string("saksbehandler"))
         val periode = deserialize<Periode>(string("periode"))
 

@@ -18,7 +18,7 @@ data class Simulering(
     val datoBeregnet: LocalDate,
     val nettoBeløp: Int,
     val periodeList: List<SimulertPeriode>,
-    val rawResponse: String? = "Simuleringen utført før feltet rawResponse ble lagt til",
+    val rawResponse: String,
 ) {
     private val tolkning = TolketSimulering(this)
 

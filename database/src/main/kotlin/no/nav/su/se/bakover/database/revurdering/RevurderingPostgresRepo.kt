@@ -36,6 +36,8 @@ import no.nav.su.se.bakover.database.brev.toDb
 import no.nav.su.se.bakover.database.brev.toDomain
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType.Companion.toRevurderingsType
+import no.nav.su.se.bakover.database.simulering.deserializeNullableSimulering
+import no.nav.su.se.bakover.database.simulering.serializeNullableSimulering
 import no.nav.su.se.bakover.database.tilbakekreving.TilbakekrevingPostgresRepo
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -562,7 +564,7 @@ internal class RevurderingPostgresRepo(
             satsFactory = satsFactory.gjeldende(opprettet),
             sakstype = sakinfo.type,
         )
-        val simulering = deserializeNullable<Simulering>(stringOrNull("simulering"))
+        val simulering = stringOrNull("simulering").deserializeNullableSimulering()
         val saksbehandler = string("saksbehandler")
         val oppgaveId = stringOrNull("oppgaveid")
         val attesteringer = Attesteringshistorikk.create(deserializeList(string("attestering")))
@@ -721,7 +723,7 @@ internal class RevurderingPostgresRepo(
                     "oppdatert" to revurdering.base.oppdatert,
                     "periode" to serialize(revurdering.base.periode),
                     "beregning" to revurdering.beregning,
-                    "simulering" to serializeNullable(revurdering.simulering),
+                    "simulering" to revurdering.simulering.serializeNullableSimulering(),
                     "saksbehandler" to revurdering.base.saksbehandler.navIdent,
                     "oppgaveId" to revurdering.base.oppgaveId.toString(),
                     "revurderingsType" to revurdering.base.type,

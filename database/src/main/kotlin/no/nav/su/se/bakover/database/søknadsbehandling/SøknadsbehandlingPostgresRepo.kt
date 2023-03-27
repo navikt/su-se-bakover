@@ -26,6 +26,8 @@ import no.nav.su.se.bakover.database.avkorting.toDb
 import no.nav.su.se.bakover.database.avkorting.toDomain
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
+import no.nav.su.se.bakover.database.simulering.deserializeNullableSimulering
+import no.nav.su.se.bakover.database.simulering.serializeNullableSimulering
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.database.søknadsbehandling.AldersvurderingJson.Companion.toDBJson
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB.Companion.status
@@ -366,7 +368,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 "fritekstTilBrev" to søknadsbehandling.base.fritekstTilBrev,
                 "saksbehandler" to søknadsbehandling.base.saksbehandler,
                 "beregning" to søknadsbehandling.beregning,
-                "simulering" to serializeNullable(søknadsbehandling.simulering),
+                "simulering" to søknadsbehandling.simulering.serializeNullableSimulering(),
                 "lukket" to søknadsbehandling.lukket,
                 "saksbehandling" to søknadsbehandling.base.søknadsbehandlingshistorikk,
                 "aldersvurdering" to søknadsbehandling.base.aldersvurdering,
@@ -456,7 +458,7 @@ internal class SøknadsbehandlingPostgresRepo(
             satsFactory = satsFactory.gjeldende(opprettet),
             sakstype = sakstype,
         )
-        val simulering = deserializeNullable<Simulering>(stringOrNull("simulering"))
+        val simulering = stringOrNull("simulering").deserializeNullableSimulering()
         val attesteringer = Attesteringshistorikk.create(deserializeList((string("attestering"))))
         val søknadsbehandlingHistorikk =
             SøknadsbehandlingshistorikkJson.toSøknadsbehandlingsHistorikk(string("saksbehandling"))

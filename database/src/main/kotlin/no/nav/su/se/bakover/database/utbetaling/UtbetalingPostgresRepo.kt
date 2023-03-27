@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.persistence.hentListe
 import no.nav.su.se.bakover.common.persistence.insert
 import no.nav.su.se.bakover.common.persistence.oppdatering
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.database.simulering.serializeSimulering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -96,7 +97,7 @@ internal class UtbetalingPostgresRepo(
                         "sakId" to utbetaling.sakId,
                         "fnr" to utbetaling.fnr,
                         "avstemmingsnokkel" to serialize(utbetaling.avstemmingsnøkkel),
-                        "simulering" to serialize(utbetaling.simulering),
+                        "simulering" to utbetaling.simulering.serializeSimulering(),
                         "utbetalingsrequest" to serialize(utbetaling.utbetalingsrequest),
                         "behandler" to utbetaling.behandler.navIdent,
                     ),
