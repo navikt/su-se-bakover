@@ -25,7 +25,7 @@ class SkatteServiceImpl(
         fnr: Fnr,
     ): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag> {
         // TODO jah: Flytt domenelogikken til domenet
-        return skatteClient.hentSamletSkattegrunnlag(fnr, Year.now(clock)).fold(
+        return skatteClient.hentSamletSkattegrunnlag(fnr, Year.now(clock).minusYears(1)).fold(
             { KunneIkkeHenteSkattemelding.KallFeilet(it).left() },
             {
                 it.hentMestGyldigeSkattegrunnlag()
