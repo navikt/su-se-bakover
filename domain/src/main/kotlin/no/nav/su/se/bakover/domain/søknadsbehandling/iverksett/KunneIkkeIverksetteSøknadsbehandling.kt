@@ -22,4 +22,6 @@ sealed interface KunneIkkeIverksetteSøknadsbehandling {
     data class OverlappendeStønadsperiode(
         val underliggendeFeil: StøtterIkkeOverlappendeStønadsperioder,
     ) : KunneIkkeIverksetteSøknadsbehandling
+
+    object InneholderUfullstendigeBosituasjoner : KunneIkkeIverksetteSøknadsbehandling
 }

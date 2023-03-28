@@ -33,7 +33,9 @@ internal fun Sak.iverksettAvslagSøknadsbehandling(
 ): Either<KunneIkkeIverksetteSøknadsbehandling, IverksattAvslåttSøknadsbehandlingResponse> {
     require(this.søknadsbehandlinger.any { it == søknadsbehandling })
 
-    val iverksattBehandling = søknadsbehandling.iverksett(attestering)
+    val iverksattBehandling = søknadsbehandling.iverksett(attestering).getOrElse {
+        return it.left()
+    }
     val vedtak: Avslagsvedtak = opprettAvslagsvedtak(iverksattBehandling, clock)
 
     val dokument = lagDokument(vedtak)
