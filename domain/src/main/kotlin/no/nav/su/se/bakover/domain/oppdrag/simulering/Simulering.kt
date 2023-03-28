@@ -11,6 +11,7 @@ import java.time.LocalDate
 
 /**
  * @param rawResponse den rå responsen slik den kom fra oppdragssystemet.
+ * @param nettoBeløp Nettobeløpet fra økonomisystemet (Inkluderer alle ytelsene/stønadene i INNT (inntektsytelser)). Brutto minus skatt. Dette feltet er i utgangspunktet ubrukelig for oss i SU.
  */
 data class Simulering(
     val gjelderId: Fnr,
