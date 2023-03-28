@@ -99,9 +99,11 @@ internal class SamletSkattegrunnlagTest {
                             Body(
                                 """
                                 {
-                                  "kode": "SSG-007",
-                                  "melding": "Ikke treff på oppgitt personidentifikator",
-                                  "korrelasjonsid": "23a235f5-28f9-47db-9abd-ab78977c32fa"
+                                  "ske-message": {
+                                    "kode": "SSG-007",
+                                    "melding": "Ikke treff på oppgitt personidentifikator",
+                                    "korrelasjonsid": "23a235f5-28f9-47db-9abd-ab78977c32fa"
+                                  }
                                 }
                                 """.trimIndent(),
                             ),
@@ -143,9 +145,11 @@ internal class SamletSkattegrunnlagTest {
                             Body(
                                 """
                                 {
-                                  "kode": "SSG-008",
-                                  "melding": "Ingen summert skattegrunnlag funnet på oppgitt personidentifikator og inntektsår",
-                                  "korrelasjonsid": "fc0f8e22-ebd7-11ec-8ea0-0242ac120002"
+                                  "ske-message": {
+                                    "kode": "SSG-008",
+                                    "melding": "Ingen summert skattegrunnlag funnet på oppgitt personidentifikator og inntektsår",
+                                    "korrelasjonsid": "fc0f8e22-ebd7-11ec-8ea0-0242ac120002"
+                                  }
                                 }
                                 """.trimIndent(),
                             ),

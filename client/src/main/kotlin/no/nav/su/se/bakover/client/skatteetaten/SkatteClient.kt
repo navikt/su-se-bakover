@@ -191,49 +191,28 @@ internal class SkatteClient(
         response: HttpResponse<String>,
         getRequest: HttpRequest?,
         fnr: Fnr,
-        inntektsÅr: Year,
+        inntektsår: Year,
         stadie: Stadie,
     ): Either<SkatteoppslagFeil, Skattegrunnlag.Årsgrunnlag> {
-        fun logError(throwable: Throwable? = RuntimeException("Genererer en stacktrace.")) {
-            log.error("Kall mot Sigrun/skatteetatens api feilet med statuskode ${response.statusCode()}. Se sikkerlogg.")
-            sikkerLogg.error(
-                "Kall mot Sigrun/skatteetatens api feilet med statuskode ${response.statusCode()}, Fnr: $fnr, Inntektsår: $inntektsÅr, Stadie: $stadie og følgende feil: ${response.body()}. " +
-                    "Request $getRequest er forespørselen mot skatteetaten som feilet. headere ${getRequest?.headers()}",
-                throwable,
-            )
-        }
-        return when (val status = response.statusCode()) {
+        val statusCode: Int = response.statusCode()
+        val body: String = response.body()
+
+        return when (statusCode) {
             200 -> SpesifisertSummertSkattegrunnlagResponseJson.fromJson(
-                json = response.body(),
+                json = body,
                 fnr = fnr,
-                inntektsår = inntektsÅr,
+                inntektsår = inntektsår,
                 stadie = stadie,
             )
 
-            400 -> SkatteoppslagFeil.UkjentFeil(IllegalArgumentException("Fikk 400 fra Sigrun.")).also {
-                logError(it.throwable)
-            }.left()
-
-            403 -> SkatteoppslagFeil.ManglerRettigheter.also {
-                logError()
-            }.left()
-
-            404 -> SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.also {
-                logError()
-            }.left()
-
-            500 -> SkatteoppslagFeil.UkjentFeil(IllegalArgumentException("Fikk 500 fra Sigrun.")).also {
-                logError(it.throwable)
-            }.left()
-
-            503 -> SkatteoppslagFeil.Nettverksfeil(IllegalArgumentException("Fikk 503 fra Sigrun.")).also {
-                logError(it.throwable)
-            }.left()
-
-            else -> SkatteoppslagFeil.UkjentFeil(IllegalArgumentException("Fikk uforventet statuskode fra Sigrun: $status"))
-                .also {
-                    logError(it.throwable)
-                }.left()
+            else -> håndterSigrunFeil(
+                statusCode = statusCode,
+                body = body,
+                fnr = fnr,
+                inntektsår = inntektsår,
+                getRequest = getRequest,
+                stadie = stadie,
+            ).left()
         }
     }
 }
