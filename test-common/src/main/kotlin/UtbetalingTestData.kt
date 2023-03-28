@@ -21,7 +21,7 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import java.time.Clock
 import java.util.UUID
 
@@ -144,7 +144,7 @@ fun nyUtbetalingOversendUtenKvittering(
 
 fun oversendtUtbetalingUtenKvittering(
     id: UUID30 = UUID30.randomUUID(),
-    søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
+    søknadsbehandling: IverksattSøknadsbehandling.Innvilget,
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
     clock: Clock = fixedClock,
     utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(

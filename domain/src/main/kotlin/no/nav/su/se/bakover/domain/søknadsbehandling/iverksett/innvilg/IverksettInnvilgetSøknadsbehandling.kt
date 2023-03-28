@@ -23,7 +23,8 @@ import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.validerOverlappendeStønadsperioder
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -45,7 +46,7 @@ private val log = LoggerFactory.getLogger("IverksettInnvilgetSøknadsbehandling.
  *     - Opphørte måneder med feilutbetaling som har blitt 100% tilbakekrevet kan "overskrives".
  */
 internal fun Sak.iverksettInnvilgetSøknadsbehandling(
-    søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget,
+    søknadsbehandling: SøknadsbehandlingTilAttestering.Innvilget,
     attestering: Attestering.Iverksatt,
     clock: Clock,
     simulerUtbetaling: (utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
@@ -109,7 +110,7 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
 }
 
 private fun Sak.validerGjeldendeVedtak(
-    søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget,
+    søknadsbehandling: SøknadsbehandlingTilAttestering.Innvilget,
     clock: Clock,
 ): Either<KunneIkkeIverksetteSøknadsbehandling.OverlappendeStønadsperiode, Unit> {
     return this.validerOverlappendeStønadsperioder(søknadsbehandling.periode, clock).mapLeft {
@@ -118,7 +119,7 @@ private fun Sak.validerGjeldendeVedtak(
 }
 
 private fun hentUføregrunnlag(
-    iverksattBehandling: Søknadsbehandling.Iverksatt.Innvilget,
+    iverksattBehandling: IverksattSøknadsbehandling.Innvilget,
 ): NonEmptyList<Grunnlag.Uføregrunnlag>? {
     return when (iverksattBehandling.sakstype) {
         Sakstype.ALDER -> {
@@ -136,7 +137,7 @@ private fun hentUføregrunnlag(
 /**
  * Sjekker kun saksbehandlers simulering.
  */
-private fun validerFeilutbetalinger(søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget): Either<KunneIkkeIverksetteSøknadsbehandling.SimuleringFørerTilFeilutbetaling, Unit> {
+private fun validerFeilutbetalinger(søknadsbehandling: SøknadsbehandlingTilAttestering.Innvilget): Either<KunneIkkeIverksetteSøknadsbehandling.SimuleringFørerTilFeilutbetaling, Unit> {
     if (søknadsbehandling.simulering.harFeilutbetalinger()) {
         log.warn("Kan ikke iverksette søknadsbehandling ${søknadsbehandling.id} hvor simulering inneholder feilutbetalinger. Dette er kun en nødbrems for tilfeller som i utgangspunktet skal være håndtert og forhindret av andre mekanismer. Se sikkerlogg for simuleringsdetaljer.")
         sikkerLogg.warn("Kan ikke iverksette søknadsbehandling ${søknadsbehandling.id} hvor simulering inneholder feilutbetalinger. Dette er kun en nødbrems for tilfeller som i utgangspunktet skal være håndtert og forhindret av andre mekanismer. Simulering: ${søknadsbehandling.simulering}")
@@ -154,14 +155,14 @@ private fun Sak.validerKravgrunnlag(): Either<KunneIkkeIverksetteSøknadsbehandl
 }
 
 private fun Sak.validerAvkorting(
-    søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget,
+    søknadsbehandling: SøknadsbehandlingTilAttestering.Innvilget,
 ): Either<KunneIkkeIverksetteSøknadsbehandling.AvkortingErUfullstendig, Unit> {
     val uteståendeAvkortingPåSak = if (uteståendeAvkorting is Avkortingsvarsel.Ingen) {
         null
     } else {
         uteståendeAvkorting as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes
     }
-    // TODO jah: Mulig å flytte den biten som kun angår behandlingen inn i [Søknadsbehandling.TilAttestering.Innvilget.tilIverksatt], mens det saksnære bør ligge her (som f.eks. at tilstander og IDer er like)
+    // TODO jah: Mulig å flytte den biten som kun angår behandlingen inn i [SøknadsbehandlingTilAttestering.Innvilget.tilIverksatt], mens det saksnære bør ligge her (som f.eks. at tilstander og IDer er like)
     return when (val a = søknadsbehandling.avkorting) {
         is AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående -> {
             val avkortingsvarselPåBehandling = a.avkortingsvarsel

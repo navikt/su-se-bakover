@@ -126,8 +126,8 @@ internal class LeggTilFamiliegjenforeningTest {
             ),
             saksbehandler = saksbehandler,
         ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
-            fra = Søknadsbehandling.TilAttestering::class,
-            til = Søknadsbehandling.Vilkårsvurdert::class,
+            fra = SøknadsbehandlingTilAttestering::class,
+            til = VilkårsvurdertSøknadsbehandling::class,
         ).left()
     }
 
@@ -143,8 +143,8 @@ internal class LeggTilFamiliegjenforeningTest {
             ),
             saksbehandler = saksbehandler,
         ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
-            fra = Søknadsbehandling.TilAttestering::class,
-            til = Søknadsbehandling.Vilkårsvurdert::class,
+            fra = SøknadsbehandlingTilAttestering::class,
+            til = VilkårsvurdertSøknadsbehandling::class,
         ).left()
     }
 
@@ -159,8 +159,8 @@ internal class LeggTilFamiliegjenforeningTest {
             ),
             saksbehandler = saksbehandler,
         ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
-            fra = Søknadsbehandling.TilAttestering.Avslag.UtenBeregning::class,
-            til = Søknadsbehandling.Vilkårsvurdert::class,
+            fra = SøknadsbehandlingTilAttestering.Avslag.UtenBeregning::class,
+            til = VilkårsvurdertSøknadsbehandling::class,
         ).left()
     }
 
@@ -176,8 +176,8 @@ internal class LeggTilFamiliegjenforeningTest {
             ),
             saksbehandler = saksbehandler,
         ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
-            fra = Søknadsbehandling.Iverksatt::class,
-            til = Søknadsbehandling.Vilkårsvurdert::class,
+            fra = IverksattSøknadsbehandling::class,
+            til = VilkårsvurdertSøknadsbehandling::class,
         ).left()
     }
 
@@ -193,8 +193,8 @@ internal class LeggTilFamiliegjenforeningTest {
             ),
             saksbehandler = saksbehandler,
         ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
-            fra = Søknadsbehandling.Iverksatt::class,
-            til = Søknadsbehandling.Vilkårsvurdert::class,
+            fra = IverksattSøknadsbehandling::class,
+            til = VilkårsvurdertSøknadsbehandling::class,
         ).left()
     }
 
@@ -209,8 +209,8 @@ internal class LeggTilFamiliegjenforeningTest {
             ),
             saksbehandler = saksbehandler,
         ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
-            fra = Søknadsbehandling.Iverksatt.Avslag.UtenBeregning::class,
-            til = Søknadsbehandling.Vilkårsvurdert::class,
+            fra = IverksattSøknadsbehandling.Avslag.UtenBeregning::class,
+            til = VilkårsvurdertSøknadsbehandling::class,
         ).left()
     }
 

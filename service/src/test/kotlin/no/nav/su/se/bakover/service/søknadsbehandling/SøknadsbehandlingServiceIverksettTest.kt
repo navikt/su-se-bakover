@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
@@ -238,7 +239,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         fun `attesterer og iverksetter avslag hvis alt er ok`() {
             val attestering = Attestering.Iverksatt(attestant, fixedTidspunkt)
             val (sak, avslagTilAttestering) = søknadsbehandlingTilAttesteringAvslagMedBeregning()
-            val expectedAvslag = Søknadsbehandling.Iverksatt.Avslag.MedBeregning(
+            val expectedAvslag = IverksattSøknadsbehandling.Avslag.MedBeregning(
                 id = avslagTilAttestering.id,
                 opprettet = avslagTilAttestering.opprettet,
                 sakId = sak.id,
@@ -425,7 +426,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     ),
                 ).getOrFail().let {
                     @Suppress("UNCHECKED_CAST")
-                    it as Triple<Sak, Søknadsbehandling.Iverksatt.Innvilget, VedtakInnvilgetSøknadsbehandling>
+                    it as Triple<Sak, IverksattSøknadsbehandling.Innvilget, VedtakInnvilgetSøknadsbehandling>
                 }
 
             actualSøknadsbehandling.attesteringer shouldBe Attesteringshistorikk.create(listOf(attestering))

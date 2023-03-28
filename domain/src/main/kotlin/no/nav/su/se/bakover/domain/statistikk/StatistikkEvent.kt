@@ -13,8 +13,11 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
+import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
@@ -55,28 +58,28 @@ sealed interface StatistikkEvent {
             val søknadsbehandling: DomeneSøknadsbehandling
 
             data class Opprettet(
-                override val søknadsbehandling: DomeneSøknadsbehandling.Vilkårsvurdert.Uavklart,
+                override val søknadsbehandling: VilkårsvurdertSøknadsbehandling.Uavklart,
                 // TODO jah: Erstatt med saksbehandler fra behandlinga hvis det blir implmentert.
                 val saksbehandler: NavIdentBruker.Saksbehandler,
             ) : Søknad
 
             sealed interface TilAttestering : Søknad {
                 data class Innvilget(
-                    override val søknadsbehandling: DomeneSøknadsbehandling.TilAttestering.Innvilget,
+                    override val søknadsbehandling: SøknadsbehandlingTilAttestering.Innvilget,
                 ) : TilAttestering
 
                 data class Avslag(
-                    override val søknadsbehandling: DomeneSøknadsbehandling.TilAttestering.Avslag,
+                    override val søknadsbehandling: SøknadsbehandlingTilAttestering.Avslag,
                 ) : TilAttestering
             }
 
             sealed interface Underkjent : Søknad {
                 data class Innvilget(
-                    override val søknadsbehandling: DomeneSøknadsbehandling.Underkjent.Innvilget,
+                    override val søknadsbehandling: UnderkjentSøknadsbehandling.Innvilget,
                 ) : Underkjent
 
                 data class Avslag(
-                    override val søknadsbehandling: DomeneSøknadsbehandling.Underkjent.Avslag,
+                    override val søknadsbehandling: UnderkjentSøknadsbehandling.Avslag,
                 ) : Underkjent
             }
 
@@ -87,14 +90,14 @@ sealed interface StatistikkEvent {
                 data class Innvilget(
                     override val vedtak: VedtakInnvilgetSøknadsbehandling,
                 ) : Iverksatt {
-                    override val søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget
+                    override val søknadsbehandling: IverksattSøknadsbehandling.Innvilget
                         get() = vedtak.behandling
                 }
 
                 data class Avslag(
                     override val vedtak: Avslagsvedtak,
                 ) : Iverksatt {
-                    override val søknadsbehandling: Søknadsbehandling.Iverksatt.Avslag
+                    override val søknadsbehandling: IverksattSøknadsbehandling.Avslag
                         get() = vedtak.behandling
                 }
             }

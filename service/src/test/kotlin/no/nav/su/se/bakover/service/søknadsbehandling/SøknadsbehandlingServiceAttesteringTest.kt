@@ -15,9 +15,9 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
@@ -34,7 +34,6 @@ import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
-import java.lang.IllegalArgumentException
 
 class SøknadsbehandlingServiceAttesteringTest {
 
@@ -76,7 +75,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             ),
         ).getOrFail()
 
-        actual.shouldBeType<Søknadsbehandling.TilAttestering.Innvilget>().also {
+        actual.shouldBeType<SøknadsbehandlingTilAttestering.Innvilget>().also {
             it.oppgaveId shouldBe nyOppgaveId
             it.saksbehandler shouldBe saksbehandler
             it.fritekstTilBrev shouldBe ""
@@ -98,7 +97,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             verify(oppgaveServiceMock).lukkOppgave(gammelOppgaveId)
             verify(eventObserver).handle(
                 argThat {
-                    it shouldBe StatistikkEvent.Behandling.Søknad.TilAttestering.Innvilget(actual as Søknadsbehandling.TilAttestering.Innvilget)
+                    it shouldBe StatistikkEvent.Behandling.Søknad.TilAttestering.Innvilget(actual as SøknadsbehandlingTilAttestering.Innvilget)
                 },
             )
         }
@@ -247,7 +246,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             ),
         ).getOrFail()
 
-        actual.shouldBeType<Søknadsbehandling.TilAttestering.Innvilget>().also {
+        actual.shouldBeType<SøknadsbehandlingTilAttestering.Innvilget>().also {
             it.saksbehandler shouldBe saksbehandler
             it.oppgaveId shouldBe nyOppgaveId
         }
@@ -268,7 +267,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             verify(oppgaveServiceMock).lukkOppgave(gammelOppgaveId)
             verify(eventObserver).handle(
                 argThat {
-                    it shouldBe StatistikkEvent.Behandling.Søknad.TilAttestering.Innvilget(actual as Søknadsbehandling.TilAttestering.Innvilget)
+                    it shouldBe StatistikkEvent.Behandling.Søknad.TilAttestering.Innvilget(actual as SøknadsbehandlingTilAttestering.Innvilget)
                 },
             )
         }

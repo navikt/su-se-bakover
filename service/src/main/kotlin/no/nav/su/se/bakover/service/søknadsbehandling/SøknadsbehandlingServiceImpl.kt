@@ -27,11 +27,13 @@ import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
+import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
@@ -55,8 +57,11 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.UnderkjennRequest
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
+import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.forsøkStatusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.medFritekstTilBrev
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
@@ -124,7 +129,7 @@ class SøknadsbehandlingServiceImpl(
     override fun opprett(
         request: OpprettRequest,
         hentSak: (() -> Sak)?,
-    ): Either<Sak.KunneIkkeOppretteSøknadsbehandling, Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart>> {
+    ): Either<Sak.KunneIkkeOppretteSøknadsbehandling, Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart>> {
         val sakId = request.sakId
         val sak = hentSak?.let { it() } ?: sakService.hentSak(sakId)
             .getOrElse { throw IllegalArgumentException("Fant ikke sak $sakId") }
@@ -142,7 +147,7 @@ class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun beregn(request: BeregnRequest): Either<KunneIkkeBeregne, Søknadsbehandling.Beregnet> {
+    override fun beregn(request: BeregnRequest): Either<KunneIkkeBeregne, BeregnetSøknadsbehandling> {
         val søknadsbehandling =
             søknadsbehandlingRepo.hent(request.behandlingId) ?: return KunneIkkeBeregne.FantIkkeBehandling.left()
 
@@ -171,7 +176,7 @@ class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun simuler(request: SimulerRequest): Either<KunneIkkeSimulereBehandling, Søknadsbehandling.Simulert> {
+    override fun simuler(request: SimulerRequest): Either<KunneIkkeSimulereBehandling, SimulertSøknadsbehandling> {
         val sak = sakService.hentSakForSøknadsbehandling(request.behandlingId)
 
         val søknadsbehandling = sak.hentSøknadsbehandling(request.behandlingId)
@@ -205,7 +210,7 @@ class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeTilAttestering, Søknadsbehandling.TilAttestering> {
+    override fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeTilAttestering, SøknadsbehandlingTilAttestering> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)?.let {
             statusovergang(
                 søknadsbehandling = it,
@@ -247,13 +252,13 @@ class SøknadsbehandlingServiceImpl(
         behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.PERSISTERT)
         behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.OPPRETTET_OPPGAVE)
         when (søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev) {
-            is Søknadsbehandling.TilAttestering.Avslag -> observers.notify(
+            is SøknadsbehandlingTilAttestering.Avslag -> observers.notify(
                 StatistikkEvent.Behandling.Søknad.TilAttestering.Avslag(
                     søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev,
                 ),
             )
 
-            is Søknadsbehandling.TilAttestering.Innvilget -> observers.notify(
+            is SøknadsbehandlingTilAttestering.Innvilget -> observers.notify(
                 StatistikkEvent.Behandling.Søknad.TilAttestering.Innvilget(
                     søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev,
                 ),
@@ -262,7 +267,7 @@ class SøknadsbehandlingServiceImpl(
         return søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev.right()
     }
 
-    override fun underkjenn(request: UnderkjennRequest): Either<KunneIkkeUnderkjenne, Søknadsbehandling.Underkjent> {
+    override fun underkjenn(request: UnderkjennRequest): Either<KunneIkkeUnderkjenne, UnderkjentSøknadsbehandling> {
         val søknadsbehandling =
             søknadsbehandlingRepo.hent(request.behandlingId) ?: return KunneIkkeUnderkjenne.FantIkkeBehandling.left()
 
@@ -310,13 +315,13 @@ class SøknadsbehandlingServiceImpl(
                 behandlingMetrics.incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.LUKKET_OPPGAVE)
             }
             when (søknadsbehandlingMedNyOppgaveId) {
-                is Søknadsbehandling.Underkjent.Avslag -> observers.notify(
+                is UnderkjentSøknadsbehandling.Avslag -> observers.notify(
                     StatistikkEvent.Behandling.Søknad.Underkjent.Avslag(
                         søknadsbehandlingMedNyOppgaveId,
                     ),
                 )
 
-                is Søknadsbehandling.Underkjent.Innvilget -> observers.notify(
+                is UnderkjentSøknadsbehandling.Innvilget -> observers.notify(
                     StatistikkEvent.Behandling.Søknad.Underkjent.Innvilget(
                         søknadsbehandlingMedNyOppgaveId,
                     ),
@@ -346,7 +351,7 @@ class SøknadsbehandlingServiceImpl(
 
     override fun oppdaterStønadsperiode(
         request: OppdaterStønadsperiodeRequest,
-    ): Either<Sak.KunneIkkeOppdatereStønadsperiode, Søknadsbehandling.Vilkårsvurdert> {
+    ): Either<Sak.KunneIkkeOppdatereStønadsperiode, VilkårsvurdertSøknadsbehandling> {
         val sak =
             sakService.hentSak(request.sakId)
                 .getOrElse { throw IllegalArgumentException("Fant ikke sak ${request.sakId}") }
@@ -540,7 +545,7 @@ class SøknadsbehandlingServiceImpl(
             is IkkeLovÅLeggeTilFradragIDenneStatusen -> {
                 KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
                     fra = this.status,
-                    til = Søknadsbehandling.Vilkårsvurdert.Innvilget::class,
+                    til = VilkårsvurdertSøknadsbehandling.Innvilget::class,
                 )
             }
 
@@ -557,7 +562,7 @@ class SøknadsbehandlingServiceImpl(
     override fun leggTilUtenlandsopphold(
         request: LeggTilFlereUtenlandsoppholdRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeLeggeTilUtenlandsopphold, Søknadsbehandling.Vilkårsvurdert> {
+    ): Either<KunneIkkeLeggeTilUtenlandsopphold, VilkårsvurdertSøknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling.left()
 
@@ -581,7 +586,7 @@ class SøknadsbehandlingServiceImpl(
         return vilkårsvurdert.right()
     }
 
-    override fun leggTilOpplysningspliktVilkår(request: LeggTilOpplysningspliktRequest.Søknadsbehandling): Either<KunneIkkeLeggeTilOpplysningsplikt, Søknadsbehandling.Vilkårsvurdert> {
+    override fun leggTilOpplysningspliktVilkår(request: LeggTilOpplysningspliktRequest.Søknadsbehandling): Either<KunneIkkeLeggeTilOpplysningsplikt, VilkårsvurdertSøknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilOpplysningsplikt.FantIkkeBehandling.left()
 
@@ -600,7 +605,7 @@ class SøknadsbehandlingServiceImpl(
     override fun leggTilPensjonsVilkår(
         request: LeggTilPensjonsVilkårRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeLeggeTilPensjonsVilkår, Søknadsbehandling.Vilkårsvurdert> {
+    ): Either<KunneIkkeLeggeTilPensjonsVilkår, VilkårsvurdertSøknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilPensjonsVilkår.FantIkkeBehandling.left()
 
@@ -615,7 +620,7 @@ class SøknadsbehandlingServiceImpl(
     override fun leggTilFlyktningVilkår(
         request: LeggTilFlyktningVilkårRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeLeggeTilFlyktningVilkår, Søknadsbehandling.Vilkårsvurdert> {
+    ): Either<KunneIkkeLeggeTilFlyktningVilkår, VilkårsvurdertSøknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilFlyktningVilkår.FantIkkeBehandling.left()
 
@@ -630,7 +635,7 @@ class SøknadsbehandlingServiceImpl(
     override fun leggTilFastOppholdINorgeVilkår(
         request: LeggTilFastOppholdINorgeRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeLeggeFastOppholdINorgeVilkår, Søknadsbehandling.Vilkårsvurdert> {
+    ): Either<KunneIkkeLeggeFastOppholdINorgeVilkår, VilkårsvurdertSøknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeFastOppholdINorgeVilkår.FantIkkeBehandling.left()
 
@@ -645,7 +650,7 @@ class SøknadsbehandlingServiceImpl(
     override fun leggTilPersonligOppmøteVilkår(
         request: LeggTilPersonligOppmøteVilkårRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, Søknadsbehandling.Vilkårsvurdert> {
+    ): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, VilkårsvurdertSøknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilPersonligOppmøteVilkår.FantIkkeBehandling.left()
 
@@ -674,7 +679,7 @@ class SøknadsbehandlingServiceImpl(
     override fun leggTilInstitusjonsoppholdVilkår(
         request: LeggTilInstitusjonsoppholdVilkårRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, Søknadsbehandling.Vilkårsvurdert> {
+    ): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, VilkårsvurdertSøknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilInstitusjonsoppholdVilkår.FantIkkeBehandling.left()
 

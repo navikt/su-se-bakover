@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
@@ -36,7 +36,7 @@ class AvslagKomponentTest {
             val sak = appComponents.databaseRepos.sak.hentSak(sakId = sakId)!!
 
             sak.vedtakListe.first().shouldBeType<VedtakAvslagVilkår>().let { avslagsvedtak ->
-                avslagsvedtak.behandling.shouldBeType<Søknadsbehandling.Iverksatt.Avslag.UtenBeregning>()
+                avslagsvedtak.behandling.shouldBeType<IverksattSøknadsbehandling.Avslag.UtenBeregning>()
                 avslagsvedtak.avslagsgrunner shouldBe listOf(
                     Avslagsgrunn.UFØRHET,
                     Avslagsgrunn.FLYKTNING,

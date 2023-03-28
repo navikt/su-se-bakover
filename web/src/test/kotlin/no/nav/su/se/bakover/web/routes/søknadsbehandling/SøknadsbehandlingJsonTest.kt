@@ -6,7 +6,8 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
@@ -25,7 +26,7 @@ internal class SøknadsbehandlingJsonTest {
         val søknadsbehandling = iverksattSøknadsbehandlingUføre(
             clock = TikkendeKlokke(1.april(2021).fixedClock()),
             stønadsperiode = Stønadsperiode.create(januar(2021)),
-        ).second as Søknadsbehandling.Iverksatt.Innvilget
+        ).second as IverksattSøknadsbehandling.Innvilget
 
         //language=JSON
         val expected = """
@@ -449,7 +450,7 @@ internal class SøknadsbehandlingJsonTest {
 
     @Test
     fun nullables() {
-        val søknadsbehandling = nySøknadsbehandlingUføre().second as Søknadsbehandling.Vilkårsvurdert.Uavklart
+        val søknadsbehandling = nySøknadsbehandlingUføre().second as VilkårsvurdertSøknadsbehandling.Uavklart
 
         //language=JSON
         val expected = """

@@ -9,7 +9,8 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
@@ -24,7 +25,7 @@ import java.time.Clock
  * Derfor vil et avslagsvedtak sin "stønadsperiode" kunne overlappe tidligere avslagsvedtak og andre vedtak som påvirker ytelsen.
  */
 internal fun Sak.iverksettAvslagSøknadsbehandling(
-    søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag,
+    søknadsbehandling: SøknadsbehandlingTilAttestering.Avslag,
     attestering: Attestering.Iverksatt,
     clock: Clock,
     // TODO jah: Burde kunne lage en brevrequest uten å gå via service-funksjon
@@ -59,18 +60,18 @@ internal fun Sak.iverksettAvslagSøknadsbehandling(
 }
 
 private fun opprettAvslagsvedtak(
-    iverksattBehandling: Søknadsbehandling.Iverksatt.Avslag,
+    iverksattBehandling: IverksattSøknadsbehandling.Avslag,
     clock: Clock,
 ): Avslagsvedtak {
     return when (iverksattBehandling) {
-        is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> {
+        is IverksattSøknadsbehandling.Avslag.MedBeregning -> {
             Avslagsvedtak.fromSøknadsbehandlingMedBeregning(
                 avslag = iverksattBehandling,
                 clock = clock,
             )
         }
 
-        is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> {
+        is IverksattSøknadsbehandling.Avslag.UtenBeregning -> {
             Avslagsvedtak.fromSøknadsbehandlingUtenBeregning(
                 avslag = iverksattBehandling,
                 clock = clock,

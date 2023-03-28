@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.sak.SakInfo
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import java.time.Clock
 import java.util.UUID
 
@@ -32,7 +32,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
 
     companion object {
         fun from(
-            søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
+            søknadsbehandling: IverksattSøknadsbehandling.Innvilget,
             utbetalingId: UUID30,
             clock: Clock,
         ) = VedtakInnvilgetSøknadsbehandling.fromSøknadsbehandling(

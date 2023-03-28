@@ -80,7 +80,7 @@ internal class LeggTilUførevilkårTest {
                 clock = fixedClock,
             ).let { oppdatert ->
                 oppdatert.isRight() shouldBe true
-                oppdatert.getOrFail() shouldBe beInstanceOf<Søknadsbehandling.Vilkårsvurdert>()
+                oppdatert.getOrFail() shouldBe beInstanceOf<VilkårsvurdertSøknadsbehandling>()
             }
         }
 
@@ -98,7 +98,7 @@ internal class LeggTilUførevilkårTest {
                 clock = fixedClock,
             ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.UgyldigTilstand(
                 fra = it::class,
-                til = Søknadsbehandling.Vilkårsvurdert::class,
+                til = VilkårsvurdertSøknadsbehandling::class,
             ).left()
         }
     }

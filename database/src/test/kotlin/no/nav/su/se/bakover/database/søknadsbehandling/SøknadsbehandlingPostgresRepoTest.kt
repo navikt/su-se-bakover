@@ -21,8 +21,9 @@ import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakRepo
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersinformasjon
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
@@ -82,7 +83,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             val vilkårsvurdert = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
             repo.hent(vilkårsvurdert.id).also {
                 it shouldBe vilkårsvurdert
-                it.shouldBeTypeOf<Søknadsbehandling.Vilkårsvurdert.Uavklart>()
+                it.shouldBeTypeOf<VilkårsvurdertSøknadsbehandling.Uavklart>()
             }
         }
     }
@@ -114,7 +115,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.søknadsbehandlingRepo
-            val vilkårsvurdert: Søknadsbehandling.Vilkårsvurdert.Innvilget =
+            val vilkårsvurdert: VilkårsvurdertSøknadsbehandling.Innvilget =
                 testDataHelper.persisterSøknadsbehandlingVilkårsvurdertInnvilget().second
             repo.hent(vilkårsvurdert.id).also {
                 it shouldBe vilkårsvurdert
@@ -130,7 +131,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             val vilkårsvurdert = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertAvslag().second
             repo.hent(vilkårsvurdert.id).also {
                 it shouldBe vilkårsvurdert
-                it.shouldBeTypeOf<Søknadsbehandling.Vilkårsvurdert.Avslag>()
+                it.shouldBeTypeOf<VilkårsvurdertSøknadsbehandling.Avslag>()
             }
         }
     }
@@ -347,7 +348,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     attestering = attesteringIverksatt(clock = enUkeEtterFixedClock),
                 )
             }
-            val expected = Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
+            val expected = IverksattSøknadsbehandling.Avslag.UtenBeregning(
                 id = iverksatt.id,
                 opprettet = iverksatt.opprettet,
                 sakId = iverksatt.sakId,
@@ -454,7 +455,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             )
 
             testDataHelper.søknadsbehandlingRepo.hent(opprettetMedStønadsperiode.id) shouldBe opprettetMedStønadsperiode
-            opprettetMedStønadsperiode.shouldBeInstanceOf<Søknadsbehandling.Iverksatt.Avslag.UtenBeregning>()
+            opprettetMedStønadsperiode.shouldBeInstanceOf<IverksattSøknadsbehandling.Avslag.UtenBeregning>()
         }
     }
 

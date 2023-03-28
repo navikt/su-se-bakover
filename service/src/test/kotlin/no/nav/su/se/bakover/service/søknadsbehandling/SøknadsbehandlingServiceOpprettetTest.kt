@@ -12,12 +12,12 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk
+import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.NySøknadsbehandling
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
@@ -187,7 +187,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                 saksbehandler = saksbehandler,
             ),
         ).getOrFail().second.shouldBeEqualToIgnoringFields(
-            Søknadsbehandling.Vilkårsvurdert.Uavklart(
+            VilkårsvurdertSøknadsbehandling.Uavklart(
                 id = capturedSøknadsbehandling.firstValue.id,
                 opprettet = capturedSøknadsbehandling.firstValue.opprettet,
                 sakId = søknad.sakId,
@@ -211,8 +211,8 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                     ),
                 ),
             ),
-            // periode er null for Søknadsbehandling.Vilkårsvurdert.Uavklart og vil gi exception dersom man kaller get() på den.
-            Søknadsbehandling.Vilkårsvurdert.Uavklart::periode,
+            // periode er null for VilkårsvurdertSøknadsbehandling.Uavklart og vil gi exception dersom man kaller get() på den.
+            VilkårsvurdertSøknadsbehandling.Uavklart::periode,
         )
         verify(serviceAndMocks.sakService).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(søknadsbehandlingRepoMock).lagreNySøknadsbehandling(
@@ -233,7 +233,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         verify(serviceAndMocks.observer).handle(
             argThat {
                 it shouldBe StatistikkEvent.Behandling.Søknad.Opprettet(
-                    Søknadsbehandling.Vilkårsvurdert.Uavklart(
+                    VilkårsvurdertSøknadsbehandling.Uavklart(
                         id = capturedSøknadsbehandling.firstValue.id,
                         opprettet = capturedSøknadsbehandling.firstValue.opprettet,
                         sakId = søknad.sakId,

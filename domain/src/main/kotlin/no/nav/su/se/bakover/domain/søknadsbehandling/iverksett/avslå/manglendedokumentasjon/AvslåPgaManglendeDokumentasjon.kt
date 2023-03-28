@@ -20,6 +20,8 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
+import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.IverksattAvslåttSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.iverksettSøknadsbehandling
@@ -92,7 +94,7 @@ private fun avslå(
     request: AvslåManglendeDokumentasjonCommand,
     clock: Clock,
     satsFactory: SatsFactory,
-): Pair<Sak, Søknadsbehandling.TilAttestering.Avslag.UtenBeregning> {
+): Pair<Sak, SøknadsbehandlingTilAttestering.Avslag.UtenBeregning> {
     // TODO jah: Vi burde gå via sak i alle stegene vi muterer søknadsbehandlingen.
     return søknadsbehandling
         // Dersom en søknadsbehandling kun er opprettet, men stønadsperiode ikke er valgt enda.
@@ -141,7 +143,7 @@ private fun Søknadsbehandling.leggTilStønadsperiodeOgAldersvurderingHvisNull(
 private fun Søknadsbehandling.avslåPgaManglendeDokumentasjon(
     saksbehandler: NavIdentBruker.Saksbehandler,
     clock: Clock,
-): Søknadsbehandling.Vilkårsvurdert.Avslag {
+): VilkårsvurdertSøknadsbehandling.Avslag {
     return leggTilOpplysningspliktVilkårForSaksbehandler(
         opplysningspliktVilkår = OpplysningspliktVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(
@@ -160,5 +162,5 @@ private fun Søknadsbehandling.avslåPgaManglendeDokumentasjon(
         ).getOrElse { throw IllegalArgumentException(it.toString()) },
         saksbehandler = saksbehandler,
         clock = clock,
-    ).getOrElse { throw IllegalArgumentException(it.toString()) } as Søknadsbehandling.Vilkårsvurdert.Avslag
+    ).getOrElse { throw IllegalArgumentException(it.toString()) } as VilkårsvurdertSøknadsbehandling.Avslag
 }

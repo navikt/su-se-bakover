@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.test.fixedClock
@@ -97,7 +97,7 @@ internal class LokalKvitteringJobTest {
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
         }
-        val innvilgetSøknadsbehandling = mock<Søknadsbehandling.Iverksatt.Innvilget> {}
+        val innvilgetSøknadsbehandling = mock<IverksattSøknadsbehandling.Innvilget> {}
         val ferdigstillVedtakServiceMock = mock<FerdigstillVedtakService> {
             on { ferdigstillVedtakEtterUtbetaling(any()) } doReturn Unit.right()
         }

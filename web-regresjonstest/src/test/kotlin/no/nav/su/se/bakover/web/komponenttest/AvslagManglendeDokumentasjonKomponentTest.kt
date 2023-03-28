@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
@@ -59,7 +60,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
             )
 
             appComponents.services.søknadsbehandling.søknadsbehandlingService.hentForSøknad(søknadId)!!.let { søknadsbehandling ->
-                søknadsbehandling.shouldBeType<Søknadsbehandling.Iverksatt.Avslag.UtenBeregning>().let { avslag ->
+                søknadsbehandling.shouldBeType<IverksattSøknadsbehandling.Avslag.UtenBeregning>().let { avslag ->
                     avslag.søknad.id shouldBe søknadId
                     avslag.periode shouldBe expectedPeriode
                     avslag.saksbehandler shouldBe NavIdentBruker.Saksbehandler("jossi")
@@ -147,7 +148,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
 
             appComponents.services.søknadsbehandling.søknadsbehandlingService.hentForSøknad(UUID.fromString(søknadId))!!
                 .let { søknadsbehandling ->
-                    søknadsbehandling.shouldBeType<Søknadsbehandling.Iverksatt.Avslag.UtenBeregning>().let { avslag ->
+                    søknadsbehandling.shouldBeType<IverksattSøknadsbehandling.Avslag.UtenBeregning>().let { avslag ->
                         avslag.periode shouldBe expectedPeriode
                         avslag.saksbehandler shouldBe NavIdentBruker.Saksbehandler("jossi")
                         avslag.grunnlagsdata shouldBe Grunnlagsdata.IkkeVurdert

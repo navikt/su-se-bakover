@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.validerOverlappendeStønadsperioder
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import java.time.Clock
@@ -36,7 +37,7 @@ fun Sak.oppdaterStønadsperiodeForSøknadsbehandling(
     saksbehandler: NavIdentBruker.Saksbehandler,
     hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
     saksbehandlersAvgjørelse: SaksbehandlersAvgjørelse?,
-): Either<Sak.KunneIkkeOppdatereStønadsperiode, Pair<Sak, Søknadsbehandling.Vilkårsvurdert>> {
+): Either<Sak.KunneIkkeOppdatereStønadsperiode, Pair<Sak, VilkårsvurdertSøknadsbehandling>> {
     val søknadsbehandling = søknadsbehandlinger.singleOrNull {
         it.id == søknadsbehandlingId
     } ?: return Sak.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
@@ -72,7 +73,7 @@ private fun Sak.internalOppdater(
     saksbehandler: NavIdentBruker.Saksbehandler,
     vurdering: Aldersvurdering.Vurdert,
     clock: Clock,
-): Either<Sak.KunneIkkeOppdatereStønadsperiode, Pair<Sak, Søknadsbehandling.Vilkårsvurdert>> {
+): Either<Sak.KunneIkkeOppdatereStønadsperiode, Pair<Sak, VilkårsvurdertSøknadsbehandling>> {
     søknadsbehandling.oppdaterStønadsperiodeForSaksbehandler(
         aldersvurdering = vurdering,
         formuegrenserFactory = formuegrenserFactory,

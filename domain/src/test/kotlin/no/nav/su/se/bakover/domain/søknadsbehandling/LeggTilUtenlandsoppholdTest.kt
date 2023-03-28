@@ -81,7 +81,7 @@ class LeggTilUtenlandsoppholdTest {
                 clock = fixedClock,
             ).let { oppdatert ->
                 oppdatert.isRight() shouldBe true
-                oppdatert.getOrFail() shouldBe beInstanceOf<Søknadsbehandling.Vilkårsvurdert>()
+                oppdatert.getOrFail() shouldBe beInstanceOf<VilkårsvurdertSøknadsbehandling>()
             }
         }
 
@@ -99,7 +99,7 @@ class LeggTilUtenlandsoppholdTest {
                 clock = fixedClock,
             ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen(
                 fra = it::class,
-                til = Søknadsbehandling.Vilkårsvurdert::class,
+                til = VilkårsvurdertSøknadsbehandling::class,
             ).left()
         }
     }

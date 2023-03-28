@@ -8,14 +8,14 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.dokument.Dokumenttilstand
 import no.nav.su.se.bakover.domain.dokument.setDokumentTilstandBasertPåBehandlingHvisNull
 import no.nav.su.se.bakover.domain.grunnlag.krevAlleVilkårInnvilget
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import java.time.Clock
 import java.util.UUID
 
 data class VedtakAvslagBeregning private constructor(
     override val id: UUID,
     override val opprettet: Tidspunkt,
-    override val behandling: Søknadsbehandling.Iverksatt.Avslag.MedBeregning,
+    override val behandling: IverksattSøknadsbehandling.Avslag.MedBeregning,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
     override val attestant: NavIdentBruker.Attestant,
     override val periode: Periode,
@@ -33,7 +33,7 @@ data class VedtakAvslagBeregning private constructor(
     companion object {
 
         fun from(
-            avslag: Søknadsbehandling.Iverksatt.Avslag.MedBeregning,
+            avslag: IverksattSøknadsbehandling.Avslag.MedBeregning,
             clock: Clock,
         ) = VedtakAvslagBeregning(
             id = UUID.randomUUID(),
@@ -52,7 +52,7 @@ data class VedtakAvslagBeregning private constructor(
         fun createFromPersistence(
             id: UUID,
             opprettet: Tidspunkt,
-            behandling: Søknadsbehandling.Iverksatt.Avslag.MedBeregning,
+            behandling: IverksattSøknadsbehandling.Avslag.MedBeregning,
             saksbehandler: NavIdentBruker.Saksbehandler,
             attestant: NavIdentBruker.Attestant,
             periode: Periode,

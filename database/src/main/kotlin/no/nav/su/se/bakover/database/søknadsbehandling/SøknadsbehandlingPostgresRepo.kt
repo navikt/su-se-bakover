@@ -44,9 +44,15 @@ import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.søknad.Søknad
+import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
+import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -136,7 +142,7 @@ internal class SøknadsbehandlingPostgresRepo(
     fun Søknadsbehandling.toDb(): SøknadsbehandlingDb {
         val base = this.toBase()
         return when (this) {
-            is Søknadsbehandling.Beregnet.Avslag -> {
+            is BeregnetSøknadsbehandling.Avslag -> {
                 SøknadsbehandlingDb(
                     base = base,
                     beregning = this.beregning,
@@ -145,7 +151,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 )
             }
 
-            is Søknadsbehandling.Beregnet.Innvilget -> {
+            is BeregnetSøknadsbehandling.Innvilget -> {
                 SøknadsbehandlingDb(
                     base = base,
                     beregning = this.beregning,
@@ -154,7 +160,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 )
             }
 
-            is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> {
+            is IverksattSøknadsbehandling.Avslag.MedBeregning -> {
                 SøknadsbehandlingDb(
                     base = base,
                     beregning = this.beregning,
@@ -163,7 +169,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 )
             }
 
-            is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> {
+            is IverksattSøknadsbehandling.Avslag.UtenBeregning -> {
                 SøknadsbehandlingDb(
                     base = base,
                     beregning = null,
@@ -172,7 +178,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 )
             }
 
-            is Søknadsbehandling.Iverksatt.Innvilget -> {
+            is IverksattSøknadsbehandling.Innvilget -> {
                 SøknadsbehandlingDb(
                     base = base,
                     beregning = this.beregning,
@@ -190,7 +196,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 )
             }
 
-            is Søknadsbehandling.Simulert -> {
+            is SimulertSøknadsbehandling -> {
                 SøknadsbehandlingDb(
                     base = base,
                     beregning = this.beregning,
@@ -199,7 +205,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 )
             }
 
-            is Søknadsbehandling.TilAttestering.Avslag.MedBeregning -> {
+            is SøknadsbehandlingTilAttestering.Avslag.MedBeregning -> {
                 SøknadsbehandlingDb(
                     base = base,
                     beregning = this.beregning,
@@ -208,7 +214,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 )
             }
 
-            is Søknadsbehandling.TilAttestering.Avslag.UtenBeregning -> {
+            is SøknadsbehandlingTilAttestering.Avslag.UtenBeregning -> {
                 SøknadsbehandlingDb(
                     base = base,
                     beregning = null,
@@ -217,34 +223,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 )
             }
 
-            is Søknadsbehandling.TilAttestering.Innvilget -> {
-                SøknadsbehandlingDb(
-                    base = base,
-                    beregning = this.beregning,
-                    simulering = this.simulering,
-                    lukket = this.erLukket,
-                )
-            }
-
-            is Søknadsbehandling.Underkjent.Avslag.MedBeregning -> {
-                SøknadsbehandlingDb(
-                    base = base,
-                    beregning = this.beregning,
-                    simulering = null,
-                    lukket = this.erLukket,
-                )
-            }
-
-            is Søknadsbehandling.Underkjent.Avslag.UtenBeregning -> {
-                SøknadsbehandlingDb(
-                    base = base,
-                    beregning = null,
-                    simulering = null,
-                    lukket = this.erLukket,
-                )
-            }
-
-            is Søknadsbehandling.Underkjent.Innvilget -> {
+            is SøknadsbehandlingTilAttestering.Innvilget -> {
                 SøknadsbehandlingDb(
                     base = base,
                     beregning = this.beregning,
@@ -253,7 +232,16 @@ internal class SøknadsbehandlingPostgresRepo(
                 )
             }
 
-            is Søknadsbehandling.Vilkårsvurdert.Avslag -> {
+            is UnderkjentSøknadsbehandling.Avslag.MedBeregning -> {
+                SøknadsbehandlingDb(
+                    base = base,
+                    beregning = this.beregning,
+                    simulering = null,
+                    lukket = this.erLukket,
+                )
+            }
+
+            is UnderkjentSøknadsbehandling.Avslag.UtenBeregning -> {
                 SøknadsbehandlingDb(
                     base = base,
                     beregning = null,
@@ -262,7 +250,16 @@ internal class SøknadsbehandlingPostgresRepo(
                 )
             }
 
-            is Søknadsbehandling.Vilkårsvurdert.Innvilget -> {
+            is UnderkjentSøknadsbehandling.Innvilget -> {
+                SøknadsbehandlingDb(
+                    base = base,
+                    beregning = this.beregning,
+                    simulering = this.simulering,
+                    lukket = this.erLukket,
+                )
+            }
+
+            is VilkårsvurdertSøknadsbehandling.Avslag -> {
                 SøknadsbehandlingDb(
                     base = base,
                     beregning = null,
@@ -271,7 +268,16 @@ internal class SøknadsbehandlingPostgresRepo(
                 )
             }
 
-            is Søknadsbehandling.Vilkårsvurdert.Uavklart -> {
+            is VilkårsvurdertSøknadsbehandling.Innvilget -> {
+                SøknadsbehandlingDb(
+                    base = base,
+                    beregning = null,
+                    simulering = null,
+                    lukket = this.erLukket,
+                )
+            }
+
+            is VilkårsvurdertSøknadsbehandling.Uavklart -> {
                 SøknadsbehandlingDb(
                     base = base,
                     beregning = null,
@@ -480,7 +486,7 @@ internal class SøknadsbehandlingPostgresRepo(
         val avkorting = deserializeNullable<AvkortingVedSøknadsbehandlingDb>(stringOrNull("avkorting"))?.toDomain()
 
         val søknadsbehandling = when (status) {
-            SøknadsbehandlingStatusDB.OPPRETTET -> Søknadsbehandling.Vilkårsvurdert.Uavklart(
+            SøknadsbehandlingStatusDB.OPPRETTET -> VilkårsvurdertSøknadsbehandling.Uavklart(
                 id = behandlingId,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -499,7 +505,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 saksbehandler = saksbehandler,
             )
 
-            SøknadsbehandlingStatusDB.VILKÅRSVURDERT_INNVILGET -> Søknadsbehandling.Vilkårsvurdert.Innvilget(
+            SøknadsbehandlingStatusDB.VILKÅRSVURDERT_INNVILGET -> VilkårsvurdertSøknadsbehandling.Innvilget(
                 id = behandlingId,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -518,7 +524,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 saksbehandler = saksbehandler,
             )
 
-            SøknadsbehandlingStatusDB.VILKÅRSVURDERT_AVSLAG -> Søknadsbehandling.Vilkårsvurdert.Avslag(
+            SøknadsbehandlingStatusDB.VILKÅRSVURDERT_AVSLAG -> VilkårsvurdertSøknadsbehandling.Avslag(
                 id = behandlingId,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -537,7 +543,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 saksbehandler = saksbehandler,
             )
 
-            SøknadsbehandlingStatusDB.BEREGNET_INNVILGET -> Søknadsbehandling.Beregnet.Innvilget(
+            SøknadsbehandlingStatusDB.BEREGNET_INNVILGET -> BeregnetSøknadsbehandling.Innvilget(
                 id = behandlingId,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -557,7 +563,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 saksbehandler = saksbehandler,
             )
 
-            SøknadsbehandlingStatusDB.BEREGNET_AVSLAG -> Søknadsbehandling.Beregnet.Avslag(
+            SøknadsbehandlingStatusDB.BEREGNET_AVSLAG -> BeregnetSøknadsbehandling.Avslag(
                 id = behandlingId,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -577,7 +583,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 saksbehandler = saksbehandler,
             )
 
-            SøknadsbehandlingStatusDB.SIMULERT -> Søknadsbehandling.Simulert(
+            SøknadsbehandlingStatusDB.SIMULERT -> SimulertSøknadsbehandling(
                 id = behandlingId,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -598,7 +604,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 saksbehandler = saksbehandler,
             )
 
-            SøknadsbehandlingStatusDB.TIL_ATTESTERING_INNVILGET -> Søknadsbehandling.TilAttestering.Innvilget(
+            SøknadsbehandlingStatusDB.TIL_ATTESTERING_INNVILGET -> SøknadsbehandlingTilAttestering.Innvilget(
                 id = behandlingId,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -620,7 +626,7 @@ internal class SøknadsbehandlingPostgresRepo(
             )
 
             SøknadsbehandlingStatusDB.TIL_ATTESTERING_AVSLAG -> when (beregning) {
-                null -> Søknadsbehandling.TilAttestering.Avslag.UtenBeregning(
+                null -> SøknadsbehandlingTilAttestering.Avslag.UtenBeregning(
                     id = behandlingId,
                     opprettet = opprettet,
                     sakId = sakId,
@@ -639,7 +645,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     sakstype = sakstype,
                 )
 
-                else -> Søknadsbehandling.TilAttestering.Avslag.MedBeregning(
+                else -> SøknadsbehandlingTilAttestering.Avslag.MedBeregning(
                     id = behandlingId,
                     opprettet = opprettet,
                     sakId = sakId,
@@ -660,7 +666,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 )
             }
 
-            SøknadsbehandlingStatusDB.UNDERKJENT_INNVILGET -> Søknadsbehandling.Underkjent.Innvilget(
+            SøknadsbehandlingStatusDB.UNDERKJENT_INNVILGET -> UnderkjentSøknadsbehandling.Innvilget(
                 id = behandlingId,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -682,7 +688,7 @@ internal class SøknadsbehandlingPostgresRepo(
             )
 
             SøknadsbehandlingStatusDB.UNDERKJENT_AVSLAG -> when (beregning) {
-                null -> Søknadsbehandling.Underkjent.Avslag.UtenBeregning(
+                null -> UnderkjentSøknadsbehandling.Avslag.UtenBeregning(
                     id = behandlingId,
                     opprettet = opprettet,
                     sakId = sakId,
@@ -701,7 +707,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     sakstype = sakstype,
                 )
 
-                else -> Søknadsbehandling.Underkjent.Avslag.MedBeregning(
+                else -> UnderkjentSøknadsbehandling.Avslag.MedBeregning(
                     id = behandlingId,
                     opprettet = opprettet,
                     sakId = sakId,
@@ -723,7 +729,7 @@ internal class SøknadsbehandlingPostgresRepo(
             }
 
             SøknadsbehandlingStatusDB.IVERKSATT_INNVILGET -> {
-                Søknadsbehandling.Iverksatt.Innvilget(
+                IverksattSøknadsbehandling.Innvilget(
                     id = behandlingId,
                     opprettet = opprettet,
                     sakId = sakId,
@@ -747,7 +753,7 @@ internal class SøknadsbehandlingPostgresRepo(
 
             SøknadsbehandlingStatusDB.IVERKSATT_AVSLAG -> {
                 when (beregning) {
-                    null -> Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
+                    null -> IverksattSøknadsbehandling.Avslag.UtenBeregning(
                         id = behandlingId,
                         opprettet = opprettet,
                         sakId = sakId,
@@ -766,7 +772,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         sakstype = sakstype,
                     )
 
-                    else -> Søknadsbehandling.Iverksatt.Avslag.MedBeregning(
+                    else -> IverksattSøknadsbehandling.Avslag.MedBeregning(
                         id = behandlingId,
                         opprettet = opprettet,
                         sakId = sakId,
@@ -830,22 +836,22 @@ internal enum class SøknadsbehandlingStatusDB {
 
         fun Søknadsbehandling.status(): SøknadsbehandlingStatusDB {
             return when (this) {
-                is Søknadsbehandling.Beregnet.Avslag -> BEREGNET_AVSLAG
-                is Søknadsbehandling.Beregnet.Innvilget -> BEREGNET_INNVILGET
-                is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> IVERKSATT_AVSLAG
-                is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> IVERKSATT_AVSLAG
-                is Søknadsbehandling.Iverksatt.Innvilget -> IVERKSATT_INNVILGET
+                is BeregnetSøknadsbehandling.Avslag -> BEREGNET_AVSLAG
+                is BeregnetSøknadsbehandling.Innvilget -> BEREGNET_INNVILGET
+                is IverksattSøknadsbehandling.Avslag.MedBeregning -> IVERKSATT_AVSLAG
+                is IverksattSøknadsbehandling.Avslag.UtenBeregning -> IVERKSATT_AVSLAG
+                is IverksattSøknadsbehandling.Innvilget -> IVERKSATT_INNVILGET
                 is LukketSøknadsbehandling -> underliggendeSøknadsbehandling.status()
-                is Søknadsbehandling.Simulert -> SIMULERT
-                is Søknadsbehandling.TilAttestering.Avslag.MedBeregning -> TIL_ATTESTERING_AVSLAG
-                is Søknadsbehandling.TilAttestering.Avslag.UtenBeregning -> TIL_ATTESTERING_AVSLAG
-                is Søknadsbehandling.TilAttestering.Innvilget -> TIL_ATTESTERING_INNVILGET
-                is Søknadsbehandling.Underkjent.Avslag.MedBeregning -> UNDERKJENT_AVSLAG
-                is Søknadsbehandling.Underkjent.Avslag.UtenBeregning -> UNDERKJENT_AVSLAG
-                is Søknadsbehandling.Underkjent.Innvilget -> UNDERKJENT_INNVILGET
-                is Søknadsbehandling.Vilkårsvurdert.Avslag -> VILKÅRSVURDERT_AVSLAG
-                is Søknadsbehandling.Vilkårsvurdert.Innvilget -> VILKÅRSVURDERT_INNVILGET
-                is Søknadsbehandling.Vilkårsvurdert.Uavklart -> OPPRETTET
+                is SimulertSøknadsbehandling -> SIMULERT
+                is SøknadsbehandlingTilAttestering.Avslag.MedBeregning -> TIL_ATTESTERING_AVSLAG
+                is SøknadsbehandlingTilAttestering.Avslag.UtenBeregning -> TIL_ATTESTERING_AVSLAG
+                is SøknadsbehandlingTilAttestering.Innvilget -> TIL_ATTESTERING_INNVILGET
+                is UnderkjentSøknadsbehandling.Avslag.MedBeregning -> UNDERKJENT_AVSLAG
+                is UnderkjentSøknadsbehandling.Avslag.UtenBeregning -> UNDERKJENT_AVSLAG
+                is UnderkjentSøknadsbehandling.Innvilget -> UNDERKJENT_INNVILGET
+                is VilkårsvurdertSøknadsbehandling.Avslag -> VILKÅRSVURDERT_AVSLAG
+                is VilkårsvurdertSøknadsbehandling.Innvilget -> VILKÅRSVURDERT_INNVILGET
+                is VilkårsvurdertSøknadsbehandling.Uavklart -> OPPRETTET
             }
         }
     }

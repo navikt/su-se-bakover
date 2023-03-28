@@ -25,17 +25,18 @@ import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
+import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
-import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.tilAttesteringSøknadsbehandlingUføre
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -68,7 +69,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             type = Sakstype.UFØRE,
         ),
         stønadsperiode = Stønadsperiode.create(år(2021)),
-    ).second as Søknadsbehandling.TilAttestering.Innvilget
+    ).second as SøknadsbehandlingTilAttestering.Innvilget
 
     private val oppgaveConfig = OppgaveConfig.Søknad(
         sakstype = innvilgetBehandlingTilAttestering.sakstype,
@@ -117,7 +118,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
 
     @Test
     fun `Feil behandlingsstatus`() {
-        val behandling: Søknadsbehandling.Iverksatt.Innvilget = iverksattSøknadsbehandlingUføre().second as Søknadsbehandling.Iverksatt.Innvilget
+        val behandling: IverksattSøknadsbehandling.Innvilget = iverksattSøknadsbehandlingUføre().second as IverksattSøknadsbehandling.Innvilget
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn behandling
@@ -312,7 +313,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             ),
         )
 
-        val underkjentMedNyOppgaveIdOgAttestering = Søknadsbehandling.Underkjent.Innvilget(
+        val underkjentMedNyOppgaveIdOgAttestering = UnderkjentSøknadsbehandling.Innvilget(
             id = innvilgetBehandlingTilAttestering.id,
             opprettet = innvilgetBehandlingTilAttestering.opprettet,
             sakId = innvilgetBehandlingTilAttestering.sakId,
@@ -405,7 +406,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             ),
         )
 
-        val underkjentMedNyOppgaveIdOgAttestering = Søknadsbehandling.Underkjent.Innvilget(
+        val underkjentMedNyOppgaveIdOgAttestering = UnderkjentSøknadsbehandling.Innvilget(
             id = innvilgetBehandlingTilAttestering.id,
             opprettet = innvilgetBehandlingTilAttestering.opprettet,
             sakId = innvilgetBehandlingTilAttestering.sakId,

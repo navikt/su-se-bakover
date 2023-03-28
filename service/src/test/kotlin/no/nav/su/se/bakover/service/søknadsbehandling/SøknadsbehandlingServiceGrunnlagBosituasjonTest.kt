@@ -10,11 +10,12 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
+import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.BosituasjonValg
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.FullførBosituasjonRequest
@@ -111,8 +112,8 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
 
         actual shouldBe KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeOppdatereBosituasjon(
             feil = KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
-                Søknadsbehandling.TilAttestering.Avslag.UtenBeregning::class,
-                Søknadsbehandling.Vilkårsvurdert::class,
+                SøknadsbehandlingTilAttestering.Avslag.UtenBeregning::class,
+                VilkårsvurdertSøknadsbehandling::class,
             ),
         ).left()
     }
@@ -215,7 +216,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(
                     bosituasjon.copy(
-                        id = (response as Søknadsbehandling.Vilkårsvurdert).grunnlagsdata.bosituasjon.first().id,
+                        id = (response as VilkårsvurdertSøknadsbehandling).grunnlagsdata.bosituasjon.first().id,
                     ),
                 ),
             ),
@@ -283,7 +284,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(
                     bosituasjon.copy(
-                        id = (response as Søknadsbehandling.Vilkårsvurdert).grunnlagsdata.bosituasjon.first().id,
+                        id = (response as VilkårsvurdertSøknadsbehandling).grunnlagsdata.bosituasjon.first().id,
                     ),
                 ),
             ),
@@ -346,8 +347,8 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             saksbehandler = saksbehandler,
         ) shouldBe KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(
             KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
-                fra = Søknadsbehandling.TilAttestering.Avslag.UtenBeregning::class,
-                til = Søknadsbehandling.Vilkårsvurdert::class,
+                fra = SøknadsbehandlingTilAttestering.Avslag.UtenBeregning::class,
+                til = VilkårsvurdertSøknadsbehandling::class,
             ),
         ).left()
     }
@@ -364,7 +365,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                     periode = stønadsperiode.periode,
                 ),
             ),
-        ).second as Søknadsbehandling.Vilkårsvurdert.Innvilget
+        ).second as VilkårsvurdertSøknadsbehandling.Innvilget
 
         val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
             id = UUID.randomUUID(),

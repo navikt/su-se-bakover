@@ -9,45 +9,50 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.visitors.RevurderingVisitor
+import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingVisitor
+import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 
 // TODO jah: Slett denne klassen og andre visitors og flytt logikken nærmere der den bør bo.
 class FinnAttestantVisitor : SøknadsbehandlingVisitor, RevurderingVisitor {
     var attestant: NavIdentBruker.Attestant? = null
 
-    override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart) {}
-    override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget) {}
-    override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {}
-    override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Innvilget) {}
-    override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {}
-    override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {}
-    override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Innvilget) {
+    override fun visit(søknadsbehandling: VilkårsvurdertSøknadsbehandling.Uavklart) {}
+    override fun visit(søknadsbehandling: VilkårsvurdertSøknadsbehandling.Innvilget) {}
+    override fun visit(søknadsbehandling: VilkårsvurdertSøknadsbehandling.Avslag) {}
+    override fun visit(søknadsbehandling: BeregnetSøknadsbehandling.Innvilget) {}
+    override fun visit(søknadsbehandling: BeregnetSøknadsbehandling.Avslag) {}
+    override fun visit(søknadsbehandling: SimulertSøknadsbehandling) {}
+    override fun visit(søknadsbehandling: UnderkjentSøknadsbehandling.Innvilget) {
         attestant = søknadsbehandling.attesteringer.hentSisteAttestering().attestant
     }
 
-    override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.MedBeregning) {
+    override fun visit(søknadsbehandling: UnderkjentSøknadsbehandling.Avslag.MedBeregning) {
         attestant = søknadsbehandling.attesteringer.hentSisteAttestering().attestant
     }
 
-    override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.UtenBeregning) {
+    override fun visit(søknadsbehandling: UnderkjentSøknadsbehandling.Avslag.UtenBeregning) {
         attestant = søknadsbehandling.attesteringer.hentSisteAttestering().attestant
     }
 
-    override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning) {}
-    override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.MedBeregning) {}
-    override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) {}
+    override fun visit(søknadsbehandling: SøknadsbehandlingTilAttestering.Avslag.UtenBeregning) {}
+    override fun visit(søknadsbehandling: SøknadsbehandlingTilAttestering.Avslag.MedBeregning) {}
+    override fun visit(søknadsbehandling: SøknadsbehandlingTilAttestering.Innvilget) {}
 
-    override fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning) {
+    override fun visit(søknadsbehandling: IverksattSøknadsbehandling.Avslag.UtenBeregning) {
         attestant = søknadsbehandling.attesteringer.hentSisteAttestering().attestant
     }
 
-    override fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Avslag.MedBeregning) {
+    override fun visit(søknadsbehandling: IverksattSøknadsbehandling.Avslag.MedBeregning) {
         attestant = søknadsbehandling.attesteringer.hentSisteAttestering().attestant
     }
 
-    override fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget) {
+    override fun visit(søknadsbehandling: IverksattSøknadsbehandling.Innvilget) {
         attestant = søknadsbehandling.attesteringer.hentSisteAttestering().attestant
     }
 

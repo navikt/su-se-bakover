@@ -41,6 +41,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
@@ -350,7 +351,7 @@ internal class VedtakPostgresRepo(
                 VedtakInnvilgetSøknadsbehandling.createFromPersistence(
                     id = id,
                     opprettet = opprettet,
-                    behandling = behandling as Søknadsbehandling.Iverksatt.Innvilget,
+                    behandling = behandling as IverksattSøknadsbehandling.Innvilget,
                     saksbehandler = saksbehandler,
                     attestant = attestant,
                     periode = periode!!,
@@ -410,7 +411,7 @@ internal class VedtakPostgresRepo(
                     VedtakAvslagBeregning.createFromPersistence(
                         id = id,
                         opprettet = opprettet,
-                        behandling = behandling as Søknadsbehandling.Iverksatt.Avslag.MedBeregning,
+                        behandling = behandling as IverksattSøknadsbehandling.Avslag.MedBeregning,
                         beregning = beregning,
                         saksbehandler = saksbehandler,
                         attestant = attestant,
@@ -423,7 +424,7 @@ internal class VedtakPostgresRepo(
                     VedtakAvslagVilkår.createFromPersistence(
                         id = id,
                         opprettet = opprettet,
-                        behandling = behandling as Søknadsbehandling.Iverksatt.Avslag.UtenBeregning,
+                        behandling = behandling as IverksattSøknadsbehandling.Avslag.UtenBeregning,
                         saksbehandler = saksbehandler,
                         attestant = attestant,
                         periode = periode!!,
