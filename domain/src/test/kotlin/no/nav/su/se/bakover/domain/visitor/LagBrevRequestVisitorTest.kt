@@ -526,7 +526,7 @@ internal class LagBrevRequestVisitorTest {
                         halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
                     ),
                     saksbehandlerNavn = saksbehandlerNavn,
-                    attestantNavn = attestantNavn,
+                    attestantNavn = "-",
                     fritekst = "Fritekst!",
                     forventetInntektStørreEnn0 = false,
                     dagensDato = fixedLocalDate,
@@ -556,7 +556,7 @@ internal class LagBrevRequestVisitorTest {
                     beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning!!.getId()),
                     harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEPS(),
                     saksbehandlerNavn = saksbehandlerNavn,
-                    attestantNavn = attestantNavn,
+                    attestantNavn = "-",
                     fritekst = "Fritekst!",
                     forventetInntektStørreEnn0 = false,
                     dagensDato = fixedLocalDate,
