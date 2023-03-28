@@ -136,82 +136,55 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
     }
 }
 
-internal fun SøknadsbehandlingService.KunneIkkeVilkårsvurdere.tilResultat(): Resultat {
-    return when (this) {
-        SøknadsbehandlingService.KunneIkkeVilkårsvurdere.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
-    }
+internal fun SøknadsbehandlingService.KunneIkkeVilkårsvurdere.tilResultat(): Resultat = when (this) {
+    SøknadsbehandlingService.KunneIkkeVilkårsvurdere.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
 }
 
-internal fun KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.tilResultat(): Resultat {
-    return when (this) {
-        is KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand -> Feilresponser.ugyldigTilstand(
-            this.fra,
-            this.til,
-        )
-    }
+internal fun KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.tilResultat(): Resultat = when (this) {
+    is KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand -> Feilresponser.ugyldigTilstand(
+        this.fra,
+        this.til,
+    )
 }
 
 internal fun KunneIkkeLeggeTilBosituasjongrunnlag.tilResultat() = when (this) {
-    KunneIkkeLeggeTilBosituasjongrunnlag.FantIkkeBehandling -> {
-        Revurderingsfeilresponser.fantIkkeRevurdering
-    }
+    KunneIkkeLeggeTilBosituasjongrunnlag.FantIkkeBehandling -> Revurderingsfeilresponser.fantIkkeRevurdering
 
-    KunneIkkeLeggeTilBosituasjongrunnlag.EpsAlderErNull -> {
-        HttpStatusCode.InternalServerError.errorJson(
-            "eps alder er null",
-            "eps_alder_er_null",
-        )
-    }
+    KunneIkkeLeggeTilBosituasjongrunnlag.EpsAlderErNull -> HttpStatusCode.InternalServerError.errorJson(
+        "eps alder er null",
+        "eps_alder_er_null",
+    )
 
-    KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeSlåOppEPS -> {
-        HttpStatusCode.InternalServerError.errorJson(
-            "kunne ikke slå opp EPS",
-            "kunne_ikke_slå_opp_eps",
-        )
-    }
+    KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeSlåOppEPS -> HttpStatusCode.InternalServerError.errorJson(
+        "kunne ikke slå opp EPS",
+        "kunne_ikke_slå_opp_eps",
+    )
 
-    KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData -> {
-        Feilresponser.ugyldigBody
-    }
+    KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData -> Feilresponser.ugyldigBody
 
-    is KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeLeggeTilBosituasjon -> {
-        when (val inner = this.feil) {
-            is KunneIkkeLeggeTilBosituasjon.Konsistenssjekk -> {
-                inner.feil.tilResultat()
-            }
+    is KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeLeggeTilBosituasjon -> when (val inner = this.feil) {
+        is KunneIkkeLeggeTilBosituasjon.Konsistenssjekk -> inner.feil.tilResultat()
 
-            is KunneIkkeLeggeTilBosituasjon.KunneIkkeOppdatereFormue -> {
-                when (val innerInner = inner.feil) {
-                    is Revurdering.KunneIkkeLeggeTilFormue.Konsistenssjekk -> {
-                        innerInner.feil.tilResultat()
-                    }
+        is KunneIkkeLeggeTilBosituasjon.KunneIkkeOppdatereFormue -> when (val innerInner = inner.feil) {
+            is Revurdering.KunneIkkeLeggeTilFormue.Konsistenssjekk -> innerInner.feil.tilResultat()
 
-                    is Revurdering.KunneIkkeLeggeTilFormue.UgyldigTilstand -> {
-                        Feilresponser.ugyldigTilstand(innerInner.fra, innerInner.til)
-                    }
-                }
-            }
-
-            KunneIkkeLeggeTilBosituasjon.PerioderMangler -> {
-                HttpStatusCode.BadRequest.errorJson(
-                    message = "Bosituasjon mangler for hele eller deler av behandlingsperioden",
-                    code = "bosituasjon_mangler_for_perioder",
-                )
-            }
-
-            is KunneIkkeLeggeTilBosituasjon.UgyldigTilstand -> {
-                Feilresponser.ugyldigTilstand(inner.fra, inner.til)
-            }
-
-            is KunneIkkeLeggeTilBosituasjon.Valideringsfeil -> {
-                inner.feil.tilResultat()
-            }
+            is Revurdering.KunneIkkeLeggeTilFormue.UgyldigTilstand -> Feilresponser.ugyldigTilstand(
+                innerInner.fra,
+                innerInner.til,
+            )
         }
+
+        KunneIkkeLeggeTilBosituasjon.PerioderMangler -> HttpStatusCode.BadRequest.errorJson(
+            message = "Bosituasjon mangler for hele eller deler av behandlingsperioden",
+            code = "bosituasjon_mangler_for_perioder",
+        )
+
+        is KunneIkkeLeggeTilBosituasjon.UgyldigTilstand -> Feilresponser.ugyldigTilstand(inner.fra, inner.til)
+
+        is KunneIkkeLeggeTilBosituasjon.Valideringsfeil -> inner.feil.tilResultat()
     }
 
-    is KunneIkkeLeggeTilBosituasjongrunnlag.Konsistenssjekk -> {
-        this.feil.tilResultat()
-    }
+    is KunneIkkeLeggeTilBosituasjongrunnlag.Konsistenssjekk -> this.feil.tilResultat()
 
     is KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeLeggeTilGrunnlag -> this.feil.tilResultat()
 }

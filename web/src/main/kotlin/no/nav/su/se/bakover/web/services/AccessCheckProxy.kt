@@ -425,25 +425,15 @@ open class AccessCheckProxy(
 
                 override fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): List<Dokument> {
                     when (hentDokumenterForIdType) {
-                        is HentDokumenterForIdType.HentDokumenterForRevurdering -> assertHarTilgangTilRevurdering(
-                            hentDokumenterForIdType.id,
-                        )
+                        is HentDokumenterForIdType.HentDokumenterForRevurdering -> assertHarTilgangTilRevurdering(hentDokumenterForIdType.id)
 
-                        is HentDokumenterForIdType.HentDokumenterForSak -> assertHarTilgangTilSak(
-                            hentDokumenterForIdType.id,
-                        )
+                        is HentDokumenterForIdType.HentDokumenterForSak -> assertHarTilgangTilSak(hentDokumenterForIdType.id)
 
-                        is HentDokumenterForIdType.HentDokumenterForSøknad -> assertHarTilgangTilSøknad(
-                            hentDokumenterForIdType.id,
-                        )
+                        is HentDokumenterForIdType.HentDokumenterForSøknad -> assertHarTilgangTilSøknad(hentDokumenterForIdType.id)
 
-                        is HentDokumenterForIdType.HentDokumenterForVedtak -> assertHarTilgangTilVedtak(
-                            hentDokumenterForIdType.id,
-                        )
+                        is HentDokumenterForIdType.HentDokumenterForVedtak -> assertHarTilgangTilVedtak(hentDokumenterForIdType.id)
 
-                        is HentDokumenterForIdType.HentDokumenterForKlage -> assertHarTilgangTilKlage(
-                            hentDokumenterForIdType.id,
-                        )
+                        is HentDokumenterForIdType.HentDokumenterForKlage -> assertHarTilgangTilKlage(hentDokumenterForIdType.id)
                     }.let {
                         return services.brev.hentDokumenterFor(hentDokumenterForIdType)
                     }
