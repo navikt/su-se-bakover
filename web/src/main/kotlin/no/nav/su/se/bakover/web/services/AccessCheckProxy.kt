@@ -673,6 +673,14 @@ open class AccessCheckProxy(
                         assertHarTilgangTilBehandling(request.behandlingId)
                         return service.leggTilInstitusjonsoppholdVilkår(request, saksbehandler)
                     }
+
+                    override fun leggTilBosituasjongrunnlag(
+                        request: LeggTilBosituasjonerRequest,
+                        saksbehandler: NavIdentBruker.Saksbehandler,
+                    ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, VilkårsvurdertSøknadsbehandling> {
+                        assertHarTilgangTilBehandling(request.behandlingId)
+                        return service.leggTilBosituasjongrunnlag(request, saksbehandler)
+                    }
                 },
             ),
             ferdigstillVedtak = object : FerdigstillVedtakService {
@@ -795,7 +803,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun leggTilBosituasjongrunnlag(request: LeggTilBosituasjonerRequest): Either<KunneIkkeLeggeTilBosituasjongrunnlag, RevurderingOgFeilmeldingerResponse> {
-                    assertHarTilgangTilRevurdering(request.revurderingId)
+                    assertHarTilgangTilRevurdering(request.behandlingId)
                     return services.revurdering.leggTilBosituasjongrunnlag(request)
                 }
 

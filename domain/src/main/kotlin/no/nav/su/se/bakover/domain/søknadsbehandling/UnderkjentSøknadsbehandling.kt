@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.domain.søknadsbehandling
 import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -16,6 +18,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.toAvslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.inneholderUfullstendigeBosituasjoner
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -150,7 +153,13 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling(), Søknadsbehand
             }
         }
 
-        fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler, clock: Clock): SøknadsbehandlingTilAttestering.Innvilget {
+        fun tilAttestering(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+            clock: Clock,
+        ): Either<ValideringsfeilAttestering, SøknadsbehandlingTilAttestering.Innvilget> {
+            if (grunnlagsdata.bosituasjon.inneholderUfullstendigeBosituasjoner()) {
+                return ValideringsfeilAttestering.InneholderUfullstendigBosituasjon.left()
+            }
             if (simulering.harFeilutbetalinger()) {
                 /**
                  * Kun en nødbrems for tilfeller som i utgangspunktet skal være håndtert og forhindret av andre mekanismer.
@@ -182,7 +191,7 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling(), Søknadsbehand
                 ),
                 avkorting = avkorting,
                 sakstype = sakstype,
-            )
+            ).right()
         }
     }
 
@@ -249,8 +258,11 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling(), Søknadsbehand
             fun tilAttestering(
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 clock: Clock,
-            ): SøknadsbehandlingTilAttestering.Avslag.MedBeregning =
-                SøknadsbehandlingTilAttestering.Avslag.MedBeregning(
+            ): Either<ValideringsfeilAttestering, SøknadsbehandlingTilAttestering.Avslag.MedBeregning> {
+                if (grunnlagsdata.bosituasjon.inneholderUfullstendigeBosituasjoner()) {
+                    return ValideringsfeilAttestering.InneholderUfullstendigBosituasjon.left()
+                }
+                return SøknadsbehandlingTilAttestering.Avslag.MedBeregning(
                     id = id,
                     opprettet = opprettet,
                     sakId = sakId,
@@ -274,7 +286,8 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling(), Søknadsbehand
                     ),
                     avkorting = avkorting,
                     sakstype = sakstype,
-                )
+                ).right()
+            }
 
             // TODO fiks typing/gyldig tilstand/vilkår fradrag?
             override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.vurdering) {
@@ -342,8 +355,11 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling(), Søknadsbehand
             fun tilAttestering(
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 clock: Clock,
-            ): SøknadsbehandlingTilAttestering.Avslag.UtenBeregning =
-                SøknadsbehandlingTilAttestering.Avslag.UtenBeregning(
+            ): Either<ValideringsfeilAttestering, SøknadsbehandlingTilAttestering.Avslag.UtenBeregning> {
+                if (grunnlagsdata.bosituasjon.inneholderUfullstendigeBosituasjoner()) {
+                    return ValideringsfeilAttestering.InneholderUfullstendigBosituasjon.left()
+                }
+                return SøknadsbehandlingTilAttestering.Avslag.UtenBeregning(
                     id = id,
                     opprettet = opprettet,
                     sakId = sakId,
@@ -366,7 +382,8 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling(), Søknadsbehand
                     ),
                     avkorting = avkorting,
                     sakstype = sakstype,
-                )
+                ).right()
+            }
 
             // TODO fiks typing/gyldig tilstand/vilkår fradrag?
             override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.vurdering) {

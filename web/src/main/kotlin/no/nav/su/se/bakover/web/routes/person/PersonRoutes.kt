@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.FantIkkePerson
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.IkkeTilgangTilPerson
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.Ukjent
@@ -49,11 +50,7 @@ internal fun Route.personRoutes(
                         personService.hentPerson(fnr).fold(
                             {
                                 call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
-                                when (it) {
-                                    FantIkkePerson -> Feilresponser.fantIkkePerson
-                                    IkkeTilgangTilPerson -> Feilresponser.ikkeTilgangTilPerson
-                                    Ukjent -> Feilresponser.feilVedOppslagPåPerson
-                                }
+                                it.tilResultat()
                             },
                             {
                                 call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
@@ -64,6 +61,14 @@ internal fun Route.personRoutes(
                 },
             )
         }
+    }
+}
+
+internal fun KunneIkkeHentePerson.tilResultat(): Resultat {
+    return when (this) {
+        FantIkkePerson -> Feilresponser.fantIkkePerson
+        IkkeTilgangTilPerson -> Feilresponser.ikkeTilgangTilPerson
+        Ukjent -> Feilresponser.feilVedOppslagPåPerson
     }
 }
 

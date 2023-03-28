@@ -274,6 +274,7 @@ fun Application.susebakover(
                     )
                     overordnetSøknadsbehandligRoutes(
                         accessProtectedServices.søknadsbehandling,
+                        accessProtectedServices.revurdering,
                         clock,
                         satsFactoryIDag,
                         applicationConfig,
@@ -282,6 +283,7 @@ fun Application.susebakover(
                     driftRoutes(accessProtectedServices.søknad)
                     revurderingRoutes(
                         revurderingService = accessProtectedServices.revurdering,
+                        søknadsbehandlingService = accessProtectedServices.søknadsbehandling.søknadsbehandlingService,
                         sakService = accessProtectedServices.sak,
                         clock = clock,
                         satsFactory = satsFactoryIDag,

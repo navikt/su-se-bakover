@@ -117,13 +117,13 @@ internal class StatusovergangTest {
         }.getOrFail()
 
     private val tilAttesteringInnvilget: SøknadsbehandlingTilAttestering.Innvilget =
-        simulert.tilAttestering(saksbehandler, fritekstTilBrev, fixedClock)
+        simulert.tilAttestering(saksbehandler, fritekstTilBrev, fixedClock).getOrFail()
 
     private val tilAttesteringAvslagVilkår: SøknadsbehandlingTilAttestering.Avslag.UtenBeregning =
-        vilkårsvurdertAvslag.tilAttesteringForSaksbehandler(saksbehandler, fritekstTilBrev, fixedClock)
+        vilkårsvurdertAvslag.tilAttesteringForSaksbehandler(saksbehandler, fritekstTilBrev, fixedClock).getOrFail()
 
     private val tilAttesteringAvslagBeregning: SøknadsbehandlingTilAttestering.Avslag.MedBeregning =
-        beregnetAvslag.tilAttestering(saksbehandler, fritekstTilBrev, fixedClock)
+        beregnetAvslag.tilAttestering(saksbehandler, fritekstTilBrev, fixedClock).getOrFail()
 
     private val underkjentInnvilget: UnderkjentSøknadsbehandling.Innvilget =
         tilAttesteringInnvilget.tilUnderkjent(attesteringUnderkjent(clock = fixedClock))
@@ -737,7 +737,7 @@ internal class StatusovergangTest {
             statusovergang(
                 vilkårsvurdertAvslag,
                 Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev, fixedClock),
-            ) shouldBe tilAttesteringAvslagVilkår
+            ) shouldBe tilAttesteringAvslagVilkår.right()
         }
 
         @Test
@@ -745,7 +745,7 @@ internal class StatusovergangTest {
             statusovergang(
                 beregnetAvslag,
                 Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev, fixedClock),
-            ) shouldBe tilAttesteringAvslagBeregning
+            ) shouldBe tilAttesteringAvslagBeregning.right()
         }
 
         @Test
@@ -753,7 +753,7 @@ internal class StatusovergangTest {
             statusovergang(
                 simulert,
                 Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev, fixedClock),
-            ) shouldBe tilAttesteringInnvilget
+            ) shouldBe tilAttesteringInnvilget.right()
         }
 
         @Test
@@ -770,7 +770,7 @@ internal class StatusovergangTest {
                 søknadsbehandlingsHistorikk = underkjentAvslagVilkår.søknadsbehandlingsHistorikk.leggTilNyHendelse(
                     nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),
                 ),
-            )
+            ).right()
         }
 
         @Test
@@ -787,7 +787,7 @@ internal class StatusovergangTest {
                 søknadsbehandlingsHistorikk = underkjentAvslagBeregning.søknadsbehandlingsHistorikk.leggTilNyHendelse(
                     nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),
                 ),
-            )
+            ).right()
         }
 
         @Test
@@ -804,7 +804,7 @@ internal class StatusovergangTest {
                 søknadsbehandlingsHistorikk = underkjentInnvilget.søknadsbehandlingsHistorikk.leggTilNyHendelse(
                     nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),
                 ),
-            )
+            ).right()
         }
 
         @Test

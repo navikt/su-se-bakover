@@ -6,6 +6,8 @@ import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.web.routes.grunnlag.leggTilGrunnlagBosituasjonRoutes
 import no.nav.su.se.bakover.web.routes.revurdering.avslutt.avsluttRevurderingRoute
 import no.nav.su.se.bakover.web.routes.revurdering.forhåndsvarsel.forhåndsvarslingRoute
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -17,6 +19,7 @@ internal const val revurderingPath = "$sakPath/{sakId}/revurderinger"
 
 internal fun Route.revurderingRoutes(
     revurderingService: RevurderingService,
+    søknadsbehandlingService: SøknadsbehandlingService,
     stansAvYtelseService: StansYtelseService,
     gjenopptakAvYtelseService: GjenopptaYtelseService,
     sakService: SakService,
@@ -47,7 +50,7 @@ internal fun Route.revurderingRoutes(
 
     leggTilFradragRevurdering(revurderingService, clock, satsFactory)
 
-    LeggTilBosituasjonRevurderingRoute(revurderingService, satsFactory)
+    leggTilGrunnlagBosituasjonRoutes(søknadsbehandlingService, revurderingService, satsFactory)
 
     leggTilFormueRevurderingRoute(revurderingService, satsFactory, clock)
 

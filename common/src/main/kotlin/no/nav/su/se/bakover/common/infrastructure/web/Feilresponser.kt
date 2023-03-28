@@ -331,4 +331,9 @@ object Feilresponser {
             "kan_ikke_sende_brev_i_denne_tilstanden",
         )
     }
+
+    val inneholderUfullstendigeBosituasjoner = BadRequest.errorJson(
+        "Behandlingen inneholder ufullstendige bosituasjoner",
+        "inneholder_ufullstendig_bosituasjon",
+    )
 }

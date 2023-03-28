@@ -13,20 +13,14 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeBehandling
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
-import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.BosituasjonValg
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.FullførBosituasjonRequest
@@ -119,56 +113,5 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                 }
             }
         }
-    }
-}
-
-internal fun SøknadsbehandlingService.KunneIkkeVilkårsvurdere.tilResultat(): Resultat {
-    return when (this) {
-        SøknadsbehandlingService.KunneIkkeVilkårsvurdere.FantIkkeBehandling -> fantIkkeBehandling
-    }
-}
-
-internal fun KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.tilResultat(): Resultat {
-    return when (this) {
-        is KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand -> ugyldigTilstand(
-            this.fra,
-            this.til,
-        )
-    }
-}
-
-internal fun KunneIkkeHentePerson.tilResultat(): Resultat {
-    return when (this) {
-        KunneIkkeHentePerson.FantIkkePerson -> Feilresponser.fantIkkePerson
-        KunneIkkeHentePerson.IkkeTilgangTilPerson -> Feilresponser.ikkeTilgangTilPerson
-        KunneIkkeHentePerson.Ukjent -> Feilresponser.feilVedOppslagPåPerson
-    }
-}
-
-internal fun KunneIkkeLageGrunnlagsdata.tilResultat(): Resultat {
-    return when (this) {
-        KunneIkkeLageGrunnlagsdata.FradragForEPSMenBosituasjonUtenEPS -> HttpStatusCode.BadRequest.errorJson(
-            "Kan ikke legge til fradrag knyttet til EPS for en bruker som ikke har EPS.",
-            "fradrag_for_eps_uten_eps",
-        )
-
-        KunneIkkeLageGrunnlagsdata.FradragManglerBosituasjon -> HttpStatusCode.BadRequest.errorJson(
-            "Alle fradragsperiodene må være innenfor bosituasjonsperioden.",
-            "fradragsperiode_utenfor_bosituasjonperiode",
-        )
-
-        KunneIkkeLageGrunnlagsdata.MåLeggeTilBosituasjonFørFradrag -> HttpStatusCode.BadRequest.errorJson(
-            "Må ha et bosituasjon, før man legger til fradrag",
-            "må_ha_bosituasjon_før_fradrag",
-        )
-
-        is KunneIkkeLageGrunnlagsdata.UgyldigFradragsgrunnlag -> this.feil.tilResultat()
-        is KunneIkkeLageGrunnlagsdata.Konsistenssjekk -> this.feil.tilResultat()
-    }
-}
-
-internal fun Grunnlag.Fradragsgrunnlag.UgyldigFradragsgrunnlag.tilResultat(): Resultat {
-    return when (this) {
-        Grunnlag.Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> Behandlingsfeilresponser.ugyldigFradragstype
     }
 }

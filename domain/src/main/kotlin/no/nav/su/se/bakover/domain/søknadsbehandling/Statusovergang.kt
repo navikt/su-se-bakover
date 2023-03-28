@@ -16,30 +16,30 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
         private val saksbehandler: NavIdentBruker.Saksbehandler,
         private val fritekstTilBrev: String,
         private val clock: Clock,
-    ) : Statusovergang<Nothing, SøknadsbehandlingTilAttestering>() {
+    ) : Statusovergang<ValideringsfeilAttestering, SøknadsbehandlingTilAttestering>() {
 
         override fun visit(søknadsbehandling: VilkårsvurdertSøknadsbehandling.Avslag) {
-            result = søknadsbehandling.tilAttesteringForSaksbehandler(saksbehandler, fritekstTilBrev, clock).right()
+            result = søknadsbehandling.tilAttesteringForSaksbehandler(saksbehandler, fritekstTilBrev, clock)
         }
 
         override fun visit(søknadsbehandling: BeregnetSøknadsbehandling.Avslag) {
-            result = søknadsbehandling.tilAttestering(saksbehandler, fritekstTilBrev, clock).right()
+            result = søknadsbehandling.tilAttestering(saksbehandler, fritekstTilBrev, clock)
         }
 
         override fun visit(søknadsbehandling: SimulertSøknadsbehandling) {
-            result = søknadsbehandling.tilAttestering(saksbehandler, fritekstTilBrev, clock).right()
+            result = søknadsbehandling.tilAttestering(saksbehandler, fritekstTilBrev, clock)
         }
 
         override fun visit(søknadsbehandling: UnderkjentSøknadsbehandling.Avslag.UtenBeregning) {
-            result = søknadsbehandling.tilAttestering(saksbehandler, clock).right()
+            result = søknadsbehandling.tilAttestering(saksbehandler, clock)
         }
 
         override fun visit(søknadsbehandling: UnderkjentSøknadsbehandling.Avslag.MedBeregning) {
-            result = søknadsbehandling.tilAttestering(saksbehandler, clock).right()
+            result = søknadsbehandling.tilAttestering(saksbehandler, clock)
         }
 
         override fun visit(søknadsbehandling: UnderkjentSøknadsbehandling.Innvilget) {
-            result = søknadsbehandling.tilAttestering(saksbehandler, clock).right()
+            result = søknadsbehandling.tilAttestering(saksbehandler, clock)
         }
     }
 
@@ -77,10 +77,10 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
 fun <T> statusovergang(
     søknadsbehandling: Søknadsbehandling,
-    statusovergang: Statusovergang<Nothing, T>,
-): T {
+    statusovergang: Statusovergang<ValideringsfeilAttestering, T>,
+): Either<ValideringsfeilAttestering, T> {
     // Kan aldri være Either.Left<Nothing>
-    return forsøkStatusovergang(søknadsbehandling, statusovergang).getOrNull()!!
+    return forsøkStatusovergang(søknadsbehandling, statusovergang)
 }
 
 fun <L, T> forsøkStatusovergang(

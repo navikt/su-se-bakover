@@ -60,6 +60,7 @@ enum class SøknadsbehandlingHandlingDb {
     OppdatertPersonligOppmøte,
     OppdatertUførhet,
     OppdatertUtenlandsopphold,
+    OppdatertBosituasjon,
     TattStillingTilEPS,
     FullførtBosituasjon,
     OppdatertFradrag,
@@ -88,6 +89,7 @@ enum class SøknadsbehandlingHandlingDb {
         SendtTilAttestering -> SøknadsbehandlingsHandling.SendtTilAttestering
         Lukket -> SøknadsbehandlingsHandling.Lukket
         OppdatertOpplysningsplikt -> SøknadsbehandlingsHandling.OppdatertOpplysningsplikt
+        OppdatertBosituasjon -> SøknadsbehandlingsHandling.OppdatertBosituasjon
     }
 
     companion object {
@@ -110,6 +112,7 @@ enum class SøknadsbehandlingHandlingDb {
             SøknadsbehandlingsHandling.OppdatertPersonligOppmøte -> OppdatertPersonligOppmøte
             SøknadsbehandlingsHandling.OppdatertUførhet -> OppdatertUførhet
             SøknadsbehandlingsHandling.OppdatertUtenlandsopphold -> OppdatertUtenlandsopphold
+            SøknadsbehandlingsHandling.OppdatertBosituasjon -> OppdatertBosituasjon
         }
     }
 }

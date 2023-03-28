@@ -43,13 +43,21 @@ sealed interface SøknadsbehandlingsHandling : SaksbehandlingsHandling {
     object OppdatertUtenlandsopphold : SøknadsbehandlingsHandling
     object OppdatertPersonligOppmøte : SøknadsbehandlingsHandling
     object OppdatertFastOppholdINorge : SøknadsbehandlingsHandling
+    object OppdatertBosituasjon : SøknadsbehandlingsHandling
     object OppdatertFormue : SøknadsbehandlingsHandling
 
     /**
      * Bruker får ja/nei spørsmål ved Formue-steget i frontend
+     *
+     * Historisk (eller man har benyttet seg av leggTilBosituasjonEpsgrunnlag())
      */
     object TattStillingTilEPS : SøknadsbehandlingsHandling
+
+    /**
+     * Historisk (eller man har benyttet seg av fullførBosituasjongrunnlag())
+     */
     object FullførtBosituasjon : SøknadsbehandlingsHandling
+
     object OppdatertFradragsgrunnlag : SøknadsbehandlingsHandling
     object Beregnet : SøknadsbehandlingsHandling
     object Simulert : SøknadsbehandlingsHandling

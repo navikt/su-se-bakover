@@ -60,6 +60,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.UnderkjennRequest
+import no.nav.su.se.bakover.domain.søknadsbehandling.ValideringsfeilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.MaskinellAldersvurderingMedGrunnlagsdata
 import no.nav.su.se.bakover.web.features.authorize
@@ -313,6 +314,8 @@ internal fun Route.søknadsbehandlingRoutes(
                                     KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId -> {
                                         Feilresponser.fantIkkeAktørId
                                     }
+
+                                    is KunneIkkeSendeTilAttestering.HarValideringsfeil -> it.feil.tilResultat()
                                 }
                                 call.svar(resultat)
                             },
@@ -386,6 +389,10 @@ internal fun Route.søknadsbehandlingRoutes(
             }
         }
     }
+}
+
+private fun ValideringsfeilAttestering.tilResultat(): Resultat = when (this) {
+    ValideringsfeilAttestering.InneholderUfullstendigBosituasjon -> Feilresponser.inneholderUfullstendigeBosituasjoner
 }
 
 internal fun Sak.KunneIkkeOppdatereStønadsperiode.tilResultat(): Resultat {

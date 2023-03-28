@@ -54,6 +54,7 @@ import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
+import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjon
 import no.nav.su.se.bakover.domain.vilkår.inneholderAlle
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
@@ -115,16 +116,6 @@ sealed class Revurdering :
             val fra: KClass<out Revurdering>,
             val til: KClass<out Revurdering> = OpprettetRevurdering::class,
         ) : KunneIkkeLeggeTilFradrag()
-    }
-
-    sealed class KunneIkkeLeggeTilBosituasjon {
-        data class Valideringsfeil(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeLeggeTilBosituasjon()
-        data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
-            KunneIkkeLeggeTilBosituasjon()
-
-        data class Konsistenssjekk(val feil: Konsistensproblem.Bosituasjon) : KunneIkkeLeggeTilBosituasjon()
-        data class KunneIkkeOppdatereFormue(val feil: KunneIkkeLeggeTilFormue) : KunneIkkeLeggeTilBosituasjon()
-        object PerioderMangler : KunneIkkeLeggeTilBosituasjon()
     }
 
     open fun oppdater(

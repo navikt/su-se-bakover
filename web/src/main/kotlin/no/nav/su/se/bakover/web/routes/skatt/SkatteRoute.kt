@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.domain.skatt.SkatteoppslagFeil
 import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.web.features.authorize
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.tilResultat
+import no.nav.su.se.bakover.web.routes.person.tilResultat
 
 internal const val skattPath = "/skatt"
 

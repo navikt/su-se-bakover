@@ -6,6 +6,10 @@ import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import kotlin.reflect.KClass
 
+sealed interface ValideringsfeilAttestering {
+    object InneholderUfullstendigBosituasjon : ValideringsfeilAttestering
+}
+
 sealed class KunneIkkeLeggeTilVilkår {
     sealed class KunneIkkeLeggeTilUtenlandsopphold : KunneIkkeLeggeTilVilkår() {
         data class IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen(
