@@ -44,6 +44,9 @@ interface BehandlingMedOppgave : Behandling {
 interface BehandlingMedAttestering : Behandling {
     val attesteringer: Attesteringshistorikk
 
+    fun hentAttestantSomIverksatte(): NavIdentBruker.Attestant? {
+        return this.attesteringer.hentSisteIverksatteAttesteringOrNull()?.attestant
+    }
     fun prøvHentSisteAttestering(): Attestering? = attesteringer.prøvHentSisteAttestering()
     fun prøvHentSisteAttestant(): NavIdentBruker.Attestant? = prøvHentSisteAttestering()?.attestant
 }

@@ -327,16 +327,17 @@ sealed class Søknadsbehandling :
         formuegrenserFactory: FormuegrenserFactory,
         clock: Clock,
         avkorting: AvkortingVedSøknadsbehandling,
-    ): Either<KunneIkkeOppdatereStønadsperiode, VilkårsvurdertSøknadsbehandling> = if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-        oppdaterStønadsperiodeInternal(
-            oppdatertStønadsperiode = oppdatertStønadsperiode,
-            formuegrenserFactory = formuegrenserFactory,
-            clock = clock,
-            avkorting = avkorting,
-        )
-    } else {
-        KunneIkkeOppdatereStønadsperiode.UgyldigTilstand(this::class).left()
-    }
+    ): Either<KunneIkkeOppdatereStønadsperiode, VilkårsvurdertSøknadsbehandling> =
+        if (this is KanOppdaterePeriodeGrunnlagVilkår) {
+            oppdaterStønadsperiodeInternal(
+                oppdatertStønadsperiode = oppdatertStønadsperiode,
+                formuegrenserFactory = formuegrenserFactory,
+                clock = clock,
+                avkorting = avkorting,
+            )
+        } else {
+            KunneIkkeOppdatereStønadsperiode.UgyldigTilstand(this::class).left()
+        }
 
     private fun oppdaterStønadsperiodeInternal(
         oppdatertStønadsperiode: Stønadsperiode,
@@ -366,17 +367,18 @@ sealed class Søknadsbehandling :
         formuegrenserFactory: FormuegrenserFactory,
         clock: Clock,
         avkorting: AvkortingVedSøknadsbehandling,
-    ): Either<KunneIkkeOppdatereStønadsperiode, VilkårsvurdertSøknadsbehandling> = if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-        oppdaterStønadsperiodeInternalForSaksbehandler(
-            saksbehandler = saksbehandler,
-            aldersvurdering = aldersvurdering,
-            formuegrenserFactory = formuegrenserFactory,
-            clock = clock,
-            avkorting = avkorting,
-        )
-    } else {
-        KunneIkkeOppdatereStønadsperiode.UgyldigTilstand(this::class).left()
-    }
+    ): Either<KunneIkkeOppdatereStønadsperiode, VilkårsvurdertSøknadsbehandling> =
+        if (this is KanOppdaterePeriodeGrunnlagVilkår) {
+            oppdaterStønadsperiodeInternalForSaksbehandler(
+                saksbehandler = saksbehandler,
+                aldersvurdering = aldersvurdering,
+                formuegrenserFactory = formuegrenserFactory,
+                clock = clock,
+                avkorting = avkorting,
+            )
+        } else {
+            KunneIkkeOppdatereStønadsperiode.UgyldigTilstand(this::class).left()
+        }
 
     private fun oppdaterStønadsperiodeInternalForSaksbehandler(
         saksbehandler: NavIdentBruker.Saksbehandler,
@@ -690,7 +692,10 @@ sealed class Søknadsbehandling :
         return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
             leggTilUførevilkårInternal(saksbehandler, uførhet, clock)
         } else {
-            KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.UgyldigTilstand(this::class, VilkårsvurdertSøknadsbehandling::class)
+            KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.UgyldigTilstand(
+                this::class,
+                VilkårsvurdertSøknadsbehandling::class,
+            )
                 .left()
         }
     }

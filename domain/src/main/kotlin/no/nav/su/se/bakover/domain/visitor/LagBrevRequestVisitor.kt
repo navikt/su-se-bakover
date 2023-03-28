@@ -368,10 +368,7 @@ class LagBrevRequestVisitor(
         hentPersonOgNavn(
             fnr = søknadsbehandling.fnr,
             saksbehandler = søknadsbehandling.saksbehandler,
-            attestant = FinnAttestantVisitor().let {
-                søknadsbehandling.accept(it)
-                it.attestant
-            },
+            attestant = søknadsbehandling.hentAttestantSomIverksatte(),
         ).map {
             requestForAvslag(
                 personOgNavn = it,
@@ -392,10 +389,7 @@ class LagBrevRequestVisitor(
         hentPersonOgNavn(
             fnr = søknadsbehandling.fnr,
             saksbehandler = søknadsbehandling.saksbehandler,
-            attestant = FinnAttestantVisitor().let {
-                søknadsbehandling.accept(it)
-                it.attestant
-            },
+            attestant = søknadsbehandling.hentAttestantSomIverksatte(),
         ).map {
             requestForInnvilgelse(
                 personOgNavn = it,
@@ -417,10 +411,7 @@ class LagBrevRequestVisitor(
         return hentPersonOgNavn(
             fnr = revurdering.fnr,
             saksbehandler = revurdering.saksbehandler,
-            attestant = FinnAttestantVisitor().let {
-                revurdering.accept(it)
-                it.attestant
-            },
+            attestant = revurdering.hentAttestantSomIverksatte(),
         ).map {
             LagBrevRequest.Inntekt(
                 person = it.person,
@@ -480,10 +471,7 @@ class LagBrevRequestVisitor(
         return hentPersonOgNavn(
             fnr = revurdering.fnr,
             saksbehandler = revurdering.saksbehandler,
-            attestant = FinnAttestantVisitor().let {
-                revurdering.accept(it)
-                it.attestant
-            },
+            attestant = revurdering.hentAttestantSomIverksatte(),
         ).map { personOgNavn ->
             // TODO avkorting refaktorer dette?
             val avkortingsbeløp = when (revurdering) {
