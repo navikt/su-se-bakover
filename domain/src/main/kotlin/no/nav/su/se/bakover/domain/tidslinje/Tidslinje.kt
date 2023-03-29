@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.Validator.valider
+import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje
 import java.time.LocalDate
 import java.util.LinkedList
 
@@ -212,12 +213,12 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
                                 first.periode starterSamtidig second.periode -> {
                                     when {
                                         first.opprettet.instant > second.opprettet.instant -> {
-                                            sikkerLogg.error("Feil ved periodisering i Tidslinje. Objekter er i ugyldig rekkefølge. First: $first er opprettet etter Second: $second. Queue: $queue. Result: $result")
+                                            sikkerLogg.error("Feil ved periodisering i Tidslinje. Objekter er i ugyldig rekkefølge. First er opprettet etter Second. First: ${elementLog(first)}, Second: ${elementLog(second)}, Queue: ${elementLog(queue)}. Result: ${elementLog(result)}")
                                             throw IllegalStateException("Feil ved periodisering i Tidslinje. Objekter er i ugyldig rekkefølge. First er opprettet etter second. Se sikkerlogg.")
                                         }
 
                                         first.opprettet.instant == second.opprettet.instant -> {
-                                            sikkerLogg.error("Feil ved periodisering i Tidslinje. Objekter er i ugyldig rekkefølge. First: $first er opprettet samtidig som Second: $second. Queue: $queue. Result: $result")
+                                            sikkerLogg.error("Feil ved periodisering i Tidslinje. Objekter er i ugyldig rekkefølge. First er opprettet samtidig som Second. First: ${elementLog(first)}, Second: ${elementLog(second)}, Queue: ${elementLog(queue)}. Result: ${elementLog(result)}")
                                             throw IllegalStateException("Feil ved periodisering i Tidslinje. Objekter er i ugyldig rekkefølge. First er opprettet samtidig som second. Se sikkerlogg.")
                                         }
 
@@ -285,6 +286,21 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
                     },
                 ) { "Tidslinje har elementer med overlappende perioder!" }
             }
+        }
+
+        private fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> elementLog(elementer: List<T>): String {
+            return elementer.joinToString(prefix = "[", postfix = "]") { elementLog(it) }
+        }
+        private fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> elementLog(element: T): String {
+            val periode = element.periode
+            val opprettet = element.opprettet
+            val type = element::class.simpleName
+            val id = when (element) {
+                is VedtakPåTidslinje -> element.originaltVedtak.id
+                // Legg til flere typer her etterhvert som '?' dukker opp i loggene.
+                else -> "?"
+            }
+            return "{\"type\":\"$type\", \"periode\":\"$periode\", \"opprettet\":\"$opprettet\", \"id\":\"$id\"}"
         }
     }
 }
