@@ -7,12 +7,11 @@ import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
-import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.Validator.valider
 import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje
 import java.time.LocalDate
-import java.util.LinkedList
 
 /**
  * Konstruerer en tidslinje av periodiserte opplysninger, begrenset innen for opplysningenes totale periode.
@@ -83,188 +82,32 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
         fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> lagTidslinje(
             input: NonEmptyList<T>,
         ): Tidslinje<T> {
-            val delvisOverlappende = input.filtrerVekkAlleSomOverskivesFullstendigAvNyere()
+            val sortedByOpprettetSynkende = input.sortedByDescending { it.opprettet.instant }
+            val sortedByPeriode = input.sortedBy { it.periode }
 
-            val periodisert = periodiser(delvisOverlappende)
-            return Tidslinje(
-                tidslinjeperioder = periodisert.sortedWith(stigendeFraOgMed()).toNonEmptyList(),
-            )
-        }
-
-        private fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> NonEmptyList<T>.filtrerVekkAlleSomOverskivesFullstendigAvNyere(): NonEmptyList<T> {
-            return filterNot { t1 ->
-                any { t2 -> t1.opprettet.instant < t2.opprettet.instant && t2.periode.inneholder(t1.periode) }
-            }.toNonEmptyList()
-        }
-
-        private fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> stigendeFraOgMed(): Comparator<T> {
-            return Comparator { o1, o2 -> o1.periode.fraOgMed.compareTo(o2.periode.fraOgMed) }
-        }
-
-        private fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> periodiser(
-            tempResult: NonEmptyList<T>,
-        ): NonEmptyList<T> {
-            val nyesteFørst = Comparator<T> { o1, o2 -> o2.opprettet.instant.compareTo(o1.opprettet.instant) }
-
-            val queue = LinkedList(tempResult.sortedWith(stigendeFraOgMed<T>().then(nyesteFørst)))
-            val result = mutableListOf<T>()
-
-            while (queue.isNotEmpty()) {
-                val first = queue.poll()
-                if (queue.isNotEmpty()) {
-                    val peek = queue.peek()
-                    if (first.periode overlapper peek.periode) {
-                        val second = queue.poll()
-                        if (first.periode slutterTidligere second.periode) {
-                            when {
-                                first.opprettet.instant < second.opprettet.instant -> {
-                                    result.add(
-                                        first.copy(
-                                            CopyArgs.Tidslinje.NyPeriode(
-                                                periode = Periode.create(
-                                                    fraOgMed = first.periode.fraOgMed,
-                                                    tilOgMed = minOf(
-                                                        first.periode.tilOgMed,
-                                                        second.periode.fraOgMed.minusDays(1),
-                                                    ),
-                                                ),
-                                            ),
-                                        ),
-                                    )
-                                    result.add(
-                                        second.copy(
-                                            CopyArgs.Tidslinje.NyPeriode(
-                                                periode = Periode.create(
-                                                    fraOgMed = minOf(
-                                                        first.periode.tilOgMed.plusDays(1),
-                                                        second.periode.fraOgMed,
-                                                    ),
-                                                    tilOgMed = second.periode.tilOgMed,
-                                                ),
-                                            ),
-                                        ),
-                                    )
-                                }
-
-                                first.opprettet.instant > second.opprettet.instant -> {
-                                    result.add(
-                                        first.copy(
-                                            CopyArgs.Tidslinje.NyPeriode(
-                                                periode = Periode.create(
-                                                    fraOgMed = first.periode.fraOgMed,
-                                                    tilOgMed = maxOf(
-                                                        first.periode.tilOgMed,
-                                                        second.periode.fraOgMed.minusDays(1),
-                                                    ),
-                                                ),
-                                            ),
-                                        ),
-                                    )
-                                    result.add(
-                                        second.copy(
-                                            CopyArgs.Tidslinje.NyPeriode(
-                                                periode = Periode.create(
-                                                    fraOgMed = maxOf(
-                                                        first.periode.tilOgMed.plusDays(1),
-                                                        second.periode.fraOgMed,
-                                                    ),
-                                                    tilOgMed = second.periode.tilOgMed,
-                                                ),
-                                            ),
-                                        ),
-                                    )
-                                }
-                            }
-                        }
-
-                        if (first.periode inneholder second.periode) {
-                            when {
-                                !(first.periode starterSamtidig second.periode) -> {
-                                    when {
-                                        first.periode starterTidligere second.periode -> {
-                                            result.add(
-                                                first.copy(
-                                                    CopyArgs.Tidslinje.NyPeriode(
-                                                        periode = Periode.create(
-                                                            fraOgMed = first.periode.fraOgMed,
-                                                            tilOgMed = second.periode.fraOgMed.minusDays(1),
-                                                        ),
-                                                    ),
-                                                ),
-                                            )
-                                            result.add(second.copy(CopyArgs.Tidslinje.Full))
-
-                                            if (!(first.periode slutterSamtidig second.periode)) {
-                                                result.add(
-                                                    first.copy(
-                                                        CopyArgs.Tidslinje.NyPeriode(
-                                                            periode = Periode.create(
-                                                                fraOgMed = second.periode.tilOgMed.plusDays(1),
-                                                                tilOgMed = first.periode.tilOgMed,
-                                                            ),
-                                                        ),
-                                                    ),
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-
-                                first.periode starterSamtidig second.periode -> {
-                                    when {
-                                        first.opprettet.instant > second.opprettet.instant -> {
-                                            sikkerLogg.error("Feil ved periodisering i Tidslinje. Objekter er i ugyldig rekkefølge. First er opprettet etter Second. First: ${elementLog(first)}, Second: ${elementLog(second)}, Queue: ${elementLog(queue)}. Result: ${elementLog(result)}")
-                                            throw IllegalStateException("Feil ved periodisering i Tidslinje. Objekter er i ugyldig rekkefølge. First er opprettet etter second. Se sikkerlogg.")
-                                        }
-
-                                        first.opprettet.instant == second.opprettet.instant -> {
-                                            sikkerLogg.error("Feil ved periodisering i Tidslinje. Objekter er i ugyldig rekkefølge. First er opprettet samtidig som Second. First: ${elementLog(first)}, Second: ${elementLog(second)}, Queue: ${elementLog(queue)}. Result: ${elementLog(result)}")
-                                            throw IllegalStateException("Feil ved periodisering i Tidslinje. Objekter er i ugyldig rekkefølge. First er opprettet samtidig som second. Se sikkerlogg.")
-                                        }
-
-                                        first.opprettet.instant < second.opprettet.instant -> {
-                                            result.add(
-                                                second.copy(
-                                                    CopyArgs.Tidslinje.NyPeriode(
-                                                        periode = Periode.create(
-                                                            fraOgMed = second.periode.fraOgMed,
-                                                            tilOgMed = second.periode.tilOgMed,
-                                                        ),
-                                                    ),
-                                                ),
-                                            )
-                                            result.add(
-                                                first.copy(
-                                                    CopyArgs.Tidslinje.NyPeriode(
-                                                        periode = Periode.create(
-                                                            fraOgMed = second.periode.tilOgMed.plusDays(1),
-                                                            tilOgMed = first.periode.tilOgMed,
-                                                        ),
-                                                    ),
-                                                ),
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        result.add(first.copy(CopyArgs.Tidslinje.Full))
-                    }
-                } else {
-                    result.add(first.copy(CopyArgs.Tidslinje.Full))
+            val elementTilMåneder: Map<T, List<Måned>> = sortedByPeriode
+                .flatMap { it.periode.måneder() }
+                .distinct()
+                .groupBy { måned ->
+                    sortedByOpprettetSynkende.first { it.periode inneholder måned }
                 }
-            }
 
-            return when (result.overlappMedAndreEksisterer()) {
-                true -> periodiser(result.toNonEmptyList().filtrerVekkAlleSomOverskivesFullstendigAvNyere())
-                else -> result.toNonEmptyList()
-            }
-        }
-
-        private fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> List<T>.overlappMedAndreEksisterer(): Boolean {
-            return any { t1 ->
-                any { t2 -> t1 != t2 && t1.periode overlapper t2.periode }
+            return sortedByPeriode.flatMap { element ->
+                elementTilMåneder[element]
+                    ?.minsteAntallSammenhengendePerioder()
+                    ?.map { periode ->
+                        if (periode == element.periode) {
+                            element.copy(CopyArgs.Tidslinje.Full)
+                        } else {
+                            element.copy(
+                                CopyArgs.Tidslinje.NyPeriode(
+                                    periode = periode,
+                                ),
+                            )
+                        }
+                    } ?: emptyList()
+            }.sortedBy { it.periode }.toNonEmptyList().let {
+                Tidslinje(it)
             }
         }
 
@@ -291,6 +134,7 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
         private fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> elementLog(elementer: List<T>): String {
             return elementer.joinToString(prefix = "[", postfix = "]") { elementLog(it) }
         }
+
         private fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> elementLog(element: T): String {
             val periode = element.periode
             val opprettet = element.opprettet
