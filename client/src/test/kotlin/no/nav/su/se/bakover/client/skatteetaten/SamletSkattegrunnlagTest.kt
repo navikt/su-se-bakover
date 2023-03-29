@@ -65,16 +65,17 @@ internal class SamletSkattegrunnlagTest {
         )
 
         val nettverksfeil = SkatteoppslagFeil.Nettverksfeil(IOException("Connection reset"))
+        val år = Year.of(2021)
         val expected = SamletSkattegrunnlagResponseMedYear(
             skatteResponser = listOf(
-                SamletSkattegrunnlagResponseMedStadie(oppslag = nettverksfeil.left(), stadie = Stadie.FASTSATT),
-                SamletSkattegrunnlagResponseMedStadie(oppslag = nettverksfeil.left(), stadie = Stadie.OPPGJØR),
-                SamletSkattegrunnlagResponseMedStadie(oppslag = nettverksfeil.left(), stadie = Stadie.UTKAST),
+                SamletSkattegrunnlagResponseMedStadie(oppslag = nettverksfeil.left(), stadie = Stadie.FASTSATT, år),
+                SamletSkattegrunnlagResponseMedStadie(oppslag = nettverksfeil.left(), stadie = Stadie.OPPGJØR, år),
+                SamletSkattegrunnlagResponseMedStadie(oppslag = nettverksfeil.left(), stadie = Stadie.UTKAST, år),
             ),
-            år = Year.of(2021),
+            år = år,
         )
 
-        client.hentSamletSkattegrunnlag(fnr, Year.of(2021)).let {
+        client.hentSamletSkattegrunnlag(fnr, år).let {
             it.shouldBeInstanceOf<Either.Right<SamletSkattegrunnlagResponseMedYear>>()
             it.value.år shouldBe expected.år
 
@@ -111,25 +112,29 @@ internal class SamletSkattegrunnlagTest {
                 ),
         )
 
+        val år = Year.of(2021)
         client.hentSamletSkattegrunnlag(
             fnr = fnr,
-            år = Year.of(2021),
+            år = år,
         ) shouldBe SamletSkattegrunnlagResponseMedYear(
             skatteResponser = listOf(
                 SamletSkattegrunnlagResponseMedStadie(
-                    oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                    oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år).left(),
                     stadie = Stadie.FASTSATT,
+                    inntektsår = år,
                 ),
                 SamletSkattegrunnlagResponseMedStadie(
-                    oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                    oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år).left(),
                     stadie = Stadie.OPPGJØR,
+                    inntektsår = år,
                 ),
                 SamletSkattegrunnlagResponseMedStadie(
-                    oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                    oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år).left(),
                     stadie = Stadie.UTKAST,
+                    inntektsår = år,
                 ),
             ),
-            år = Year.of(2021),
+            år = år,
         ).right()
     }
 
@@ -157,25 +162,29 @@ internal class SamletSkattegrunnlagTest {
                 ),
         )
 
+        val år = Year.of(2021)
         client.hentSamletSkattegrunnlag(
             fnr = fnr,
-            år = Year.of(2021),
+            år = år,
         ) shouldBe SamletSkattegrunnlagResponseMedYear(
             skatteResponser = listOf(
                 SamletSkattegrunnlagResponseMedStadie(
-                    oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                    oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år).left(),
                     stadie = Stadie.FASTSATT,
+                    inntektsår = år,
                 ),
                 SamletSkattegrunnlagResponseMedStadie(
-                    oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                    oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år).left(),
                     stadie = Stadie.OPPGJØR,
+                    inntektsår = år,
                 ),
                 SamletSkattegrunnlagResponseMedStadie(
-                    oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left(),
+                    oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år).left(),
                     stadie = Stadie.UTKAST,
+                    inntektsår = år,
                 ),
             ),
-            år = Year.of(2021),
+            år = år,
         ).right()
     }
 
@@ -296,22 +305,29 @@ internal class SamletSkattegrunnlagTest {
                 ),
         )
 
+        val år = Year.of(2021)
         client.hentSamletSkattegrunnlag(
             fnr = Fnr(fnr = "04900148157"),
-            år = Year.of(2021),
+            år = år,
         ) shouldBe SamletSkattegrunnlagResponseMedYear(
             skatteResponser = listOf(
-                SamletSkattegrunnlagResponseMedStadie(oppslag = nyÅrsgrunnlag().right(), stadie = Stadie.FASTSATT),
+                SamletSkattegrunnlagResponseMedStadie(
+                    oppslag = nyÅrsgrunnlag().right(),
+                    stadie = Stadie.FASTSATT,
+                    inntektsår = år,
+                ),
                 SamletSkattegrunnlagResponseMedStadie(
                     oppslag = nyÅrsgrunnlag(stadie = Stadie.OPPGJØR).right(),
                     stadie = Stadie.OPPGJØR,
+                    inntektsår = år,
                 ),
                 SamletSkattegrunnlagResponseMedStadie(
                     oppslag = nyÅrsgrunnlag(stadie = Stadie.UTKAST).right(),
                     stadie = Stadie.UTKAST,
+                    inntektsår = år,
                 ),
             ),
-            år = Year.of(2021),
+            år = år,
         ).right()
     }
 

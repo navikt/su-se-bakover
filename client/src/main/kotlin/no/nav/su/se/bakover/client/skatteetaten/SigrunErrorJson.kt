@@ -52,18 +52,18 @@ private data class SigrunErrorJson(
         /** Eksempeldata: 5d79e63c-6bd0-7e59-aa63-287c8812dd14 */
         val korrelasjonsid: String? = null,
     ) {
-        fun tilSkatteoppslagFeil(): SkatteoppslagFeil {
+        fun tilSkatteoppslagFeil(år: Year): SkatteoppslagFeil {
             return when (kode) {
-                "SSG-007", "SSG-008" -> SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr
+                "SSG-007", "SSG-008" -> SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år)
                 else -> SkatteoppslagFeil.UkjentFeil(RuntimeException("Uforventet feilmelding fra Sigrun. Se sikkerlogg for detaljer."))
             }
         }
     }
 }
 
-private fun String.tilSkatteoppslagFeil(): SkatteoppslagFeil {
+private fun String.tilSkatteoppslagFeil(inntektsår: Year): SkatteoppslagFeil {
     return Either.catch {
-        deserialize<SigrunErrorJson>(this).skeMessage?.tilSkatteoppslagFeil()
+        deserialize<SigrunErrorJson>(this).skeMessage?.tilSkatteoppslagFeil(inntektsår)
             ?: SkatteoppslagFeil.UkjentFeil(
                 RuntimeException("Ukjent feilmeldingsformat fra Sigrun; mangler ske-message. Se sikkerlogg for detaljer."),
             )
@@ -107,7 +107,7 @@ internal fun håndterSigrunFeil(
             }
 
         404 -> {
-            body.tilSkatteoppslagFeil().also {
+            body.tilSkatteoppslagFeil(inntektsår).also {
                 if (it is SkatteoppslagFeil.UkjentFeil) {
                     logError(it.throwable)
                 } else {

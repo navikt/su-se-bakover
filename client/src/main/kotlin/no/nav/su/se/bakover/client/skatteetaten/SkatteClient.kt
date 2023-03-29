@@ -146,7 +146,7 @@ internal class SkatteClient(
             listOf(samletSkattFastsatt, samletSkattOppgjør, samletSkattUtkast)
                 .awaitAll().let {
                     SamletSkattegrunnlagResponseMedYear(
-                        it.map { SamletSkattegrunnlagResponseMedStadie(it.first, it.second) },
+                        it.map { SamletSkattegrunnlagResponseMedStadie(it.first, it.second, inntektsÅr) },
                         inntektsÅr,
                     )
                 }

@@ -3,13 +3,15 @@ package no.nav.su.se.bakover.domain.skatt
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import java.time.Year
 
 data class SamletSkattegrunnlagResponseMedStadie(
     val oppslag: Either<SkatteoppslagFeil, Skattegrunnlag.Årsgrunnlag>,
     val stadie: Stadie,
+    val inntektsår: Year,
 ) {
     companion object {
-        fun List<SamletSkattegrunnlagResponseMedStadie>.hentMestGyldigeSkattegrunnlag(): Either<SkatteoppslagFeil, Skattegrunnlag.Årsgrunnlag> {
+        fun List<SamletSkattegrunnlagResponseMedStadie>.hentMestGyldigeSkattegrunnlag(år: Year): Either<SkatteoppslagFeil, Skattegrunnlag.Årsgrunnlag> {
             this.single { it.stadie == Stadie.FASTSATT }.let {
                 it.oppslag.mapLeft {
                     when (it.mapTilOmFeilKanSkippesEllerReturneres()) {
@@ -41,7 +43,7 @@ data class SamletSkattegrunnlagResponseMedStadie(
                 }
             }
 
-            return SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left()
+            return SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år).left()
         }
     }
 }

@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import java.time.Clock
 import java.time.Year
 import java.util.UUID
+import kotlin.math.min
 
 class SkatteServiceImpl(
     private val skatteClient: Skatteoppslag,
@@ -57,7 +58,7 @@ class SkatteServiceImpl(
         return søknadsbehandling.fnr to hentSamletSkattegrunnlagForÅr(
             fnr = søknadsbehandling.fnr,
             yearRange = Year.of(
-                Math.min(
+                min(
                     Year.now(clock).minusYears(1).value,
                     søknadsbehandling.stønadsperiode?.periode?.tilOgMed?.year ?: Year.now(clock).value,
                 ),

@@ -53,7 +53,7 @@ internal fun Route.skattRoutes(skatteService: SkatteService, toggleService: Togg
                 skatteService.hentSamletSkattegrunnlagForBehandling(behandlingId).let { pair ->
                     pair.second.fold(
                         ifLeft = {
-                            call.audit(pair.first, AuditLogEvent.Action.SEARCH, behandlingId)
+                            // Dette er ikke et åpent søk, men baserer seg heller på behandlingId og er en del av behandlingsflyten. Trenger ikke auditlogge.
                             call.svar(it.tilResultat())
                         },
                         ifRight = {
@@ -69,24 +69,24 @@ internal fun Route.skattRoutes(skatteService: SkatteService, toggleService: Togg
 
 internal fun KunneIkkeHenteSkattemelding.tilResultat() = when (this) {
     is KunneIkkeHenteSkattemelding.KallFeilet -> {
-        when (this.feil) {
-            SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr -> HttpStatusCode.NotFound.errorJson(
-                "Ingen summert skattegrunnlag funnet på oppgitt fødselsnummer og inntektsår",
+        when (val f = this.feil) {
+            is SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr -> HttpStatusCode.NotFound.errorJson(
+                "Ingen summert skattegrunnlag funnet på oppgitt fødselsnummer og inntektsår ${f.år}",
                 "inget_skattegrunnlag_for_gitt_fnr_og_år",
             )
 
-            SkatteoppslagFeil.ManglerRettigheter -> HttpStatusCode.NotFound.errorJson(
-                "Autentisering eller autoriseringsfeil mot Sigrun/Skatteetaten. Mangler bruker noen rettigheter?",
+            is SkatteoppslagFeil.ManglerRettigheter -> HttpStatusCode.NotFound.errorJson(
+                "Autentiserings- eller autoriseringsfeil mot Sigrun/Skatteetaten. Mangler bruker noen rettigheter?",
                 "mangler_rettigheter_mot_skatt",
             )
 
-            is SkatteoppslagFeil.Nettverksfeil -> HttpStatusCode.NotFound.errorJson(
+            is SkatteoppslagFeil.Nettverksfeil -> HttpStatusCode.ServiceUnavailable.errorJson(
                 "Får ikke kontakt med Sigrun/Skatteetaten. Prøv igjen senere.",
                 "nettverksfeil_skatt",
             )
 
-            is SkatteoppslagFeil.UkjentFeil -> HttpStatusCode.NotFound.errorJson(
-                "Uforventet feil oppstod ved kall til Sigrun/Skatteetaten. Prøv igjen senere.",
+            is SkatteoppslagFeil.UkjentFeil -> HttpStatusCode.InternalServerError.errorJson(
+                "Uforventet feil oppstod ved kall til Sigrun/Skatteetaten.",
                 "uforventet_feil_mot_skatt",
             )
 

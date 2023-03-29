@@ -11,15 +11,14 @@ data class SamletSkattegrunnlagResponseMedYear(
     val år: Year,
 ) {
 
-    fun hentMestGyldigeSkattegrunnlag(): Either<SkatteoppslagFeil, Skattegrunnlag.Årsgrunnlag> =
-        this.skatteResponser.hentMestGyldigeSkattegrunnlag()
+    fun hentMestGyldigeSkattegrunnlag(): Either<SkatteoppslagFeil, Skattegrunnlag.Årsgrunnlag> {
+        return this.skatteResponser.hentMestGyldigeSkattegrunnlag(år)
+    }
 
     companion object {
         fun List<SamletSkattegrunnlagResponseMedYear>.hentMestGyldigeSkattegrunnlag(): Either<SkatteoppslagFeil, Skattegrunnlag.Årsgrunnlag> {
-            val sortert = this.sortedByDescending { it.år }
-
-            for (i in sortert) {
-                when (val res = i.skatteResponser.hentMestGyldigeSkattegrunnlag()) {
+            this.sortedByDescending { it.år }.forEach {
+                when (val res = it.skatteResponser.hentMestGyldigeSkattegrunnlag(it.år)) {
                     is Either.Left -> when (res.value.mapTilOmFeilKanSkippesEllerReturneres()) {
                         SkatteoppslagFeilMediator.KanSkippes -> Unit
                         SkatteoppslagFeilMediator.SkalReturneres -> return res.value.left()
@@ -29,7 +28,7 @@ data class SamletSkattegrunnlagResponseMedYear(
                 }
             }
 
-            return SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr.left()
+            return SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(this.toYearRange()).left()
         }
     }
 }
