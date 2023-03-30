@@ -13,12 +13,10 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
-import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
@@ -45,7 +43,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.FantIkkeBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.HentRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeBeregne
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkårService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkårService.FantIkkeBehandling.tilKunneIkkeLeggeTilFamiliegjenforeningVilkårService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag
@@ -70,9 +67,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsb
 import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
-import no.nav.su.se.bakover.domain.vilkår.bosituasjon.FullførBosituasjonRequest
-import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjonEpsGrunnlag
-import no.nav.su.se.bakover.domain.vilkår.bosituasjon.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.LeggTilFastOppholdINorgeRequest
@@ -447,73 +441,6 @@ class SøknadsbehandlingServiceImpl(
             saksbehandler = saksbehandler,
         ).mapLeft {
             it.tilKunneIkkeLeggeTilFamiliegjenforeningVilkårService()
-        }.onRight {
-            søknadsbehandlingRepo.lagre(it)
-        }
-    }
-
-    override fun leggTilBosituasjonEpsgrunnlag(
-        request: LeggTilBosituasjonEpsRequest,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Søknadsbehandling> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling.left()
-
-        val bosituasjon = request.toBosituasjon(søknadsbehandling.periode, clock) {
-            personService.hentPerson(it).fold(
-                { error ->
-                    if (error is KunneIkkeHentePerson.IkkeTilgangTilPerson) {
-                        true.right()
-                    } else {
-                        KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl.left()
-                    }
-                },
-                {
-                    true.right()
-                },
-            )
-        }.getOrElse {
-            return it.left()
-        }
-
-        return søknadsbehandling.oppdaterBosituasjon(
-            saksbehandler,
-            bosituasjon,
-            Søknadsbehandlingshendelse(
-                tidspunkt = Tidspunkt.now(clock),
-                saksbehandler = saksbehandler,
-                handling = SøknadsbehandlingsHandling.TattStillingTilEPS,
-            ),
-        ).mapLeft {
-            KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeOppdatereBosituasjon(it)
-        }.map {
-            søknadsbehandlingRepo.lagre(it)
-            it
-        }
-    }
-
-    override fun fullførBosituasjongrunnlag(
-        request: FullførBosituasjonRequest,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling.left()
-
-        val bosituasjon =
-            request.toBosituasjon(søknadsbehandling.grunnlagsdata.bosituasjon.singleOrThrow(), clock).getOrElse {
-                return KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeLagreBosituasjon.left()
-            }
-
-        return søknadsbehandling.oppdaterBosituasjon(
-            saksbehandler,
-            bosituasjon,
-            Søknadsbehandlingshendelse(
-                tidspunkt = Tidspunkt.now(clock),
-                saksbehandler = saksbehandler,
-                handling = SøknadsbehandlingsHandling.FullførtBosituasjon,
-            ),
-        ).mapLeft {
-            KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(it)
         }.onRight {
             søknadsbehandlingRepo.lagre(it)
         }

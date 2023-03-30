@@ -2,10 +2,8 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
 import io.ktor.server.routing.Route
 import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
-import no.nav.su.se.bakover.web.routes.grunnlag.leggTilGrunnlagBosituasjonRoutes
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.iverksett.iverksettSøknadsbehandlingRoute
 import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.leggTilLovligOppholdRoute
 import no.nav.su.se.bakover.web.routes.vilkår.utenlandsopphold.leggTilUtenlandsopphold
@@ -13,7 +11,6 @@ import java.time.Clock
 
 internal fun Route.overordnetSøknadsbehandligRoutes(
     søknadsbehandlingServices: SøknadsbehandlingServices,
-    revurderingService: RevurderingService,
     clock: Clock,
     satsFactory: SatsFactory,
     applicationConfig: ApplicationConfig,
@@ -26,11 +23,7 @@ internal fun Route.overordnetSøknadsbehandligRoutes(
 
     leggTilGrunnlagBosituasjonRoutes(søknadsbehandlingServices.søknadsbehandlingService, satsFactory)
 
-    leggTilGrunnlagBosituasjonRoutes(
-        søknadsbehandlingServices.søknadsbehandlingService,
-        revurderingService,
-        satsFactory,
-    )
+    leggTilGrunnlagBosituasjonRoutes(søknadsbehandlingServices.søknadsbehandlingService, satsFactory)
 
     leggTilGrunnlagFradrag(søknadsbehandlingServices.søknadsbehandlingService, clock, satsFactory)
 

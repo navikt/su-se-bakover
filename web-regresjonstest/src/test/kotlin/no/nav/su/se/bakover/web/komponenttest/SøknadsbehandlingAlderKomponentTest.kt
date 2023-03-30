@@ -10,15 +10,14 @@ import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
+import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonRequest
+import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.satser.Satskategori
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
-import no.nav.su.se.bakover.domain.vilkår.bosituasjon.BosituasjonValg
-import no.nav.su.se.bakover.domain.vilkår.bosituasjon.FullførBosituasjonRequest
-import no.nav.su.se.bakover.domain.vilkår.bosituasjon.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningVurderinger
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningvilkårStatus
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
@@ -167,18 +166,18 @@ internal class SøknadsbehandlingAlderKomponentTest {
                 saksbehandler = saksbehandler,
             )
 
-            appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilBosituasjonEpsgrunnlag(
-                request = LeggTilBosituasjonEpsRequest(
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilBosituasjongrunnlag(
+                request = LeggTilBosituasjonerRequest(
                     behandlingId = søknadsbehandling.id,
-                    epsFnr = null,
-                ),
-                saksbehandler = saksbehandler,
-            ).getOrFail()
+                    bosituasjoner = listOf(
+                        LeggTilBosituasjonRequest(
+                            periode = stønadsperiode2022.periode,
+                            epsFnr = null,
+                            delerBolig = false,
+                            ektemakeEllerSamboerUførFlyktning = null,
 
-            appComponents.services.søknadsbehandling.søknadsbehandlingService.fullførBosituasjongrunnlag(
-                request = FullførBosituasjonRequest(
-                    behandlingId = søknadsbehandling.id,
-                    bosituasjon = BosituasjonValg.BOR_ALENE,
+                        ),
+                    ),
                 ),
                 saksbehandler = saksbehandler,
             ).getOrFail()

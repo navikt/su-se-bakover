@@ -108,12 +108,6 @@ internal fun Route.leggTilGrunnlagFradrag(
     }
 }
 
-internal fun Grunnlag.Fradragsgrunnlag.UgyldigFradragsgrunnlag.tilResultat(): Resultat {
-    return when (this) {
-        Grunnlag.Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> Behandlingsfeilresponser.ugyldigFradragstype
-    }
-}
-
 internal fun KunneIkkeLeggeTilFradragsgrunnlag.tilResultat(): Resultat {
     return when (this) {
         KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling -> {

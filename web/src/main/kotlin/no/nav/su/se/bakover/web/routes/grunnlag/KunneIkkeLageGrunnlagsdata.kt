@@ -3,8 +3,9 @@ package no.nav.su.se.bakover.web.routes.grunnlag
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.tilResultat
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.Behandlingsfeilresponser
 
 internal fun KunneIkkeLageGrunnlagsdata.tilResultat(): Resultat {
     return when (this) {
@@ -25,5 +26,11 @@ internal fun KunneIkkeLageGrunnlagsdata.tilResultat(): Resultat {
 
         is KunneIkkeLageGrunnlagsdata.UgyldigFradragsgrunnlag -> this.feil.tilResultat()
         is KunneIkkeLageGrunnlagsdata.Konsistenssjekk -> this.feil.tilResultat()
+    }
+}
+
+internal fun Grunnlag.Fradragsgrunnlag.UgyldigFradragsgrunnlag.tilResultat(): Resultat {
+    return when (this) {
+        Grunnlag.Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> Behandlingsfeilresponser.ugyldigFradragstype
     }
 }

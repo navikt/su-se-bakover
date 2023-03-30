@@ -13,9 +13,6 @@ import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBositu
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.SaksbehandlersAvgjørelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.UgyldigFamiliegjenforeningVilkår
-import no.nav.su.se.bakover.domain.vilkår.bosituasjon.FullførBosituasjonRequest
-import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjonEpsGrunnlag
-import no.nav.su.se.bakover.domain.vilkår.bosituasjon.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.LeggTilFastOppholdINorgeRequest
@@ -69,16 +66,6 @@ interface SøknadsbehandlingService {
         request: LeggTilFamiliegjenforeningRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeTilFamiliegjenforeningVilkårService, Søknadsbehandling>
-
-    fun leggTilBosituasjonEpsgrunnlag(
-        request: LeggTilBosituasjonEpsRequest,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Søknadsbehandling>
-
-    fun fullførBosituasjongrunnlag(
-        request: FullførBosituasjonRequest,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling>
 
     fun leggTilFradragsgrunnlag(
         request: LeggTilFradragsgrunnlagRequest,

@@ -13,5 +13,6 @@ sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
 
     // TODO - Klassen er delt mellom søknadsbehandling og revurdering, men disse feilene blir bare brukt av søknadsbehandling
     // På sikt så vil vi at disse skal fjernes, og forhåpentligvis ufullstendig/fullstendig.
-    data class KunneIkkeLeggeTilGrunnlag(val feil: no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag) : KunneIkkeLeggeTilBosituasjongrunnlag()
+    data class KunneIkkeLeggeTilGrunnlag(val feil: no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag) :
+        KunneIkkeLeggeTilBosituasjongrunnlag()
 }

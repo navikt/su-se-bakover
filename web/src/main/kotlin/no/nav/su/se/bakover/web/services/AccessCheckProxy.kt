@@ -152,9 +152,6 @@ import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
-import no.nav.su.se.bakover.domain.vilkår.bosituasjon.FullførBosituasjonRequest
-import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjonEpsGrunnlag
-import no.nav.su.se.bakover.domain.vilkår.bosituasjon.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.LeggTilFastOppholdINorgeRequest
@@ -571,22 +568,6 @@ open class AccessCheckProxy(
                     ): Either<SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkårService, Søknadsbehandling> {
                         assertHarTilgangTilBehandling(request.behandlingId)
                         return service.leggTilFamiliegjenforeningvilkår(request, saksbehandler)
-                    }
-
-                    override fun leggTilBosituasjonEpsgrunnlag(
-                        request: LeggTilBosituasjonEpsRequest,
-                        saksbehandler: NavIdentBruker.Saksbehandler,
-                    ): Either<KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Søknadsbehandling> {
-                        assertHarTilgangTilBehandling(request.behandlingId)
-                        return service.leggTilBosituasjonEpsgrunnlag(request, saksbehandler)
-                    }
-
-                    override fun fullførBosituasjongrunnlag(
-                        request: FullførBosituasjonRequest,
-                        saksbehandler: NavIdentBruker.Saksbehandler,
-                    ): Either<SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling> {
-                        assertHarTilgangTilBehandling(request.behandlingId)
-                        return service.fullførBosituasjongrunnlag(request, saksbehandler)
                     }
 
                     override fun leggTilFradragsgrunnlag(
