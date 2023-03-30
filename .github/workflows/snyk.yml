@@ -2,10 +2,6 @@ name: reusable workflow - kjører snyk
 
 on:
   workflow_call:
-    inputs:
-      token:
-        required: true
-        type: string
 
 jobs:
   snyk:
@@ -19,7 +15,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
           ORG_GRADLE_PROJECT_githubUser: x-access-token
-          ORG_GRADLE_PROJECT_githubPassword: ${{ inputs.token }}
+          ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: --all-sub-projects --org=supstonad --sarif-file-output=${{ github.workspace }}/snyk.sarif
           command: monitor
