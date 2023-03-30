@@ -1,5 +1,5 @@
 name: reusable workflow - Deployer til dev/test miljøet
-description: kjører bare dersom det er master branchen
+#description: kjører bare dersom det er master branchen
 
 on:
   workflow_call:
