@@ -78,7 +78,11 @@ open class Periode protected constructor(
         }
     }
 
-    infix fun minus(other: Periode): List<Periode> {
+    infix operator fun minus(other: Periode): List<Periode> {
+        return (måneder() - other.måneder().toSet()).minsteAntallSammenhengendePerioder()
+    }
+
+    infix operator fun minus(other: List<Periode>): List<Periode> {
         return (måneder() - other.måneder().toSet()).minsteAntallSammenhengendePerioder()
     }
 
