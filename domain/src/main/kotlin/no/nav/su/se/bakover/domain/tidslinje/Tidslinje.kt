@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
-import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.Validator.valider
 import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje
@@ -85,33 +84,25 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
         ): Tidslinje<T> {
             verifyOverlappendeElementerIkkeErOpprettetSamtidig(input)
 
-            val sortedByOpprettetSynkende = input.sortedByDescending { it.opprettet.instant }
-            val sortedByPeriode = input.sortedBy { it.periode }
-
-            val elementTilMåneder: Map<T, List<Måned>> = sortedByPeriode
-                .flatMap { it.periode.måneder() }
-                .distinct()
-                .groupBy { måned ->
-                    sortedByOpprettetSynkende.first { it.periode inneholder måned }
-                }
-
-            return sortedByPeriode.flatMap { element ->
-                elementTilMåneder[element]
-                    ?.minsteAntallSammenhengendePerioder()
-                    ?.map { periode ->
-                        if (periode == element.periode) {
+            // Sorterer slik at det siste elementet (mest aktuelle) kommer først.
+            return input.sortedByDescending { it.opprettet.instant }
+                .fold(emptyList<T>()) { acc, element ->
+                    // Vi vil alltid ha med det første elementet i sin helhet.
+                    // Deretter vil vi ha med alle elementer som har en ny periode utover acc sin periode.
+                    val inkluderElementer = (element.periode - acc.map { it.periode }).map { nyPeriode ->
+                        // Dersom vi skal ha med elementet i sin helhet
+                        if (nyPeriode == element.periode) {
                             element.copy(CopyArgs.Tidslinje.Full)
                         } else {
-                            element.copy(
-                                CopyArgs.Tidslinje.NyPeriode(
-                                    periode = periode,
-                                ),
-                            )
+                            // Dersom vi skal ha med elementet kun i en del av perioden
+                            element.copy(CopyArgs.Tidslinje.NyPeriode(nyPeriode))
                         }
-                    } ?: emptyList()
-            }.sortedBy { it.periode }.toNonEmptyList().let {
-                Tidslinje(it)
-            }
+                    }
+                    acc + inkluderElementer
+                }.sortedBy { it.periode }
+                .toNonEmptyList().let {
+                    Tidslinje(it)
+                }
         }
 
         private fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> verifyOverlappendeElementerIkkeErOpprettetSamtidig(input: NonEmptyList<T>) {
