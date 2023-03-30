@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.oppdrag.avstemming
 
 import arrow.core.NonEmptyList
-import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -14,11 +13,10 @@ import no.nav.su.se.bakover.domain.oppdrag.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
-import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
-import org.jetbrains.kotlin.utils.keysToMap
 import java.time.LocalDate
 
 sealed class Avstemming {
@@ -105,32 +103,10 @@ sealed class Avstemming {
                 .filter { it.opprettet <= opprettetTilOgMed.instant } // 1
                 .groupBy { it.saksnummer } // 2
                 .mapValues { entry -> // 3
-                    entry.value.map { utbetaling ->
-                        UtbetalingslinjerPerSak(
-                            saksnummer = utbetaling.saksnummer,
-                            fagområde = utbetaling.sakstype.toFagområde(),
-                            fnr = utbetaling.fnr,
-                            utbetalingslinjer = utbetaling.utbetalingslinjer,
-                            utbetalingslinjerTilAttestanter = utbetaling.utbetalingslinjer.map { it.id }
-                                .keysToMap { nonEmptyListOf(utbetaling.behandler) },
-                        )
-                    }.reduce { acc, other ->
-                        acc.copy(
-                            utbetalingslinjer = acc.utbetalingslinjer + other.utbetalingslinjer,
-                            utbetalingslinjerTilAttestanter = (acc.utbetalingslinjerTilAttestanter.keys + other.utbetalingslinjerTilAttestanter.keys)
-                                .associateWith { key ->
-                                    (
-                                        (
-                                            acc.utbetalingslinjerTilAttestanter[key]
-                                                ?: emptyList()
-                                            ) + (
-                                            other.utbetalingslinjerTilAttestanter[key]
-                                                ?: emptyList()
-                                            )
-                                        ).toNonEmptyList()
-                                },
-                        )
-                    }
+                    UtbetalingslinjerPerSak(
+                        saksnummer = entry.key,
+                        utbetalinger = entry.value,
+                    )
                 }
                 .mapValues { entry -> // 4
                     /**
@@ -139,11 +115,10 @@ sealed class Avstemming {
                      * er 1 mnd - i praksis vil dette si at noe som er gyldig midt i en måned også er gyldig ved
                      * starten og slutten av samme måned.
                      */
-                    val utbetalingslinjer = entry.value.utbetalingslinjer
                     entry.value to (
-                        TidslinjeForUtbetalinger(
-                            utbetalingslinjer = utbetalingslinjer.toNonEmptyList(),
-                        ).krympTilPeriode(
+                        TidslinjeForUtbetalinger.fra(
+                            utbetalinger = entry.value.utbetalinger,
+                        )!!.krympTilPeriode(
                             fraOgMed = løpendeFraOgMed.toLocalDate(zoneIdOslo).startOfMonth(),
                         ) ?: emptyList()
                         ).filterNot {
@@ -192,13 +167,18 @@ internal fun Utbetalingslinje.toOppdragslinjeForKonsistensavstemming(attestanter
 
 private data class UtbetalingslinjerPerSak(
     val saksnummer: Saksnummer,
-    val fagområde: Fagområde,
-    val fnr: Fnr,
-    val utbetalingslinjer: List<Utbetalingslinje>,
-    val utbetalingslinjerTilAttestanter: Map<UUID30, NonEmptyList<NavIdentBruker>>,
+    val utbetalinger: List<Utbetaling.OversendtUtbetaling>,
 ) {
+    val utbetalingslinjer = utbetalinger.flatMap { it.utbetalingslinjer }
+    val fagområde = utbetalinger.first().sakstype.toFagområde()
+    val fnr = utbetalinger.first().fnr
     fun attestanter(utbetalingslinjeId: UUID30): NonEmptyList<NavIdentBruker> {
-        return utbetalingslinjerTilAttestanter[utbetalingslinjeId]!!
+        return utbetalinger
+            .filter {
+                it.utbetalingslinjer.any { it.id == utbetalingslinjeId }
+            }
+            .map { it.behandler }
+            .toNonEmptyList()
     }
 }
 

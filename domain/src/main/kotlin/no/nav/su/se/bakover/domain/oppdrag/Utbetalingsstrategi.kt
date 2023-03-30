@@ -90,7 +90,7 @@ sealed class Utbetalingsstrategi {
         }
 
         fun generer(): Either<Feil, Utbetaling.UtbetalingForSimulering> {
-            val sisteOversendteUtbetalingslinje = eksisterendeUtbetalinger.hentSisteUtbetalingslinje()
+            val sisteOversendteUtbetalingslinje = eksisterendeUtbetalinger.sisteUtbetalingslinje()
                 ?: return Feil.FantIngenUtbetalinger.left()
 
             when {
@@ -187,7 +187,7 @@ sealed class Utbetalingsstrategi {
                     rekkefølge = rekkefølgeGenerator.neste(),
                     fraOgMed = it.fraOgMed,
                     tilOgMed = it.tilOgMed,
-                    forrigeUtbetalingslinjeId = eksisterendeUtbetalinger.hentSisteUtbetalingslinje()?.id,
+                    forrigeUtbetalingslinjeId = eksisterendeUtbetalinger.sisteUtbetalingslinje()?.id,
                     beløp = it.beløp,
                     uføregrad = it.uføregrad,
                     utbetalingsinstruksjonForEtterbetalinger = kjøreplan,
@@ -297,7 +297,7 @@ sealed class Utbetalingsstrategi {
                     rekkefølge = rekkefølgeGenerator.neste(),
                     fraOgMed = it.periode.fraOgMed,
                     tilOgMed = it.periode.tilOgMed,
-                    forrigeUtbetalingslinjeId = eksisterendeUtbetalinger.hentSisteUtbetalingslinje()?.id,
+                    forrigeUtbetalingslinjeId = eksisterendeUtbetalinger.sisteUtbetalingslinje()?.id,
                     beløp = it.getSumYtelse(),
                     uføregrad = null,
                     utbetalingsinstruksjonForEtterbetalinger = kjøreplan,
@@ -344,7 +344,7 @@ sealed class Utbetalingsstrategi {
         }
 
         fun generate(): Utbetaling.UtbetalingForSimulering {
-            val sisteUtbetalingslinje = eksisterendeUtbetalinger.hentSisteUtbetalingslinje()?.also {
+            val sisteUtbetalingslinje = eksisterendeUtbetalinger.sisteUtbetalingslinje()?.also {
                 validate(periode.fraOgMed.isBefore(it.periode.tilOgMed)) { "Dato for opphør må være tidligere enn tilOgMed for siste utbetalingslinje" }
                 validate(periode.fraOgMed.erFørsteDagIMåned()) { "Ytelse kan kun opphøres fra første dag i måneden" }
             } ?: throw UtbetalingStrategyException("Ingen oversendte utbetalinger å opphøre")
@@ -397,7 +397,7 @@ sealed class Utbetalingsstrategi {
         }
 
         fun generer(): Either<Feil, Utbetaling.UtbetalingForSimulering> {
-            val sisteOversendteUtbetalingslinje = eksisterendeUtbetalinger.hentSisteUtbetalingslinje()
+            val sisteOversendteUtbetalingslinje = eksisterendeUtbetalinger.sisteUtbetalingslinje()
                 ?: return Feil.FantIngenUtbetalinger.left()
 
             if (sisteOversendteUtbetalingslinje !is Utbetalingslinje.Endring.Stans) return Feil.SisteUtbetalingErIkkeStans.left()

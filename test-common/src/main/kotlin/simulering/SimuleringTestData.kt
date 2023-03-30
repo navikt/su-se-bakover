@@ -86,7 +86,7 @@ private data class UtbetalingRepoMock(
         TODO("Not yet implemented")
     }
 
-    override fun hentUkvitterteUtbetalinger(): Utbetalinger {
+    override fun hentUkvitterteUtbetalinger(): List<Utbetaling.OversendtUtbetaling.UtenKvittering> {
         TODO("Not yet implemented")
     }
 

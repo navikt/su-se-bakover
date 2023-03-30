@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -64,14 +65,11 @@ data class Beregningsgrunnlag private constructor(
             }
 
             fradrag.filter { it.fradragstype == Fradragstype.ForventetInntekt && it.tilhører == FradragTilhører.BRUKER }.let { forventedeInntekter ->
-                if (forventedeInntekter.count() < 1) {
+                if (forventedeInntekter.isEmpty()) {
                     // TODO jah: Denne kan ikke slå til så lenge vi har ifEmpty-blokka
                     return UgyldigBeregningsgrunnlag.BrukerMåHaMinst1ForventetInntekt.left()
                 }
-                if (forventedeInntekter.all { f1 ->
-                    forventedeInntekter.minus(f1).any { f2 -> f1.periode overlapper f2.periode }
-                }
-                ) {
+                if (forventedeInntekter.map { it.periode }.harOverlappende()) {
                     return UgyldigBeregningsgrunnlag.OverlappendePerioderMedForventetInntekt.left()
                 }
                 if (!beregningsperiode.måneder().all { it ->

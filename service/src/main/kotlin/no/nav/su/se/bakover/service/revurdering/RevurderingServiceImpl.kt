@@ -5,7 +5,6 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import arrow.core.toNonEmptyListOrNull
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -503,12 +502,12 @@ class RevurderingServiceImpl(
 
                 val potensielleVarsel = listOf(
                     (
-                        eksisterendeUtbetalinger.utbetalingslinjer.toNonEmptyListOrNull()?.let {
+                        eksisterendeUtbetalinger.isNotEmpty() &&
                             !VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-                                eksisterendeUtbetalinger = it,
+                                eksisterendeUtbetalinger = eksisterendeUtbetalinger,
                                 nyBeregning = beregnetRevurdering.beregning,
-                            ).resultat
-                        } ?: false && !(beregnetRevurdering is BeregnetRevurdering.Opphørt && beregnetRevurdering.opphørSkyldesVilkår())
+                            ).resultat &&
+                            !(beregnetRevurdering is BeregnetRevurdering.Opphørt && beregnetRevurdering.opphørSkyldesVilkår())
                         ) to Varselmelding.BeløpsendringUnder10Prosent,
                     gjeldendeVedtaksdata.let { gammel ->
                         (gammel.grunnlagsdata.bosituasjon.any { it.harEPS() } && beregnetRevurdering.grunnlagsdata.bosituasjon.none { it.harEPS() }) to Varselmelding.FradragOgFormueForEPSErFjernet

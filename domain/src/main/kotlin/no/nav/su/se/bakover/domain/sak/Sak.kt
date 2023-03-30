@@ -23,8 +23,9 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.klage.Klage
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
@@ -47,7 +48,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.StøtterIkkeOverlappendeSt
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
-import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje
@@ -282,11 +282,7 @@ data class Sak(
             return false
         }
 
-        if (kommendeUtbetalingslinjer.map { linje -> linje.periode }.minsteAntallSammenhengendePerioder().size > 1) {
-            return false
-        }
-
-        return true
+        return kommendeUtbetalingslinjer.map { linje -> linje.periode }.minsteAntallSammenhengendePerioder().size <= 1
     }
 
     fun ytelseUtløperVedUtløpAv(periode: Periode): Boolean = vedtakstidslinje()?.lastOrNull()?.let {

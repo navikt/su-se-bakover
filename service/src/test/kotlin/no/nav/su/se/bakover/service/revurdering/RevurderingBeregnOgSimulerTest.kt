@@ -28,7 +28,6 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
@@ -61,7 +60,7 @@ internal class RevurderingBeregnOgSimulerTest {
 
     @Test
     fun `legger ved feilmeldinger for tilfeller som ikke støttes`() {
-        val clock = tikkendeFixedClock()
+        val clock = TikkendeKlokke()
         val (sak, opprettet) = opprettetRevurdering(
             clock = clock,
             vilkårOverrides = listOf(
@@ -113,14 +112,14 @@ internal class RevurderingBeregnOgSimulerTest {
                     sakOgBehandling = sak to revurdering,
                     beregning = revurdering.beregn(
                         eksisterendeUtbetalinger = sak.utbetalinger,
-                        clock = fixedClock,
+                        clock = clock,
                         gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                             fraOgMed = revurdering.periode.fraOgMed,
-                            clock = fixedClock,
+                            clock = clock,
                         ).getOrFail(),
                         satsFactory = satsFactoryTestPåDato(),
                     ).getOrFail().beregning,
-                    clock = fixedClock,
+                    clock = clock,
                 ).right()
             },
             sakService = mock {
@@ -182,7 +181,7 @@ internal class RevurderingBeregnOgSimulerTest {
 
     @Test
     fun `beregnOgSimuler - kan beregne og simulere`() {
-        val clock = tikkendeFixedClock()
+        val clock = TikkendeKlokke()
         val (sak, opprettetRevurdering) = opprettetRevurdering(
             clock = clock,
             grunnlagsdataOverrides = listOf(
@@ -202,14 +201,14 @@ internal class RevurderingBeregnOgSimulerTest {
                     sakOgBehandling = sak to opprettetRevurdering,
                     beregning = opprettetRevurdering.beregn(
                         eksisterendeUtbetalinger = sak.utbetalinger,
-                        clock = fixedClock,
+                        clock = clock,
                         gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                             fraOgMed = opprettetRevurdering.periode.fraOgMed,
-                            clock = fixedClock,
+                            clock = clock,
                         ).getOrFail(),
                         satsFactory = satsFactoryTestPåDato(),
                     ).getOrFail().beregning,
-                    clock = fixedClock,
+                    clock = clock,
                 ).right()
             },
             sakService = mock {
@@ -315,7 +314,7 @@ internal class RevurderingBeregnOgSimulerTest {
 
     @Test
     fun `beregnOgSimuler - kan beregne og simuler underkjent revurdering på nytt`() {
-        val clock = tikkendeFixedClock()
+        val clock = TikkendeKlokke()
         val (sak, underkjent) = revurderingUnderkjent(
             clock = clock,
         )
@@ -328,7 +327,7 @@ internal class RevurderingBeregnOgSimulerTest {
                 on { simulerUtbetaling(any(), any()) } doReturn nyUtbetalingSimulert(
                     sakOgBehandling = sak to underkjent,
                     beregning = underkjent.beregning,
-                    clock = fixedClock,
+                    clock = clock,
                 ).right()
             },
             sakService = mock {

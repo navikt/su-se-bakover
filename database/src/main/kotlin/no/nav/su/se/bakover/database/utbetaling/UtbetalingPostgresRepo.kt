@@ -58,12 +58,12 @@ internal class UtbetalingPostgresRepo(
         }.let { Utbetalinger(it) }
     }
 
-    override fun hentUkvitterteUtbetalinger(): Utbetalinger {
+    override fun hentUkvitterteUtbetalinger(): List<Utbetaling.OversendtUtbetaling.UtenKvittering> {
         return dbMetrics.timeQuery("hentUkvitterteUtbetalinger") {
             sessionFactory.withSession { session ->
                 "select u.*, s.saksnummer, s.type as sakstype from utbetaling u join sak s on s.id = u.sakId where u.kvittering is null order by u.opprettet".hentListe(
                     session = session,
-                ) { it.toUtbetaling(session) as Utbetaling.OversendtUtbetaling.UtenKvittering }.let { Utbetalinger(it) }
+                ) { it.toUtbetaling(session) as Utbetaling.OversendtUtbetaling.UtenKvittering }
             }
         }
     }

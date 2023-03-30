@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandlin
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.TikkendeKlokke
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
@@ -27,13 +26,14 @@ import org.junit.jupiter.api.Test
 class KryssjekkSaksbehandlersOgAttestantsSimuleringTest {
     @Test
     fun `kontroll av simulering happy path`() {
-        val (sak, revurdering) = simulertRevurdering()
+        val clock = TikkendeKlokke()
+        val (sak, revurdering) = simulertRevurdering(clock = clock)
 
         val saksbehandlerSimulering = revurdering.simulering
         val attestantSimulertUtbetaling = nyUtbetalingSimulert(
             sakOgBehandling = sak to revurdering,
             beregning = revurdering.beregning,
-            clock = fixedClock,
+            clock = clock,
         )
 
         KryssjekkSaksbehandlersOgAttestantsSimulering(
@@ -44,13 +44,14 @@ class KryssjekkSaksbehandlersOgAttestantsSimuleringTest {
 
     @Test
     fun `kontroll av simulering - endring i gjelder id`() {
-        val (sak, revurdering) = simulertRevurdering()
+        val clock = TikkendeKlokke()
+        val (sak, revurdering) = simulertRevurdering(clock = clock)
 
         val saksbehandlerSimulering = revurdering.simulering
         val attestantSimulertUtbetaling = nyUtbetalingSimulert(
             sakOgBehandling = sak to revurdering,
             beregning = revurdering.beregning,
-            clock = fixedClock,
+            clock = clock,
         ).let {
             it.copy(
                 simulering = it.simulering.copy(
@@ -67,20 +68,19 @@ class KryssjekkSaksbehandlersOgAttestantsSimuleringTest {
 
     @Test
     fun `kontroll av simulering - feilutbetaling`() {
-        val (sak, revurdering) = simulertRevurdering()
+        val clock = TikkendeKlokke()
+        val (sak, revurdering) = simulertRevurdering(clock = clock)
 
         val saksbehandlerSimulering = revurdering.simulering
         val attestantSimulertUtbetaling = nyUtbetalingSimulert(
             sakOgBehandling = sak to revurdering,
             beregning = revurdering.beregning,
-            clock = fixedClock,
-        ).let {
-            it.copy(
-                simulering = simuleringFeilutbetaling(
-                    perioder = revurdering.periode.måneder().toTypedArray(),
-                ),
-            )
-        }
+            clock = clock,
+        ).copy(
+            simulering = simuleringFeilutbetaling(
+                perioder = revurdering.periode.måneder().toTypedArray(),
+            ),
+        )
 
         KryssjekkSaksbehandlersOgAttestantsSimulering(
             saksbehandlersSimulering = saksbehandlerSimulering,
@@ -90,13 +90,16 @@ class KryssjekkSaksbehandlersOgAttestantsSimuleringTest {
 
     @Test
     fun `kontroll av simulering - saksbehandler er tom men ikke attestants`() {
-        val (sak, revurdering) = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak()
+        val clock = TikkendeKlokke()
+        val (sak, revurdering) = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            clock = clock,
+        )
 
         val saksbehandlerSimulering = revurdering.simulering
         val attestantSimulertUtbetaling = nyUtbetalingSimulert(
             sakOgBehandling = sak to revurdering,
             beregning = (sak.søknadsbehandlinger.first() as IverksattSøknadsbehandling.Innvilget).beregning, // lager simulering for søknadsbehandlingen
-            clock = fixedClock,
+            clock = clock,
         )
 
         KryssjekkSaksbehandlersOgAttestantsSimulering(
@@ -135,7 +138,8 @@ class KryssjekkSaksbehandlersOgAttestantsSimuleringTest {
             clock = clock,
         )
 
-        val saksbehandlerSimulering = (søknadsbehandling as VedtakInnvilgetSøknadsbehandling).simulering // bruker simulering fra søknadsbehandling
+        val saksbehandlerSimulering =
+            (søknadsbehandling as VedtakInnvilgetSøknadsbehandling).simulering // bruker simulering fra søknadsbehandling
         val attestantSimulertUtbetaling = nyUtbetalingSimulert(
             sakOgBehandling = sak2 to revurdering,
             beregning = revurdering.beregning,

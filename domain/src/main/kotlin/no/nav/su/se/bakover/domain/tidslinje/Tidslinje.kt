@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.application.CopyArgs
 import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.Validator.valider
@@ -105,40 +106,30 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
                 }
         }
 
-        private fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> verifyOverlappendeElementerIkkeErOpprettetSamtidig(input: NonEmptyList<T>) {
-            input.forEach { outer ->
-                input.minus(outer).forEach { inner ->
-                    if (outer.periode overlapper inner.periode) {
-                        check(inner.opprettet != outer.opprettet) {
+        private fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> verifyOverlappendeElementerIkkeErOpprettetSamtidig(
+            input: NonEmptyList<T>,
+        ) {
+            input
+                .sortedBy { it.periode }
+                .zipWithNext()
+                .forEach { (a, b) ->
+                    if (a.periode overlapper b.periode) {
+                        check(a.opprettet != b.opprettet) {
                             """
-                                        Kan ikke lage tidslinje fordi overlappende elementer har samme opprettet tidspunkt:
-                                        {"periode":"${outer.periode}", "opprettet":"${outer.opprettet}"} vs.
-                                        {"periode":"${inner.periode}", "opprettet":"${inner.opprettet}"}
+                                Kan ikke lage tidslinje fordi overlappende elementer har samme opprettet tidspunkt:
+                                {"periode":"${a.periode}", "opprettet":"${a.opprettet}"} vs.
+                                {"periode":"${b.periode}", "opprettet":"${b.opprettet}"}
                             """.trimIndent()
                         }
                     }
                 }
-            }
         }
 
         object Validator {
             fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> valider(elementer: Nel<T>) {
                 check(
-                    elementer.all { t1 ->
-                        elementer.minus(t1).none { t2 -> t1.periode.fraOgMed == t2.periode.fraOgMed }
-                    },
-                ) { "Tidslinje har flere elementer med samme fraOgMed dato!" }
-                check(
-                    elementer.all { t1 ->
-                        elementer.minus(t1).none { t2 -> t1.periode.tilOgMed == t2.periode.tilOgMed }
-                    },
-                ) { "Tidslinje har flere elementer med samme tilOgMed dato!" }
-                check(
-                    elementer.all { t1 ->
-                        elementer.minus(t1).none { t2 -> t1.periode overlapper t2.periode }
-                    },
+                    !elementer.map { it.periode }.harOverlappende(),
                 ) { "Tidslinje har elementer med overlappende perioder!" }
-                verifyOverlappendeElementerIkkeErOpprettetSamtidig(elementer)
             }
         }
 

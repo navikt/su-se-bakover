@@ -1,24 +1,24 @@
 package no.nav.su.se.bakover.domain.revurdering.beregning
 
-import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
-import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
 data class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-    private val eksisterendeUtbetalinger: NonEmptyList<Utbetalingslinje>,
+    private val eksisterendeUtbetalinger: Utbetalinger,
     private val nyBeregning: Beregning,
 ) {
     val resultat: Boolean
 
     init {
+        require(eksisterendeUtbetalinger.isNotEmpty())
         val utbetalingstidslinje =
-            TidslinjeForUtbetalinger(utbetalingslinjer = eksisterendeUtbetalinger).krympTilPeriode(nyBeregning.periode)
+            TidslinjeForUtbetalinger.fra(utbetalinger = eksisterendeUtbetalinger)!!.krympTilPeriode(nyBeregning.periode)
 
         val førsteMånedsberegning = nyBeregning.getMånedsberegninger()
             .minByOrNull { it.periode.fraOgMed }!!

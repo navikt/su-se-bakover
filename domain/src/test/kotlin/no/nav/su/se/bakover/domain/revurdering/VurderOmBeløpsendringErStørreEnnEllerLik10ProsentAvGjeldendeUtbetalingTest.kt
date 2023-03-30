@@ -3,10 +3,9 @@ package no.nav.su.se.bakover.domain.revurdering
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Rekkefølge
-import no.nav.su.se.bakover.common.april
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
@@ -24,13 +23,23 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.revurdering.beregning.VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingUtenKvittering
+import no.nav.su.se.bakover.test.utbetaling.utbetalinger
+import no.nav.su.se.bakover.test.utbetaling.utbetalingerNy
+import no.nav.su.se.bakover.test.utbetaling.utbetalingerOpphør
+import no.nav.su.se.bakover.test.utbetaling.utbetalingerReaktivering
+import no.nav.su.se.bakover.test.utbetaling.utbetalingerStans
 import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeNy
+import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeReaktivering
+import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeStans
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -38,115 +47,168 @@ import kotlin.math.abs
 
 internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetalingTest {
 
-    private val beregningsperiode = Periode.create(1.januar(2021), 30.april(2021))
+    private val beregningsperiode = januar(2021)..april(2021)
 
     @Test
-    fun `ingen utbetalinger overlapper med bergningsperioden gir true`() {
+    fun `ingen utbetalinger overlapper med beregningsperioden gir true`() {
+        val clock = TikkendeKlokke()
+        val førsteId = UUID30.randomUUID()
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(
-                lagUtbetaling(5000, desember(2020)),
-                lagUtbetaling(5000, desember(2021)),
+            eksisterendeUtbetalinger = utbetalinger(
+                clock = clock,
+                utbetalingslinjeNy(beløp = 5000, periode = desember(2020), id = førsteId, clock = clock),
+                utbetalingslinjeNy(
+                    beløp = 5000,
+                    periode = desember(2021),
+                    forrigeUtbetalingslinjeId = førsteId,
+                    clock = clock,
+                    rekkefølge = Rekkefølge.ANDRE,
+                ),
             ),
-            nyBeregning = lagBeregning(5000),
+            nyBeregning = lagBeregningJanApr21(5000),
         ).resultat shouldBe true
     }
 
     @Test
     fun `alle måneder i ny beregning har endring større enn 10 prosent gir true`() {
+        val clock = TikkendeKlokke()
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(lagUtbetaling(5000)),
-            nyBeregning = lagBeregning(10000),
-        ).resultat shouldBe true
-
-        VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(lagUtbetaling(5000)),
-            nyBeregning = lagBeregning(1000),
-        ).resultat shouldBe true
-
-        VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(
-                lagReaktivert(
-                    forrigeUtbetaling = lagUtbetaling(
-                        månedsbeløp = 5000,
-                        periode = beregningsperiode,
-                    ),
-                ),
+            eksisterendeUtbetalinger = utbetalinger(
+                clock = clock,
+                utbetalingslinjeNy(beløp = 5000, periode = beregningsperiode, clock = clock),
             ),
-            nyBeregning = lagBeregning(10000),
+            nyBeregning = lagBeregningJanApr21(10000),
         ).resultat shouldBe true
 
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(
-                lagReaktivert(
-                    forrigeUtbetaling = lagUtbetaling(
-                        månedsbeløp = 5000,
-                        periode = beregningsperiode,
-                    ),
-                ),
+            eksisterendeUtbetalinger = utbetalingerNy(
+                beløp = 5000,
+                periode = beregningsperiode,
             ),
-            nyBeregning = lagBeregning(1000),
+            nyBeregning = lagBeregningJanApr21(1000),
+        ).resultat shouldBe true
+
+        VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
+            eksisterendeUtbetalinger = utbetalingerReaktivering(
+                beløp = 5000,
+                nyPeriode = beregningsperiode,
+            ),
+            nyBeregning = lagBeregningJanApr21(10000),
+        ).resultat shouldBe true
+
+        VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
+            eksisterendeUtbetalinger = utbetalingerReaktivering(
+                beløp = 5000,
+                nyPeriode = beregningsperiode,
+            ),
+            nyBeregning = lagBeregningJanApr21(1000),
         ).resultat shouldBe true
     }
 
     @Test
-    fun `alle måneder i ny beregning har endring lik 10 prosent gir true`() {
+    fun `10 prosent opp gir true`() {
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(lagUtbetaling(5000)),
-            nyBeregning = lagBeregning(5500),
+            eksisterendeUtbetalinger = Utbetalinger(
+                oversendtUtbetalingUtenKvittering(
+                    utbetalingslinjer = nonEmptyListOf(lagUtbetaling(5000)),
+                ),
+            ),
+            nyBeregning = lagBeregningJanApr21(5500),
         ).resultat shouldBe true
+    }
 
+    @Test
+    fun `10 prosent ned gir true`() {
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(lagUtbetaling(5000)),
-            nyBeregning = lagBeregning(4500),
+            eksisterendeUtbetalinger = Utbetalinger(
+                oversendtUtbetalingUtenKvittering(
+                    utbetalingslinjer = nonEmptyListOf(lagUtbetaling(5000)),
+                ),
+            ),
+            nyBeregning = lagBeregningJanApr21(4500),
         ).resultat shouldBe true
+    }
 
+    @Test
+    fun `alle måneder i ny beregning har endring lik 10 prosent gir true z`() {
+        val clock = TikkendeKlokke()
+        val førsteUtbetaling = utbetalingslinjeNy(
+            beløp = 5000,
+            clock = clock,
+            rekkefølge = Rekkefølge.FØRSTE,
+        )
+        val stans = Utbetalingslinje.Endring.Stans(
+            utbetalingslinjeSomSkalEndres = førsteUtbetaling,
+            clock = clock,
+            virkningstidspunkt = førsteUtbetaling.originalFraOgMed(),
+            rekkefølge = Rekkefølge.ANDRE,
+        )
+        val reaktivering = Utbetalingslinje.Endring.Reaktivering(
+            utbetalingslinjeSomSkalEndres = stans,
+            clock = clock,
+            virkningstidspunkt = førsteUtbetaling.originalFraOgMed(),
+            rekkefølge = Rekkefølge.TREDJE,
+        )
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(
-                lagReaktivert(
-                    forrigeUtbetaling = lagUtbetaling(
-                        månedsbeløp = 5000,
-                        periode = beregningsperiode,
+            eksisterendeUtbetalinger = Utbetalinger(
+                oversendtUtbetalingUtenKvittering(
+                    utbetalingslinjer = nonEmptyListOf(
+                        førsteUtbetaling,
+                        stans,
+                        reaktivering,
                     ),
                 ),
             ),
-            nyBeregning = lagBeregning(4500),
+            nyBeregning = lagBeregningJanApr21(4500),
         ).resultat shouldBe true
     }
 
     @Test
     fun `ingen måneder i ny beregning har endring større enn 10 prosent gir false`() {
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(lagUtbetaling(5000)),
-            nyBeregning = lagBeregning(5250),
-        ).resultat shouldBe false
-
-        VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(lagUtbetaling(5000)),
-            nyBeregning = lagBeregning(4750),
-        ).resultat shouldBe false
-
-        VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(lagUtbetaling(5000)),
-            nyBeregning = lagBeregning(5000),
-        ).resultat shouldBe false
-
-        VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(
-                lagReaktivert(
-                    forrigeUtbetaling = lagUtbetaling(
-                        månedsbeløp = 5000,
-                        periode = beregningsperiode,
-                    ),
+            eksisterendeUtbetalinger = Utbetalinger(
+                oversendtUtbetalingUtenKvittering(
+                    utbetalingslinjer = nonEmptyListOf(lagUtbetaling(5000)),
                 ),
             ),
-            nyBeregning = lagBeregning(5000),
+            nyBeregning = lagBeregningJanApr21(5250),
+        ).resultat shouldBe false
+
+        VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
+            eksisterendeUtbetalinger = Utbetalinger(
+                oversendtUtbetalingUtenKvittering(
+                    utbetalingslinjer = nonEmptyListOf(lagUtbetaling(5000)),
+                ),
+            ),
+            nyBeregning = lagBeregningJanApr21(4750),
+        ).resultat shouldBe false
+
+        VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
+            eksisterendeUtbetalinger = Utbetalinger(
+                oversendtUtbetalingUtenKvittering(
+                    utbetalingslinjer = nonEmptyListOf(lagUtbetaling(5000)),
+                ),
+            ),
+            nyBeregning = lagBeregningJanApr21(5000),
+        ).resultat shouldBe false
+
+        VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
+            eksisterendeUtbetalinger = utbetalingerReaktivering(
+                beløp = 5000,
+                nyPeriode = beregningsperiode,
+            ),
+            nyBeregning = lagBeregningJanApr21(5000),
         ).resultat shouldBe false
     }
 
     @Test
     fun `alle måneder bortsett fra første har endring større enn 10 prosent gir false`() {
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(lagUtbetaling(5000)),
+            eksisterendeUtbetalinger = Utbetalinger(
+                oversendtUtbetalingUtenKvittering(
+                    utbetalingslinjer = nonEmptyListOf(lagUtbetaling(5000)),
+                ),
+            ),
             nyBeregning = lagBeregning(
                 januar(2021) to 5000,
                 februar(2021) to 10000,
@@ -159,7 +221,11 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
     @Test
     fun `alle måneder bortsett fra første har ikke endring større enn 10 prosent gir true`() {
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(lagUtbetaling(5000)),
+            eksisterendeUtbetalinger = Utbetalinger(
+                oversendtUtbetalingUtenKvittering(
+                    utbetalingslinjer = nonEmptyListOf(lagUtbetaling(5000)),
+                ),
+            ),
             nyBeregning = lagBeregning(
                 januar(2021) to 15000,
                 februar(2021) to 5000,
@@ -172,232 +238,275 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
     @Test
     fun `gjeldende utbetaling er opphør og endringer på opphørsdato er mindre enn 10 prosent gir true`() {
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(
-                lagOpphør(
-                    forrigeUtbetaling = lagUtbetaling(
-                        månedsbeløp = 5000,
-                        periode = beregningsperiode,
-                    ),
-                ),
+            eksisterendeUtbetalinger = utbetalingerOpphør(
+                nyPeriode = beregningsperiode,
+                opphørsperiode = beregningsperiode,
+                beløp = 5000,
             ),
-            nyBeregning = lagBeregning(5000),
+            nyBeregning = lagBeregningJanApr21(5000),
         ).resultat shouldBe true
     }
 
     @Test
     fun `gjeldende utbetaling er opphør og endringer på opphørsdato er større enn 10 prosent gir true`() {
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(
-                lagOpphør(
-                    forrigeUtbetaling = lagUtbetaling(
-                        månedsbeløp = 5000,
-                        periode = beregningsperiode,
-                    ),
-                ),
+            eksisterendeUtbetalinger = utbetalingerOpphør(
+                nyPeriode = beregningsperiode,
+                opphørsperiode = beregningsperiode,
+                beløp = 5000,
             ),
-            nyBeregning = lagBeregning(15000),
+            nyBeregning = lagBeregningJanApr21(15000),
         ).resultat shouldBe true
     }
 
     @Test
     fun `gjeldende utbetaling er opphør og endringer senere enn opphørsdato er mindre enn 10 prosent gir true`() {
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(
-                lagOpphør(
-                    forrigeUtbetaling = lagUtbetaling(
-                        månedsbeløp = 5000,
-                        periode = beregningsperiode,
-                    ),
-                ),
+            eksisterendeUtbetalinger = utbetalingerOpphør(
+                nyPeriode = beregningsperiode,
+                opphørsperiode = beregningsperiode,
+                beløp = 5000,
             ),
-            nyBeregning = lagBeregning(5000),
+            nyBeregning = lagBeregningJanApr21(5000),
         ).resultat shouldBe true
     }
 
     @Test
     fun `gjeldende utbetaling er opphør og endringer senere enn opphørsdato større enn 10 prosent gir true`() {
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(
-                lagOpphør(
-                    forrigeUtbetaling = lagUtbetaling(
-                        månedsbeløp = 5000,
-                        periode = beregningsperiode,
-                    ),
-                ),
+            eksisterendeUtbetalinger = utbetalingerOpphør(
+                nyPeriode = beregningsperiode,
+                opphørsperiode = beregningsperiode,
+                beløp = 5000,
             ),
-            nyBeregning = lagBeregning(15000),
+            nyBeregning = lagBeregningJanApr21(15000),
         ).resultat shouldBe true
     }
 
     @Test
     fun `gjeldende utbetaling er stans og endringer senere enn dato for stans er mindre enn 10 prosent gir true`() {
+        val clock = TikkendeKlokke()
+        val førsteUtbetaling = utbetalingslinjeNy(
+            beløp = 5000,
+            clock = clock,
+            rekkefølge = Rekkefølge.FØRSTE,
+        )
+        val stans = Utbetalingslinje.Endring.Stans(
+            utbetalingslinjeSomSkalEndres = førsteUtbetaling,
+            virkningstidspunkt = førsteUtbetaling.originalFraOgMed(),
+            clock = clock,
+            rekkefølge = Rekkefølge.ANDRE,
+        )
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(
-                lagStans(
-                    forrigeUtbetaling = lagUtbetaling(
-                        månedsbeløp = 5000,
-                        periode = beregningsperiode,
+            eksisterendeUtbetalinger = Utbetalinger(
+                oversendtUtbetalingUtenKvittering(
+                    utbetalingslinjer = nonEmptyListOf(
+                        førsteUtbetaling,
+                        stans,
                     ),
                 ),
             ),
-            nyBeregning = lagBeregning(5000),
+            nyBeregning = lagBeregningJanApr21(5000),
         ).resultat shouldBe true
     }
 
     @Test
     fun `gjeldende utbetaling er stans og endringer senere enn dato for stans større enn 10 prosent gir true`() {
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(
-                lagStans(
-                    forrigeUtbetaling = lagUtbetaling(
-                        månedsbeløp = 5000,
-                        periode = beregningsperiode,
-                    ),
-                ),
+            eksisterendeUtbetalinger = utbetalingerStans(
+                nyPeriode = beregningsperiode,
+                beløp = 5000,
             ),
-            nyBeregning = lagBeregning(15000),
+            nyBeregning = lagBeregningJanApr21(15000),
         ).resultat shouldBe true
     }
 
     @Test
     fun `gjeldende utbetaling er reaktivert og endringer senere enn reaktiveringsdato er mindre enn 10 prosent gir false`() {
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(
-                lagReaktivert(
-                    forrigeUtbetaling = lagUtbetaling(
-                        månedsbeløp = 5000,
-                        periode = beregningsperiode,
-                    ),
-                ),
+            eksisterendeUtbetalinger = utbetalingerReaktivering(
+                nyPeriode = beregningsperiode,
+                beløp = 5000,
             ),
-            nyBeregning = lagBeregning(5000),
+            nyBeregning = lagBeregningJanApr21(5000),
         ).resultat shouldBe false
     }
 
     @Test
     fun `gjeldende utbetaling er reaktivert og endringer senere enn reaktiveringsdato større enn 10 prosent gir true`() {
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(
-                lagReaktivert(
-                    forrigeUtbetaling = lagUtbetaling(
-                        månedsbeløp = 5000,
-                        periode = beregningsperiode,
-                    ),
-                ),
+            eksisterendeUtbetalinger = utbetalingerReaktivering(
+                nyPeriode = beregningsperiode,
+                beløp = 5000,
             ),
-            nyBeregning = lagBeregning(15000),
+            nyBeregning = lagBeregningJanApr21(15000),
         ).resultat shouldBe true
     }
 
     @Test
     fun `ny beregning er under minstegrense for utbetaling, men differanse mot gjeldende utebetaling er mindre enn 10 prosent gir false`() {
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(lagUtbetaling(440)),
-            nyBeregning = lagBeregning(405),
+            eksisterendeUtbetalinger = Utbetalinger(
+                oversendtUtbetalingUtenKvittering(
+                    utbetalingslinjer = nonEmptyListOf(lagUtbetaling(440)),
+                ),
+            ),
+            nyBeregning = lagBeregningJanApr21(405),
         ).resultat shouldBe false
     }
 
     @Test
     fun `ny beregning er under minstegrense for utbetaling, og differanse mot gjeldende utebetaling er større enn 10 prosent gir true`() {
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(lagUtbetaling(440)),
-            nyBeregning = lagBeregning(390),
+            eksisterendeUtbetalinger = Utbetalinger(
+                oversendtUtbetalingUtenKvittering(
+                    utbetalingslinjer = nonEmptyListOf(lagUtbetaling(440)),
+                ),
+            ),
+            nyBeregning = lagBeregningJanApr21(390),
         ).resultat shouldBe true
     }
 
     @Test
     fun `blandet drops gir forskjellig resultat avhengig av beregningens første måned`() {
-        val første = lagUtbetaling(
-            månedsbeløp = 5000,
+        val clock = TikkendeKlokke()
+        val første = utbetalingslinjeNy(
+            beløp = 5000,
             periode = år(2021),
-            utbetalingsIndex = 0,
+            clock = clock,
         )
-        val stans = lagStans(
-            stansFraOgMedDato = 1.februar(2021),
-            forrigeUtbetaling = første,
-            utbetalingsIndex = 1,
+        val stans = utbetalingslinjeStans(
+            utbetalingslinjeSomSkalEndres = første,
+            virkningstidspunkt = 1.februar(2021),
+            clock = clock,
         )
-        val reaktivering = lagReaktivert(
-            reaktiverDato = 1.mars(2021),
-            forrigeUtbetaling = stans,
-            utbetalingsIndex = 2,
+        val reaktivering = utbetalingslinjeReaktivering(
+            virkningstidspunkt = 1.mars(2021),
+            utbetalingslinjeSomSkalEndres = stans,
+            clock = clock,
         )
-        val andre = lagUtbetaling(
-            månedsbeløp = 10000,
+        val andre = utbetalingslinjeNy(
+            forrigeUtbetalingslinjeId = reaktivering.id,
+            beløp = 10000,
             periode = Periode.create(1.mai(2021), 31.desember(2021)),
-            utbetalingsIndex = 3,
+            clock = clock,
+            rekkefølge = Rekkefølge.FJERDE,
         )
-        val opphør = lagOpphør(
-            opphørsdato = 1.desember(2021),
-            forrigeUtbetaling = andre,
-            utbetalingsIndex = 4,
+        val opphør = Utbetalingslinje.Endring.Opphør(
+            utbetalingslinjeSomSkalEndres = andre,
+            virkningsperiode = Periode.create(
+                fraOgMed = 1.desember(2021),
+                tilOgMed = andre.periode.tilOgMed,
+            ),
+            clock = clock,
+            rekkefølge = Rekkefølge.FEMTE,
         )
 
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(første, stans, reaktivering, andre, opphør),
+            eksisterendeUtbetalinger = Utbetalinger(
+                oversendtUtbetalingUtenKvittering(
+                    utbetalingslinjer = nonEmptyListOf(første, stans, reaktivering, andre, opphør),
+                ),
+            ),
             nyBeregning = lagBeregning(
                 år(2021) to 5000,
             ),
         ).resultat shouldBe false
 
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(første, stans, reaktivering, andre, opphør),
+            eksisterendeUtbetalinger = Utbetalinger(
+                oversendtUtbetalingUtenKvittering(
+                    utbetalingslinjer = nonEmptyListOf(første, stans, reaktivering, andre, opphør),
+                ),
+            ),
             nyBeregning = lagBeregning(
                 år(2021) to 6000,
             ),
         ).resultat shouldBe true
 
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(første, stans, reaktivering, andre, opphør),
+            eksisterendeUtbetalinger = Utbetalinger(
+                oversendtUtbetalingUtenKvittering(
+                    utbetalingslinjer = nonEmptyListOf(første, stans, reaktivering, andre, opphør),
+                ),
+            ),
             nyBeregning = lagBeregning(
                 Periode.create(1.februar(2021), 31.desember(2021)) to 5000,
             ),
         ).resultat shouldBe true
 
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(første, stans, reaktivering, andre, opphør),
+            eksisterendeUtbetalinger = Utbetalinger(
+                oversendtUtbetalingUtenKvittering(
+                    utbetalingslinjer = nonEmptyListOf(første, stans, reaktivering, andre, opphør),
+                ),
+            ),
             nyBeregning = lagBeregning(
                 Periode.create(1.februar(2021), 31.desember(2021)) to 500,
             ),
         ).resultat shouldBe true
 
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(første, stans, reaktivering, andre, opphør),
+            eksisterendeUtbetalinger = Utbetalinger(
+                oversendtUtbetalingUtenKvittering(
+                    utbetalingslinjer = nonEmptyListOf(første, stans, reaktivering, andre, opphør),
+                ),
+            ),
             nyBeregning = lagBeregning(
                 Periode.create(1.mars(2021), 31.desember(2021)) to 5000,
             ),
         ).resultat shouldBe false
 
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(første, stans, reaktivering, andre, opphør),
+            eksisterendeUtbetalinger = Utbetalinger(
+                oversendtUtbetalingUtenKvittering(
+                    utbetalingslinjer = nonEmptyListOf(første, stans, reaktivering, andre, opphør),
+                ),
+            ),
             nyBeregning = lagBeregning(
                 Periode.create(1.mars(2021), 31.desember(2021)) to 6000,
             ),
         ).resultat shouldBe true
 
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(første, stans, reaktivering, andre, opphør),
+            eksisterendeUtbetalinger = Utbetalinger(
+                oversendtUtbetalingUtenKvittering(
+                    utbetalingslinjer = nonEmptyListOf(første, stans, reaktivering, andre, opphør),
+                ),
+            ),
             nyBeregning = lagBeregning(
                 Periode.create(1.mai(2021), 31.desember(2021)) to 5000,
             ),
         ).resultat shouldBe true
 
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(første, stans, reaktivering, andre, opphør),
+            eksisterendeUtbetalinger = Utbetalinger(
+                oversendtUtbetalingUtenKvittering(
+                    utbetalingslinjer = nonEmptyListOf(første, stans, reaktivering, andre, opphør),
+                ),
+            ),
             nyBeregning = lagBeregning(
                 Periode.create(1.mai(2021), 31.desember(2021)) to 10000,
             ),
         ).resultat shouldBe false
 
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(første, stans, reaktivering, andre, opphør),
+            eksisterendeUtbetalinger = Utbetalinger(
+                oversendtUtbetalingUtenKvittering(
+                    utbetalingslinjer = nonEmptyListOf(første, stans, reaktivering, andre, opphør),
+                ),
+            ),
             nyBeregning = lagBeregning(
                 desember(2021) to 10000,
             ),
         ).resultat shouldBe true
 
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = nonEmptyListOf(første, stans, reaktivering, andre, opphør),
+            eksisterendeUtbetalinger = Utbetalinger(
+                oversendtUtbetalingUtenKvittering(
+                    utbetalingslinjer = nonEmptyListOf(første, stans, reaktivering, andre, opphør),
+                ),
+            ),
             nyBeregning = lagBeregning(
                 desember(2021) to 5000,
             ),
@@ -408,28 +517,18 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
         månedsbeløp: Int,
         periode: Periode = beregningsperiode,
         utbetalingsIndex: Int = 0,
+        id: UUID30 = UUID30.randomUUID(),
+        forrigeUtbetalingslinjeId: UUID30? = null,
     ): Utbetalingslinje.Ny {
         return utbetalingslinjeNy(
+            id = id,
             opprettet = fixedTidspunkt.plus(utbetalingsIndex.toLong(), ChronoUnit.SECONDS),
             periode = periode,
             beløp = månedsbeløp,
+            rekkefølge = if (utbetalingsIndex == 0) Rekkefølge.start() else Rekkefølge.skip(utbetalingsIndex.toLong() - 1),
+            forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
         )
     }
-
-    private fun lagOpphør(
-        opphørsdato: LocalDate = beregningsperiode.fraOgMed,
-        forrigeUtbetaling: Utbetalingslinje,
-        utbetalingsIndex: Int = 0,
-    ) =
-        Utbetalingslinje.Endring.Opphør(
-            utbetalingslinjeSomSkalEndres = forrigeUtbetaling,
-            virkningsperiode = Periode.create(
-                fraOgMed = opphørsdato,
-                tilOgMed = forrigeUtbetaling.periode.tilOgMed,
-            ),
-            clock = fixedClock.plus(utbetalingsIndex.toLong(), ChronoUnit.SECONDS),
-            rekkefølge = Rekkefølge.start(),
-        )
 
     private fun lagStans(
         stansFraOgMedDato: LocalDate = beregningsperiode.fraOgMed,
@@ -440,7 +539,7 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
             utbetalingslinjeSomSkalEndres = forrigeUtbetaling,
             virkningstidspunkt = stansFraOgMedDato,
             clock = fixedClock.plus(utbetalingsIndex.toLong(), ChronoUnit.SECONDS),
-            rekkefølge = Rekkefølge.start(),
+            rekkefølge = if (utbetalingsIndex == 0) Rekkefølge.start() else Rekkefølge.skip(utbetalingsIndex.toLong() - 1),
         )
 
     private fun lagReaktivert(
@@ -452,10 +551,10 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
             utbetalingslinjeSomSkalEndres = forrigeUtbetaling,
             virkningstidspunkt = reaktiverDato,
             clock = fixedClock.plus(utbetalingsIndex.toLong(), ChronoUnit.SECONDS),
-            rekkefølge = Rekkefølge.start(),
+            if (utbetalingsIndex == 0) Rekkefølge.start() else Rekkefølge.skip(utbetalingsIndex.toLong() - 1),
         )
 
-    private fun lagBeregning(månedsbeløp: Int): Beregning {
+    private fun lagBeregningJanApr21(månedsbeløp: Int): Beregning {
         return lagBeregning(beregningsperiode to månedsbeløp)
     }
 

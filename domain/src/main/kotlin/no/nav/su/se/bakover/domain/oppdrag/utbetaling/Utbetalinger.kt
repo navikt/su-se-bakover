@@ -3,13 +3,11 @@ package no.nav.su.se.bakover.domain.oppdrag.utbetaling
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.IngenUtbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
-import no.nav.su.se.bakover.domain.oppdrag.tidslinje
-import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.LocalDate
 
@@ -33,15 +31,7 @@ data class Utbetalinger(
         sjekkDenFørsteUtbetalingslinja()
         sjekkEndringslinjer()
         sjekkNyeLinjer()
-    }
-
-    companion object {
-        /**
-         * Sorterer utbetalingene etter tidspunkt og forrige-referansene i utbetalingslinjene.
-         */
-//        fun fraUsorterteUtbetalinger(@Suppress("UNUSED_PARAMETER") utbetalinger: List<Utbetaling>): Utbetalinger {
-//            TODO() // Utbetalinger(utbetalinger.sortedBy { it.opprettet })
-//        }
+        sjekkAlleLinjer()
     }
 
     val utbetalingslinjer get() = utbetalinger.flatMap { it.utbetalingslinjer }
@@ -58,7 +48,7 @@ data class Utbetalinger(
     }
 
     fun kastHvisIkkeAlleErKvitterteUtenFeil() {
-        require(utbetalinger.all { it is Utbetaling.OversendtUtbetaling.MedKvittering && it.kvittering.erKvittertOk() }) {
+        check(utbetalinger.all { it is Utbetaling.OversendtUtbetaling.MedKvittering && it.kvittering.erKvittertOk() }) {
             "De fleste utbetalingsoperasjoner krever at alle utbetalinger er oversendt og vi har mottatt en OK-kvittering. Det er kun i stegene fram til vi sender og lagrer at vi har en blanding av utbetalinger som er oversendt og ikke. Som regel svarer økonomisystemet med en kvittering i løpet av sekunder. Et unntak er feilutbetalinger, da kan det ta dager."
         }
     }
@@ -87,17 +77,21 @@ data class Utbetalinger(
         )
     }
 
-    internal fun hentSisteUtbetalingslinje(): Utbetalingslinje? {
+    fun sisteUtbetalingslinje(): Utbetalingslinje? {
         return utbetalinger.lastOrNull()?.sisteUtbetalingslinje()
     }
 
+    fun sisteUtbetalingslinjeId(): UUID30? {
+        return sisteUtbetalingslinje()?.id
+    }
+
     fun tidslinje(): Either<IngenUtbetalinger, TidslinjeForUtbetalinger> {
-        return flatMap { it.utbetalingslinjer }.tidslinje()
+        return TidslinjeForUtbetalinger.fra(this)?.right() ?: IngenUtbetalinger.left()
     }
 
     private fun sjekkDuplikateIder() {
         this.map { it.id }.let {
-            require(it.distinct() == it) {
+            check(it.distinct() == it) {
                 "Kan ikke inneholde duplikate utbetalinger. Fant duplikater for: ${
                 it.groupingBy { it }.eachCount().filter { it.value > 1 }
                 }"
@@ -108,10 +102,10 @@ data class Utbetalinger(
     private fun sjekkDenFørsteUtbetalingslinja() {
         utbetalinger.ifNotEmpty {
             utbetalinger.first().utbetalingslinjer.first().let {
-                require(it is Utbetalingslinje.Ny) {
+                check(it is Utbetalingslinje.Ny) {
                     "Den første utbetalingslinjen for en sak må være av typen Ny."
                 }
-                require(it.forrigeUtbetalingslinjeId == null) {
+                check(it.forrigeUtbetalingslinjeId == null) {
                     "Den første utbetalingslinjen kan ikke ha forrigeUtbetalingslinjeId satt."
                 }
             }
@@ -120,13 +114,13 @@ data class Utbetalinger(
 
     private fun sjekkDuplikateOpprettet() {
         this.map { it.opprettet }.let {
-            require(it.distinct().size == it.size) { "Utbetalinger må ha unike opprettet-tidspunkt, men var $it" }
+            check(it.distinct().size == it.size) { "Utbetalinger må ha unike opprettet-tidspunkt, men var $it" }
         }
     }
 
     private fun sjekkSortering() {
         utbetalinger.map { it.opprettet }.let {
-            require(it.sortedBy { it.instant } == it) {
+            check(it.sortedBy { it.instant } == it) {
                 "Utbetalinger må være sortert i stigende rekkefølge, men var: $it"
             }
         }
@@ -136,8 +130,35 @@ data class Utbetalinger(
                 it.utbetalingslinjer.map { it.opprettet.instant }.max(),
             )
         }.zipWithNext { a, b ->
-            require(a.second < b.first) {
+            check(a.second < b.first) {
                 "Alle opprettet tidspunktene i en utbetaling må ha skjedd etter alle opprettet tidspunktene i den forrige utbetalingen, men var: a(min,max): $a, b(min,max): $b"
+            }
+        }
+    }
+
+    private fun sjekkAlleLinjer() {
+        utbetalingslinjer.zipWithNext { a, b ->
+            // Regler må stemme overens med [Utbetalingsstrategi]
+            if (b is Utbetalingslinje.Endring) {
+                check(a.forrigeUtbetalingslinjeId == b.forrigeUtbetalingslinjeId && a.id == b.id) {
+                    "Kan kun endre forrige linje. forrige linje: $a, endring: $b"
+                }
+            }
+            when (b) {
+                is Utbetalingslinje.Endring.Opphør,
+                is Utbetalingslinje.Ny,
+                -> Unit // Disse kan alltid følge etter en annen linje
+                is Utbetalingslinje.Endring.Reaktivering -> {
+                    check(a is Utbetalingslinje.Endring.Stans) {
+                        "Kan ikke reaktivere en linje hvor forrige linje ikke er stanset. Linje: $a"
+                    }
+                }
+
+                is Utbetalingslinje.Endring.Stans -> {
+                    check(a is Utbetalingslinje.Ny || a is Utbetalingslinje.Endring.Reaktivering) {
+                        "Kan ikke stanse en linje hvor forrige linje ikke er ny eller reaktivert. Linje: $a"
+                    }
+                }
             }
         }
     }
@@ -149,11 +170,11 @@ data class Utbetalinger(
         idTIlUtbetalingslinje.values.filter { it.size > 1 }.forEach { utbetalingslinjer ->
             // Hver av disse vil være et sett med en NY og resterende endringer (ENDR)
             val head = utbetalingslinjer.first()
-            require(head is Utbetalingslinje.Ny) {
+            check(head is Utbetalingslinje.Ny) {
                 "Oppdaget ${utbetalingslinjer.size} av denne samme utbetalingslinjeIDen ${head.id} hvor den første ikke var NY, men var: ${head::class.simpleName}"
             }
             val tail = utbetalingslinjer.subList(1, utbetalingslinjer.size)
-            require(tail.all { it is Utbetalingslinje.Endring }) {
+            check(tail.all { it is Utbetalingslinje.Endring }) {
                 "Oppdaget ${utbetalingslinjer.size} av denne samme utbetalingslinjeIDen ${head.id} hvor de N siste elementene burde vært endring, men var: [${
                 tail.joinToString {
                     """{"id": "${it.id}", "type": "${it::class.simpleName}"}"""
@@ -161,13 +182,19 @@ data class Utbetalinger(
                 }]"
             }
 
-            require(utbetalingslinjer.map { it.forrigeUtbetalingslinjeId }.distinct().size == 1) {
+            check(utbetalingslinjer.map { it.forrigeUtbetalingslinjeId }.distinct().size == 1) {
                 "Oppdaget ${utbetalingslinjer.size} av denne samme utbetalingslinjeIDen ${head.id} hvor et eller flere elementer har forskjellig forrigeUtbetalingslinjeId: ${utbetalingslinjer.map { it.forrigeUtbetalingslinjeId }}"
             }
 
             utbetalingslinjer.zipWithNext { a, b ->
-                require(a.opprettet <= b.opprettet) {
+                check(a.opprettet <= b.opprettet) {
                     "Oppdaget ${utbetalingslinjer.size} av denne samme utbetalingslinjeIDen ${head.id} hvor et eller flere elementer er opprettet i feil rekkefølge: ${utbetalingslinjer.map { it.opprettet }}"
+                }
+            }
+
+            utbetalingslinjer.filterIsInstance<Utbetalingslinje.Endring.Opphør>().ifNotEmpty {
+                check(utbetalingslinjer.last() is Utbetalingslinje.Endring.Opphør) {
+                    "Oppdaget ${utbetalingslinjer.size} av denne samme utbetalingslinjeIDen ${head.id} med endringer etter et opphør: ${utbetalingslinjer.map { it::class.simpleName }}"
                 }
             }
             utbetalingslinjer.zipWithNext { eldre, nyere ->
@@ -177,14 +204,14 @@ data class Utbetalinger(
                     }
 
                     is Utbetalingslinje.Endring.Reaktivering -> {
-                        require(eldre is Utbetalingslinje.Endring.Stans) {
-                            "Kan kun reaktivere en stans, men var: ${idTIlUtbetalingslinje[eldre.id]!!.last()::class.simpleName}"
+                        check(eldre is Utbetalingslinje.Endring.Stans) {
+                            "Kan kun reaktivere en stans ($eldre), men var: $nyere"
                         }
                     }
 
                     is Utbetalingslinje.Endring.Stans -> {
-                        require(eldre is Utbetalingslinje.Endring.Reaktivering || eldre is Utbetalingslinje.Ny) {
-                            "Kan ikke stanse et opphør"
+                        check(eldre is Utbetalingslinje.Endring.Reaktivering || eldre is Utbetalingslinje.Ny) {
+                            "Kan ikke stanse ($nyere) en stans ($eldre)"
                         }
                     }
 
@@ -196,7 +223,7 @@ data class Utbetalinger(
 
     private fun sjekkEndringslinjerKobletMotNyLinje() {
         utbetalingslinjerAvTypenEndring.forEach { e ->
-            require(utbetalingslinjerAvTypenNy.any { it.id == e.id }) {
+            check(utbetalingslinjerAvTypenNy.any { it.id == e.id }) {
                 "Endringslinje mangler en tilhørende NY linje for id: $e.id"
             }
         }
@@ -204,14 +231,14 @@ data class Utbetalinger(
 
     private fun sjekkNyeLinjer() {
         utbetalingslinjerAvTypenNy.reversed().zipWithNext { nyere, eldre ->
-            require(nyere.opprettet >= eldre.opprettet) {
+            check(nyere.opprettet >= eldre.opprettet) {
                 // ideelt sett burde vi kunne sjekk > (istedenfor >=), men de ligger med samme opprettet-tidspunkt i databasen innenfor en utbetaling.
                 "Den nyere utbetalingslinjen må ha opprettet-tidspunkt som er nyere eller samtidig som forrige linje, denne sjekken feilet: ${nyere.opprettet} >= ${eldre.opprettet}"
             }
-            require(nyere.forrigeUtbetalingslinjeId == eldre.id) {
+            check(nyere.forrigeUtbetalingslinjeId == eldre.id) {
                 "Den nyere utbetalingslinjen må ha forrigeUtbetalingslinjeId som er lik den eldre utbetalingslinjens id, denne sjekken feilet: ${nyere.forrigeUtbetalingslinjeId} == ${eldre.id}"
             }
-            require(nyere.id != eldre.id) {
+            check(nyere.id != eldre.id) {
                 "Den nyere utbetalingslinjen må ha en annen id enn den eldre utbetalingslinjen, denne sjekken feilet: ${nyere.id} != ${eldre.id}"
             }
         }

@@ -148,22 +148,7 @@ internal class StatusovergangTest {
 
     @Nested
     inner class TilVilkårsvurdert {
-        // @Test
-        // fun `opprettet til vilkårsvurdert innvilget`() {
-        //     statusovergang(
-        //         opprettet.copy(
-        //             grunnlagsdata = vilkårsvurdertInnvilget.grunnlagsdata,
-        //             vilkårsvurderinger = vilkårsvurdertInnvilget.vilkårsvurderinger,
-        //         ),
-        //     ).let { (_, uavklart) ->
-        //         uavklart.shouldBeType<VilkårsvurdertSøknadsbehandling.Uavklart>().also {
-        //             it.leggTilOpplysningspliktVilkår(tilstrekkeligDokumentert(), fixedClock).getOrFail()
-        //                 .shouldBeType<VilkårsvurdertSøknadsbehandling.Innvilget>()
-        //         }
-        //     }
-        //
-        // }
-        //
+
         @Test
         fun `opprettet til vilkårsvurdert avslag`() {
             nySøknadsbehandlingUføre().also { (_, ny) ->

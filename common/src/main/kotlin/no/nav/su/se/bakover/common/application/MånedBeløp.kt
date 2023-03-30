@@ -10,11 +10,11 @@ data class Månedsbeløp(
     val månedbeløp: List<MånedBeløp>,
 ) : List<MånedBeløp> by månedbeløp {
     init {
-        require(
-            månedbeløp.none { a ->
-                månedbeløp.minus(a).any { b -> a.periode overlapper b.periode }
-            },
-        ) { "Det kan kun eksistere 1 element for hver måned" }
+        månedbeløp.map { it.periode }.let {
+            require(
+                it.distinct() == it,
+            ) { "Det kan kun eksistere 1 element for hver måned" }
+        }
     }
 
     fun sum(): Int {

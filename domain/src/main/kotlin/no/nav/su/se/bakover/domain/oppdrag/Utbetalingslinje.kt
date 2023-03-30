@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.application.CopyArgs
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
 import no.nav.su.se.bakover.common.periode.harOverlappende
@@ -12,7 +11,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje.Endring.Opphør
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje.Endring.Reaktivering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje.Endring.Stans
-import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.slf4j.LoggerFactory
@@ -354,92 +352,6 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
     }
 }
 
-sealed class UtbetalingslinjePåTidslinje : KanPlasseresPåTidslinje<UtbetalingslinjePåTidslinje> {
-    abstract val kopiertFraId: UUID30
-    abstract override val opprettet: Tidspunkt
-    abstract override val periode: Periode
-    abstract val beløp: Int
-
-    /**
-     * Ekvivalent i denne contexten betyr at linjen er av klasse, har samme [periode] og samme [beløp] som en annen linje.
-     * Ekskluderer sjekk av [kopiertFraId] og [opprettet].
-     */
-    abstract fun ekvivalentMed(other: UtbetalingslinjePåTidslinje): Boolean
-
-    data class Ny(
-        override val kopiertFraId: UUID30,
-        override val opprettet: Tidspunkt,
-        override val periode: Periode,
-        override val beløp: Int,
-    ) : UtbetalingslinjePåTidslinje() {
-
-        override fun ekvivalentMed(other: UtbetalingslinjePåTidslinje): Boolean {
-            return other is Ny && periode == other.periode && beløp == other.beløp
-        }
-
-        override fun copy(args: CopyArgs.Tidslinje): Ny = when (args) {
-            is CopyArgs.Tidslinje.Full -> this.copy()
-            is CopyArgs.Tidslinje.NyPeriode -> this.copy(
-                periode = args.periode,
-            )
-        }
-    }
-
-    data class Stans(
-        override val kopiertFraId: UUID30,
-        override val opprettet: Tidspunkt,
-        override val periode: Periode,
-        override val beløp: Int = 0,
-    ) : UtbetalingslinjePåTidslinje() {
-        override fun ekvivalentMed(other: UtbetalingslinjePåTidslinje): Boolean {
-            return other is Stans && periode == other.periode && beløp == other.beløp
-        }
-
-        override fun copy(args: CopyArgs.Tidslinje): Stans = when (args) {
-            is CopyArgs.Tidslinje.Full -> this.copy()
-            is CopyArgs.Tidslinje.NyPeriode -> this.copy(
-                periode = args.periode,
-            )
-        }
-    }
-
-    data class Opphør(
-        override val kopiertFraId: UUID30,
-        override val opprettet: Tidspunkt,
-        override val periode: Periode,
-        override val beløp: Int = 0,
-    ) : UtbetalingslinjePåTidslinje() {
-        override fun ekvivalentMed(other: UtbetalingslinjePåTidslinje): Boolean {
-            return other is Opphør && periode == other.periode && beløp == other.beløp
-        }
-
-        override fun copy(args: CopyArgs.Tidslinje): Opphør = when (args) {
-            is CopyArgs.Tidslinje.Full -> this.copy()
-            is CopyArgs.Tidslinje.NyPeriode -> this.copy(
-                periode = args.periode,
-            )
-        }
-    }
-
-    data class Reaktivering(
-        override val kopiertFraId: UUID30,
-        override val opprettet: Tidspunkt,
-        override val periode: Periode,
-        override val beløp: Int,
-    ) : UtbetalingslinjePåTidslinje() {
-        override fun ekvivalentMed(other: UtbetalingslinjePåTidslinje): Boolean {
-            return other is Reaktivering && periode == other.periode && beløp == other.beløp
-        }
-
-        override fun copy(args: CopyArgs.Tidslinje): Reaktivering = when (args) {
-            is CopyArgs.Tidslinje.Full -> this.copy()
-            is CopyArgs.Tidslinje.NyPeriode -> this.copy(
-                periode = args.periode,
-            )
-        }
-    }
-}
-
 fun List<Utbetalingslinje>.sjekkAlleNyeLinjerHarForskjelligIdOgForrigeReferanse() {
     this.filterIsInstance<Utbetalingslinje.Ny>().let {
         it.map { it.forrigeUtbetalingslinjeId }.ifNotEmpty {
@@ -484,7 +396,7 @@ fun List<Utbetalingslinje>.sjekkRekkefølge() {
 fun List<Utbetalingslinje>.sjekkSammeForrigeUtbetalingsId() {
     this.groupBy { it.forrigeUtbetalingslinjeId }.forEach { map ->
         map.value.map { it.id }.let { ids ->
-            require(ids.toSet().size == 1) {
+            check(ids.toSet().size == 1) {
                 "To utbetalingslinjer med samme forrigeUtbetalingslinjeId, må også ha samme id. IDer: $ids, forrigeUtbetalingslinjeID: ${map.key}"
             }
         }
@@ -494,7 +406,7 @@ fun List<Utbetalingslinje>.sjekkSammeForrigeUtbetalingsId() {
 fun List<Utbetalingslinje>.sjekkSammeUtbetalingsId() {
     this.groupBy { it.id }.forEach { map ->
         map.value.map { it.forrigeUtbetalingslinjeId }.let { forrigeUtbetalingslinjeIDer ->
-            require(forrigeUtbetalingslinjeIDer.toSet().size == 1) {
+            check(forrigeUtbetalingslinjeIDer.toSet().size == 1) {
                 "To utbetalingslinjer med samme id, må også ha samme forrigeUtbetalingslinjeId. ID: ${map.key}, forrigeUtbetalingslinjeIDer: $forrigeUtbetalingslinjeIDer"
             }
         }
@@ -504,10 +416,10 @@ fun List<Utbetalingslinje>.sjekkSammeUtbetalingsId() {
 fun List<Utbetalingslinje>.sjekkForrigeForNye() {
     this.zipWithNext { a, b ->
         if (b is Utbetalingslinje.Ny) {
-            require(b.forrigeUtbetalingslinjeId == a.id) {
-                "En ny utbetalingslinje (id: ${a.id}) sin forrigeUtbetalingslinjeId ${b.forrigeUtbetalingslinjeId} må peke på den forrige utbetalingslinjen (id: ${a.id}"
+            check(b.forrigeUtbetalingslinjeId == a.id) {
+                "En ny utbetalingslinje (id: ${b.id}) sin forrigeUtbetalingslinjeId ${b.forrigeUtbetalingslinjeId} må peke på den forrige utbetalingslinjen (id: ${a.id}"
             }
-            require(a.id != b.id) {
+            check(a.id != b.id) {
                 "En ny utbetalingslinje (id: ${b.id}) må være forskjellig fra den forrige utbetalingslinjen sin id: ${a.id}"
             }
         }
