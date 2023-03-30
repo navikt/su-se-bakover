@@ -4,6 +4,9 @@ name: reusable workflow - Deployer til dev/test miljøet
 on:
   workflow_call:
 
+env:
+  IMAGE: ghcr.io/${{ github.repository }}/su-se-bakover:${{ github.sha }}
+
 jobs:
   deploy_to_dev:
     name: Deploy to dev
