@@ -31,7 +31,7 @@ jobs:
 
   build:
     needs: verify-master-is-ancestor
-    uses: navikt/su-se-bakover/.github/workflows/build.yml@main
+    uses: ./.github/workflows/build.yml
     with:
       repo: ${{ github.repository }}
       token: ${{ secrets.GITHUB_TOKEN }}
@@ -39,6 +39,6 @@ jobs:
 
   deploy_to_dev:
     needs: build
-    uses: navikt/su-se-bakover/.github/workflows/dev-deploy.yml@main
+    uses: ./.github/workflows/dev-deploy.yml
     with:
       apikey: ${{ secrets.NAIS_DEPLOY_APIKEY }}
