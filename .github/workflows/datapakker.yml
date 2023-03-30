@@ -1,4 +1,3 @@
-
 on:
   push:
     branches:
@@ -29,25 +28,22 @@ jobs:
         with:
           java-version: '19'
           distribution: 'temurin'
-      - name: test and build
-        run: ./gradlew :datapakker:søknad:build
-        env:
-          ORG_GRADLE_PROJECT_githubUser: x-access-token
-          ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
-      - name: Login to DockerHub
-        uses: docker/login-action@v2.1.0
+      - name: build
+        uses: ./.github/actions/gradleBuild
         with:
-          registry: ghcr.io
-          username: ${{ github.repository }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and publish Docker image
-        uses: docker/build-push-action@v4.0.0
+          token: ${{ secrets.GITHUB_TOKEN }}
+          run: ./gradlew :datapakker:søknad:build
+      - name: build
+        uses: ./.github/actions/gradleBuildTest
         with:
-          context: .
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login, Build and publish Docker image
+        uses: ./.github/actions/loginBuildPublishDockerImage
+        with:
+          repo: ${{ github.repository }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          image: ${{env.IMAGE}}
           file: ./datapakker/søknad/Dockerfile
-          push: true
-          pull: true
-          tags: ${{env.IMAGE}}
 
   deploy_to_dev:
     name: Deploy to dev

@@ -8,73 +8,37 @@ env:
   IMAGE: ghcr.io/${{ github.repository }}/su-se-bakover:${{ github.sha }}
 
 jobs:
-   verify-master-is-ancestor:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v3
-          with:
-            fetch-depth: 0
-        - run: | # git merge-base returns 0 when master is ancestor, 1 if it is not (other positive numbers on error)
-            set +e
-            origin_master="$(git rev-parse origin/master)"
-            head="$(git rev-parse HEAD)"
-            echo "Hash for origin master: ${origin_master}. Hash for HEAD: ${head}."
-            merge_base="$(git merge-base $origin_master HEAD)"
-            echo "Merge-base: ${merge_base}"
-            git merge-base --is-ancestor $origin_master HEAD
-            return_code=$?
-            echo "Return code of 'git merge-base': ${return_code}"
-            if [[ return_code -gt 0 ]]; then
-              echo "You have to merge origin/master before you can deploy a branch."
-              exit 1
-            fi
+  verify-master-is-ancestor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - run: | # git merge-base returns 0 when master is ancestor, 1 if it is not (other positive numbers on error)
+          set +e
+          origin_master="$(git rev-parse origin/master)"
+          head="$(git rev-parse HEAD)"
+          echo "Hash for origin master: ${origin_master}. Hash for HEAD: ${head}."
+          merge_base="$(git merge-base $origin_master HEAD)"
+          echo "Merge-base: ${merge_base}"
+          git merge-base --is-ancestor $origin_master HEAD
+          return_code=$?
+          echo "Return code of 'git merge-base': ${return_code}"
+          if [[ return_code -gt 0 ]]; then
+            echo "You have to merge origin/master before you can deploy a branch."
+            exit 1
+          fi
 
-   build:
-      name: Gradle test build and conditional docker build push
-      needs: verify-master-is-ancestor
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v3
-        - uses: actions/cache@v3
-          with:
-            path: |
-              ~/.gradle/caches
-              ~/.gradle/wrapper
-            key: ${{ runner.os }}-gradle-${{ hashFiles('gradle.properties', 'settings.gradle.kts', '**/build.gradle.kts', 'gradle/wrapper/gradle-wrapper.properties') }}
-            restore-keys: |
-              ${{ runner.os }}-gradle-
-        - uses: actions/setup-java@v3
-          with:
-            java-version: '19'
-            distribution: 'temurin'
-        - name: test and build
-          run: ./gradlew test build
-          env:
-            ORG_GRADLE_PROJECT_githubUser: x-access-token
-            ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
-        - name: Login to DockerHub
-          uses: docker/login-action@v2.1.0
-          with:
-            registry: ghcr.io
-            username: ${{ github.repository }}
-            password: ${{ secrets.GITHUB_TOKEN }}
-        - name: Build and publish Docker image
-          uses: docker/build-push-action@v4.0.0
-          with:
-            context: .
-            push: true
-            pull: true
-            tags: ${{env.IMAGE}}
+  build:
+    needs: verify-master-is-ancestor
+    uses: navikt/su-se-bakover/.github/workflows/build.yml@main
+    with:
+      repo: ${{ github.repository }}
+      token: ${{ secrets.GITHUB_TOKEN }}
+      image: ${{env.IMAGE}}
 
-   deploy_to_dev:
-      name: Deploy branch to dev-fss
-      needs: build
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v3
-        - uses: nais/deploy/actions/deploy@v1
-          env:
-             APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-             CLUSTER: dev-fss
-             RESOURCE: nais.yml
-             VARS: nais-dev.json
+  deploy_to_dev:
+    needs: build
+    uses: navikt/su-se-bakover/.github/workflows/dev-deploy.yml@main
+    with:
+      apikey: ${{ secrets.NAIS_DEPLOY_APIKEY }}
