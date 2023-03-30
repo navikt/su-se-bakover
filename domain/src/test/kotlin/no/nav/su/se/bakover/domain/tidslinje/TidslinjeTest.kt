@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.tidslinje
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -975,12 +976,12 @@ internal class TidslinjeTest {
     fun `validator kaster exception dersom tidslinja ikke har distinkte fra og med datoer`() {
         assertDoesNotThrow {
             Validator.valider(
-                listOf(Tidslinjeobjekt(opprettet = Tidspunkt.now(tikkendeKlokke), periode = år(2021))),
+                nonEmptyListOf(Tidslinjeobjekt(opprettet = Tidspunkt.now(tikkendeKlokke), periode = år(2021))),
             )
         }
         assertThrows<IllegalStateException> {
             Validator.valider(
-                listOf(
+                nonEmptyListOf(
                     Tidslinjeobjekt(opprettet = Tidspunkt.now(tikkendeKlokke), periode = år(2021)),
                     Tidslinjeobjekt(opprettet = Tidspunkt.now(tikkendeKlokke), periode = år(2021)),
                 ),
@@ -989,7 +990,7 @@ internal class TidslinjeTest {
 
         assertThrows<IllegalStateException> {
             Validator.valider(
-                listOf(
+                nonEmptyListOf(
                     Tidslinjeobjekt(
                         opprettet = Tidspunkt.now(tikkendeKlokke),
                         periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.april(2021)),
@@ -1011,7 +1012,7 @@ internal class TidslinjeTest {
     fun `validator kaster exception dersom tidslinja ikke har distinkte til og med datoer`() {
         assertThrows<IllegalStateException> {
             Validator.valider(
-                listOf(
+                nonEmptyListOf(
                     Tidslinjeobjekt(opprettet = Tidspunkt.now(tikkendeKlokke), periode = år(2021)),
                     Tidslinjeobjekt(
                         opprettet = Tidspunkt.now(tikkendeKlokke),
@@ -1023,7 +1024,7 @@ internal class TidslinjeTest {
 
         assertThrows<IllegalStateException> {
             Validator.valider(
-                listOf(
+                nonEmptyListOf(
                     Tidslinjeobjekt(
                         opprettet = Tidspunkt.now(tikkendeKlokke),
                         periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.april(2021)),
@@ -1045,7 +1046,7 @@ internal class TidslinjeTest {
     fun `validator kaster exception dersom tidslinja har elementer med overlappende perioder`() {
         assertThrows<IllegalStateException> {
             Validator.valider(
-                listOf(
+                nonEmptyListOf(
                     Tidslinjeobjekt(
                         opprettet = Tidspunkt.now(tikkendeKlokke),
                         periode = år(2021),

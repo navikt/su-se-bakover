@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.tidslinje
 
+import arrow.core.Nel
 import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
 import no.nav.su.se.bakover.common.application.CopyArgs
@@ -82,6 +83,8 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
         fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> lagTidslinje(
             input: NonEmptyList<T>,
         ): Tidslinje<T> {
+            verifyOverlappendeElementerIkkeErOpprettetSamtidig(input)
+
             val sortedByOpprettetSynkende = input.sortedByDescending { it.opprettet.instant }
             val sortedByPeriode = input.sortedBy { it.periode }
 
@@ -111,8 +114,24 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
             }
         }
 
+        private fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> verifyOverlappendeElementerIkkeErOpprettetSamtidig(input: NonEmptyList<T>) {
+            input.forEach { outer ->
+                input.minus(outer).forEach { inner ->
+                    if (outer.periode overlapper inner.periode) {
+                        check(inner.opprettet != outer.opprettet) {
+                            """
+                                        Kan ikke lage tidslinje fordi overlappende elementer har samme opprettet tidspunkt:
+                                        {"periode":"${outer.periode}", "opprettet":"${outer.opprettet}"} vs.
+                                        {"periode":"${inner.periode}", "opprettet":"${inner.opprettet}"}
+                            """.trimIndent()
+                        }
+                    }
+                }
+            }
+        }
+
         object Validator {
-            fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> valider(elementer: List<T>) {
+            fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> valider(elementer: Nel<T>) {
                 check(
                     elementer.all { t1 ->
                         elementer.minus(t1).none { t2 -> t1.periode.fraOgMed == t2.periode.fraOgMed }
@@ -128,6 +147,7 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
                         elementer.minus(t1).none { t2 -> t1.periode overlapper t2.periode }
                     },
                 ) { "Tidslinje har elementer med overlappende perioder!" }
+                verifyOverlappendeElementerIkkeErOpprettetSamtidig(elementer)
             }
         }
 
