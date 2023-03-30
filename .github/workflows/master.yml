@@ -21,9 +21,8 @@ jobs:
   deploy_to_dev:
     needs: build_and_test
     uses: ./.github/workflows/dev-deploy.yml
-    with:
+    secrets:
       apikey: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-
   build:
     if: ${{contains(github.event.head_commit.message, '--skip_tests')}}
     uses: ./.github/workflows/build.yml

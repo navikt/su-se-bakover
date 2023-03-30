@@ -13,6 +13,7 @@ jobs:
     name: Deploy to dev
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
+    secrets: inherit
     steps:
       - uses: actions/checkout@v3
       - uses: nais/deploy/actions/deploy@v1
