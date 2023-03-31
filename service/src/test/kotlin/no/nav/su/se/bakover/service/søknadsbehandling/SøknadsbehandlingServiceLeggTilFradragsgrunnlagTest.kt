@@ -9,10 +9,10 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
@@ -61,7 +61,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
         val actual = søknadsbehandlingService.leggTilFradragsgrunnlag(request, saksbehandler = saksbehandler)
             .getOrElse { fail { "uventet respons" } }
 
-        actual shouldBe Søknadsbehandling.Vilkårsvurdert.Innvilget(
+        actual shouldBe VilkårsvurdertSøknadsbehandling.Innvilget(
             id = behandling.id,
             opprettet = behandling.opprettet,
             sakId = behandling.sakId,
@@ -168,7 +168,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             saksbehandler = saksbehandler,
         ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
             fra = uavklart::class,
-            til = Søknadsbehandling.Vilkårsvurdert.Innvilget::class,
+            til = VilkårsvurdertSøknadsbehandling.Innvilget::class,
         ).left()
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe uavklart.id })

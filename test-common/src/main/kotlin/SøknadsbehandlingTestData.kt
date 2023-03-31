@@ -29,11 +29,17 @@ import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.søknad.Søknad
+import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk
+import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.IverksattAvslåttSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.innvilg.IverksattInnvilgetSøknadsbehandlingResponse
@@ -72,14 +78,14 @@ import java.util.UUID
 
 /**
  * Skal tilsvare en ny søknadsbehandling.
- * TODO jah: Vi bør kunne gjøre dette via NySøknadsbehandling og en funksjon som tar inn saksnummer og gir oss Søknadsbehandling.Vilkårsvurdert.Uavklart
+ * TODO jah: Vi bør kunne gjøre dette via NySøknadsbehandling og en funksjon som tar inn saksnummer og gir oss VilkårsvurdertSøknadsbehandling.Uavklart
  */
 fun søknadsbehandlingVilkårsvurdertUavklart(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     clock: Clock = fixedClock,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
+): Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart> {
     val sakOgSøknad = nySakMedjournalførtSøknadOgOppgave(
         sakId = sakId,
         saksnummer = saksnummer,
@@ -110,7 +116,7 @@ fun søknadsbehandlingVilkårsvurdertInnvilget(
         clock = clock,
         saksbehandler = saksbehandler,
     ),
-): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Innvilget> {
+): Pair<Sak, VilkårsvurdertSøknadsbehandling.Innvilget> {
     return søknadsbehandlingVilkårsvurdertUavklart(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -121,7 +127,7 @@ fun søknadsbehandlingVilkårsvurdertInnvilget(
             vilkårsvurderinger = vilkårsvurderinger,
             søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
         ).vilkårsvurder(saksbehandler).let { vilkårsvurdert ->
-            vilkårsvurdert.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>().let {
+            vilkårsvurdert.shouldBeType<VilkårsvurdertSøknadsbehandling.Innvilget>().let {
                 Pair(
                     sak.copy(
                         søknadsbehandlinger = nonEmptyListOf(it),
@@ -148,7 +154,7 @@ fun søknadsbehandlingVilkårsvurdertAvslag(
         clock = clock,
         saksbehandler = saksbehandler,
     ),
-): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Avslag> {
+): Pair<Sak, VilkårsvurdertSøknadsbehandling.Avslag> {
     return søknadsbehandlingVilkårsvurdertUavklart(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -159,7 +165,7 @@ fun søknadsbehandlingVilkårsvurdertAvslag(
             vilkårsvurderinger = vilkårsvurderinger,
             søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
         ).vilkårsvurder(saksbehandler).let { vilkårsvurdert ->
-            vilkårsvurdert.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>().let {
+            vilkårsvurdert.shouldBeType<VilkårsvurdertSøknadsbehandling.Avslag>().let {
                 Pair(
                     sak.copy(
                         søknadsbehandlinger = nonEmptyListOf(it),
@@ -184,7 +190,7 @@ fun søknadsbehandlingBeregnetInnvilget(
         clock = clock,
         saksbehandler = saksbehandler,
     ),
-): Pair<Sak, Søknadsbehandling.Beregnet.Innvilget> {
+): Pair<Sak, BeregnetSøknadsbehandling.Innvilget> {
     return søknadsbehandlingVilkårsvurdertInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -197,7 +203,7 @@ fun søknadsbehandlingBeregnetInnvilget(
             clock = clock,
             satsFactory = satsFactoryTestPåDato(),
             nySaksbehandler = saksbehandler,
-        ).getOrFail() as Søknadsbehandling.Beregnet.Innvilget
+        ).getOrFail() as BeregnetSøknadsbehandling.Innvilget
         Pair(
             sak.copy(
                 søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
@@ -234,7 +240,7 @@ fun søknadsbehandlingBeregnetAvslag(
         clock = clock,
         saksbehandler = saksbehandler,
     ),
-): Pair<Sak, Søknadsbehandling.Beregnet.Avslag> {
+): Pair<Sak, BeregnetSøknadsbehandling.Avslag> {
     return søknadsbehandlingVilkårsvurdertInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -247,7 +253,7 @@ fun søknadsbehandlingBeregnetAvslag(
             clock = clock,
             satsFactory = satsFactoryTestPåDato(),
             nySaksbehandler = saksbehandler,
-        ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
+        ).getOrFail() as BeregnetSøknadsbehandling.Avslag
         Pair(
             sak.copy(
                 søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
@@ -270,7 +276,7 @@ fun søknadsbehandlingSimulert(
         clock = clock,
         saksbehandler = saksbehandler,
     ),
-): Pair<Sak, Søknadsbehandling.Simulert> {
+): Pair<Sak, SimulertSøknadsbehandling> {
     return søknadsbehandlingBeregnetInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -329,7 +335,7 @@ fun søknadsbehandlingTilAttesteringInnvilget(
         clock = clock,
         saksbehandler = saksbehandler,
     ),
-): Pair<Sak, Søknadsbehandling.TilAttestering.Innvilget> {
+): Pair<Sak, SøknadsbehandlingTilAttestering.Innvilget> {
     return søknadsbehandlingSimulert(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -374,7 +380,7 @@ fun søknadsbehandlingTilAttesteringAvslagMedBeregning(
         clock = clock,
         saksbehandler = saksbehandler,
     ),
-): Pair<Sak, Søknadsbehandling.TilAttestering.Avslag.MedBeregning> {
+): Pair<Sak, SøknadsbehandlingTilAttestering.Avslag.MedBeregning> {
     return søknadsbehandlingBeregnetAvslag(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -408,7 +414,7 @@ fun søknadsbehandlingTilAttesteringAvslagUtenBeregning(
         clock = fixedClock,
         saksbehandler = saksbehandler,
     ),
-): Pair<Sak, Søknadsbehandling.TilAttestering.Avslag.UtenBeregning> {
+): Pair<Sak, SøknadsbehandlingTilAttestering.Avslag.UtenBeregning> {
     return søknadsbehandlingVilkårsvurdertAvslag(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -445,7 +451,7 @@ fun søknadsbehandlingUnderkjentInnvilget(
         clock = fixedClock,
         saksbehandler = saksbehandler,
     ),
-): Pair<Sak, Søknadsbehandling.Underkjent.Innvilget> {
+): Pair<Sak, UnderkjentSøknadsbehandling.Innvilget> {
     return søknadsbehandlingTilAttesteringInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -478,7 +484,7 @@ fun søknadsbehandlingUnderkjentAvslagUtenBeregning(
         clock = fixedClock,
         saksbehandler = saksbehandler,
     ),
-): Pair<Sak, Søknadsbehandling.Underkjent.Avslag.UtenBeregning> {
+): Pair<Sak, UnderkjentSøknadsbehandling.Avslag.UtenBeregning> {
     return søknadsbehandlingTilAttesteringAvslagUtenBeregning(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -521,7 +527,7 @@ fun søknadsbehandlingUnderkjentAvslagMedBeregning(
         clock = fixedClock,
         saksbehandler = saksbehandler,
     ),
-): Pair<Sak, Søknadsbehandling.Underkjent.Avslag.MedBeregning> {
+): Pair<Sak, UnderkjentSøknadsbehandling.Avslag.MedBeregning> {
     return søknadsbehandlingTilAttesteringAvslagMedBeregning(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -552,7 +558,7 @@ fun søknadsbehandlingIverksattInnvilget(
     clock: Clock = fixedClock,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     sakstype: Sakstype = Sakstype.UFØRE,
-): Triple<Sak, Søknadsbehandling.Iverksatt.Innvilget, VedtakInnvilgetSøknadsbehandling> {
+): Triple<Sak, IverksattSøknadsbehandling.Innvilget, VedtakInnvilgetSøknadsbehandling> {
     return iverksattSøknadsbehandling(
         sakOgSøknad = nySakUføre(
             clock = clock,
@@ -569,7 +575,13 @@ fun søknadsbehandlingIverksattInnvilget(
             listOf(it.bosituasjon, it.fradragsgrunnlag).flatten()
         },
         saksbehandler = saksbehandler,
-    ).let { Triple(it.first, it.second as Søknadsbehandling.Iverksatt.Innvilget, it.third as VedtakInnvilgetSøknadsbehandling) }
+    ).let {
+        Triple(
+            it.first,
+            it.second as IverksattSøknadsbehandling.Innvilget,
+            it.third as VedtakInnvilgetSøknadsbehandling,
+        )
+    }
 }
 
 fun søknadsbehandlingIverksattAvslagMedBeregning(
@@ -592,7 +604,7 @@ fun søknadsbehandlingIverksattAvslagMedBeregning(
     ),
     clock: Clock = fixedClock,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-): Triple<Sak, Søknadsbehandling.Iverksatt.Avslag.MedBeregning, Avslagsvedtak> {
+): Triple<Sak, IverksattSøknadsbehandling.Avslag.MedBeregning, Avslagsvedtak> {
     return iverksattSøknadsbehandling(
         sakOgSøknad = nySakUføre(
             clock = clock,
@@ -609,7 +621,7 @@ fun søknadsbehandlingIverksattAvslagMedBeregning(
             listOf(it.bosituasjon, it.fradragsgrunnlag).flatten()
         },
         saksbehandler = saksbehandler,
-    ).let { Triple(it.first, it.second as Søknadsbehandling.Iverksatt.Avslag.MedBeregning, it.third as Avslagsvedtak) }
+    ).let { Triple(it.first, it.second as IverksattSøknadsbehandling.Avslag.MedBeregning, it.third as Avslagsvedtak) }
 }
 
 fun søknadsbehandlingIverksattAvslagUtenBeregning(
@@ -621,7 +633,7 @@ fun søknadsbehandlingIverksattAvslagUtenBeregning(
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode),
     clock: Clock = fixedClock,
-): Triple<Sak, Søknadsbehandling.Iverksatt.Avslag.UtenBeregning, Avslagsvedtak> {
+): Triple<Sak, IverksattSøknadsbehandling.Avslag.UtenBeregning, Avslagsvedtak> {
     return iverksattSøknadsbehandling(
         sakOgSøknad = nySakUføre(
             clock = clock,
@@ -637,7 +649,7 @@ fun søknadsbehandlingIverksattAvslagUtenBeregning(
         customGrunnlag = grunnlagsdata.let {
             listOf(it.bosituasjon, it.fradragsgrunnlag).flatten()
         },
-    ).let { Triple(it.first, it.second as Søknadsbehandling.Iverksatt.Avslag.UtenBeregning, it.third as Avslagsvedtak) }
+    ).let { Triple(it.first, it.second as IverksattSøknadsbehandling.Avslag.UtenBeregning, it.third as Avslagsvedtak) }
 }
 
 /**
@@ -674,7 +686,7 @@ fun nySøknadsbehandlingAlder(
     clock: Clock = fixedClock,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakAlder(søknadsInnhold = søknadsinnholdAlder()),
-): Pair<Sak, Søknadsbehandling.Vilkårsvurdert> {
+): Pair<Sak, VilkårsvurdertSøknadsbehandling> {
     require(sakOgSøknad.first.type == Sakstype.ALDER) { "Bruk nySøknadsbehandlingUføre dersom du ønsker deg en uføresak." }
     return nySøknadsbehandlingMedStønadsperiode(
         clock = clock,
@@ -689,7 +701,7 @@ fun nySøknadsbehandlingUføre(
     clock: Clock = fixedClock,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
-): Pair<Sak, Søknadsbehandling.Vilkårsvurdert> {
+): Pair<Sak, VilkårsvurdertSøknadsbehandling> {
     require(sakOgSøknad.first.type == Sakstype.UFØRE) { "Bruk nySøknadsbehandlingAlder dersom du ønsker deg en alderssak." }
     return nySøknadsbehandlingMedStønadsperiode(
         clock = clock,
@@ -707,7 +719,7 @@ fun nySøknadsbehandlingUtenStønadsperiode(
     clock: Clock = fixedClock,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakMedjournalførtSøknadOgOppgave(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
+): Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart> {
     require(sakOgSøknad.first.type == sakOgSøknad.first.type) {
         "Støtter ikke å ha forskjellige typer (uføre, alder) på en og samme sak."
     }
@@ -733,7 +745,7 @@ fun nySøknadsbehandlingMedStønadsperiode(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person> = { person().right() },
     saksbehandlersAvgjørelse: SaksbehandlersAvgjørelse? = null,
-): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
+): Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart> {
     return nySøknadsbehandlingUtenStønadsperiode(
         clock = clock,
         sakOgSøknad = sakOgSøknad,
@@ -748,7 +760,7 @@ fun nySøknadsbehandlingMedStønadsperiode(
             saksbehandler = saksbehandler,
             hentPerson = hentPerson,
             saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
-        ).getOrFail() as Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart>
+        ).getOrFail() as Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart>
     }
 }
 
@@ -760,7 +772,7 @@ fun vilkårsvurdertSøknadsbehandlingAlder(
     ),
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
-): Pair<Sak, Søknadsbehandling.Vilkårsvurdert> {
+): Pair<Sak, VilkårsvurdertSøknadsbehandling> {
     return vilkårsvurdertSøknadsbehandling(
         clock = clock,
         stønadsperiode = stønadsperiode,
@@ -779,7 +791,7 @@ fun underkjentSøknadsbehandlingUføre(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     fritekstTilBrev: String = "",
-): Pair<Sak, Søknadsbehandling.Underkjent> {
+): Pair<Sak, UnderkjentSøknadsbehandling> {
     return underkjentSøknadsbehandling(
         clock = clock,
         stønadsperiode = stønadsperiode,
@@ -797,7 +809,7 @@ fun underkjentSøknadsbehandling(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     fritekstTilBrev: String = "",
-): Pair<Sak, Søknadsbehandling.Underkjent> {
+): Pair<Sak, UnderkjentSøknadsbehandling> {
     return tilAttesteringSøknadsbehandling(
         clock = clock,
         stønadsperiode = stønadsperiode,
@@ -827,7 +839,7 @@ fun iverksattSøknadsbehandlingUføre(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-): Triple<Sak, Søknadsbehandling.Iverksatt, Stønadsvedtak> {
+): Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> {
     return iverksattSøknadsbehandling(
         clock = clock,
         stønadsperiode = stønadsperiode,
@@ -849,7 +861,7 @@ fun iverksattSøknadsbehandling(
     attestering: Attestering.Iverksatt = attesteringIverksatt(clock),
     fritekstTilBrev: String = "",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-): Triple<Sak, Søknadsbehandling.Iverksatt, Stønadsvedtak> {
+): Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> {
     return tilAttesteringSøknadsbehandling(
         clock = clock,
         stønadsperiode = stønadsperiode,
@@ -920,7 +932,7 @@ fun tilAttesteringSøknadsbehandlingUføre(
     customVilkår: List<Vilkår> = emptyList(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     fritekstTilBrev: String = "",
-): Pair<Sak, Søknadsbehandling.TilAttestering> {
+): Pair<Sak, SøknadsbehandlingTilAttestering> {
     return tilAttesteringSøknadsbehandling(
         clock = clock,
         stønadsperiode = stønadsperiode,
@@ -940,7 +952,7 @@ fun tilAttesteringSøknadsbehandling(
     customVilkår: List<Vilkår> = emptyList(),
     fritekstTilBrev: String = "",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-): Pair<Sak, Søknadsbehandling.TilAttestering> {
+): Pair<Sak, SøknadsbehandlingTilAttestering> {
     return vilkårsvurdertSøknadsbehandling(
         clock = clock,
         stønadsperiode = stønadsperiode,
@@ -951,7 +963,7 @@ fun tilAttesteringSøknadsbehandling(
     ).let { (sak, vilkårsvurdert) ->
         val tilAttestering = when (vilkårsvurdert) {
             // avslag for vilkår går rett til attestering
-            is Søknadsbehandling.Vilkårsvurdert.Avslag -> {
+            is VilkårsvurdertSøknadsbehandling.Avslag -> {
                 vilkårsvurdert.tilAttesteringForSaksbehandler(
                     saksbehandler = saksbehandler,
                     fritekstTilBrev = fritekstTilBrev,
@@ -959,7 +971,7 @@ fun tilAttesteringSøknadsbehandling(
                 )
             }
 
-            is Søknadsbehandling.Vilkårsvurdert.Innvilget -> {
+            is VilkårsvurdertSøknadsbehandling.Innvilget -> {
                 beregnetSøknadsbehandling(
                     clock = clock,
                     stønadsperiode = stønadsperiode,
@@ -970,7 +982,7 @@ fun tilAttesteringSøknadsbehandling(
                 ).let { (_, beregnet) ->
                     when (beregnet) {
                         // beregnet avslag går til attestering
-                        is Søknadsbehandling.Beregnet.Avslag -> {
+                        is BeregnetSøknadsbehandling.Avslag -> {
                             beregnet.tilAttestering(
                                 saksbehandler = saksbehandler,
                                 fritekstTilBrev = fritekstTilBrev,
@@ -978,7 +990,7 @@ fun tilAttesteringSøknadsbehandling(
                             )
                         }
 
-                        is Søknadsbehandling.Beregnet.Innvilget -> {
+                        is BeregnetSøknadsbehandling.Innvilget -> {
                             // simuler og send til attestering hvis innvilget
                             simulertSøknadsbehandling(
                                 clock = clock,
@@ -999,7 +1011,7 @@ fun tilAttesteringSøknadsbehandling(
                 }
             }
 
-            is Søknadsbehandling.Vilkårsvurdert.Uavklart -> {
+            is VilkårsvurdertSøknadsbehandling.Uavklart -> {
                 throw IllegalStateException("Kan ikke attestere uavklart")
             }
         }
@@ -1018,7 +1030,7 @@ fun simulertSøknadsbehandlingUføre(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-): Pair<Sak, Søknadsbehandling.Simulert> {
+): Pair<Sak, SimulertSøknadsbehandling> {
     return simulertSøknadsbehandling(
         clock = clock,
         stønadsperiode = stønadsperiode,
@@ -1037,7 +1049,7 @@ fun simulertSøknadsbehandling(
     customVilkår: List<Vilkår> = emptyList(),
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-): Pair<Sak, Søknadsbehandling.Simulert> {
+): Pair<Sak, SimulertSøknadsbehandling> {
     return beregnetSøknadsbehandling(
         clock = clock,
         stønadsperiode = stønadsperiode,
@@ -1088,7 +1100,7 @@ fun beregnetSøknadsbehandlingUføre(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-): Pair<Sak, Søknadsbehandling.Beregnet> {
+): Pair<Sak, BeregnetSøknadsbehandling> {
     return beregnetSøknadsbehandling(
         clock = clock,
         stønadsperiode = stønadsperiode,
@@ -1106,7 +1118,7 @@ fun beregnetSøknadsbehandling(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-): Pair<Sak, Søknadsbehandling.Beregnet> {
+): Pair<Sak, BeregnetSøknadsbehandling> {
     return vilkårsvurdertSøknadsbehandling(
         clock = clock,
         stønadsperiode = stønadsperiode,
@@ -1135,7 +1147,7 @@ fun vilkårsvurdertSøknadsbehandlingUføre(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-): Pair<Sak, Søknadsbehandling.Vilkårsvurdert> {
+): Pair<Sak, VilkårsvurdertSøknadsbehandling> {
     return vilkårsvurdertSøknadsbehandling(
         clock = clock,
         stønadsperiode = stønadsperiode,
@@ -1147,9 +1159,9 @@ fun vilkårsvurdertSøknadsbehandlingUføre(
 }
 
 /**
- * Returnerer en [Søknadsbehandling.Vilkårsvurdert] baset på [sakOgSøknad]. Støtter både uføre og alder.
- * Default er at det opprettes en [Søknadsbehandling.Vilkårsvurdert.Innvilget], men funkjsonen støtter også opprettelse
- * av alle typer [Søknadsbehandling.Vilkårsvurdert] - hvilken man ender opp med til slutt avhenger av utfallet av
+ * Returnerer en [VilkårsvurdertSøknadsbehandling] baset på [sakOgSøknad]. Støtter både uføre og alder.
+ * Default er at det opprettes en [VilkårsvurdertSøknadsbehandling.Innvilget], men funkjsonen støtter også opprettelse
+ * av alle typer [VilkårsvurdertSøknadsbehandling] - hvilken man ender opp med til slutt avhenger av utfallet av
  * vilkårsvurderingen.
  *
  * @param sakOgSøknad sak og søknad det skal opprettes søknadsbehandling for
@@ -1163,7 +1175,7 @@ fun vilkårsvurdertSøknadsbehandling(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-): Pair<Sak, Søknadsbehandling.Vilkårsvurdert> {
+): Pair<Sak, VilkårsvurdertSøknadsbehandling> {
     customVilkår.ifNotEmpty {
         require(this.groupBy { it::class }.all { it.value.count() == 1 }) { "Tillater bare et vilkår av hver type" }
     }

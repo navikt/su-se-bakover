@@ -62,33 +62,33 @@ data class LukketSøknadsbehandling private constructor(
     }
 
     override val beregning = when (underliggendeSøknadsbehandling) {
-        is Beregnet.Avslag -> underliggendeSøknadsbehandling.beregning
-        is Beregnet.Innvilget -> underliggendeSøknadsbehandling.beregning
-        is Iverksatt -> throw IllegalArgumentException("Ugyldig tilstand")
+        is BeregnetSøknadsbehandling.Avslag -> underliggendeSøknadsbehandling.beregning
+        is BeregnetSøknadsbehandling.Innvilget -> underliggendeSøknadsbehandling.beregning
+        is IverksattSøknadsbehandling -> throw IllegalArgumentException("Ugyldig tilstand")
         is LukketSøknadsbehandling -> throw IllegalArgumentException("Ugyldig tilstand")
-        is Simulert -> underliggendeSøknadsbehandling.beregning
-        is TilAttestering -> throw IllegalArgumentException("Ugyldig tilstand")
-        is Underkjent.Avslag.MedBeregning -> underliggendeSøknadsbehandling.beregning
-        is Underkjent.Avslag.UtenBeregning -> null
-        is Underkjent.Innvilget -> underliggendeSøknadsbehandling.beregning
-        is Vilkårsvurdert.Avslag -> null
-        is Vilkårsvurdert.Innvilget -> null
-        is Vilkårsvurdert.Uavklart -> null
+        is SimulertSøknadsbehandling -> underliggendeSøknadsbehandling.beregning
+        is SøknadsbehandlingTilAttestering -> throw IllegalArgumentException("Ugyldig tilstand")
+        is UnderkjentSøknadsbehandling.Avslag.MedBeregning -> underliggendeSøknadsbehandling.beregning
+        is UnderkjentSøknadsbehandling.Avslag.UtenBeregning -> null
+        is UnderkjentSøknadsbehandling.Innvilget -> underliggendeSøknadsbehandling.beregning
+        is VilkårsvurdertSøknadsbehandling.Avslag -> null
+        is VilkårsvurdertSøknadsbehandling.Innvilget -> null
+        is VilkårsvurdertSøknadsbehandling.Uavklart -> null
     }
 
     override val simulering = when (underliggendeSøknadsbehandling) {
-        is Beregnet.Avslag -> null
-        is Beregnet.Innvilget -> null
-        is Iverksatt -> throw IllegalArgumentException("Ugyldig tilstand")
+        is BeregnetSøknadsbehandling.Avslag -> null
+        is BeregnetSøknadsbehandling.Innvilget -> null
+        is IverksattSøknadsbehandling -> throw IllegalArgumentException("Ugyldig tilstand")
         is LukketSøknadsbehandling -> throw IllegalArgumentException("Ugyldig tilstand")
-        is Simulert -> underliggendeSøknadsbehandling.simulering
-        is TilAttestering -> throw IllegalArgumentException("Ugyldig tilstand")
-        is Underkjent.Avslag.MedBeregning -> null
-        is Underkjent.Avslag.UtenBeregning -> null
-        is Underkjent.Innvilget -> underliggendeSøknadsbehandling.simulering
-        is Vilkårsvurdert.Avslag -> null
-        is Vilkårsvurdert.Innvilget -> null
-        is Vilkårsvurdert.Uavklart -> null
+        is SimulertSøknadsbehandling -> underliggendeSøknadsbehandling.simulering
+        is SøknadsbehandlingTilAttestering -> throw IllegalArgumentException("Ugyldig tilstand")
+        is UnderkjentSøknadsbehandling.Avslag.MedBeregning -> null
+        is UnderkjentSøknadsbehandling.Avslag.UtenBeregning -> null
+        is UnderkjentSøknadsbehandling.Innvilget -> underliggendeSøknadsbehandling.simulering
+        is VilkårsvurdertSøknadsbehandling.Avslag -> null
+        is VilkårsvurdertSøknadsbehandling.Innvilget -> null
+        is VilkårsvurdertSøknadsbehandling.Uavklart -> null
     }
 
     override fun copyInternal(
@@ -110,7 +110,7 @@ data class LukketSøknadsbehandling private constructor(
 
         /**
          * Prøver lukke søknadsbehandlingen og tilhørende søknad.
-         * Den underliggende søknadsbehandlingen kan ikke være av typen [LukketSøknadsbehandling], [Søknadsbehandling.Iverksatt] eller [Søknadsbehandling.TilAttestering]
+         * Den underliggende søknadsbehandlingen kan ikke være av typen [LukketSøknadsbehandling], [Søknadsbehandling.Iverksatt] eller [SøknadsbehandlingTilAttestering]
          * @throws IllegalStateException Dersom den underliggende søknaden ikke er av typen [Søknad.Journalført.MedOppgave.IkkeLukket]
          */
         fun tryCreate(
@@ -161,10 +161,10 @@ data class LukketSøknadsbehandling private constructor(
             if (søknadsbehandlingSomSkalLukkes is LukketSøknadsbehandling) {
                 return KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnAlleredeLukketSøknadsbehandling.left()
             }
-            if (søknadsbehandlingSomSkalLukkes is Iverksatt) {
+            if (søknadsbehandlingSomSkalLukkes is IverksattSøknadsbehandling) {
                 return KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnIverksattSøknadsbehandling.left()
             }
-            if (søknadsbehandlingSomSkalLukkes is TilAttestering) {
+            if (søknadsbehandlingSomSkalLukkes is SøknadsbehandlingTilAttestering) {
                 return KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnSøknadsbehandlingTilAttestering.left()
             }
             return Unit.right()

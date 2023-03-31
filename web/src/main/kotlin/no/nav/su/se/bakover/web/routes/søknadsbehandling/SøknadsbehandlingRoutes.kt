@@ -88,7 +88,12 @@ internal fun Route.søknadsbehandlingRoutes(
             call.withSakId { sakId ->
                 call.withBody<OpprettBehandlingBody> { body ->
                     body.soknadId.toUUID().mapLeft {
-                        return@authorize call.svar(BadRequest.errorJson("soknadId er ikke en gyldig uuid", "ikke_gyldig_uuid"))
+                        return@authorize call.svar(
+                            BadRequest.errorJson(
+                                "soknadId er ikke en gyldig uuid",
+                                "ikke_gyldig_uuid",
+                            ),
+                        )
                     }.map { søknadId ->
                         søknadsbehandlingService.opprett(
                             OpprettRequest(
@@ -369,7 +374,12 @@ internal fun Route.søknadsbehandlingRoutes(
                                 },
                             )
                         } else {
-                            return@authorize call.svar(BadRequest.errorJson("Må angi en begrunnelse", "mangler_begrunnelse"))
+                            return@authorize call.svar(
+                                BadRequest.errorJson(
+                                    "Må angi en begrunnelse",
+                                    "mangler_begrunnelse",
+                                ),
+                            )
                         }
                     },
                 )
@@ -406,5 +416,7 @@ internal fun Sak.KunneIkkeOppdatereStønadsperiode.tilResultat(): Resultat {
                 "aldersvurdering_gir_ikke_rett_på_uføre",
             )
         }
+
+        else -> TODO()
     }
 }

@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk
+import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 
@@ -45,8 +46,8 @@ data class NySøknadsbehandling(
         ),
     )
 
-    fun toSøknadsbehandling(saksnummer: Saksnummer): Søknadsbehandling.Vilkårsvurdert.Uavklart {
-        return Søknadsbehandling.Vilkårsvurdert.Uavklart(
+    fun toSøknadsbehandling(saksnummer: Saksnummer): VilkårsvurdertSøknadsbehandling.Uavklart {
+        return VilkårsvurdertSøknadsbehandling.Uavklart(
             id = id,
             opprettet = opprettet,
             sakId = sakId,

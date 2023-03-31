@@ -22,7 +22,7 @@ sealed class KunneIkkeLeggeTilVilkår {
     sealed class KunneIkkeLeggeTilOpplysningsplikt : KunneIkkeLeggeTilVilkår() {
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
-            val til: KClass<out Søknadsbehandling> = Søknadsbehandling.Vilkårsvurdert::class,
+            val til: KClass<out Søknadsbehandling> = VilkårsvurdertSøknadsbehandling::class,
         ) : KunneIkkeLeggeTilOpplysningsplikt()
 
         object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilOpplysningsplikt()
@@ -33,7 +33,7 @@ sealed class KunneIkkeLeggeTilVilkår {
         sealed class UgyldigTilstand : KunneIkkeLeggeTilLovligOpphold() {
             data class Søknadsbehandling(
                 val fra: KClass<out no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling>,
-                val til: KClass<out no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.Vilkårsvurdert>,
+                val til: KClass<out no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling>,
             ) :
                 UgyldigTilstand()
 
@@ -50,7 +50,7 @@ sealed class KunneIkkeLeggeTilVilkår {
     sealed class KunneIkkeLeggeTilPensjonsVilkår : KunneIkkeLeggeTilVilkår() {
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
-            val til: KClass<out Søknadsbehandling> = Søknadsbehandling.Vilkårsvurdert::class,
+            val til: KClass<out Søknadsbehandling> = VilkårsvurdertSøknadsbehandling::class,
         ) : KunneIkkeLeggeTilPensjonsVilkår()
 
         object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilPensjonsVilkår()
@@ -60,7 +60,7 @@ sealed class KunneIkkeLeggeTilVilkår {
     sealed class KunneIkkeLeggeTilUførevilkår : KunneIkkeLeggeTilVilkår() {
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
-            val til: KClass<out Søknadsbehandling.Vilkårsvurdert>,
+            val til: KClass<out VilkårsvurdertSøknadsbehandling>,
         ) :
             KunneIkkeLeggeTilUførevilkår()
 
@@ -70,7 +70,7 @@ sealed class KunneIkkeLeggeTilVilkår {
     sealed class KunneIkkeLeggeTilInstitusjonsoppholdVilkår : KunneIkkeLeggeTilVilkår() {
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
-            val til: KClass<out Søknadsbehandling.Vilkårsvurdert> = Søknadsbehandling.Vilkårsvurdert::class,
+            val til: KClass<out VilkårsvurdertSøknadsbehandling> = VilkårsvurdertSøknadsbehandling::class,
         ) : KunneIkkeLeggeTilInstitusjonsoppholdVilkår()
 
         object BehandlingsperiodeOgVurderingsperiodeMåVæreLik : KunneIkkeLeggeTilInstitusjonsoppholdVilkår()
@@ -89,28 +89,28 @@ sealed class KunneIkkeLeggeTilVilkår {
     sealed class KunneIkkeLeggeTilFamiliegjenforeningVilkår : KunneIkkeLeggeTilVilkår() {
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
-            val til: KClass<out Søknadsbehandling.Vilkårsvurdert>,
+            val til: KClass<out VilkårsvurdertSøknadsbehandling>,
         ) : KunneIkkeLeggeTilFamiliegjenforeningVilkår()
     }
 
     sealed class KunneIkkeLeggeTilFlyktningVilkår : KunneIkkeLeggeTilVilkår() {
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
-            val til: KClass<out Søknadsbehandling.Vilkårsvurdert>,
+            val til: KClass<out VilkårsvurdertSøknadsbehandling>,
         ) : KunneIkkeLeggeTilFlyktningVilkår()
     }
 
     sealed class KunneIkkeLeggeTilFastOppholdINorgeVilkår : KunneIkkeLeggeTilVilkår() {
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
-            val til: KClass<out Søknadsbehandling.Vilkårsvurdert>,
+            val til: KClass<out VilkårsvurdertSøknadsbehandling>,
         ) : KunneIkkeLeggeTilFastOppholdINorgeVilkår()
     }
 
     sealed class KunneIkkeLeggeTilPersonligOppmøteVilkår : KunneIkkeLeggeTilVilkår() {
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
-            val til: KClass<out Søknadsbehandling.Vilkårsvurdert>,
+            val til: KClass<out VilkårsvurdertSøknadsbehandling>,
         ) : KunneIkkeLeggeTilPersonligOppmøteVilkår()
     }
 }
@@ -129,7 +129,7 @@ sealed class KunneIkkeLeggeTilGrunnlag {
     sealed class KunneIkkeOppdatereBosituasjon : KunneIkkeLeggeTilGrunnlag() {
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
-            val til: KClass<out Søknadsbehandling.Vilkårsvurdert>,
+            val til: KClass<out VilkårsvurdertSøknadsbehandling>,
         ) :
             KunneIkkeOppdatereBosituasjon()
     }
@@ -138,7 +138,7 @@ sealed class KunneIkkeLeggeTilGrunnlag {
 sealed class KunneIkkeOppdatereStønadsperiode {
     data class UgyldigTilstand(
         val fra: KClass<out Søknadsbehandling>,
-        val til: KClass<out Søknadsbehandling.Vilkårsvurdert> = Søknadsbehandling.Vilkårsvurdert::class,
+        val til: KClass<out VilkårsvurdertSøknadsbehandling> = VilkårsvurdertSøknadsbehandling::class,
     ) : KunneIkkeOppdatereStønadsperiode()
 
     data class KunneIkkeOppdatereGrunnlagsdata(
@@ -149,7 +149,7 @@ sealed class KunneIkkeOppdatereStønadsperiode {
 sealed class KunneIkkeBeregne {
     data class UgyldigTilstand(
         val fra: KClass<out Søknadsbehandling>,
-        val til: KClass<out Søknadsbehandling.Beregnet> = Søknadsbehandling.Beregnet::class,
+        val til: KClass<out BeregnetSøknadsbehandling> = BeregnetSøknadsbehandling::class,
     ) : KunneIkkeBeregne()
 
     data class UgyldigTilstandForEndringAvFradrag(val feil: KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag) :
@@ -172,6 +172,6 @@ sealed class KunneIkkeSimulereBehandling {
     data class KunneIkkeSimulere(val feil: SimulerUtbetalingFeilet) : KunneIkkeSimulereBehandling()
     data class UgyldigTilstand(
         val fra: KClass<out Søknadsbehandling>,
-        val til: KClass<out Søknadsbehandling.Simulert> = Søknadsbehandling.Simulert::class,
+        val til: KClass<out SimulertSøknadsbehandling> = SimulertSøknadsbehandling::class,
     ) : KunneIkkeSimulereBehandling()
 }

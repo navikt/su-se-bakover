@@ -5,8 +5,14 @@ import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
+import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson.Companion.create
 import no.nav.su.se.bakover.web.routes.sak.toJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
@@ -24,7 +30,7 @@ internal fun Søknadsbehandling.json(satsFactory: SatsFactory): String {
 
 internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson {
     return when (this) {
-        is Søknadsbehandling.Vilkårsvurdert -> BehandlingJson(
+        is VilkårsvurdertSøknadsbehandling -> BehandlingJson(
             id = id.toString(),
             opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
             sakId = sakId,
@@ -43,7 +49,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
             aldersvurdering = this.aldersvurdering?.toJson(),
         )
 
-        is Søknadsbehandling.Beregnet -> {
+        is BeregnetSøknadsbehandling -> {
             BehandlingJson(
                 id = id.toString(),
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
@@ -64,7 +70,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
             )
         }
 
-        is Søknadsbehandling.Simulert -> {
+        is SimulertSøknadsbehandling -> {
             BehandlingJson(
                 id = id.toString(),
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
@@ -85,7 +91,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
             )
         }
 
-        is Søknadsbehandling.TilAttestering.Innvilget -> {
+        is SøknadsbehandlingTilAttestering.Innvilget -> {
             BehandlingJson(
                 id = id.toString(),
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
@@ -106,7 +112,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
             )
         }
 
-        is Søknadsbehandling.TilAttestering.Avslag.MedBeregning -> {
+        is SøknadsbehandlingTilAttestering.Avslag.MedBeregning -> {
             BehandlingJson(
                 id = id.toString(),
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
@@ -127,7 +133,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
             )
         }
 
-        is Søknadsbehandling.TilAttestering.Avslag.UtenBeregning -> {
+        is SøknadsbehandlingTilAttestering.Avslag.UtenBeregning -> {
             BehandlingJson(
                 id = id.toString(),
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
@@ -148,7 +154,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
             )
         }
 
-        is Søknadsbehandling.Underkjent.Innvilget -> {
+        is UnderkjentSøknadsbehandling.Innvilget -> {
             BehandlingJson(
                 id = id.toString(),
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
@@ -186,7 +192,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
             )
         }
 
-        is Søknadsbehandling.Underkjent.Avslag.UtenBeregning -> {
+        is UnderkjentSøknadsbehandling.Avslag.UtenBeregning -> {
             BehandlingJson(
                 id = id.toString(),
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
@@ -207,7 +213,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
             )
         }
 
-        is Søknadsbehandling.Underkjent.Avslag.MedBeregning -> {
+        is UnderkjentSøknadsbehandling.Avslag.MedBeregning -> {
             BehandlingJson(
                 id = id.toString(),
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
@@ -228,7 +234,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
             )
         }
 
-        is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> {
+        is IverksattSøknadsbehandling.Avslag.MedBeregning -> {
             BehandlingJson(
                 id = id.toString(),
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
@@ -249,7 +255,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
             )
         }
 
-        is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> {
+        is IverksattSøknadsbehandling.Avslag.UtenBeregning -> {
             BehandlingJson(
                 id = id.toString(),
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
@@ -270,7 +276,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
             )
         }
 
-        is Søknadsbehandling.Iverksatt.Innvilget -> {
+        is IverksattSøknadsbehandling.Innvilget -> {
             BehandlingJson(
                 id = id.toString(),
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
@@ -319,22 +325,22 @@ internal enum class SøkandsbehandlingStatusJson {
     companion object {
         fun Søknadsbehandling.status(): SøkandsbehandlingStatusJson {
             return when (this) {
-                is Søknadsbehandling.Beregnet.Avslag -> BEREGNET_AVSLAG
-                is Søknadsbehandling.Beregnet.Innvilget -> BEREGNET_INNVILGET
-                is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> IVERKSATT_AVSLAG
-                is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> IVERKSATT_AVSLAG
-                is Søknadsbehandling.Iverksatt.Innvilget -> IVERKSATT_INNVILGET
+                is BeregnetSøknadsbehandling.Avslag -> BEREGNET_AVSLAG
+                is BeregnetSøknadsbehandling.Innvilget -> BEREGNET_INNVILGET
+                is IverksattSøknadsbehandling.Avslag.MedBeregning -> IVERKSATT_AVSLAG
+                is IverksattSøknadsbehandling.Avslag.UtenBeregning -> IVERKSATT_AVSLAG
+                is IverksattSøknadsbehandling.Innvilget -> IVERKSATT_INNVILGET
                 is LukketSøknadsbehandling -> underliggendeSøknadsbehandling.status()
-                is Søknadsbehandling.Simulert -> SIMULERT
-                is Søknadsbehandling.TilAttestering.Avslag.MedBeregning -> TIL_ATTESTERING_AVSLAG
-                is Søknadsbehandling.TilAttestering.Avslag.UtenBeregning -> TIL_ATTESTERING_AVSLAG
-                is Søknadsbehandling.TilAttestering.Innvilget -> TIL_ATTESTERING_INNVILGET
-                is Søknadsbehandling.Underkjent.Avslag.MedBeregning -> UNDERKJENT_AVSLAG
-                is Søknadsbehandling.Underkjent.Avslag.UtenBeregning -> UNDERKJENT_AVSLAG
-                is Søknadsbehandling.Underkjent.Innvilget -> UNDERKJENT_INNVILGET
-                is Søknadsbehandling.Vilkårsvurdert.Avslag -> VILKÅRSVURDERT_AVSLAG
-                is Søknadsbehandling.Vilkårsvurdert.Innvilget -> VILKÅRSVURDERT_INNVILGET
-                is Søknadsbehandling.Vilkårsvurdert.Uavklart -> OPPRETTET
+                is SimulertSøknadsbehandling -> SIMULERT
+                is SøknadsbehandlingTilAttestering.Avslag.MedBeregning -> TIL_ATTESTERING_AVSLAG
+                is SøknadsbehandlingTilAttestering.Avslag.UtenBeregning -> TIL_ATTESTERING_AVSLAG
+                is SøknadsbehandlingTilAttestering.Innvilget -> TIL_ATTESTERING_INNVILGET
+                is UnderkjentSøknadsbehandling.Avslag.MedBeregning -> UNDERKJENT_AVSLAG
+                is UnderkjentSøknadsbehandling.Avslag.UtenBeregning -> UNDERKJENT_AVSLAG
+                is UnderkjentSøknadsbehandling.Innvilget -> UNDERKJENT_INNVILGET
+                is VilkårsvurdertSøknadsbehandling.Avslag -> VILKÅRSVURDERT_AVSLAG
+                is VilkårsvurdertSøknadsbehandling.Innvilget -> VILKÅRSVURDERT_INNVILGET
+                is VilkårsvurdertSøknadsbehandling.Uavklart -> OPPRETTET
             }
         }
     }

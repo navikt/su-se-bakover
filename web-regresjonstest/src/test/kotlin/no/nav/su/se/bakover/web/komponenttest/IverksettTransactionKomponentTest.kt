@@ -15,7 +15,8 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
@@ -95,7 +96,7 @@ internal class IverksettTransactionKomponentTest {
 
             appComponents.services.sak.hentSak(UUID.fromString(sakId)).getOrFail().also {
                 it.utbetalinger shouldBe emptyList()
-                it.søknadsbehandlinger.single().shouldBeType<Søknadsbehandling.TilAttestering.Innvilget>()
+                it.søknadsbehandlinger.single().shouldBeType<SøknadsbehandlingTilAttestering.Innvilget>()
                 it.vedtakListe shouldBe emptyList()
                 appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(it.id) shouldBe KunneIkkeHenteKontrollsamtale.FantIkkePlanlagtKontrollsamtale.left()
             }
@@ -157,7 +158,7 @@ internal class IverksettTransactionKomponentTest {
                 }
 
                 appComponents.services.sak.hentSak(UUID.fromString(sakId)).getOrFail().also { sak ->
-                    sak.søknadsbehandlinger.single().shouldBeType<Søknadsbehandling.Iverksatt.Innvilget>()
+                    sak.søknadsbehandlinger.single().shouldBeType<IverksattSøknadsbehandling.Innvilget>()
                     sak.vedtakListe.single().shouldBeType<VedtakInnvilgetSøknadsbehandling>().also {
                         sak.utbetalinger.single().id shouldBe it.utbetalingId
                     }
@@ -234,7 +235,7 @@ internal class IverksettTransactionKomponentTest {
                 }
 
                 appComponents.services.sak.hentSak(UUID.fromString(sakId)).getOrFail().also { sak ->
-                    sak.søknadsbehandlinger.single().shouldBeType<Søknadsbehandling.Iverksatt.Innvilget>()
+                    sak.søknadsbehandlinger.single().shouldBeType<IverksattSøknadsbehandling.Innvilget>()
                     sak.vedtakListe.single().shouldBeType<VedtakInnvilgetSøknadsbehandling>().also {
                         sak.utbetalinger.single().id shouldBe it.utbetalingId
                     }
@@ -295,7 +296,7 @@ internal class IverksettTransactionKomponentTest {
                 )
 
                 appComponents.services.sak.hentSak(UUID.fromString(sakId)).getOrFail().also { sak ->
-                    sak.søknadsbehandlinger.single().shouldBeType<Søknadsbehandling.Iverksatt.Innvilget>()
+                    sak.søknadsbehandlinger.single().shouldBeType<IverksattSøknadsbehandling.Innvilget>()
                     sak.vedtakListe.also { vedtakListe ->
                         vedtakListe.single { it is VedtakInnvilgetSøknadsbehandling }
                     }
@@ -363,7 +364,7 @@ internal class IverksettTransactionKomponentTest {
                 }
 
                 appComponents.services.sak.hentSak(UUID.fromString(sakId)).getOrFail().also { sak ->
-                    sak.søknadsbehandlinger.single().shouldBeType<Søknadsbehandling.Iverksatt.Innvilget>()
+                    sak.søknadsbehandlinger.single().shouldBeType<IverksattSøknadsbehandling.Innvilget>()
                     sak.vedtakListe.also { vedtakListe ->
                         vedtakListe shouldHaveSize 2
                         vedtakListe.single { it is VedtakInnvilgetSøknadsbehandling }

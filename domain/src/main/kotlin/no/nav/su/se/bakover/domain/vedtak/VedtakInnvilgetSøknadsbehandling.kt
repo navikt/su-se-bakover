@@ -10,14 +10,14 @@ import no.nav.su.se.bakover.domain.dokument.dokumenttilstandForBrevvalg
 import no.nav.su.se.bakover.domain.dokument.setDokumentTilstandBasertPåBehandlingHvisNull
 import no.nav.su.se.bakover.domain.grunnlag.krevAlleVilkårInnvilget
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import java.time.Clock
 import java.util.UUID
 
 data class VedtakInnvilgetSøknadsbehandling private constructor(
     override val id: UUID,
     override val opprettet: Tidspunkt,
-    override val behandling: Søknadsbehandling.Iverksatt.Innvilget,
+    override val behandling: IverksattSøknadsbehandling.Innvilget,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
     override val attestant: NavIdentBruker.Attestant,
     override val periode: Periode,
@@ -37,7 +37,7 @@ data class VedtakInnvilgetSøknadsbehandling private constructor(
 
         fun fromSøknadsbehandling(
             id: UUID = UUID.randomUUID(),
-            søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
+            søknadsbehandling: IverksattSøknadsbehandling.Innvilget,
             utbetalingId: UUID30,
             clock: Clock,
         ) = VedtakInnvilgetSøknadsbehandling(
@@ -56,7 +56,7 @@ data class VedtakInnvilgetSøknadsbehandling private constructor(
         fun createFromPersistence(
             id: UUID,
             opprettet: Tidspunkt,
-            behandling: Søknadsbehandling.Iverksatt.Innvilget,
+            behandling: IverksattSøknadsbehandling.Innvilget,
             saksbehandler: NavIdentBruker.Saksbehandler,
             attestant: NavIdentBruker.Attestant,
             periode: Periode,

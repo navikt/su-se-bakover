@@ -6,9 +6,9 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.UtenlandsoppholdStatus
@@ -94,7 +94,7 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
                 saksbehandler = saksbehandler,
             ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand(
                 fra = iverksatt::class,
-                til = Søknadsbehandling.Vilkårsvurdert::class,
+                til = VilkårsvurdertSøknadsbehandling::class,
             ).left()
 
             verify(it.søknadsbehandlingRepo).hent(any())
@@ -133,7 +133,7 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
 
             verify(serviceAndMocks.søknadsbehandlingRepo).hent(any())
             verify(serviceAndMocks.søknadsbehandlingRepo).lagre(
-                argThat { it shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>() },
+                argThat { it shouldBe beOfType<VilkårsvurdertSøknadsbehandling.Innvilget>() },
                 argThat { it shouldBe TestSessionFactory.transactionContext },
             )
             verify(serviceAndMocks.søknadsbehandlingRepo).defaultTransactionContext()
@@ -166,7 +166,7 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
 
             verify(serviceAndMocks.søknadsbehandlingRepo).hent(any())
             verify(serviceAndMocks.søknadsbehandlingRepo).lagre(
-                argThat { it shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>() },
+                argThat { it shouldBe beOfType<VilkårsvurdertSøknadsbehandling.Avslag>() },
                 argThat { it shouldBe TestSessionFactory.transactionContext },
             )
             verify(serviceAndMocks.søknadsbehandlingRepo).defaultTransactionContext()

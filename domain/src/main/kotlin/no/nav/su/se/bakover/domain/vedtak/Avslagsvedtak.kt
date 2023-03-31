@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.vedtak
 
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
@@ -15,11 +15,11 @@ import java.time.Clock
  */
 sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvslag {
     override val periode: Periode
-    override val behandling: Søknadsbehandling.Iverksatt.Avslag
+    override val behandling: IverksattSøknadsbehandling.Avslag
 
     companion object {
         fun fromSøknadsbehandlingMedBeregning(
-            avslag: Søknadsbehandling.Iverksatt.Avslag.MedBeregning,
+            avslag: IverksattSøknadsbehandling.Avslag.MedBeregning,
             clock: Clock,
         ) = VedtakAvslagBeregning.from(
             avslag = avslag,
@@ -27,7 +27,7 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
         )
 
         fun fromSøknadsbehandlingUtenBeregning(
-            avslag: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning,
+            avslag: IverksattSøknadsbehandling.Avslag.UtenBeregning,
             clock: Clock,
         ) = VedtakAvslagVilkår.from(
             avslag = avslag,

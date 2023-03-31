@@ -65,8 +65,13 @@ import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
+import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
+import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
@@ -324,7 +329,7 @@ class TestDataHelper(
 
     fun persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
-        søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, Søknadsbehandling.Iverksatt, Stønadsvedtak> = { (sak, søknad) ->
+        søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> = { (sak, søknad) ->
             iverksattSøknadsbehandlingUføre(
                 clock = clock,
                 sakOgSøknad = sak to søknad,
@@ -797,7 +802,7 @@ class TestDataHelper(
     }
 
     /**
-     * Underliggende søknadsbehahandling: [Søknadsbehandling.Vilkårsvurdert.Uavklart]
+     * Underliggende søknadsbehahandling: [VilkårsvurdertSøknadsbehandling.Uavklart]
      */
     fun persisterSøknadsbehandlingAvsluttet(
         id: UUID = UUID.randomUUID(),
@@ -826,7 +831,7 @@ class TestDataHelper(
 
     fun persisterIverksattSøknadsbehandlingAvslag(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
-        søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, Søknadsbehandling.Iverksatt, Stønadsvedtak> = { (sak, søknad) ->
+        søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> = { (sak, søknad) ->
             iverksattSøknadsbehandlingUføre(
                 clock = clock,
                 sakInfo = SakInfo(
@@ -841,14 +846,14 @@ class TestDataHelper(
                 ),
             )
         },
-    ): Triple<Sak, Søknadsbehandling.Iverksatt, Avslagsvedtak> {
+    ): Triple<Sak, IverksattSøknadsbehandling, Avslagsvedtak> {
         return søknadsbehandling(sakOgSøknad).let { (sak, søknadsbehandling, vedtak) ->
             databaseRepos.søknadsbehandling.lagre(søknadsbehandling)
             databaseRepos.vedtakRepo.lagre(vedtak)
             databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
                 Triple(
                     persistertSak!!,
-                    persistertSak.søknadsbehandlinger.single { it.id == søknadsbehandling.id } as Søknadsbehandling.Iverksatt.Avslag,
+                    persistertSak.søknadsbehandlinger.single { it.id == søknadsbehandling.id } as IverksattSøknadsbehandling.Avslag,
                     persistertSak.vedtakListe.single { it.id == vedtak.id } as Avslagsvedtak,
                 )
             }
@@ -857,24 +862,24 @@ class TestDataHelper(
 
     fun persisterSøknadsbehandlingVilkårsvurdert(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
-        søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, Søknadsbehandling.Vilkårsvurdert> = { (sak, søknad) ->
+        søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, VilkårsvurdertSøknadsbehandling> = { (sak, søknad) ->
             vilkårsvurdertSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
                 clock = clock,
             )
         },
-    ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert> {
+    ): Pair<Sak, VilkårsvurdertSøknadsbehandling> {
         return søknadsbehandling(sakOgSøknad).let { (sak, søknadsbehandling) ->
             databaseRepos.søknadsbehandling.lagre(søknadsbehandling)
             databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
-                persistertSak!! to persistertSak.søknadsbehandlinger.single { it.id == søknadsbehandling.id } as Søknadsbehandling.Vilkårsvurdert
+                persistertSak!! to persistertSak.søknadsbehandlinger.single { it.id == søknadsbehandling.id } as VilkårsvurdertSøknadsbehandling
             }
         }
     }
 
     fun persisterSøknadsbehandlingVilkårsvurdertUavklart(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
-        søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> = { (sak, søknad) ->
+        søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart> = { (sak, søknad) ->
             nySøknadsbehandlingMedStønadsperiode(
                 sakOgSøknad = sak to søknad,
                 clock = clock,
@@ -882,28 +887,28 @@ class TestDataHelper(
                 it.first to it.second
             }
         },
-    ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
+    ): Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart> {
         return persisterSøknadsbehandlingVilkårsvurdert(sakOgSøknad) { søknadsbehandling(it) }.let { (sak, vilkårsvurdertSøknadsbehandling) ->
-            sak to vilkårsvurdertSøknadsbehandling as Søknadsbehandling.Vilkårsvurdert.Uavklart
+            sak to vilkårsvurdertSøknadsbehandling as VilkårsvurdertSøknadsbehandling.Uavklart
         }
     }
 
     fun persisterSøknadsbehandlingVilkårsvurdertInnvilget(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
-    ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Innvilget> {
+    ): Pair<Sak, VilkårsvurdertSøknadsbehandling.Innvilget> {
         return persisterSøknadsbehandlingVilkårsvurdert(sakOgSøknad) { (sak, søknad) ->
             vilkårsvurdertSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
                 clock = clock,
             )
         }.let { (sak, revurdering) ->
-            sak to revurdering as Søknadsbehandling.Vilkårsvurdert.Innvilget
+            sak to revurdering as VilkårsvurdertSøknadsbehandling.Innvilget
         }
     }
 
     fun persisterSøknadsbehandlingVilkårsvurdertAvslag(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
-    ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Avslag> {
+    ): Pair<Sak, VilkårsvurdertSøknadsbehandling.Avslag> {
         return persisterSøknadsbehandlingVilkårsvurdert(sakOgSøknad) { (sak, søknad) ->
             vilkårsvurdertSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
@@ -911,38 +916,38 @@ class TestDataHelper(
                 customVilkår = listOf(institusjonsoppholdvilkårAvslag()),
             )
         }.let { (sak, revurdering) ->
-            sak to revurdering as Søknadsbehandling.Vilkårsvurdert.Avslag
+            sak to revurdering as VilkårsvurdertSøknadsbehandling.Avslag
         }
     }
 
     private fun persisterSøknadsbehandlingBeregnet(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
-        søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, Søknadsbehandling.Beregnet> = { (sak, søknad) ->
+        søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, BeregnetSøknadsbehandling> = { (sak, søknad) ->
             beregnetSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
                 clock = clock,
             )
         },
-    ): Pair<Sak, Søknadsbehandling.Beregnet> {
+    ): Pair<Sak, BeregnetSøknadsbehandling> {
         return søknadsbehandling(sakOgSøknad).let { (sak, søknadsbehandling) ->
             databaseRepos.søknadsbehandling.lagre(søknadsbehandling)
             databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
-                persistertSak!! to persistertSak.søknadsbehandlinger.single { it.id == søknadsbehandling.id } as Søknadsbehandling.Beregnet
+                persistertSak!! to persistertSak.søknadsbehandlinger.single { it.id == søknadsbehandling.id } as BeregnetSøknadsbehandling
             }
         }
     }
 
     fun persisterSøknadsbehandlingBeregnetInnvilget(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
-    ): Pair<Sak, Søknadsbehandling.Beregnet.Innvilget> {
+    ): Pair<Sak, BeregnetSøknadsbehandling.Innvilget> {
         return persisterSøknadsbehandlingBeregnet(sakOgSøknad).let { (sak, søknadsbehandling) ->
-            sak to søknadsbehandling as Søknadsbehandling.Beregnet.Innvilget
+            sak to søknadsbehandling as BeregnetSøknadsbehandling.Innvilget
         }
     }
 
     fun persisterSøknadsbehandlingBeregnetAvslag(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
-    ): Pair<Sak, Søknadsbehandling.Beregnet.Avslag> {
+    ): Pair<Sak, BeregnetSøknadsbehandling.Avslag> {
         return persisterSøknadsbehandlingBeregnet(sakOgSøknad) { (sak, søknad) ->
             beregnetSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
@@ -950,55 +955,55 @@ class TestDataHelper(
                 customGrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 600000.0)),
             )
         }.let { (sak, søknadsbehandling) ->
-            sak to søknadsbehandling as Søknadsbehandling.Beregnet.Avslag
+            sak to søknadsbehandling as BeregnetSøknadsbehandling.Avslag
         }
     }
 
     fun persisterSøknadsbehandlingSimulert(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
-        søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, Søknadsbehandling.Simulert> = { (sak, søknad) ->
+        søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, SimulertSøknadsbehandling> = { (sak, søknad) ->
             simulertSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
                 clock = clock,
             )
         },
-    ): Pair<Sak, Søknadsbehandling.Simulert> {
+    ): Pair<Sak, SimulertSøknadsbehandling> {
         return søknadsbehandling(sakOgSøknad).let { (sak, søknadsbehandling) ->
             databaseRepos.søknadsbehandling.lagre(søknadsbehandling)
             databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
-                persistertSak!! to persistertSak.søknadsbehandlinger.single { it.id == søknadsbehandling.id } as Søknadsbehandling.Simulert
+                persistertSak!! to persistertSak.søknadsbehandlinger.single { it.id == søknadsbehandling.id } as SimulertSøknadsbehandling
             }
         }
     }
 
     private fun persisterSøknadsbehandlingTilAttestering(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
-        søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, Søknadsbehandling.TilAttestering> = { (sak, søknad) ->
+        søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, SøknadsbehandlingTilAttestering> = { (sak, søknad) ->
             tilAttesteringSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
                 clock = clock,
             )
         },
-    ): Pair<Sak, Søknadsbehandling.TilAttestering> {
+    ): Pair<Sak, SøknadsbehandlingTilAttestering> {
         return søknadsbehandling(sakOgSøknad).let { (sak, søknadsbehandling) ->
             databaseRepos.søknadsbehandling.lagre(søknadsbehandling)
             databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
-                persistertSak!! to persistertSak.søknadsbehandlinger.single { it.id == søknadsbehandling.id } as Søknadsbehandling.TilAttestering
+                persistertSak!! to persistertSak.søknadsbehandlinger.single { it.id == søknadsbehandling.id } as SøknadsbehandlingTilAttestering
             }
         }
     }
 
     fun persisterSøknadsbehandlingTilAttesteringInnvilget(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
-    ): Pair<Sak, Søknadsbehandling.TilAttestering.Innvilget> {
+    ): Pair<Sak, SøknadsbehandlingTilAttestering.Innvilget> {
         return persisterSøknadsbehandlingTilAttestering(sakOgSøknad).let { (sak, søknadsbehandling) ->
-            sak to søknadsbehandling as Søknadsbehandling.TilAttestering.Innvilget
+            sak to søknadsbehandling as SøknadsbehandlingTilAttestering.Innvilget
         }
     }
 
     fun persisterSøknadsbehandlingTilAttesteringAvslagUtenBeregning(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
-    ): Pair<Sak, Søknadsbehandling.TilAttestering.Avslag.UtenBeregning> {
+    ): Pair<Sak, SøknadsbehandlingTilAttestering.Avslag.UtenBeregning> {
         return persisterSøknadsbehandlingTilAttestering(sakOgSøknad) { (sak, søknad) ->
             tilAttesteringSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
@@ -1006,13 +1011,13 @@ class TestDataHelper(
                 customVilkår = listOf(institusjonsoppholdvilkårAvslag()),
             )
         }.let { (sak, søknadsbehandling) ->
-            sak to søknadsbehandling as Søknadsbehandling.TilAttestering.Avslag.UtenBeregning
+            sak to søknadsbehandling as SøknadsbehandlingTilAttestering.Avslag.UtenBeregning
         }
     }
 
     fun persisterSøknadsbehandlingTilAttesteringAvslagMedBeregning(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
-    ): Pair<Sak, Søknadsbehandling.TilAttestering.Avslag.MedBeregning> {
+    ): Pair<Sak, SøknadsbehandlingTilAttestering.Avslag.MedBeregning> {
         return persisterSøknadsbehandlingTilAttestering(sakOgSøknad) { (sak, søknad) ->
             tilAttesteringSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
@@ -1020,7 +1025,7 @@ class TestDataHelper(
                 customGrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 60000.0)),
             )
         }.let { (sak, søknadsbehandling) ->
-            sak to søknadsbehandling as Søknadsbehandling.TilAttestering.Avslag.MedBeregning
+            sak to søknadsbehandling as SøknadsbehandlingTilAttestering.Avslag.MedBeregning
         }
     }
 
@@ -1034,13 +1039,13 @@ class TestDataHelper(
      */
     fun persisterSøknadsbehandlingIverksatt(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
-        søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, Søknadsbehandling.Iverksatt, Stønadsvedtak> = { (sak, søknad) ->
+        søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> = { (sak, søknad) ->
             iverksattSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
                 clock = clock,
             )
         },
-    ): Triple<Sak, Søknadsbehandling.Iverksatt, Stønadsvedtak> {
+    ): Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> {
         return søknadsbehandling(sakOgSøknad).let { (sak, søknadsbehandling, vedtak) ->
             databaseRepos.søknadsbehandling.lagre(søknadsbehandling)
             if (vedtak is VedtakInnvilgetSøknadsbehandling) {
@@ -1050,7 +1055,7 @@ class TestDataHelper(
             databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
                 Triple(
                     persistertSak!!,
-                    persistertSak.søknadsbehandlinger.single { it.id == søknadsbehandling.id } as Søknadsbehandling.Iverksatt,
+                    persistertSak.søknadsbehandlinger.single { it.id == søknadsbehandling.id } as IverksattSøknadsbehandling,
                     persistertSak.vedtakListe.single { it.id == vedtak.id } as Stønadsvedtak,
                 )
             }
@@ -1059,7 +1064,7 @@ class TestDataHelper(
 
     fun persisterSøknadsbehandlingIverksattInnvilget(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
-        søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, Søknadsbehandling.Iverksatt, Stønadsvedtak> = { (sak, søknad) ->
+        søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> = { (sak, søknad) ->
             iverksattSøknadsbehandlingUføre(
                 clock = clock,
                 sakInfo = SakInfo(
@@ -1071,11 +1076,11 @@ class TestDataHelper(
                 sakOgSøknad = sak to søknad,
             )
         },
-    ): Triple<Sak, Søknadsbehandling.Iverksatt, VedtakInnvilgetSøknadsbehandling> {
+    ): Triple<Sak, IverksattSøknadsbehandling, VedtakInnvilgetSøknadsbehandling> {
         return persisterSøknadsbehandlingIverksatt(sakOgSøknad) { søknadsbehandling(it) }.let { (sak, søknadsbehandling, vedtak) ->
             Triple(
                 sak,
-                søknadsbehandling as Søknadsbehandling.Iverksatt.Innvilget,
+                søknadsbehandling as IverksattSøknadsbehandling.Innvilget,
                 vedtak as VedtakInnvilgetSøknadsbehandling,
             )
         }
@@ -1083,7 +1088,7 @@ class TestDataHelper(
 
     fun persisterSøknadsbehandlingIverksattAvslagUtenBeregning(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
-    ): Triple<Sak, Søknadsbehandling.Iverksatt.Avslag.UtenBeregning, VedtakAvslagVilkår> {
+    ): Triple<Sak, IverksattSøknadsbehandling.Avslag.UtenBeregning, VedtakAvslagVilkår> {
         return persisterSøknadsbehandlingIverksatt(sakOgSøknad) { (sak, søknad) ->
             iverksattSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
@@ -1093,7 +1098,7 @@ class TestDataHelper(
         }.let { (sak, søknadsbehandling, vedtak) ->
             Triple(
                 sak,
-                søknadsbehandling as Søknadsbehandling.Iverksatt.Avslag.UtenBeregning,
+                søknadsbehandling as IverksattSøknadsbehandling.Avslag.UtenBeregning,
                 vedtak as VedtakAvslagVilkår,
             )
         }
@@ -1108,7 +1113,7 @@ class TestDataHelper(
      */
     fun persisterSøknadsbehandlingIverksattAvslagMedBeregning(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
-    ): Triple<Sak, Søknadsbehandling.Iverksatt.Avslag.MedBeregning, VedtakAvslagBeregning> {
+    ): Triple<Sak, IverksattSøknadsbehandling.Avslag.MedBeregning, VedtakAvslagBeregning> {
         return persisterSøknadsbehandlingIverksatt(sakOgSøknad) { (sak, søknad) ->
             iverksattSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
@@ -1118,7 +1123,7 @@ class TestDataHelper(
         }.let { (sak, søknadsbehandling, vedtak) ->
             Triple(
                 sak,
-                søknadsbehandling as Søknadsbehandling.Iverksatt.Avslag.MedBeregning,
+                søknadsbehandling as IverksattSøknadsbehandling.Avslag.MedBeregning,
                 vedtak as VedtakAvslagBeregning,
             )
         }
@@ -1126,37 +1131,37 @@ class TestDataHelper(
 
     private fun persisterSøknadsbehandlingUnderkjent(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
-        søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, Søknadsbehandling.Underkjent> = { (sak, søknad) ->
+        søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, UnderkjentSøknadsbehandling> = { (sak, søknad) ->
             underkjentSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
                 clock = clock,
             )
         },
-    ): Pair<Sak, Søknadsbehandling.Underkjent> {
+    ): Pair<Sak, UnderkjentSøknadsbehandling> {
         return søknadsbehandling(sakOgSøknad).let { (sak, søknadsbehandling) ->
             databaseRepos.søknadsbehandling.lagre(søknadsbehandling)
             databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
-                persistertSak!! to persistertSak.søknadsbehandlinger.single { it.id == søknadsbehandling.id } as Søknadsbehandling.Underkjent
+                persistertSak!! to persistertSak.søknadsbehandlinger.single { it.id == søknadsbehandling.id } as UnderkjentSøknadsbehandling
             }
         }
     }
 
     fun persisterSøknadsbehandlingUnderkjentInnvilget(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
-    ): Pair<Sak, Søknadsbehandling.Underkjent.Innvilget> {
+    ): Pair<Sak, UnderkjentSøknadsbehandling.Innvilget> {
         return persisterSøknadsbehandlingUnderkjent(sakOgSøknad) { (sak, søknad) ->
             underkjentSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
                 clock = clock,
             )
         }.let { (sak, søknadsbehandling) ->
-            sak to søknadsbehandling as Søknadsbehandling.Underkjent.Innvilget
+            sak to søknadsbehandling as UnderkjentSøknadsbehandling.Innvilget
         }
     }
 
     fun persisterSøknadsbehandlingUnderkjentAvslagUtenBeregning(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
-    ): Pair<Sak, Søknadsbehandling.Underkjent.Avslag.UtenBeregning> {
+    ): Pair<Sak, UnderkjentSøknadsbehandling.Avslag.UtenBeregning> {
         return persisterSøknadsbehandlingUnderkjent(sakOgSøknad) { (sak, søknad) ->
             underkjentSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
@@ -1164,13 +1169,13 @@ class TestDataHelper(
                 customVilkår = listOf(institusjonsoppholdvilkårAvslag()),
             )
         }.let { (sak, søknadsbehandling) ->
-            sak to søknadsbehandling as Søknadsbehandling.Underkjent.Avslag.UtenBeregning
+            sak to søknadsbehandling as UnderkjentSøknadsbehandling.Avslag.UtenBeregning
         }
     }
 
     fun persisterSøknadsbehandlingUnderkjentAvslagMedBeregning(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
-    ): Pair<Sak, Søknadsbehandling.Underkjent.Avslag.MedBeregning> {
+    ): Pair<Sak, UnderkjentSøknadsbehandling.Avslag.MedBeregning> {
         return persisterSøknadsbehandlingUnderkjent(sakOgSøknad) { (sak, søknad) ->
             underkjentSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
@@ -1178,7 +1183,7 @@ class TestDataHelper(
                 customGrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 50000.0)),
             )
         }.let { (sak, søknadsbehandling) ->
-            sak to søknadsbehandling as Søknadsbehandling.Underkjent.Avslag.MedBeregning
+            sak to søknadsbehandling as UnderkjentSøknadsbehandling.Avslag.MedBeregning
         }
     }
 
@@ -1192,7 +1197,7 @@ class TestDataHelper(
         søknadId: UUID = UUID.randomUUID(),
         stønadsperiode: Stønadsperiode = stønadsperiode2021,
         saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-    ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
+    ): Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart> {
         val (sak, søknad) = persisterJournalførtSøknadMedOppgave(sakId = sakId, søknadId = søknadId)
         assert(sak.id == sakId && sak.søknader.count { it.sakId == sakId && it.id == søknadId } == 1)
         val opprettet = Tidspunkt.now(clock)
@@ -1219,7 +1224,7 @@ class TestDataHelper(
             ).getOrFail().second.let {
                 databaseRepos.søknadsbehandling.lagre(it)
                 assert(it.fnr == sak.fnr && it.sakId == sakId)
-                Pair(databaseRepos.sak.hentSak(sakId)!!, it as Søknadsbehandling.Vilkårsvurdert.Uavklart)
+                Pair(databaseRepos.sak.hentSak(sakId)!!, it as VilkårsvurdertSøknadsbehandling.Uavklart)
             }
         }
     }

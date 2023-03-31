@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
@@ -25,7 +25,7 @@ data class IverksattInnvilgetSøknadsbehandlingResponse(
     override val vedtak: VedtakInnvilgetSøknadsbehandling,
     val statistikk: Nel<StatistikkEvent>,
     val utbetaling: Utbetaling.SimulertUtbetaling,
-) : IverksattSøknadsbehandlingResponse<Søknadsbehandling.Iverksatt.Innvilget> {
+) : IverksattSøknadsbehandlingResponse<IverksattSøknadsbehandling.Innvilget> {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -34,12 +34,12 @@ data class IverksattInnvilgetSøknadsbehandlingResponse(
     override fun ferdigstillIverksettelseITransaksjon(
         klargjørUtbetaling: (Utbetaling.SimulertUtbetaling, TransactionContext) -> Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
         sessionFactory: SessionFactory,
-        lagreSøknadsbehandling: (Søknadsbehandling.Iverksatt.Innvilget, TransactionContext) -> Unit,
+        lagreSøknadsbehandling: (IverksattSøknadsbehandling.Innvilget, TransactionContext) -> Unit,
         lagreVedtak: (Vedtak, TransactionContext) -> Unit,
         statistikkObservers: List<StatistikkEventObserver>,
         // lagreDokument og lukkOppgave er kun i bruk for avslag, men den må være med hvis vi ikke skal trekke domenelogikk ut i domenet. På sikt bør disse gjøres asynkront.
         lagreDokument: (Dokument.MedMetadata, TransactionContext) -> Unit,
-        lukkOppgave: (Søknadsbehandling.Iverksatt.Avslag) -> Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit>,
+        lukkOppgave: (IverksattSøknadsbehandling.Avslag) -> Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit>,
         opprettPlanlagtKontrollsamtale: (VedtakInnvilgetSøknadsbehandling, TransactionContext) -> Unit,
     ) {
         val søknadsbehandling = vedtak.behandling

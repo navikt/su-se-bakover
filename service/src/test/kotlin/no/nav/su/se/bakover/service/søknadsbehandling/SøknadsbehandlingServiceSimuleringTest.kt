@@ -6,7 +6,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeSimulereBehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
@@ -53,7 +53,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
                 ),
             ).getOrFail()
 
-            response.shouldBeType<Søknadsbehandling.Simulert>()
+            response.shouldBeType<SimulertSøknadsbehandling>()
 
             verify(it.sakService).hentSakForSøknadsbehandling(beregnet.id)
             verify(it.utbetalingService, times(2)).simulerUtbetaling(

@@ -30,7 +30,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
@@ -182,7 +182,7 @@ class SøknadsbehandlingServiceBeregningTest {
                 ),
             ).getOrFail()
 
-            beregnet shouldBe beOfType<Søknadsbehandling.Beregnet.Innvilget>()
+            beregnet shouldBe beOfType<BeregnetSøknadsbehandling.Innvilget>()
             beregnet.avkorting.shouldBeType<AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående>().also {
                 Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
                     objekt = sak.uteståendeAvkorting.shouldBeType<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes>()
@@ -255,7 +255,7 @@ class SøknadsbehandlingServiceBeregningTest {
                 ),
             ).getOrFail()
 
-            beregnet shouldBe beOfType<Søknadsbehandling.Beregnet.Avslag>()
+            beregnet shouldBe beOfType<BeregnetSøknadsbehandling.Avslag>()
             beregnet.avkorting shouldBe AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere(
                 håndtert = AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(
                     Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(

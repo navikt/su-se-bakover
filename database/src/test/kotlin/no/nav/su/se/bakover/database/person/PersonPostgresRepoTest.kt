@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.person.PersonRepo
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.sak.SakInfo
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.bosituasjonEpsUnder67
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
@@ -192,7 +192,7 @@ internal class PersonPostgresRepoTest {
             Ctx(
                 dataSource,
                 testDataHelper.personRepo,
-                sak.søknadsbehandlinger.first() as Søknadsbehandling.Iverksatt.Innvilget,
+                sak.søknadsbehandlinger.first() as IverksattSøknadsbehandling.Innvilget,
                 utbetaling,
                 revurdering,
             ).test()
@@ -235,7 +235,7 @@ internal class PersonPostgresRepoTest {
             Ctx(
                 dataSource = dataSource,
                 repo = testDataHelper.personRepo,
-                innvilgetSøknadsbehandling = sak.søknadsbehandlinger.first() as Søknadsbehandling.Iverksatt.Innvilget,
+                innvilgetSøknadsbehandling = sak.søknadsbehandlinger.first() as IverksattSøknadsbehandling.Innvilget,
                 utbetaling = utbetaling,
                 revurdering = revurdering,
             ).test()
@@ -328,7 +328,7 @@ internal class PersonPostgresRepoTest {
             Ctx(
                 dataSource = dataSource,
                 repo = testDataHelper.personRepo,
-                innvilgetSøknadsbehandling = sak.søknadsbehandlinger.first() as Søknadsbehandling.Iverksatt.Innvilget,
+                innvilgetSøknadsbehandling = sak.søknadsbehandlinger.first() as IverksattSøknadsbehandling.Innvilget,
                 utbetaling = utbetaling,
                 revurdering = revurderingAvRevurdering.second,
             ).test()
@@ -338,7 +338,7 @@ internal class PersonPostgresRepoTest {
     private data class Ctx(
         val dataSource: DataSource,
         val repo: PersonRepo,
-        val innvilgetSøknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
+        val innvilgetSøknadsbehandling: IverksattSøknadsbehandling.Innvilget,
         val utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering,
         val revurdering: Revurdering,
     )

@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattSøknadsbehandlingResponse
@@ -111,7 +111,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             )
 
             val expectedSaksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo")
-            val expectedSøknadsbehandling = Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
+            val expectedSøknadsbehandling = IverksattSøknadsbehandling.Avslag.UtenBeregning(
                 id = uavklart.id,
                 opprettet = uavklart.opprettet,
                 sakId = uavklart.sakId,
@@ -187,7 +187,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             verify(serviceAndMocks.sakService).hentSakForSøknad(argThat { it shouldBe uavklart.søknad.id })
 
             verify(serviceAndMocks.iverksettSøknadsbehandlingService).iverksett(
-                argThat<IverksattSøknadsbehandlingResponse<Søknadsbehandling.Iverksatt.Avslag.UtenBeregning>> {
+                argThat<IverksattSøknadsbehandlingResponse<IverksattSøknadsbehandling.Avslag.UtenBeregning>> {
                     it shouldBe IverksattAvslåttSøknadsbehandlingResponse(
                         sak = expectedSak,
                         vedtak = expectedVedtak,
@@ -256,7 +256,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
 
             val expectedPeriode = vilkårsvurdertInnvilget.periode
             val expectedSaksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo")
-            val expectedSøknadsbehandling = Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
+            val expectedSøknadsbehandling = IverksattSøknadsbehandling.Avslag.UtenBeregning(
                 id = vilkårsvurdertInnvilget.id,
                 opprettet = vilkårsvurdertInnvilget.opprettet,
                 sakId = vilkårsvurdertInnvilget.sakId,
@@ -326,7 +326,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             verify(serviceAndMocks.sakService).hentSakForSøknad(argThat { it shouldBe vilkårsvurdertInnvilget.søknad.id })
 
             verify(serviceAndMocks.iverksettSøknadsbehandlingService).iverksett(
-                argThat<IverksattSøknadsbehandlingResponse<Søknadsbehandling.Iverksatt.Avslag.UtenBeregning>> {
+                argThat<IverksattSøknadsbehandlingResponse<IverksattSøknadsbehandling.Avslag.UtenBeregning>> {
                     it shouldBe IverksattAvslåttSøknadsbehandlingResponse(
                         sak = expectedSak,
                         vedtak = expectedVedtak,
@@ -372,7 +372,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     fritekstTilBrev = "fritekstTilBrev",
                 ),
             )
-        }.message shouldBe "UgyldigTilstand(fra=class no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling\$Iverksatt\$Innvilget, til=class no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling\$Vilkårsvurdert)"
+        }.message shouldBe "UgyldigTilstand(fra=class no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling\$Innvilget, til=class no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling)"
         verify(serviceAndMocks.sakService).hentSakForSøknad(søknadId)
         serviceAndMocks.verifyNoMoreInteractions()
     }

@@ -44,7 +44,12 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent.KallTilM
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.sak.Sakstype
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
+import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -155,7 +160,7 @@ internal class LagBrevRequestVisitorTest {
         vilkårsvurdertSøknadsbehandling(
             customVilkår = listOf(avslåttUførevilkårUtenGrunnlag()),
         ).let { (sak, søknadsbehandling) ->
-            søknadsbehandling.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
+            søknadsbehandling.shouldBeType<VilkårsvurdertSøknadsbehandling.Avslag>()
             LagBrevRequestVisitor(
                 hentPerson = { person.right() },
                 hentNavn = { hentNavn(it) },
@@ -198,7 +203,7 @@ internal class LagBrevRequestVisitorTest {
         vilkårsvurdertSøknadsbehandling(
             customVilkår = listOf(formuevilkårAvslåttPgaBrukersformue()),
         ).let { (sak, søknadsbehandling) ->
-            søknadsbehandling.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
+            søknadsbehandling.shouldBeType<VilkårsvurdertSøknadsbehandling.Avslag>()
             LagBrevRequestVisitor(
                 hentPerson = { person.right() },
                 hentNavn = { hentNavn(it) },
@@ -264,7 +269,7 @@ internal class LagBrevRequestVisitorTest {
                     clock = fixedClock,
                     satsFactory = satsFactoryTestPåDato(),
                 ).apply { søknadsbehandling.accept(this) }.let {
-                    søknadsbehandling.shouldBeType<Søknadsbehandling.Beregnet.Innvilget>()
+                    søknadsbehandling.shouldBeType<BeregnetSøknadsbehandling.Innvilget>()
                     it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
                         person = person,
                         beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
@@ -289,7 +294,7 @@ internal class LagBrevRequestVisitorTest {
                 fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 50000.0),
             ),
         ).let { (sak, søknadsbehandling) ->
-            søknadsbehandling.shouldBeType<Søknadsbehandling.Beregnet.Avslag>()
+            søknadsbehandling.shouldBeType<BeregnetSøknadsbehandling.Avslag>()
             LagBrevRequestVisitor(
                 hentPerson = { person.right() },
                 hentNavn = { hentNavn(it) },
@@ -323,7 +328,7 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager request for simulert`() {
         simulertSøknadsbehandlingUføre().let { (sak, søknadsbehandling) ->
-            søknadsbehandling.shouldBeType<Søknadsbehandling.Simulert>()
+            søknadsbehandling.shouldBeType<SimulertSøknadsbehandling>()
             LagBrevRequestVisitor(
                 hentPerson = { person.right() },
                 hentNavn = { hentNavn(it) },
@@ -361,7 +366,7 @@ internal class LagBrevRequestVisitorTest {
             customVilkår = listOf(institusjonsoppholdvilkårAvslag()),
             fritekstTilBrev = "Fritekst!",
         ).let { (sak, søknadsbehandling) ->
-            søknadsbehandling.shouldBeType<Søknadsbehandling.TilAttestering.Avslag.UtenBeregning>()
+            søknadsbehandling.shouldBeType<SøknadsbehandlingTilAttestering.Avslag.UtenBeregning>()
             LagBrevRequestVisitor(
                 hentPerson = { person.right() },
                 hentNavn = { hentNavn(it) },
@@ -398,7 +403,7 @@ internal class LagBrevRequestVisitorTest {
             customGrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 50000.0)),
             fritekstTilBrev = "Fritekst!",
         ).let { (sak, søknadsbehandling) ->
-            søknadsbehandling.shouldBeType<Søknadsbehandling.TilAttestering.Avslag.MedBeregning>()
+            søknadsbehandling.shouldBeType<SøknadsbehandlingTilAttestering.Avslag.MedBeregning>()
             LagBrevRequestVisitor(
                 hentPerson = { person.right() },
                 hentNavn = { hentNavn(it) },
@@ -434,7 +439,7 @@ internal class LagBrevRequestVisitorTest {
         tilAttesteringSøknadsbehandlingUføre(
             fritekstTilBrev = "Fritekst!",
         ).let { (sak, søknadsbehandling) ->
-            søknadsbehandling.shouldBeType<Søknadsbehandling.TilAttestering.Innvilget>()
+            søknadsbehandling.shouldBeType<SøknadsbehandlingTilAttestering.Innvilget>()
             LagBrevRequestVisitor(
                 hentPerson = { person.right() },
                 hentNavn = { hentNavn(it) },
@@ -465,7 +470,7 @@ internal class LagBrevRequestVisitorTest {
             customVilkår = listOf(institusjonsoppholdvilkårAvslag()),
             fritekstTilBrev = "Fritekst!",
         ).let { (sak, søknadsbehandling) ->
-            søknadsbehandling.shouldBeType<Søknadsbehandling.Underkjent.Avslag.UtenBeregning>()
+            søknadsbehandling.shouldBeType<UnderkjentSøknadsbehandling.Avslag.UtenBeregning>()
             LagBrevRequestVisitor(
                 hentPerson = { person.right() },
                 hentNavn = { hentNavn(it) },
@@ -484,7 +489,7 @@ internal class LagBrevRequestVisitorTest {
                         halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
                     ),
                     saksbehandlerNavn = saksbehandlerNavn,
-                    attestantNavn = attestantNavn,
+                    attestantNavn = "-",
                     fritekst = "Fritekst!",
                     forventetInntektStørreEnn0 = false,
                     dagensDato = fixedLocalDate,
@@ -502,7 +507,7 @@ internal class LagBrevRequestVisitorTest {
             customGrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 50000.0)),
             fritekstTilBrev = "Fritekst!",
         ).let { (sak, søknadsbehandling) ->
-            søknadsbehandling.shouldBeType<Søknadsbehandling.Underkjent.Avslag.MedBeregning>()
+            søknadsbehandling.shouldBeType<UnderkjentSøknadsbehandling.Avslag.MedBeregning>()
             LagBrevRequestVisitor(
                 hentPerson = { person.right() },
                 hentNavn = { hentNavn(it) },
@@ -521,7 +526,7 @@ internal class LagBrevRequestVisitorTest {
                         halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
                     ),
                     saksbehandlerNavn = saksbehandlerNavn,
-                    attestantNavn = attestantNavn,
+                    attestantNavn = "-",
                     fritekst = "Fritekst!",
                     forventetInntektStørreEnn0 = false,
                     dagensDato = fixedLocalDate,
@@ -538,7 +543,7 @@ internal class LagBrevRequestVisitorTest {
         underkjentSøknadsbehandlingUføre(
             fritekstTilBrev = "Fritekst!",
         ).let { (sak, søknadsbehandling) ->
-            søknadsbehandling.shouldBeType<Søknadsbehandling.Underkjent.Innvilget>()
+            søknadsbehandling.shouldBeType<UnderkjentSøknadsbehandling.Innvilget>()
             LagBrevRequestVisitor(
                 hentPerson = { person.right() },
                 hentNavn = { hentNavn(it) },
@@ -551,7 +556,7 @@ internal class LagBrevRequestVisitorTest {
                     beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning!!.getId()),
                     harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEPS(),
                     saksbehandlerNavn = saksbehandlerNavn,
-                    attestantNavn = attestantNavn,
+                    attestantNavn = "-",
                     fritekst = "Fritekst!",
                     forventetInntektStørreEnn0 = false,
                     dagensDato = fixedLocalDate,
@@ -571,7 +576,7 @@ internal class LagBrevRequestVisitorTest {
             ),
             fritekstTilBrev = "Fritekst!",
         ).let { (sak, søknadsbehandling) ->
-            søknadsbehandling.shouldBeType<Søknadsbehandling.Iverksatt.Avslag.UtenBeregning>()
+            søknadsbehandling.shouldBeType<IverksattSøknadsbehandling.Avslag.UtenBeregning>()
             LagBrevRequestVisitor(
                 hentPerson = { person.right() },
                 hentNavn = { hentNavn(it) },
@@ -610,7 +615,7 @@ internal class LagBrevRequestVisitorTest {
             ),
             fritekstTilBrev = "Fritekst!",
         ).let { (sak, søknadsbehandling) ->
-            søknadsbehandling.shouldBeType<Søknadsbehandling.Iverksatt.Avslag.MedBeregning>()
+            søknadsbehandling.shouldBeType<IverksattSøknadsbehandling.Avslag.MedBeregning>()
             LagBrevRequestVisitor(
                 hentPerson = { person.right() },
                 hentNavn = { hentNavn(it) },
@@ -712,7 +717,7 @@ internal class LagBrevRequestVisitorTest {
             customGrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 50000.0)),
             fritekstTilBrev = "Fritekst!",
         )
-        søknadsbehandling.shouldBeType<Søknadsbehandling.Iverksatt.Avslag.MedBeregning>()
+        søknadsbehandling.shouldBeType<IverksattSøknadsbehandling.Avslag.MedBeregning>()
 
         val brevSøknadsbehandling = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -758,7 +763,7 @@ internal class LagBrevRequestVisitorTest {
             customVilkår = listOf(institusjonsoppholdvilkårAvslag()),
             fritekstTilBrev = "Fritekst!",
         )
-        søknadsbehandling.shouldBeType<Søknadsbehandling.Iverksatt.Avslag.UtenBeregning>()
+        søknadsbehandling.shouldBeType<IverksattSøknadsbehandling.Avslag.UtenBeregning>()
 
         val brevSøknadsbehandling = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -804,7 +809,7 @@ internal class LagBrevRequestVisitorTest {
             customVilkår = listOf(formuevilkårAvslåttPgaBrukersformue()),
             fritekstTilBrev = "Fritekst!",
         )
-        søknadsbehandling.shouldBeType<Søknadsbehandling.Iverksatt.Avslag.UtenBeregning>()
+        søknadsbehandling.shouldBeType<IverksattSøknadsbehandling.Avslag.UtenBeregning>()
         val brevSøknadsbehandling = LagBrevRequestVisitor(
             hentPerson = { person.right() },
             hentNavn = { hentNavn(it) },

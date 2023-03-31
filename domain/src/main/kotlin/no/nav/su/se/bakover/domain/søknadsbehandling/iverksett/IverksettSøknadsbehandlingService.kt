@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett
 
 import arrow.core.Either
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 
 interface IverksettSøknadsbehandlingService {
@@ -10,7 +10,7 @@ interface IverksettSøknadsbehandlingService {
      * Tiltenkt å kalles fra web-laget.
      * Utfører både domenedelen og sideeffekter.
      */
-    fun iverksett(command: IverksettSøknadsbehandlingCommand): Either<KunneIkkeIverksetteSøknadsbehandling, Triple<Sak, Søknadsbehandling.Iverksatt, Stønadsvedtak>>
+    fun iverksett(command: IverksettSøknadsbehandlingCommand): Either<KunneIkkeIverksetteSøknadsbehandling, Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak>>
 
     /**
      * Utfører kun sideeffekter.

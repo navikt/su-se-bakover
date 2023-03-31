@@ -16,50 +16,50 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
         private val saksbehandler: NavIdentBruker.Saksbehandler,
         private val fritekstTilBrev: String,
         private val clock: Clock,
-    ) : Statusovergang<Nothing, Søknadsbehandling.TilAttestering>() {
+    ) : Statusovergang<Nothing, SøknadsbehandlingTilAttestering>() {
 
-        override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {
+        override fun visit(søknadsbehandling: VilkårsvurdertSøknadsbehandling.Avslag) {
             result = søknadsbehandling.tilAttesteringForSaksbehandler(saksbehandler, fritekstTilBrev, clock).right()
         }
 
-        override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {
+        override fun visit(søknadsbehandling: BeregnetSøknadsbehandling.Avslag) {
             result = søknadsbehandling.tilAttestering(saksbehandler, fritekstTilBrev, clock).right()
         }
 
-        override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
+        override fun visit(søknadsbehandling: SimulertSøknadsbehandling) {
             result = søknadsbehandling.tilAttestering(saksbehandler, fritekstTilBrev, clock).right()
         }
 
-        override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.UtenBeregning) {
+        override fun visit(søknadsbehandling: UnderkjentSøknadsbehandling.Avslag.UtenBeregning) {
             result = søknadsbehandling.tilAttestering(saksbehandler, clock).right()
         }
 
-        override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.MedBeregning) {
+        override fun visit(søknadsbehandling: UnderkjentSøknadsbehandling.Avslag.MedBeregning) {
             result = søknadsbehandling.tilAttestering(saksbehandler, clock).right()
         }
 
-        override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Innvilget) {
+        override fun visit(søknadsbehandling: UnderkjentSøknadsbehandling.Innvilget) {
             result = søknadsbehandling.tilAttestering(saksbehandler, clock).right()
         }
     }
 
     class TilUnderkjent(
         private val attestering: Attestering,
-    ) : Statusovergang<SaksbehandlerOgAttestantKanIkkeVæreSammePerson, Søknadsbehandling.Underkjent>() {
+    ) : Statusovergang<SaksbehandlerOgAttestantKanIkkeVæreSammePerson, UnderkjentSøknadsbehandling>() {
 
-        override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning) {
+        override fun visit(søknadsbehandling: SøknadsbehandlingTilAttestering.Avslag.UtenBeregning) {
             evaluerStatusovergang(søknadsbehandling)
         }
 
-        override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.MedBeregning) {
+        override fun visit(søknadsbehandling: SøknadsbehandlingTilAttestering.Avslag.MedBeregning) {
             evaluerStatusovergang(søknadsbehandling)
         }
 
-        override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) {
+        override fun visit(søknadsbehandling: SøknadsbehandlingTilAttestering.Innvilget) {
             evaluerStatusovergang(søknadsbehandling)
         }
 
-        private fun evaluerStatusovergang(søknadsbehandling: Søknadsbehandling.TilAttestering) {
+        private fun evaluerStatusovergang(søknadsbehandling: SøknadsbehandlingTilAttestering) {
             result = when (saksbehandlerOgAttestantErForskjellig(søknadsbehandling, attestering)) {
                 true -> søknadsbehandling.tilUnderkjent(attestering).right()
                 false -> SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
@@ -67,7 +67,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
         }
 
         private fun saksbehandlerOgAttestantErForskjellig(
-            søknadsbehandling: Søknadsbehandling.TilAttestering,
+            søknadsbehandling: SøknadsbehandlingTilAttestering,
             attestering: Attestering,
         ): Boolean = søknadsbehandling.saksbehandler.navIdent != attestering.attestant.navIdent
     }

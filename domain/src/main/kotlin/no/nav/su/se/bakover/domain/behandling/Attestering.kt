@@ -11,6 +11,10 @@ data class Attesteringshistorikk private constructor(
     @JsonValue private val underlying: List<Attestering>,
 ) : List<Attestering> by underlying {
 
+    init {
+        require(this.filterIsInstance<Attestering.Iverksatt>().size <= 1) { "Kan bare ha 1 iverksatt innslag i listen. fant flere" }
+    }
+
     companion object {
         fun empty(): Attesteringshistorikk {
             // Ønsker gjenbruke logikk + validering til create(...)
@@ -48,6 +52,10 @@ data class Attesteringshistorikk private constructor(
 
     /** @throws NoSuchElementException hvis lista er tom */
     fun sisteAttesteringErIverksatt(): Boolean = hentSisteAttestering() is Attestering.Iverksatt
+
+    fun hentSisteIverksatteAttesteringOrNull(): Attestering.Iverksatt? {
+        return this.filterIsInstance<Attestering.Iverksatt>().singleOrNull()
+    }
 }
 
 @JsonTypeInfo(
@@ -63,7 +71,9 @@ sealed class Attestering {
     abstract val attestant: NavIdentBruker.Attestant
     abstract val opprettet: Tidspunkt
 
-    data class Iverksatt(override val attestant: NavIdentBruker.Attestant, override val opprettet: Tidspunkt) : Attestering()
+    data class Iverksatt(override val attestant: NavIdentBruker.Attestant, override val opprettet: Tidspunkt) :
+        Attestering()
+
     data class Underkjent(
         override val attestant: NavIdentBruker.Attestant,
         override val opprettet: Tidspunkt,

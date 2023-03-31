@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
@@ -26,7 +26,7 @@ data class IverksattAvslåttSøknadsbehandlingResponse(
     override val vedtak: Avslagsvedtak,
     val statistikkhendelse: StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag,
     val oppgaveSomSkalLukkes: OppgaveId,
-) : IverksattSøknadsbehandlingResponse<Søknadsbehandling.Iverksatt.Avslag> {
+) : IverksattSøknadsbehandlingResponse<IverksattSøknadsbehandling.Avslag> {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override val søknadsbehandling = vedtak.behandling
@@ -38,11 +38,11 @@ data class IverksattAvslåttSøknadsbehandlingResponse(
     override fun ferdigstillIverksettelseITransaksjon(
         klargjørUtbetaling: (Utbetaling.SimulertUtbetaling, TransactionContext) -> Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
         sessionFactory: SessionFactory,
-        lagreSøknadsbehandling: (Søknadsbehandling.Iverksatt.Avslag, TransactionContext) -> Unit,
+        lagreSøknadsbehandling: (IverksattSøknadsbehandling.Avslag, TransactionContext) -> Unit,
         lagreVedtak: (Vedtak, TransactionContext) -> Unit,
         statistikkObservers: List<StatistikkEventObserver>,
         lagreDokument: (Dokument.MedMetadata, TransactionContext) -> Unit,
-        lukkOppgave: (Søknadsbehandling.Iverksatt.Avslag) -> Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit>,
+        lukkOppgave: (IverksattSøknadsbehandling.Avslag) -> Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit>,
         // Denne er kun brukt ved innvilgelse, men må være med i interfacet for slippe å ha denne domenelogikken i servicelaget. På sikt bør denne gjøres asynkront.
         opprettPlanlagtKontrollsamtale: (VedtakInnvilgetSøknadsbehandling, TransactionContext) -> Unit,
     ) {

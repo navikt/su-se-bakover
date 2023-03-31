@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.dokument.Dokumenttilstand
 import no.nav.su.se.bakover.domain.dokument.setDokumentTilstandBasertPåBehandlingHvisNull
 import no.nav.su.se.bakover.domain.grunnlag.krevMinstEttAvslag
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import java.time.Clock
 import java.util.UUID
 
@@ -17,7 +17,7 @@ data class VedtakAvslagVilkår private constructor(
     override val saksbehandler: NavIdentBruker.Saksbehandler,
     override val attestant: NavIdentBruker.Attestant,
     override val avslagsgrunner: List<Avslagsgrunn>,
-    override val behandling: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning,
+    override val behandling: IverksattSøknadsbehandling.Avslag.UtenBeregning,
     override val periode: Periode,
     override val dokumenttilstand: Dokumenttilstand,
 ) : Avslagsvedtak {
@@ -30,7 +30,7 @@ data class VedtakAvslagVilkår private constructor(
 
     companion object {
         fun from(
-            avslag: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning,
+            avslag: IverksattSøknadsbehandling.Avslag.UtenBeregning,
             clock: Clock,
         ): VedtakAvslagVilkår {
             return VedtakAvslagVilkår(
@@ -53,7 +53,7 @@ data class VedtakAvslagVilkår private constructor(
             saksbehandler: NavIdentBruker.Saksbehandler,
             attestant: NavIdentBruker.Attestant,
             avslagsgrunner: List<Avslagsgrunn>,
-            behandling: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning,
+            behandling: IverksattSøknadsbehandling.Avslag.UtenBeregning,
             periode: Periode,
             dokumenttilstand: Dokumenttilstand?,
         ) = VedtakAvslagVilkår(

@@ -32,7 +32,7 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.søknadsbehandling.StøtterIkkeOverlappendeStønadsperioder
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
@@ -159,7 +159,7 @@ internal class OppdaterStønadsperiodeTest {
 
         val nySøknadsbehandlingMedOpplysningsplikt = nySøknadsbehandling.leggTilOpplysningspliktVilkår(
             opplysningspliktVilkår = tilstrekkeligDokumentert(periode = nyPeriode),
-        ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Uavklart
+        ).getOrFail() as VilkårsvurdertSøknadsbehandling.Uavklart
 
         sakMedRevurderingOgSøknadVedtak.copy(
             søknadsbehandlinger = sakMedRevurderingOgSøknadVedtak.søknadsbehandlinger + nySøknadsbehandling,
