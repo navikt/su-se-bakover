@@ -10,8 +10,7 @@ import no.nav.su.se.bakover.web.leggTilOpplysningsplikt
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
 import no.nav.su.se.bakover.web.søknadsbehandling.beregning.beregn
-import no.nav.su.se.bakover.web.søknadsbehandling.bosituasjon.fullførBosituasjon
-import no.nav.su.se.bakover.web.søknadsbehandling.bosituasjon.taStillingTilEps
+import no.nav.su.se.bakover.web.søknadsbehandling.bosituasjon.leggTilBosituasjon
 import no.nav.su.se.bakover.web.søknadsbehandling.fastopphold.leggTilFastOppholdINorge
 import no.nav.su.se.bakover.web.søknadsbehandling.flyktning.innvilgetFlyktningVilkårJson
 import no.nav.su.se.bakover.web.søknadsbehandling.flyktning.leggTilFlyktningVilkår
@@ -110,10 +109,12 @@ internal fun opprettInnvilgetSøknadsbehandling(
             client = client,
         )
     },
-    taStillingTilEps: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
-        taStillingTilEps(
+    leggTilBosituasjon: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
+        leggTilBosituasjon(
             sakId = sakId,
             behandlingId = behandlingId,
+            fraOgMed = fraOgMed,
+            tilOgMed = tilOgMed,
             client = client,
         )
     },
@@ -132,13 +133,6 @@ internal fun opprettInnvilgetSøknadsbehandling(
             behandlingId = behandlingId,
             fraOgMed = fraOgMed,
             tilOgMed = tilOgMed,
-            client = client,
-        )
-    },
-    fullførBosituasjon: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
-        fullførBosituasjon(
-            sakId = sakId,
-            behandlingId = behandlingId,
             client = client,
         )
     },
@@ -193,10 +187,9 @@ internal fun opprettInnvilgetSøknadsbehandling(
         leggTilFastOppholdINorge(sakId, behandlingId),
         leggTilInstitusjonsopphold(sakId, behandlingId),
         leggTilUtenlandsopphold(sakId, behandlingId),
-        taStillingTilEps(sakId, behandlingId),
+        leggTilBosituasjon(sakId, behandlingId),
         leggTilFormue(sakId, behandlingId),
         leggTilPersonligOppmøte(sakId, behandlingId),
-        fullførBosituasjon(sakId, behandlingId),
         beregn(sakId, behandlingId),
         simuler(sakId, behandlingId),
         sendTilAttestering(sakId, behandlingId),

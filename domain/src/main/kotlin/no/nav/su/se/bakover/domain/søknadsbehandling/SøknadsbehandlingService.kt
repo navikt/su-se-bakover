@@ -8,12 +8,11 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
+import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
+import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.SaksbehandlersAvgjørelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.UgyldigFamiliegjenforeningVilkår
-import no.nav.su.se.bakover.domain.vilkår.bosituasjon.FullførBosituasjonRequest
-import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjonEpsGrunnlag
-import no.nav.su.se.bakover.domain.vilkår.bosituasjon.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.LeggTilFastOppholdINorgeRequest
@@ -68,16 +67,6 @@ interface SøknadsbehandlingService {
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeTilFamiliegjenforeningVilkårService, Søknadsbehandling>
 
-    fun leggTilBosituasjonEpsgrunnlag(
-        request: LeggTilBosituasjonEpsRequest,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Søknadsbehandling>
-
-    fun fullførBosituasjongrunnlag(
-        request: FullførBosituasjonRequest,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling>
-
     fun leggTilFradragsgrunnlag(
         request: LeggTilFradragsgrunnlagRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,
@@ -120,6 +109,11 @@ interface SøknadsbehandlingService {
         request: LeggTilInstitusjonsoppholdVilkårRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, VilkårsvurdertSøknadsbehandling>
+
+    fun leggTilBosituasjongrunnlag(
+        request: LeggTilBosituasjonerRequest,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, VilkårsvurdertSøknadsbehandling>
 
     data class OpprettRequest(
         val søknadId: UUID,
@@ -170,6 +164,7 @@ interface SøknadsbehandlingService {
     sealed class KunneIkkeSendeTilAttestering {
         object KunneIkkeFinneAktørId : KunneIkkeSendeTilAttestering()
         object KunneIkkeOppretteOppgave : KunneIkkeSendeTilAttestering()
+        data class HarValideringsfeil(val feil: ValideringsfeilAttestering) : KunneIkkeSendeTilAttestering()
     }
 
     data class UnderkjennRequest(

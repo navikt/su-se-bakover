@@ -339,7 +339,7 @@ class RevurderingServiceImpl(
 
     override fun leggTilBosituasjongrunnlag(request: LeggTilBosituasjonerRequest): Either<KunneIkkeLeggeTilBosituasjongrunnlag, RevurderingOgFeilmeldingerResponse> {
         val revurdering =
-            hent(request.revurderingId).getOrElse { return KunneIkkeLeggeTilBosituasjongrunnlag.FantIkkeBehandling.left() }
+            hent(request.behandlingId).getOrElse { return KunneIkkeLeggeTilBosituasjongrunnlag.FantIkkeBehandling.left() }
 
         val bosituasjongrunnlag = request.toDomain(
             clock = clock,

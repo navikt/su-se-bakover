@@ -15,7 +15,7 @@ import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
-data class LeggTilBosituasjonForRevurderingRequest(
+data class LeggTilBosituasjonRequest(
     val periode: Periode,
     val epsFnr: String?,
     val delerBolig: Boolean?,

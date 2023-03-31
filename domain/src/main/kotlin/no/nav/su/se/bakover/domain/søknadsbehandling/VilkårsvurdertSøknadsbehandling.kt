@@ -1,7 +1,10 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
+import arrow.core.Either
 import arrow.core.getOrElse
+import arrow.core.left
 import arrow.core.nonEmptyListOf
+import arrow.core.right
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -9,6 +12,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.inneholderUfullstendigeBosituasjoner
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
@@ -28,7 +32,9 @@ import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
 import java.time.Clock
 import java.util.UUID
 
-sealed class VilkårsvurdertSøknadsbehandling : Søknadsbehandling(), Søknadsbehandling.KanOppdaterePeriodeGrunnlagVilkår {
+sealed class VilkårsvurdertSøknadsbehandling :
+    Søknadsbehandling(),
+    Søknadsbehandling.KanOppdaterePeriodeGrunnlagVilkår {
 
     abstract override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert
 
@@ -255,53 +261,63 @@ sealed class VilkårsvurdertSøknadsbehandling : Søknadsbehandling(), Søknadsb
          */
         fun tilAttestering(
             fritekstTilBrev: String,
-        ): SøknadsbehandlingTilAttestering.Avslag.UtenBeregning = SøknadsbehandlingTilAttestering.Avslag.UtenBeregning(
-            id = id,
-            opprettet = opprettet,
-            sakId = sakId,
-            saksnummer = saksnummer,
-            søknad = søknad,
-            oppgaveId = oppgaveId,
-            fnr = fnr,
-            saksbehandler = saksbehandler,
-            fritekstTilBrev = fritekstTilBrev,
-            aldersvurdering = aldersvurdering,
-            grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger,
-            attesteringer = attesteringer,
-            søknadsbehandlingsHistorikk = this.søknadsbehandlingsHistorikk,
-            avkorting = avkorting.håndter().kanIkke(),
-            sakstype = sakstype,
-        )
+        ): Either<ValideringsfeilAttestering, SøknadsbehandlingTilAttestering.Avslag.UtenBeregning> {
+            if (grunnlagsdata.bosituasjon.inneholderUfullstendigeBosituasjoner()) {
+                return ValideringsfeilAttestering.InneholderUfullstendigBosituasjon.left()
+            }
+            return SøknadsbehandlingTilAttestering.Avslag.UtenBeregning(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                søknad = søknad,
+                oppgaveId = oppgaveId,
+                fnr = fnr,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = fritekstTilBrev,
+                aldersvurdering = aldersvurdering,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                attesteringer = attesteringer,
+                søknadsbehandlingsHistorikk = this.søknadsbehandlingsHistorikk,
+                avkorting = avkorting.håndter().kanIkke(),
+                sakstype = sakstype,
+            ).right()
+        }
 
         fun tilAttesteringForSaksbehandler(
             saksbehandler: NavIdentBruker.Saksbehandler,
             fritekstTilBrev: String,
             clock: Clock,
-        ): SøknadsbehandlingTilAttestering.Avslag.UtenBeregning = SøknadsbehandlingTilAttestering.Avslag.UtenBeregning(
-            id = id,
-            opprettet = opprettet,
-            sakId = sakId,
-            saksnummer = saksnummer,
-            søknad = søknad,
-            oppgaveId = oppgaveId,
-            fnr = fnr,
-            saksbehandler = saksbehandler,
-            fritekstTilBrev = fritekstTilBrev,
-            aldersvurdering = aldersvurdering,
-            grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger,
-            attesteringer = attesteringer,
-            søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk.leggTilNyHendelse(
-                saksbehandlingsHendelse = Søknadsbehandlingshendelse(
-                    tidspunkt = Tidspunkt.now(clock),
-                    saksbehandler = saksbehandler,
-                    handling = SøknadsbehandlingsHandling.SendtTilAttestering,
+        ): Either<ValideringsfeilAttestering, SøknadsbehandlingTilAttestering.Avslag.UtenBeregning> {
+            if (grunnlagsdata.bosituasjon.inneholderUfullstendigeBosituasjoner()) {
+                return ValideringsfeilAttestering.InneholderUfullstendigBosituasjon.left()
+            }
+            return SøknadsbehandlingTilAttestering.Avslag.UtenBeregning(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                søknad = søknad,
+                oppgaveId = oppgaveId,
+                fnr = fnr,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = fritekstTilBrev,
+                aldersvurdering = aldersvurdering,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                attesteringer = attesteringer,
+                søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk.leggTilNyHendelse(
+                    saksbehandlingsHendelse = Søknadsbehandlingshendelse(
+                        tidspunkt = Tidspunkt.now(clock),
+                        saksbehandler = saksbehandler,
+                        handling = SøknadsbehandlingsHandling.SendtTilAttestering,
+                    ),
                 ),
-            ),
-            avkorting = avkorting.håndter().kanIkke(),
-            sakstype = sakstype,
-        )
+                avkorting = avkorting.håndter().kanIkke(),
+                sakstype = sakstype,
+            ).right()
+        }
 
         // TODO fiks typing/gyldig tilstand/vilkår fradrag?
         override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.vurdering) {

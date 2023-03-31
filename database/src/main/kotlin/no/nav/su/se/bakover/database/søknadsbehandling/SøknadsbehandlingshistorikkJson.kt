@@ -60,6 +60,7 @@ enum class SøknadsbehandlingHandlingDb {
     OppdatertPersonligOppmøte,
     OppdatertUførhet,
     OppdatertUtenlandsopphold,
+    OppdatertBosituasjon,
     TattStillingTilEPS,
     FullførtBosituasjon,
     OppdatertFradrag,
@@ -80,7 +81,18 @@ enum class SøknadsbehandlingHandlingDb {
         OppdatertPersonligOppmøte -> SøknadsbehandlingsHandling.OppdatertPersonligOppmøte
         OppdatertUførhet -> SøknadsbehandlingsHandling.OppdatertUførhet
         OppdatertUtenlandsopphold -> SøknadsbehandlingsHandling.OppdatertUtenlandsopphold
+        /**
+         * Historisk
+         * Denne var brukt da søknadsbehandling var delt inn i ufullstendig/fullstendig
+         * Videre skal [OppdatertBosituasjon] bli brukt
+         */
         TattStillingTilEPS -> SøknadsbehandlingsHandling.TattStillingTilEPS
+
+        /**
+         * Historisk
+         * Denne var brukt da søknadsbehandling var delt inn i ufullstendig/fullstendig
+         * Videre skal [OppdatertBosituasjon] bli brukt
+         */
         FullførtBosituasjon -> SøknadsbehandlingsHandling.FullførtBosituasjon
         OppdatertFradrag -> SøknadsbehandlingsHandling.OppdatertFradragsgrunnlag
         Beregnet -> SøknadsbehandlingsHandling.Beregnet
@@ -88,6 +100,7 @@ enum class SøknadsbehandlingHandlingDb {
         SendtTilAttestering -> SøknadsbehandlingsHandling.SendtTilAttestering
         Lukket -> SøknadsbehandlingsHandling.Lukket
         OppdatertOpplysningsplikt -> SøknadsbehandlingsHandling.OppdatertOpplysningsplikt
+        OppdatertBosituasjon -> SøknadsbehandlingsHandling.OppdatertBosituasjon
     }
 
     companion object {
@@ -110,6 +123,7 @@ enum class SøknadsbehandlingHandlingDb {
             SøknadsbehandlingsHandling.OppdatertPersonligOppmøte -> OppdatertPersonligOppmøte
             SøknadsbehandlingsHandling.OppdatertUførhet -> OppdatertUførhet
             SøknadsbehandlingsHandling.OppdatertUtenlandsopphold -> OppdatertUtenlandsopphold
+            SøknadsbehandlingsHandling.OppdatertBosituasjon -> OppdatertBosituasjon
         }
     }
 }

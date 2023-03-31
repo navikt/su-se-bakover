@@ -336,6 +336,10 @@ sealed class Grunnlag {
             fun List<Bosituasjon>.harEPS(): Boolean {
                 return any { it.harEPS() }
             }
+
+            fun List<Bosituasjon>.inneholderUfullstendigeBosituasjoner(): Boolean {
+                return this.filterIsInstance<Ufullstendig>().isNotEmpty()
+            }
         }
 
         sealed class Fullstendig : Bosituasjon(), KanPlasseresPåTidslinje<Fullstendig> {

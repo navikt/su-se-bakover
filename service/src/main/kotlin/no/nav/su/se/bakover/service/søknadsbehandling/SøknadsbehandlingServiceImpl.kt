@@ -13,13 +13,13 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
-import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonService
+import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
+import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
@@ -43,7 +43,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.FantIkkeBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.HentRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeBeregne
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkårService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkårService.FantIkkeBehandling.tilKunneIkkeLeggeTilFamiliegjenforeningVilkårService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag
@@ -68,9 +67,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsb
 import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
-import no.nav.su.se.bakover.domain.vilkår.bosituasjon.FullførBosituasjonRequest
-import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjonEpsGrunnlag
-import no.nav.su.se.bakover.domain.vilkår.bosituasjon.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.LeggTilFastOppholdINorgeRequest
@@ -211,60 +207,63 @@ class SøknadsbehandlingServiceImpl(
     }
 
     override fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeTilAttestering, SøknadsbehandlingTilAttestering> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)?.let {
+        val søknadsbehandlingFraBasenFørStatusovergang = søknadsbehandlingRepo.hent(request.behandlingId)?.let {
             statusovergang(
                 søknadsbehandling = it,
                 statusovergang = Statusovergang.TilAttestering(request.saksbehandler, request.fritekstTilBrev, clock),
             )
         }
             ?: throw IllegalArgumentException("Søknadsbehandling send til attestering: Fant ikke søknadsbehandling ${request.behandlingId}")
+        søknadsbehandlingFraBasenFørStatusovergang.getOrElse {
+            return KunneIkkeSendeTilAttestering.HarValideringsfeil(it).left()
+        }.let { søknadsbehandling ->
+            val aktørId = personService.hentAktørId(søknadsbehandling.fnr).getOrElse {
+                log.error("Søknadsbehandling send til attestering: Fant ikke aktør-id knyttet til fødselsnummer for søknadsbehandling ${request.behandlingId}")
+                return KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId.left()
+            }
+            val eksisterendeOppgaveId: OppgaveId = søknadsbehandling.oppgaveId
 
-        val aktørId = personService.hentAktørId(søknadsbehandling.fnr).getOrElse {
-            log.error("Søknadsbehandling send til attestering: Fant ikke aktør-id knyttet til fødselsnummer for søknadsbehandling ${request.behandlingId}")
-            return KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId.left()
-        }
-        val eksisterendeOppgaveId: OppgaveId = søknadsbehandling.oppgaveId
+            val tilordnetRessurs: NavIdentBruker.Attestant? = søknadsbehandling.attesteringer.lastOrNull()?.attestant
 
-        val tilordnetRessurs: NavIdentBruker.Attestant? = søknadsbehandling.attesteringer.lastOrNull()?.attestant
-
-        val nyOppgaveId: OppgaveId = oppgaveService.opprettOppgave(
-            OppgaveConfig.AttesterSøknadsbehandling(
-                søknadId = søknadsbehandling.søknad.id,
-                aktørId = aktørId,
-                tilordnetRessurs = tilordnetRessurs,
-                clock = clock,
-            ),
-        ).getOrElse {
-            log.error("Søknadsbehandling send til attestering: Kunne ikke opprette Attesteringsoppgave for søknadsbehandling ${request.behandlingId}. Avbryter handlingen.")
-            return KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave.left()
-        }
-
-        val søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev =
-            søknadsbehandling.nyOppgaveId(nyOppgaveId).medFritekstTilBrev(request.fritekstTilBrev)
-
-        søknadsbehandlingRepo.lagre(søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev)
-
-        oppgaveService.lukkOppgave(eksisterendeOppgaveId).map {
-            behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.LUKKET_OPPGAVE)
-        }.mapLeft {
-            log.error("Søknadsbehandling send til attestering: Klarte ikke å lukke oppgave ${søknadsbehandling.oppgaveId} for søknadsbehandling ${request.behandlingId}.")
-        }
-        behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.PERSISTERT)
-        behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.OPPRETTET_OPPGAVE)
-        when (søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev) {
-            is SøknadsbehandlingTilAttestering.Avslag -> observers.notify(
-                StatistikkEvent.Behandling.Søknad.TilAttestering.Avslag(
-                    søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev,
+            val nyOppgaveId: OppgaveId = oppgaveService.opprettOppgave(
+                OppgaveConfig.AttesterSøknadsbehandling(
+                    søknadId = søknadsbehandling.søknad.id,
+                    aktørId = aktørId,
+                    tilordnetRessurs = tilordnetRessurs,
+                    clock = clock,
                 ),
-            )
+            ).getOrElse {
+                log.error("Søknadsbehandling send til attestering: Kunne ikke opprette Attesteringsoppgave for søknadsbehandling ${request.behandlingId}. Avbryter handlingen.")
+                return KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave.left()
+            }
 
-            is SøknadsbehandlingTilAttestering.Innvilget -> observers.notify(
-                StatistikkEvent.Behandling.Søknad.TilAttestering.Innvilget(
-                    søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev,
-                ),
-            )
+            val søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev =
+                søknadsbehandling.nyOppgaveId(nyOppgaveId).medFritekstTilBrev(request.fritekstTilBrev)
+
+            søknadsbehandlingRepo.lagre(søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev)
+
+            oppgaveService.lukkOppgave(eksisterendeOppgaveId).map {
+                behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.LUKKET_OPPGAVE)
+            }.mapLeft {
+                log.error("Søknadsbehandling send til attestering: Klarte ikke å lukke oppgave ${søknadsbehandling.oppgaveId} for søknadsbehandling ${request.behandlingId}.")
+            }
+            behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.PERSISTERT)
+            behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.OPPRETTET_OPPGAVE)
+            when (søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev) {
+                is SøknadsbehandlingTilAttestering.Avslag -> observers.notify(
+                    StatistikkEvent.Behandling.Søknad.TilAttestering.Avslag(
+                        søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev,
+                    ),
+                )
+
+                is SøknadsbehandlingTilAttestering.Innvilget -> observers.notify(
+                    StatistikkEvent.Behandling.Søknad.TilAttestering.Innvilget(
+                        søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev,
+                    ),
+                )
+            }
+            return søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev.right()
         }
-        return søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev.right()
     }
 
     override fun underkjenn(request: UnderkjennRequest): Either<KunneIkkeUnderkjenne, UnderkjentSøknadsbehandling> {
@@ -447,73 +446,6 @@ class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun leggTilBosituasjonEpsgrunnlag(
-        request: LeggTilBosituasjonEpsRequest,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Søknadsbehandling> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling.left()
-
-        val bosituasjon = request.toBosituasjon(søknadsbehandling.periode, clock) {
-            personService.hentPerson(it).fold(
-                { error ->
-                    if (error is KunneIkkeHentePerson.IkkeTilgangTilPerson) {
-                        true.right()
-                    } else {
-                        KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl.left()
-                    }
-                },
-                {
-                    true.right()
-                },
-            )
-        }.getOrElse {
-            return it.left()
-        }
-
-        return søknadsbehandling.oppdaterBosituasjon(
-            saksbehandler,
-            bosituasjon,
-            Søknadsbehandlingshendelse(
-                tidspunkt = Tidspunkt.now(clock),
-                saksbehandler = saksbehandler,
-                handling = SøknadsbehandlingsHandling.TattStillingTilEPS,
-            ),
-        ).mapLeft {
-            KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeOppdatereBosituasjon(it)
-        }.map {
-            søknadsbehandlingRepo.lagre(it)
-            it
-        }
-    }
-
-    override fun fullførBosituasjongrunnlag(
-        request: FullførBosituasjonRequest,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling.left()
-
-        val bosituasjon =
-            request.toBosituasjon(søknadsbehandling.grunnlagsdata.bosituasjon.singleOrThrow(), clock).getOrElse {
-                return KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeLagreBosituasjon.left()
-            }
-
-        return søknadsbehandling.oppdaterBosituasjon(
-            saksbehandler,
-            bosituasjon,
-            Søknadsbehandlingshendelse(
-                tidspunkt = Tidspunkt.now(clock),
-                saksbehandler = saksbehandler,
-                handling = SøknadsbehandlingsHandling.FullførtBosituasjon,
-            ),
-        ).mapLeft {
-            KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(it)
-        }.onRight {
-            søknadsbehandlingRepo.lagre(it)
-        }
-    }
-
     override fun leggTilFradragsgrunnlag(
         request: LeggTilFradragsgrunnlagRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,
@@ -685,6 +617,37 @@ class SøknadsbehandlingServiceImpl(
 
         return søknadsbehandling.leggTilInstitusjonsoppholdVilkår(saksbehandler, request.vilkår, clock).mapLeft {
             KunneIkkeLeggeTilInstitusjonsoppholdVilkår.Søknadsbehandling(it)
+        }.map {
+            søknadsbehandlingRepo.lagre(it)
+            it
+        }
+    }
+
+    override fun leggTilBosituasjongrunnlag(
+        request: LeggTilBosituasjonerRequest,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, VilkårsvurdertSøknadsbehandling> {
+        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
+            ?: return KunneIkkeLeggeTilBosituasjongrunnlag.FantIkkeBehandling.left()
+
+        val bosituasjon =
+            if (request.bosituasjoner.size > 1) {
+                throw IllegalArgumentException("Forventer kun 1 bosituasjon element ved søknadsbehandling")
+            } else {
+                request.bosituasjoner.first().toDomain(clock = clock, hentPerson = personService::hentPerson)
+                    .getOrElse { return it.left() }
+            }
+
+        return søknadsbehandling.oppdaterBosituasjon(
+            saksbehandler = saksbehandler,
+            bosituasjon = bosituasjon,
+            hendelse = Søknadsbehandlingshendelse(
+                tidspunkt = Tidspunkt.now(clock),
+                saksbehandler = saksbehandler,
+                handling = SøknadsbehandlingsHandling.OppdatertBosituasjon,
+            ),
+        ).mapLeft {
+            KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeLeggeTilGrunnlag(it)
         }.map {
             søknadsbehandlingRepo.lagre(it)
             it

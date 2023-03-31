@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.domain.søknadsbehandling
 import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -12,6 +14,7 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.inneholderUfullstendigeBosituasjoner
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -129,7 +132,11 @@ data class SimulertSøknadsbehandling(
         saksbehandler: NavIdentBruker.Saksbehandler,
         fritekstTilBrev: String,
         clock: Clock,
-    ): SøknadsbehandlingTilAttestering.Innvilget {
+    ): Either<ValideringsfeilAttestering, SøknadsbehandlingTilAttestering.Innvilget> {
+        if (grunnlagsdata.bosituasjon.inneholderUfullstendigeBosituasjoner()) {
+            return ValideringsfeilAttestering.InneholderUfullstendigBosituasjon.left()
+        }
+
         if (simulering.harFeilutbetalinger()) {
             /**
              * Kun en nødbrems for tilfeller som i utgangspunktet skal være håndtert og forhindret av andre mekanismer.
@@ -161,6 +168,6 @@ data class SimulertSøknadsbehandling(
             ),
             avkorting = avkorting,
             sakstype = sakstype,
-        )
+        ).right()
     }
 }

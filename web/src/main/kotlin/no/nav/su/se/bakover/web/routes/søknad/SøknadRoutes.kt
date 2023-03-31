@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvS�
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedValideringAvBoforholdOgEktefelle
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.ForNav
+import no.nav.su.se.bakover.domain.søknadsbehandling.ValideringsfeilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
@@ -180,12 +181,7 @@ internal fun Route.søknadRoutes(
                             fritekstTilBrev = body.fritekst,
                         ),
                     ).mapLeft {
-                        call.svar(
-                            when (it) {
-                                is KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling -> it.underliggendeFeil.tilResultat()
-                                is KunneIkkeAvslåSøknad.KunneIkkeIverksetteSøknadsbehandling -> it.underliggendeFeil.tilResultat()
-                            },
-                        )
+                        call.svar(it.tilResultat())
                     }.map {
                         call.audit(it.fnr, AuditLogEvent.Action.UPDATE, søknadId)
                         call.svar(Resultat.json(OK, serialize(it.toJson(clock, satsFactory))))
@@ -342,4 +338,14 @@ private fun FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder.tilRe
         "Familiegjenforening er ikke utfylt",
         "familiegjenforening_er_ikke_utfylt",
     )
+}
+
+internal fun KunneIkkeAvslåSøknad.tilResultat(): Resultat = when (this) {
+    is KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling -> this.underliggendeFeil.tilResultat()
+    is KunneIkkeAvslåSøknad.KunneIkkeIverksetteSøknadsbehandling -> this.underliggendeFeil.tilResultat()
+    is KunneIkkeAvslåSøknad.HarValideringsfeil -> this.feil.tilResultat()
+}
+
+private fun ValideringsfeilAttestering.tilResultat(): Resultat = when (this) {
+    ValideringsfeilAttestering.InneholderUfullstendigBosituasjon -> Feilresponser.inneholderUfullstendigeBosituasjoner
 }

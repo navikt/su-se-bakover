@@ -349,7 +349,7 @@ fun søknadsbehandlingTilAttesteringInnvilget(
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             clock = clock,
-        )
+        ).getOrFail()
         Pair(
             sak.copy(
                 søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
@@ -394,7 +394,7 @@ fun søknadsbehandlingTilAttesteringAvslagMedBeregning(
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             clock = clock,
-        )
+        ).getOrFail()
         Pair(
             sak.copy(
                 søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
@@ -427,7 +427,7 @@ fun søknadsbehandlingTilAttesteringAvslagUtenBeregning(
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             clock = fixedClock,
-        )
+        ).getOrFail()
         Pair(
             sak.copy(
                 søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
@@ -968,7 +968,7 @@ fun tilAttesteringSøknadsbehandling(
                     saksbehandler = saksbehandler,
                     fritekstTilBrev = fritekstTilBrev,
                     clock = clock,
-                )
+                ).getOrFail()
             }
 
             is VilkårsvurdertSøknadsbehandling.Innvilget -> {
@@ -987,7 +987,7 @@ fun tilAttesteringSøknadsbehandling(
                                 saksbehandler = saksbehandler,
                                 fritekstTilBrev = fritekstTilBrev,
                                 clock = clock,
-                            )
+                            ).getOrFail()
                         }
 
                         is BeregnetSøknadsbehandling.Innvilget -> {
@@ -1004,7 +1004,7 @@ fun tilAttesteringSøknadsbehandling(
                                     saksbehandler = saksbehandler,
                                     fritekstTilBrev = fritekstTilBrev,
                                     clock = clock,
-                                )
+                                ).getOrFail()
                             }
                         }
                     }

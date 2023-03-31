@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.søknadsbehandling
+package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.flatMap
 import arrow.core.getOrElse
@@ -11,47 +11,40 @@ import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
-import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
+import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.grunnlag.LeggTilBosituasjonJsonRequest
 import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
 
 internal fun Route.leggTilGrunnlagBosituasjonRoutes(
-    søknadsbehandlingService: SøknadsbehandlingService,
+    revurderingService: RevurderingService,
     satsFactory: SatsFactory,
 ) {
-    post("$behandlingPath/{behandlingId}/grunnlag/bosituasjon") {
+    post("$revurderingPath/{revurderingId}/bosituasjongrunnlag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
-                call.withBehandlingId { behandlingId ->
+                call.withRevurderingId { revurderingId ->
                     call.withBody<LeggTilBosituasjonJsonRequest> { json ->
                         call.svar(
-                            json.toService(behandlingId)
+                            json.toService(revurderingId)
                                 .mapLeft { it }
                                 .flatMap {
-                                    søknadsbehandlingService.leggTilBosituasjongrunnlag(
-                                        it,
-                                        call.suUserContext.saksbehandler,
-                                    )
+                                    revurderingService.leggTilBosituasjongrunnlag(it)
                                         .mapLeft { it.tilResultat() }
-                                        .map { søknadsbehandling ->
+                                        .map { response ->
                                             call.audit(
-                                                søknadsbehandling.fnr,
+                                                response.revurdering.fnr,
                                                 AuditLogEvent.Action.UPDATE,
-                                                søknadsbehandling.id,
+                                                response.revurdering.id,
                                             )
-                                            call.sikkerlogg("Lagret bosituasjon for søknadsbehandling $behandlingId på $sakId")
-                                            Resultat.json(
-                                                HttpStatusCode.OK,
-                                                serialize(søknadsbehandling.toJson(satsFactory)),
-                                            )
+                                            call.sikkerlogg("Lagret bosituasjon for revudering $revurderingId på $sakId")
+                                            Resultat.json(HttpStatusCode.OK, serialize(response.toJson(satsFactory)))
                                         }
                                 }.getOrElse { it },
                         )

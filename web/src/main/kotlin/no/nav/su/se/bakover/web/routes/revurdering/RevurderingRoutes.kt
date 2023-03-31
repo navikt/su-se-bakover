@@ -47,7 +47,7 @@ internal fun Route.revurderingRoutes(
 
     leggTilFradragRevurdering(revurderingService, clock, satsFactory)
 
-    LeggTilBosituasjonRevurderingRoute(revurderingService, satsFactory)
+    leggTilGrunnlagBosituasjonRoutes(revurderingService, satsFactory)
 
     leggTilFormueRevurderingRoute(revurderingService, satsFactory, clock)
 

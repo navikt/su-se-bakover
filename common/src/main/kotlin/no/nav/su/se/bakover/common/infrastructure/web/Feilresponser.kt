@@ -292,11 +292,6 @@ object Feilresponser {
         "periode_for_grunnlag_og_vurdering_er_forskjellig",
     )
 
-    val kunneIkkeLeggeTilBosituasjonsgrunnlag = BadRequest.errorJson(
-        "Kunne ikke legge til bosituasjonsgrunnlag",
-        "kunne_ikke_legge_til_bosituasjonsgrunnlag",
-    )
-
     val kunneIkkeLeggeTilFradragsgrunnlag = BadRequest.errorJson(
         "Kunne ikke legge til fradragsgrunnlag",
         "kunne_ikke_legge_til_fradragsgrunnlag",
@@ -331,4 +326,9 @@ object Feilresponser {
             "kan_ikke_sende_brev_i_denne_tilstanden",
         )
     }
+
+    val inneholderUfullstendigeBosituasjoner = BadRequest.errorJson(
+        "Behandlingen inneholder ufullstendige bosituasjoner",
+        "inneholder_ufullstendige_bosituasjoner",
+    )
 }

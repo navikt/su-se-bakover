@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
+import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.endOfMonth
@@ -69,22 +70,26 @@ fun Sak.avslåSøknadPgaManglendeDokumentasjon(
             satsFactory = satsFactory,
         )
     }.let {
-        it.first.iverksettSøknadsbehandling(
-            command = IverksettSøknadsbehandlingCommand(
-                behandlingId = it.second.id,
-                attestering = Attestering.Iverksatt(
-                    attestant = NavIdentBruker.Attestant(command.saksbehandler.navIdent),
-                    opprettet = Tidspunkt.now(clock),
+        it.getOrElse {
+            return it.left()
+        }.let { sakOgBehandling ->
+            sakOgBehandling.first.iverksettSøknadsbehandling(
+                command = IverksettSøknadsbehandlingCommand(
+                    behandlingId = sakOgBehandling.second.id,
+                    attestering = Attestering.Iverksatt(
+                        attestant = NavIdentBruker.Attestant(command.saksbehandler.navIdent),
+                        opprettet = Tidspunkt.now(clock),
+                    ),
+                    // For avslag pga. manglende dokumentasjon vil saksbehandler og attestant være den samme.
+                    saksbehandlerOgAttestantKanIkkeVæreDenSamme = false,
                 ),
-                // For avslag pga. manglende dokumentasjon vil saksbehandler og attestant være den samme.
-                saksbehandlerOgAttestantKanIkkeVæreDenSamme = false,
-            ),
-            lagDokument = lagDokument,
-            simulerUtbetaling = simulerUtbetaling,
-            clock = clock,
-        ).map {
-            it as IverksattAvslåttSøknadsbehandlingResponse
-        }.mapLeft { KunneIkkeAvslåSøknad.KunneIkkeIverksetteSøknadsbehandling(it) }
+                lagDokument = lagDokument,
+                simulerUtbetaling = simulerUtbetaling,
+                clock = clock,
+            ).map {
+                it as IverksattAvslåttSøknadsbehandlingResponse
+            }.mapLeft { KunneIkkeAvslåSøknad.KunneIkkeIverksetteSøknadsbehandling(it) }
+        }
     }
 }
 
@@ -94,7 +99,7 @@ private fun avslå(
     request: AvslåManglendeDokumentasjonCommand,
     clock: Clock,
     satsFactory: SatsFactory,
-): Pair<Sak, SøknadsbehandlingTilAttestering.Avslag.UtenBeregning> {
+): Either<KunneIkkeAvslåSøknad, Pair<Sak, SøknadsbehandlingTilAttestering.Avslag.UtenBeregning>> {
     // TODO jah: Vi burde gå via sak i alle stegene vi muterer søknadsbehandlingen.
     return søknadsbehandling
         // Dersom en søknadsbehandling kun er opprettet, men stønadsperiode ikke er valgt enda.
@@ -105,12 +110,17 @@ private fun avslå(
         )
         .avslåPgaManglendeDokumentasjon(request.saksbehandler, clock)
         .tilAttestering(fritekstTilBrev = request.fritekstTilBrev).let { søknadsbehandlingTilAttestering ->
-            Pair(
-                sak.copy(
-                    søknadsbehandlinger = sak.søknadsbehandlinger.filterNot { it.id == søknadsbehandlingTilAttestering.id } + søknadsbehandlingTilAttestering,
-                ),
-                søknadsbehandlingTilAttestering,
-            )
+
+            søknadsbehandlingTilAttestering.getOrElse {
+                return KunneIkkeAvslåSøknad.HarValideringsfeil(it).left()
+            }.let { søknadsbehandlingTilAttesteringUtenFeil ->
+                Pair(
+                    sak.copy(
+                        søknadsbehandlinger = sak.søknadsbehandlinger.filterNot { it.id == søknadsbehandlingTilAttesteringUtenFeil.id } + søknadsbehandlingTilAttesteringUtenFeil,
+                    ),
+                    søknadsbehandlingTilAttesteringUtenFeil,
+                ).right()
+            }
         }
 }
 

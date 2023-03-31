@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
-import arrow.core.flatten
 import arrow.core.left
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Fnr
@@ -9,26 +8,23 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonService
+import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
+import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonRequest
+import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
-import no.nav.su.se.bakover.domain.vilkår.bosituasjon.BosituasjonValg
-import no.nav.su.se.bakover.domain.vilkår.bosituasjon.FullførBosituasjonRequest
-import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjonEpsGrunnlag
-import no.nav.su.se.bakover.domain.vilkår.bosituasjon.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.test.argThat
+import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
@@ -50,195 +46,6 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
     private val stønadsperiode = Stønadsperiode.create(år(2021))
 
     @Test
-    fun `ufullstendig svarer med feil hvis man ikke finner behandling`() {
-        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn null
-        }
-
-        val request = LeggTilBosituasjonEpsRequest(
-            behandlingId = behandlingId,
-            epsFnr = null,
-        )
-
-        val response = createSøknadsbehandlingService(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-        ).leggTilBosituasjonEpsgrunnlag(request, saksbehandler = saksbehandler)
-
-        response shouldBe KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling.left()
-
-        verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
-        verifyNoMoreInteractions(søknadsbehandlingRepoMock)
-    }
-
-    @Test
-    fun `kan oppdatere med ufullstendig bosituasjon`() {
-        SøknadsbehandlingServiceAndMocks(
-            søknadsbehandlingRepo = mock {
-                on { hent(any()) } doReturn vilkårsvurdertSøknadsbehandling(
-                    sakOgSøknad = nySakMedjournalførtSøknadOgOppgave(),
-                    customGrunnlag = grunnlagsdataEnsligMedFradrag().let {
-                        listOf(
-                            it.bosituasjon,
-                            it.fradragsgrunnlag,
-                        ).flatten()
-                    },
-                ).second
-            },
-        ).let {
-            val response = it.søknadsbehandlingService.leggTilBosituasjonEpsgrunnlag(
-                request = LeggTilBosituasjonEpsRequest(
-                    behandlingId = UUID.randomUUID(),
-                    epsFnr = null,
-                ),
-                saksbehandler = saksbehandler,
-            ).getOrFail()
-
-            response.grunnlagsdata.bosituasjon.single().shouldBeType<Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps>()
-        }
-    }
-
-    @Test
-    fun `ufullstendig gir error hvis behandling er i ugyldig tilstand`() {
-        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn søknadsbehandlingTilAttesteringAvslagUtenBeregning().second
-        }
-
-        val actual = createSøknadsbehandlingService(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-        ).leggTilBosituasjonEpsgrunnlag(
-            LeggTilBosituasjonEpsRequest(behandlingId = behandlingId, epsFnr = null),
-            saksbehandler = saksbehandler,
-        )
-
-        actual shouldBe KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeOppdatereBosituasjon(
-            feil = KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
-                SøknadsbehandlingTilAttestering.Avslag.UtenBeregning::class,
-                VilkårsvurdertSøknadsbehandling::class,
-            ),
-        ).left()
-    }
-
-    @Test
-    fun `Kan ikke lagre EPS dersom vi ikke finner personen`() {
-        val uavklart = søknadsbehandlingVilkårsvurdertUavklart().second
-
-        val nyBosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarEps(
-            id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
-            periode = uavklart.periode,
-            fnr = Fnr.generer(),
-        )
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
-        }
-        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn uavklart
-        }
-
-        createSøknadsbehandlingService(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            personService = personServiceMock,
-        ).leggTilBosituasjonEpsgrunnlag(
-            LeggTilBosituasjonEpsRequest(behandlingId = uavklart.id, epsFnr = nyBosituasjon.fnr),
-            saksbehandler = saksbehandler,
-        ) shouldBe KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl.left()
-    }
-
-    @Test
-    fun `Kan ikke lagre EPS dersom personkallet feiler`() {
-        val uavklart = søknadsbehandlingVilkårsvurdertUavklart().second
-
-        val nyBosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarEps(
-            id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
-            periode = uavklart.periode,
-            fnr = Fnr.generer(),
-        )
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
-        }
-        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn uavklart
-        }
-
-        createSøknadsbehandlingService(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            personService = personServiceMock,
-        ).leggTilBosituasjonEpsgrunnlag(
-            LeggTilBosituasjonEpsRequest(behandlingId = uavklart.id, epsFnr = nyBosituasjon.fnr),
-            saksbehandler = saksbehandler,
-        ) shouldBe KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl.left()
-    }
-
-    @Test
-    fun `ufullstendig happy case`() {
-        val uavklart = søknadsbehandlingVilkårsvurdertUavklart(
-            stønadsperiode = stønadsperiode,
-        ).second
-
-        val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
-            id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
-            periode = stønadsperiode.periode,
-        )
-
-        val expected = uavklart.copy(
-            grunnlagsdata = Grunnlagsdata.create(
-                bosituasjon = listOf(
-                    bosituasjon,
-                ),
-            ),
-            vilkårsvurderinger = uavklart.vilkårsvurderinger.leggTil(
-                tilstrekkeligDokumentert(),
-            ),
-        )
-
-        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturnConsecutively listOf(
-                uavklart,
-                uavklart,
-                expected,
-            )
-        }
-
-        val response = createSøknadsbehandlingService(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            clock = fixedClock,
-        ).leggTilBosituasjonEpsgrunnlag(
-            LeggTilBosituasjonEpsRequest(
-                behandlingId = uavklart.id,
-                epsFnr = null,
-            ),
-            saksbehandler = saksbehandler,
-        ).getOrFail()
-
-        response shouldBe expected.copy(
-            grunnlagsdata = Grunnlagsdata.create(
-                bosituasjon = listOf(
-                    bosituasjon.copy(
-                        id = (response as VilkårsvurdertSøknadsbehandling).grunnlagsdata.bosituasjon.first().id,
-                    ),
-                ),
-            ),
-            søknadsbehandlingsHistorikk = expected.søknadsbehandlingsHistorikk.leggTilNyHendelse(
-                Søknadsbehandlingshendelse(
-                    tidspunkt = fixedTidspunkt,
-                    saksbehandler = saksbehandler,
-                    handling = SøknadsbehandlingsHandling.TattStillingTilEPS,
-                ),
-            ),
-        )
-
-        verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe uavklart.id })
-        verify(søknadsbehandlingRepoMock).defaultTransactionContext()
-        verify(søknadsbehandlingRepoMock).lagre(
-            any(),
-            anyOrNull(),
-        )
-        verifyNoMoreInteractions(søknadsbehandlingRepoMock)
-    }
-
-    @Test
     fun `kan lagre EPS selvom man ikke har tilgang til saken`() {
         val (_, uavklart) = søknadsbehandlingVilkårsvurdertUavklart()
 
@@ -251,9 +58,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
 
         val expected = uavklart.copy(
             grunnlagsdata = Grunnlagsdata.create(
-                bosituasjon = listOf(
-                    bosituasjon,
-                ),
+                bosituasjon = listOf(bosituasjon),
             ),
             vilkårsvurderinger = uavklart.vilkårsvurderinger.leggTil(
                 tilstrekkeligDokumentert(),
@@ -271,39 +76,27 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         val personServiceMock = mock<PersonService> {
             on { hentPerson(any()) } doReturn KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
         }
-        val response = createSøknadsbehandlingService(
+        createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             personService = personServiceMock,
             clock = fixedClock,
-        ).leggTilBosituasjonEpsgrunnlag(
-            LeggTilBosituasjonEpsRequest(behandlingId = uavklart.id, epsFnr = bosituasjon.fnr),
+        ).leggTilBosituasjongrunnlag(
             saksbehandler = saksbehandler,
-        ).getOrFail()
-
-        response shouldBe expected.copy(
-            grunnlagsdata = Grunnlagsdata.create(
-                bosituasjon = listOf(
-                    bosituasjon.copy(
-                        id = (response as VilkårsvurdertSøknadsbehandling).grunnlagsdata.bosituasjon.first().id,
+            request = LeggTilBosituasjonerRequest(
+                behandlingId = uavklart.id,
+                bosituasjoner = listOf(
+                    LeggTilBosituasjonRequest(
+                        periode = stønadsperiode.periode,
+                        epsFnr = bosituasjon.fnr.toString(),
+                        delerBolig = null,
+                        ektemakeEllerSamboerUførFlyktning = false,
                     ),
                 ),
             ),
-            søknadsbehandlingsHistorikk = expected.søknadsbehandlingsHistorikk.leggTilNyHendelse(
-                Søknadsbehandlingshendelse(
-                    tidspunkt = fixedTidspunkt,
-                    saksbehandler = saksbehandler,
-                    handling = SøknadsbehandlingsHandling.TattStillingTilEPS,
-                ),
-            ),
-        )
+        ) shouldBe KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeSlåOppEPS.left()
 
         verify(personServiceMock).hentPerson(bosituasjon.fnr)
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe uavklart.id })
-        verify(søknadsbehandlingRepoMock).defaultTransactionContext()
-        verify(søknadsbehandlingRepoMock).lagre(
-            any(),
-            anyOrNull(),
-        )
         verifyNoMoreInteractions(søknadsbehandlingRepoMock, personServiceMock)
     }
 
@@ -313,16 +106,24 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             on { hent(any()) } doReturn null
         }
 
-        val request = FullførBosituasjonRequest(
-            behandlingId = behandlingId,
-            bosituasjon = BosituasjonValg.BOR_ALENE,
-        )
-
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-        ).fullførBosituasjongrunnlag(request, saksbehandler = saksbehandler)
+        ).leggTilBosituasjongrunnlag(
+            saksbehandler = saksbehandler,
+            request = LeggTilBosituasjonerRequest(
+                behandlingId = behandlingId,
+                bosituasjoner = listOf(
+                    LeggTilBosituasjonRequest(
+                        periode = stønadsperiode.periode,
+                        epsFnr = null,
+                        delerBolig = false,
+                        ektemakeEllerSamboerUførFlyktning = null,
+                    ),
+                ),
+            ),
+        )
 
-        response shouldBe KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling.left()
+        response shouldBe KunneIkkeLeggeTilBosituasjongrunnlag.FantIkkeBehandling.left()
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)
@@ -338,14 +139,20 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
 
         createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-        ).fullførBosituasjongrunnlag(
-            FullførBosituasjonRequest(
-                behandlingId = behandlingId,
-                bosituasjon = BosituasjonValg.BOR_ALENE,
-
-            ),
+        ).leggTilBosituasjongrunnlag(
             saksbehandler = saksbehandler,
-        ) shouldBe KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(
+            request = LeggTilBosituasjonerRequest(
+                behandlingId = behandlingId,
+                bosituasjoner = listOf(
+                    LeggTilBosituasjonRequest(
+                        periode = stønadsperiode.periode,
+                        epsFnr = null,
+                        delerBolig = false,
+                        ektemakeEllerSamboerUførFlyktning = null,
+                    ),
+                ),
+            ),
+        ) shouldBe KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeLeggeTilGrunnlag(
             KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
                 fra = SøknadsbehandlingTilAttestering.Avslag.UtenBeregning::class,
                 til = VilkårsvurdertSøknadsbehandling::class,
@@ -354,30 +161,17 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
     }
 
     @Test
-    fun `fullfør happy case`() {
+    fun `happy case`() {
         val søknadsbehandling = vilkårsvurdertSøknadsbehandling(
             stønadsperiode = stønadsperiode,
             sakOgSøknad = nySakMedjournalførtSøknadOgOppgave(),
-            customGrunnlag = listOf(
-                Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
-                    id = UUID.randomUUID(),
-                    opprettet = fixedTidspunkt,
-                    periode = stønadsperiode.periode,
-                ),
-            ),
         ).second as VilkårsvurdertSøknadsbehandling.Innvilget
 
-        val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
-            id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
-            periode = stønadsperiode.periode,
-        )
+        val bosituasjon = bosituasjongrunnlagEnslig()
 
         val expected = søknadsbehandling.copy(
             grunnlagsdata = Grunnlagsdata.create(
-                bosituasjon = listOf(
-                    bosituasjon,
-                ),
+                bosituasjon = listOf(bosituasjon),
             ),
             vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger.leggTil(tilstrekkeligDokumentert()),
         )
@@ -389,12 +183,19 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             clock = fixedClock,
-        ).fullførBosituasjongrunnlag(
-            FullførBosituasjonRequest(
-                behandlingId = søknadsbehandling.id,
-                bosituasjon = BosituasjonValg.BOR_ALENE,
-            ),
+        ).leggTilBosituasjongrunnlag(
             saksbehandler = saksbehandler,
+            request = LeggTilBosituasjonerRequest(
+                behandlingId = søknadsbehandling.id,
+                bosituasjoner = listOf(
+                    LeggTilBosituasjonRequest(
+                        periode = stønadsperiode.periode,
+                        epsFnr = null,
+                        delerBolig = false,
+                        ektemakeEllerSamboerUførFlyktning = null,
+                    ),
+                ),
+            ),
         ).getOrFail()
 
         response shouldBe expected.copy(
@@ -409,7 +210,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                 Søknadsbehandlingshendelse(
                     tidspunkt = fixedTidspunkt,
                     saksbehandler = saksbehandler,
-                    handling = SøknadsbehandlingsHandling.FullførtBosituasjon,
+                    handling = SøknadsbehandlingsHandling.OppdatertBosituasjon,
                 ),
             ),
         )

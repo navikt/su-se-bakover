@@ -10,8 +10,8 @@ import java.time.Clock
 import java.util.UUID
 
 data class LeggTilBosituasjonerRequest(
-    val revurderingId: UUID,
-    val bosituasjoner: List<LeggTilBosituasjonForRevurderingRequest>,
+    val behandlingId: UUID,
+    val bosituasjoner: List<LeggTilBosituasjonRequest>,
 ) {
     fun toDomain(
         clock: Clock,

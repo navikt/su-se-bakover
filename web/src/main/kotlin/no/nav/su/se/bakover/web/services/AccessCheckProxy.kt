@@ -152,9 +152,6 @@ import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
-import no.nav.su.se.bakover.domain.vilkår.bosituasjon.FullførBosituasjonRequest
-import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjonEpsGrunnlag
-import no.nav.su.se.bakover.domain.vilkår.bosituasjon.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.LeggTilFastOppholdINorgeRequest
@@ -425,25 +422,15 @@ open class AccessCheckProxy(
 
                 override fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): List<Dokument> {
                     when (hentDokumenterForIdType) {
-                        is HentDokumenterForIdType.HentDokumenterForRevurdering -> assertHarTilgangTilRevurdering(
-                            hentDokumenterForIdType.id,
-                        )
+                        is HentDokumenterForIdType.HentDokumenterForRevurdering -> assertHarTilgangTilRevurdering(hentDokumenterForIdType.id)
 
-                        is HentDokumenterForIdType.HentDokumenterForSak -> assertHarTilgangTilSak(
-                            hentDokumenterForIdType.id,
-                        )
+                        is HentDokumenterForIdType.HentDokumenterForSak -> assertHarTilgangTilSak(hentDokumenterForIdType.id)
 
-                        is HentDokumenterForIdType.HentDokumenterForSøknad -> assertHarTilgangTilSøknad(
-                            hentDokumenterForIdType.id,
-                        )
+                        is HentDokumenterForIdType.HentDokumenterForSøknad -> assertHarTilgangTilSøknad(hentDokumenterForIdType.id)
 
-                        is HentDokumenterForIdType.HentDokumenterForVedtak -> assertHarTilgangTilVedtak(
-                            hentDokumenterForIdType.id,
-                        )
+                        is HentDokumenterForIdType.HentDokumenterForVedtak -> assertHarTilgangTilVedtak(hentDokumenterForIdType.id)
 
-                        is HentDokumenterForIdType.HentDokumenterForKlage -> assertHarTilgangTilKlage(
-                            hentDokumenterForIdType.id,
-                        )
+                        is HentDokumenterForIdType.HentDokumenterForKlage -> assertHarTilgangTilKlage(hentDokumenterForIdType.id)
                     }.let {
                         return services.brev.hentDokumenterFor(hentDokumenterForIdType)
                     }
@@ -583,22 +570,6 @@ open class AccessCheckProxy(
                         return service.leggTilFamiliegjenforeningvilkår(request, saksbehandler)
                     }
 
-                    override fun leggTilBosituasjonEpsgrunnlag(
-                        request: LeggTilBosituasjonEpsRequest,
-                        saksbehandler: NavIdentBruker.Saksbehandler,
-                    ): Either<KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Søknadsbehandling> {
-                        assertHarTilgangTilBehandling(request.behandlingId)
-                        return service.leggTilBosituasjonEpsgrunnlag(request, saksbehandler)
-                    }
-
-                    override fun fullførBosituasjongrunnlag(
-                        request: FullførBosituasjonRequest,
-                        saksbehandler: NavIdentBruker.Saksbehandler,
-                    ): Either<SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling> {
-                        assertHarTilgangTilBehandling(request.behandlingId)
-                        return service.fullførBosituasjongrunnlag(request, saksbehandler)
-                    }
-
                     override fun leggTilFradragsgrunnlag(
                         request: LeggTilFradragsgrunnlagRequest,
                         saksbehandler: NavIdentBruker.Saksbehandler,
@@ -672,6 +643,14 @@ open class AccessCheckProxy(
                     ): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, VilkårsvurdertSøknadsbehandling> {
                         assertHarTilgangTilBehandling(request.behandlingId)
                         return service.leggTilInstitusjonsoppholdVilkår(request, saksbehandler)
+                    }
+
+                    override fun leggTilBosituasjongrunnlag(
+                        request: LeggTilBosituasjonerRequest,
+                        saksbehandler: NavIdentBruker.Saksbehandler,
+                    ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, VilkårsvurdertSøknadsbehandling> {
+                        assertHarTilgangTilBehandling(request.behandlingId)
+                        return service.leggTilBosituasjongrunnlag(request, saksbehandler)
                     }
                 },
             ),
@@ -795,7 +774,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun leggTilBosituasjongrunnlag(request: LeggTilBosituasjonerRequest): Either<KunneIkkeLeggeTilBosituasjongrunnlag, RevurderingOgFeilmeldingerResponse> {
-                    assertHarTilgangTilRevurdering(request.revurderingId)
+                    assertHarTilgangTilRevurdering(request.behandlingId)
                     return services.revurdering.leggTilBosituasjongrunnlag(request)
                 }
 

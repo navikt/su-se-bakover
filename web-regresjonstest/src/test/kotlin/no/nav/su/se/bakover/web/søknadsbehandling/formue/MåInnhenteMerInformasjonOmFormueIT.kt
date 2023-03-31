@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
-import no.nav.su.se.bakover.web.søknadsbehandling.bosituasjon.taStillingTilEps
+import no.nav.su.se.bakover.web.søknadsbehandling.bosituasjon.leggTilBosituasjon
 import no.nav.su.se.bakover.web.søknadsbehandling.hent.hentFormueVilkår
 import no.nav.su.se.bakover.web.søknadsbehandling.hent.hentSøknadsbehandling
 import no.nav.su.se.bakover.web.søknadsbehandling.ny.nySøknadsbehandling
@@ -43,9 +43,11 @@ internal class MåInnhenteMerInformasjonOmFormueIT {
                 tilOgMed = tilOgMed,
                 client = this.client,
             )
-            taStillingTilEps(
+            leggTilBosituasjon(
                 sakId = sakId,
                 behandlingId = behandlingId,
+                fraOgMed = fraOgMed,
+                tilOgMed = tilOgMed,
                 client = this.client,
             )
             leggTilFormue(

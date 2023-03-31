@@ -23,6 +23,8 @@ internal fun Route.overordnetSøknadsbehandligRoutes(
 
     leggTilGrunnlagBosituasjonRoutes(søknadsbehandlingServices.søknadsbehandlingService, satsFactory)
 
+    leggTilGrunnlagBosituasjonRoutes(søknadsbehandlingServices.søknadsbehandlingService, satsFactory)
+
     leggTilGrunnlagFradrag(søknadsbehandlingServices.søknadsbehandlingService, clock, satsFactory)
 
     leggTilUtenlandsopphold(søknadsbehandlingServices.søknadsbehandlingService, satsFactory)
