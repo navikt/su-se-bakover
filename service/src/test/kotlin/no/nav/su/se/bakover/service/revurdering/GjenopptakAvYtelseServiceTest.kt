@@ -104,6 +104,7 @@ internal class GjenopptakAvYtelseServiceTest {
         val tikkendeKlokke = TikkendeKlokke(1.januar(2022).fixedClock())
         val (sak, _) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             clock = tikkendeKlokke,
+            periode = år(2022),
         )
         ServiceMocks(
             utbetalingService = mock {
@@ -134,6 +135,7 @@ internal class GjenopptakAvYtelseServiceTest {
         val tikkendeKlokke = TikkendeKlokke(1.januar(2022).fixedClock())
         val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             clock = tikkendeKlokke,
+            periode = år(2022),
         )
 
         val serviceAndMocks = ServiceMocks(

@@ -141,7 +141,7 @@ internal class FerdigeBehandlingerRepoTest {
                     behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
                     behandlingStartet = iverksattStansAvYtelse.behandling.attesteringer.hentSisteAttestering().opprettet,
                     status = Behandlingssammendrag.Behandlingsstatus.STANS,
-                    periode = februar(2021)..desember(2021),
+                    periode = år(2021),
                 ),
                 testDataHelper.vedtakRepo.hentVedtakForId(iverksattGjenopptak.tilRevurdering)!!
                     .shouldBeType<VedtakInnvilgetSøknadsbehandling>().behandling.let {

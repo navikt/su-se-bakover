@@ -36,7 +36,6 @@ import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.createFromGrunnlag
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
@@ -92,31 +91,31 @@ internal class RevurderingSendTilAttesteringTest {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
             },
             observer = mock(),
-        ).also {
-            val actual = it.revurderingService.sendTilAttestering(
+        ).also { mocks ->
+            val actual = mocks.revurderingService.sendTilAttestering(
                 SendTilAttesteringRequest(
                     revurderingId = simulertRevurdering.id,
                     saksbehandler = saksbehandler,
                 ),
             ).getOrFail()
 
-            inOrder(it.revurderingRepo, it.personService, it.oppgaveService, it.observer) {
-                verify(it.revurderingRepo).hent(argThat { it shouldBe simulertRevurdering.id })
-                verify(it.personService).hentAktørId(argThat { it shouldBe fnr })
-                verify(it.oppgaveService).opprettOppgave(
+            inOrder(mocks.revurderingRepo, mocks.personService, mocks.oppgaveService, mocks.observer) {
+                verify(mocks.revurderingRepo).hent(argThat { it shouldBe simulertRevurdering.id })
+                verify(mocks.personService).hentAktørId(argThat { it shouldBe fnr })
+                verify(mocks.oppgaveService).opprettOppgave(
                     argThat {
                         it shouldBe OppgaveConfig.AttesterRevurdering(
                             saksnummer = saksnummer,
                             aktørId = aktørId,
                             tilordnetRessurs = null,
-                            clock = fixedClock,
+                            clock = mocks.clock,
                         )
                     },
                 )
-                verify(it.oppgaveService).lukkOppgave(argThat { it shouldBe simulertRevurdering.oppgaveId })
-                verify(it.revurderingRepo).defaultTransactionContext()
-                verify(it.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
-                verify(it.observer).handle(
+                verify(mocks.oppgaveService).lukkOppgave(argThat { it shouldBe simulertRevurdering.oppgaveId })
+                verify(mocks.revurderingRepo).defaultTransactionContext()
+                verify(mocks.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
+                verify(mocks.observer).handle(
                     argThat {
                         it shouldBe StatistikkEvent.Behandling.Revurdering.TilAttestering.Innvilget(
                             actual as RevurderingTilAttestering.Innvilget,
@@ -125,7 +124,7 @@ internal class RevurderingSendTilAttesteringTest {
                 )
             }
 
-            verifyNoMoreInteractions(it.revurderingRepo, it.personService, it.oppgaveService)
+            verifyNoMoreInteractions(mocks.revurderingRepo, mocks.personService, mocks.oppgaveService)
         }
     }
 
@@ -248,7 +247,7 @@ internal class RevurderingSendTilAttesteringTest {
                                 saksnummer = revurdering.saksnummer,
                                 aktørId = aktørId,
                                 tilordnetRessurs = null,
-                                clock = fixedClock,
+                                clock = mocks.clock,
                             )
                     },
                 )

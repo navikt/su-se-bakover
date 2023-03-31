@@ -5,12 +5,10 @@ import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.GitCommit
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.fixedClock
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
-import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.avsluttetStansAvYtelseFraIverksattSøknadsbehandlignsvedtak
 import no.nav.su.se.bakover.test.fixedClock
@@ -26,9 +24,7 @@ internal class StatistikkStansTest {
 
     @Test
     fun `simulert stans`() {
-        val stans = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-            clock = TikkendeKlokke(1.januar(2021).fixedClock()),
-        ).second
+        val stans = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().second
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Stans.Opprettet(stans),
             behandlingStatus = "REGISTRERT",
@@ -42,9 +38,7 @@ internal class StatistikkStansTest {
 
     @Test
     fun `iverksatt stans`() {
-        val vedtak = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-            clock = TikkendeKlokke(1.januar(2021).fixedClock()),
-        ).second
+        val vedtak = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().second
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Stans.Iverksatt(vedtak),
             behandlingStatus = "IVERKSATT",
@@ -59,9 +53,7 @@ internal class StatistikkStansTest {
 
     @Test
     fun `avsluttet gjenopptak`() {
-        val stans = avsluttetStansAvYtelseFraIverksattSøknadsbehandlignsvedtak(
-            clock = TikkendeKlokke(1.januar(2021).fixedClock()),
-        ).second
+        val stans = avsluttetStansAvYtelseFraIverksattSøknadsbehandlignsvedtak().second
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Stans.Avsluttet(stans),
             behandlingStatus = "AVSLUTTET",

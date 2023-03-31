@@ -80,8 +80,8 @@ internal class OpprettRevurderingServiceTest {
                 on { hentAktørId(any()) } doReturn aktørId.right()
             },
             revurderingRepo = mock(),
-        ).also {
-            val actual = it.revurderingService.opprettRevurdering(
+        ).also { mock ->
+            val actual = mock.revurderingService.opprettRevurdering(
                 OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = søknadsbehandling.periode,
@@ -116,25 +116,25 @@ internal class OpprettRevurderingServiceTest {
                 )
 
                 inOrder(
-                    *it.all(),
+                    *mock.all(),
                 ) {
-                    verify(it.sakService).hentSak(sak.id)
-                    verify(it.personService).hentAktørId(argThat { it shouldBe fnr })
-                    verify(it.oppgaveService).opprettOppgave(
+                    verify(mock.sakService).hentSak(sak.id)
+                    verify(mock.personService).hentAktørId(argThat { it shouldBe fnr })
+                    verify(mock.oppgaveService).opprettOppgave(
                         argThat {
                             it shouldBe OppgaveConfig.Revurderingsbehandling(
                                 saksnummer = saksnummer,
                                 aktørId = aktørId,
                                 tilordnetRessurs = null,
-                                clock = fixedClock,
+                                clock = mock.clock,
                             )
                         },
                     )
-                    verify(it.revurderingRepo).defaultTransactionContext()
-                    verify(it.revurderingRepo).lagre(argThat { it.right() shouldBe actual.right() }, anyOrNull())
+                    verify(mock.revurderingRepo).defaultTransactionContext()
+                    verify(mock.revurderingRepo).lagre(argThat { it.right() shouldBe actual.right() }, anyOrNull())
                 }
 
-                it.verifyNoMoreInteractions()
+                mock.verifyNoMoreInteractions()
             }
         }
     }
@@ -271,8 +271,8 @@ internal class OpprettRevurderingServiceTest {
                 on { hentAktørId(any()) } doReturn aktørId.right()
             },
             revurderingRepo = mock(),
-        ).also {
-            val actual = it.revurderingService.opprettRevurdering(
+        ).also { mocks ->
+            val actual = mocks.revurderingService.opprettRevurdering(
                 OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = februar(2021).fraOgMed.rangeTo(revurderingVedtak.periode.tilOgMed)
@@ -291,21 +291,21 @@ internal class OpprettRevurderingServiceTest {
                 it.tilRevurdering shouldBe revurderingVedtak.id
             }
 
-            verify(it.sakService).hentSak(sakId)
-            verify(it.personService).hentAktørId(argThat { it shouldBe fnr })
-            verify(it.revurderingRepo).defaultTransactionContext()
-            verify(it.revurderingRepo).lagre(argThat { it.right() shouldBe actual }, anyOrNull())
-            verify(it.oppgaveService).opprettOppgave(
+            verify(mocks.sakService).hentSak(sakId)
+            verify(mocks.personService).hentAktørId(argThat { it shouldBe fnr })
+            verify(mocks.revurderingRepo).defaultTransactionContext()
+            verify(mocks.revurderingRepo).lagre(argThat { it.right() shouldBe actual }, anyOrNull())
+            verify(mocks.oppgaveService).opprettOppgave(
                 argThat {
                     it shouldBe OppgaveConfig.Revurderingsbehandling(
                         saksnummer = saksnummer,
                         aktørId = aktørId,
                         tilordnetRessurs = null,
-                        clock = fixedClock,
+                        clock = mocks.clock,
                     )
                 },
             )
-            it.verifyNoMoreInteractions()
+            mocks.verifyNoMoreInteractions()
         }
     }
 
@@ -351,8 +351,8 @@ internal class OpprettRevurderingServiceTest {
             personService = mock {
                 on { hentAktørId(any()) } doReturn aktørId.right()
             },
-        ).also {
-            val actual = it.revurderingService.opprettRevurdering(
+        ).also { mocks ->
+            val actual = mocks.revurderingService.opprettRevurdering(
                 OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = februar(2021).fraOgMed.rangeTo(iverksatt.periode.tilOgMed)
@@ -366,19 +366,19 @@ internal class OpprettRevurderingServiceTest {
                 ),
             )
             actual shouldBe KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave(KunneIkkeOppretteOppgave).left()
-            verify(it.sakService).hentSak(sakId)
-            verify(it.personService).hentAktørId(argThat { it shouldBe fnr })
-            verify(it.oppgaveService).opprettOppgave(
+            verify(mocks.sakService).hentSak(sakId)
+            verify(mocks.personService).hentAktørId(argThat { it shouldBe fnr })
+            verify(mocks.oppgaveService).opprettOppgave(
                 argThat {
                     it shouldBe OppgaveConfig.Revurderingsbehandling(
                         saksnummer = saksnummer,
                         aktørId = aktørId,
                         tilordnetRessurs = null,
-                        clock = fixedClock,
+                        clock = mocks.clock,
                     )
                 },
             )
-            it.verifyNoMoreInteractions()
+            mocks.verifyNoMoreInteractions()
         }
     }
 

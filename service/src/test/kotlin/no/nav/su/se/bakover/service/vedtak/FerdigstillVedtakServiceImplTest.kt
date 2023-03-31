@@ -96,8 +96,12 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { hentForUtbetaling(any()) } doReturn null
             },
         ) {
+            val utbetaling =
+                (sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.UtenKvittering).toKvittertUtbetaling(
+                    kvittering(),
+                )
             val feil =
-                service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
+                service.ferdigstillVedtakEtterUtbetaling(utbetaling)
             feil shouldBe KunneIkkeFerdigstilleVedtak.FantIkkeVedtakForUtbetalingId(vedtak.utbetalingId).left()
 
             verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
@@ -116,8 +120,12 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeHentePerson.left()
             },
         ) {
+            val utbetaling =
+                (sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.UtenKvittering).toKvittertUtbetaling(
+                    kvittering(),
+                )
             val feil =
-                service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
+                service.ferdigstillVedtakEtterUtbetaling(utbetaling)
             feil shouldBe KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev(KunneIkkeLageDokument.KunneIkkeHentePerson)
                 .left()
 
@@ -138,8 +146,12 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
             },
         ) {
+            val utbetaling =
+                (sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.UtenKvittering).toKvittertUtbetaling(
+                    kvittering(),
+                )
             val feil =
-                service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
+                service.ferdigstillVedtakEtterUtbetaling(utbetaling)
             feil shouldBe KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev(KunneIkkeLageDokument.KunneIkkeGenererePDF)
                 .left()
 
@@ -172,7 +184,11 @@ internal class FerdigstillVedtakServiceImplTest {
                 ).right()
             },
         ) {
-            service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
+            val utbetaling =
+                (sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.UtenKvittering).toKvittertUtbetaling(
+                    kvittering(),
+                )
+            service.ferdigstillVedtakEtterUtbetaling(utbetaling)
 
             inOrder(
                 *all(),

@@ -5,13 +5,11 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.application.Beløp
 import no.nav.su.se.bakover.common.application.MånedBeløp
 import no.nav.su.se.bakover.common.application.Månedsbeløp
-import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
@@ -25,7 +23,6 @@ internal class TilbakekrevingsbehandlingTest {
     @Test
     fun `tilbakekrevingsvedtak for full tilbakekreving`() {
         val (sak, revurdering, utbetaling) = iverksattRevurdering(
-            clock = TikkendeKlokke(1.august(2021).fixedClock()),
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
                     periode = mai(2021),
@@ -174,7 +171,6 @@ internal class TilbakekrevingsbehandlingTest {
     @Test
     fun `tilbakekrevingsvedtak for ingen tilbakekreving`() {
         val (sak, revurdering, utbetaling) = iverksattRevurdering(
-            clock = TikkendeKlokke(1.august(2021).fixedClock()),
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
                     periode = mai(2021),

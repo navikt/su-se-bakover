@@ -1,13 +1,10 @@
 package no.nav.su.se.bakover.test
 
-import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
-import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.fixedClock
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
@@ -20,7 +17,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
@@ -47,7 +43,7 @@ import java.util.UUID
 
 /**
  * Ikke journalført eller distribuert brev.
- * Oversendt utbetaling med kvittering.
+ * Oversendt utbetaling uten kvittering.
  * @param grunnlagsdata bosituasjon må være fullstendig
  */
 fun vedtakSøknadsbehandlingIverksattInnvilget(
@@ -69,29 +65,10 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         clock = clock,
-    ).let { (sak, søknadsbehandling) ->
-        // TODO jah: Bruk vedtaket + utbetalingen som kommer fra søknadsbehandlingIverksattInnvilget-kallet
-        val utbetaling = simulerUtbetaling(
-            sak = sak,
-            søknadsbehandling = søknadsbehandling,
-            simuleringsperiode = søknadsbehandling.periode,
-            behandler = søknadsbehandling.attesteringer.hentSisteAttestering().attestant,
-            clock = clock,
-        ).getOrFail().let {
-            it.toOversendtUtbetaling(UtbetalingStub.generateRequest(it))
-                .toKvittertUtbetaling(kvittering())
-        }
+    ).let { (sak, _, vedtak) ->
 
-        val vedtak = VedtakSomKanRevurderes.from(
-            søknadsbehandling = søknadsbehandling,
-            utbetalingId = utbetaling.id,
-            clock = clock,
-        )
         Pair(
-            sak.copy(
-                vedtakListe = nonEmptyListOf(vedtak),
-                utbetalinger = Utbetalinger(nonEmptyListOf(utbetaling)),
-            ),
+            sak,
             vedtak,
         )
     }
@@ -256,11 +233,8 @@ fun vedtakIverksattAutomatiskRegulering(
 }
 
 fun vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-    clock: Clock = TikkendeKlokke(1.januar(2021).fixedClock()),
-    periode: Periode = Periode.create(
-        fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
-        tilOgMed = LocalDate.now(clock).plusMonths(11).endOfMonth(),
-    ),
+    clock: Clock = TikkendeKlokke(),
+    periode: Periode = år(2021),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         stønadsperiode = Stønadsperiode.create(periode),
         clock = clock,

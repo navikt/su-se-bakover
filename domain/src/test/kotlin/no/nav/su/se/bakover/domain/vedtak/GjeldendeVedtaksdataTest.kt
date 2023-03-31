@@ -41,8 +41,10 @@ import org.junit.jupiter.api.assertThrows
 internal class GjeldendeVedtaksdataTest {
     @Test
     fun `finner gjeldende vedtak for gitt dato`() {
+        val clock = TikkendeKlokke()
         val (sak, førstegangsvedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
             stønadsperiode = Stønadsperiode.create(år(2021)),
+            clock = clock,
         )
         val revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021))
         val (sak2, revurderingsVedtak) = vedtakRevurdering(
@@ -55,10 +57,11 @@ internal class GjeldendeVedtaksdataTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
+            clock = clock,
         )
         val data = sak2.kopierGjeldendeVedtaksdata(
             fraOgMed = førstegangsvedtak.periode.fraOgMed,
-            clock = fixedClock,
+            clock = clock,
         ).getOrFail()
 
         data.gjeldendeVedtakPåDato(1.januar(2021)) shouldBe førstegangsvedtak

@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.UførevilkårStatus
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -125,9 +126,11 @@ internal class RegulerGrunnbeløpServiceImplTest {
 
     @Test
     fun `G-regulering med uendret fradrag og forventetInntekt fører til Innvilget`() {
+        val clock = TikkendeKlokke()
         val (sak, revurdering) = opprettetRevurdering(
             revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
             revurderingsårsak = revurderingsårsak,
+            clock = clock,
         )
 
         RevurderingServiceMocks(

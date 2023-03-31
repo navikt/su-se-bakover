@@ -575,6 +575,7 @@ fun søknadsbehandlingIverksattInnvilget(
             listOf(it.bosituasjon, it.fradragsgrunnlag).flatten()
         },
         saksbehandler = saksbehandler,
+        clock = clock,
     ).let {
         Triple(
             it.first,
@@ -621,6 +622,7 @@ fun søknadsbehandlingIverksattAvslagMedBeregning(
             listOf(it.bosituasjon, it.fradragsgrunnlag).flatten()
         },
         saksbehandler = saksbehandler,
+        clock = clock,
     ).let { Triple(it.first, it.second as IverksattSøknadsbehandling.Avslag.MedBeregning, it.third as Avslagsvedtak) }
 }
 
@@ -649,6 +651,7 @@ fun søknadsbehandlingIverksattAvslagUtenBeregning(
         customGrunnlag = grunnlagsdata.let {
             listOf(it.bosituasjon, it.fradragsgrunnlag).flatten()
         },
+        clock = clock,
     ).let { Triple(it.first, it.second as IverksattSøknadsbehandling.Avslag.UtenBeregning, it.third as Avslagsvedtak) }
 }
 
