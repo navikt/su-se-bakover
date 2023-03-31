@@ -7,6 +7,9 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.YearRange
 import no.nav.su.se.bakover.common.toRange
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harEPS
+import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagResponseMedYear.Companion.hentMestGyldigeSkattegrunnlag
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
@@ -50,19 +53,35 @@ class SkatteServiceImpl(
         )
     }
 
-    override fun hentSamletSkattegrunnlagForBehandling(behandlingId: UUID): Pair<Fnr, Either<KunneIkkeHenteSkattemelding, Skattegrunnlag>> {
+    override fun hentSamletSkattegrunnlagForBehandling(behandlingId: UUID): HentSamletSkattegrunnlagForBehandlingResponse {
         val søknadsbehandling =
             søknadsbehandlingService.hent(SøknadsbehandlingService.HentRequest(behandlingId))
                 .getOrElse { throw IllegalStateException("Fant ikke behandling $behandlingId") }
 
-        return søknadsbehandling.fnr to hentSamletSkattegrunnlagForÅr(
-            fnr = søknadsbehandling.fnr,
-            yearRange = Year.of(
-                min(
-                    Year.now(clock).minusYears(1).value,
-                    søknadsbehandling.stønadsperiode?.periode?.tilOgMed?.year ?: Year.now(clock).value,
-                ),
-            ).toRange(),
+        return HentSamletSkattegrunnlagForBehandlingResponse(
+            behandlingensFnr = søknadsbehandling.fnr,
+            skatteoppslagSøker = hentSamletSkattegrunnlagForÅr(
+                fnr = søknadsbehandling.fnr,
+                yearRange = Year.of(
+                    min(
+                        Year.now(clock).minusYears(1).value,
+                        søknadsbehandling.stønadsperiode?.periode?.tilOgMed?.year ?: Year.now(clock).value,
+                    ),
+                ).toRange(),
+            ),
+            skatteoppslagEps = if (søknadsbehandling.grunnlagsdata.bosituasjon.harEPS()) {
+                hentSamletSkattegrunnlagForÅr(
+                    fnr = (søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow() as Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer).fnr,
+                    yearRange = Year.of(
+                        min(
+                            Year.now(clock).minusYears(1).value,
+                            søknadsbehandling.stønadsperiode?.periode?.tilOgMed?.year ?: Year.now(clock).value,
+                        ),
+                    ).toRange(),
+                )
+            } else {
+                null
+            },
         )
     }
 }

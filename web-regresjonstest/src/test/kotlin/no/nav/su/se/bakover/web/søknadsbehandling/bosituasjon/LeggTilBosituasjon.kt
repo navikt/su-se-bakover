@@ -13,68 +13,6 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 
-internal fun taStillingTilEps(
-    sakId: String,
-    behandlingId: String,
-    epsFnr: String? = null,
-    brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
-    client: HttpClient,
-): String {
-    return runBlocking {
-        defaultRequest(
-            HttpMethod.Post,
-            "/saker/$sakId/behandlinger/$behandlingId/grunnlag/bosituasjon/eps",
-            listOf(brukerrolle),
-            client = client,
-        ) {
-            setBody(
-                //language=JSON
-                """
-              {
-                "epsFnr":${if (epsFnr == null) null else "$epsFnr"}
-              }
-                """.trimIndent(),
-            )
-        }.apply {
-            withClue("body=${this.bodyAsText()}") {
-                status shouldBe HttpStatusCode.Created
-                contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
-            }
-        }.bodyAsText()
-    }
-}
-
-internal fun fullførBosituasjon(
-    sakId: String,
-    behandlingId: String,
-    bosituasjon: String = "BOR_ALENE",
-    brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
-    client: HttpClient,
-): String {
-    return runBlocking {
-        defaultRequest(
-            HttpMethod.Post,
-            "/saker/$sakId/behandlinger/$behandlingId/grunnlag/bosituasjon/fullfør",
-            listOf(brukerrolle),
-            client = client,
-        ) {
-            setBody(
-                //language=JSON
-                """
-                  {
-                    "bosituasjon":"$bosituasjon"
-                  }
-                """.trimIndent(),
-            )
-        }.apply {
-            withClue("body=${this.bodyAsText()}") {
-                status shouldBe HttpStatusCode.Created
-                contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
-            }
-        }.bodyAsText()
-    }
-}
-
 /**
  * uri defaultes til søknadsbehandling
  * body defaultes til bor alene

@@ -12,7 +12,10 @@ data class SamletSkattegrunnlagResponseMedStadie(
 ) {
     companion object {
         fun List<SamletSkattegrunnlagResponseMedStadie>.hentMestGyldigeSkattegrunnlag(år: Year): Either<SkatteoppslagFeil, Skattegrunnlag.Årsgrunnlag> {
-            this.single { it.stadie == Stadie.FASTSATT }.let {
+            /**
+             * Fastsatt kan ikke hentes fra sigrunn intill videre
+             */
+            /* this.single { it.stadie == Stadie.FASTSATT }.let {
                 it.oppslag.mapLeft {
                     when (it.mapTilOmFeilKanSkippesEllerReturneres()) {
                         SkatteoppslagFeilMediator.KanSkippes -> Unit
@@ -21,7 +24,7 @@ data class SamletSkattegrunnlagResponseMedStadie(
                 }.map {
                     return it.right()
                 }
-            }
+            }*/
             this.single { it.stadie == Stadie.OPPGJØR }.let {
                 it.oppslag.mapLeft {
                     when (it.mapTilOmFeilKanSkippesEllerReturneres()) {

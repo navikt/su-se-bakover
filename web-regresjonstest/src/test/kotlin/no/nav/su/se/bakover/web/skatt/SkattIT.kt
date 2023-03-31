@@ -47,13 +47,14 @@ fun assertSkattegrunnlag(
     jsonAssertEquals(
         //language=json
         """{
+         "skatteoppslagSøker": {
            "fnr": "$expectedFnr",
            "hentetTidspunkt":"2021-01-01T01:02:03.456789Z",
            "årsgrunnlag":[
               {
                  "inntektsår":"2020",
                  "skatteoppgjørsdato":null,
-                 "stadie": "fastsatt",
+                 "stadie": "oppgjoer",
                  "grunnlag":{
                     "formue":[
                        {
@@ -113,8 +114,10 @@ fun assertSkattegrunnlag(
                  }
               }
            ]
+        },   
+         "skatteoppslagEps": null   
         }
-        """.trimMargin(),
+        """.trimIndent(),
         actual,
     )
 }
