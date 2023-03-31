@@ -220,6 +220,7 @@ internal class FerdigstillVedtakServiceImplTest {
             vedtakRepo = mock {
                 on { hentForUtbetaling(any()) } doReturn vedtak
             },
+            clock = clock,
         ) {
             service.ferdigstillVedtakEtterUtbetaling(
                 sak.utbetalinger.single { it.id == vedtak.utbetalingId }

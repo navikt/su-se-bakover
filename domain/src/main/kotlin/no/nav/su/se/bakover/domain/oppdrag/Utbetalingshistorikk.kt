@@ -47,7 +47,7 @@ class Utbetalingshistorikk(
             kontrollerAtTidslinjeForRekonstruertPeriodeErUforandret()
             it.kontrollerAtNyeLinjerHarFåttNyId()
             it.kontrollerAtEksisterendeErKjedetMedNyeUtbetalinger()
-            it.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse()
+            it.sjekkAlleNyeLinjerHarForskjelligIdOgForrigeReferanse()
             it.sjekkSortering()
             it.sjekkUnikOpprettet()
         }
@@ -58,7 +58,7 @@ class Utbetalingshistorikk(
     }
 
     private fun finnUtbetalingslinjerSomSkalRekonstrueres(): List<Utbetalingslinje> {
-        return eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer.sorted() }.filter { it.periode.tilOgMed.isAfter(rekonstruerEtterDato) }
+        return eksisterendeUtbetalinger.utbetalingslinjer.filter { it.periode.tilOgMed.isAfter(rekonstruerEtterDato) }
     }
 
     private fun rekonstruerEksisterendeUtbetalingerEtterDato(): LocalDate {
@@ -168,7 +168,7 @@ class Utbetalingshistorikk(
             filterIsInstance<Utbetalingslinje.Ny>()
                 .let { nyeLinjer ->
                     nyeLinjer.none { ny ->
-                        ny.id in eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer }.map { it.id }
+                        ny.id in eksisterendeUtbetalinger.utbetalingslinjer.map { it.id }
                     }
                 },
         ) { "Alle nye utbetalingslinjer skal ha ny id" }

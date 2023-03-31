@@ -104,7 +104,7 @@ private fun Row.toUtbetalingslinje(): Utbetalingslinje {
         fraOgMed = localDate("fom"),
         tilOgMed = localDate("tom"),
         opprettet = tidspunkt("opprettet"),
-        rekkefølge = long("rekkefølge").let { Rekkefølge(it) },
+        rekkefølge = Rekkefølge(long("rekkefølge")),
         forrigeUtbetalingslinjeId = stringOrNull("forrigeUtbetalingslinjeId")?.let { uuid30("forrigeUtbetalingslinjeId") },
         beløp = int("beløp"),
         uføregrad = intOrNull("uføregrad")?.let { Uføregrad.parse(it) },

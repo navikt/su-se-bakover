@@ -201,7 +201,6 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
-import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
@@ -239,10 +238,6 @@ open class AccessCheckProxy(
                 }
             },
             utbetaling = object : UtbetalingService {
-                override fun hentUtbetaling(utbetalingId: UUID30): Either<FantIkkeUtbetaling, Utbetaling> {
-                    assertHarTilgangTilUtbetaling(utbetalingId)
-                    return services.utbetaling.hentUtbetaling(utbetalingId)
-                }
 
                 override fun hentUtbetalingerForSakId(sakId: UUID) = kastKanKunKallesFraAnnenService()
 

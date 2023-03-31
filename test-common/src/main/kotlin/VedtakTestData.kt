@@ -22,7 +22,10 @@ import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagBeregning
@@ -57,6 +60,15 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
         bosituasjon = grunnlagsdata.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }.toNonEmptyList(),
     ),
     clock: Clock = tikkendeFixedClock(),
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(
+        clock = clock,
+        sakInfo = SakInfo(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            type = Sakstype.UFØRE,
+        ),
+    ),
 ): Pair<Sak, VedtakInnvilgetSøknadsbehandling> {
     require(
         grunnlagsdata.bosituasjon.all { it is Grunnlag.Bosituasjon.Fullstendig },
@@ -67,6 +79,7 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         clock = clock,
+        sakOgSøknad = sakOgSøknad,
     ).let { (sak, _, vedtak) ->
 
         Pair(
@@ -192,7 +205,7 @@ fun vedtakRevurderingIverksattInnvilget(
 fun vedtakIverksattAutomatiskRegulering(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     regulerFraOgMed: Periode = stønadsperiode.periode,
-    clock: Clock = fixedClock,
+    clock: Clock = TikkendeKlokke(),
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
         grunnlagsdataEnsligUtenFradrag(periode = regulerFraOgMed),
         vilkårsvurderingerRevurderingInnvilget(periode = regulerFraOgMed),

@@ -459,19 +459,19 @@ internal class AvstemmingPostgresRepoTest {
                 løpendeFraOgMed = 1.januar(2021).startOfDay(),
                 opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet,
                 fagområde = Fagområde.SUUFORE,
-            )[0].utbetalingslinjer shouldBe sak.utbetalinger.flatMap { it.utbetalingslinjer }.toNonEmptyList()
+            )[0].utbetalingslinjer shouldBe sak.utbetalinger.utbetalingslinjer.toNonEmptyList()
 
             repo.hentUtbetalingerForKonsistensavstemming(
                 løpendeFraOgMed = 1.mai(2021).startOfDay(),
                 opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet,
                 fagområde = Fagområde.SUUFORE,
-            )[0].utbetalingslinjer shouldBe sak.utbetalinger.flatMap { it.utbetalingslinjer }.toNonEmptyList()
+            )[0].utbetalingslinjer shouldBe sak.utbetalinger.utbetalingslinjer.toNonEmptyList()
 
             repo.hentUtbetalingerForKonsistensavstemming(
                 løpendeFraOgMed = 1.desember(2021).startOfDay(),
                 opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet,
                 fagområde = Fagområde.SUUFORE,
-            )[0].utbetalingslinjer shouldBe sak.utbetalinger.flatMap { it.utbetalingslinjer }.toNonEmptyList()
+            )[0].utbetalingslinjer shouldBe sak.utbetalinger.utbetalingslinjer.toNonEmptyList()
 
             repo.hentUtbetalingerForKonsistensavstemming(
                 løpendeFraOgMed = 1.januar(2022).startOfDay(),

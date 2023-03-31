@@ -123,7 +123,7 @@ internal class SøknadsbehandlingBeregnTest {
     fun `beregner med avkorting`() {
         val antallMånederMedFeilutbetaling = 3L
         val eksisterendeUtbetalinger = Utbetalinger(oversendtUtbetalingMedKvittering())
-        val expectedAvkortingBeløp = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer }
+        val expectedAvkortingBeløp = eksisterendeUtbetalinger.utbetalingslinjer
             .sumOf { it.beløp } * antallMånederMedFeilutbetaling.toDouble()
 
         søknadsbehandlingVilkårsvurdertInnvilget(
@@ -173,7 +173,7 @@ internal class SøknadsbehandlingBeregnTest {
     fun `fjerner evt gammelt grunnlag for avkorting dersom avkorting skal beregnes på nytt`() {
         val antallMånederMedFeilutbetaling = 3L
         val eksisterendeUtbetalinger = Utbetalinger(oversendtUtbetalingMedKvittering())
-        val expectedAvkortingBeløp = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer }
+        val expectedAvkortingBeløp = eksisterendeUtbetalinger.utbetalingslinjer
             .sumOf { it.beløp } * antallMånederMedFeilutbetaling.toDouble()
 
         søknadsbehandlingVilkårsvurdertInnvilget(

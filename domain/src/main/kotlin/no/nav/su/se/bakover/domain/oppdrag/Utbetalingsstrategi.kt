@@ -59,8 +59,7 @@ sealed class Utbetalingsstrategi {
     protected fun unngåBugMedReaktiveringAvOpphørIOppdrag(
         datoForStanEllerReaktivering: LocalDate,
     ): Either<Unit, Unit> {
-        if (eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer }
-            .filterIsInstance<Utbetalingslinje.Endring.Opphør>()
+        if (eksisterendeUtbetalinger.utbetalingslinjerAvTypenOpphør
             .any {
                 it.periode.fraOgMed.between(
                         Periode.create(
@@ -95,7 +94,7 @@ sealed class Utbetalingsstrategi {
                 ?: return Feil.FantIngenUtbetalinger.left()
 
             when {
-                !harUtbetalingerEtter(stansDato) -> {
+                !eksisterendeUtbetalinger.harUtbetalingerEtterEllerPåDato(stansDato) -> {
                     return Feil.IngenUtbetalingerEtterStansDato.left()
                 }
 
@@ -142,7 +141,7 @@ sealed class Utbetalingsstrategi {
             ).also {
                 check(it.erStans()) { "Generert utbetaling er ikke en stans" }
                 it.utbetalingslinjer.sjekkUnikOpprettet()
-                it.utbetalingslinjer.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse()
+                it.utbetalingslinjer.sjekkAlleNyeLinjerHarForskjelligIdOgForrigeReferanse()
                 it.utbetalingslinjer.sjekkSortering()
             }.right()
         }
@@ -215,7 +214,7 @@ sealed class Utbetalingsstrategi {
                 sakstype = sakstype,
             ).also {
                 it.utbetalingslinjer.sjekkUnikOpprettet()
-                it.utbetalingslinjer.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse()
+                it.utbetalingslinjer.sjekkAlleNyeLinjerHarForskjelligIdOgForrigeReferanse()
                 it.utbetalingslinjer.sjekkSortering()
             }
         }
@@ -323,7 +322,7 @@ sealed class Utbetalingsstrategi {
                 sakstype = sakstype,
             ).also {
                 it.utbetalingslinjer.sjekkUnikOpprettet()
-                it.utbetalingslinjer.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse()
+                it.utbetalingslinjer.sjekkAlleNyeLinjerHarForskjelligIdOgForrigeReferanse()
                 it.utbetalingslinjer.sjekkSortering()
             }
         }
@@ -377,7 +376,7 @@ sealed class Utbetalingsstrategi {
                 sakstype = sakstype,
             ).also {
                 it.utbetalingslinjer.sjekkUnikOpprettet()
-                it.utbetalingslinjer.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse()
+                it.utbetalingslinjer.sjekkAlleNyeLinjerHarForskjelligIdOgForrigeReferanse()
                 it.utbetalingslinjer.sjekkSortering()
             }
         }
@@ -432,7 +431,7 @@ sealed class Utbetalingsstrategi {
             ).also {
                 check(it.erReaktivering()) { "Generert utbetaling er ikke en reaktivering" }
                 it.utbetalingslinjer.sjekkUnikOpprettet()
-                it.utbetalingslinjer.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse()
+                it.utbetalingslinjer.sjekkAlleNyeLinjerHarForskjelligIdOgForrigeReferanse()
                 it.utbetalingslinjer.sjekkSortering()
             }.right()
         }
@@ -454,13 +453,6 @@ sealed class Utbetalingsstrategi {
             throw UtbetalingStrategyException(message.toString())
         }
     }
-
-    protected fun harUtbetalingerEtter(value: LocalDate) =
-        eksisterendeUtbetalinger.utbetalinger
-            .flatMap { it.utbetalingslinjer }
-            .any {
-                it.periode.tilOgMed.isEqual(value) || it.periode.tilOgMed.isAfter(value)
-            }
 
     class UtbetalingStrategyException(msg: String) : RuntimeException(msg)
 }

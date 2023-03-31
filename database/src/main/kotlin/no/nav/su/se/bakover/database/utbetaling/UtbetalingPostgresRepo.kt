@@ -131,7 +131,7 @@ internal class UtbetalingPostgresRepo(
                 UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling -> true
                 UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig -> false
             },
-            "rekkefolge" to utbetalingslinje.rekkefølge?.value,
+            "rekkefolge" to utbetalingslinje.rekkefølge.value,
         )
 
         val params = when (utbetalingslinje) {

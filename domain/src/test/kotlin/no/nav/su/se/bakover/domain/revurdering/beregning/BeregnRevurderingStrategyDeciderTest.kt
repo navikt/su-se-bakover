@@ -85,7 +85,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
         @Test
         fun `revurdering viderefører fradrag fra tidligere håndtert avkorting`() {
             // Dekker AvkortingVedRevurdering.Uhåndtert.IngenUtestående -> VidereførAvkorting
-            val clock = TikkendeKlokke(fixedClock)
+            val clock = TikkendeKlokke()
             val (sak, _) = sakMedUteståendeAvkorting(
                 clock = clock,
                 stønadsperiode = stønadsperiode2021,

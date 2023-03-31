@@ -15,13 +15,16 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje.Endring.Stans
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
+import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate
 
 sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingslinje> {
     abstract val id: UUID30 // delytelseId
+
+    // TODO jah: Fjern eller la den arve utbetalingen sin. Vurder samme med databasen.
     abstract val opprettet: Tidspunkt
-    abstract val rekkefølge: Rekkefølge?
+    abstract val rekkefølge: Rekkefølge
 
     /**
      * @see originalFraOgMed
@@ -37,8 +40,32 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
     abstract val uføregrad: Uføregrad?
     abstract val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger
 
+    private val log = LoggerFactory.getLogger(this::class.java)
+
+    /**
+     * En utbetaling har [1-N] utbetalingslinjer.
+     * Ved oversendelse til økonomisystemet vil rekkefølgen på linjene avgjøre hvilke som overskriver hverandre (siste har presedens).
+     * Feltet [rekkefølge] tilsvarer denne rekkefølgen. Denne skal være unik per utbetaling.
+     *
+     * I tillegg har vi noen andre krav/garantier:
+     * Alle linjer av typen NY vil kunne sammenlignes basert på forrigeUtbetalingslinjeId .
+     * Når det kommer til ENDR-linjer, kan vi ikke bruke forrigeUtbetalingslinjeId (denne oversendes ikke til oppdrag ved ENDR), så her er vi avhengig av [rekkefølge].
+     *
+     * Dersom `id` er forskjellig, vil vi kunne sammenligne basert på forrigeUtbetalingslinjeId (en vil peke på den andre), dette skal også gjenspeiles i [rekkefølge].
+     * Dersom `id` er lik (impliserer at det er 2 ENDR-linjer og at begge har lik id/forrigeUtbetalingslinjeId).
+     */
     override fun compareTo(other: Utbetalingslinje): Int {
-        return this.opprettet.instant.compareTo(other.opprettet.instant)
+        return this.rekkefølge.compareTo(other.rekkefølge).also {
+            when {
+                it == 0 -> throw IllegalStateException("Kan ikke sammenligne linjer med samme rekkefølge.")
+                it < 0 -> require(this.opprettet <= other.opprettet) {
+                    "Utbetalingslinje.compareTo(...) feilet, this.rekkefølge (${this.rekkefølge} <= other.rekkefølge(${other.rekkefølge}, men this.opprettet (${this.opprettet}) > other.opprettet (${other.opprettet})"
+                }
+                else -> require(this.opprettet >= other.opprettet) {
+                    "Utbetalingslinje.compareTo(...) feilet, this.rekkefølge (${this.rekkefølge} > other.rekkefølge(${other.rekkefølge}, men this.opprettet (${this.opprettet}) < other.opprettet (${other.opprettet})"
+                }
+            }
+        }
     }
 
     /**
@@ -72,7 +99,7 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
     data class Ny(
         override val id: UUID30 = UUID30.randomUUID(),
         override val opprettet: Tidspunkt,
-        override val rekkefølge: Rekkefølge?,
+        override val rekkefølge: Rekkefølge,
         override val fraOgMed: LocalDate,
         override val tilOgMed: LocalDate,
         override val forrigeUtbetalingslinjeId: UUID30?,
@@ -80,6 +107,13 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
         override val uføregrad: Uføregrad?,
         override val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig,
     ) : Utbetalingslinje() {
+
+        init {
+            require(id != forrigeUtbetalingslinjeId) {
+                "Utbetalingslinje sin id ($id) kan ikke være lik forrigeUtbetalingslinjeId"
+            }
+        }
+
         override fun oppdaterReferanseTilForrigeUtbetalingslinje(id: UUID30?): Ny {
             return copy(forrigeUtbetalingslinjeId = id)
         }
@@ -106,7 +140,7 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
         data class Opphør(
             override val id: UUID30,
             override val opprettet: Tidspunkt,
-            override val rekkefølge: Rekkefølge?,
+            override val rekkefølge: Rekkefølge,
             override val fraOgMed: LocalDate,
             override val tilOgMed: LocalDate,
             override val forrigeUtbetalingslinjeId: UUID30?,
@@ -115,6 +149,13 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
             override val uføregrad: Uføregrad?,
             override val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig,
         ) : Endring() {
+
+            init {
+                require(id != forrigeUtbetalingslinjeId) {
+                    "Utbetalingslinje sin id ($id) kan ikke være lik forrigeUtbetalingslinjeId"
+                }
+            }
+
             override val linjeStatus = LinjeStatus.OPPHØR
 
             override fun oppdaterReferanseTilForrigeUtbetalingslinje(id: UUID30?): Opphør {
@@ -158,7 +199,7 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
         data class Stans(
             override val id: UUID30,
             override val opprettet: Tidspunkt,
-            override val rekkefølge: Rekkefølge?,
+            override val rekkefølge: Rekkefølge,
             override val fraOgMed: LocalDate,
             override val tilOgMed: LocalDate,
             override val forrigeUtbetalingslinjeId: UUID30?,
@@ -167,6 +208,13 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
             override val uføregrad: Uføregrad?,
             override val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig,
         ) : Endring() {
+
+            init {
+                require(id != forrigeUtbetalingslinjeId) {
+                    "Utbetalingslinje sin id ($id) kan ikke være lik forrigeUtbetalingslinjeId"
+                }
+            }
+
             override val linjeStatus = LinjeStatus.STANS
 
             override fun oppdaterReferanseTilForrigeUtbetalingslinje(id: UUID30?): Stans {
@@ -226,7 +274,7 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
         data class Reaktivering(
             override val id: UUID30,
             override val opprettet: Tidspunkt,
-            override val rekkefølge: Rekkefølge?,
+            override val rekkefølge: Rekkefølge,
             override val fraOgMed: LocalDate,
             override val tilOgMed: LocalDate,
             override val forrigeUtbetalingslinjeId: UUID30?,
@@ -235,6 +283,13 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
             override val uføregrad: Uføregrad?,
             override val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig,
         ) : Endring() {
+
+            init {
+                require(id != forrigeUtbetalingslinjeId) {
+                    "Utbetalingslinje sin id ($id) kan ikke være lik forrigeUtbetalingslinjeId"
+                }
+            }
+
             override val linjeStatus = LinjeStatus.REAKTIVERING
             override fun oppdaterReferanseTilForrigeUtbetalingslinje(id: UUID30?): Reaktivering {
                 return copy(forrigeUtbetalingslinjeId = id)
@@ -317,6 +372,7 @@ sealed class UtbetalingslinjePåTidslinje : KanPlasseresPåTidslinje<Utbetalings
         override val periode: Periode,
         override val beløp: Int,
     ) : UtbetalingslinjePåTidslinje() {
+
         override fun ekvivalentMed(other: UtbetalingslinjePåTidslinje): Boolean {
             return other is Ny && periode == other.periode && beløp == other.beløp
         }
@@ -384,11 +440,15 @@ sealed class UtbetalingslinjePåTidslinje : KanPlasseresPåTidslinje<Utbetalings
     }
 }
 
-fun List<Utbetalingslinje>.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse() {
-    this.filterIsInstance<Utbetalingslinje.Ny>()
-        .map { it.forrigeUtbetalingslinjeId }.ifNotEmpty {
+fun List<Utbetalingslinje>.sjekkAlleNyeLinjerHarForskjelligIdOgForrigeReferanse() {
+    this.filterIsInstance<Utbetalingslinje.Ny>().let {
+        it.map { it.forrigeUtbetalingslinjeId }.ifNotEmpty {
             check(this.distinct() == this) { "Alle nye utbetalingslinjer skal referere til forskjellig forrige utbetalingid, men var: $this" }
         }
+        it.map { it.id }.ifNotEmpty {
+            check(this.distinct() == this) { "Alle nye utbetalingslinjer skal ha forskjellig id, men var: $this" }
+        }
+    }
 }
 
 fun List<Utbetalingslinje>.sjekkSortering() {
@@ -407,18 +467,49 @@ fun List<Utbetalingslinje>.sjekkIngenNyeOverlapper() {
 
 fun List<Utbetalingslinje>.sjekkRekkefølge() {
     if (this.isEmpty()) return
-    val rekkefølge = this.map { it.rekkefølge }
-    if (rekkefølge.all { it == null }) return
-    check(rekkefølge.all { it != null }) {
-        "Alle eller ingen av utbetalingslinjene må ha rekkefølge. Var: $rekkefølge"
-    }
     val requiredStart = Rekkefølge.start()
     check(this.first().rekkefølge == requiredStart) {
         "Første linje må være Rekkefølge.start() som er: $requiredStart, men var ${this.first().rekkefølge}"
     }
-    this.map { it.rekkefølge!!.value }.let {
-        check(it == (requiredStart.value until(requiredStart.value + this.size)).toList()) {
+    this.map { it.rekkefølge.value }.let {
+        check(it == (requiredStart.value until (requiredStart.value + this.size)).toList()) {
             "Krever at rekkefølgen har en gitt start og er kontinuerlig, men var: $it"
+        }
+        check(it.distinct() == it) {
+            "En utbetaling kan ikke ha utbetalingslinjer med duplikat rekkefølge: ${it - it.toSet()}"
+        }
+    }
+}
+
+fun List<Utbetalingslinje>.sjekkSammeForrigeUtbetalingsId() {
+    this.groupBy { it.forrigeUtbetalingslinjeId }.forEach { map ->
+        map.value.map { it.id }.let { ids ->
+            require(ids.toSet().size == 1) {
+                "To utbetalingslinjer med samme forrigeUtbetalingslinjeId, må også ha samme id. IDer: $ids, forrigeUtbetalingslinjeID: ${map.key}"
+            }
+        }
+    }
+}
+
+fun List<Utbetalingslinje>.sjekkSammeUtbetalingsId() {
+    this.groupBy { it.id }.forEach { map ->
+        map.value.map { it.forrigeUtbetalingslinjeId }.let { forrigeUtbetalingslinjeIDer ->
+            require(forrigeUtbetalingslinjeIDer.toSet().size == 1) {
+                "To utbetalingslinjer med samme id, må også ha samme forrigeUtbetalingslinjeId. ID: ${map.key}, forrigeUtbetalingslinjeIDer: $forrigeUtbetalingslinjeIDer"
+            }
+        }
+    }
+}
+
+fun List<Utbetalingslinje>.sjekkForrigeForNye() {
+    this.zipWithNext { a, b ->
+        if (b is Utbetalingslinje.Ny) {
+            require(b.forrigeUtbetalingslinjeId == a.id) {
+                "En ny utbetalingslinje (id: ${a.id}) sin forrigeUtbetalingslinjeId ${b.forrigeUtbetalingslinjeId} må peke på den forrige utbetalingslinjen (id: ${a.id}"
+            }
+            require(a.id != b.id) {
+                "En ny utbetalingslinje (id: ${b.id}) må være forskjellig fra den forrige utbetalingslinjen sin id: ${a.id}"
+            }
         }
     }
 }

@@ -63,9 +63,12 @@ sealed interface Utbetaling : Comparable<Utbetaling> {
         .and { utbetalingslinjer.count() == 1 }
 
     fun kontrollerUtbetalingslinjer() {
-        utbetalingslinjer.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse()
+        utbetalingslinjer.sjekkAlleNyeLinjerHarForskjelligIdOgForrigeReferanse()
         utbetalingslinjer.sjekkSortering()
         utbetalingslinjer.sjekkRekkefølge()
+        utbetalingslinjer.sjekkSammeForrigeUtbetalingsId()
+        utbetalingslinjer.sjekkSammeUtbetalingsId()
+        utbetalingslinjer.sjekkForrigeForNye()
     }
 
     fun tidslinje(): TidslinjeForUtbetalinger {
@@ -98,6 +101,9 @@ sealed interface Utbetaling : Comparable<Utbetaling> {
         private val utbetalingForSimulering: UtbetalingForSimulering,
         val simulering: Simulering,
     ) : Utbetaling by utbetalingForSimulering {
+        init {
+            kontrollerUtbetalingslinjer()
+        }
         fun toOversendtUtbetaling(oppdragsmelding: Utbetalingsrequest) =
             OversendtUtbetaling.UtenKvittering(
                 this,

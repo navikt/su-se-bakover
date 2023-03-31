@@ -52,7 +52,7 @@ internal class V180Test {
                 ).also {
                     it.size shouldBe 20
                     it.forEach {
-                        it.utbetalingslinjer.mapNotNull { it.rekkefølge }.size shouldBe it.utbetalingslinjer.size
+                        it.utbetalingslinjer.map { it.rekkefølge }.size shouldBe it.utbetalingslinjer.size
                     }
                 }
                 val linjer = UtbetalingInternalRepo.hentUtbetalingslinjer(
@@ -60,7 +60,7 @@ internal class V180Test {
                     session,
                 )
                 linjer.size shouldBe 308
-                linjer.sortedBy { it.rekkefølge!! }.also {
+                linjer.sortedBy { it.rekkefølge }.also {
                     it.first().rekkefølge shouldBe Rekkefølge.start()
                     it[200].rekkefølge shouldBe Rekkefølge.skip(199)
                     it.last().rekkefølge shouldBe Rekkefølge.skip(306)

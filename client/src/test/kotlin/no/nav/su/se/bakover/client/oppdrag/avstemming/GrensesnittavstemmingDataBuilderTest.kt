@@ -204,6 +204,8 @@ private val simulering = Simulering(
 internal fun alleUtbetalinger(): List<Utbetaling.OversendtUtbetaling> {
     val clock = TikkendeKlokke(fixedClockAt(1.mars(2020)))
 
+    val førsteUtbetalingFørsteUtbetalingslinjeId = UUID30.randomUUID()
+    val andreUtbetalingFørsteUtbetalingslinjeId = UUID30.randomUUID()
     return listOf(
         lagUtbetaling(
             id = ok1Id,
@@ -215,12 +217,14 @@ internal fun alleUtbetalinger(): List<Utbetaling.OversendtUtbetaling> {
                         periode = mars(2020),
                         beløp = 100,
                         opprettet = clock.nextTidspunkt(),
+                        id = førsteUtbetalingFørsteUtbetalingslinjeId,
                     ),
                     utbetalingslinjeNy(
                         periode = april(2020),
                         beløp = 200,
                         opprettet = clock.nextTidspunkt(),
                         rekkefølge = Rekkefølge.skip(0),
+                        forrigeUtbetalingslinjeId = førsteUtbetalingFørsteUtbetalingslinjeId,
                     ),
                 ),
             ).toNonEmptyList(),
@@ -236,6 +240,7 @@ internal fun alleUtbetalinger(): List<Utbetaling.OversendtUtbetaling> {
                         beløp = 600,
                         uføregrad = 60,
                         opprettet = clock.nextTidspunkt(),
+                        id = andreUtbetalingFørsteUtbetalingslinjeId,
                     ),
                     utbetalingslinjeNy(
                         periode = april(2020),

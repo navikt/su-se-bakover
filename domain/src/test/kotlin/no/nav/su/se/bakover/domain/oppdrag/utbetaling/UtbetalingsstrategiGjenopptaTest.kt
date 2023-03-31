@@ -114,6 +114,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
     @Test
     fun `gjenopptar mer 'avansert' utbetaling`() {
         val clock = TikkendeKlokke()
+
         val første = kvittertUtbetaling(clock = clock)
 
         val førsteStans = createKvittertUtbetaling(
@@ -123,7 +124,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 Utbetalingslinje.Endring.Stans(
                     utbetalingslinjeSomSkalEndres = første.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.oktober(2020),
-                    opprettet = fixedTidspunkt,
+                    opprettet = Tidspunkt.now(clock),
                     rekkefølge = Rekkefølge.start(),
                 ),
             ),
@@ -136,7 +137,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 Utbetalingslinje.Endring.Reaktivering(
                     utbetalingslinjeSomSkalEndres = førsteStans.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.oktober(2020),
-                    clock = fixedClock,
+                    opprettet = Tidspunkt.now(clock),
                     rekkefølge = Rekkefølge.start(),
                 ),
             ),

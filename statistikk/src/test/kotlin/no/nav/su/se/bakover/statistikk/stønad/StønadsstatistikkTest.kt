@@ -240,7 +240,7 @@ internal class StønadsstatistikkTest {
             stønadsperiode = Stønadsperiode.create(
                 periode = Periode.create(1.januar(2021), 28.februar(2021)),
             ),
-            clock = TikkendeKlokke(fixedClock),
+            clock = TikkendeKlokke(),
         )
         assert(
             event = StatistikkEvent.Stønadsvedtak(regulering) { sak },

@@ -47,7 +47,7 @@ object KryssjekkTidslinjerOgSimulering {
             return KryssjekkAvTidslinjeOgSimuleringFeilet.KryssjekkFeilet(it.first()).left()
         }
 
-        if (eksisterende.harUtbetalingerEtter(underArbeidEndringsperiode.tilOgMed)) {
+        if (eksisterende.harUtbetalingerEtterDato(underArbeidEndringsperiode.tilOgMed)) {
             val rekonstruertPeriode = Periode.create(
                 fraOgMed = underArbeidEndringsperiode.tilOgMed.førsteINesteMåned(),
                 tilOgMed = eksisterende.maxOf { it.senesteDato() },

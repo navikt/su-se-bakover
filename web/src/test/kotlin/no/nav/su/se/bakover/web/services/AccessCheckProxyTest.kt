@@ -183,123 +183,95 @@ internal class AccessCheckProxyTest {
             }
         }
 
-        @Test
-        fun `Når man gjør oppslag på utbetalingId`() {
-            val proxied = AccessCheckProxy(
-                personRepo = mock {
-                    on { hentFnrForUtbetaling(any()) } doReturn listOf(Fnr.generer())
+        @Nested
+        inner class `Kaller videre til underliggende service` {
+            private val fnr = Fnr.generer()
+
+            private val servicesReturningSak = services.copy(
+                sak = mock {
+                    on {
+                        hentSak(fnr, Sakstype.UFØRE)
+                    } doReturn Either.Right(
+                        Sak(
+                            id = UUID.randomUUID(),
+                            saksnummer = Saksnummer(2021),
+                            opprettet = fixedTidspunkt,
+                            fnr = fnr,
+                            utbetalinger = Utbetalinger(),
+                            type = Sakstype.UFØRE,
+                            uteståendeAvkorting = Avkortingsvarsel.Ingen,
+                            versjon = Hendelsesversjon(1),
+                        ),
+                    )
                 },
-                services = services.copy(
-                    person = object : PersonService {
-                        override fun hentPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-                        override fun hentPersonMedSystembruker(fnr: Fnr) =
-                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+            )
+            private val proxied = AccessCheckProxy(
+                personRepo = object : PersonRepo {
+                    override fun hentFnrForSak(sakId: UUID): List<Fnr> {
+                        return listOf(Fnr.generer())
+                    }
 
-                        override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
-                        override fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> =
-                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                    override fun hentFnrForSøknad(søknadId: UUID): List<Fnr> {
+                        return listOf(Fnr.generer())
+                    }
 
-                        override fun sjekkTilgangTilPerson(fnr: Fnr) =
-                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                    override fun hentFnrForBehandling(behandlingId: UUID): List<Fnr> {
+                        return listOf(Fnr.generer())
+                    }
+
+                    override fun hentFnrForUtbetaling(utbetalingId: UUID30): List<Fnr> {
+                        return listOf(Fnr.generer())
+                    }
+
+                    override fun hentFnrForRevurdering(revurderingId: UUID): List<Fnr> {
+                        return listOf(Fnr.generer())
+                    }
+
+                    override fun hentFnrForVedtak(vedtakId: UUID): List<Fnr> {
+                        return listOf(Fnr.generer())
+                    }
+
+                    override fun hentFnrForKlage(klageId: UUID): List<Fnr> {
+                        return listOf(Fnr.generer())
+                    }
+                },
+                services = servicesReturningSak.copy(
+                    person = mock {
+                        on { sjekkTilgangTilPerson(any()) } doReturn Unit.right()
                     },
                 ),
             ).proxy()
 
-            shouldThrow<Tilgangssjekkfeil> { proxied.utbetaling.hentUtbetaling(UUID30.randomUUID()) }
-        }
-    }
+            @Test
+            fun `Når man gjør oppslag på fnr`() {
+                proxied.sak.hentSak(fnr, Sakstype.UFØRE)
+                verify(servicesReturningSak.sak).hentSak(fnr = argShouldBe(fnr), type = argShouldBe(Sakstype.UFØRE))
+            }
 
-    @Nested
-    inner class `Kaller videre til underliggende service` {
-        private val fnr = Fnr.generer()
+            @Test
+            fun `Når man gjør oppslag på sakId`() {
+                val id = UUID.randomUUID()
+                proxied.sak.hentSak(id)
+                verify(servicesReturningSak.sak).hentSak(sakId = id)
+            }
 
-        private val servicesReturningSak = services.copy(
-            sak = mock {
-                on {
-                    hentSak(fnr, Sakstype.UFØRE)
-                } doReturn Either.Right(
-                    Sak(
-                        id = UUID.randomUUID(),
-                        saksnummer = Saksnummer(2021),
-                        opprettet = fixedTidspunkt,
-                        fnr = fnr,
-                        utbetalinger = Utbetalinger(),
-                        type = Sakstype.UFØRE,
-                        uteståendeAvkorting = Avkortingsvarsel.Ingen,
-                        versjon = Hendelsesversjon(1),
+            @Test
+            fun `Når man gjør oppslag på søknadId`() {
+                val id = UUID.randomUUID()
+                proxied.søknad.hentSøknad(id)
+                verify(servicesReturningSak.søknad).hentSøknad(søknadId = id)
+            }
+
+            @Test
+            fun `Når man gjør oppslag på behandlingId`() {
+                val id = UUID.randomUUID()
+                proxied.søknadsbehandling.søknadsbehandlingService.hent(SøknadsbehandlingService.HentRequest(id))
+                verify(servicesReturningSak.søknadsbehandling.søknadsbehandlingService).hent(
+                    SøknadsbehandlingService.HentRequest(
+                        id,
                     ),
                 )
-            },
-        )
-        private val proxied = AccessCheckProxy(
-            personRepo = object : PersonRepo {
-                override fun hentFnrForSak(sakId: UUID): List<Fnr> {
-                    return listOf(Fnr.generer())
-                }
-
-                override fun hentFnrForSøknad(søknadId: UUID): List<Fnr> {
-                    return listOf(Fnr.generer())
-                }
-
-                override fun hentFnrForBehandling(behandlingId: UUID): List<Fnr> {
-                    return listOf(Fnr.generer())
-                }
-
-                override fun hentFnrForUtbetaling(utbetalingId: UUID30): List<Fnr> {
-                    return listOf(Fnr.generer())
-                }
-
-                override fun hentFnrForRevurdering(revurderingId: UUID): List<Fnr> {
-                    return listOf(Fnr.generer())
-                }
-
-                override fun hentFnrForVedtak(vedtakId: UUID): List<Fnr> {
-                    return listOf(Fnr.generer())
-                }
-
-                override fun hentFnrForKlage(klageId: UUID): List<Fnr> {
-                    return listOf(Fnr.generer())
-                }
-            },
-            services = servicesReturningSak.copy(
-                person = mock {
-                    on { sjekkTilgangTilPerson(any()) } doReturn Unit.right()
-                },
-            ),
-        ).proxy()
-
-        @Test
-        fun `Når man gjør oppslag på fnr`() {
-            proxied.sak.hentSak(fnr, Sakstype.UFØRE)
-            verify(servicesReturningSak.sak).hentSak(fnr = argShouldBe(fnr), type = argShouldBe(Sakstype.UFØRE))
-        }
-
-        @Test
-        fun `Når man gjør oppslag på sakId`() {
-            val id = UUID.randomUUID()
-            proxied.sak.hentSak(id)
-            verify(servicesReturningSak.sak).hentSak(sakId = id)
-        }
-
-        @Test
-        fun `Når man gjør oppslag på søknadId`() {
-            val id = UUID.randomUUID()
-            proxied.søknad.hentSøknad(id)
-            verify(servicesReturningSak.søknad).hentSøknad(søknadId = id)
-        }
-
-        @Test
-        fun `Når man gjør oppslag på behandlingId`() {
-            val id = UUID.randomUUID()
-            proxied.søknadsbehandling.søknadsbehandlingService.hent(SøknadsbehandlingService.HentRequest(id))
-            verify(servicesReturningSak.søknadsbehandling.søknadsbehandlingService).hent(SøknadsbehandlingService.HentRequest(id))
-        }
-
-        @Test
-        fun `Når man gjør oppslag på utbetalingId`() {
-            val id = UUID30.randomUUID()
-            proxied.utbetaling.hentUtbetaling(id)
-            verify(servicesReturningSak.utbetaling).hentUtbetaling(utbetalingId = id)
+            }
         }
     }
 }
