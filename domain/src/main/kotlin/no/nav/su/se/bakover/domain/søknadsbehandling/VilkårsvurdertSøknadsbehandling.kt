@@ -32,7 +32,8 @@ import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
 import java.time.Clock
 import java.util.UUID
 
-sealed class VilkårsvurdertSøknadsbehandling : Søknadsbehandling(),
+sealed class VilkårsvurdertSøknadsbehandling :
+    Søknadsbehandling(),
     Søknadsbehandling.KanOppdaterePeriodeGrunnlagVilkår {
 
     abstract override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert

@@ -62,10 +62,7 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
         return it.left()
     }
 
-    val iverksattBehandling = søknadsbehandling.tilIverksatt(attestering).getOrElse {
-        return it.left()
-    }
-
+    val iverksattBehandling = søknadsbehandling.tilIverksatt(attestering)
     val simulertUtbetaling = this.lagNyUtbetaling(
         saksbehandler = attestering.attestant,
         beregning = iverksattBehandling.beregning,
