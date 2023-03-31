@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeFerdigstilleOgIverksette
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
@@ -488,7 +489,7 @@ internal class ReguleringServiceImplTest {
         val _sak = if (scrambleUtbetaling) {
             sak.copy(
                 // Endrer utbetalingene for å trigge behov for regulering (hvis ikke vil vi ikke ha beregningsdiff)
-                utbetalinger = listOf(
+                utbetalinger = Utbetalinger(
                     oversendtUtbetalingUtenKvittering(
                         beregning = beregning(
                             fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt1000()),

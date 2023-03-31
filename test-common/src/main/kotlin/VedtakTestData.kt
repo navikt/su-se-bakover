@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
@@ -89,7 +90,7 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
         Pair(
             sak.copy(
                 vedtakListe = nonEmptyListOf(vedtak),
-                utbetalinger = nonEmptyListOf(utbetaling),
+                utbetalinger = Utbetalinger(nonEmptyListOf(utbetaling)),
             ),
             vedtak,
         )

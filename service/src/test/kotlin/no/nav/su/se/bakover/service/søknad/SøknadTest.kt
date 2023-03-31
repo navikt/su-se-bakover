@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -54,7 +55,7 @@ class SøknadTest {
         saksnummer = saksnummer,
         opprettet = Tidspunkt.EPOCH,
         fnr = fnr,
-        utbetalinger = emptyList(),
+        utbetalinger = Utbetalinger(),
         type = Sakstype.UFØRE,
         uteståendeAvkorting = Avkortingsvarsel.Ingen,
         versjon = Hendelsesversjon(1),

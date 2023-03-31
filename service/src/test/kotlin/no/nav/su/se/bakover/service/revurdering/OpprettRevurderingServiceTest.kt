@@ -407,8 +407,10 @@ internal class OpprettRevurderingServiceTest {
 
     @Test
     fun `støtter ikke tilfeller hvor gjeldende vedtaksdata ikke er sammenhengende i tid`() {
+        val clock = TikkendeKlokke()
         val sakMedFørstegangsbehandling = iverksattSøknadsbehandlingUføre(
             stønadsperiode = Stønadsperiode.create(januar(2021).rangeTo(juli(2021))),
+            clock = clock,
         )
 
         val sakMedNyStønadsperiode = iverksattSøknadsbehandlingUføre(
@@ -419,6 +421,7 @@ internal class OpprettRevurderingServiceTest {
                     personopplysninger = Personopplysninger(sakMedFørstegangsbehandling.first.fnr),
                 ),
             ),
+            clock = clock,
         )
 
         RevurderingServiceMocks(

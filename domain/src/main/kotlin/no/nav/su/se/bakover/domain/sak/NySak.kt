@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import java.util.UUID
@@ -25,7 +26,7 @@ data class NySak(
             fnr = fnr,
             søknader = listOf(søknad),
             søknadsbehandlinger = emptyList(),
-            utbetalinger = emptyList(),
+            utbetalinger = Utbetalinger(),
             revurderinger = emptyList(),
             vedtakListe = emptyList(),
             klager = emptyList(),

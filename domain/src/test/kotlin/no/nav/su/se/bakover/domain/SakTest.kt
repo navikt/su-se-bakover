@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.november
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
@@ -85,7 +86,7 @@ internal class SakTest {
                 fnr = Fnr.generer(),
                 søknader = listOf(),
                 søknadsbehandlinger = listOf(),
-                utbetalinger = listOf(),
+                utbetalinger = Utbetalinger(),
                 revurderinger = listOf(),
                 vedtakListe = listOf(),
                 type = Sakstype.UFØRE,
@@ -109,7 +110,14 @@ internal class SakTest {
             val (sak, _) = vedtakRevurdering(
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
                 sakOgVedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(clock = clock),
-                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = Periode.create(1.mai(2021), 31.desember(2021)))),
+                vilkårOverrides = listOf(
+                    avslåttUførevilkårUtenGrunnlag(
+                        periode = Periode.create(
+                            1.mai(2021),
+                            31.desember(2021),
+                        ),
+                    ),
+                ),
                 clock = clock,
             )
 
@@ -129,7 +137,14 @@ internal class SakTest {
                 clock = tikkendeKlokke,
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
                 sakOgVedtakSomKanRevurderes = sak to vedtak,
-                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = Periode.create(1.mai(2021), 31.desember(2021)))),
+                vilkårOverrides = listOf(
+                    avslåttUførevilkårUtenGrunnlag(
+                        periode = Periode.create(
+                            1.mai(2021),
+                            31.desember(2021),
+                        ),
+                    ),
+                ),
             )
 
             sakEtterOpphør.hentIkkeOpphørtePerioder() shouldBe listOf(
@@ -190,32 +205,37 @@ internal class SakTest {
 
         @Test
         fun `henter stønadsperioder med revurdering og med opphold mellom`() {
+            val clock = TikkendeKlokke()
             val (sakStønadsperiode1, stønadsperiode1) = vedtakSøknadsbehandlingIverksattInnvilget(
                 stønadsperiode = stønadsperiode2021,
+                clock = clock,
             )
 
             val (sakRevurdering1, revurderingPeriode1) = vedtakRevurderingIverksattInnvilget(
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
                 sakOgVedtakSomKanRevurderes = sakStønadsperiode1 to stønadsperiode1,
+                clock = clock,
             )
 
             val stønadsperiode2023 = Stønadsperiode.create(periode = år(2023))
 
             val (sakStønadsperiode2, stønadsperiode2) = vedtakSøknadsbehandlingIverksattInnvilget(
                 stønadsperiode = stønadsperiode2023,
+                clock = clock,
             )
 
             val (sakRevurdering2, revurderingPeriode2) = vedtakRevurderingIverksattInnvilget(
                 stønadsperiode = stønadsperiode2023,
                 revurderingsperiode = Periode.create(1.november(2023), 31.desember(2023)),
                 sakOgVedtakSomKanRevurderes = sakStønadsperiode2 to stønadsperiode2,
+                clock = clock,
             )
 
             sakStønadsperiode1.copy(
                 søknadsbehandlinger = sakRevurdering1.søknadsbehandlinger + sakRevurdering2.søknadsbehandlinger,
                 revurderinger = sakRevurdering1.revurderinger + sakRevurdering2.revurderinger,
                 vedtakListe = sakRevurdering1.vedtakListe + sakRevurdering2.vedtakListe,
-                utbetalinger = sakRevurdering1.utbetalinger + sakRevurdering2.utbetalinger,
+                utbetalinger = Utbetalinger(sakRevurdering1.utbetalinger, sakRevurdering2.utbetalinger),
             ).let {
                 it.hentIkkeOpphørtePerioder() shouldBe listOf(
                     år(2021),
@@ -280,21 +300,24 @@ internal class SakTest {
 
         @Test
         fun `slår sammen stønadsperioder som kommer etter hverandre`() {
+            val clock = TikkendeKlokke()
             val (sakStønadsperiode1, stønadsperiode1) = vedtakSøknadsbehandlingIverksattInnvilget(
                 stønadsperiode = stønadsperiode2021,
+                clock = clock,
             )
 
             val stønadsperiode2022 = Stønadsperiode.create(periode = år(2022))
 
             val (sakStønadsperiode2, stønadsperiode2) = vedtakSøknadsbehandlingIverksattInnvilget(
                 stønadsperiode = stønadsperiode2022,
+                clock = clock,
             )
 
             sakStønadsperiode1.copy(
                 søknadsbehandlinger = sakStønadsperiode1.søknadsbehandlinger + sakStønadsperiode2.søknadsbehandlinger,
                 revurderinger = sakStønadsperiode1.revurderinger + sakStønadsperiode2.revurderinger,
                 vedtakListe = sakStønadsperiode1.vedtakListe + sakStønadsperiode2.vedtakListe,
-                utbetalinger = sakStønadsperiode1.utbetalinger + sakStønadsperiode2.utbetalinger,
+                utbetalinger = Utbetalinger(sakStønadsperiode1.utbetalinger, sakStønadsperiode2.utbetalinger),
             ).let {
                 it.hentIkkeOpphørtePerioder() shouldBe listOf(
                     Periode.create(1.januar(2021), 31.desember(2022)),
@@ -318,10 +341,12 @@ internal class SakTest {
 
         @Test
         fun `utbetalinger kan ikke stanses dersom det er fremtidig hull i stønadsperiodene`() {
+            val clock = TikkendeKlokke()
             val (førHull, _) = iverksattSøknadsbehandlingUføre(
                 stønadsperiode = Stønadsperiode.create(
                     periode = januar(2021),
                 ),
+                clock = clock,
             )
 
             val (etterHull, _) = iverksattSøknadsbehandlingUføre(
@@ -335,6 +360,7 @@ internal class SakTest {
                         personopplysninger = Personopplysninger(førHull.fnr),
                     ),
                 ),
+                clock = clock,
             )
 
             etterHull.kanUtbetalingerStansesEllerGjenopptas(fixedClock) shouldBe KanStansesEllerGjenopptas.INGEN
@@ -342,11 +368,13 @@ internal class SakTest {
 
         @Test
         fun `utbetalinger kan stanses dersom det er et historisk hull i stønadsperiodene`() {
+            val clock = TikkendeKlokke()
             val juni2021 = Clock.fixed(1.juni(2021).atTime(0, 0).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
             val (førHull, _) = iverksattSøknadsbehandlingUføre(
                 stønadsperiode = Stønadsperiode.create(
                     periode = januar(2021),
                 ),
+                clock = clock,
             )
 
             val (etterHull, _) = iverksattSøknadsbehandlingUføre(
@@ -360,6 +388,7 @@ internal class SakTest {
                         personopplysninger = Personopplysninger(førHull.fnr),
                     ),
                 ),
+                clock = clock,
             )
 
             etterHull.kanUtbetalingerStansesEllerGjenopptas(juni2021) shouldBe KanStansesEllerGjenopptas.STANS

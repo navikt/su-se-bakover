@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
@@ -43,7 +44,7 @@ internal class SakJsonTest {
         saksnummer = Saksnummer(saksnummer),
         opprettet = fixedTidspunkt,
         fnr = Fnr("12345678910"),
-        utbetalinger = emptyList(),
+        utbetalinger = Utbetalinger(),
         klager = emptyList(),
         type = Sakstype.UFØRE,
         uteståendeAvkorting = Avkortingsvarsel.Ingen,
@@ -129,7 +130,7 @@ internal class SakJsonTest {
                 on { opprettet } doReturn opphørslinje.opprettet
             }
 
-            val sak = sak.copy(utbetalinger = listOf(utbetaling1, utbetaling2, utbetaling3, utbetaling4))
+            val sak = sak.copy(utbetalinger = Utbetalinger(utbetaling1, utbetaling2, utbetaling3, utbetaling4))
 
             val (actual1, actual2, actual3, actual4) = sak.toJson(fixedClock, satsFactoryTestPåDato()).utbetalinger
             actual1 shouldBe UtbetalingJson(

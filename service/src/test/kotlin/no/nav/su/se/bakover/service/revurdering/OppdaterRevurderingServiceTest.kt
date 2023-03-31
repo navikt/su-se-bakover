@@ -287,8 +287,10 @@ internal class OppdaterRevurderingServiceTest {
 
     @Test
     fun `kan ikke revurdere perioder hvor det ikke eksisterer vedtak for alle månedene i revurderingsperioden`() {
+        val clock = TikkendeKlokke()
         val sakMedFørstegangsbehandling = iverksattSøknadsbehandlingUføre(
             stønadsperiode = Stønadsperiode.create(januar(2021)..juli(2021)),
+            clock = clock,
         )
 
         val sakMedNyStønadsperiode = iverksattSøknadsbehandlingUføre(
@@ -299,12 +301,14 @@ internal class OppdaterRevurderingServiceTest {
                     personopplysninger = Personopplysninger(sakMedFørstegangsbehandling.first.fnr),
                 ),
             ),
+            clock = clock,
         )
 
         val opprettetRevurdering = opprettetRevurdering(
             sakOgVedtakSomKanRevurderes = sakMedNyStønadsperiode.first to sakMedNyStønadsperiode.third as VedtakSomKanRevurderes,
             // Setter en lovlig periode ved opprettelse for ikke å feile allerede her.
             revurderingsperiode = januar(2021)..juli(2021),
+            clock = clock,
         )
 
         RevurderingServiceMocks(
