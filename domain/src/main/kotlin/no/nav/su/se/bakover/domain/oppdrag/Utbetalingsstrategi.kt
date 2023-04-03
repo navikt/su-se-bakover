@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import java.time.Clock
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
@@ -32,6 +33,17 @@ sealed class Utbetalingsstrategi {
     abstract val eksisterendeUtbetalinger: List<Utbetaling>
     abstract val behandler: NavIdentBruker
     abstract val sakstype: Sakstype
+
+    /**
+     * Øker med 1 mikrosekund per utbetalingslinje, siden postgressql ikke støtter nanosekunder.
+     */
+    protected fun nesteTidspunktFunksjon(utbetalingstidspunkt: Tidspunkt): () -> Tidspunkt {
+        var currentTidspunkt = utbetalingstidspunkt
+
+        return {
+            currentTidspunkt.also { currentTidspunkt = it.plus(1, ChronoUnit.MICROS) }
+        }
+    }
 
     /**
      * Sjekk om vi noen gang har forsøkt å opphøre ytelsen i perioden fra [datoForStanEllerReaktivering] til siste utbetaling.
@@ -111,7 +123,6 @@ sealed class Utbetalingsstrategi {
                     Utbetalingslinje.Endring.Stans(
                         utbetalingslinje = sisteOversendteUtbetalingslinje,
                         virkningstidspunkt = stansDato,
-                        clock = clock,
                         opprettet = opprettet,
                     ),
                 ),
@@ -120,6 +131,9 @@ sealed class Utbetalingsstrategi {
                 sakstype = sakstype,
             ).also {
                 check(it.erStans()) { "Generert utbetaling er ikke en stans" }
+                it.utbetalingslinjer.sjekkUnikOpprettet()
+                it.utbetalingslinjer.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse()
+                it.utbetalingslinjer.sjekkSortering()
             }.right()
         }
 
@@ -147,13 +161,14 @@ sealed class Utbetalingsstrategi {
     ) : Utbetalingsstrategi() {
         fun generate(): Utbetaling.UtbetalingForSimulering {
             val opprettet = Tidspunkt.now(clock)
+            val nesteUtbetalingstidspunkt = nesteTidspunktFunksjon(opprettet)
 
             val nyeUtbetalingslinjer = createUtbetalingsperioder(
                 beregning = beregning,
                 uføregrunnlag = uføregrunnlag,
             ).map {
                 Utbetalingslinje.Ny(
-                    opprettet = opprettet,
+                    opprettet = nesteUtbetalingstidspunkt(),
                     fraOgMed = it.fraOgMed,
                     tilOgMed = it.tilOgMed,
                     forrigeUtbetalingslinjeId = eksisterendeUtbetalinger.hentSisteOversendteUtbetalingslinjeUtenFeil()?.id,
@@ -163,6 +178,8 @@ sealed class Utbetalingsstrategi {
                 )
             }.toNonEmptyList().also {
                 it.sjekkIngenNyeOverlapper()
+                it.sjekkUnikOpprettet()
+                it.sjekkSortering()
             }
 
             return Utbetaling.UtbetalingForSimulering(
@@ -173,12 +190,16 @@ sealed class Utbetalingsstrategi {
                 utbetalingslinjer = Utbetalingshistorikk(
                     nyeUtbetalingslinjer = nyeUtbetalingslinjer,
                     eksisterendeUtbetalingslinjer = eksisterendeUtbetalinger.hentOversendteUtbetalingslinjerUtenFeil(),
-                    clock = clock,
+                    nesteUtbetalingstidspunkt = nesteUtbetalingstidspunkt,
                 ).generer().toNonEmptyList(),
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
                 sakstype = sakstype,
-            )
+            ).also {
+                it.utbetalingslinjer.sjekkUnikOpprettet()
+                it.utbetalingslinjer.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse()
+                it.utbetalingslinjer.sjekkSortering()
+            }
         }
 
         private fun createUtbetalingsperioder(
@@ -244,12 +265,13 @@ sealed class Utbetalingsstrategi {
     ) : Utbetalingsstrategi() {
         fun generate(): Utbetaling.UtbetalingForSimulering {
             val opprettet = Tidspunkt.now(clock)
+            val nesteUtbetalingstidspunkt = nesteTidspunktFunksjon(opprettet)
 
             val nyeUtbetalingslinjer = SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(
                 beregning.getMånedsberegninger(),
             ).beregningsperioder.map {
                 Utbetalingslinje.Ny(
-                    opprettet = opprettet,
+                    opprettet = nesteUtbetalingstidspunkt(),
                     fraOgMed = it.periode.fraOgMed,
                     tilOgMed = it.periode.tilOgMed,
                     forrigeUtbetalingslinjeId = eksisterendeUtbetalinger.hentSisteOversendteUtbetalingslinjeUtenFeil()?.id,
@@ -268,13 +290,17 @@ sealed class Utbetalingsstrategi {
                 utbetalingslinjer = Utbetalingshistorikk(
                     nyeUtbetalingslinjer = nyeUtbetalingslinjer,
                     eksisterendeUtbetalingslinjer = eksisterendeUtbetalinger.hentOversendteUtbetalingslinjerUtenFeil(),
-                    clock = clock,
+                    nesteUtbetalingstidspunkt = nesteUtbetalingstidspunkt,
                 ).generer().toNonEmptyList(),
                 fnr = fnr,
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
                 sakstype = sakstype,
-            )
+            ).also {
+                it.utbetalingslinjer.sjekkUnikOpprettet()
+                it.utbetalingslinjer.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse()
+                it.utbetalingslinjer.sjekkSortering()
+            }
         }
     }
 
@@ -295,6 +321,7 @@ sealed class Utbetalingsstrategi {
             } ?: throw UtbetalingStrategyException("Ingen oversendte utbetalinger å opphøre")
 
             val opprettet = Tidspunkt.now(clock)
+            val nesteUtbetalingstidspunkt = nesteTidspunktFunksjon(opprettet)
 
             return Utbetaling.UtbetalingForSimulering(
                 opprettet = opprettet,
@@ -306,17 +333,20 @@ sealed class Utbetalingsstrategi {
                         Utbetalingslinje.Endring.Opphør(
                             utbetalingslinje = sisteUtbetalingslinje,
                             virkningsperiode = periode,
-                            opprettet = opprettet,
-                            clock = clock,
+                            opprettet = nesteUtbetalingstidspunkt(),
                         ),
                     ).toNonEmptyList(),
                     eksisterendeUtbetalingslinjer = eksisterendeUtbetalinger.hentOversendteUtbetalingslinjerUtenFeil(),
-                    clock = clock,
+                    nesteUtbetalingstidspunkt = nesteUtbetalingstidspunkt,
                 ).generer().toNonEmptyList(),
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
                 sakstype = sakstype,
-            )
+            ).also {
+                it.utbetalingslinjer.sjekkUnikOpprettet()
+                it.utbetalingslinjer.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse()
+                it.utbetalingslinjer.sjekkSortering()
+            }
         }
     }
 
@@ -355,7 +385,6 @@ sealed class Utbetalingsstrategi {
                         utbetalingslinje = sisteOversendteUtbetalingslinje,
                         virkningstidspunkt = sisteOversendteUtbetalingslinje.periode.fraOgMed,
                         opprettet = opprettet,
-                        clock = clock,
                     ),
                 ),
                 behandler = behandler,
@@ -363,6 +392,9 @@ sealed class Utbetalingsstrategi {
                 sakstype = sakstype,
             ).also {
                 check(it.erReaktivering()) { "Generert utbetaling er ikke en reaktivering" }
+                it.utbetalingslinjer.sjekkUnikOpprettet()
+                it.utbetalingslinjer.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse()
+                it.utbetalingslinjer.sjekkSortering()
             }.right()
         }
 

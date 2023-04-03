@@ -6,14 +6,13 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
-import java.time.Clock
 import java.time.LocalDate
 import java.util.LinkedList
 
 class Utbetalingshistorikk(
     nyeUtbetalingslinjer: NonEmptyList<Utbetalingslinje>,
     eksisterendeUtbetalingslinjer: List<Utbetalingslinje>,
-    private val clock: Clock,
+    val nesteUtbetalingstidspunkt: () -> Tidspunkt,
 ) {
     private val sorterteNyeUtbetalingslinjer = nyeUtbetalingslinjer.sorted()
     private val sorterteEksisterendeUtbetalingslinjer = eksisterendeUtbetalingslinjer.sorted()
@@ -22,10 +21,11 @@ class Utbetalingshistorikk(
 
     init {
         nyeUtbetalingslinjer.sjekkIngenNyeOverlapper()
+        nyeUtbetalingslinjer.sjekkUnikOpprettet()
     }
 
     fun generer(): List<Utbetalingslinje> {
-        return ForrigeUtbetbetalingslinjeKoblendeListe().apply {
+        return ForrigeUtbetalingslinjeKoblendeListe().apply {
             sorterteNyeUtbetalingslinjer.forEach { this.add(it) }
             finnEndringerForNyeLinjer(
                 nye = finnUtbetalingslinjerSomSkalRekonstrueres()
@@ -43,6 +43,7 @@ class Utbetalingshistorikk(
             it.kontrollerAtEksisterendeErKjedetMedNyeUtbetalinger()
             it.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse()
             it.sjekkSortering()
+            it.sjekkUnikOpprettet()
         }
     }
 
@@ -65,11 +66,13 @@ class Utbetalingshistorikk(
         return nye.map { ny -> ny to endringer.filter { it.id == ny.id } }
     }
 
-    private fun rekonstruer(pair: Pair<Utbetalingslinje.Ny, List<Utbetalingslinje.Endring>>): Pair<Utbetalingslinje.Ny, List<Utbetalingslinje.Endring>> {
+    private fun rekonstruer(
+        pair: Pair<Utbetalingslinje.Ny, List<Utbetalingslinje.Endring>>,
+    ): Pair<Utbetalingslinje.Ny, List<Utbetalingslinje.Endring>> {
         return pair.let { (ny, endringer) ->
             val rekonstruertNy = ny.copy(
                 id = UUID30.randomUUID(),
-                opprettet = Tidspunkt.now(clock),
+                opprettet = nesteUtbetalingstidspunkt(),
                 fraOgMed = maxOf(
                     ny.originalFraOgMed(),
                     minimumFraOgMedForRekonstruerteLinjer,
@@ -88,7 +91,7 @@ class Utbetalingshistorikk(
                                 ),
                                 tilOgMed = endring.periode.tilOgMed,
                             ),
-                            clock = clock,
+                            opprettet = nesteUtbetalingstidspunkt(),
                         )
                     }
 
@@ -99,7 +102,7 @@ class Utbetalingshistorikk(
                                 endring.periode.fraOgMed,
                                 minimumFraOgMedForRekonstruerteLinjer,
                             ),
-                            clock = clock,
+                            opprettet = nesteUtbetalingstidspunkt(),
                         )
                     }
 
@@ -110,7 +113,7 @@ class Utbetalingshistorikk(
                                 endring.periode.fraOgMed,
                                 minimumFraOgMedForRekonstruerteLinjer,
                             ),
-                            clock = clock,
+                            opprettet = nesteUtbetalingstidspunkt(),
                         )
                     }
                 }
@@ -162,7 +165,7 @@ class Utbetalingshistorikk(
     }
 }
 
-class ForrigeUtbetbetalingslinjeKoblendeListe() : LinkedList<Utbetalingslinje>() {
+class ForrigeUtbetalingslinjeKoblendeListe() : LinkedList<Utbetalingslinje>() {
 
     constructor(utbetalingslinje: List<Utbetalingslinje>) : this() {
         apply {

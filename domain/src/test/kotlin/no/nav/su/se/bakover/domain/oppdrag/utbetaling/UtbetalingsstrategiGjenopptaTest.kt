@@ -4,9 +4,9 @@ import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.november
@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import org.junit.jupiter.api.Test
+import java.time.ZoneOffset
 
 internal class UtbetalingsstrategiGjenopptaTest {
     @Test
@@ -38,11 +39,12 @@ internal class UtbetalingsstrategiGjenopptaTest {
         val opprinnelig: Utbetaling.OversendtUtbetaling.UtenKvittering = oversendtUtbetaling()
 
         val stans: Utbetaling.OversendtUtbetaling.UtenKvittering = createOversendtUtbetaling(
+            opprettet = fixedTidspunkt,
             nonEmptyListOf(
                 Utbetalingslinje.Endring.Stans(
                     utbetalingslinje = opprinnelig.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.oktober(2020),
-                    clock = fixedClock,
+                    opprettet = fixedTidspunkt,
                 ),
             ),
         )
@@ -103,6 +105,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
         val første = oversendtUtbetaling()
 
         val førsteStans = createOversendtUtbetaling(
+            opprettet = fixedTidspunkt,
             nonEmptyListOf(
                 Utbetalingslinje.Endring.Stans(
                     utbetalingslinje = første.sisteUtbetalingslinje(),
@@ -113,6 +116,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
         )
 
         val førsteGjenopptak = createOversendtUtbetaling(
+            opprettet = fixedTidspunkt,
             nonEmptyListOf(
                 Utbetalingslinje.Endring.Reaktivering(
                     utbetalingslinje = førsteStans.sisteUtbetalingslinje(),
@@ -194,6 +198,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
         val første = oversendtUtbetaling()
 
         val andre = createOversendtUtbetaling(
+            opprettet = fixedTidspunkt,
             nonEmptyListOf(
                 Utbetalingslinje.Endring.Stans(
                     utbetalingslinje = første.sisteUtbetalingslinje(),
@@ -204,6 +209,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
         )
 
         val tredje = createOversendtUtbetaling(
+            opprettet = fixedTidspunkt,
             nonEmptyListOf(
                 Utbetalingslinje.Endring.Reaktivering(
                     utbetalingslinje = andre.sisteUtbetalingslinje(),
@@ -239,7 +245,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
             uføregrad = Uføregrad.parse(50),
         )
         val l2 = Utbetalingslinje.Ny(
-            opprettet = fixedTidspunkt,
+            opprettet = fixedTidspunkt.plusUnits(1),
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = l1.id,
@@ -289,22 +295,23 @@ internal class UtbetalingsstrategiGjenopptaTest {
     }
 
     private fun createOversendtUtbetaling(
+        opprettet: Tidspunkt = fixedTidspunkt,
         utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
     ): Utbetaling.OversendtUtbetaling.UtenKvittering {
         return Utbetaling.UtbetalingForSimulering(
-            opprettet = fixedTidspunkt,
+            opprettet = opprettet,
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
             utbetalingslinjer = utbetalingslinjer,
             behandler = saksbehandler,
-            avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
+            avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
             sakstype = Sakstype.UFØRE,
         ).toSimulertUtbetaling(
             simulering = Simulering(
                 gjelderId = fnr,
                 gjelderNavn = "navn",
-                datoBeregnet = idag(fixedClock),
+                datoBeregnet = opprettet.toLocalDate(ZoneOffset.UTC),
                 nettoBeløp = 0,
                 periodeList = listOf(
                     SimulertPeriode(

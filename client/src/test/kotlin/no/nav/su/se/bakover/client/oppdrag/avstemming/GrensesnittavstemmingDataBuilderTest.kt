@@ -4,6 +4,7 @@ import arrow.core.NonEmptyList
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.mars
@@ -16,7 +17,7 @@ import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.oppdrag.Fagområde
-import no.nav.su.se.bakover.domain.oppdrag.ForrigeUtbetbetalingslinjeKoblendeListe
+import no.nav.su.se.bakover.domain.oppdrag.ForrigeUtbetalingslinjeKoblendeListe
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -27,7 +28,9 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.utbetalingslinje
 import org.junit.jupiter.api.Test
@@ -116,17 +119,33 @@ internal fun lagUtbetaling(
     oppdragsmelding: Utbetalingsrequest = Utbetalingsrequest(
         value = "Melding",
     ),
+): Utbetaling.OversendtUtbetaling = lagUtbetaling(
+    id = id,
+    opprettet = opprettet.atStartOfDay(zoneIdOslo).toTidspunkt(),
+    status = status,
+    linjer = linjer,
+    oppdragsmelding = oppdragsmelding,
+)
+
+internal fun lagUtbetaling(
+    id: UUID30 = UUID30.randomUUID(),
+    opprettet: Tidspunkt,
+    status: Kvittering.Utbetalingsstatus?,
+    linjer: NonEmptyList<Utbetalingslinje>,
+    oppdragsmelding: Utbetalingsrequest = Utbetalingsrequest(
+        value = "Melding",
+    ),
 ): Utbetaling.OversendtUtbetaling = when (status) {
     null -> {
         Utbetaling.UtbetalingForSimulering(
             id = id,
-            opprettet = opprettet.atStartOfDay(zoneIdOslo).toTidspunkt(),
+            opprettet = opprettet,
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
             utbetalingslinjer = linjer,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
-            avstemmingsnøkkel = Avstemmingsnøkkel(opprettet.atStartOfDay(zoneIdOslo).toTidspunkt()),
+            avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
             sakstype = Sakstype.UFØRE,
         ).toSimulertUtbetaling(
             simulering = simulering,
@@ -134,16 +153,17 @@ internal fun lagUtbetaling(
             oppdragsmelding = oppdragsmelding,
         )
     }
+
     else -> {
         Utbetaling.UtbetalingForSimulering(
             id = id,
-            opprettet = opprettet.atStartOfDay(zoneIdOslo).toTidspunkt(),
+            opprettet = opprettet,
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
             utbetalingslinjer = linjer,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
-            avstemmingsnøkkel = Avstemmingsnøkkel(opprettet.atStartOfDay(zoneIdOslo).toTidspunkt()),
+            avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
             sakstype = Sakstype.UFØRE,
         ).toSimulertUtbetaling(
             simulering = simulering,
@@ -180,62 +200,124 @@ private val simulering = Simulering(
     rawResponse = "GrensesnittavstemmingDataBuilderTest baserer seg ikke på rå XML.",
 )
 
-internal fun alleUtbetalinger() = listOf(
-    lagUtbetaling(
-        id = ok1Id,
-        opprettet = 1.mars(2020),
-        status = Kvittering.Utbetalingsstatus.OK,
-        linjer = ForrigeUtbetbetalingslinjeKoblendeListe(
-            listOf(
-                utbetalingslinje(periode = mars(2020), beløp = 100),
-                utbetalingslinje(periode = april(2020), beløp = 200),
-            ),
-        ).toNonEmptyList(),
-    ),
-    lagUtbetaling(
-        id = ok2Id,
-        opprettet = 1.mars(2020),
-        status = Kvittering.Utbetalingsstatus.OK,
-        linjer = ForrigeUtbetbetalingslinjeKoblendeListe(
-            listOf(
-                utbetalingslinje(periode = mars(2020), beløp = 600, uføregrad = 60),
-                utbetalingslinje(periode = april(2020), beløp = 700, uføregrad = 60),
-            ),
-        ).toNonEmptyList(),
-    ),
-    lagUtbetaling(
-        id = okMedVarselId,
-        opprettet = 2.mars(2020),
-        status = Kvittering.Utbetalingsstatus.OK_MED_VARSEL,
-        linjer = ForrigeUtbetbetalingslinjeKoblendeListe(
-            listOf(
-                utbetalingslinje(periode = mars(2020), beløp = 400, uføregrad = 70),
-                utbetalingslinje(periode = april(2020), beløp = 500, uføregrad = 70),
-                utbetalingslinje(periode = mai(2020), beløp = 500, uføregrad = 75),
-            ),
-        ).toNonEmptyList(),
-    ),
-    lagUtbetaling(
-        id = feildId,
-        opprettet = 1.mars(2020),
-        status = Kvittering.Utbetalingsstatus.FEIL,
-        linjer = ForrigeUtbetbetalingslinjeKoblendeListe(
-            listOf(
-                utbetalingslinje(periode = mars(2020), beløp = 1000, uføregrad = 10),
-                utbetalingslinje(periode = april(2020), beløp = 2000, uføregrad = 20),
-                utbetalingslinje(periode = mai(2020), beløp = 3000, uføregrad = 30),
-                utbetalingslinje(periode = juni(2020), beløp = 4000, uføregrad = 50),
-            ),
-        ).toNonEmptyList(),
-    ),
-    lagUtbetaling(
-        id = manglerKvitteringId,
-        opprettet = 2.mars(2020),
-        status = null,
-        linjer = ForrigeUtbetbetalingslinjeKoblendeListe(
-            listOf(
-                utbetalingslinje(periode = år(2020), beløp = 5000, uføregrad = 15),
-            ),
-        ).toNonEmptyList(),
-    ),
-)
+internal fun alleUtbetalinger(): List<Utbetaling.OversendtUtbetaling> {
+    val clock = TikkendeKlokke(fixedClockAt(1.mars(2020)))
+
+    return listOf(
+        lagUtbetaling(
+            id = ok1Id,
+            opprettet = clock.nextTidspunkt(),
+            status = Kvittering.Utbetalingsstatus.OK,
+            linjer = ForrigeUtbetalingslinjeKoblendeListe(
+                listOf(
+                    utbetalingslinje(
+                        periode = mars(2020),
+                        beløp = 100,
+                        opprettet = clock.nextTidspunkt(),
+                    ),
+                    utbetalingslinje(
+                        periode = april(2020),
+                        beløp = 200,
+                        opprettet = clock.nextTidspunkt(),
+                    ),
+                ),
+            ).toNonEmptyList(),
+        ),
+        lagUtbetaling(
+            id = ok2Id,
+            opprettet = clock.nextTidspunkt(),
+            status = Kvittering.Utbetalingsstatus.OK,
+            linjer = ForrigeUtbetalingslinjeKoblendeListe(
+                listOf(
+                    utbetalingslinje(
+                        periode = mars(2020),
+                        beløp = 600,
+                        uføregrad = 60,
+                        opprettet = clock.nextTidspunkt(),
+                    ),
+                    utbetalingslinje(
+                        periode = april(2020),
+                        beløp = 700,
+                        uføregrad = 60,
+                        opprettet = clock.nextTidspunkt(),
+                    ),
+                ),
+            ).toNonEmptyList(),
+        ),
+        lagUtbetaling(
+            id = okMedVarselId,
+            opprettet = 2.mars(2020),
+            status = Kvittering.Utbetalingsstatus.OK_MED_VARSEL,
+            linjer = ForrigeUtbetalingslinjeKoblendeListe(
+                listOf(
+                    utbetalingslinje(
+                        periode = mars(2020),
+                        beløp = 400,
+                        uføregrad = 70,
+                        opprettet = clock.nextTidspunkt(),
+                    ),
+                    utbetalingslinje(
+                        periode = april(2020),
+                        beløp = 500,
+                        uføregrad = 70,
+                        opprettet = clock.nextTidspunkt(),
+                    ),
+                    utbetalingslinje(
+                        periode = mai(2020),
+                        beløp = 500,
+                        uføregrad = 75,
+                        opprettet = clock.nextTidspunkt(),
+                    ),
+                ),
+            ).toNonEmptyList(),
+        ),
+        lagUtbetaling(
+            id = feildId,
+            opprettet = 1.mars(2020),
+            status = Kvittering.Utbetalingsstatus.FEIL,
+            linjer = ForrigeUtbetalingslinjeKoblendeListe(
+                listOf(
+                    utbetalingslinje(
+                        periode = mars(2020),
+                        beløp = 1000,
+                        uføregrad = 10,
+                        opprettet = clock.nextTidspunkt(),
+                    ),
+                    utbetalingslinje(
+                        periode = april(2020),
+                        beløp = 2000,
+                        uføregrad = 20,
+                        opprettet = clock.nextTidspunkt(),
+                    ),
+                    utbetalingslinje(
+                        periode = mai(2020),
+                        beløp = 3000,
+                        uføregrad = 30,
+                        opprettet = clock.nextTidspunkt(),
+                    ),
+                    utbetalingslinje(
+                        periode = juni(2020),
+                        beløp = 4000,
+                        uføregrad = 50,
+                        opprettet = clock.nextTidspunkt(),
+                    ),
+                ),
+            ).toNonEmptyList(),
+        ),
+        lagUtbetaling(
+            id = manglerKvitteringId,
+            opprettet = 2.mars(2020),
+            status = null,
+            linjer = ForrigeUtbetalingslinjeKoblendeListe(
+                listOf(
+                    utbetalingslinje(
+                        periode = år(2020),
+                        beløp = 5000,
+                        uføregrad = 15,
+                        opprettet = clock.nextTidspunkt(),
+                    ),
+                ),
+            ).toNonEmptyList(),
+        ),
+    )
+}

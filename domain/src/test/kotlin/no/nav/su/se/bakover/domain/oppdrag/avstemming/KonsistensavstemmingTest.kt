@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Fagområde
-import no.nav.su.se.bakover.domain.oppdrag.ForrigeUtbetbetalingslinjeKoblendeListe
+import no.nav.su.se.bakover.domain.oppdrag.ForrigeUtbetalingslinjeKoblendeListe
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
@@ -186,7 +186,7 @@ internal class KonsistensavstemmingTest {
             fnr = fnr,
             saksnummer = saksnummer,
             opprettet = Tidspunkt.now(andreKlokke),
-            utbetalingsLinjer = ForrigeUtbetbetalingslinjeKoblendeListe(
+            utbetalingsLinjer = ForrigeUtbetalingslinjeKoblendeListe(
                 listOf(
                     createUtbetalingslinje(
                         opprettet = Tidspunkt.now(andreKlokke),
@@ -195,7 +195,7 @@ internal class KonsistensavstemmingTest {
                         beløp = 20000,
                     ),
                     createUtbetalingslinje(
-                        opprettet = Tidspunkt.now(andreKlokke),
+                        opprettet = Tidspunkt.now(andreKlokke).plusUnits(1),
                         fraOgMed = 1.september(2021),
                         tilOgMed = 31.desember(2021),
                         beløp = 20000,
@@ -210,7 +210,7 @@ internal class KonsistensavstemmingTest {
             fnr = fnr2,
             saksnummer = saksnummer2,
             opprettet = Tidspunkt.now(førsteKlokke),
-            utbetalingsLinjer = ForrigeUtbetbetalingslinjeKoblendeListe(
+            utbetalingsLinjer = ForrigeUtbetalingslinjeKoblendeListe(
                 listOf(
                     createUtbetalingslinje(
                         opprettet = Tidspunkt.now(førsteKlokke),
@@ -219,7 +219,7 @@ internal class KonsistensavstemmingTest {
                         beløp = 15000,
                     ),
                     createUtbetalingslinje(
-                        opprettet = Tidspunkt.now(førsteKlokke),
+                        opprettet = Tidspunkt.now(førsteKlokke).plusUnits(1),
                         fraOgMed = 1.september(2021),
                         tilOgMed = 31.desember(2021),
                         beløp = 18000,
@@ -293,7 +293,7 @@ internal class KonsistensavstemmingTest {
             fnr = fnr,
             saksnummer = saksnummer,
             opprettet = Tidspunkt.now(andreKlokke),
-            utbetalingsLinjer = ForrigeUtbetbetalingslinjeKoblendeListe(
+            utbetalingsLinjer = ForrigeUtbetalingslinjeKoblendeListe(
                 listOf(
                     createUtbetalingslinje(
                         opprettet = Tidspunkt.now(andreKlokke),
@@ -302,7 +302,7 @@ internal class KonsistensavstemmingTest {
                         beløp = 20000,
                     ),
                     createUtbetalingslinje(
-                        opprettet = Tidspunkt.now(andreKlokke),
+                        opprettet = Tidspunkt.now(andreKlokke).plusUnits(1),
                         fraOgMed = 1.september(2021),
                         tilOgMed = 31.desember(2021),
                         beløp = 20000,
@@ -317,7 +317,7 @@ internal class KonsistensavstemmingTest {
             fnr = fnr2,
             saksnummer = saksnummer2,
             opprettet = Tidspunkt.now(førsteKlokke),
-            utbetalingsLinjer = ForrigeUtbetbetalingslinjeKoblendeListe(
+            utbetalingsLinjer = ForrigeUtbetalingslinjeKoblendeListe(
                 listOf(
                     createUtbetalingslinje(
                         opprettet = Tidspunkt.now(førsteKlokke),
@@ -326,7 +326,7 @@ internal class KonsistensavstemmingTest {
                         beløp = 15000,
                     ),
                     createUtbetalingslinje(
-                        opprettet = Tidspunkt.now(førsteKlokke),
+                        opprettet = Tidspunkt.now(førsteKlokke).plusUnits(1),
                         fraOgMed = 1.september(2021),
                         tilOgMed = 31.desember(2021),
                         beløp = 18000,
@@ -584,7 +584,7 @@ internal class KonsistensavstemmingTest {
             fnr = fnr,
             saksnummer = saksnummer,
             opprettet = Tidspunkt.now(førsteKlokke),
-            utbetalingsLinjer = ForrigeUtbetbetalingslinjeKoblendeListe(
+            utbetalingsLinjer = ForrigeUtbetalingslinjeKoblendeListe(
                 listOf(
                     createUtbetalingslinje(
                         opprettet = Tidspunkt.now(førsteKlokke),
@@ -593,7 +593,7 @@ internal class KonsistensavstemmingTest {
                         beløp = 10000,
                     ),
                     createUtbetalingslinje(
-                        opprettet = Tidspunkt.now(førsteKlokke),
+                        opprettet = Tidspunkt.now(førsteKlokke).plusUnits(1),
                         fraOgMed = 1.mai(2021),
                         tilOgMed = 31.desember(2021),
                         beløp = 15000,
@@ -733,7 +733,7 @@ internal class KonsistensavstemmingTest {
             fnr = fnr,
             saksnummer = saksnummer,
             opprettet = Tidspunkt.now(førsteKlokke),
-            utbetalingsLinjer = ForrigeUtbetbetalingslinjeKoblendeListe(
+            utbetalingsLinjer = ForrigeUtbetalingslinjeKoblendeListe(
                 listOf(
                     createUtbetalingslinje(
                         opprettet = Tidspunkt.now(førsteKlokke),
@@ -742,7 +742,7 @@ internal class KonsistensavstemmingTest {
                         beløp = 10000,
                     ),
                     createUtbetalingslinje(
-                        opprettet = Tidspunkt.now(førsteKlokke),
+                        opprettet = Tidspunkt.now(førsteKlokke).plusUnits(1),
                         fraOgMed = 1.mai(2021),
                         tilOgMed = 31.desember(2021),
                         beløp = 15000,
@@ -815,7 +815,7 @@ internal class KonsistensavstemmingTest {
             fnr = fnr,
             saksnummer = saksnummer,
             opprettet = Tidspunkt.now(førsteKlokke),
-            utbetalingsLinjer = ForrigeUtbetbetalingslinjeKoblendeListe(
+            utbetalingsLinjer = ForrigeUtbetalingslinjeKoblendeListe(
                 listOf(
                     createUtbetalingslinje(
                         opprettet = Tidspunkt.now(førsteKlokke),
@@ -824,7 +824,7 @@ internal class KonsistensavstemmingTest {
                         beløp = 15000,
                     ),
                     createUtbetalingslinje(
-                        opprettet = Tidspunkt.now(førsteKlokke),
+                        opprettet = Tidspunkt.now(førsteKlokke).plusUnits(1),
                         fraOgMed = 1.mai(2021),
                         tilOgMed = 31.desember(2021),
                         beløp = 17500,

@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.utbetalingslinje
 import org.junit.jupiter.api.Test
@@ -35,8 +36,9 @@ internal class UtbetalingRequestTest {
 
         private val nyOppdragslinjeId1 = UUID30.randomUUID()
         private val nyOppdragslinjeId2 = UUID30.randomUUID()
+        private val clock = TikkendeKlokke()
         val nyUtbetaling = Utbetaling.UtbetalingForSimulering(
-            opprettet = fixedTidspunkt,
+            opprettet = clock.nextTidspunkt(),
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = FNR,
@@ -45,6 +47,7 @@ internal class UtbetalingRequestTest {
                     id = nyOppdragslinjeId1,
                     periode = januar(2020)..april(2020),
                     beløp = BELØP,
+                    opprettet = clock.nextTidspunkt(),
                 ),
                 utbetalingslinje(
                     id = nyOppdragslinjeId2,
@@ -52,6 +55,7 @@ internal class UtbetalingRequestTest {
                     beløp = BELØP,
                     forrigeUtbetalingslinjeId = nyOppdragslinjeId1,
                     uføregrad = 70,
+                    opprettet = clock.nextTidspunkt(),
                 ),
             ),
             behandler = NavIdentBruker.Attestant("A123456"),
@@ -146,7 +150,7 @@ internal class UtbetalingRequestTest {
         val eksisterendeOppdragslinjeId = UUID30.randomUUID()
         val nyOppdragslinjeid1 = UUID30.randomUUID()
         val nyOppdragslinjeid2 = UUID30.randomUUID()
-
+        val clock = TikkendeKlokke()
         val nyUtbetaling = Utbetaling.UtbetalingForSimulering(
             opprettet = fixedTidspunkt,
             sakId = sakId,
@@ -158,12 +162,14 @@ internal class UtbetalingRequestTest {
                     periode = januar(2020)..april(2020),
                     beløp = BELØP,
                     forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeId,
+                    opprettet = clock.nextTidspunkt(),
                 ),
                 utbetalingslinje(
                     id = nyOppdragslinjeid2,
                     periode = mai(2020)..desember(2020),
                     beløp = BELØP,
                     forrigeUtbetalingslinjeId = nyOppdragslinjeid1,
+                    opprettet = clock.nextTidspunkt(),
                 ),
             ),
             behandler = NavIdentBruker.Attestant("A123456"),
