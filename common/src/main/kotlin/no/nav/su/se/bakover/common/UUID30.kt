@@ -8,7 +8,9 @@ data class UUID30 constructor(
     val value: String,
 ) {
     init {
-        require(value.trim().length == 30)
+        require(value.trim().length == 30) {
+            "Kunne ikke lage en UUID30 fra $value"
+        }
     }
 
     companion object {

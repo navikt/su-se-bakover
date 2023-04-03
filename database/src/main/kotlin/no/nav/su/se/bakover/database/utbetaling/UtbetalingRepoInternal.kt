@@ -122,6 +122,7 @@ private fun Row.toUtbetalingslinje(): Utbetalingslinje {
                     utbetalingsinstruksjonForEtterbetalinger = toKjøreplan(),
                 )
             }
+
             Utbetalingslinje.Endring.LinjeStatus.STANS -> {
                 Utbetalingslinje.Endring.Stans(
                     id = linje.id,
@@ -135,6 +136,7 @@ private fun Row.toUtbetalingslinje(): Utbetalingslinje {
                     utbetalingsinstruksjonForEtterbetalinger = toKjøreplan(),
                 )
             }
+
             Utbetalingslinje.Endring.LinjeStatus.REAKTIVERING -> {
                 Utbetalingslinje.Endring.Reaktivering(
                     id = linje.id,
