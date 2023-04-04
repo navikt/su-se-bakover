@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.client.oppdrag.utbetaling
 
 import arrow.core.nonEmptyListOf
-import no.nav.su.se.bakover.client.oppdrag.XmlMapper
 import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
 import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
 import no.nav.su.se.bakover.common.Fnr
@@ -12,6 +11,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.startOfDay
+import no.nav.su.se.bakover.common.xmlMapper
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -32,7 +32,7 @@ class UtbetalingXmlMappingTest {
     @Test
     fun `mapper utbetaling til xml request`() {
         assertThat(
-            XmlMapper.writeValueAsString(toUtbetalingRequest(utbetaling = utbetaling)),
+            xmlMapper.writeValueAsString(toUtbetalingRequest(utbetaling = utbetaling)),
             isSimilarTo(expected).withNodeMatcher(nodeMatcher),
         )
     }

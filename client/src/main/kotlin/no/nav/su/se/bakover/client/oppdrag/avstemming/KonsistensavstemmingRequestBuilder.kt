@@ -2,9 +2,9 @@ package no.nav.su.se.bakover.client.oppdrag.avstemming
 
 import no.nav.su.se.bakover.client.oppdrag.OppdragDefaults
 import no.nav.su.se.bakover.client.oppdrag.OppdragslinjeDefaults
-import no.nav.su.se.bakover.client.oppdrag.XmlMapper
 import no.nav.su.se.bakover.client.oppdrag.toOppdragDate
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
+import no.nav.su.se.bakover.common.xmlMapper
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.OppdragForKonsistensavstemming
@@ -42,27 +42,27 @@ internal class KonsistensavstemmingRequestBuilder(
     }
 
     fun startXml(): String {
-        return XmlMapper.writeValueAsString(
+        return xmlMapper.writeValueAsString(
             SendAsynkronKonsistensavstemmingsdata(request = SendKonsistensavstemmingRequest(aksjonsdata.start())),
         )
     }
 
     fun dataXml(): List<String> {
         return lagData().map {
-            XmlMapper.writeValueAsString(
+            xmlMapper.writeValueAsString(
                 SendAsynkronKonsistensavstemmingsdata(request = SendKonsistensavstemmingRequest(it)),
             )
         }
     }
 
     fun totaldataXml(): String {
-        return XmlMapper.writeValueAsString(
+        return xmlMapper.writeValueAsString(
             SendAsynkronKonsistensavstemmingsdata(request = SendKonsistensavstemmingRequest(lagTotaldata())),
         )
     }
 
     fun avsluttXml(): String {
-        return XmlMapper.writeValueAsString(
+        return xmlMapper.writeValueAsString(
             SendAsynkronKonsistensavstemmingsdata(request = SendKonsistensavstemmingRequest(aksjonsdata.avslutt())),
         )
     }

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 import no.nav.su.se.bakover.client.oppdrag.OppdragDefaults
-import no.nav.su.se.bakover.client.oppdrag.XmlMapper
+import no.nav.su.se.bakover.common.xmlMapper
 import java.math.BigDecimal
 
 /**
@@ -30,15 +30,15 @@ internal data class GrensesnittsavstemmingData(
 ) {
 
     fun startXml(): String {
-        return XmlMapper.writeValueAsString(AvstemmingStartRequest(aksjon.start()))
+        return xmlMapper.writeValueAsString(AvstemmingStartRequest(aksjon.start()))
     }
 
     fun dataXml(): String {
-        return XmlMapper.writeValueAsString(this)
+        return xmlMapper.writeValueAsString(this)
     }
 
     fun avsluttXml(): String {
-        return XmlMapper.writeValueAsString(AvstemmingStoppRequest(aksjon.avslutt()))
+        return xmlMapper.writeValueAsString(AvstemmingStoppRequest(aksjon.avslutt()))
     }
 
     /**
