@@ -4,6 +4,7 @@ import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
@@ -42,9 +43,10 @@ internal class UtbetalingsstrategiGjenopptaTest {
             opprettet = fixedTidspunkt,
             nonEmptyListOf(
                 Utbetalingslinje.Endring.Stans(
-                    utbetalingslinje = opprinnelig.sisteUtbetalingslinje(),
+                    utbetalingslinjeSomSkalEndres = opprinnelig.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.oktober(2020),
                     opprettet = fixedTidspunkt,
+                    rekkefølge = Rekkefølge.start(),
                 ),
             ),
         )
@@ -72,11 +74,15 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 Utbetalingslinje.Endring.Reaktivering(
                     id = opprinnelig.utbetalingslinjer[0].id,
                     opprettet = actual.utbetalingslinjer[0].opprettet,
+                    rekkefølge = Rekkefølge.start(),
                     fraOgMed = opprinnelig.utbetalingslinjer[0].periode.fraOgMed,
                     tilOgMed = opprinnelig.utbetalingslinjer[0].periode.tilOgMed,
                     forrigeUtbetalingslinjeId = opprinnelig.utbetalingslinjer[0].forrigeUtbetalingslinjeId,
                     beløp = opprinnelig.utbetalingslinjer[0].beløp,
-                    virkningsperiode = Periode.create(1.oktober(2020), opprinnelig.utbetalingslinjer[0].periode.tilOgMed),
+                    virkningsperiode = Periode.create(
+                        1.oktober(2020),
+                        opprinnelig.utbetalingslinjer[0].periode.tilOgMed,
+                    ),
                     uføregrad = opprinnelig.utbetalingslinjer[0].uføregrad,
                     utbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                 ),
@@ -108,9 +114,10 @@ internal class UtbetalingsstrategiGjenopptaTest {
             opprettet = fixedTidspunkt,
             nonEmptyListOf(
                 Utbetalingslinje.Endring.Stans(
-                    utbetalingslinje = første.sisteUtbetalingslinje(),
+                    utbetalingslinjeSomSkalEndres = første.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.oktober(2020),
-                    clock = fixedClock,
+                    opprettet = fixedTidspunkt,
+                    rekkefølge = Rekkefølge.start(),
                 ),
             ),
         )
@@ -119,9 +126,10 @@ internal class UtbetalingsstrategiGjenopptaTest {
             opprettet = fixedTidspunkt,
             nonEmptyListOf(
                 Utbetalingslinje.Endring.Reaktivering(
-                    utbetalingslinje = førsteStans.sisteUtbetalingslinje(),
+                    utbetalingslinjeSomSkalEndres = førsteStans.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.oktober(2020),
                     clock = fixedClock,
+                    rekkefølge = Rekkefølge.start(),
                 ),
             ),
         )
@@ -135,6 +143,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                     forrigeUtbetalingslinjeId = førsteGjenopptak.utbetalingslinjer[0].id,
                     beløp = 5100,
                     uføregrad = Uføregrad.parse(50),
+                    rekkefølge = Rekkefølge.start(),
                 ),
             ),
         )
@@ -142,9 +151,10 @@ internal class UtbetalingsstrategiGjenopptaTest {
         val andreStans = createOversendtUtbetaling(
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Stans(
-                    utbetalingslinje = andre.sisteUtbetalingslinje(),
+                    utbetalingslinjeSomSkalEndres = andre.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.mai(2021),
                     clock = fixedClock,
+                    rekkefølge = Rekkefølge.start(),
                 ),
             ),
         )
@@ -169,6 +179,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
             Utbetalingslinje.Endring.Reaktivering(
                 id = andre.utbetalingslinjer[0].id,
                 opprettet = actual.utbetalingslinjer[0].opprettet,
+                rekkefølge = Rekkefølge.start(),
                 fraOgMed = andre.utbetalingslinjer[0].periode.fraOgMed,
                 tilOgMed = andre.utbetalingslinjer[0].periode.tilOgMed,
                 forrigeUtbetalingslinjeId = andre.utbetalingslinjer[0].forrigeUtbetalingslinjeId,
@@ -201,9 +212,10 @@ internal class UtbetalingsstrategiGjenopptaTest {
             opprettet = fixedTidspunkt,
             nonEmptyListOf(
                 Utbetalingslinje.Endring.Stans(
-                    utbetalingslinje = første.sisteUtbetalingslinje(),
+                    utbetalingslinjeSomSkalEndres = første.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.januar(2020),
-                    clock = fixedClock,
+                    opprettet = fixedTidspunkt,
+                    rekkefølge = Rekkefølge.start(),
                 ),
             ),
         )
@@ -212,9 +224,10 @@ internal class UtbetalingsstrategiGjenopptaTest {
             opprettet = fixedTidspunkt,
             nonEmptyListOf(
                 Utbetalingslinje.Endring.Reaktivering(
-                    utbetalingslinje = andre.sisteUtbetalingslinje(),
+                    utbetalingslinjeSomSkalEndres = andre.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.januar(2020),
-                    clock = fixedClock,
+                    opprettet = fixedTidspunkt,
+                    rekkefølge = Rekkefølge.start(),
                 ),
             ),
         )
@@ -238,6 +251,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
     fun `gjenopptar utbetalinger med flere utbetalingslinjer`() {
         val l1 = Utbetalingslinje.Ny(
             opprettet = fixedTidspunkt,
+            rekkefølge = Rekkefølge.start(),
             fraOgMed = 1.januar(2020),
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
@@ -246,6 +260,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
         )
         val l2 = Utbetalingslinje.Ny(
             opprettet = fixedTidspunkt.plusUnits(1),
+            rekkefølge = Rekkefølge.skip(0),
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = l1.id,
@@ -262,9 +277,10 @@ internal class UtbetalingsstrategiGjenopptaTest {
         val stans = createOversendtUtbetaling(
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Stans(
-                    utbetalingslinje = utbetaling.sisteUtbetalingslinje(),
+                    utbetalingslinjeSomSkalEndres = utbetaling.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.april(2020),
-                    clock = fixedClock,
+                    opprettet = fixedTidspunkt,
+                    rekkefølge = Rekkefølge.start(),
                 ),
             ),
         )
@@ -284,6 +300,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
             Utbetalingslinje.Endring.Reaktivering(
                 id = utbetaling.sisteUtbetalingslinje().id,
                 opprettet = it.utbetalingslinjer[0].opprettet,
+                rekkefølge = Rekkefølge.start(),
                 fraOgMed = utbetaling.sisteUtbetalingslinje().periode.fraOgMed,
                 tilOgMed = utbetaling.sisteUtbetalingslinje().periode.tilOgMed,
                 forrigeUtbetalingslinjeId = utbetaling.sisteUtbetalingslinje().forrigeUtbetalingslinjeId,

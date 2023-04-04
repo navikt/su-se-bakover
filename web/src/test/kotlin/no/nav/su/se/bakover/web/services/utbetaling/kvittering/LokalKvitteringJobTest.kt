@@ -5,6 +5,7 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
@@ -38,7 +39,7 @@ import java.util.UUID
 
 internal class LokalKvitteringJobTest {
 
-    val tidspunkt = fixedTidspunkt
+    private val tidspunkt = fixedTidspunkt
     val fnr = Fnr.generer()
 
     private val utbetaling = Utbetaling.UtbetalingForSimulering(
@@ -56,6 +57,7 @@ internal class LokalKvitteringJobTest {
                 forrigeUtbetalingslinjeId = null,
                 beløp = 0,
                 uføregrad = Uføregrad.parse(50),
+                rekkefølge = Rekkefølge.start(),
             ),
         ),
         behandler = NavIdentBruker.Attestant("attestant"),

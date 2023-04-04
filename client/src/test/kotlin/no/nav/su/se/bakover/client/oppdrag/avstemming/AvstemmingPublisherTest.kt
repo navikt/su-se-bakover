@@ -33,7 +33,7 @@ import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
-import no.nav.su.se.bakover.test.utbetalingslinje
+import no.nav.su.se.bakover.test.utbetalingslinjeNy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import java.math.BigDecimal
@@ -150,7 +150,7 @@ class AvstemmingPublisherTest {
                 saksnummer = saksnummer,
                 fnr = Fnr("12345678910"),
                 utbetalingslinjer = nonEmptyListOf(
-                    utbetalingslinje(
+                    utbetalingslinjeNy(
                         periode = januar(2021),
                         beløp = 5000,
                     ),

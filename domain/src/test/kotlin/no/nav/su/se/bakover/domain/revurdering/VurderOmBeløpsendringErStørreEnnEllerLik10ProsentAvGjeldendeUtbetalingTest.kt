@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
@@ -22,7 +23,6 @@ import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.revurdering.beregning.VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.sak.Sakstype
@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.utbetalingslinjeNy
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -403,15 +404,17 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
         ).resultat shouldBe true
     }
 
-    private fun lagUtbetaling(månedsbeløp: Int, periode: Periode = beregningsperiode, utbetalingsIndex: Int = 0) =
-        Utbetalingslinje.Ny(
+    private fun lagUtbetaling(
+        månedsbeløp: Int,
+        periode: Periode = beregningsperiode,
+        utbetalingsIndex: Int = 0,
+    ): Utbetalingslinje.Ny {
+        return utbetalingslinjeNy(
             opprettet = fixedTidspunkt.plus(utbetalingsIndex.toLong(), ChronoUnit.SECONDS),
-            fraOgMed = periode.fraOgMed,
-            tilOgMed = periode.tilOgMed,
-            forrigeUtbetalingslinjeId = null,
+            periode = periode,
             beløp = månedsbeløp,
-            uføregrad = Uføregrad.parse(50),
         )
+    }
 
     private fun lagOpphør(
         opphørsdato: LocalDate = beregningsperiode.fraOgMed,
@@ -419,12 +422,13 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
         utbetalingsIndex: Int = 0,
     ) =
         Utbetalingslinje.Endring.Opphør(
-            utbetalingslinje = forrigeUtbetaling,
+            utbetalingslinjeSomSkalEndres = forrigeUtbetaling,
             virkningsperiode = Periode.create(
                 fraOgMed = opphørsdato,
                 tilOgMed = forrigeUtbetaling.periode.tilOgMed,
             ),
             clock = fixedClock.plus(utbetalingsIndex.toLong(), ChronoUnit.SECONDS),
+            rekkefølge = Rekkefølge.start(),
         )
 
     private fun lagStans(
@@ -433,9 +437,10 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
         utbetalingsIndex: Int = 0,
     ) =
         Utbetalingslinje.Endring.Stans(
-            utbetalingslinje = forrigeUtbetaling,
+            utbetalingslinjeSomSkalEndres = forrigeUtbetaling,
             virkningstidspunkt = stansFraOgMedDato,
             clock = fixedClock.plus(utbetalingsIndex.toLong(), ChronoUnit.SECONDS),
+            rekkefølge = Rekkefølge.start(),
         )
 
     private fun lagReaktivert(
@@ -444,9 +449,10 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
         utbetalingsIndex: Int = 0,
     ) =
         Utbetalingslinje.Endring.Reaktivering(
-            utbetalingslinje = forrigeUtbetaling,
+            utbetalingslinjeSomSkalEndres = forrigeUtbetaling,
             virkningstidspunkt = reaktiverDato,
             clock = fixedClock.plus(utbetalingsIndex.toLong(), ChronoUnit.SECONDS),
+            rekkefølge = Rekkefølge.start(),
         )
 
     private fun lagBeregning(månedsbeløp: Int): Beregning {

@@ -124,7 +124,7 @@ import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.tilAttesteringSøknadsbehandling
 import no.nav.su.se.bakover.test.trekkSøknad
 import no.nav.su.se.bakover.test.underkjentSøknadsbehandling
-import no.nav.su.se.bakover.test.utbetalingslinje
+import no.nav.su.se.bakover.test.utbetalingslinjeNy
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.veileder
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
@@ -390,7 +390,7 @@ class TestDataHelper(
         stans: GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse = persisterGjenopptakAvYtelseIverksatt(),
         periode: Periode = stønadsperiode2021.periode,
         avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
-        utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje(periode = periode)),
+        utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinjeNy(periode = periode)),
         utbetalingId: UUID30 = UUID30.randomUUID(),
     ): VedtakGjenopptakAvYtelse {
         oversendtUtbetalingUtenKvittering(

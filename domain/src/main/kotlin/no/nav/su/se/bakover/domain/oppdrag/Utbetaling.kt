@@ -67,6 +67,7 @@ sealed interface Utbetaling : Comparable<Utbetaling> {
     fun kontrollerUtbetalingslinjer() {
         utbetalingslinjer.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse()
         utbetalingslinjer.sjekkSortering()
+        utbetalingslinjer.sjekkRekkefølge()
     }
 
     data class UtbetalingForSimulering(

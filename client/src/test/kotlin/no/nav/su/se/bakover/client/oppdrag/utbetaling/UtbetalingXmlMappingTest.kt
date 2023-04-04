@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
 import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
@@ -18,7 +19,7 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.utbetalingslinje
+import no.nav.su.se.bakover.test.utbetalingslinjeNy
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.jupiter.api.Test
 import org.xmlunit.diff.DefaultNodeMatcher
@@ -39,23 +40,27 @@ class UtbetalingXmlMappingTest {
 
     private val clock = TikkendeKlokke()
 
-    private val førsteUtbetalingsLinje = utbetalingslinje(
+    private val rekkefølge = Rekkefølge.generator()
+    private val førsteUtbetalingsLinje = utbetalingslinjeNy(
         periode = januar(2020),
         beløp = 10,
         opprettet = clock.nextTidspunkt(),
+        rekkefølge = rekkefølge.neste(),
     )
-    private val andreUtbetalingslinje = utbetalingslinje(
+    private val andreUtbetalingslinje = utbetalingslinjeNy(
         periode = februar(2020),
         beløp = 20,
         forrigeUtbetalingslinjeId = førsteUtbetalingsLinje.id,
         uføregrad = 60,
         opprettet = clock.nextTidspunkt(),
+        rekkefølge = rekkefølge.neste(),
     )
 
     private val tredjeUtbetalingslinje = Utbetalingslinje.Endring.Opphør(
-        andreUtbetalingslinje,
+        utbetalingslinjeSomSkalEndres = andreUtbetalingslinje,
         virkningsperiode = Periode.create(1.februar(2020), andreUtbetalingslinje.periode.tilOgMed),
         opprettet = clock.nextTidspunkt(),
+        rekkefølge = rekkefølge.neste(),
     )
 
     private val fnr = Fnr("12345678910")

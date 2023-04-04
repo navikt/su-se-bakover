@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
@@ -25,7 +26,7 @@ import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.utbetalingslinje
+import no.nav.su.se.bakover.test.utbetalingslinjeNy
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -85,33 +86,39 @@ internal class UtbetalingTest {
         forrigeUtbetalingslinjeId: UUID30? = null,
         uføregrad: Uføregrad = Uføregrad.parse(50),
         opprettet: Tidspunkt = fixedTidspunkt,
-    ) = utbetalingslinje(
+        rekkefølge: Rekkefølge = Rekkefølge.start(),
+    ) = utbetalingslinjeNy(
         periode = Periode.create(fraOgMed, tilOgMed),
         beløp = beløp,
         forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
         uføregrad = uføregrad.value,
         opprettet = opprettet,
+        rekkefølge = rekkefølge,
     )
 
     private fun createUtbetalingslinjer(
         utbetalingOpprettet: Tidspunkt = fixedTidspunkt,
     ): NonEmptyList<Utbetalingslinje> {
+        val rekkefølge = Rekkefølge.generator()
         return ForrigeUtbetalingslinjeKoblendeListe(
             listOf(
                 createUtbetalingslinje(
                     fraOgMed = 1.januar(2019),
                     tilOgMed = 30.april(2020),
                     opprettet = utbetalingOpprettet.plusUnits(1),
+                    rekkefølge = rekkefølge.neste(),
                 ),
                 createUtbetalingslinje(
                     fraOgMed = 1.mai(2020),
                     tilOgMed = 31.august(2020),
                     opprettet = utbetalingOpprettet.plusUnits(2),
+                    rekkefølge = rekkefølge.neste(),
                 ),
                 createUtbetalingslinje(
                     fraOgMed = 1.september(2020),
                     tilOgMed = 31.januar(2021),
                     opprettet = utbetalingOpprettet.plusUnits(3),
+                    rekkefølge = rekkefølge.neste(),
                 ),
             ),
         ).toNonEmptyList()

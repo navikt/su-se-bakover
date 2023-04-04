@@ -6,6 +6,7 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.erFørsteDagIMåned
@@ -121,9 +122,10 @@ sealed class Utbetalingsstrategi {
                 // TODO jah + jm: Jacob mener denne kan endres til å bruke [Utbetalingshistorikk] som f.eks. opphør
                 utbetalingslinjer = nonEmptyListOf(
                     Utbetalingslinje.Endring.Stans(
-                        utbetalingslinje = sisteOversendteUtbetalingslinje,
+                        utbetalingslinjeSomSkalEndres = sisteOversendteUtbetalingslinje,
                         virkningstidspunkt = stansDato,
                         opprettet = opprettet,
+                        rekkefølge = Rekkefølge.start(),
                     ),
                 ),
                 behandler = behandler,
@@ -162,6 +164,7 @@ sealed class Utbetalingsstrategi {
         fun generate(): Utbetaling.UtbetalingForSimulering {
             val opprettet = Tidspunkt.now(clock)
             val nesteUtbetalingstidspunkt = nesteTidspunktFunksjon(opprettet)
+            val rekkefølgeGenerator = Rekkefølge.generator()
 
             val nyeUtbetalingslinjer = createUtbetalingsperioder(
                 beregning = beregning,
@@ -169,6 +172,7 @@ sealed class Utbetalingsstrategi {
             ).map {
                 Utbetalingslinje.Ny(
                     opprettet = nesteUtbetalingstidspunkt(),
+                    rekkefølge = rekkefølgeGenerator.neste(),
                     fraOgMed = it.fraOgMed,
                     tilOgMed = it.tilOgMed,
                     forrigeUtbetalingslinjeId = eksisterendeUtbetalinger.hentSisteOversendteUtbetalingslinjeUtenFeil()?.id,
@@ -191,6 +195,7 @@ sealed class Utbetalingsstrategi {
                     nyeUtbetalingslinjer = nyeUtbetalingslinjer,
                     eksisterendeUtbetalingslinjer = eksisterendeUtbetalinger.hentOversendteUtbetalingslinjerUtenFeil(),
                     nesteUtbetalingstidspunkt = nesteUtbetalingstidspunkt,
+                    rekkefølgeGenerator = rekkefølgeGenerator,
                 ).generer().toNonEmptyList(),
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
@@ -266,12 +271,13 @@ sealed class Utbetalingsstrategi {
         fun generate(): Utbetaling.UtbetalingForSimulering {
             val opprettet = Tidspunkt.now(clock)
             val nesteUtbetalingstidspunkt = nesteTidspunktFunksjon(opprettet)
-
+            val rekkefølgeGenerator = Rekkefølge.generator()
             val nyeUtbetalingslinjer = SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(
                 beregning.getMånedsberegninger(),
             ).beregningsperioder.map {
                 Utbetalingslinje.Ny(
                     opprettet = nesteUtbetalingstidspunkt(),
+                    rekkefølge = rekkefølgeGenerator.neste(),
                     fraOgMed = it.periode.fraOgMed,
                     tilOgMed = it.periode.tilOgMed,
                     forrigeUtbetalingslinjeId = eksisterendeUtbetalinger.hentSisteOversendteUtbetalingslinjeUtenFeil()?.id,
@@ -291,6 +297,7 @@ sealed class Utbetalingsstrategi {
                     nyeUtbetalingslinjer = nyeUtbetalingslinjer,
                     eksisterendeUtbetalingslinjer = eksisterendeUtbetalinger.hentOversendteUtbetalingslinjerUtenFeil(),
                     nesteUtbetalingstidspunkt = nesteUtbetalingstidspunkt,
+                    rekkefølgeGenerator = rekkefølgeGenerator,
                 ).generer().toNonEmptyList(),
                 fnr = fnr,
                 behandler = behandler,
@@ -322,6 +329,7 @@ sealed class Utbetalingsstrategi {
 
             val opprettet = Tidspunkt.now(clock)
             val nesteUtbetalingstidspunkt = nesteTidspunktFunksjon(opprettet)
+            val rekkefølgeGenerator = Rekkefølge.generator()
 
             return Utbetaling.UtbetalingForSimulering(
                 opprettet = opprettet,
@@ -331,13 +339,15 @@ sealed class Utbetalingsstrategi {
                 utbetalingslinjer = Utbetalingshistorikk(
                     nyeUtbetalingslinjer = listOf(
                         Utbetalingslinje.Endring.Opphør(
-                            utbetalingslinje = sisteUtbetalingslinje,
+                            utbetalingslinjeSomSkalEndres = sisteUtbetalingslinje,
                             virkningsperiode = periode,
                             opprettet = nesteUtbetalingstidspunkt(),
+                            rekkefølge = rekkefølgeGenerator.neste(),
                         ),
                     ).toNonEmptyList(),
                     eksisterendeUtbetalingslinjer = eksisterendeUtbetalinger.hentOversendteUtbetalingslinjerUtenFeil(),
                     nesteUtbetalingstidspunkt = nesteUtbetalingstidspunkt,
+                    rekkefølgeGenerator = rekkefølgeGenerator,
                 ).generer().toNonEmptyList(),
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
@@ -382,9 +392,10 @@ sealed class Utbetalingsstrategi {
                 // TODO jah + jm: Jacob mener denne kan endres til å bruke [Utbetalingshistorikk] som f.eks. opphør
                 utbetalingslinjer = nonEmptyListOf(
                     Utbetalingslinje.Endring.Reaktivering(
-                        utbetalingslinje = sisteOversendteUtbetalingslinje,
+                        utbetalingslinjeSomSkalEndres = sisteOversendteUtbetalingslinje,
                         virkningstidspunkt = sisteOversendteUtbetalingslinje.periode.fraOgMed,
                         opprettet = opprettet,
+                        rekkefølge = Rekkefølge.start(),
                     ),
                 ),
                 behandler = behandler,

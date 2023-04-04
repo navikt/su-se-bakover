@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.utbetalingslinje
+import no.nav.su.se.bakover.test.utbetalingslinjeNy
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -32,7 +32,7 @@ internal class UtbetalingMapperTest {
             saksnummer = Saksnummer(2021),
             fnr = Fnr(fnr = "12345678910"),
             utbetalingslinjer = nonEmptyListOf(
-                utbetalingslinje(
+                utbetalingslinjeNy(
                     periode = januar(2021),
                     beløp = 0,
                 ),
@@ -68,7 +68,7 @@ internal class UtbetalingMapperTest {
             saksnummer = Saksnummer(2021),
             fnr = Fnr(fnr = "12345678910"),
             utbetalingslinjer = nonEmptyListOf(
-                utbetalingslinje(
+                utbetalingslinjeNy(
                     periode = januar(2021),
                     beløp = 0,
                 ),
