@@ -66,7 +66,7 @@ internal class UtbetalingTest {
 
     private fun createUtbetaling(
         opprettet: Tidspunkt = fixedTidspunkt,
-        utbetalingsLinjer: NonEmptyList<Utbetalingslinje> = createUtbetalingslinjer(),
+        utbetalingsLinjer: NonEmptyList<Utbetalingslinje> = createUtbetalingslinjer(opprettet),
     ) = Utbetaling.UtbetalingForSimulering(
         opprettet = opprettet,
         sakId = UUID.randomUUID(),
@@ -84,27 +84,34 @@ internal class UtbetalingTest {
         beløp: Int = 500,
         forrigeUtbetalingslinjeId: UUID30? = null,
         uføregrad: Uføregrad = Uføregrad.parse(50),
+        opprettet: Tidspunkt = fixedTidspunkt,
     ) = utbetalingslinje(
         periode = Periode.create(fraOgMed, tilOgMed),
         beløp = beløp,
         forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
         uføregrad = uføregrad.value,
+        opprettet = opprettet,
     )
 
-    private fun createUtbetalingslinjer(): NonEmptyList<Utbetalingslinje> {
-        return ForrigeUtbetbetalingslinjeKoblendeListe(
+    private fun createUtbetalingslinjer(
+        utbetalingOpprettet: Tidspunkt = fixedTidspunkt,
+    ): NonEmptyList<Utbetalingslinje> {
+        return ForrigeUtbetalingslinjeKoblendeListe(
             listOf(
                 createUtbetalingslinje(
                     fraOgMed = 1.januar(2019),
                     tilOgMed = 30.april(2020),
+                    opprettet = utbetalingOpprettet.plusUnits(1),
                 ),
                 createUtbetalingslinje(
                     fraOgMed = 1.mai(2020),
                     tilOgMed = 31.august(2020),
+                    opprettet = utbetalingOpprettet.plusUnits(2),
                 ),
                 createUtbetalingslinje(
                     fraOgMed = 1.september(2020),
                     tilOgMed = 31.januar(2021),
+                    opprettet = utbetalingOpprettet.plusUnits(3),
                 ),
             ),
         ).toNonEmptyList()

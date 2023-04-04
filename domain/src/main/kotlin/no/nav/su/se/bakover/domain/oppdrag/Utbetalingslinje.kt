@@ -8,7 +8,11 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
 import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje.Endring.Opphør
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje.Endring.Reaktivering
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje.Endring.Stans
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
 import java.time.LocalDate
 
@@ -119,7 +123,16 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
                 utbetalingslinje: Utbetalingslinje,
                 virkningsperiode: Periode,
                 clock: Clock,
-                opprettet: Tidspunkt = Tidspunkt.now(clock),
+            ) : this(
+                utbetalingslinje = utbetalingslinje,
+                virkningsperiode = virkningsperiode,
+                opprettet = Tidspunkt.now(clock),
+            )
+
+            constructor(
+                utbetalingslinje: Utbetalingslinje,
+                virkningsperiode: Periode,
+                opprettet: Tidspunkt,
             ) : this(
                 id = utbetalingslinje.id,
                 opprettet = opprettet,
@@ -157,7 +170,16 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
                 utbetalingslinje: Utbetalingslinje,
                 virkningstidspunkt: LocalDate,
                 clock: Clock,
-                opprettet: Tidspunkt = Tidspunkt.now(clock),
+            ) : this(
+                utbetalingslinje = utbetalingslinje,
+                virkningstidspunkt = virkningstidspunkt,
+                opprettet = Tidspunkt.now(clock),
+            )
+
+            constructor(
+                utbetalingslinje: Utbetalingslinje,
+                virkningstidspunkt: LocalDate,
+                opprettet: Tidspunkt,
             ) : this(
                 id = utbetalingslinje.id,
                 opprettet = opprettet,
@@ -197,7 +219,16 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
                 utbetalingslinje: Utbetalingslinje,
                 virkningstidspunkt: LocalDate,
                 clock: Clock,
-                opprettet: Tidspunkt = Tidspunkt.now(clock),
+            ) : this(
+                utbetalingslinje = utbetalingslinje,
+                virkningstidspunkt = virkningstidspunkt,
+                opprettet = Tidspunkt.now(clock),
+            )
+
+            constructor(
+                utbetalingslinje: Utbetalingslinje,
+                virkningstidspunkt: LocalDate,
+                opprettet: Tidspunkt,
             ) : this(
                 id = utbetalingslinje.id,
                 opprettet = opprettet,
@@ -309,15 +340,20 @@ sealed class UtbetalingslinjePåTidslinje : KanPlasseresPåTidslinje<Utbetalings
 }
 
 fun List<Utbetalingslinje>.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse() {
-    check(
-        this.filterIsInstance<Utbetalingslinje.Ny>()
-            .map { it.forrigeUtbetalingslinjeId }
-            .let { it.distinct() == it },
-    ) { "Alle nye utbetalingslinjer skal referere til forskjellig forrige utbetalingid" }
+    this.filterIsInstance<Utbetalingslinje.Ny>()
+        .map { it.forrigeUtbetalingslinjeId }.ifNotEmpty {
+            check(this.distinct() == this) { "Alle nye utbetalingslinjer skal referere til forskjellig forrige utbetalingid, men var: $this" }
+        }
 }
 
 fun List<Utbetalingslinje>.sjekkSortering() {
     check(this.sorted() == this) { "Utbetalingslinjer er ikke sortert i stigende rekkefølge" }
+}
+
+fun List<Utbetalingslinje>.sjekkUnikOpprettet() {
+    this.map { it.opprettet }.let {
+        check(it.distinct().size == it.size) { "Utbetalingslinjer har ikke unik opprettet: $it" }
+    }
 }
 
 fun List<Utbetalingslinje>.sjekkIngenNyeOverlapper() {

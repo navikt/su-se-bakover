@@ -36,9 +36,27 @@ fun utbetalingslinje(
     forrigeUtbetalingslinjeId: UUID30? = null,
     uføregrad: Int = 50,
     kjøreplan: UtbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+) = utbetalingslinje(
+    id = id,
+    periode = periode,
+    opprettet = Tidspunkt.now(clock),
+    beløp = beløp,
+    forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
+    uføregrad = uføregrad,
+    kjøreplan = kjøreplan,
+)
+
+fun utbetalingslinje(
+    id: UUID30 = UUID30.randomUUID(),
+    periode: Periode = år(2021),
+    opprettet: Tidspunkt,
+    beløp: Int = 15000,
+    forrigeUtbetalingslinjeId: UUID30? = null,
+    uføregrad: Int = 50,
+    kjøreplan: UtbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
 ) = Utbetalingslinje.Ny(
     id = id,
-    opprettet = Tidspunkt.now(clock),
+    opprettet = opprettet,
     fraOgMed = periode.fraOgMed,
     tilOgMed = periode.tilOgMed,
     forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,

@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.sak.Sakstype
-import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.utbetalingslinje
 import org.hamcrest.MatcherAssert.assertThat
@@ -37,21 +37,25 @@ class UtbetalingXmlMappingTest {
         )
     }
 
+    private val clock = TikkendeKlokke()
+
     private val førsteUtbetalingsLinje = utbetalingslinje(
         periode = januar(2020),
         beløp = 10,
+        opprettet = clock.nextTidspunkt(),
     )
     private val andreUtbetalingslinje = utbetalingslinje(
         periode = februar(2020),
         beløp = 20,
         forrigeUtbetalingslinjeId = førsteUtbetalingsLinje.id,
         uføregrad = 60,
+        opprettet = clock.nextTidspunkt(),
     )
 
     private val tredjeUtbetalingslinje = Utbetalingslinje.Endring.Opphør(
         andreUtbetalingslinje,
         virkningsperiode = Periode.create(1.februar(2020), andreUtbetalingslinje.periode.tilOgMed),
-        clock = fixedClock,
+        opprettet = clock.nextTidspunkt(),
     )
 
     private val fnr = Fnr("12345678910")

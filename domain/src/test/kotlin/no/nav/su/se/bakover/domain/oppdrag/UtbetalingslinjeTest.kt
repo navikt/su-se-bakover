@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.lang.IllegalStateException
 import java.time.temporal.ChronoUnit
 
 internal class UtbetalingslinjeTest {
@@ -68,7 +68,7 @@ internal class UtbetalingslinjeTest {
                 ),
             ).sjekkAlleNyeLinjerHarForskjelligForrigeReferanse()
         }.also {
-            it.message shouldBe "Alle nye utbetalingslinjer skal referere til forskjellig forrige utbetalingid"
+            it.message.shouldContain("Alle nye utbetalingslinjer skal referere til forskjellig forrige utbetalingid")
         }
     }
 
