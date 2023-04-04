@@ -189,6 +189,7 @@ import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
+import no.nav.su.se.bakover.service.skatt.HentSamletSkattegrunnlagForBehandlingResponse
 import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
@@ -1092,7 +1093,7 @@ open class AccessCheckProxy(
                     return services.skatteService.hentSamletSkattegrunnlagForÅr(fnr, yearRange)
                 }
 
-                override fun hentSamletSkattegrunnlagForBehandling(behandlingId: UUID): Pair<Fnr, Either<KunneIkkeHenteSkattemelding, Skattegrunnlag>> {
+                override fun hentSamletSkattegrunnlagForBehandling(behandlingId: UUID): HentSamletSkattegrunnlagForBehandlingResponse {
                     assertHarTilgangTilBehandling(behandlingId)
                     return services.skatteService.hentSamletSkattegrunnlagForBehandling(behandlingId)
                 }

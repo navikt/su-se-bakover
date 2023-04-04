@@ -68,7 +68,7 @@ internal class SamletSkattegrunnlagTest {
         val år = Year.of(2021)
         val expected = SamletSkattegrunnlagResponseMedYear(
             skatteResponser = listOf(
-                SamletSkattegrunnlagResponseMedStadie(oppslag = nettverksfeil.left(), stadie = Stadie.FASTSATT, år),
+                // SamletSkattegrunnlagResponseMedStadie(oppslag = nettverksfeil.left(), stadie = Stadie.FASTSATT, år),
                 SamletSkattegrunnlagResponseMedStadie(oppslag = nettverksfeil.left(), stadie = Stadie.OPPGJØR, år),
                 SamletSkattegrunnlagResponseMedStadie(oppslag = nettverksfeil.left(), stadie = Stadie.UTKAST, år),
             ),
@@ -79,10 +79,10 @@ internal class SamletSkattegrunnlagTest {
             it.shouldBeInstanceOf<Either.Right<SamletSkattegrunnlagResponseMedYear>>()
             it.value.år shouldBe expected.år
 
-            it.value.skatteResponser.first().stadie shouldBe Stadie.FASTSATT
-            it.value.skatteResponser.first().oppslag.shouldBeLeft()
-            it.value.skatteResponser[1].stadie shouldBe Stadie.OPPGJØR
-            it.value.skatteResponser[1].oppslag.shouldBeLeft()
+            // it.value.skatteResponser.first().stadie shouldBe Stadie.FASTSATT
+            // it.value.skatteResponser.first().oppslag.shouldBeLeft()
+            it.value.skatteResponser[0].stadie shouldBe Stadie.OPPGJØR
+            it.value.skatteResponser[0].oppslag.shouldBeLeft()
             it.value.skatteResponser.last().stadie shouldBe Stadie.UTKAST
             it.value.skatteResponser.last().oppslag.shouldBeLeft()
         }
@@ -118,11 +118,11 @@ internal class SamletSkattegrunnlagTest {
             år = år,
         ) shouldBe SamletSkattegrunnlagResponseMedYear(
             skatteResponser = listOf(
-                SamletSkattegrunnlagResponseMedStadie(
-                    oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år).left(),
-                    stadie = Stadie.FASTSATT,
-                    inntektsår = år,
-                ),
+                /* SamletSkattegrunnlagResponseMedStadie(
+                     oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år).left(),
+                     stadie = Stadie.FASTSATT,
+                     inntektsår = år,
+                 ),*/
                 SamletSkattegrunnlagResponseMedStadie(
                     oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år).left(),
                     stadie = Stadie.OPPGJØR,
@@ -168,11 +168,11 @@ internal class SamletSkattegrunnlagTest {
             år = år,
         ) shouldBe SamletSkattegrunnlagResponseMedYear(
             skatteResponser = listOf(
-                SamletSkattegrunnlagResponseMedStadie(
+               /* SamletSkattegrunnlagResponseMedStadie(
                     oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år).left(),
                     stadie = Stadie.FASTSATT,
                     inntektsår = år,
-                ),
+                ),*/
                 SamletSkattegrunnlagResponseMedStadie(
                     oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år).left(),
                     stadie = Stadie.OPPGJØR,
@@ -311,11 +311,12 @@ internal class SamletSkattegrunnlagTest {
             år = år,
         ) shouldBe SamletSkattegrunnlagResponseMedYear(
             skatteResponser = listOf(
-                SamletSkattegrunnlagResponseMedStadie(
+                /*SamletSkattegrunnlagResponseMedStadie(
                     oppslag = nyÅrsgrunnlag().right(),
                     stadie = Stadie.FASTSATT,
                     inntektsår = år,
                 ),
+                 */
                 SamletSkattegrunnlagResponseMedStadie(
                     oppslag = nyÅrsgrunnlag(stadie = Stadie.OPPGJØR).right(),
                     stadie = Stadie.OPPGJØR,

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.skatt
 
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.application.call
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -37,7 +38,7 @@ internal fun Route.skattRoutes(skatteService: SkatteService, toggleService: Togg
                 },
                 {
                     call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
-                    call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJSON())))
+                    call.svar(Resultat.json(OK, serialize(it.toJSON())))
                 },
             )
         }
@@ -50,17 +51,8 @@ internal fun Route.skattRoutes(skatteService: SkatteService, toggleService: Togg
         }
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
-                skatteService.hentSamletSkattegrunnlagForBehandling(behandlingId).let { pair ->
-                    pair.second.fold(
-                        ifLeft = {
-                            // Dette er ikke et åpent søk, men baserer seg heller på behandlingId og er en del av behandlingsflyten. Trenger ikke auditlogge.
-                            call.svar(it.tilResultat())
-                        },
-                        ifRight = {
-                            call.audit(pair.first, AuditLogEvent.Action.ACCESS, behandlingId)
-                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJSON())))
-                        },
-                    )
+                skatteService.hentSamletSkattegrunnlagForBehandling(behandlingId).let {
+                    call.svar(Resultat.json(OK, it.mapAndSerialize()))
                 }
             }
         }

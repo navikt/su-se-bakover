@@ -125,12 +125,18 @@ internal class SkatteClient(
         correlationId: CorrelationId,
     ): SamletSkattegrunnlagResponseMedYear {
         return withContext(Dispatchers.IO) {
+            /**
+             * Fastsatt kan ikke hentes fra sigrunn enda. Vi hardkoder den til at den ikke
+             * eksisterer intill videre
+             */
+            /*
             val samletSkattFastsatt = async(Dispatchers.IO) {
                 Pair(
                     hentSamletSkattegrunnlagFraSkatt(fnr, inntektsÅr, Stadie.FASTSATT, token, correlationId),
                     Stadie.FASTSATT,
                 )
             }
+             */
             val samletSkattOppgjør = async(Dispatchers.IO) {
                 Pair(
                     hentSamletSkattegrunnlagFraSkatt(fnr, inntektsÅr, Stadie.OPPGJØR, token, correlationId),
@@ -143,7 +149,7 @@ internal class SkatteClient(
                     Stadie.UTKAST,
                 )
             }
-            listOf(samletSkattFastsatt, samletSkattOppgjør, samletSkattUtkast)
+            listOf(/*samletSkattFastsatt,*/ samletSkattOppgjør, samletSkattUtkast)
                 .awaitAll().let {
                     SamletSkattegrunnlagResponseMedYear(
                         it.map { SamletSkattegrunnlagResponseMedStadie(it.first, it.second, inntektsÅr) },
