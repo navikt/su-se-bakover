@@ -4,6 +4,7 @@ import arrow.core.NonEmptyList
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
@@ -32,7 +33,7 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.utbetalingslinje
+import no.nav.su.se.bakover.test.utbetalingslinjeNy
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -210,15 +211,16 @@ internal fun alleUtbetalinger(): List<Utbetaling.OversendtUtbetaling> {
             status = Kvittering.Utbetalingsstatus.OK,
             linjer = ForrigeUtbetalingslinjeKoblendeListe(
                 listOf(
-                    utbetalingslinje(
+                    utbetalingslinjeNy(
                         periode = mars(2020),
                         beløp = 100,
                         opprettet = clock.nextTidspunkt(),
                     ),
-                    utbetalingslinje(
+                    utbetalingslinjeNy(
                         periode = april(2020),
                         beløp = 200,
                         opprettet = clock.nextTidspunkt(),
+                        rekkefølge = Rekkefølge.skip(0),
                     ),
                 ),
             ).toNonEmptyList(),
@@ -229,17 +231,18 @@ internal fun alleUtbetalinger(): List<Utbetaling.OversendtUtbetaling> {
             status = Kvittering.Utbetalingsstatus.OK,
             linjer = ForrigeUtbetalingslinjeKoblendeListe(
                 listOf(
-                    utbetalingslinje(
+                    utbetalingslinjeNy(
                         periode = mars(2020),
                         beløp = 600,
                         uføregrad = 60,
                         opprettet = clock.nextTidspunkt(),
                     ),
-                    utbetalingslinje(
+                    utbetalingslinjeNy(
                         periode = april(2020),
                         beløp = 700,
                         uføregrad = 60,
                         opprettet = clock.nextTidspunkt(),
+                        rekkefølge = Rekkefølge.skip(0),
                     ),
                 ),
             ).toNonEmptyList(),
@@ -250,23 +253,25 @@ internal fun alleUtbetalinger(): List<Utbetaling.OversendtUtbetaling> {
             status = Kvittering.Utbetalingsstatus.OK_MED_VARSEL,
             linjer = ForrigeUtbetalingslinjeKoblendeListe(
                 listOf(
-                    utbetalingslinje(
+                    utbetalingslinjeNy(
                         periode = mars(2020),
                         beløp = 400,
                         uføregrad = 70,
                         opprettet = clock.nextTidspunkt(),
                     ),
-                    utbetalingslinje(
+                    utbetalingslinjeNy(
                         periode = april(2020),
                         beløp = 500,
                         uføregrad = 70,
                         opprettet = clock.nextTidspunkt(),
+                        rekkefølge = Rekkefølge.skip(0),
                     ),
-                    utbetalingslinje(
+                    utbetalingslinjeNy(
                         periode = mai(2020),
                         beløp = 500,
                         uføregrad = 75,
                         opprettet = clock.nextTidspunkt(),
+                        rekkefølge = Rekkefølge.skip(1),
                     ),
                 ),
             ).toNonEmptyList(),
@@ -277,29 +282,32 @@ internal fun alleUtbetalinger(): List<Utbetaling.OversendtUtbetaling> {
             status = Kvittering.Utbetalingsstatus.FEIL,
             linjer = ForrigeUtbetalingslinjeKoblendeListe(
                 listOf(
-                    utbetalingslinje(
+                    utbetalingslinjeNy(
                         periode = mars(2020),
                         beløp = 1000,
                         uføregrad = 10,
                         opprettet = clock.nextTidspunkt(),
                     ),
-                    utbetalingslinje(
+                    utbetalingslinjeNy(
                         periode = april(2020),
                         beløp = 2000,
                         uføregrad = 20,
                         opprettet = clock.nextTidspunkt(),
+                        rekkefølge = Rekkefølge.skip(0),
                     ),
-                    utbetalingslinje(
+                    utbetalingslinjeNy(
                         periode = mai(2020),
                         beløp = 3000,
                         uføregrad = 30,
                         opprettet = clock.nextTidspunkt(),
+                        rekkefølge = Rekkefølge.skip(1),
                     ),
-                    utbetalingslinje(
+                    utbetalingslinjeNy(
                         periode = juni(2020),
                         beløp = 4000,
                         uføregrad = 50,
                         opprettet = clock.nextTidspunkt(),
+                        rekkefølge = Rekkefølge.skip(2),
                     ),
                 ),
             ).toNonEmptyList(),
@@ -310,7 +318,7 @@ internal fun alleUtbetalinger(): List<Utbetaling.OversendtUtbetaling> {
             status = null,
             linjer = ForrigeUtbetalingslinjeKoblendeListe(
                 listOf(
-                    utbetalingslinje(
+                    utbetalingslinjeNy(
                         periode = år(2020),
                         beløp = 5000,
                         uføregrad = 15,

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.oppdrag
 
 import arrow.core.NonEmptyList
 import arrow.core.getOrElse
+import no.nav.su.se.bakover.common.RekkefølgeGenerator
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
@@ -13,6 +14,7 @@ class Utbetalingshistorikk(
     nyeUtbetalingslinjer: NonEmptyList<Utbetalingslinje>,
     eksisterendeUtbetalingslinjer: List<Utbetalingslinje>,
     val nesteUtbetalingstidspunkt: () -> Tidspunkt,
+    private val rekkefølgeGenerator: RekkefølgeGenerator,
 ) {
     private val sorterteNyeUtbetalingslinjer = nyeUtbetalingslinjer.sorted()
     private val sorterteEksisterendeUtbetalingslinjer = eksisterendeUtbetalingslinjer.sorted()
@@ -73,6 +75,7 @@ class Utbetalingshistorikk(
             val rekonstruertNy = ny.copy(
                 id = UUID30.randomUUID(),
                 opprettet = nesteUtbetalingstidspunkt(),
+                rekkefølge = rekkefølgeGenerator.neste(),
                 fraOgMed = maxOf(
                     ny.originalFraOgMed(),
                     minimumFraOgMedForRekonstruerteLinjer,
@@ -83,7 +86,7 @@ class Utbetalingshistorikk(
                 when (endring) {
                     is Utbetalingslinje.Endring.Opphør -> {
                         Utbetalingslinje.Endring.Opphør(
-                            utbetalingslinje = rekonstruertNy,
+                            utbetalingslinjeSomSkalEndres = rekonstruertNy,
                             virkningsperiode = Periode.create(
                                 fraOgMed = maxOf(
                                     endring.periode.fraOgMed,
@@ -92,28 +95,31 @@ class Utbetalingshistorikk(
                                 tilOgMed = endring.periode.tilOgMed,
                             ),
                             opprettet = nesteUtbetalingstidspunkt(),
+                            rekkefølge = rekkefølgeGenerator.neste(),
                         )
                     }
 
                     is Utbetalingslinje.Endring.Reaktivering -> {
                         Utbetalingslinje.Endring.Reaktivering(
-                            utbetalingslinje = rekonstruertNy,
+                            utbetalingslinjeSomSkalEndres = rekonstruertNy,
                             virkningstidspunkt = maxOf(
                                 endring.periode.fraOgMed,
                                 minimumFraOgMedForRekonstruerteLinjer,
                             ),
                             opprettet = nesteUtbetalingstidspunkt(),
+                            rekkefølge = rekkefølgeGenerator.neste(),
                         )
                     }
 
                     is Utbetalingslinje.Endring.Stans -> {
                         Utbetalingslinje.Endring.Stans(
-                            utbetalingslinje = rekonstruertNy,
+                            utbetalingslinjeSomSkalEndres = rekonstruertNy,
                             virkningstidspunkt = maxOf(
                                 endring.periode.fraOgMed,
                                 minimumFraOgMedForRekonstruerteLinjer,
                             ),
                             opprettet = nesteUtbetalingstidspunkt(),
+                            rekkefølge = rekkefølgeGenerator.neste(),
                         )
                     }
                 }

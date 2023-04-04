@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequestTest
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.toUtbetalingRequest
+import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.mai
@@ -49,9 +50,10 @@ internal class SimuleringRequestBuilderTest {
         val linjeSomSkalEndres = UtbetalingRequestTest.nyUtbetaling.sisteUtbetalingslinje()
 
         val linjeMedEndring = Utbetalingslinje.Endring.Opphør(
-            utbetalingslinje = linjeSomSkalEndres,
+            utbetalingslinjeSomSkalEndres = linjeSomSkalEndres,
             virkningsperiode = Periode.create(1.februar(2020), linjeSomSkalEndres.periode.tilOgMed),
             clock = Clock.systemUTC(),
+            rekkefølge = Rekkefølge.start(),
         )
         val utbetalingMedEndring = UtbetalingRequestTest.nyUtbetaling.copy(
             avstemmingsnøkkel = Avstemmingsnøkkel(18.september(2020).startOfDay()),
@@ -87,9 +89,10 @@ internal class SimuleringRequestBuilderTest {
         val linjeSomSkalEndres = UtbetalingRequestTest.nyUtbetaling.sisteUtbetalingslinje()
 
         val linjeMedEndring = Utbetalingslinje.Endring.Opphør(
-            utbetalingslinje = linjeSomSkalEndres,
+            utbetalingslinjeSomSkalEndres = linjeSomSkalEndres,
             virkningsperiode = Periode.create(1.oktober(2020), linjeSomSkalEndres.periode.tilOgMed),
             clock = Clock.systemUTC(),
+            rekkefølge = Rekkefølge.start(),
         )
         val utbetalingMedEndring = UtbetalingRequestTest.nyUtbetaling.copy(
             avstemmingsnøkkel = Avstemmingsnøkkel(18.september(2020).startOfDay()),

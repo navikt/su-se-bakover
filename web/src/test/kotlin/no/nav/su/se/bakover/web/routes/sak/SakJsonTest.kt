@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.sak
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
@@ -91,6 +92,7 @@ internal class SakJsonTest {
             val nyUtbetaling = Utbetalingslinje.Ny(
                 id = UUID30.randomUUID(),
                 opprettet = fixedTidspunkt,
+                rekkefølge = Rekkefølge.start(),
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.desember(2021),
                 forrigeUtbetalingslinjeId = null,
@@ -98,19 +100,22 @@ internal class SakJsonTest {
                 uføregrad = Uføregrad.parse(50),
             )
             val midlertidigStans = Utbetalingslinje.Endring.Stans(
-                utbetalingslinje = nyUtbetaling,
+                utbetalingslinjeSomSkalEndres = nyUtbetaling,
                 virkningstidspunkt = 1.februar(2021),
                 clock = Clock.systemUTC(),
+                rekkefølge = Rekkefølge.start(),
             )
             val reaktivering = Utbetalingslinje.Endring.Reaktivering(
-                utbetalingslinje = midlertidigStans,
+                utbetalingslinjeSomSkalEndres = midlertidigStans,
                 virkningstidspunkt = 1.mars(2021),
                 clock = Clock.systemUTC(),
+                rekkefølge = Rekkefølge.start(),
             )
             val opphørslinje = Utbetalingslinje.Endring.Opphør(
-                utbetalingslinje = reaktivering,
+                utbetalingslinjeSomSkalEndres = reaktivering,
                 virkningsperiode = Periode.create(1.april(2021), reaktivering.periode.tilOgMed),
                 clock = Clock.systemUTC(),
+                rekkefølge = Rekkefølge.start(),
             )
 
             val utbetaling1 = mock<Utbetaling.OversendtUtbetaling.UtenKvittering> {

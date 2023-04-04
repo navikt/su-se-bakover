@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.utbetaling
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.deserializeNullable
@@ -101,6 +102,7 @@ private fun Row.toUtbetalingslinje(): Utbetalingslinje {
         fraOgMed = localDate("fom"),
         tilOgMed = localDate("tom"),
         opprettet = tidspunkt("opprettet"),
+        rekkefølge = longOrNull("rekkefølge")?.let { Rekkefølge(it) },
         forrigeUtbetalingslinjeId = stringOrNull("forrigeUtbetalingslinjeId")?.let { uuid30("forrigeUtbetalingslinjeId") },
         beløp = int("beløp"),
         uføregrad = intOrNull("uføregrad")?.let { Uføregrad.parse(it) },
@@ -113,6 +115,7 @@ private fun Row.toUtbetalingslinje(): Utbetalingslinje {
                 Utbetalingslinje.Endring.Opphør(
                     id = linje.id,
                     opprettet = linje.opprettet,
+                    rekkefølge = linje.rekkefølge,
                     fraOgMed = linje.originalFraOgMed(),
                     tilOgMed = linje.originalTilOgMed(),
                     forrigeUtbetalingslinjeId = linje.forrigeUtbetalingslinjeId,
@@ -126,6 +129,7 @@ private fun Row.toUtbetalingslinje(): Utbetalingslinje {
                 Utbetalingslinje.Endring.Stans(
                     id = linje.id,
                     opprettet = linje.opprettet,
+                    rekkefølge = linje.rekkefølge,
                     fraOgMed = linje.originalFraOgMed(),
                     tilOgMed = linje.originalTilOgMed(),
                     forrigeUtbetalingslinjeId = linje.forrigeUtbetalingslinjeId,
@@ -139,6 +143,7 @@ private fun Row.toUtbetalingslinje(): Utbetalingslinje {
                 Utbetalingslinje.Endring.Reaktivering(
                     id = linje.id,
                     opprettet = linje.opprettet,
+                    rekkefølge = linje.rekkefølge,
                     fraOgMed = linje.originalFraOgMed(),
                     tilOgMed = linje.originalTilOgMed(),
                     forrigeUtbetalingslinjeId = linje.forrigeUtbetalingslinjeId,
