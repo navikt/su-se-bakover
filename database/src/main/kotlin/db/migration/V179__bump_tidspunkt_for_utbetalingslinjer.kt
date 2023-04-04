@@ -51,50 +51,60 @@ private fun bumpTidspunkt(statement: Statement, utbetaling: LocalUtbetaling) {
                 utbetalingslinje.beløp.toString() == oppdragslinje.sats &&
                 utbetalingslinje.uføregrad?.value == oppdragslinje.grad?.grad &&
                 utbetalingslinje.utbetalingsinstruksjonForEtterbetalinger.let {
-                when (it) {
-                    UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling -> "J"
-                    UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig -> "N"
-                }
-            } == oppdragslinje.brukKjoreplan.value &&
+                    when (it) {
+                        UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling -> "J"
+                        UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig -> "N"
+                    }
+                } == oppdragslinje.brukKjoreplan.value &&
                 utbetalingslinje.periode.fraOgMed.toString() == oppdragslinje.datoVedtakFom &&
                 utbetalingslinje.periode.tilOgMed.toString() == oppdragslinje.datoVedtakTom
         }.let { filtrertUtbetalingslinjer ->
             //TODO - tidspunktet må bumpes
 
             if (filtrertUtbetalingslinjer.size == 1) {
-                statement.connection.prepareStatement(
-                    """
+                lagreUtbetalingsLinje(statement, utbetaling.utbetalingsId, filtrertUtbetalingslinjer.first())
+            }
+            if (filtrertUtbetalingslinjer.size > 1) {
+                //lagre først og putte den i et map også filtrer vi på det mappet
+                filtrertUtbetalingslinjer.forEach {
+                    lagreUtbetalingsLinje(statement, utbetaling.utbetalingsId, it)
+                }
+            }
+        }
+    }
+}
+
+private fun lagreUtbetalingsLinje(statement: Statement, utbetalingsId: UUID30, linje: Utbetalingslinje) {
+    //TODO - where
+    statement.connection.prepareStatement(
+        """
                         insert into utbetalingslinje (id, opprettet, fom, tom, utbetalingId, forrigeUtbetalingslinjeId, beløp, status, statusFraOgMed, statusTilOgMed, uføregrad, kjøreplan)
                         values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """.trimIndent(),
-                ).let {
-                    it.setString(1, filtrertUtbetalingslinjer.first().id.toString())
-                    it.setString(2, filtrertUtbetalingslinjer.first().opprettet.toString())
-                    it.setString(3, filtrertUtbetalingslinjer.first().periode.fraOgMed.toString())
-                    it.setString(4, filtrertUtbetalingslinjer.first().periode.tilOgMed.toString())
-                    it.setString(5, utbetaling.utbetalingsId.value)
-                    it.setString(6, filtrertUtbetalingslinjer.first().forrigeUtbetalingslinjeId?.toString())
-                    it.setInt(7, filtrertUtbetalingslinjer.first().beløp)
-                    when (val x = filtrertUtbetalingslinjer.first()) {
-                        is Utbetalingslinje.Endring -> it.setString(8, x.linjeStatus.toString())
-                        is Utbetalingslinje.Ny -> it.setNull(8, Types.VARCHAR)
-                    }
-                    // status fra og med
-                    when (val x = filtrertUtbetalingslinjer.first()) {
-                        is Utbetalingslinje.Endring -> it.setString(8, x.periode.fraOgMed.toString())
-                        is Utbetalingslinje.Ny -> it.setNull(8, Types.VARCHAR)
-                    }
-                    // status til og med
-                    when (val x = filtrertUtbetalingslinjer.first()) {
-                        is Utbetalingslinje.Endring -> it.setString(8, x.periode.tilOgMed.toString())
-                        is Utbetalingslinje.Ny -> it.setNull(8, Types.VARCHAR)
-                    }
-                    it.setObject(11, filtrertUtbetalingslinjer.first().uføregrad?.value)
-                    it.setString(12, filtrertUtbetalingslinjer.first().tilKjøreplan().value)
-                }
-            }
-            TODO("håndter hvis det finnes flere")
+    ).let {
+        it.setString(1, linje.id.toString())
+        it.setString(2, linje.opprettet.toString())
+        it.setString(3, linje.periode.fraOgMed.toString())
+        it.setString(4, linje.periode.tilOgMed.toString())
+        it.setString(5, utbetalingsId.value)
+        it.setString(6, linje.forrigeUtbetalingslinjeId?.toString())
+        it.setInt(7, linje.beløp)
+        when (linje) {
+            is Utbetalingslinje.Endring -> it.setString(8, linje.linjeStatus.toString())
+            is Utbetalingslinje.Ny -> it.setNull(8, Types.VARCHAR)
         }
+        // status fra og med
+        when (linje) {
+            is Utbetalingslinje.Endring -> it.setString(8, linje.periode.fraOgMed.toString())
+            is Utbetalingslinje.Ny -> it.setNull(8, Types.VARCHAR)
+        }
+        // status til og med
+        when (linje) {
+            is Utbetalingslinje.Endring -> it.setString(8, linje.periode.tilOgMed.toString())
+            is Utbetalingslinje.Ny -> it.setNull(8, Types.VARCHAR)
+        }
+        it.setObject(11, linje.uføregrad?.value)
+        it.setString(12, linje.tilKjøreplan().value)
     }
 }
 
