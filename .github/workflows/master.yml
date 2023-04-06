@@ -16,13 +16,14 @@ env:
 jobs:
   build-and-test-and-push-image:
     runs-on: ubuntu-latest
-    secrets: inherit
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/workflows/build.yml
+        secrets: inherit
         with:
           withoutTests: ${{contains(github.event.head_commit.message, '--skip_tests')}}
       - uses: ./.github/actions/loginBuildPublishDockerImage
+        secrets: inherit
         with:
           repo: ${{ github.repository }}
           image: ${{env.IMAGE}}
