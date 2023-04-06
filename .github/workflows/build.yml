@@ -33,10 +33,3 @@ jobs:
         uses: ./.github/actions/gradleBuild
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Login, Build and publish Docker image
-        uses: ./.github/actions/loginBuildPublishDockerImage
-        with:
-          repo: ${{ github.repository }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          image: ${{env.IMAGE}}
