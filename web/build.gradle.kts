@@ -1,5 +1,5 @@
 plugins {
-    id("com.github.davidmc24.gradle.plugin.avro") version "1.6.0"
+    id("com.github.davidmc24.gradle.plugin.avro") version "1.7.0"
 }
 
 avro {
