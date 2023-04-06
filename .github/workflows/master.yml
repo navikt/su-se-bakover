@@ -22,7 +22,7 @@ jobs:
 
   build-and-deploy-image:
     needs: build-and-test
-    uses: ./.github/actions/loginBuildPublishDockerImage
+    uses: ./.github/actions/loginBuildPublishDockerImage/action.yml
     secrets: inherit
     with:
       repo: ${{ github.repository }}
