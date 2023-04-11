@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.client.oppdrag.avstemming
 
-import no.nav.su.se.bakover.client.oppdrag.XmlMapper
 import no.nav.su.se.bakover.client.oppdrag.avstemming.Aksjonsdata.AksjonType.AVSLUTT
 import no.nav.su.se.bakover.client.oppdrag.avstemming.Aksjonsdata.AksjonType.DATA
 import no.nav.su.se.bakover.client.oppdrag.avstemming.GrensesnittsavstemmingData.Detaljdata
 import no.nav.su.se.bakover.client.oppdrag.avstemming.GrensesnittsavstemmingData.Detaljdata.Detaljtype.GODKJENT_MED_VARSEL
 import no.nav.su.se.bakover.client.oppdrag.avstemming.GrensesnittsavstemmingData.Grunnlagdata
+import no.nav.su.se.bakover.common.xmlMapper
 import org.hamcrest.MatcherAssert
 import org.junit.jupiter.api.Test
 import org.xmlunit.diff.DefaultNodeMatcher
@@ -48,7 +48,7 @@ internal class GrensesnittsavstemmingXmlMappingTest {
             """.trimIndent()
 
         MatcherAssert.assertThat(
-            XmlMapper.writeValueAsString(request),
+            xmlMapper.writeValueAsString(request),
             CompareMatcher.isSimilarTo(expected).withNodeMatcher(nodeMatcher),
         )
     }
@@ -145,7 +145,7 @@ internal class GrensesnittsavstemmingXmlMappingTest {
             """.trimIndent()
 
         MatcherAssert.assertThat(
-            XmlMapper.writeValueAsString(dataRequest),
+            xmlMapper.writeValueAsString(dataRequest),
             CompareMatcher.isSimilarTo(expected).withNodeMatcher(nodeMatcher),
         )
     }
@@ -182,7 +182,7 @@ internal class GrensesnittsavstemmingXmlMappingTest {
             """.trimIndent()
 
         MatcherAssert.assertThat(
-            XmlMapper.writeValueAsString(request),
+            xmlMapper.writeValueAsString(request),
             CompareMatcher.isSimilarTo(expected).withNodeMatcher(nodeMatcher),
         )
     }

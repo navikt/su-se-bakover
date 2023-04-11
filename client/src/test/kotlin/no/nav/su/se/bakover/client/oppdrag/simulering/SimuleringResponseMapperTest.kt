@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.oppdrag.XmlMapper
 import no.nav.su.se.bakover.common.application.Beløp
 import no.nav.su.se.bakover.common.application.MånedBeløp
 import no.nav.su.se.bakover.common.application.Månedsbeløp
@@ -15,6 +14,7 @@ import no.nav.su.se.bakover.common.periode.august
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.common.xmlMapper
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Kontobeløp
@@ -57,7 +57,7 @@ internal class SimuleringResponseMapperTest {
                 }
             }
         }
-        val responseMedFremtidigUtbetaling = XmlMapper.readValue(
+        val responseMedFremtidigUtbetaling = xmlMapper.readValue(
             rawResponse,
             GrensesnittResponse::class.java,
         ).response
@@ -153,7 +153,7 @@ internal class SimuleringResponseMapperTest {
                 }
             }
         }
-        val responseMedFremtidigUtbetaling = XmlMapper.readValue(
+        val responseMedFremtidigUtbetaling = xmlMapper.readValue(
             simuleringXml,
             GrensesnittResponse::class.java,
         ).response
@@ -244,7 +244,7 @@ internal class SimuleringResponseMapperTest {
                 }
             }
         }
-        val responseMedFeilutbetaling = XmlMapper.readValue(
+        val responseMedFeilutbetaling = xmlMapper.readValue(
             simuleringXml,
             GrensesnittResponse::class.java,
         ).response
@@ -490,7 +490,7 @@ internal class SimuleringResponseMapperTest {
                 }
             }
         }
-        val responseMedEtterbetaling = XmlMapper.readValue(
+        val responseMedEtterbetaling = xmlMapper.readValue(
             simuleringXml,
             GrensesnittResponse::class.java,
         ).response
@@ -688,7 +688,7 @@ internal class SimuleringResponseMapperTest {
                 }
             }
         }
-        val responseMedFremtidigUtbetaling = XmlMapper.readValue(
+        val responseMedFremtidigUtbetaling = xmlMapper.readValue(
             simuleringXml,
             GrensesnittResponse::class.java,
         ).response
@@ -760,7 +760,7 @@ internal class SimuleringResponseMapperTest {
                 stoppnivå {}
             }
         }
-        val responseMedFremtidigUtbetaling = XmlMapper.readValue(
+        val responseMedFremtidigUtbetaling = xmlMapper.readValue(
             simuleringXml,
             GrensesnittResponse::class.java,
         ).response
@@ -786,7 +786,7 @@ internal class SimuleringResponseMapperTest {
                 stoppnivå {}
             }
         }
-        val responseMedFremtidigUtbetaling = XmlMapper.readValue(
+        val responseMedFremtidigUtbetaling = xmlMapper.readValue(
             simuleringXml,
             GrensesnittResponse::class.java,
         ).response
@@ -810,7 +810,7 @@ internal class SimuleringResponseMapperTest {
                 stoppnivå {}
             }
         }
-        val responseMedFremtidigUtbetaling = XmlMapper.readValue(
+        val responseMedFremtidigUtbetaling = xmlMapper.readValue(
             simuleringXml,
             GrensesnittResponse::class.java,
         ).response

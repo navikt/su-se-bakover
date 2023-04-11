@@ -8,7 +8,6 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher
-import no.nav.su.se.bakover.client.oppdrag.XmlMapper
 import no.nav.su.se.bakover.client.oppdrag.toAvstemmingsdatoFormat
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
@@ -19,6 +18,7 @@ import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.startOfDay
+import no.nav.su.se.bakover.common.xmlMapper
 import no.nav.su.se.bakover.domain.oppdrag.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -48,7 +48,7 @@ class AvstemmingPublisherTest {
 
         client.count shouldBe 1
         client.publishedMessages.size shouldBe 3
-        client.publishedMessages[0] shouldBe XmlMapper.writeValueAsString(
+        client.publishedMessages[0] shouldBe xmlMapper.writeValueAsString(
             AvstemmingStartRequest(
                 aksjon = Aksjonsdata.Grensesnittsavstemming(
                     aksjonType = Aksjonsdata.AksjonType.START,
@@ -59,7 +59,7 @@ class AvstemmingPublisherTest {
                 ),
             ),
         )
-        client.publishedMessages[1] shouldBe XmlMapper.writeValueAsString(
+        client.publishedMessages[1] shouldBe xmlMapper.writeValueAsString(
             GrensesnittsavstemmingData(
                 aksjon = Aksjonsdata.Grensesnittsavstemming(
                     aksjonType = Aksjonsdata.AksjonType.DATA,
@@ -94,7 +94,7 @@ class AvstemmingPublisherTest {
                 detalj = listOf(),
             ),
         )
-        client.publishedMessages[2] shouldBe XmlMapper.writeValueAsString(
+        client.publishedMessages[2] shouldBe xmlMapper.writeValueAsString(
             AvstemmingStoppRequest(
                 aksjon = Aksjonsdata.Grensesnittsavstemming(
                     aksjonType = Aksjonsdata.AksjonType.AVSLUTT,
