@@ -70,8 +70,6 @@ internal class V180Test {
     }
 
     private fun readFile(filename: String): String {
-        // return Files.readString( Path.of("""/src/test/no/nav/su/se/bakover/database/db/migration/v180/$filename"""))
-        // TODO jah: Fix to be relative to github repo
-        return Files.readString(Paths.get("""/Users/johnandrehestad/dev/su-se-bakover/database/src/test/kotlin/no/nav/su/se/bakover/database/db/migration/v180/$filename"""))
+        return Files.readString(Paths.get("""src/test/kotlin/no/nav/su/se/bakover/database/db/migration/v180/$filename"""))
     }
 }
