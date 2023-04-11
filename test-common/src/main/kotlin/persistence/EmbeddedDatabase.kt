@@ -4,31 +4,36 @@ import io.zonky.test.db.postgres.embedded.DatabasePreparer
 import io.zonky.test.db.postgres.embedded.PreparedDbProvider
 import no.nav.su.se.bakover.common.persistence.Flyway
 import no.nav.su.se.bakover.database.Postgres
+import org.jetbrains.annotations.TestOnly
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
 
 private val log = LoggerFactory.getLogger("EmbeddedDatabase.kt")
 
-private var preparer: CustomFlywayPreparer = CustomFlywayPreparer()
-
 /** Kjører kun flyway-migrering på første kallet, bruker templates for å opprette nye databaser. */
-fun withMigratedDb(test: (dataSource: DataSource) -> Unit) {
-    test(createNewDatabase())
+@TestOnly
+fun withMigratedDb(
+    dbMigrationVersion: Int? = null,
+    test: (dataSource: DataSource) -> Unit,
+) {
+    test(createNewDatabase(dbMigrationVersion = dbMigrationVersion))
 }
 
-/** Brukes fra web-laget */
-@Suppress("unused")
+@TestOnly
 fun migratedDb(): DataSource {
     return createNewDatabase()
 }
 
-private fun createNewDatabase(): DataSource {
-    val provider = PreparedDbProvider.forPreparer(preparer)
+private fun createNewDatabase(dbMigrationVersion: Int? = null): DataSource {
+    val provider = PreparedDbProvider.forPreparer(CustomFlywayPreparer(toVersion = dbMigrationVersion))
     val info = provider.createNewDatabase()
     return provider.createDataSourceFromConnectionInfo(info)
 }
 
-private class CustomFlywayPreparer(val role: String = "postgres", val toVersion: Int? = null) : DatabasePreparer {
+private class CustomFlywayPreparer(
+    val role: String = "postgres",
+    val toVersion: Int? = null,
+) : DatabasePreparer {
     override fun prepare(ds: DataSource) {
         log.info("Preparing and migrating database for tests ...")
         ds.connection.use { connection ->
