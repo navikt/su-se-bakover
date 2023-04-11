@@ -14,28 +14,71 @@ env:
   IMAGE: ghcr.io/${{ github.repository }}/su-se-bakover:${{ github.sha }}
 
 jobs:
-  build-and-test-and-push-image:
+  build:
+    name: Build and push Docker container
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/workflows/build.yml
-        secrets: inherit
+      - uses: actions/cache@v3
         with:
-          withoutTests: ${{contains(github.event.head_commit.message, '--skip_tests')}}
-      - uses: ./.github/actions/loginBuildPublishDockerImage
-        secrets: inherit
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-v2-${{ hashFiles('gradle.properties', 'settings.gradle.kts', '**/build.gradle.kts', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      - uses: actions/setup-java@v3
         with:
-          repo: ${{ github.repository }}
-          image: ${{env.IMAGE}}
-
-  deploy-to-dev :
-    needs: build-and-deploy-image
-    uses: ./.github/workflows/dev-deploy.yml
-    secrets: inherit
+          java-version: '19'
+          distribution: 'temurin'
+      - name: test and build
+        run: ./gradlew test build
+        env:
+          ORG_GRADLE_PROJECT_githubUser: x-access-token
+          ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to DockerHub
+        uses: docker/login-action@v2.1.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and publish Docker image
+        uses: docker/build-push-action@v4.0.0
+        with:
+          context: .
+          push: true
+          pull: true
+          tags: ${{env.IMAGE}}
 
   snyk:
-    uses: ./.github/workflows/snyk.yml
-    secrets: inherit
+    #https://github.com/snyk/actions/tree/master/gradle
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/gradle@master
+        continue-on-error: true # To make sure that SARIF upload gets called
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          ORG_GRADLE_PROJECT_githubUser: x-access-token
+          ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: --all-sub-projects --org=supstonad --sarif-file-output=${{ github.workspace }}/snyk.sarif
+          command: monitor
+
+  deploy_to_dev:
+    name: Deploy to dev
+    needs: build
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: nais/deploy/actions/deploy@v1
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: dev-fss
+          RESOURCE: nais.yml
+          VARS: nais-dev.json
 
   generate-draft-release:
     name: Generate/update draft release
