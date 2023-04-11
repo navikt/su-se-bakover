@@ -3,7 +3,6 @@
 package db.migration
 
 import arrow.core.Nel
-import arrow.core.NonEmptyList
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import no.nav.su.se.bakover.common.Rekkefølge
@@ -127,7 +126,7 @@ private fun lagreRekkefølge(
     }
 }
 
-private fun hentUtbetalingslinjer(statement: Statement): NonEmptyList<LocalUtbetalingslinje> {
+private fun hentUtbetalingslinjer(statement: Statement): List<LocalUtbetalingslinje> {
     val rs = statement.executeQuery("""select * from utbetalingslinje""".trimIndent())
     val utbetalingslinjer = mutableListOf<LocalUtbetalingslinje>()
     while (rs.next()) {
@@ -153,7 +152,7 @@ private fun hentUtbetalingslinjer(statement: Statement): NonEmptyList<LocalUtbet
         utbetalingslinjer.add(linje)
     }
 
-    return utbetalingslinjer.toNonEmptyList()
+    return utbetalingslinjer
 }
 
 private data class LocalUtbetaling(
@@ -187,7 +186,7 @@ private data class LocalUtbetalingslinje(
 
 private fun hentUtbetalinger(
     statement: Statement,
-    utbetalingslinjer: NonEmptyList<LocalUtbetalingslinje>,
+    utbetalingslinjer: List<LocalUtbetalingslinje>,
 ): List<LocalUtbetaling> {
     val listeAvUtbetalinger = mutableListOf<LocalUtbetaling>()
     val rs = statement.executeQuery(
