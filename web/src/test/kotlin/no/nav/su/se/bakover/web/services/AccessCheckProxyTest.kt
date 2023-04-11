@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonRepo
 import no.nav.su.se.bakover.domain.person.PersonService
@@ -78,7 +79,7 @@ internal class AccessCheckProxyTest {
                                 saksnummer = Saksnummer(2021),
                                 opprettet = fixedTidspunkt,
                                 fnr = fnr,
-                                utbetalinger = emptyList(),
+                                utbetalinger = Utbetalinger(),
                                 type = Sakstype.UFØRE,
                                 uteståendeAvkorting = Avkortingsvarsel.Ingen,
                                 versjon = Hendelsesversjon(1),
@@ -222,7 +223,7 @@ internal class AccessCheckProxyTest {
                         saksnummer = Saksnummer(2021),
                         opprettet = fixedTidspunkt,
                         fnr = fnr,
-                        utbetalinger = emptyList(),
+                        utbetalinger = Utbetalinger(),
                         type = Sakstype.UFØRE,
                         uteståendeAvkorting = Avkortingsvarsel.Ingen,
                         versjon = Hendelsesversjon(1),

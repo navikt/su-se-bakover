@@ -24,9 +24,9 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.klage.Klage
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.hentOversendteUtbetalingslinjerUtenFeil
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
@@ -74,7 +74,7 @@ data class Sak(
     val søknader: List<Søknad> = emptyList(),
     val søknadsbehandlinger: List<Søknadsbehandling> = emptyList(),
     // TODO jah: Bytt til [Utbetaling.Oversendt]
-    val utbetalinger: List<Utbetaling>,
+    val utbetalinger: Utbetalinger,
     val revurderinger: List<AbstraktRevurdering> = emptyList(),
     val vedtakListe: List<Vedtak> = emptyList(),
     val klager: List<Klage> = emptyList(),

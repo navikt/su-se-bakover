@@ -52,7 +52,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandli
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
-import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
@@ -1101,7 +1100,6 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `tilbakekrevingsbrev dersom tilbakekreving ved endring`() {
         val vedtak = vedtakRevurdering(
-            clock = TikkendeKlokke(1.august(2021).fixedClock()),
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
                     periode = mai(2021),
@@ -1153,7 +1151,6 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `tilbakekrevingsbrev dersom tilbakekreving ved opphør`() {
         val vedtak = vedtakRevurdering(
-            clock = TikkendeKlokke(1.august(2021).fixedClock()),
             revurderingsperiode = juni(2021)..(desember(2021)),
             vilkårOverrides = listOf(
                 flyktningVilkårAvslått(

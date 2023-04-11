@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.application.CopyArgs
@@ -8,13 +9,19 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
 import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje.Endring.Opphør
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje.Endring.Reaktivering
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje.Endring.Stans
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
+import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
 import java.time.LocalDate
 
 sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingslinje> {
     abstract val id: UUID30 // delytelseId
     abstract val opprettet: Tidspunkt
+    abstract val rekkefølge: Rekkefølge?
 
     /**
      * @see originalFraOgMed
@@ -36,13 +43,13 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
 
     /**
      * Original [fraOgMed] som ble satt da linjen ble oversendt til OS.
-     * Brukes i all hovedsak som [periode.fraOgMed] for [Ny] og nødvendig input-data til OS ved [Endring].
+     * Brukes i all hovedsak som [Periode.fraOgMed] for [Ny] og nødvendig input-data til OS ved [Endring].
      */
     fun originalFraOgMed(): LocalDate = fraOgMed
 
     /**
      * Original [tilOgMed] som ble satt da linjen ble oversendt til OS.
-     * Brukes i all hovedsak som [periode.tilOgMed] for [Ny] og nødvendig input-data til OS ved [Endring].
+     * Brukes i all hovedsak som [Periode.tilOgMed] for [Ny] og nødvendig input-data til OS ved [Endring].
      */
     fun originalTilOgMed(): LocalDate = tilOgMed
 
@@ -65,6 +72,7 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
     data class Ny(
         override val id: UUID30 = UUID30.randomUUID(),
         override val opprettet: Tidspunkt,
+        override val rekkefølge: Rekkefølge?,
         override val fraOgMed: LocalDate,
         override val tilOgMed: LocalDate,
         override val forrigeUtbetalingslinjeId: UUID30?,
@@ -81,8 +89,8 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
     }
 
     /**
-     * Representerer en endring av en eksisterende linje. Linjen som endres kan være hvilken som helst type av
-     * [Utbetalingslinje].
+     * Representerer en endring av en eksisterende linje.
+     * Linjen som endres kan være hvilken som helst type av [Utbetalingslinje].
      *
      * @property linjeStatus angir hvilken type endring som skal gjennomføres; [Opphør], [Stans] eller [Reaktivering].
      * I OS er en endring en oppdatering av statusen på en linje.
@@ -98,6 +106,7 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
         data class Opphør(
             override val id: UUID30,
             override val opprettet: Tidspunkt,
+            override val rekkefølge: Rekkefølge?,
             override val fraOgMed: LocalDate,
             override val tilOgMed: LocalDate,
             override val forrigeUtbetalingslinjeId: UUID30?,
@@ -116,19 +125,32 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
             override val periode = virkningsperiode
 
             constructor(
-                utbetalingslinje: Utbetalingslinje,
+                utbetalingslinjeSomSkalEndres: Utbetalingslinje,
                 virkningsperiode: Periode,
                 clock: Clock,
-                opprettet: Tidspunkt = Tidspunkt.now(clock),
+                rekkefølge: Rekkefølge,
             ) : this(
-                id = utbetalingslinje.id,
-                opprettet = opprettet,
-                fraOgMed = utbetalingslinje.originalFraOgMed(),
-                tilOgMed = utbetalingslinje.originalTilOgMed(),
-                forrigeUtbetalingslinjeId = utbetalingslinje.forrigeUtbetalingslinjeId,
-                beløp = utbetalingslinje.beløp,
+                utbetalingslinjeSomSkalEndres = utbetalingslinjeSomSkalEndres,
                 virkningsperiode = virkningsperiode,
-                uføregrad = utbetalingslinje.uføregrad,
+                opprettet = Tidspunkt.now(clock),
+                rekkefølge = rekkefølge,
+            )
+
+            constructor(
+                utbetalingslinjeSomSkalEndres: Utbetalingslinje,
+                virkningsperiode: Periode,
+                opprettet: Tidspunkt,
+                rekkefølge: Rekkefølge,
+            ) : this(
+                id = utbetalingslinjeSomSkalEndres.id,
+                opprettet = opprettet,
+                rekkefølge = rekkefølge,
+                fraOgMed = utbetalingslinjeSomSkalEndres.originalFraOgMed(),
+                tilOgMed = utbetalingslinjeSomSkalEndres.originalTilOgMed(),
+                forrigeUtbetalingslinjeId = utbetalingslinjeSomSkalEndres.forrigeUtbetalingslinjeId,
+                beløp = utbetalingslinjeSomSkalEndres.beløp,
+                virkningsperiode = virkningsperiode,
+                uføregrad = utbetalingslinjeSomSkalEndres.uføregrad,
                 utbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig,
             )
         }
@@ -136,6 +158,7 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
         data class Stans(
             override val id: UUID30,
             override val opprettet: Tidspunkt,
+            override val rekkefølge: Rekkefølge?,
             override val fraOgMed: LocalDate,
             override val tilOgMed: LocalDate,
             override val forrigeUtbetalingslinjeId: UUID30?,
@@ -153,23 +176,49 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
             @JsonIgnore
             override val periode = virkningsperiode
 
+            /**
+             * @param utbetalingslinjeSomSkalEndres er linjen som skal stanses. Gjenbruker bl.a. fraOgMed, tilOgMed og beløp.
+             * @param virkningstidspunkt er datoen som linjen skal stanses fra. Må være den første i måneden.
+             * @param clock brukes kun internt for å holde styr på rekkefølgen (erstattes av rekkefølge)
+             * @param rekkefølge brukes kun internt for å holde styr på rekkefølgen (erstatter opprettet)
+             */
+            @TestOnly
             constructor(
-                utbetalingslinje: Utbetalingslinje,
+                utbetalingslinjeSomSkalEndres: Utbetalingslinje,
                 virkningstidspunkt: LocalDate,
                 clock: Clock,
-                opprettet: Tidspunkt = Tidspunkt.now(clock),
+                rekkefølge: Rekkefølge,
             ) : this(
-                id = utbetalingslinje.id,
+                utbetalingslinjeSomSkalEndres = utbetalingslinjeSomSkalEndres,
+                virkningstidspunkt = virkningstidspunkt,
+                opprettet = Tidspunkt.now(clock),
+                rekkefølge = rekkefølge,
+            )
+
+            /**
+             * @param utbetalingslinjeSomSkalEndres er linjen som skal stanses. Gjenbruker bl.a. fraOgMed, tilOgMed og beløp. Denne kan tilhøre en tidligere utbetaling, slik at den ikke nødvendigvis henger sammen med opprettet/rekkefølge.
+             * @param virkningstidspunkt er datoen som linjen skal stanses fra. Må være den første i måneden.
+             * @param opprettet brukes kun internt for å holde styr på rekkefølgen (erstattes av rekkefølge)
+             * @param rekkefølge brukes kun internt for å holde styr på rekkefølgen (erstatter opprettet)
+             */
+            constructor(
+                utbetalingslinjeSomSkalEndres: Utbetalingslinje,
+                virkningstidspunkt: LocalDate,
+                opprettet: Tidspunkt,
+                rekkefølge: Rekkefølge,
+            ) : this(
+                id = utbetalingslinjeSomSkalEndres.id,
                 opprettet = opprettet,
-                fraOgMed = utbetalingslinje.originalFraOgMed(),
-                tilOgMed = utbetalingslinje.originalTilOgMed(),
-                forrigeUtbetalingslinjeId = utbetalingslinje.forrigeUtbetalingslinjeId,
-                beløp = utbetalingslinje.beløp,
+                rekkefølge = rekkefølge,
+                fraOgMed = utbetalingslinjeSomSkalEndres.originalFraOgMed(),
+                tilOgMed = utbetalingslinjeSomSkalEndres.originalTilOgMed(),
+                forrigeUtbetalingslinjeId = utbetalingslinjeSomSkalEndres.forrigeUtbetalingslinjeId,
+                beløp = utbetalingslinjeSomSkalEndres.beløp,
                 virkningsperiode = Periode.create(
                     fraOgMed = virkningstidspunkt,
-                    tilOgMed = utbetalingslinje.originalTilOgMed(),
+                    tilOgMed = utbetalingslinjeSomSkalEndres.originalTilOgMed(),
                 ),
-                uføregrad = utbetalingslinje.uføregrad,
+                uføregrad = utbetalingslinjeSomSkalEndres.uføregrad,
                 utbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig,
             )
         }
@@ -177,6 +226,7 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
         data class Reaktivering(
             override val id: UUID30,
             override val opprettet: Tidspunkt,
+            override val rekkefølge: Rekkefølge?,
             override val fraOgMed: LocalDate,
             override val tilOgMed: LocalDate,
             override val forrigeUtbetalingslinjeId: UUID30?,
@@ -193,23 +243,49 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
             @JsonIgnore
             override val periode = virkningsperiode
 
+            /**
+             * @param utbetalingslinjeSomSkalEndres er linjen som skal stanses. Gjenbruker bl.a. fraOgMed, tilOgMed og beløp.
+             * @param virkningstidspunkt er datoen som linjen skal stanses fra. Må være den første i måneden.
+             * @param clock brukes kun internt for å holde styr på rekkefølgen (erstattes av rekkefølge)
+             * @param rekkefølge brukes kun internt for å holde styr på rekkefølgen (erstatter opprettet)
+             */
+            @TestOnly
             constructor(
-                utbetalingslinje: Utbetalingslinje,
+                utbetalingslinjeSomSkalEndres: Utbetalingslinje,
                 virkningstidspunkt: LocalDate,
                 clock: Clock,
-                opprettet: Tidspunkt = Tidspunkt.now(clock),
+                rekkefølge: Rekkefølge,
             ) : this(
-                id = utbetalingslinje.id,
+                utbetalingslinjeSomSkalEndres = utbetalingslinjeSomSkalEndres,
+                virkningstidspunkt = virkningstidspunkt,
+                opprettet = Tidspunkt.now(clock),
+                rekkefølge = rekkefølge,
+            )
+
+            /**
+             * @param utbetalingslinjeSomSkalEndres er linjen som skal stanses. Gjenbruker bl.a. fraOgMed, tilOgMed og beløp.
+             * @param virkningstidspunkt er datoen som linjen skal stanses fra. Må være den første i måneden.
+             * @param opprettet brukes kun internt for å holde styr på rekkefølgen (erstattes av rekkefølge)
+             * @param rekkefølge brukes kun internt for å holde styr på rekkefølgen (erstatter opprettet)
+             */
+            constructor(
+                utbetalingslinjeSomSkalEndres: Utbetalingslinje,
+                virkningstidspunkt: LocalDate,
+                opprettet: Tidspunkt,
+                rekkefølge: Rekkefølge,
+            ) : this(
+                id = utbetalingslinjeSomSkalEndres.id,
                 opprettet = opprettet,
-                fraOgMed = utbetalingslinje.originalFraOgMed(),
-                tilOgMed = utbetalingslinje.originalTilOgMed(),
-                forrigeUtbetalingslinjeId = utbetalingslinje.forrigeUtbetalingslinjeId,
-                beløp = utbetalingslinje.beløp,
+                rekkefølge = rekkefølge,
+                fraOgMed = utbetalingslinjeSomSkalEndres.originalFraOgMed(),
+                tilOgMed = utbetalingslinjeSomSkalEndres.originalTilOgMed(),
+                forrigeUtbetalingslinjeId = utbetalingslinjeSomSkalEndres.forrigeUtbetalingslinjeId,
+                beløp = utbetalingslinjeSomSkalEndres.beløp,
                 virkningsperiode = Periode.create(
                     fraOgMed = virkningstidspunkt,
-                    tilOgMed = utbetalingslinje.originalTilOgMed(),
+                    tilOgMed = utbetalingslinjeSomSkalEndres.originalTilOgMed(),
                 ),
-                uføregrad = utbetalingslinje.uføregrad,
+                uføregrad = utbetalingslinjeSomSkalEndres.uføregrad,
                 utbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig,
             )
         }
@@ -309,17 +385,40 @@ sealed class UtbetalingslinjePåTidslinje : KanPlasseresPåTidslinje<Utbetalings
 }
 
 fun List<Utbetalingslinje>.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse() {
-    check(
-        this.filterIsInstance<Utbetalingslinje.Ny>()
-            .map { it.forrigeUtbetalingslinjeId }
-            .let { it.distinct() == it },
-    ) { "Alle nye utbetalingslinjer skal referere til forskjellig forrige utbetalingid" }
+    this.filterIsInstance<Utbetalingslinje.Ny>()
+        .map { it.forrigeUtbetalingslinjeId }.ifNotEmpty {
+            check(this.distinct() == this) { "Alle nye utbetalingslinjer skal referere til forskjellig forrige utbetalingid, men var: $this" }
+        }
 }
 
 fun List<Utbetalingslinje>.sjekkSortering() {
     check(this.sorted() == this) { "Utbetalingslinjer er ikke sortert i stigende rekkefølge" }
 }
 
+fun List<Utbetalingslinje>.sjekkUnikOpprettet() {
+    this.map { it.opprettet }.let {
+        check(it.distinct().size == it.size) { "Utbetalingslinjer har ikke unik opprettet: $it" }
+    }
+}
+
 fun List<Utbetalingslinje>.sjekkIngenNyeOverlapper() {
     check(!filterIsInstance<Utbetalingslinje.Ny>().harOverlappende()) { "Nye linjer kan ikke overlappe" }
+}
+
+fun List<Utbetalingslinje>.sjekkRekkefølge() {
+    if (this.isEmpty()) return
+    val rekkefølge = this.map { it.rekkefølge }
+    if (rekkefølge.all { it == null }) return
+    check(rekkefølge.all { it != null }) {
+        "Alle eller ingen av utbetalingslinjene må ha rekkefølge. Var: $rekkefølge"
+    }
+    val requiredStart = Rekkefølge.start()
+    check(this.first().rekkefølge == requiredStart) {
+        "Første linje må være Rekkefølge.start() som er: $requiredStart, men var ${this.first().rekkefølge}"
+    }
+    this.map { it.rekkefølge!!.value }.let {
+        check(it == (requiredStart.value until(requiredStart.value + this.size)).toList()) {
+            "Krever at rekkefølgen har en gitt start og er kontinuerlig, men var: $it"
+        }
+    }
 }

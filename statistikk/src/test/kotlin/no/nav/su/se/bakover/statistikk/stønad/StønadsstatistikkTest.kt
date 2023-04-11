@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.januar
-import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
@@ -45,10 +44,7 @@ internal class StønadsstatistikkTest {
 
     @Test
     fun `Stans gir nullutbetaling`() {
-        val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-            clock = TikkendeKlokke(1.januar(2021).fixedClock()),
-            periode = år(2021),
-        )
+        val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak()
         assert(
             event = StatistikkEvent.Stønadsvedtak(vedtak) { sak },
             vedtakstype = "STANS",
@@ -111,7 +107,7 @@ internal class StønadsstatistikkTest {
 
     @Test
     fun `Gjenopptak bruker nyeste beregning for hver måned`() {
-        val clock = TikkendeKlokke(fixedClock)
+        val clock = TikkendeKlokke()
         val stønadsperiode = Periode.create(1.januar(2021), 28.februar(2021))
         var sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
             stønadsperiode = Stønadsperiode.create(stønadsperiode),
@@ -182,14 +178,14 @@ internal class StønadsstatistikkTest {
                 }
             ]
             """.trimIndent(),
-            funksjonellTid = "2021-01-01T01:03:05.456789Z",
+            funksjonellTid = "2021-01-01T01:04:06.456789Z",
         )
     }
 
     @Test
     fun `Gjenopptak for en kortere periode enn søknadsperioden bruker nyeste beregning for hver måned`() {
         val stønadsperiode = Periode.create(1.januar(2021), 28.februar(2021))
-        val clock = TikkendeKlokke(fixedClock)
+        val clock = TikkendeKlokke()
         var sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
             stønadsperiode = Stønadsperiode.create(stønadsperiode),
             clock = clock,
@@ -234,7 +230,7 @@ internal class StønadsstatistikkTest {
             ]
             """.trimIndent(),
             ytelseVirkningstidspunkt = januar(2021).fraOgMed,
-            funksjonellTid = "2021-01-01T01:02:44.456789Z",
+            funksjonellTid = "2021-01-01T01:03:45.456789Z",
         )
     }
 
@@ -286,7 +282,7 @@ internal class StønadsstatistikkTest {
             ]
             """.trimIndent(),
             ytelseVirkningstidspunkt = januar(2021).fraOgMed,
-            funksjonellTid = "2021-01-01T01:02:19.456789Z",
+            funksjonellTid = "2021-01-01T01:03:20.456789Z",
         )
     }
 

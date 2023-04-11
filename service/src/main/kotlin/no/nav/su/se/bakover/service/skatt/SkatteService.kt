@@ -19,7 +19,7 @@ interface SkatteService {
 
     fun hentSamletSkattegrunnlagForBehandling(
         behandlingId: UUID,
-    ): Pair<Fnr, Either<KunneIkkeHenteSkattemelding, Skattegrunnlag>>
+    ): HentSamletSkattegrunnlagForBehandlingResponse
 }
 
 sealed interface KunneIkkeHenteSkattemelding {

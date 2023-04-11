@@ -14,22 +14,22 @@ env:
   IMAGE: ghcr.io/${{ github.repository }}/su-se-bakover:${{ github.sha }}
 
 jobs:
-  build_and_test:
-    if: ${{!contains(github.event.head_commit.message, '--skip_tests')}}
-    uses: ./.github/workflows/build.yml
+  build-and-test-and-push-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/workflows/build.yml
+        secrets: inherit
+        with:
+          withoutTests: ${{contains(github.event.head_commit.message, '--skip_tests')}}
+      - uses: ./.github/actions/loginBuildPublishDockerImage
+        secrets: inherit
+        with:
+          repo: ${{ github.repository }}
+          image: ${{env.IMAGE}}
 
-  deploy_to_dev:
-    needs: build_and_test
-    uses: ./.github/workflows/dev-deploy.yml
-    secrets: inherit
-  build:
-    if: ${{contains(github.event.head_commit.message, '--skip_tests')}}
-    uses: ./.github/workflows/build.yml
-    with:
-      withoutTests: true
-
-  deploy_to_dev_without_tests:
-    needs: build
+  deploy-to-dev :
+    needs: build-and-deploy-image
     uses: ./.github/workflows/dev-deploy.yml
     secrets: inherit
 

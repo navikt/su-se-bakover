@@ -43,6 +43,7 @@ internal class UtbetalingPostgresRepoTest {
     fun `hent utbetalinger for sak`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
+            val clock = testDataHelper.clock
             val repo = testDataHelper.utbetalingRepo
             val sakId = UUID.randomUUID()
             // Lagrer en kvittering med og uten kvittering som ikke skal komme med i hent-operasjonen
@@ -57,6 +58,7 @@ internal class UtbetalingPostgresRepoTest {
                             sakInfo = sak.info(),
                             stønadsperiode = Stønadsperiode.create(år(2021)),
                             sakOgSøknad = sak to søknad,
+                            clock = clock,
                         )
                     },
                 ).third
@@ -68,6 +70,7 @@ internal class UtbetalingPostgresRepoTest {
                             sakInfo = sak.info(),
                             stønadsperiode = Stønadsperiode.create(år(2022)),
                             sakOgSøknad = sak to søknad,
+                            clock = clock,
                         )
                     },
                 ).third
@@ -79,6 +82,7 @@ internal class UtbetalingPostgresRepoTest {
                             sakInfo = sak.info(),
                             stønadsperiode = Stønadsperiode.create(år(2023)),
                             sakOgSøknad = sak to søknad,
+                            clock = clock,
                         )
                     },
                 ).third
@@ -90,6 +94,7 @@ internal class UtbetalingPostgresRepoTest {
                             sakInfo = sak.info(),
                             stønadsperiode = Stønadsperiode.create(år(2024)),
                             sakOgSøknad = sak to søknad,
+                            clock = clock,
                         )
                     },
                 ).third

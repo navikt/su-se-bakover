@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.argThat
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.revurderingTilAttestering
@@ -52,8 +51,8 @@ internal class UnderkjennRevurderingTest {
                 on { lukkOppgave(any()) } doReturn Unit.right()
             },
             observer = mock(),
-        ).also {
-            val actual = it.revurderingService.underkjenn(
+        ).also { mocks ->
+            val actual = mocks.revurderingService.underkjenn(
                 revurderingId = tilAttestering.id,
                 attestering = attestering,
             ).getOrFail()
@@ -63,30 +62,30 @@ internal class UnderkjennRevurderingTest {
                 nyOppgaveId,
             )
 
-            inOrder(it.revurderingRepo, it.personService, it.oppgaveService, it.observer) {
-                verify(it.revurderingRepo).hent(argThat { it shouldBe tilAttestering.id })
-                verify(it.personService).hentAktørId(argThat { it shouldBe fnr })
-                verify(it.oppgaveService).opprettOppgave(
+            inOrder(mocks.revurderingRepo, mocks.personService, mocks.oppgaveService, mocks.observer) {
+                verify(mocks.revurderingRepo).hent(argThat { it shouldBe tilAttestering.id })
+                verify(mocks.personService).hentAktørId(argThat { it shouldBe fnr })
+                verify(mocks.oppgaveService).opprettOppgave(
                     argThat {
                         it shouldBe OppgaveConfig.Revurderingsbehandling(
                             saksnummer = saksnummer,
                             aktørId = aktørId,
                             tilordnetRessurs = saksbehandler,
-                            clock = fixedClock,
+                            clock = mocks.clock,
                         )
                     },
                 )
-                verify(it.revurderingRepo).defaultTransactionContext()
-                verify(it.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
-                verify(it.oppgaveService).lukkOppgave(argThat { it shouldBe tilAttestering.oppgaveId })
+                verify(mocks.revurderingRepo).defaultTransactionContext()
+                verify(mocks.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
+                verify(mocks.oppgaveService).lukkOppgave(argThat { it shouldBe tilAttestering.oppgaveId })
 
-                verify(it.observer).handle(
+                verify(mocks.observer).handle(
                     argThat {
                         it shouldBe StatistikkEvent.Behandling.Revurdering.Underkjent.Innvilget(actual as UnderkjentRevurdering.Innvilget)
                     },
                 )
             }
-            verifyNoMoreInteractions(it.revurderingRepo, it.personService, it.oppgaveService)
+            verifyNoMoreInteractions(mocks.revurderingRepo, mocks.personService, mocks.oppgaveService)
         }
     }
 }

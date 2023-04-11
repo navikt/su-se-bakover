@@ -1,24 +1,27 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
+import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.lang.IllegalStateException
 import java.time.temporal.ChronoUnit
 
 internal class UtbetalingslinjeTest {
 
     @Test
     fun `sortering i stigende rekkefølge - nyeste sist`() {
+        val rekkefølge = Rekkefølge.generator()
         assertThrows<IllegalStateException> {
             listOf(
                 Utbetalingslinje.Ny(
                     id = UUID30.randomUUID(),
                     opprettet = fixedTidspunkt,
+                    rekkefølge = rekkefølge.neste(),
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.januar(2020),
                     forrigeUtbetalingslinjeId = null,
@@ -29,6 +32,7 @@ internal class UtbetalingslinjeTest {
                 Utbetalingslinje.Ny(
                     id = UUID30.randomUUID(),
                     opprettet = fixedTidspunkt.minus(1, ChronoUnit.DAYS),
+                    rekkefølge = rekkefølge.neste(),
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.januar(2020),
                     forrigeUtbetalingslinjeId = null,
@@ -44,11 +48,13 @@ internal class UtbetalingslinjeTest {
 
     @Test
     fun `nye linjer har forskjellig forrige referanse`() {
+        val rekkefølge = Rekkefølge.generator()
         assertThrows<IllegalStateException> {
             listOf(
                 Utbetalingslinje.Ny(
                     id = UUID30.randomUUID(),
                     opprettet = fixedTidspunkt,
+                    rekkefølge = rekkefølge.neste(),
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.januar(2020),
                     forrigeUtbetalingslinjeId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),
@@ -59,6 +65,7 @@ internal class UtbetalingslinjeTest {
                 Utbetalingslinje.Ny(
                     id = UUID30.randomUUID(),
                     opprettet = fixedTidspunkt,
+                    rekkefølge = rekkefølge.neste(),
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.januar(2020),
                     forrigeUtbetalingslinjeId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),
@@ -68,17 +75,19 @@ internal class UtbetalingslinjeTest {
                 ),
             ).sjekkAlleNyeLinjerHarForskjelligForrigeReferanse()
         }.also {
-            it.message shouldBe "Alle nye utbetalingslinjer skal referere til forskjellig forrige utbetalingid"
+            it.message.shouldContain("Alle nye utbetalingslinjer skal referere til forskjellig forrige utbetalingid")
         }
     }
 
     @Test
     fun `nye linjer kan ikke overlappe`() {
+        val rekkefølge = Rekkefølge.generator()
         assertThrows<IllegalStateException> {
             listOf(
                 Utbetalingslinje.Ny(
                     id = UUID30.randomUUID(),
                     opprettet = fixedTidspunkt,
+                    rekkefølge = rekkefølge.neste(),
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.januar(2020),
                     forrigeUtbetalingslinjeId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),
@@ -89,6 +98,7 @@ internal class UtbetalingslinjeTest {
                 Utbetalingslinje.Ny(
                     id = UUID30.randomUUID(),
                     opprettet = fixedTidspunkt,
+                    rekkefølge = rekkefølge.neste(),
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.januar(2020),
                     forrigeUtbetalingslinjeId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),

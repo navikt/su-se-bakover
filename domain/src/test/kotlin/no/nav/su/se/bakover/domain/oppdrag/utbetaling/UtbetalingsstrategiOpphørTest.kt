@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.oppdrag.utbetaling
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
@@ -120,6 +121,7 @@ internal class UtbetalingsstrategiOpphørTest {
                 Utbetalingslinje.Endring.Opphør(
                     id = it.utbetalingslinjer.single().id,
                     opprettet = it.utbetalingslinjer.single().opprettet,
+                    rekkefølge = Rekkefølge.start(),
                     fraOgMed = siste.utbetalingslinjer.single().periode.fraOgMed,
                     tilOgMed = siste.utbetalingslinjer.single().periode.tilOgMed,
                     beløp = siste.utbetalingslinjer.single().beløp,
@@ -155,6 +157,7 @@ internal class UtbetalingsstrategiOpphørTest {
                     Utbetalingslinje.Endring.Opphør(
                         id = sak.utbetalinger.last().sisteUtbetalingslinje().id,
                         opprettet = it.utbetalingslinjer[0].opprettet,
+                        rekkefølge = Rekkefølge.start(),
                         fraOgMed = 1.mai(2021),
                         tilOgMed = 31.desember(2021),
                         forrigeUtbetalingslinjeId = sak.utbetalinger.last().sisteUtbetalingslinje().forrigeUtbetalingslinjeId,
@@ -165,6 +168,7 @@ internal class UtbetalingsstrategiOpphørTest {
                     Utbetalingslinje.Ny(
                         id = it.utbetalingslinjer[1].id,
                         opprettet = it.utbetalingslinjer[1].opprettet,
+                        rekkefølge = Rekkefølge.skip(0),
                         fraOgMed = 1.april(2021),
                         tilOgMed = 30.april(2021),
                         forrigeUtbetalingslinjeId = it.utbetalingslinjer[0].id,
@@ -174,6 +178,7 @@ internal class UtbetalingsstrategiOpphørTest {
                     Utbetalingslinje.Ny(
                         id = it.utbetalingslinjer[2].id,
                         opprettet = it.utbetalingslinjer[2].opprettet,
+                        rekkefølge = Rekkefølge.skip(1),
                         fraOgMed = 1.mai(2021),
                         tilOgMed = 31.desember(2021),
                         forrigeUtbetalingslinjeId = it.utbetalingslinjer[1].id,
@@ -215,6 +220,7 @@ internal class UtbetalingsstrategiOpphørTest {
                     Utbetalingslinje.Endring.Opphør(
                         id = sak2.utbetalinger.last().sisteUtbetalingslinje().id,
                         opprettet = it.utbetalingslinjer[0].opprettet,
+                        rekkefølge = Rekkefølge.start(),
                         fraOgMed = 1.januar(2021),
                         tilOgMed = 31.desember(2021),
                         forrigeUtbetalingslinjeId = sak2.utbetalinger.last().sisteUtbetalingslinje().forrigeUtbetalingslinjeId,
@@ -225,6 +231,7 @@ internal class UtbetalingsstrategiOpphørTest {
                     Utbetalingslinje.Ny(
                         id = it.utbetalingslinjer[1].id,
                         opprettet = it.utbetalingslinjer[1].opprettet,
+                        rekkefølge = Rekkefølge.skip(0),
                         fraOgMed = 1.februar(2021),
                         tilOgMed = 31.desember(2021),
                         forrigeUtbetalingslinjeId = it.utbetalingslinjer[0].id,
@@ -234,6 +241,7 @@ internal class UtbetalingsstrategiOpphørTest {
                     Utbetalingslinje.Endring.Stans(
                         id = it.utbetalingslinjer[1].id,
                         opprettet = it.utbetalingslinjer[2].opprettet,
+                        rekkefølge = Rekkefølge.skip(1),
                         fraOgMed = 1.februar(2021),
                         tilOgMed = 31.desember(2021),
                         forrigeUtbetalingslinjeId = it.utbetalingslinjer[1].forrigeUtbetalingslinjeId,
@@ -281,6 +289,7 @@ internal class UtbetalingsstrategiOpphørTest {
                     Utbetalingslinje.Endring.Opphør(
                         id = sak2.utbetalinger.last().sisteUtbetalingslinje().id,
                         opprettet = it.utbetalingslinjer[0].opprettet,
+                        rekkefølge = Rekkefølge.start(),
                         fraOgMed = 1.januar(2021),
                         tilOgMed = 31.desember(2021),
                         forrigeUtbetalingslinjeId = sak2.utbetalinger.last().sisteUtbetalingslinje().forrigeUtbetalingslinjeId,
@@ -291,6 +300,7 @@ internal class UtbetalingsstrategiOpphørTest {
                     Utbetalingslinje.Ny(
                         id = it.utbetalingslinjer[1].id,
                         opprettet = it.utbetalingslinjer[1].opprettet,
+                        rekkefølge = Rekkefølge.skip(0),
                         fraOgMed = 1.februar(2021),
                         tilOgMed = 31.desember(2021),
                         forrigeUtbetalingslinjeId = it.utbetalingslinjer[0].id,
@@ -300,6 +310,7 @@ internal class UtbetalingsstrategiOpphørTest {
                     Utbetalingslinje.Endring.Opphør(
                         id = it.utbetalingslinjer[1].id,
                         opprettet = it.utbetalingslinjer[2].opprettet,
+                        rekkefølge = Rekkefølge.skip(1),
                         fraOgMed = 1.februar(2021),
                         tilOgMed = 31.desember(2021),
                         forrigeUtbetalingslinjeId = it.utbetalingslinjer[1].forrigeUtbetalingslinjeId,
@@ -348,6 +359,7 @@ internal class UtbetalingsstrategiOpphørTest {
                     Utbetalingslinje.Endring.Opphør(
                         id = sak2.utbetalinger.last().sisteUtbetalingslinje().id,
                         opprettet = it.utbetalingslinjer[0].opprettet,
+                        rekkefølge = Rekkefølge.start(),
                         fraOgMed = 1.januar(2021),
                         tilOgMed = 31.desember(2021),
                         forrigeUtbetalingslinjeId = sak2.utbetalinger.last().sisteUtbetalingslinje().forrigeUtbetalingslinjeId,
@@ -358,6 +370,7 @@ internal class UtbetalingsstrategiOpphørTest {
                     Utbetalingslinje.Ny(
                         id = it.utbetalingslinjer[1].id,
                         opprettet = it.utbetalingslinjer[1].opprettet,
+                        rekkefølge = Rekkefølge.skip(0),
                         fraOgMed = 1.februar(2021),
                         tilOgMed = 31.desember(2021),
                         forrigeUtbetalingslinjeId = it.utbetalingslinjer[0].id,
@@ -367,6 +380,7 @@ internal class UtbetalingsstrategiOpphørTest {
                     Utbetalingslinje.Endring.Stans(
                         id = it.utbetalingslinjer[1].id,
                         opprettet = it.utbetalingslinjer[2].opprettet,
+                        rekkefølge = Rekkefølge.skip(1),
                         fraOgMed = 1.februar(2021),
                         tilOgMed = 31.desember(2021),
                         forrigeUtbetalingslinjeId = it.utbetalingslinjer[1].forrigeUtbetalingslinjeId,
@@ -377,6 +391,7 @@ internal class UtbetalingsstrategiOpphørTest {
                     Utbetalingslinje.Endring.Reaktivering(
                         id = it.utbetalingslinjer[1].id,
                         opprettet = it.utbetalingslinjer[3].opprettet,
+                        rekkefølge = Rekkefølge.skip(2),
                         fraOgMed = 1.februar(2021),
                         tilOgMed = 31.desember(2021),
                         forrigeUtbetalingslinjeId = it.utbetalingslinjer[1].forrigeUtbetalingslinjeId,

@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.klage.KlageRepo
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.domain.sak.NySak
@@ -286,7 +287,7 @@ internal class SakPostgresRepo(
                 fnr = Fnr(string("fnr")),
                 søknader = SøknadRepoInternal.hentSøknaderInternal(sakId, session),
                 søknadsbehandlinger = søknadsbehandlingRepo.hentForSak(sakId, sessionContext),
-                utbetalinger = UtbetalingInternalRepo.hentOversendteUtbetalinger(sakId, session),
+                utbetalinger = Utbetalinger(UtbetalingInternalRepo.hentOversendteUtbetalinger(sakId, session)),
                 revurderinger = revurderingRepo.hentRevurderingerForSak(sakId, session),
                 vedtakListe = vedtakPostgresRepo.hentForSakId(sakId, session),
                 klager = klageRepo.hentKlager(sakId, sessionContext),

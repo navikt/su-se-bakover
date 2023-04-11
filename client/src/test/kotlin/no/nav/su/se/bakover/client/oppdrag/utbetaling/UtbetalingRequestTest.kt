@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
 import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
@@ -18,8 +19,9 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.utbetalingslinje
+import no.nav.su.se.bakover.test.utbetalingslinjeNy
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.LocalDate
@@ -35,23 +37,27 @@ internal class UtbetalingRequestTest {
 
         private val nyOppdragslinjeId1 = UUID30.randomUUID()
         private val nyOppdragslinjeId2 = UUID30.randomUUID()
+        private val clock = TikkendeKlokke()
         val nyUtbetaling = Utbetaling.UtbetalingForSimulering(
-            opprettet = fixedTidspunkt,
+            opprettet = clock.nextTidspunkt(),
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = FNR,
             utbetalingslinjer = nonEmptyListOf(
-                utbetalingslinje(
+                utbetalingslinjeNy(
                     id = nyOppdragslinjeId1,
                     periode = januar(2020)..april(2020),
                     beløp = BELØP,
+                    opprettet = clock.nextTidspunkt(),
                 ),
-                utbetalingslinje(
+                utbetalingslinjeNy(
                     id = nyOppdragslinjeId2,
                     periode = mai(2020)..desember(2020),
                     beløp = BELØP,
                     forrigeUtbetalingslinjeId = nyOppdragslinjeId1,
                     uføregrad = 70,
+                    opprettet = clock.nextTidspunkt(),
+                    rekkefølge = Rekkefølge.skip(0),
                 ),
             ),
             behandler = NavIdentBruker.Attestant("A123456"),
@@ -146,24 +152,27 @@ internal class UtbetalingRequestTest {
         val eksisterendeOppdragslinjeId = UUID30.randomUUID()
         val nyOppdragslinjeid1 = UUID30.randomUUID()
         val nyOppdragslinjeid2 = UUID30.randomUUID()
-
+        val clock = TikkendeKlokke()
         val nyUtbetaling = Utbetaling.UtbetalingForSimulering(
             opprettet = fixedTidspunkt,
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = FNR,
             utbetalingslinjer = nonEmptyListOf(
-                utbetalingslinje(
+                utbetalingslinjeNy(
                     id = nyOppdragslinjeid1,
                     periode = januar(2020)..april(2020),
                     beløp = BELØP,
                     forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeId,
+                    opprettet = clock.nextTidspunkt(),
                 ),
-                utbetalingslinje(
+                utbetalingslinjeNy(
                     id = nyOppdragslinjeid2,
                     periode = mai(2020)..desember(2020),
                     beløp = BELØP,
                     forrigeUtbetalingslinjeId = nyOppdragslinjeid1,
+                    opprettet = clock.nextTidspunkt(),
+                    rekkefølge = Rekkefølge.skip(0),
                 ),
             ),
             behandler = NavIdentBruker.Attestant("A123456"),
@@ -252,9 +261,10 @@ internal class UtbetalingRequestTest {
             avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay()),
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Opphør(
-                    utbetalingslinje = nyUtbetaling.sisteUtbetalingslinje(),
+                    utbetalingslinjeSomSkalEndres = nyUtbetaling.sisteUtbetalingslinje(),
                     virkningsperiode = Periode.create(1.januar(2020), nyUtbetaling.sisteUtbetalingslinje().periode.tilOgMed),
                     clock = Clock.systemUTC(),
+                    rekkefølge = Rekkefølge.start(),
                 ),
             ),
         )
@@ -263,9 +273,10 @@ internal class UtbetalingRequestTest {
             avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay()),
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Stans(
-                    utbetalingslinje = nyUtbetaling.sisteUtbetalingslinje(),
+                    utbetalingslinjeSomSkalEndres = nyUtbetaling.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.januar(2020),
                     clock = Clock.systemUTC(),
+                    rekkefølge = Rekkefølge.start(),
                 ),
             ),
         )
@@ -274,9 +285,10 @@ internal class UtbetalingRequestTest {
             avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay()),
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Reaktivering(
-                    utbetalingslinje = nyUtbetaling.sisteUtbetalingslinje(),
+                    utbetalingslinjeSomSkalEndres = nyUtbetaling.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.januar(2020),
                     clock = Clock.systemUTC(),
+                    rekkefølge = Rekkefølge.start(),
                 ),
             ),
         )

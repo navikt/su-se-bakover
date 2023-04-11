@@ -5,7 +5,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.test.utbetalingslinje
+import no.nav.su.se.bakover.test.utbetalingslinjeNy
 import org.junit.jupiter.api.Test
 
 internal class GrunnlagBuilderTest {
@@ -43,7 +43,7 @@ internal class GrunnlagBuilderTest {
                     opprettet = 1.mars(2020),
                     status = Kvittering.Utbetalingsstatus.OK,
                     linjer = nonEmptyListOf(
-                        utbetalingslinje(periode = mars(2020), beløp = 1000),
+                        utbetalingslinjeNy(periode = mars(2020), beløp = 1000),
                     ),
                 ),
             ),
@@ -67,14 +67,14 @@ internal class GrunnlagBuilderTest {
                     opprettet = 1.mars(2020),
                     status = Kvittering.Utbetalingsstatus.OK,
                     linjer = nonEmptyListOf(
-                        utbetalingslinje(periode = mars(2020), beløp = 1000),
+                        utbetalingslinjeNy(periode = mars(2020), beløp = 1000),
                     ),
                 ),
                 lagUtbetaling(
                     opprettet = 1.mars(2020),
                     status = Kvittering.Utbetalingsstatus.FEIL,
                     linjer = nonEmptyListOf(
-                        utbetalingslinje(periode = mars(2020), beløp = -1000, uføregrad = 100),
+                        utbetalingslinjeNy(periode = mars(2020), beløp = -1000, uføregrad = 100),
                     ),
                 ),
             ),

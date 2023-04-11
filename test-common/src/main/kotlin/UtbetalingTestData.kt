@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.test
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
@@ -28,43 +29,122 @@ import java.util.UUID
 val avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt)
 val utbetalingsRequest = Utbetalingsrequest("<xml></xml>")
 
-fun utbetalingslinje(
+fun utbetalingslinjeNy(
     id: UUID30 = UUID30.randomUUID(),
     periode: Periode = år(2021),
+    clock: Clock = fixedClock,
+    rekkefølge: Rekkefølge = Rekkefølge.start(),
+    beløp: Int = 15000,
+    forrigeUtbetalingslinjeId: UUID30? = null,
+    uføregrad: Int = 50,
+    kjøreplan: UtbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+): Utbetalingslinje.Ny {
+    return utbetalingslinjeNy(
+        id = id,
+        periode = periode,
+        rekkefølge = rekkefølge,
+        opprettet = Tidspunkt.now(clock),
+        beløp = beløp,
+        forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
+        uføregrad = uføregrad,
+        kjøreplan = kjøreplan,
+    )
+}
+
+fun utbetalingslinjeNy(
+    id: UUID30 = UUID30.randomUUID(),
+    periode: Periode = år(2021),
+    opprettet: Tidspunkt,
+    rekkefølge: Rekkefølge = Rekkefølge.start(),
+    beløp: Int = 15000,
+    forrigeUtbetalingslinjeId: UUID30? = null,
+    uføregrad: Int = 50,
+    kjøreplan: UtbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+): Utbetalingslinje.Ny {
+    return Utbetalingslinje.Ny(
+        id = id,
+        opprettet = opprettet,
+        rekkefølge = rekkefølge,
+        fraOgMed = periode.fraOgMed,
+        tilOgMed = periode.tilOgMed,
+        forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
+        beløp = beløp,
+        uføregrad = Uføregrad.parse(uføregrad),
+        utbetalingsinstruksjonForEtterbetalinger = kjøreplan,
+    )
+}
+
+fun utbetalingslinjeOpphørt(
+    id: UUID30 = UUID30.randomUUID(),
+    periode: Periode = år(2021),
+    rekkefølge: Rekkefølge,
     clock: Clock = fixedClock,
     beløp: Int = 15000,
     forrigeUtbetalingslinjeId: UUID30? = null,
     uføregrad: Int = 50,
     kjøreplan: UtbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-) = Utbetalingslinje.Ny(
-    id = id,
-    opprettet = Tidspunkt.now(clock),
-    fraOgMed = periode.fraOgMed,
-    tilOgMed = periode.tilOgMed,
-    forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
-    beløp = beløp,
-    uføregrad = Uføregrad.parse(uføregrad),
-    utbetalingsinstruksjonForEtterbetalinger = kjøreplan,
-)
-fun opphørtUtbetalingslinje(
+): Utbetalingslinje.Endring.Opphør {
+    return Utbetalingslinje.Endring.Opphør(
+        id = id,
+        opprettet = Tidspunkt.now(clock),
+        rekkefølge = rekkefølge,
+        fraOgMed = periode.fraOgMed,
+        tilOgMed = periode.tilOgMed,
+        forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
+        beløp = beløp,
+        uføregrad = Uføregrad.parse(uføregrad),
+        virkningsperiode = periode,
+        utbetalingsinstruksjonForEtterbetalinger = kjøreplan,
+    )
+}
+
+fun utbetalingslinjeStans(
     id: UUID30 = UUID30.randomUUID(),
     periode: Periode = år(2021),
+    rekkefølge: Rekkefølge,
     clock: Clock = fixedClock,
     beløp: Int = 15000,
     forrigeUtbetalingslinjeId: UUID30? = null,
     uføregrad: Int = 50,
     kjøreplan: UtbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-) = Utbetalingslinje.Endring.Opphør(
-    id = id,
-    opprettet = Tidspunkt.now(clock),
-    fraOgMed = periode.fraOgMed,
-    tilOgMed = periode.tilOgMed,
-    forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
-    beløp = beløp,
-    uføregrad = Uføregrad.parse(uføregrad),
-    virkningsperiode = periode,
-    utbetalingsinstruksjonForEtterbetalinger = kjøreplan,
-)
+): Utbetalingslinje.Endring.Stans {
+    return Utbetalingslinje.Endring.Stans(
+        id = id,
+        opprettet = Tidspunkt.now(clock),
+        rekkefølge = rekkefølge,
+        fraOgMed = periode.fraOgMed,
+        tilOgMed = periode.tilOgMed,
+        forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
+        beløp = beløp,
+        uføregrad = Uføregrad.parse(uføregrad),
+        virkningsperiode = periode,
+        utbetalingsinstruksjonForEtterbetalinger = kjøreplan,
+    )
+}
+
+fun utbetalingslinjeReaktivering(
+    id: UUID30 = UUID30.randomUUID(),
+    periode: Periode = år(2021),
+    rekkefølge: Rekkefølge,
+    clock: Clock = fixedClock,
+    beløp: Int = 15000,
+    forrigeUtbetalingslinjeId: UUID30? = null,
+    uføregrad: Int = 50,
+    kjøreplan: UtbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+): Utbetalingslinje.Endring.Reaktivering {
+    return Utbetalingslinje.Endring.Reaktivering(
+        id = id,
+        opprettet = Tidspunkt.now(clock),
+        rekkefølge = rekkefølge,
+        fraOgMed = periode.fraOgMed,
+        tilOgMed = periode.tilOgMed,
+        forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
+        beløp = beløp,
+        uføregrad = Uføregrad.parse(uføregrad),
+        virkningsperiode = periode,
+        utbetalingsinstruksjonForEtterbetalinger = kjøreplan,
+    )
+}
 
 fun nyUtbetalingForSimulering(
     sakOgBehandling: Pair<Sak, Behandling>,
@@ -148,9 +228,10 @@ fun oversendtUtbetalingUtenKvittering(
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
     clock: Clock = fixedClock,
     utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(
-        utbetalingslinje(
+        utbetalingslinjeNy(
             clock = clock,
             periode = søknadsbehandling.periode,
+            rekkefølge = Rekkefølge.start(),
         ),
     ),
     eksisterendeUtbetalinger: List<Utbetaling.OversendtUtbetaling> = emptyList(),
@@ -174,9 +255,10 @@ fun oversendtUtbetalingUtenKvittering(
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
     clock: Clock = fixedClock,
     utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(
-        utbetalingslinje(
+        utbetalingslinjeNy(
             clock = clock,
             periode = periode,
+            rekkefølge = Rekkefølge.start(),
         ),
     ),
     eksisterendeUtbetalinger: List<Utbetaling.OversendtUtbetaling> = emptyList(),
@@ -199,7 +281,7 @@ fun oversendtUtbetalingUtenKvittering(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     clock: Clock = fixedClock,
     utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(
-        utbetalingslinje(
+        utbetalingslinjeNy(
             clock = clock,
             periode = periode,
         ),
@@ -240,7 +322,7 @@ fun simulertUtbetaling(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     clock: Clock = fixedClock,
     utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(
-        utbetalingslinje(
+        utbetalingslinjeNy(
             periode = periode,
             clock = clock,
         ),

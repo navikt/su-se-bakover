@@ -277,7 +277,6 @@ class BrevForTilbakekrevingTest {
         @Test
         fun `erstatt brutto med netto`() {
             vedtakRevurdering(
-                clock = TikkendeKlokke(1.august(2021).fixedClock()),
                 grunnlagsdataOverrides = listOf(
                     fradragsgrunnlagArbeidsinntekt(periode = år(2021), arbeidsinntekt = 5000.0),
                 ),

@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.Ident
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
@@ -50,7 +51,7 @@ class HentSøknadPdfTest {
         opprettet = Tidspunkt.EPOCH,
         fnr = Fnr(fnr = "12345678901"),
         søknader = listOf(søknad),
-        utbetalinger = emptyList(),
+        utbetalinger = Utbetalinger(),
         type = Sakstype.UFØRE,
         uteståendeAvkorting = Avkortingsvarsel.Ingen,
         versjon = Hendelsesversjon(1),

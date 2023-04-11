@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.jobcontext.NameAndYearMonthId
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
@@ -379,7 +380,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             saksnummer = Saksnummer(3000),
             opprettet = Tidspunkt.now(fixedClock),
             fnr = Fnr.generer(),
-            utbetalinger = emptyList(),
+            utbetalinger = Utbetalinger(),
             type = Sakstype.UFØRE,
             uteståendeAvkorting = Avkortingsvarsel.Ingen,
             versjon = Hendelsesversjon(1),

@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.sak
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
@@ -17,6 +18,7 @@ import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
@@ -43,7 +45,7 @@ internal class SakJsonTest {
         saksnummer = Saksnummer(saksnummer),
         opprettet = fixedTidspunkt,
         fnr = Fnr("12345678910"),
-        utbetalinger = emptyList(),
+        utbetalinger = Utbetalinger(),
         klager = emptyList(),
         type = Sakstype.UFØRE,
         uteståendeAvkorting = Avkortingsvarsel.Ingen,
@@ -90,6 +92,7 @@ internal class SakJsonTest {
             val nyUtbetaling = Utbetalingslinje.Ny(
                 id = UUID30.randomUUID(),
                 opprettet = fixedTidspunkt,
+                rekkefølge = Rekkefølge.start(),
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.desember(2021),
                 forrigeUtbetalingslinjeId = null,
@@ -97,19 +100,22 @@ internal class SakJsonTest {
                 uføregrad = Uføregrad.parse(50),
             )
             val midlertidigStans = Utbetalingslinje.Endring.Stans(
-                utbetalingslinje = nyUtbetaling,
+                utbetalingslinjeSomSkalEndres = nyUtbetaling,
                 virkningstidspunkt = 1.februar(2021),
                 clock = Clock.systemUTC(),
+                rekkefølge = Rekkefølge.start(),
             )
             val reaktivering = Utbetalingslinje.Endring.Reaktivering(
-                utbetalingslinje = midlertidigStans,
+                utbetalingslinjeSomSkalEndres = midlertidigStans,
                 virkningstidspunkt = 1.mars(2021),
                 clock = Clock.systemUTC(),
+                rekkefølge = Rekkefølge.start(),
             )
             val opphørslinje = Utbetalingslinje.Endring.Opphør(
-                utbetalingslinje = reaktivering,
+                utbetalingslinjeSomSkalEndres = reaktivering,
                 virkningsperiode = Periode.create(1.april(2021), reaktivering.periode.tilOgMed),
                 clock = Clock.systemUTC(),
+                rekkefølge = Rekkefølge.start(),
             )
 
             val utbetaling1 = mock<Utbetaling.OversendtUtbetaling.UtenKvittering> {
@@ -129,7 +135,7 @@ internal class SakJsonTest {
                 on { opprettet } doReturn opphørslinje.opprettet
             }
 
-            val sak = sak.copy(utbetalinger = listOf(utbetaling1, utbetaling2, utbetaling3, utbetaling4))
+            val sak = sak.copy(utbetalinger = Utbetalinger(utbetaling1, utbetaling2, utbetaling3, utbetaling4))
 
             val (actual1, actual2, actual3, actual4) = sak.toJson(fixedClock, satsFactoryTestPåDato()).utbetalinger
             actual1 shouldBe UtbetalingJson(

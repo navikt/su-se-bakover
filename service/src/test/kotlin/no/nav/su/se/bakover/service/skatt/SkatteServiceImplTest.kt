@@ -36,8 +36,9 @@ class SkatteServiceImplTest {
                 val år = Year.of(2021)
                 on { hentSamletSkattegrunnlag(any(), any()) } doReturn SamletSkattegrunnlagResponseMedYear(
                     skatteResponser = listOf(
-                        SamletSkattegrunnlagResponseMedStadie(nettverksfeil.left(), Stadie.FASTSATT, år),
-                        samletOppgjør(år),
+                        // SamletSkattegrunnlagResponseMedStadie(nettverksfeil.left(), Stadie.FASTSATT, år),
+                        SamletSkattegrunnlagResponseMedStadie(nettverksfeil.left(), Stadie.OPPGJØR, år),
+                        // samletOppgjør(år),
                         samletUtkast(år),
                     ),
                     år = år,
@@ -52,11 +53,11 @@ class SkatteServiceImplTest {
         mockedSkatteClient(
             mock {
                 on { hentSamletSkattegrunnlag(any(), any()) } doReturn SamletSkattegrunnlagResponseMedYear(
-                    listOf(samletFastsatt(år), samletOppgjør(år), samletUtkast(år)),
+                    listOf( /*samletFastsatt(år),*/ samletOppgjør(år), samletUtkast(år)),
                     år,
                 ).right()
             },
-        ).hentSamletSkattegrunnlag(fnr) shouldBe nySkattegrunnlag(fnr).right()
+        ).hentSamletSkattegrunnlag(fnr) shouldBe nySkattegrunnlag(fnr, årsgrunnlag = nyÅrsgrunnlag(stadie = Stadie.OPPGJØR)).right()
     }
 
     @Test
@@ -66,11 +67,11 @@ class SkatteServiceImplTest {
                 val år = Year.of(2021)
                 on { hentSamletSkattegrunnlag(any(), any()) } doReturn SamletSkattegrunnlagResponseMedYear(
                     listOf(
-                        SamletSkattegrunnlagResponseMedStadie(
+                        /*SamletSkattegrunnlagResponseMedStadie(
                             SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år).left(),
                             Stadie.FASTSATT,
                             inntektsår = år,
-                        ),
+                        ),*/
                         SamletSkattegrunnlagResponseMedStadie(nettverksfeil.left(), Stadie.OPPGJØR, år),
                         samletUtkast(år),
                     ),
@@ -87,11 +88,11 @@ class SkatteServiceImplTest {
                 val år = Year.of(2021)
                 on { hentSamletSkattegrunnlag(any(), any()) } doReturn SamletSkattegrunnlagResponseMedYear(
                     listOf(
-                        SamletSkattegrunnlagResponseMedStadie(
+                       /* SamletSkattegrunnlagResponseMedStadie(
                             SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år).left(),
                             Stadie.FASTSATT,
                             inntektsår = år,
-                        ),
+                        ),*/
                         samletOppgjør(år),
                         samletUtkast(år),
                     ),
@@ -111,11 +112,11 @@ class SkatteServiceImplTest {
                 val år = Year.of(2021)
                 on { hentSamletSkattegrunnlag(any(), any()) } doReturn SamletSkattegrunnlagResponseMedYear(
                     listOf(
-                        SamletSkattegrunnlagResponseMedStadie(
+                        /*SamletSkattegrunnlagResponseMedStadie(
                             SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år).left(),
                             Stadie.FASTSATT,
                             inntektsår = år,
-                        ),
+                        ),*/
                         SamletSkattegrunnlagResponseMedStadie(
                             SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år).left(),
                             Stadie.OPPGJØR,
@@ -136,11 +137,11 @@ class SkatteServiceImplTest {
                 val år = Year.of(2021)
                 on { hentSamletSkattegrunnlag(any(), any()) } doReturn SamletSkattegrunnlagResponseMedYear(
                     listOf(
-                        SamletSkattegrunnlagResponseMedStadie(
+                       /* SamletSkattegrunnlagResponseMedStadie(
                             SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år).left(),
                             Stadie.FASTSATT,
                             inntektsår = år,
-                        ),
+                        ),*/
                         SamletSkattegrunnlagResponseMedStadie(
                             SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år).left(),
                             Stadie.OPPGJØR,
@@ -164,11 +165,11 @@ class SkatteServiceImplTest {
             mock {
                 on { hentSamletSkattegrunnlag(any(), any()) } doReturn SamletSkattegrunnlagResponseMedYear(
                     listOf(
-                        SamletSkattegrunnlagResponseMedStadie(
+                       /* SamletSkattegrunnlagResponseMedStadie(
                             SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år).left(),
                             Stadie.FASTSATT,
                             inntektsår = år,
-                        ),
+                        ),*/
                         SamletSkattegrunnlagResponseMedStadie(
                             SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år).left(),
                             Stadie.OPPGJØR,
@@ -198,11 +199,11 @@ class SkatteServiceImplTest {
                 on { hentSamletSkattegrunnlagForÅrsperiode(any(), any()) } doReturn listOf(
                     SamletSkattegrunnlagResponseMedYear(
                         listOf(
-                            SamletSkattegrunnlagResponseMedStadie(
+                            /*SamletSkattegrunnlagResponseMedStadie(
                                 SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år).left(),
                                 Stadie.FASTSATT,
                                 inntektsår = år,
-                            ),
+                            ),*/
                             SamletSkattegrunnlagResponseMedStadie(
                                 SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år).left(),
                                 Stadie.OPPGJØR,
@@ -232,12 +233,12 @@ class SkatteServiceImplTest {
             mock {
                 on { hentSamletSkattegrunnlagForÅrsperiode(any(), any()) } doReturn listOf(
                     SamletSkattegrunnlagResponseMedYear(
-                        listOf(samletFastsatt(år), samletOppgjør(år), samletUtkast(år)),
+                        listOf(/*samletFastsatt(år),*/ samletOppgjør(år), samletUtkast(år)),
                         år,
                     ),
                 ).right()
             },
-        ).hentSamletSkattegrunnlagForÅr(fnr, YearRange(år, år)) shouldBe nySkattegrunnlag(fnr).right()
+        ).hentSamletSkattegrunnlagForÅr(fnr, YearRange(år, år)) shouldBe nySkattegrunnlag(fnr, årsgrunnlag = nyÅrsgrunnlag(stadie = Stadie.OPPGJØR)).right()
     }
 
     @Test
@@ -247,7 +248,7 @@ class SkatteServiceImplTest {
                 on { hentSamletSkattegrunnlagForÅrsperiode(any(), any()) } doReturn listOf(
                     SamletSkattegrunnlagResponseMedYear(
                         listOf(
-                            SamletSkattegrunnlagResponseMedStadie(fastsatt().right(), Stadie.FASTSATT, Year.of(2020)),
+                            // SamletSkattegrunnlagResponseMedStadie(fastsatt().right(), Stadie.FASTSATT, Year.of(2020)),
                             SamletSkattegrunnlagResponseMedStadie(oppgjør().right(), Stadie.OPPGJØR, Year.of(2020)),
                             SamletSkattegrunnlagResponseMedStadie(utkast().right(), Stadie.UTKAST, Year.of(2020)),
                         ),
@@ -255,7 +256,7 @@ class SkatteServiceImplTest {
                     ),
                     SamletSkattegrunnlagResponseMedYear(
                         listOf(
-                            SamletSkattegrunnlagResponseMedStadie(fastsatt().right(), Stadie.FASTSATT, Year.of(2021)),
+                            // SamletSkattegrunnlagResponseMedStadie(fastsatt().right(), Stadie.FASTSATT, Year.of(2021)),
                             SamletSkattegrunnlagResponseMedStadie(oppgjør().right(), Stadie.OPPGJØR, Year.of(2021)),
                             SamletSkattegrunnlagResponseMedStadie(utkast().right(), Stadie.UTKAST, Year.of(2021)),
                         ),
@@ -263,11 +264,11 @@ class SkatteServiceImplTest {
                     ),
                     SamletSkattegrunnlagResponseMedYear(
                         listOf(
-                            SamletSkattegrunnlagResponseMedStadie(
+                            /*SamletSkattegrunnlagResponseMedStadie(
                                 SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(Year.of(2022)).left(),
                                 Stadie.FASTSATT,
                                 Year.of(2022),
-                            ),
+                            ),*/
                             SamletSkattegrunnlagResponseMedStadie(
                                 SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(Year.of(2022)).left(),
                                 Stadie.OPPGJØR,

@@ -5,6 +5,7 @@ import arrow.core.nonEmptyListOf
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
@@ -109,6 +110,7 @@ internal class UtbetalingsstrategiNyTest {
                     Utbetalingslinje.Ny(
                         id = it.utbetalingslinjer.single().id,
                         opprettet = fixedTidspunkt,
+                        rekkefølge = Rekkefølge.start(),
                         fraOgMed = 1.januar(2020),
                         tilOgMed = 30.april(2020),
                         forrigeUtbetalingslinjeId = null,
@@ -166,6 +168,7 @@ internal class UtbetalingsstrategiNyTest {
                         beløp = 20637,
                         forrigeUtbetalingslinjeId = eksisterendeUtbetalinger.single().utbetalingslinjer.single().id,
                         uføregrad = Uføregrad.parse(50),
+                        rekkefølge = Rekkefølge.start(),
                     ),
                     expectedUtbetalingslinje(
                         utbetalingslinjeId = it.utbetalingslinjer[1].id,
@@ -175,6 +178,7 @@ internal class UtbetalingsstrategiNyTest {
                         beløp = 20946,
                         forrigeUtbetalingslinjeId = it.utbetalingslinjer[0].id,
                         uføregrad = Uføregrad.parse(50),
+                        rekkefølge = Rekkefølge.skip(0),
                     ),
                     expectedUtbetalingslinje(
                         utbetalingslinjeId = it.utbetalingslinjer[2].id,
@@ -184,6 +188,7 @@ internal class UtbetalingsstrategiNyTest {
                         beløp = 20946,
                         forrigeUtbetalingslinjeId = it.utbetalingslinjer[1].id,
                         uføregrad = Uføregrad.parse(100),
+                        rekkefølge = Rekkefølge.skip(1),
                     ),
                 ),
             )
@@ -289,6 +294,7 @@ internal class UtbetalingsstrategiNyTest {
                     expectedUtbetalingslinje(
                         utbetalingslinjeId = it.utbetalingslinjer.single().id,
                         opprettet = it.utbetalingslinjer.single().opprettet,
+                        rekkefølge = Rekkefølge.start(),
                         fraOgMed = 1.januar(2020),
                         tilOgMed = 31.mars(2020),
                         beløp = 20637,
@@ -354,6 +360,7 @@ internal class UtbetalingsstrategiNyTest {
                     Utbetalingslinje.Ny(
                         id = it.utbetalingslinjer[0].id,
                         opprettet = it.utbetalingslinjer[0].opprettet,
+                        rekkefølge = Rekkefølge.start(),
                         fraOgMed = 1.januar(2020),
                         tilOgMed = 31.januar(2020),
                         forrigeUtbetalingslinjeId = null,
@@ -363,6 +370,7 @@ internal class UtbetalingsstrategiNyTest {
                     Utbetalingslinje.Ny(
                         id = it.utbetalingslinjer[1].id,
                         opprettet = it.utbetalingslinjer[1].opprettet,
+                        rekkefølge = Rekkefølge.skip(0),
                         fraOgMed = 1.februar(2020),
                         tilOgMed = 29.februar(2020),
                         forrigeUtbetalingslinjeId = it.utbetalingslinjer[0].id,
@@ -372,6 +380,7 @@ internal class UtbetalingsstrategiNyTest {
                     Utbetalingslinje.Ny(
                         id = it.utbetalingslinjer[2].id,
                         opprettet = it.utbetalingslinjer[2].opprettet,
+                        rekkefølge = Rekkefølge.skip(1),
                         fraOgMed = 1.mars(2020),
                         tilOgMed = 30.april(2020),
                         forrigeUtbetalingslinjeId = it.utbetalingslinjer[1].id,
@@ -493,6 +502,7 @@ internal class UtbetalingsstrategiNyTest {
                     Utbetalingslinje.Ny(
                         id = it.utbetalingslinjer[0].id,
                         opprettet = it.utbetalingslinjer[0].opprettet,
+                        rekkefølge = Rekkefølge.start(),
                         fraOgMed = 1.januar(2021),
                         tilOgMed = 31.januar(2021),
                         forrigeUtbetalingslinjeId = sak.utbetalinger.last().sisteUtbetalingslinje().id,
@@ -502,6 +512,7 @@ internal class UtbetalingsstrategiNyTest {
                     Utbetalingslinje.Ny(
                         id = it.utbetalingslinjer[1].id,
                         opprettet = it.utbetalingslinjer[1].opprettet,
+                        rekkefølge = Rekkefølge.skip(0),
                         fraOgMed = 1.februar(2021),
                         tilOgMed = 30.april(2021),
                         forrigeUtbetalingslinjeId = it.utbetalingslinjer[0].id,
@@ -511,6 +522,7 @@ internal class UtbetalingsstrategiNyTest {
                     Utbetalingslinje.Ny(
                         id = it.utbetalingslinjer[2].id,
                         opprettet = it.utbetalingslinjer[2].opprettet,
+                        rekkefølge = Rekkefølge.skip(1),
                         fraOgMed = 1.mai(2021),
                         tilOgMed = 31.desember(2021),
                         forrigeUtbetalingslinjeId = it.utbetalingslinjer[1].id,
@@ -560,6 +572,7 @@ internal class UtbetalingsstrategiNyTest {
                     Utbetalingslinje.Ny(
                         id = it.utbetalingslinjer[0].id,
                         opprettet = it.utbetalingslinjer[0].opprettet,
+                        rekkefølge = Rekkefølge.start(),
                         fraOgMed = 1.januar(2021),
                         tilOgMed = 31.januar(2021),
                         forrigeUtbetalingslinjeId = sak3.utbetalinger.last().sisteUtbetalingslinje().id,
@@ -569,6 +582,7 @@ internal class UtbetalingsstrategiNyTest {
                     Utbetalingslinje.Ny(
                         id = it.utbetalingslinjer[1].id,
                         opprettet = it.utbetalingslinjer[1].opprettet,
+                        rekkefølge = Rekkefølge.skip(0),
                         fraOgMed = 1.februar(2021),
                         tilOgMed = 31.desember(2021),
                         forrigeUtbetalingslinjeId = it.utbetalingslinjer[0].id,
@@ -578,6 +592,7 @@ internal class UtbetalingsstrategiNyTest {
                     Utbetalingslinje.Endring.Stans(
                         id = it.utbetalingslinjer[1].id,
                         opprettet = it.utbetalingslinjer[2].opprettet,
+                        rekkefølge = Rekkefølge.skip(1),
                         fraOgMed = 1.februar(2021),
                         tilOgMed = 31.desember(2021),
                         forrigeUtbetalingslinjeId = it.utbetalingslinjer[1].forrigeUtbetalingslinjeId,
@@ -634,6 +649,7 @@ internal class UtbetalingsstrategiNyTest {
                     Utbetalingslinje.Ny(
                         id = it.utbetalingslinjer[0].id,
                         opprettet = it.utbetalingslinjer[0].opprettet,
+                        rekkefølge = Rekkefølge.start(),
                         fraOgMed = 1.januar(2021),
                         tilOgMed = 31.januar(2021),
                         forrigeUtbetalingslinjeId = sak3.utbetalinger.last().sisteUtbetalingslinje().id,
@@ -643,6 +659,7 @@ internal class UtbetalingsstrategiNyTest {
                     Utbetalingslinje.Ny(
                         id = it.utbetalingslinjer[1].id,
                         opprettet = it.utbetalingslinjer[1].opprettet,
+                        rekkefølge = Rekkefølge.skip(0),
                         fraOgMed = 1.februar(2021),
                         tilOgMed = 31.desember(2021),
                         forrigeUtbetalingslinjeId = it.utbetalingslinjer[0].id,
@@ -652,6 +669,7 @@ internal class UtbetalingsstrategiNyTest {
                     Utbetalingslinje.Endring.Opphør(
                         id = it.utbetalingslinjer[1].id,
                         opprettet = it.utbetalingslinjer[2].opprettet,
+                        rekkefølge = Rekkefølge.skip(1),
                         fraOgMed = 1.februar(2021),
                         tilOgMed = 31.desember(2021),
                         forrigeUtbetalingslinjeId = it.utbetalingslinjer[1].forrigeUtbetalingslinjeId,
@@ -708,6 +726,7 @@ internal class UtbetalingsstrategiNyTest {
                     Utbetalingslinje.Ny(
                         id = it.utbetalingslinjer[0].id,
                         opprettet = it.utbetalingslinjer[0].opprettet,
+                        rekkefølge = Rekkefølge.start(),
                         fraOgMed = 1.januar(2021),
                         tilOgMed = 31.januar(2021),
                         forrigeUtbetalingslinjeId = sak4.utbetalinger.last().sisteUtbetalingslinje().id,
@@ -717,6 +736,7 @@ internal class UtbetalingsstrategiNyTest {
                     Utbetalingslinje.Ny(
                         id = it.utbetalingslinjer[1].id,
                         opprettet = it.utbetalingslinjer[1].opprettet,
+                        rekkefølge = Rekkefølge.skip(0),
                         fraOgMed = 1.februar(2021),
                         tilOgMed = 31.desember(2021),
                         forrigeUtbetalingslinjeId = it.utbetalingslinjer[0].id,
@@ -726,6 +746,7 @@ internal class UtbetalingsstrategiNyTest {
                     Utbetalingslinje.Endring.Stans(
                         id = it.utbetalingslinjer[1].id,
                         opprettet = it.utbetalingslinjer[2].opprettet,
+                        rekkefølge = Rekkefølge.skip(1),
                         fraOgMed = 1.februar(2021),
                         tilOgMed = 31.desember(2021),
                         forrigeUtbetalingslinjeId = it.utbetalingslinjer[1].forrigeUtbetalingslinjeId,
@@ -736,6 +757,7 @@ internal class UtbetalingsstrategiNyTest {
                     Utbetalingslinje.Endring.Reaktivering(
                         id = it.utbetalingslinjer[1].id,
                         opprettet = it.utbetalingslinjer[3].opprettet,
+                        rekkefølge = Rekkefølge.skip(2),
                         fraOgMed = 1.februar(2021),
                         tilOgMed = 31.desember(2021),
                         forrigeUtbetalingslinjeId = it.utbetalingslinjer[1].forrigeUtbetalingslinjeId,
@@ -751,6 +773,7 @@ internal class UtbetalingsstrategiNyTest {
     private fun expectedUtbetalingslinje(
         utbetalingslinjeId: UUID30,
         opprettet: Tidspunkt,
+        rekkefølge: Rekkefølge,
         fraOgMed: LocalDate,
         tilOgMed: LocalDate,
         beløp: Int,
@@ -760,6 +783,7 @@ internal class UtbetalingsstrategiNyTest {
         return Utbetalingslinje.Ny(
             id = utbetalingslinjeId,
             opprettet = opprettet,
+            rekkefølge = rekkefølge,
             fraOgMed = fraOgMed,
             tilOgMed = tilOgMed,
             forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
