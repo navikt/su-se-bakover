@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
@@ -19,7 +20,7 @@ import no.nav.su.se.bakover.test.nåtidForSimuleringStub
 import no.nav.su.se.bakover.test.oversendtUtbetalingMedKvittering
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
-import no.nav.su.se.bakover.test.simuleringOpphørt
+import no.nav.su.se.bakover.test.simulering.simuleringOpphørt
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import org.junit.jupiter.api.Test
@@ -121,7 +122,7 @@ internal class SøknadsbehandlingBeregnTest {
     @Test
     fun `beregner med avkorting`() {
         val antallMånederMedFeilutbetaling = 3L
-        val eksisterendeUtbetalinger = listOf(oversendtUtbetalingMedKvittering())
+        val eksisterendeUtbetalinger = Utbetalinger(oversendtUtbetalingMedKvittering())
         val expectedAvkortingBeløp = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer }
             .sumOf { it.beløp } * antallMånederMedFeilutbetaling.toDouble()
 
@@ -171,7 +172,7 @@ internal class SøknadsbehandlingBeregnTest {
     @Test
     fun `fjerner evt gammelt grunnlag for avkorting dersom avkorting skal beregnes på nytt`() {
         val antallMånederMedFeilutbetaling = 3L
-        val eksisterendeUtbetalinger = listOf(oversendtUtbetalingMedKvittering())
+        val eksisterendeUtbetalinger = Utbetalinger(oversendtUtbetalingMedKvittering())
         val expectedAvkortingBeløp = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer }
             .sumOf { it.beløp } * antallMånederMedFeilutbetaling.toDouble()
 

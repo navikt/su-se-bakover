@@ -39,6 +39,7 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
+import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -87,6 +88,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandling
@@ -111,8 +113,8 @@ import no.nav.su.se.bakover.test.revurderingUnderkjent
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
-import no.nav.su.se.bakover.test.simulerUtbetaling
-import no.nav.su.se.bakover.test.simulering
+import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
+import no.nav.su.se.bakover.test.simulering.simulering
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.simulertSøknadsbehandling
@@ -120,7 +122,6 @@ import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.journalpostIdSøknad
 import no.nav.su.se.bakover.test.søknad.oppgaveIdSøknad
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
-import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.tilAttesteringSøknadsbehandling
 import no.nav.su.se.bakover.test.trekkSøknad
 import no.nav.su.se.bakover.test.underkjentSøknadsbehandling
@@ -141,7 +142,7 @@ import javax.sql.DataSource
 class TestDataHelper(
     val dataSource: DataSource,
     val dbMetrics: DbMetrics = dbMetricsStub,
-    val clock: Clock = tikkendeFixedClock(),
+    val clock: Clock = TikkendeKlokke(),
     satsFactory: SatsFactoryForSupplerendeStønad = satsFactoryTest,
 ) {
     val sessionFactory: PostgresSessionFactory =
@@ -336,13 +337,15 @@ class TestDataHelper(
             )
         },
     ): Triple<Sak, VedtakInnvilgetSøknadsbehandling, Utbetaling.OversendtUtbetaling.MedKvittering> {
-        return persisterSøknadsbehandlingIverksatt(sakOgSøknad) { søknadsbehandling(it) }.let { (sak, _, vedtak) ->
+        // I dette tilfellet persisterer vi først utbetalingen uten kvittering, for så å persistere kvitteringen i et eget steg.
+        return persisterSøknadsbehandlingIverksatt(
+            sakOgSøknad,
+            kvittering = null,
+        ) { søknadsbehandling(it) }.let { (sak, _, vedtak) ->
             (vedtak as VedtakInnvilgetSøknadsbehandling).let {
                 databaseRepos.utbetaling.hentOversendtUtbetalingForUtbetalingId(vedtak.utbetalingId)
                     .let { utbetalingUtenKvittering ->
-                        (utbetalingUtenKvittering as Utbetaling.OversendtUtbetaling.UtenKvittering).toKvittertUtbetaling(
-                            kvittering(),
-                        ).let { utbetalingMedKvittering ->
+                        (utbetalingUtenKvittering as Utbetaling.OversendtUtbetaling.MedKvittering).let { utbetalingMedKvittering ->
                             databaseRepos.utbetaling.oppdaterMedKvittering(utbetalingMedKvittering)
                             databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
                                 Triple(
@@ -365,10 +368,10 @@ class TestDataHelper(
      * 1. [VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering]
      */
     fun persisterVedtakMedInnvilgetRevurderingOgOversendtUtbetalingMedKvittering(
-        sakOgRevurdering: Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.UtenKvittering, VedtakEndringIYtelse> = persisterIverksattRevurdering(),
+        sakOgRevurdering: Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse> = persisterIverksattRevurdering(),
     ): Pair<VedtakInnvilgetRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering> {
         return sakOgRevurdering.let { (sak, _, utbetaling, vedtak) ->
-            databaseRepos.utbetaling.oppdaterMedKvittering(utbetaling.toKvittertUtbetaling(kvittering()))
+            databaseRepos.utbetaling.oppdaterMedKvittering(utbetaling)
             databaseRepos.sak.hentSak(sak.id)!!.let { persistertSak ->
                 persistertSak.vedtakListe.single { it.id == vedtak.id } as VedtakInnvilgetRevurdering to persistertSak.utbetalinger.single { it.id == utbetaling.id } as Utbetaling.OversendtUtbetaling.MedKvittering
             }
@@ -413,7 +416,6 @@ class TestDataHelper(
 
     fun persisterReguleringOpprettet(
         startDato: LocalDate = 1.mai(2021),
-        clock: Clock = tikkendeFixedClock(),
     ): Pair<Sak, OpprettetRegulering> {
         return persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().first.let { sak ->
             sak.opprettEllerOppdaterRegulering(
@@ -430,14 +432,12 @@ class TestDataHelper(
 
     fun persisterReguleringIverksatt(
         startDato: LocalDate = 1.mai(2021),
-        clock: Clock = tikkendeFixedClock(),
     ): Pair<Sak, IverksattRegulering> {
         return persisterReguleringOpprettet(
             startDato = startDato,
-            clock = clock,
         ).let { (sak, regulering) ->
             regulering.beregn(
-                satsFactory = satsFactoryTestPåDato(),
+                satsFactory = satsFactoryTestPåDato(påDato = LocalDate.now(clock)),
                 begrunnelse = "Begrunnelse",
                 clock = clock,
             ).getOrFail().let { beregnet ->
@@ -532,10 +532,10 @@ class TestDataHelper(
         sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
-        sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakEndringIYtelse>) -> Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.UtenKvittering, VedtakEndringIYtelse> = {
+        sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakEndringIYtelse>) -> Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling, VedtakEndringIYtelse> = {
             iverksattRevurdering(clock = clock, sakOgVedtakSomKanRevurderes = it)
         },
-    ): Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.UtenKvittering, VedtakEndringIYtelse> {
+    ): Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse> {
         return sakOgRevurdering(sakOgVedtak).let { (sak, revurdering, utbetaling, vedtak) ->
             databaseRepos.revurderingRepo.lagre(revurdering)
             databaseRepos.utbetaling.opprettUtbetaling(utbetaling)
@@ -544,7 +544,7 @@ class TestDataHelper(
                 Tuple4(
                     first = persistertSak!!,
                     second = persistertSak.revurderinger.single { it.id == revurdering.id } as IverksattRevurdering,
-                    third = persistertSak.utbetalinger.single { it.id == utbetaling.id } as Utbetaling.OversendtUtbetaling.UtenKvittering,
+                    third = persistertSak.utbetalinger.single { it.id == utbetaling.id } as Utbetaling.OversendtUtbetaling.MedKvittering,
                     fourth = persistertSak.vedtakListe.single { it.id == vedtak.id } as VedtakEndringIYtelse,
                 )
             }
@@ -1039,24 +1039,31 @@ class TestDataHelper(
      */
     fun persisterSøknadsbehandlingIverksatt(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
+        kvittering: Kvittering? = kvittering(clock = clock),
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> = { (sak, søknad) ->
             iverksattSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
                 clock = clock,
+                kvittering = kvittering,
             )
         },
-    ): Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> {
+    ): Tuple4<Sak, IverksattSøknadsbehandling, Stønadsvedtak, Utbetaling.OversendtUtbetaling?> {
         return søknadsbehandling(sakOgSøknad).let { (sak, søknadsbehandling, vedtak) ->
             databaseRepos.søknadsbehandling.lagre(søknadsbehandling)
-            if (vedtak is VedtakInnvilgetSøknadsbehandling) {
-                databaseRepos.utbetaling.opprettUtbetaling(sak.utbetalinger.single { it.id == vedtak.utbetalingId } as Utbetaling.OversendtUtbetaling.UtenKvittering)
+            val utbetaling = if (vedtak is VedtakInnvilgetSøknadsbehandling) {
+                (sak.utbetalinger.single { it.id == vedtak.utbetalingId } as Utbetaling.OversendtUtbetaling).also {
+                    databaseRepos.utbetaling.opprettUtbetaling(it)
+                }
+            } else {
+                null
             }
             databaseRepos.vedtakRepo.lagre(vedtak)
             databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
-                Triple(
+                Tuple4(
                     persistertSak!!,
                     persistertSak.søknadsbehandlinger.single { it.id == søknadsbehandling.id } as IverksattSøknadsbehandling,
                     persistertSak.vedtakListe.single { it.id == vedtak.id } as Stønadsvedtak,
+                    utbetaling,
                 )
             }
         }
@@ -1064,6 +1071,7 @@ class TestDataHelper(
 
     fun persisterSøknadsbehandlingIverksattInnvilget(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
+        kvittering: Kvittering? = kvittering(clock = clock),
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> = { (sak, søknad) ->
             iverksattSøknadsbehandlingUføre(
                 clock = clock,
@@ -1074,14 +1082,20 @@ class TestDataHelper(
                     type = sak.type,
                 ),
                 sakOgSøknad = sak to søknad,
+                kvittering = kvittering,
             )
         },
-    ): Triple<Sak, IverksattSøknadsbehandling, VedtakInnvilgetSøknadsbehandling> {
-        return persisterSøknadsbehandlingIverksatt(sakOgSøknad) { søknadsbehandling(it) }.let { (sak, søknadsbehandling, vedtak) ->
-            Triple(
+
+    ): Tuple4<Sak, IverksattSøknadsbehandling, VedtakInnvilgetSøknadsbehandling, Utbetaling.OversendtUtbetaling> {
+        return persisterSøknadsbehandlingIverksatt(
+            sakOgSøknad = sakOgSøknad,
+            kvittering = kvittering,
+        ) { søknadsbehandling(it) }.let { (sak, søknadsbehandling, vedtak, utbetaling) ->
+            Tuple4(
                 sak,
                 søknadsbehandling as IverksattSøknadsbehandling.Innvilget,
                 vedtak as VedtakInnvilgetSøknadsbehandling,
+                utbetaling!!,
             )
         }
     }

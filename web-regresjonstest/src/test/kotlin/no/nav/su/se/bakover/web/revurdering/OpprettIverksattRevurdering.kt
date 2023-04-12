@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.revurdering
 
 import io.ktor.client.HttpClient
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.UtenlandsoppholdStatus
+import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.revurdering.attestering.sendTilAttestering
 import no.nav.su.se.bakover.web.revurdering.bosituasjon.leggTilBosituasjon
 import no.nav.su.se.bakover.web.revurdering.brevvalg.velgSendBrev
@@ -21,6 +22,7 @@ internal fun opprettIverksattRevurdering(
     fraogmed: String,
     tilogmed: String,
     client: HttpClient,
+    appComponents: AppComponents?,
     leggTilUføregrunnlag: (sakId: String, behandlingId: String, fraOgMed: String, tilOgMed: String, uføregrad: Int, forventetInntekt: Int, url: String) -> String = { sakId, behandlingId, fraOgMed, tilOgMed, uføregrad, forventetInntekt, url ->
         leggTilUføregrunnlag(
             sakId = sakId,
@@ -114,6 +116,7 @@ internal fun opprettIverksattRevurdering(
             sakId = sakId,
             behandlingId = behandlingId,
             client = client,
+            appComponents = appComponents,
         )
     },
 ): String {

@@ -4,7 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.simuleringFeilutbetaling
+import no.nav.su.se.bakover.test.simulering.simuleringFeilutbetaling
 import org.junit.jupiter.api.Test
 import java.util.UUID
 

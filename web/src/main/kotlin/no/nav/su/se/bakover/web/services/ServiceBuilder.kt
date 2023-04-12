@@ -65,7 +65,6 @@ object ServiceBuilder {
             utbetalingRepo = databaseRepos.utbetaling,
             simuleringClient = clients.simuleringClient,
             utbetalingPublisher = clients.utbetalingPublisher,
-            clock = clock,
         )
         val brevService = BrevServiceImpl(
             pdfGenerator = clients.pdfGenerator,

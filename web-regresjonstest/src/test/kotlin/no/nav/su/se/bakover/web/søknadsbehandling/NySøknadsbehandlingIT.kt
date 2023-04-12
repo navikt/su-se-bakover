@@ -15,13 +15,14 @@ internal class NySøknadsbehandlingIT {
 
     @Test
     fun `ny innvilget søknadsbehandling uten eksisterende sak`() {
-        withTestApplicationAndEmbeddedDb {
+        withTestApplicationAndEmbeddedDb { appComponents ->
             val fnr = Fnr.generer().toString()
             val opprettSøknadsbehandlingResponseJson = opprettInnvilgetSøknadsbehandling(
                 fnr = fnr,
                 fraOgMed = fixedLocalDate.startOfMonth().toString(),
                 tilOgMed = fixedLocalDate.plusMonths(11).endOfMonth().toString(),
                 client = this.client,
+                appComponents = appComponents,
             )
             val sakId = BehandlingJson.hentSakId(opprettSøknadsbehandlingResponseJson)
             assertSakJson(
@@ -64,7 +65,7 @@ internal class NySøknadsbehandlingIT {
                               "tilOgMed":"2021-12-31"
                             },
                             "type":"SØKNAD",
-                            "dokumenttilstand": "IKKE_GENERERT_ENDA"
+                            "dokumenttilstand": "GENERERT"
                         }
                     ]
                 """.trimIndent(),

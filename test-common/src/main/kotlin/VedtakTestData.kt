@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
-import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
@@ -16,6 +15,7 @@ import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBre
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
@@ -36,6 +36,8 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
+import no.nav.su.se.bakover.test.simulering.simulerGjenopptak
+import no.nav.su.se.bakover.test.simulering.simulerStans
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import java.time.Clock
 import java.time.LocalDate
@@ -207,13 +209,12 @@ fun vedtakIverksattAutomatiskRegulering(
     ).let { (sak, _) ->
         val regulering = iverksattAutomatiskRegulering(sakId = sak.id, reguleringsperiode = regulerFraOgMed)
 
-        @Suppress("UNCHECKED_CAST")
         val utbetaling = oversendtUtbetalingMedKvittering(
             id = utbetalingId,
             fnr = fnr,
             sakId = sakId,
             saksnummer = saksnummer,
-            eksisterendeUtbetalinger = sak.utbetalinger as List<Utbetaling.OversendtUtbetaling>,
+            eksisterendeUtbetalinger = sak.utbetalinger,
             clock = clock,
         )
         val vedtak = VedtakSomKanRevurderes.from(
@@ -232,6 +233,9 @@ fun vedtakIverksattAutomatiskRegulering(
     }
 }
 
+/**
+ * @param kvittering Defaulter til OK. Dersom null, så blir ikke utbetalingen kvittert.
+ */
 fun vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
     clock: Clock = TikkendeKlokke(),
     periode: Periode = år(2021),
@@ -241,7 +245,8 @@ fun vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
     ),
     attestering: Attestering = attesteringIverksatt(clock = clock),
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
-): Triple<Sak, VedtakStansAvYtelse, Utbetaling.OversendtUtbetaling.UtenKvittering> {
+    kvittering: Kvittering? = kvittering(clock = clock),
+): Triple<Sak, VedtakStansAvYtelse, Utbetaling.OversendtUtbetaling> {
     return iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode = periode,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
@@ -257,7 +262,13 @@ fun vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             clock = clock,
             utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
         ).getOrFail().let {
-            it.toOversendtUtbetaling(UtbetalingStub.generateRequest(it))
+            it.toOversendtUtbetaling(UtbetalingStub.generateRequest(it)).let {
+                if (kvittering != null) {
+                    it.toKvittertUtbetaling(kvittering)
+                } else {
+                    it
+                }
+            }
         }
 
         val vedtak = VedtakSomKanRevurderes.from(
@@ -288,6 +299,7 @@ fun vedtakIverksattGjenopptakAvYtelseFraIverksattStans(
         clock = clock,
     ).let { it.first to it.second },
     attestering: Attestering = attesteringIverksatt(clock = clock),
+    kvittering: Kvittering? = kvittering(clock = clock),
 ): Pair<Sak, VedtakGjenopptakAvYtelse> {
     return iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse(
         periode = periode,
@@ -301,7 +313,13 @@ fun vedtakIverksattGjenopptakAvYtelseFraIverksattStans(
             behandler = revurdering.attesteringer.hentSisteAttestering().attestant,
             clock = clock,
         ).getOrFail().let {
-            it.toOversendtUtbetaling(UtbetalingStub.generateRequest(it))
+            it.toOversendtUtbetaling(UtbetalingStub.generateRequest(it)).let {
+                if (kvittering != null) {
+                    it.toKvittertUtbetaling(kvittering)
+                } else {
+                    it
+                }
+            }
         }
 
         val vedtak = VedtakSomKanRevurderes.from(

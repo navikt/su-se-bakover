@@ -41,24 +41,25 @@ internal class RevurderingPostgresRepoTest {
                 val (sak, _, vedtak) = tdh.persisterSøknadsbehandlingIverksatt()
                 simulertRevurdering(
                     sakOgVedtakSomKanRevurderes = sak to vedtak as VedtakInnvilgetSøknadsbehandling,
-                    saksbehandler = Saksbehandler("kjella"),
+                    saksbehandler = Saksbehandler("Saksbehandleren"),
+                    clock = tdh.clock,
                 ).also { (_, revurdering) ->
                     revurdering.shouldBeType<SimulertRevurdering.Innvilget>().also { simulert ->
                         tdh.revurderingRepo.lagre(simulert)
                         tdh.revurderingRepo.hent(simulert.id)!!.shouldBeType<SimulertRevurdering.Innvilget>().also {
-                            it.saksbehandler shouldBe Saksbehandler("kjella")
+                            it.saksbehandler shouldBe Saksbehandler("Saksbehandleren")
                             it.oppgaveId shouldBe oppgaveIdRevurdering
                         }
 
                         tdh.revurderingRepo.lagre(
                             simulert.tilAttestering(
                                 attesteringsoppgaveId = OppgaveId("attesteringsoppgave id"),
-                                saksbehandler = Saksbehandler("arve"),
+                                saksbehandler = Saksbehandler("DenAndreSaksbehandleren"),
                             ).getOrFail(),
                         )
                         tdh.revurderingRepo.hent(simulert.id)!!.shouldBeType<RevurderingTilAttestering.Innvilget>().also {
                             it.oppgaveId shouldBe OppgaveId("attesteringsoppgave id")
-                            it.saksbehandler shouldBe Saksbehandler("arve")
+                            it.saksbehandler shouldBe Saksbehandler("DenAndreSaksbehandleren")
                         }
                     }
                 }
@@ -73,6 +74,7 @@ internal class RevurderingPostgresRepoTest {
                 val (sak, _, vedtak) = tdh.persisterSøknadsbehandlingIverksatt()
 
                 val opprettet = opprettetRevurdering(
+                    clock = tdh.clock,
                     sakOgVedtakSomKanRevurderes = sak to vedtak as VedtakEndringIYtelse,
                 ).second.copy(id = revurderingId)
                 tdh.revurderingRepo.lagre(opprettet).also {
@@ -84,6 +86,7 @@ internal class RevurderingPostgresRepoTest {
                 // lagrer noe nytt på samme id
                 iverksattRevurdering(
                     sakOgVedtakSomKanRevurderes = sak to vedtak,
+                    clock = tdh.clock,
                 ).second.shouldBeType<IverksattRevurdering.Innvilget>().copy(id = opprettet.id).also { iverksattt ->
                     iverksattt.id shouldBe opprettet.id
                     iverksattt.opprettet shouldNotBe opprettet.opprettet

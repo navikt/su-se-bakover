@@ -58,6 +58,7 @@ class TilbakekrevingKomponentTest {
             val (sakid, revurderingId) = vedtakMedTilbakekreving(
                 avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV,
                 client = this.client,
+                appComponents = appComponents,
             )
 
             val vedtak = appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
@@ -71,14 +72,13 @@ class TilbakekrevingKomponentTest {
                     revurdering
                 }
 
-            appComponents.mottaKvitteringForUtbetalingFraØkonomi(vedtak.utbetalingId)
-
             appComponents.services.utbetaling.hentUtbetaling(vedtak.utbetalingId).getOrFail()
                 .shouldBeType<Utbetaling.OversendtUtbetaling.MedKvittering>()
 
-            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForVedtak(vedtak.id)).also {
-                it shouldBe emptyList()
-            }
+            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForVedtak(vedtak.id))
+                .also {
+                    it shouldBe emptyList()
+                }
 
             appComponents.services.tilbakekrevingService.hentAvventerKravgrunnlag(UUID.fromString(sakid))
                 .single() shouldBe vedtak.behandling.tilbakekrevingsbehandling
@@ -147,6 +147,7 @@ class TilbakekrevingKomponentTest {
             val (sakid, revurderingId) = vedtakMedTilbakekreving(
                 avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.IKKE_TILBAKEKREV,
                 client = this.client,
+                appComponents = appComponents,
             )
 
             val vedtak = appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
@@ -160,11 +161,10 @@ class TilbakekrevingKomponentTest {
                     revurdering
                 }
 
-            appComponents.mottaKvitteringForUtbetalingFraØkonomi(vedtak.utbetalingId)
-
-            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForVedtak(vedtak.id)).also {
-                it shouldBe emptyList()
-            }
+            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForVedtak(vedtak.id))
+                .also {
+                    it shouldBe emptyList()
+                }
 
             appComponents.services.tilbakekrevingService.hentAvventerKravgrunnlag(UUID.fromString(sakid))
                 .single() shouldBe vedtak.behandling.tilbakekrevingsbehandling
@@ -224,6 +224,7 @@ class TilbakekrevingKomponentTest {
             val (_, revurderingId) = vedtakMedTilbakekreving(
                 avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV,
                 client = this.client,
+                appComponents = appComponents,
             )
 
             val vedtak =
@@ -258,6 +259,7 @@ class TilbakekrevingKomponentTest {
             val (_, revurderingId) = vedtakMedTilbakekreving(
                 avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV,
                 client = this.client,
+                appComponents = appComponents,
             )
 
             val vedtak =
@@ -291,6 +293,7 @@ class TilbakekrevingKomponentTest {
             val (_, revurderingId) = vedtakMedTilbakekreving(
                 avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV,
                 client = this.client,
+                appComponents = appComponents,
             )
 
             val vedtak =
@@ -335,6 +338,7 @@ class TilbakekrevingKomponentTest {
             val (_, revurderingId) = vedtakMedTilbakekreving(
                 avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV,
                 client = this.client,
+                appComponents = appComponents,
             )
 
             val vedtak = appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
@@ -392,6 +396,7 @@ class TilbakekrevingKomponentTest {
                     )
                 },
                 client = this.client,
+                appComponents = appComponents,
             )
 
             val vedtak = appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
@@ -432,12 +437,14 @@ class TilbakekrevingKomponentTest {
                 client = client,
             )
         },
+        appComponents: AppComponents,
     ): Pair<String, String> {
         return opprettInnvilgetSøknadsbehandling(
             fnr = Fnr.generer().toString(),
             fraOgMed = 1.januar(2021).toString(),
             tilOgMed = 31.desember(2021).toString(),
             client = client,
+            appComponents = appComponents,
         ).let { søknadsbehandlingJson ->
             val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)
 
@@ -498,6 +505,7 @@ class TilbakekrevingKomponentTest {
                 sakId = sakId,
                 behandlingId = revurderingId,
                 client = client,
+                appComponents = appComponents,
             )
 
             sakId to revurderingId

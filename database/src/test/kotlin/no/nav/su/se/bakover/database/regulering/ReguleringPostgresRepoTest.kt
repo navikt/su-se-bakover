@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.satser.Faktor
 import no.nav.su.se.bakover.domain.satser.FullSupplerendeStønadForMåned
 import no.nav.su.se.bakover.domain.satser.MinsteÅrligYtelseForUføretrygdedeForMåned
 import no.nav.su.se.bakover.domain.satser.Satskategori
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
@@ -137,7 +136,7 @@ internal class ReguleringPostgresRepoTest {
     @Test
     fun `Bruker opprettet-tidspunkt for å avgjøre satser`() {
         withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource = dataSource, clock = fixedClock)
+            val testDataHelper = TestDataHelper(dataSource = dataSource)
             val repo = testDataHelper.reguleringRepo
             val (_, regulering) = testDataHelper.persisterReguleringIverksatt()
             val hentRegulering = repo.hent(regulering.id)

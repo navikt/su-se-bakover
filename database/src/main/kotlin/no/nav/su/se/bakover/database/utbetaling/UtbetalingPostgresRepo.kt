@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalin
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import java.util.UUID
 
 internal class UtbetalingPostgresRepo(
@@ -41,7 +42,7 @@ internal class UtbetalingPostgresRepo(
     ): Utbetaling.OversendtUtbetaling? {
         return dbMetrics.timeQuery("hentUtbetalingForAvstemmingsnøkkel") {
             sessionFactory.withSession { session ->
-                "select u.*, s.saksnummer, s.type as sakstype from utbetaling u left join sak s on s.id = u.sakId where u.avstemmingsnøkkel ->> 'nøkkel' = :nokkel".hent(
+                "select u.*, s.saksnummer, s.type as sakstype from utbetaling u join sak s on s.id = u.sakId where u.avstemmingsnøkkel ->> 'nøkkel' = :nokkel order by u.opprettet".hent(
                     mapOf(
                         "nokkel" to avstemmingsnøkkel.toString(),
                     ),
@@ -51,18 +52,18 @@ internal class UtbetalingPostgresRepo(
         }
     }
 
-    override fun hentOversendteUtbetalinger(sakId: UUID): List<Utbetaling.OversendtUtbetaling> {
+    override fun hentOversendteUtbetalinger(sakId: UUID): Utbetalinger {
         return dbMetrics.timeQuery("hentUtbetalingerForSakId") {
             sessionFactory.withSession { session -> UtbetalingInternalRepo.hentOversendteUtbetalinger(sakId, session) }
-        }
+        }.let { Utbetalinger(it) }
     }
 
-    override fun hentUkvitterteUtbetalinger(): List<Utbetaling.OversendtUtbetaling.UtenKvittering> {
+    override fun hentUkvitterteUtbetalinger(): Utbetalinger {
         return dbMetrics.timeQuery("hentUkvitterteUtbetalinger") {
             sessionFactory.withSession { session ->
-                "select u.*, s.saksnummer, s.type as sakstype from utbetaling u left join sak s on s.id = u.sakId where u.kvittering is null".hentListe(
+                "select u.*, s.saksnummer, s.type as sakstype from utbetaling u join sak s on s.id = u.sakId where u.kvittering is null order by u.opprettet".hentListe(
                     session = session,
-                ) { it.toUtbetaling(session) as Utbetaling.OversendtUtbetaling.UtenKvittering }
+                ) { it.toUtbetaling(session) as Utbetaling.OversendtUtbetaling.UtenKvittering }.let { Utbetalinger(it) }
             }
         }
     }
@@ -81,15 +82,18 @@ internal class UtbetalingPostgresRepo(
         }
     }
 
+    /**
+     * Støtter både med og uten kvittering, førstnevte for enklere testing.
+     */
     override fun opprettUtbetaling(
-        utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering,
+        utbetaling: Utbetaling.OversendtUtbetaling,
         transactionContext: TransactionContext,
     ) {
         dbMetrics.timeQuery("opprettUtbetaling") {
             transactionContext.withTransaction { session ->
                 """
-            insert into utbetaling (id, opprettet, sakId, fnr, avstemmingsnøkkel, simulering, utbetalingsrequest, behandler)
-            values (:id, :opprettet, :sakId, :fnr, to_json(:avstemmingsnokkel::json), to_json(:simulering::json), to_json(:utbetalingsrequest::json), :behandler)
+            insert into utbetaling (id, opprettet, sakId, fnr, avstemmingsnøkkel, simulering, utbetalingsrequest, behandler, kvittering)
+            values (:id, :opprettet, :sakId, :fnr, to_json(:avstemmingsnokkel::json), to_json(:simulering::json), to_json(:utbetalingsrequest::json), :behandler, to_json(:kvittering::json))
                 """.insert(
                     mapOf(
                         "id" to utbetaling.id,
@@ -100,6 +104,7 @@ internal class UtbetalingPostgresRepo(
                         "simulering" to utbetaling.simulering.serializeSimulering(),
                         "utbetalingsrequest" to serialize(utbetaling.utbetalingsrequest),
                         "behandler" to utbetaling.behandler.navIdent,
+                        "kvittering" to (utbetaling as? Utbetaling.OversendtUtbetaling.MedKvittering)?.kvittering?.let { serialize(it) },
                     ),
                     session,
                 )
@@ -126,6 +131,7 @@ internal class UtbetalingPostgresRepo(
                 UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling -> true
                 UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig -> false
             },
+            "rekkefolge" to utbetalingslinje.rekkefølge?.value,
         )
 
         val params = when (utbetalingslinje) {
@@ -138,11 +144,12 @@ internal class UtbetalingPostgresRepo(
                     ),
                 )
             }
+
             is Utbetalingslinje.Ny -> baseParams
         }
         """
-            insert into utbetalingslinje (id, opprettet, fom, tom, utbetalingId, forrigeUtbetalingslinjeId, beløp, status, statusFraOgMed, statusTilOgMed, uføregrad, kjøreplan)
-            values (:id, :opprettet, :fom, :tom, :utbetalingId, :forrigeUtbetalingslinjeId, :belop, :status, :statusFraOgMed, :statusTilOgMed, :uforegrad, :kjoreplan)
+            insert into utbetalingslinje (id, opprettet, fom, tom, utbetalingId, forrigeUtbetalingslinjeId, beløp, status, statusFraOgMed, statusTilOgMed, uføregrad, kjøreplan, rekkefølge)
+            values (:id, :opprettet, :fom, :tom, :utbetalingId, :forrigeUtbetalingslinjeId, :belop, :status, :statusFraOgMed, :statusTilOgMed, :uforegrad, :kjoreplan, :rekkefolge)
         """.insert(params, session)
 
         return utbetalingslinje

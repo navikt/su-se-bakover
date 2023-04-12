@@ -14,6 +14,13 @@ import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingsmeldingMa
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse
 import java.math.BigDecimal
+import java.util.UUID
+
+internal fun AppComponents.mottaKvitteringForUtbetalingFraØkonomi(sakId: UUID) {
+    return services.utbetaling.hentUtbetalingerForSakId(sakId).filterIsInstance<Utbetaling.OversendtUtbetaling.UtenKvittering>().forEach {
+        mottaKvitteringForUtbetalingFraØkonomi(it.id)
+    }
+}
 
 internal fun AppComponents.mottaKvitteringForUtbetalingFraØkonomi(utbetalingId: UUID30): String {
     return services.utbetaling.hentUtbetaling(utbetalingId).getOrFail()

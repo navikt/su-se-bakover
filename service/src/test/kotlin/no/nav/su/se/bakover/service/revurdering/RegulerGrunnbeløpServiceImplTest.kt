@@ -34,7 +34,7 @@ import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.revurderingUnderkjent
 import no.nav.su.se.bakover.test.revurderingsårsak
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.simulerUtbetaling
+import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.vilkår.flyktningVilkårAvslått
@@ -134,6 +134,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
         )
 
         RevurderingServiceMocks(
+            clock = clock,
             revurderingRepo = mock {
                 on { hent(any()) } doReturn revurdering
             },
@@ -145,6 +146,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                     simulerUtbetaling(
                         sak = sak,
                         utbetaling = (invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering),
+                        clock = clock,
                     )
                 }.whenever(it).simulerUtbetaling(any(), any())
             },

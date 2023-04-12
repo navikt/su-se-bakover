@@ -21,12 +21,13 @@ import org.skyscreamer.jsonassert.JSONAssert
 internal class LeggTilFlyktningVilkårIT {
     @Test
     fun `legg til flyktningvilkår`() {
-        SharedRegressionTestData.withTestApplicationAndEmbeddedDb {
+        SharedRegressionTestData.withTestApplicationAndEmbeddedDb { appComponents ->
             opprettInnvilgetSøknadsbehandling(
                 fnr = fnr.toString(),
                 fraOgMed = 1.januar(2022).toString(),
                 tilOgMed = 31.desember(2022).toString(),
                 client = this.client,
+                appComponents = appComponents,
             ).let { søknadsbehandlingJson ->
 
                 val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)

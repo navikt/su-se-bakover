@@ -6,21 +6,19 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.oppdrag.FantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
-import no.nav.su.se.bakover.domain.oppdrag.hentGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import org.slf4j.LoggerFactory
-import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -28,7 +26,6 @@ class UtbetalingServiceImpl(
     private val utbetalingRepo: UtbetalingRepo,
     private val simuleringClient: SimuleringClient,
     private val utbetalingPublisher: UtbetalingPublisher,
-    private val clock: Clock,
 ) : UtbetalingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -37,7 +34,7 @@ class UtbetalingServiceImpl(
         return utbetalingRepo.hentOversendtUtbetalingForUtbetalingId(utbetalingId)?.right() ?: FantIkkeUtbetaling.left()
     }
 
-    override fun hentUtbetalingerForSakId(sakId: UUID): List<Utbetaling> {
+    override fun hentUtbetalingerForSakId(sakId: UUID): Utbetalinger {
         return utbetalingRepo.hentOversendteUtbetalinger(sakId)
     }
 
@@ -76,7 +73,7 @@ class UtbetalingServiceImpl(
     override fun hentGjeldendeUtbetaling(
         sakId: UUID,
         forDato: LocalDate,
-    ): Either<FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje> {
+    ): Either<Utbetalinger.FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje> {
         return hentUtbetalingerForSakId(sakId).hentGjeldendeUtbetaling(
             forDato,
         )

@@ -40,6 +40,7 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
                 fraOgMed = 1.januar(2021).toString(),
                 tilOgMed = 31.desember(2021).toString(),
                 client = this.client,
+                appComponents = appComponents,
             ).let {
                 hentSak(BehandlingJson.hentSakId(it), client = this.client).let { sakJson ->
                     UUID.fromString(hentSakId(sakJson)) to Saksnummer(hentSaksnummer(sakJson).toLong())
@@ -51,6 +52,7 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
                 fraOgMed = 1.august(2021).toString(),
                 tilOgMed = 31.juli(2022).toString(),
                 client = this.client,
+                appComponents = appComponents,
             ).let {
                 hentSak(BehandlingJson.hentSakId(it), client = this.client).let { sakJson ->
                     UUID.fromString(hentSakId(sakJson)) to Saksnummer(hentSaksnummer(sakJson).toLong())
@@ -62,6 +64,7 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
                 fraOgMed = 1.juli(2022).toString(),
                 tilOgMed = 30.juni(2023).toString(),
                 client = this.client,
+                appComponents = appComponents,
             ).let {
                 hentSak(BehandlingJson.hentSakId(it), client = this.client).let { sakJson ->
                     UUID.fromString(hentSakId(sakJson)) to Saksnummer(hentSaksnummer(sakJson).toLong())
@@ -110,6 +113,7 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
                 fraOgMed = 1.august(2021).toString(),
                 tilOgMed = 31.juli(2022).toString(),
                 client = this.client,
+                appComponents = appComponents,
             ).let {
                 hentSak(BehandlingJson.hentSakId(it), client = this.client).let { sakJson ->
                     UUID.fromString(hentSakId(sakJson)) to Saksnummer(hentSaksnummer(sakJson).toLong())

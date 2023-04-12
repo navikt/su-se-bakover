@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mars
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
@@ -112,8 +111,7 @@ internal class UtbetalingServiceImplTest {
 
             UtbetalingServiceAndMocks(
                 utbetalingRepo = mock {
-                    @Suppress("UNCHECKED_CAST")
-                    on { hentOversendteUtbetalinger(any()) } doReturn sak.utbetalinger as List<Utbetaling.OversendtUtbetaling>
+                    on { hentOversendteUtbetalinger(any()) } doReturn sak.utbetalinger
                 },
             ).also {
                 it.service.hentGjeldendeUtbetaling(

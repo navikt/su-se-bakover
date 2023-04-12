@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.test
+package no.nav.su.se.bakover.test.simulering
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -44,6 +45,15 @@ import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForStans
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.test.beregning
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.nåtidForSimuleringStub
+import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.saksnummer
+import no.nav.su.se.bakover.test.tikkendeFixedClock
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -51,7 +61,7 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 private data class UtbetalingRepoMock(
-    private val eksisterendeUtbetalinger: List<Utbetaling.OversendtUtbetaling>,
+    private val eksisterendeUtbetalinger: Utbetalinger,
 ) : UtbetalingRepo {
     override fun hentOversendtUtbetalingForUtbetalingId(utbetalingId: UUID30): Utbetaling.OversendtUtbetaling? {
         TODO("Not yet implemented")
@@ -61,7 +71,7 @@ private data class UtbetalingRepoMock(
         TODO("Not yet implemented")
     }
 
-    override fun hentOversendteUtbetalinger(sakId: UUID): List<Utbetaling.OversendtUtbetaling> {
+    override fun hentOversendteUtbetalinger(sakId: UUID): Utbetalinger {
         return eksisterendeUtbetalinger
     }
 
@@ -70,13 +80,13 @@ private data class UtbetalingRepoMock(
     }
 
     override fun opprettUtbetaling(
-        utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering,
+        utbetaling: Utbetaling.OversendtUtbetaling,
         transactionContext: TransactionContext,
     ) {
         TODO("Not yet implemented")
     }
 
-    override fun hentUkvitterteUtbetalinger(): List<Utbetaling.OversendtUtbetaling.UtenKvittering> {
+    override fun hentUkvitterteUtbetalinger(): Utbetalinger {
         TODO("Not yet implemented")
     }
 
@@ -106,11 +116,10 @@ fun simulerUtbetaling(
     clock: Clock = nåtidForSimuleringStub,
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
 ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
-    @Suppress("UNCHECKED_CAST")
     return SimuleringStub(
         clock = clock,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
-        utbetalingRepo = UtbetalingRepoMock(sak.utbetalinger as List<Utbetaling.OversendtUtbetaling>),
+        utbetalingRepo = UtbetalingRepoMock(sak.utbetalinger),
     ).simulerUtbetaling(
         SimulerUtbetalingForPeriode(
             utbetaling = utbetaling,
@@ -350,7 +359,7 @@ fun simuler(
  */
 fun simuleringNy(
     beregning: Beregning = beregning(periode = år(2021)),
-    eksisterendeUtbetalinger: List<Utbetaling.OversendtUtbetaling> = emptyList(),
+    eksisterendeUtbetalinger: Utbetalinger = Utbetalinger(),
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
@@ -392,7 +401,7 @@ fun simuleringNy(
 
 fun simuleringOpphørt(
     opphørsperiode: Periode,
-    eksisterendeUtbetalinger: List<Utbetaling.OversendtUtbetaling>,
+    eksisterendeUtbetalinger: Utbetalinger,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,

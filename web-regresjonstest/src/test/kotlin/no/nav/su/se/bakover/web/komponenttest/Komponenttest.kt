@@ -127,7 +127,7 @@ internal fun withKomptestApplication(
     }
 }
 
-private fun Application.testSusebakover(appComponents: AppComponents) {
+fun Application.testSusebakover(appComponents: AppComponents) {
     return susebakover(
         clock = appComponents.clock,
         applicationConfig = appComponents.applicationConfig,

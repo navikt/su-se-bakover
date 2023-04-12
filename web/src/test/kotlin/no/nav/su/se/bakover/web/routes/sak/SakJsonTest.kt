@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.sak.Saksnummer
@@ -24,13 +23,12 @@ import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.UtbetalingJson
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.Clock
 import java.util.UUID
@@ -118,22 +116,23 @@ internal class SakJsonTest {
                 rekkefølge = Rekkefølge.start(),
             )
 
-            val utbetaling1 = mock<Utbetaling.OversendtUtbetaling.UtenKvittering> {
-                on { utbetalingslinjer } doReturn nonEmptyListOf(nyUtbetaling)
-                on { opprettet } doReturn nyUtbetaling.opprettet
-            }
-            val utbetaling2 = mock<Utbetaling.OversendtUtbetaling.UtenKvittering> {
-                on { utbetalingslinjer } doReturn nonEmptyListOf(midlertidigStans)
-                on { opprettet } doReturn midlertidigStans.opprettet
-            }
-            val utbetaling3 = mock<Utbetaling.OversendtUtbetaling.UtenKvittering> {
-                on { utbetalingslinjer } doReturn nonEmptyListOf(reaktivering)
-                on { opprettet } doReturn reaktivering.opprettet
-            }
-            val utbetaling4 = mock<Utbetaling.OversendtUtbetaling.UtenKvittering> {
-                on { utbetalingslinjer } doReturn nonEmptyListOf(opphørslinje)
-                on { opprettet } doReturn opphørslinje.opprettet
-            }
+            val utbetaling1 = oversendtUtbetalingUtenKvittering(
+                utbetalingslinjer = nonEmptyListOf(nyUtbetaling),
+                opprettet = nyUtbetaling.opprettet,
+            )
+            val utbetaling2 = oversendtUtbetalingUtenKvittering(
+                utbetalingslinjer = nonEmptyListOf(midlertidigStans),
+                opprettet = midlertidigStans.opprettet,
+
+            )
+            val utbetaling3 = oversendtUtbetalingUtenKvittering(
+                utbetalingslinjer = nonEmptyListOf(reaktivering),
+                opprettet = reaktivering.opprettet,
+            )
+            val utbetaling4 = oversendtUtbetalingUtenKvittering(
+                utbetalingslinjer = nonEmptyListOf(opphørslinje),
+                opprettet = opphørslinje.opprettet,
+            )
 
             val sak = sak.copy(utbetalinger = Utbetalinger(utbetaling1, utbetaling2, utbetaling3, utbetaling4))
 

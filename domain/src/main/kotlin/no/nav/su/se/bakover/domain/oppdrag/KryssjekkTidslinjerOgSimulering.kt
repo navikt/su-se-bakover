@@ -11,13 +11,14 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 
 object KryssjekkTidslinjerOgSimulering {
     fun sjekk(
         underArbeidEndringsperiode: Periode,
         underArbeid: Utbetaling.UtbetalingForSimulering,
-        eksisterende: List<Utbetaling>,
+        eksisterende: Utbetalinger,
         simuler: (utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
     ): Either<KryssjekkAvTidslinjeOgSimuleringFeilet, Unit> {
         val periode = Periode.create(
@@ -51,10 +52,7 @@ object KryssjekkTidslinjerOgSimulering {
                 fraOgMed = underArbeidEndringsperiode.tilOgMed.førsteINesteMåned(),
                 tilOgMed = eksisterende.maxOf { it.senesteDato() },
             )
-            val tidslinjeUnderArbeid = listOf(underArbeid).tidslinje().getOrElse {
-                log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke generere tidslinjer: $it")
-                return KryssjekkAvTidslinjeOgSimuleringFeilet.KunneIkkeGenerereTidslinje.left()
-            }
+            val tidslinjeUnderArbeid = underArbeid.tidslinje()
 
             val tidslinjeEksisterende = eksisterende.tidslinje().getOrElse {
                 log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke generere tidslinjer: $it")

@@ -22,29 +22,31 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalin
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import java.util.UUID
 
 internal object UtbetalingInternalRepo {
     fun hentOversendtUtbetaling(utbetalingId: UUID30, session: Session): Utbetaling.OversendtUtbetaling? =
-        "select u.*, s.saksnummer, s.type as sakstype from utbetaling u inner join sak s on s.id = u.sakId where u.id = :id".hent(
+        "select u.*, s.saksnummer, s.type as sakstype from utbetaling u join sak s on s.id = u.sakId where u.id = :id".hent(
             mapOf(
                 "id" to utbetalingId,
             ),
             session,
         ) { it.toUtbetaling(session) }
 
-    fun hentOversendteUtbetalinger(sakId: UUID, session: Session): List<Utbetaling.OversendtUtbetaling> =
-        "select u.*, s.saksnummer, s.type as sakstype from utbetaling u inner join sak s on s.id = u.sakId where s.id = :id".hentListe(
+    fun hentOversendteUtbetalinger(sakId: UUID, session: Session): Utbetalinger {
+        return "select u.*, s.saksnummer, s.type as sakstype from utbetaling u join sak s on s.id = u.sakId where s.id = :id order by u.opprettet".hentListe(
             mapOf(
                 "id" to sakId,
             ),
             session,
-        ) { it.toUtbetaling(session) }
+        ) { it.toUtbetaling(session) }.let { Utbetalinger(it) }
+    }
 
     fun hentUtbetalingslinjer(utbetalingId: UUID30, session: Session): List<Utbetalingslinje> =
-        "select * from utbetalingslinje where utbetalingId=:utbetalingId".hentListe(
+        "select * from utbetalingslinje where utbetalingId=:utbetalingId order by rekkefølge".hentListe(
             mapOf("utbetalingId" to utbetalingId.toString()),
             session,
         ) {
@@ -102,7 +104,7 @@ private fun Row.toUtbetalingslinje(): Utbetalingslinje {
         fraOgMed = localDate("fom"),
         tilOgMed = localDate("tom"),
         opprettet = tidspunkt("opprettet"),
-        rekkefølge = longOrNull("rekkefølge")?.let { Rekkefølge(it) },
+        rekkefølge = long("rekkefølge").let { Rekkefølge(it) },
         forrigeUtbetalingslinjeId = stringOrNull("forrigeUtbetalingslinjeId")?.let { uuid30("forrigeUtbetalingslinjeId") },
         beløp = int("beløp"),
         uføregrad = intOrNull("uføregrad")?.let { Uføregrad.parse(it) },

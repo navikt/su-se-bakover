@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleServiceIm
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtalestatus
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.komponenttest.withKomptestApplication
 import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
 import no.nav.su.se.bakover.web.revurdering.utenlandsopphold.leggTilUtenlandsoppholdRevurdering
@@ -51,6 +52,7 @@ internal class OppretterKontrollsamtaleKallerInnOgAnnullererTest {
                 fraOgMed = stønadStart,
                 tilOgMed = stønadSlutt,
                 client = this.client,
+                appComponents = appComponents,
             )
 
             val førstePlanlagteKontrollsamtale = kontrollsamtaleService.hentForSak(sakId = sakId).first()
@@ -81,6 +83,7 @@ internal class OppretterKontrollsamtaleKallerInnOgAnnullererTest {
                     )
                 },
                 client = this.client,
+                appComponents = appComponents,
             )
 
             kontrollsamtaleService.hentForSak(sakId)
@@ -107,12 +110,14 @@ internal class OppretterKontrollsamtaleKallerInnOgAnnullererTest {
         fraOgMed: LocalDate,
         tilOgMed: LocalDate,
         client: HttpClient,
+        appComponents: AppComponents,
     ): UUID {
         return opprettInnvilgetSøknadsbehandling(
             fnr = Fnr.generer().toString(),
             fraOgMed = fraOgMed.toString(),
             tilOgMed = tilOgMed.toString(),
             client = client,
+            appComponents = appComponents,
         ).let {
             hentSak(BehandlingJson.hentSakId(it), client = client).let { sakJson ->
                 UUID.fromString(hentSakId(sakJson))

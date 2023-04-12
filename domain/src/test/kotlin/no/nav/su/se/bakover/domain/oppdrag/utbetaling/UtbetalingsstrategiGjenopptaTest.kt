@@ -23,29 +23,34 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.kvittering
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import org.junit.jupiter.api.Test
+import java.time.Clock
 import java.time.ZoneOffset
 
 internal class UtbetalingsstrategiGjenopptaTest {
     @Test
     fun `gjenopptar enkel utbetaling`() {
-        val opprinnelig: Utbetaling.OversendtUtbetaling.UtenKvittering = oversendtUtbetaling()
+        val clock = TikkendeKlokke()
+        val opprinnelig: Utbetaling.OversendtUtbetaling.MedKvittering = kvittertUtbetaling(clock = clock)
 
-        val stans: Utbetaling.OversendtUtbetaling.UtenKvittering = createOversendtUtbetaling(
-            opprettet = fixedTidspunkt,
-            nonEmptyListOf(
+        val stans: Utbetaling.OversendtUtbetaling.MedKvittering = createKvittertUtbetaling(
+            opprettet = Tidspunkt.now(clock),
+            clock = clock,
+            utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Stans(
                     utbetalingslinjeSomSkalEndres = opprinnelig.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.oktober(2020),
-                    opprettet = fixedTidspunkt,
+                    opprettet = Tidspunkt.now(clock),
                     rekkefølge = Rekkefølge.start(),
                 ),
             ),
@@ -55,12 +60,12 @@ internal class UtbetalingsstrategiGjenopptaTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            eksisterendeUtbetalinger = nonEmptyListOf(
+            eksisterendeUtbetalinger = Utbetalinger(
                 opprinnelig,
                 stans,
             ),
             behandler = attestant,
-            clock = fixedClock,
+            clock = clock,
             sakstype = Sakstype.UFØRE,
         ).generer().getOrFail("skal kunne lage utbetaling")
 
@@ -99,7 +104,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            eksisterendeUtbetalinger = emptyList(),
+            eksisterendeUtbetalinger = Utbetalinger(),
             behandler = attestant,
             clock = fixedClock,
             sakstype = Sakstype.UFØRE,
@@ -108,11 +113,13 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
     @Test
     fun `gjenopptar mer 'avansert' utbetaling`() {
-        val første = oversendtUtbetaling()
+        val clock = TikkendeKlokke()
+        val første = kvittertUtbetaling(clock = clock)
 
-        val førsteStans = createOversendtUtbetaling(
-            opprettet = fixedTidspunkt,
-            nonEmptyListOf(
+        val førsteStans = createKvittertUtbetaling(
+            opprettet = Tidspunkt.now(clock),
+            clock = clock,
+            utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Stans(
                     utbetalingslinjeSomSkalEndres = første.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.oktober(2020),
@@ -122,9 +129,10 @@ internal class UtbetalingsstrategiGjenopptaTest {
             ),
         )
 
-        val førsteGjenopptak = createOversendtUtbetaling(
-            opprettet = fixedTidspunkt,
-            nonEmptyListOf(
+        val førsteGjenopptak = createKvittertUtbetaling(
+            opprettet = Tidspunkt.now(clock),
+            clock = clock,
+            utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Reaktivering(
                     utbetalingslinjeSomSkalEndres = førsteStans.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.oktober(2020),
@@ -134,10 +142,12 @@ internal class UtbetalingsstrategiGjenopptaTest {
             ),
         )
 
-        val andre = createOversendtUtbetaling(
+        val andre = createKvittertUtbetaling(
+            opprettet = Tidspunkt.now(clock),
+            clock = clock,
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Ny(
-                    opprettet = fixedTidspunkt,
+                    opprettet = Tidspunkt.now(clock),
                     fraOgMed = 1.november(2020),
                     tilOgMed = 31.oktober(2021),
                     forrigeUtbetalingslinjeId = førsteGjenopptak.utbetalingslinjer[0].id,
@@ -148,12 +158,14 @@ internal class UtbetalingsstrategiGjenopptaTest {
             ),
         )
 
-        val andreStans = createOversendtUtbetaling(
+        val andreStans = createKvittertUtbetaling(
+            opprettet = Tidspunkt.now(clock),
+            clock = clock,
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Stans(
                     utbetalingslinjeSomSkalEndres = andre.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.mai(2021),
-                    clock = fixedClock,
+                    clock = clock,
                     rekkefølge = Rekkefølge.start(),
                 ),
             ),
@@ -163,7 +175,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            eksisterendeUtbetalinger = nonEmptyListOf(
+            eksisterendeUtbetalinger = Utbetalinger(
                 første,
                 førsteStans,
                 førsteGjenopptak,
@@ -171,7 +183,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 andreStans,
             ),
             behandler = attestant,
-            clock = fixedClock,
+            clock = clock,
             sakstype = Sakstype.UFØRE,
         ).generer().getOrFail("skal kunne lage utbetaling")
 
@@ -192,12 +204,12 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
     @Test
     fun `kan ikke gjenoppta utbetalinger hvis ingen er stanset`() {
-        val første = oversendtUtbetaling()
+        val første = kvittertUtbetaling()
         Utbetalingsstrategi.Gjenoppta(
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            eksisterendeUtbetalinger = nonEmptyListOf(første),
+            eksisterendeUtbetalinger = Utbetalinger(første),
             behandler = attestant,
             clock = fixedClock,
             sakstype = Sakstype.UFØRE,
@@ -206,27 +218,30 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
     @Test
     fun `kan ikke gjenoppta utbetalinger hvis siste ikke er stanset`() {
-        val første = oversendtUtbetaling()
+        val clock = TikkendeKlokke()
+        val første = kvittertUtbetaling(clock = clock)
 
-        val andre = createOversendtUtbetaling(
-            opprettet = fixedTidspunkt,
-            nonEmptyListOf(
+        val andre = createKvittertUtbetaling(
+            opprettet = Tidspunkt.now(clock),
+            clock = clock,
+            utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Stans(
                     utbetalingslinjeSomSkalEndres = første.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.januar(2020),
-                    opprettet = fixedTidspunkt,
+                    opprettet = Tidspunkt.now(clock),
                     rekkefølge = Rekkefølge.start(),
                 ),
             ),
         )
 
-        val tredje = createOversendtUtbetaling(
-            opprettet = fixedTidspunkt,
-            nonEmptyListOf(
+        val tredje = createKvittertUtbetaling(
+            opprettet = Tidspunkt.now(clock),
+            clock = clock,
+            utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Reaktivering(
                     utbetalingslinjeSomSkalEndres = andre.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.januar(2020),
-                    opprettet = fixedTidspunkt,
+                    opprettet = Tidspunkt.now(clock),
                     rekkefølge = Rekkefølge.start(),
                 ),
             ),
@@ -236,21 +251,22 @@ internal class UtbetalingsstrategiGjenopptaTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            eksisterendeUtbetalinger = nonEmptyListOf(
+            eksisterendeUtbetalinger = Utbetalinger(
                 første,
                 andre,
                 tredje,
             ),
             behandler = attestant,
-            clock = fixedClock,
+            clock = clock,
             sakstype = Sakstype.UFØRE,
         ).generer() shouldBe Utbetalingsstrategi.Gjenoppta.Feil.SisteUtbetalingErIkkeStans.left()
     }
 
     @Test
     fun `gjenopptar utbetalinger med flere utbetalingslinjer`() {
+        val clock = TikkendeKlokke()
         val l1 = Utbetalingslinje.Ny(
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(clock),
             rekkefølge = Rekkefølge.start(),
             fraOgMed = 1.januar(2020),
             tilOgMed = 30.april(2020),
@@ -259,7 +275,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
             uføregrad = Uføregrad.parse(50),
         )
         val l2 = Utbetalingslinje.Ny(
-            opprettet = fixedTidspunkt.plusUnits(1),
+            opprettet = Tidspunkt.now(clock),
             rekkefølge = Rekkefølge.skip(0),
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
@@ -267,19 +283,23 @@ internal class UtbetalingsstrategiGjenopptaTest {
             beløp = 5100,
             uføregrad = Uføregrad.parse(50),
         )
-        val utbetaling = createOversendtUtbetaling(
+        val utbetaling = createKvittertUtbetaling(
+            opprettet = Tidspunkt.now(clock),
+            clock = clock,
             utbetalingslinjer = nonEmptyListOf(
                 l1,
                 l2,
             ),
         )
 
-        val stans = createOversendtUtbetaling(
+        val stans = createKvittertUtbetaling(
+            opprettet = Tidspunkt.now(clock),
+            clock = clock,
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Stans(
                     utbetalingslinjeSomSkalEndres = utbetaling.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.april(2020),
-                    opprettet = fixedTidspunkt,
+                    opprettet = Tidspunkt.now(clock),
                     rekkefølge = Rekkefølge.start(),
                 ),
             ),
@@ -289,12 +309,12 @@ internal class UtbetalingsstrategiGjenopptaTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            eksisterendeUtbetalinger = nonEmptyListOf(
+            eksisterendeUtbetalinger = Utbetalinger(
                 utbetaling,
                 stans,
             ),
             behandler = attestant,
-            clock = fixedClock,
+            clock = clock,
             sakstype = Sakstype.UFØRE,
         ).generer().getOrFail("skal kunne lage utbetaling").also {
             Utbetalingslinje.Endring.Reaktivering(
@@ -311,10 +331,11 @@ internal class UtbetalingsstrategiGjenopptaTest {
         }
     }
 
-    private fun createOversendtUtbetaling(
+    private fun createKvittertUtbetaling(
         opprettet: Tidspunkt = fixedTidspunkt,
         utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
-    ): Utbetaling.OversendtUtbetaling.UtenKvittering {
+        clock: Clock,
+    ): Utbetaling.OversendtUtbetaling.MedKvittering {
         return Utbetaling.UtbetalingForSimulering(
             opprettet = opprettet,
             sakId = sakId,
@@ -341,6 +362,6 @@ internal class UtbetalingsstrategiGjenopptaTest {
             ),
         ).toOversendtUtbetaling(
             oppdragsmelding = Utbetalingsrequest(""),
-        )
+        ).toKvittertUtbetaling(kvittering(clock = clock))
     }
 }

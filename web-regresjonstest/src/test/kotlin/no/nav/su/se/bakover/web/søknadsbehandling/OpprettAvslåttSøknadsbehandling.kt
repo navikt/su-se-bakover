@@ -88,5 +88,6 @@ internal fun opprettAvslåttSøknadsbehandling(
         sakId = sakId,
         behandlingId = behandlingId,
         client = client,
+        appComponents = null,
     )
 }

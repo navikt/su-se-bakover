@@ -10,6 +10,9 @@ import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
+import no.nav.su.se.bakover.web.komponenttest.AppComponents
+import no.nav.su.se.bakover.web.komponenttest.mottaKvitteringForUtbetalingFraØkonomi
+import java.util.UUID
 
 internal fun iverksett(
     sakId: String,
@@ -18,6 +21,7 @@ internal fun iverksett(
     url: String = "/saker/$sakId/revurderinger/$behandlingId/iverksett",
     assertResponse: Boolean = true,
     client: HttpClient,
+    appComponents: AppComponents?,
 ): String {
     return runBlocking {
         defaultRequest(
@@ -31,6 +35,8 @@ internal fun iverksett(
                 status shouldBe HttpStatusCode.OK
             }
             contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
-        }.bodyAsText()
+        }.bodyAsText().also {
+            appComponents?.mottaKvitteringForUtbetalingFraØkonomi(sakId = UUID.fromString(sakId))
+        }
     }
 }

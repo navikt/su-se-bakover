@@ -17,10 +17,12 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeTilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -59,6 +61,10 @@ import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
+import no.nav.su.se.bakover.test.simulering.simulerGjenopptak
+import no.nav.su.se.bakover.test.simulering.simulerOpphør
+import no.nav.su.se.bakover.test.simulering.simulerStans
+import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -418,6 +424,7 @@ private fun oppdaterTilbakekrevingsbehandling(
                         periode = revurdering.periode,
                     ),
                 )
+
                 false -> revurdering.oppdaterTilbakekrevingsbehandling(
                     tilbakekrevingsbehandling = IkkeTilbakekrev(
                         id = UUID.randomUUID(),
@@ -458,7 +465,8 @@ fun iverksattRevurdering(
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
     brevvalg: BrevvalgRevurdering = sendBrev(),
     skalTilbakekreve: Boolean = true,
-): Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.UtenKvittering, VedtakEndringIYtelse> {
+    kvittering: Kvittering? = kvittering(clock = clock),
+): Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling, VedtakEndringIYtelse> {
     return revurderingTilAttestering(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -490,14 +498,30 @@ fun iverksattRevurdering(
             },
         ).getOrFail().let { response ->
             /**
-             * TODO
-             * se om vi får til noe som oppfører seg som [IverksettRevurderingResponse.ferdigstillIverksettelseITransaksjon]?
+             * TODO: se om vi får til noe som oppfører seg som [IverksettRevurderingResponse.ferdigstillIverksettelseITransaksjon]?
              */
             val oversendtUtbetaling =
-                response.utbetaling.toOversendtUtbetaling(UtbetalingStub.generateRequest(response.utbetaling))
+                response.utbetaling.toOversendtUtbetaling(UtbetalingStub.generateRequest(response.utbetaling)).let {
+                    if (kvittering != null) {
+                        it.toKvittertUtbetaling(kvittering)
+                    } else {
+                        it
+                    }
+                }
 
             Tuple4(
-                first = response.sak.copy(utbetalinger = response.sak.utbetalinger.filterNot { it.id == oversendtUtbetaling.id } + oversendtUtbetaling),
+                first = response.sak.copy(
+                    utbetalinger = response.sak.utbetalinger.let {
+                        if (it.none { it.id == oversendtUtbetaling.id }) {
+                            // Utbetalingen finnes ikke på saken fra før, så vi legger den til på slutten. Merk at tidspunktet må være nyere enn alle andre.
+                            it.plus(oversendtUtbetaling)
+                        } else {
+                            // Utbetalingen finnes fra før, så vi oppdaterer den.
+                            it.map { if (it.id == oversendtUtbetaling.id) oversendtUtbetaling else it }
+                        }
+                    }
+                        .let { Utbetalinger(it) },
+                ),
                 second = when (response) {
                     is IverksettInnvilgetRevurderingResponse -> {
                         response.vedtak.behandling

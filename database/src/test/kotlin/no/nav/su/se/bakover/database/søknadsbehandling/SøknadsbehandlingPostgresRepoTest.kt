@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.database.søknadsbehandling
 
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -16,16 +15,12 @@ import no.nav.su.se.bakover.common.persistence.hent
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersinformasjon
-import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
@@ -40,15 +35,13 @@ import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
-import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
-import no.nav.su.se.bakover.test.nySøknadsbehandlingshistorikk
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
-import no.nav.su.se.bakover.test.simulerUtbetaling
+import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.stønadsperiode2022
 import no.nav.su.se.bakover.test.toFormueRequestGrunnlag
@@ -57,7 +50,6 @@ import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import vilkår.personligOppmøtevilkårAvslag
-import java.time.Year
 import java.util.UUID
 
 internal class SøknadsbehandlingPostgresRepoTest {
@@ -348,56 +340,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     attestering = attesteringIverksatt(clock = enUkeEtterFixedClock),
                 )
             }
-            val expected = IverksattSøknadsbehandling.Avslag.UtenBeregning(
-                id = iverksatt.id,
-                opprettet = iverksatt.opprettet,
-                sakId = iverksatt.sakId,
-                saksnummer = iverksatt.saksnummer,
-                søknad = iverksatt.søknad,
-                oppgaveId = iverksatt.oppgaveId,
-                fnr = iverksatt.fnr,
-                saksbehandler = saksbehandler,
-                attesteringer = Attesteringshistorikk.empty()
-                    .leggTilNyAttestering(attesteringIverksatt(clock = enUkeEtterFixedClock)),
-                fritekstTilBrev = "Dette er fritekst",
-                aldersvurdering = Aldersvurdering.Vurdert(
-                    maskinellVurdering = no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsdato(
-                        fødselsdato = 1.januar(1990),
-                        fødselsår = Year.of(1990),
-                        stønadsperiode = stønadsperiode2021,
-                    ),
-                    saksbehandlersAvgjørelse = null,
-                    aldersinformasjon = Aldersinformasjon.createFromExisting(
-                        alder = 31,
-                        alderSøkerFyllerIÅr = 31,
-                        alderPåTidspunkt = fixedTidspunkt,
-                    ),
-                ),
-                grunnlagsdata = iverksatt.grunnlagsdata,
-                vilkårsvurderinger = iverksatt.vilkårsvurderinger,
-                avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
-                    håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
-                ),
-                sakstype = iverksatt.sakstype,
-                søknadsbehandlingsHistorikk = nySøknadsbehandlingshistorikk(
-                    nonEmptyListOf(
-                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.StartetBehandling),
-                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertStønadsperiode),
-                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertUførhet),
-                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertFlyktning),
-                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertLovligOpphold),
-                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertFastOppholdINorge),
-                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertInstitusjonsopphold),
-                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertUtenlandsopphold),
-                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.TattStillingTilEPS),
-                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertFormue),
-                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertPersonligOppmøte),
-                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),
-                    ),
-                ),
-            )
             repo.hent(iverksatt.id).also {
-                it shouldBe expected
+                it shouldBe iverksatt
             }
         }
     }

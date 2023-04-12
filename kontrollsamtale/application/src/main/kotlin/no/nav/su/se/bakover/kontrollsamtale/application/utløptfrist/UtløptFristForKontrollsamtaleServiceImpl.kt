@@ -43,7 +43,7 @@ class UtløptFristForKontrollsamtaleServiceImpl(
         return initialContext.uprosesserte { kontrollsamtaler.map { it.id } }
             .ifEmpty {
                 log.info("Fant ingen uprosesserte kontrollsamtaler med utløp: $dato.")
-                log.info(initialContext.oppsummering())
+                log.info(initialContext.oppsummering(clock))
                 return initialContext
             }
             .also {
@@ -116,7 +116,7 @@ class UtløptFristForKontrollsamtaleServiceImpl(
                 )
             }
             .also {
-                log.info(it.oppsummering())
+                log.info(it.oppsummering(clock))
             }
     }
 

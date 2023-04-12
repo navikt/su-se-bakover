@@ -30,7 +30,7 @@ class SendPåminnelserOmNyStønadsperiodeServiceImpl(
         return initialContext.uprosesserte { sakRepo.hentSakIdSaksnummerOgFnrForAlleSaker() }
             .ifEmpty {
                 log.info("Fant ingen flere saker for mulig utsending av påminnelse om ny stønadsperiode.")
-                log.info(initialContext.oppsummering())
+                log.info(initialContext.oppsummering(clock))
                 return initialContext
             }
             .also {
@@ -85,7 +85,7 @@ class SendPåminnelserOmNyStønadsperiodeServiceImpl(
                     }
                 }
             }.also {
-                log.info(it.oppsummering())
+                log.info(it.oppsummering(clock))
             }
     }
 

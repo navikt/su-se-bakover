@@ -10,14 +10,12 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.and
 import no.nav.su.se.bakover.common.toNonEmptyList
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
-import java.time.LocalDate
 import java.util.UUID
 
 sealed interface Utbetaling : Comparable<Utbetaling> {
@@ -68,6 +66,10 @@ sealed interface Utbetaling : Comparable<Utbetaling> {
         utbetalingslinjer.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse()
         utbetalingslinjer.sjekkSortering()
         utbetalingslinjer.sjekkRekkefølge()
+    }
+
+    fun tidslinje(): TidslinjeForUtbetalinger {
+        return utbetalingslinjer.tidslinje().getOrNull()!!
     }
 
     data class UtbetalingForSimulering(
@@ -141,40 +143,6 @@ sealed interface Utbetaling : Comparable<Utbetaling> {
     }
 }
 
-/**
- * Returnerer utbetalingene sortert økende etter tidspunktet de er sendt til oppdrag. Filtrer bort de som er kvittert feil.
- * TODO jah: Ved initialisering e.l. gjør en faktisk verifikasjon på at ref-verdier på utbetalingslinjene har riktig rekkefølge
- */
-internal fun List<Utbetaling>.hentOversendteUtbetalingerUtenFeil(): List<Utbetaling> {
-    return this.filter {
-        when (it) {
-            is Utbetaling.OversendtUtbetaling.MedKvittering -> it.kvittering.erKvittertOk()
-            is Utbetaling.OversendtUtbetaling.UtenKvittering -> true
-            is Utbetaling.SimulertUtbetaling,
-            is Utbetaling.UtbetalingForSimulering,
-            -> false
-        }
-    }.sorted()
-}
-
-internal fun List<Utbetaling>.hentOversendteUtbetalingslinjerUtenFeil(): List<Utbetalingslinje> {
-    return hentOversendteUtbetalingerUtenFeil().flatMap { it.utbetalingslinjer }
-}
-
-internal fun List<Utbetaling>.hentSisteOversendteUtbetalingslinjeUtenFeil(): Utbetalingslinje? {
-    return hentOversendteUtbetalingerUtenFeil().lastOrNull()?.sisteUtbetalingslinje()
-}
-
-internal fun List<Utbetaling>.harUtbetalingerEtter(date: LocalDate): Boolean {
-    return hentOversendteUtbetalingslinjerUtenFeil().let { utbetalingslinjer ->
-        if (utbetalingslinjer.isNotEmpty()) {
-            utbetalingslinjer.maxOf { it.periode.tilOgMed } > date
-        } else {
-            false
-        }
-    }
-}
-
 sealed class UtbetalingFeilet {
     data class SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(val feil: KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet) :
         UtbetalingFeilet()
@@ -189,10 +157,7 @@ sealed class UtbetalingFeilet {
     }
 }
 
-fun List<Utbetaling>.tidslinje(): Either<IngenUtbetalinger, TidslinjeForUtbetalinger> {
-    return flatMap { it.utbetalingslinjer }.tidslinje()
-}
-
+// TODO jah: La TidslinjeForUtbetalinger ta inn Utbetalinger og en enkelt Utbetaling
 @JvmName("utbetalingslinjeTidslinje")
 fun List<Utbetalingslinje>.tidslinje(): Either<IngenUtbetalinger, TidslinjeForUtbetalinger> {
     return ifEmpty { return IngenUtbetalinger.left() }
@@ -202,21 +167,6 @@ fun List<Utbetalingslinje>.tidslinje(): Either<IngenUtbetalinger, TidslinjeForUt
 }
 
 object IngenUtbetalinger
-
-fun Sak.hentGjeldendeUtbetaling(
-    forDato: LocalDate,
-): Either<FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje> {
-    return this.utbetalinger.hentGjeldendeUtbetaling(forDato = forDato)
-}
-
-fun List<Utbetaling>.hentGjeldendeUtbetaling(forDato: LocalDate): Either<FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje> {
-    return tidslinje().fold(
-        { FantIkkeGjeldendeUtbetaling.left() },
-        { it.gjeldendeForDato(forDato)?.right() ?: FantIkkeGjeldendeUtbetaling.left() },
-    )
-}
-
-object FantIkkeGjeldendeUtbetaling
 
 /**
  * @param utbetaling en simulert utbetaling med generert XML for publisering på kø mot oppdragssystemet (OS).
