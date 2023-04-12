@@ -62,13 +62,27 @@ class SendPåminnelserOmNyStønadsperiodeServiceImpl(
                     ).fold(
                         {
                             log.error("Feil: ${it::class} ved utsending av påminnelse for sak: ${sak.saksnummer}, hopper over.")
-                            context
+                            context.feilet(
+                                SendPåminnelseNyStønadsperiodeContext.Feilet(sak.saksnummer, it.toString()),
+                                clock,
+                            ).also {
+                                sessionFactory.withTransactionContext { tx ->
+                                    sendPåminnelseNyStønadsperiodeJobRepo.lagre(it, tx)
+                                }
+                            }
                         },
                         { it },
                     )
                 } catch (ex: Throwable) {
-                    log.error("Ukjent feil: $ex oppstod ved utsending av påminnelse for sak: $saksnummer")
-                    throw ex
+                    log.error("Feil oppstod ved utsending av påminnelse for sak: $saksnummer. $ex")
+                    context.feilet(
+                        SendPåminnelseNyStønadsperiodeContext.Feilet(saksnummer, ex.toString()),
+                        clock,
+                    ).also {
+                        sessionFactory.withTransactionContext { tx ->
+                            sendPåminnelseNyStønadsperiodeJobRepo.lagre(it, tx)
+                        }
+                    }
                 }
             }.also {
                 log.info(it.oppsummering())

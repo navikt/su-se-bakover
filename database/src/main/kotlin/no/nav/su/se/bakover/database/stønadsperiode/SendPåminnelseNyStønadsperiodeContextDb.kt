@@ -17,7 +17,10 @@ data class SendPåminnelseNyStønadsperiodeContextDb(
     val endret: Tidspunkt,
     val prosessert: List<Long>,
     val sendt: List<Long>,
+    val feilede: List<Feilet> = emptyList(),
 ) : JobContextDb {
+
+    data class Feilet(val saksnummer: Long, val feil: String)
 
     override fun id(): String {
         return id
@@ -37,6 +40,9 @@ data class SendPåminnelseNyStønadsperiodeContextDb(
             endret = endret,
             prosessert = prosessert.map { Saksnummer(it) }.toSet(),
             sendt = sendt.map { Saksnummer(it) }.toSet(),
+            feilede = feilede.map {
+                SendPåminnelseNyStønadsperiodeContext.Feilet(saksnummer = Saksnummer(it.saksnummer), feil = it.feil)
+            },
         )
     }
 
@@ -50,6 +56,7 @@ data class SendPåminnelseNyStønadsperiodeContextDb(
                 endret = endret(),
                 prosessert = prosessert().map { it.nummer },
                 sendt = sendt().map { it.nummer },
+                feilede = feilede.map { Feilet(it.saksnummer.nummer, it.feil) },
             )
         }
 
