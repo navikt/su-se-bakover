@@ -97,6 +97,13 @@ data class Skattegrunnlag(
             override val spesifisering: List<Spesifisering> = emptyList()
         }
 
+        data class ManglerKategori(
+            override val navn: String,
+            override val beløp: String,
+        ) : Grunnlag {
+            override val spesifisering: List<Spesifisering> = emptyList()
+        }
+
         data class Annet(
             override val navn: String,
             override val beløp: String,

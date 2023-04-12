@@ -20,19 +20,16 @@ internal data class SpesifisertSummertSkattegrunnlagResponseJson(
     val svalbardGrunnlag: List<SpesifisertSummertSkattegrunnlagsobjekt> = emptyList(),
 ) {
     /**
-     * https://skatteetaten.github.io/datasamarbeid-api-dokumentasjon/download/spesifisertSkattegrunnlag/Oversikt.png
-     *
      * @param spesifisering I følge modellen til skatt, kan et innslag ha 0, 1 eller flere spesifiseringer.
-     * @param kategori I følge modellen til skatt, kan et innslag ha 0, 1 eller flere kategorier.
      */
     internal data class SpesifisertSummertSkattegrunnlagsobjekt(
         val beloep: String,
         val spesifisering: List<EksternSpesifisering> = emptyList(),
         val tekniskNavn: String,
-        val kategori: List<String> = emptyList(),
+        val kategori: String,
     ) {
         /**
-         * @type oneOf (Kjoeretoey)
+         * Finnes mange forskjellige typer spesifisering. Vi er bare interessert i kjøretøy
          */
         data class Spesifisering(
             val type: String,
@@ -45,74 +42,56 @@ internal data class SpesifisertSummertSkattegrunnlagResponseJson(
             val antattMarkedsverdi: String?,
         )
 
-        fun toDomain(): List<Skattegrunnlag.Grunnlag> {
+        fun toDomain(): Skattegrunnlag.Grunnlag {
             val spesifisering = spesifisering.toDomain().also {
                 if (!kategori.contains("formue")) {
                     log.error("Mottok spesifisering av kjøretøy som ikke er tilknyttet formue.")
                 }
             }
 
-            return this.kategori.map {
-                when (it) {
-                    "inntekt" -> {
-                        Skattegrunnlag.Grunnlag.Inntekt(
-                            navn = this.tekniskNavn,
-                            beløp = this.beloep,
-                        )
-                    }
-
-                    "formue" -> {
-                        Skattegrunnlag.Grunnlag.Formue(
-                            navn = this.tekniskNavn,
-                            beløp = this.beloep,
-                            spesifisering = spesifisering,
-                        )
-                    }
-
-                    "inntektsfradrag" -> {
-                        Skattegrunnlag.Grunnlag.Inntektsfradrag(
-                            navn = this.tekniskNavn,
-                            beløp = this.beloep,
-                        )
-                    }
-
-                    "formuesfradrag" -> {
-                        Skattegrunnlag.Grunnlag.Formuesfradrag(
-                            navn = this.tekniskNavn,
-                            beløp = this.beloep,
-                        )
-                    }
-
-                    "verdsettingsrabattSomGirGjeldsreduksjon" -> {
-                        Skattegrunnlag.Grunnlag.VerdsettingsrabattSomGirGjeldsreduksjon(
-                            navn = this.tekniskNavn,
-                            beløp = this.beloep,
-                        )
-                    }
-
-                    "oppjusteringAvEierinntekter" -> {
-                        Skattegrunnlag.Grunnlag.OppjusteringAvEierinntekter(
-                            navn = this.tekniskNavn,
-                            beløp = this.beloep,
-                        )
-                    }
-
-                    else -> {
-                        log.error("Ukjent Skattekategori: $it. Denne bør legges til asap.")
-                        Skattegrunnlag.Grunnlag.Annet(
-                            navn = this.tekniskNavn,
-                            beløp = this.beloep,
-                        )
-                    }
+            return when (this.kategori) {
+                "inntekt" -> Skattegrunnlag.Grunnlag.Inntekt(
+                    navn = this.tekniskNavn,
+                    beløp = this.beloep,
+                )
+                "formue" -> Skattegrunnlag.Grunnlag.Formue(
+                    navn = this.tekniskNavn,
+                    beløp = this.beloep,
+                    spesifisering = spesifisering,
+                )
+                "inntektsfradrag" -> Skattegrunnlag.Grunnlag.Inntektsfradrag(
+                    navn = this.tekniskNavn,
+                    beløp = this.beloep,
+                )
+                "formuesfradrag" -> Skattegrunnlag.Grunnlag.Formuesfradrag(
+                    navn = this.tekniskNavn,
+                    beløp = this.beloep,
+                )
+                "verdsettingsrabattSomGirGjeldsreduksjon" ->
+                    Skattegrunnlag.Grunnlag.VerdsettingsrabattSomGirGjeldsreduksjon(
+                        navn = this.tekniskNavn,
+                        beløp = this.beloep,
+                    )
+                "oppjusteringAvEierinntekter" -> Skattegrunnlag.Grunnlag.OppjusteringAvEierinntekter(
+                    navn = this.tekniskNavn,
+                    beløp = this.beloep,
+                )
+                "-" -> Skattegrunnlag.Grunnlag.ManglerKategori(
+                    navn = this.tekniskNavn,
+                    beløp = this.beloep,
+                )
+                else -> Skattegrunnlag.Grunnlag.Annet(
+                    navn = this.tekniskNavn,
+                    beløp = this.beloep,
+                ).also {
+                    log.error("Ukjent Skattekategori: ${this.kategori}. Denne bør legges til asap.")
                 }
             }
         }
 
         companion object {
             fun List<SpesifisertSummertSkattegrunnlagsobjekt>.toDomain(): Skattegrunnlag.Grunnlagsliste {
-                return this.flatMap {
-                    it.toDomain()
-                }.let {
+                return this.map { it.toDomain() }.let {
                     Skattegrunnlag.Grunnlagsliste(
                         formue = it.filterIsInstance<Skattegrunnlag.Grunnlag.Formue>(),
                         inntekt = it.filterIsInstance<Skattegrunnlag.Grunnlag.Inntekt>(),
@@ -143,7 +122,10 @@ internal data class SpesifisertSummertSkattegrunnlagResponseJson(
                 )
             }.mapLeft {
                 log.error("Feil skjedde under deserialisering/mapping av data fra Sigrun/Skatteetaten. Se sikkerlogg.")
-                sikkerLogg.error("Feil skjedde under deserialisering/mapping av data fra Sigrun/Skatteetaten. Fnr: $fnr, Inntekstår:$inntektsår, Stadie: $stadie, Json: $json", it)
+                sikkerLogg.error(
+                    "Feil skjedde under deserialisering/mapping av data fra Sigrun/Skatteetaten. Fnr: $fnr, Inntekstår:$inntektsår, Stadie: $stadie, Json: $json",
+                    it,
+                )
                 SkatteoppslagFeil.UkjentFeil(it)
             }
         }

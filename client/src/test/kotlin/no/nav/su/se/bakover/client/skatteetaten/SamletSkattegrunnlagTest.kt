@@ -250,24 +250,24 @@ internal class SamletSkattegrunnlagTest {
                         {
                           "grunnlag": [
                           {
-                            "kategori": ["formue"],
+                            "kategori": "formue",
                             "tekniskNavn": "bruttoformue",
                             "beloep": "1238"
                           },
                             {
                               "beloep": "1000",
                               "tekniskNavn": "alminneligInntektFoerSaerfradrag",
-                              "kategori": ["inntekt"]
+                              "kategori": "inntekt"
                             },
                             {
                               "beloep": "6000",
                               "tekniskNavn": "samletAnnenGjeld",
-                              "kategori": ["formuesfradrag"]
+                              "kategori": "formuesfradrag"
                             },
                             {
                               "beloep": "4000",
                               "tekniskNavn": "fradragForFagforeningskontingent",
-                              "kategori": ["inntektsfradrag"]
+                              "kategori": "inntektsfradrag"
                             }
                           ],
                           "skatteoppgjoersdato": "2021-04-01",
@@ -275,7 +275,7 @@ internal class SamletSkattegrunnlagTest {
                             {
                               "beloep": "20000",
                               "tekniskNavn": "formuesverdiForKjoeretoey",
-                              "kategori": ["formue"],
+                              "kategori": "formue",
                               "spesifisering": [
                                 {
                                   "type": "Kjoeretoey",
