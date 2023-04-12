@@ -61,7 +61,7 @@ subprojects {
             exclude("io.swagger.core.v3")
         }
         implementation("org.apache.avro:avro:1.11.1")
-        implementation("com.github.ben-manes.caffeine:caffeine:3.1.5")
+        implementation("com.github.ben-manes.caffeine:caffeine:3.1.6")
         implementation("io.micrometer:micrometer-core:1.10.6")
         implementation("io.micrometer:micrometer-registry-prometheus:1.10.6")
         implementation("com.github.seratch:kotliquery:1.9.0")
