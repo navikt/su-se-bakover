@@ -28,7 +28,6 @@ import java.time.YearMonth
  * @param sendt liste over alle saksnummer hvor det er sendt ut påminnelse om ny stønadsperiode av denne jobb-instansen.
  * @param feilede liste over alle saksnummer med tilhørende feil
  *  Saker som er [sendt] er også [prosessert], men ikke nødvendigvis omvendt.
- *  [feilede] saker er ikke nøvendigivs prosessert (da saken kan feile ved henting)
  */
 data class SendPåminnelseNyStønadsperiodeContext(
     private val id: NameAndYearMonthId,
@@ -99,7 +98,7 @@ data class SendPåminnelseNyStønadsperiodeContext(
             Endret: $endret,
             Prosessert: $prosessert,
             Sendt: $sendt,
-            Feilet: $feilede
+            Feilet: ${feilede.map { it.saksnummer }}
             ***********************************
             ${"\n"}
         """.trimIndent()

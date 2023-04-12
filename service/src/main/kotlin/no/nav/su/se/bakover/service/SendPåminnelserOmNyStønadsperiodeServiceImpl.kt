@@ -74,7 +74,7 @@ class SendPåminnelserOmNyStønadsperiodeServiceImpl(
                         { it },
                     )
                 } catch (ex: Throwable) {
-                    log.error("Feil oppstod ved utsending av påminnelse for sak: $saksnummer. $ex")
+                    log.error("Feil oppstod ved utsending av påminnelse for sak: $saksnummer.", ex)
                     context.feilet(
                         SendPåminnelseNyStønadsperiodeContext.Feilet(saksnummer, ex.toString()),
                         clock,
