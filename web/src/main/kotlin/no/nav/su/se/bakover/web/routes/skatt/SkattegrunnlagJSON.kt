@@ -29,7 +29,7 @@ internal data class SkattegrunnlagJSON(
     data class Grunnlag(
         val navn: String,
         val beløp: String,
-        val spesifisering: List<KjøretøySpesifisering>?,
+        val spesifisering: List<KjøretøySpesifisering>,
     )
 
     // jah: Dersom det kommer flere typer bør denne gjøres om til en sealed
