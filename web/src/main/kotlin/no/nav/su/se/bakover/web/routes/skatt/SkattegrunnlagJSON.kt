@@ -70,7 +70,7 @@ private fun List<Skattegrunnlag.Grunnlag>.toGrunnlagJson(): List<SkattegrunnlagJ
         SkattegrunnlagJSON.Grunnlag(
             navn = it.navn,
             beløp = it.beløp,
-            spesifisering = it.spesifisering?.map {
+            spesifisering = it.spesifisering.map {
                 when (it) {
                     is Skattegrunnlag.Spesifisering.Kjøretøy -> SkattegrunnlagJSON.KjøretøySpesifisering(
                         beløp = it.beløp,

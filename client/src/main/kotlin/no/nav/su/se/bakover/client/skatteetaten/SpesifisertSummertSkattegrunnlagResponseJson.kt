@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.client.skatteetaten.SpesifisertSummertSkattegrunnlag
 internal data class SpesifisertSummertSkattegrunnlagResponseJson(
     val grunnlag: List<SpesifisertSummertSkattegrunnlagsobjekt> = emptyList(),
     val skatteoppgjoersdato: String?,
-    val svalbardGrunnlag: List<SpesifisertSummertSkattegrunnlagsobjekt> = emptyList(),
+    val svalbardGrunnlag: List<SpesifisertSummertSkattegrunnlagsobjekt>? = null,
 ) {
     /**
      * @param spesifisering I følge modellen til skatt, kan et innslag ha 0, 1 eller flere spesifiseringer.
@@ -47,39 +47,46 @@ internal data class SpesifisertSummertSkattegrunnlagResponseJson(
                 if (!kategori.contains("formue")) {
                     log.error("Mottok spesifisering av kjøretøy som ikke er tilknyttet formue.")
                 }
-            }
+            } ?: emptyList()
 
             return when (this.kategori) {
                 "inntekt" -> Skattegrunnlag.Grunnlag.Inntekt(
                     navn = this.tekniskNavn,
                     beløp = this.beloep,
                 )
+
                 "formue" -> Skattegrunnlag.Grunnlag.Formue(
                     navn = this.tekniskNavn,
                     beløp = this.beloep,
                     spesifisering = spesifisering,
                 )
+
                 "inntektsfradrag" -> Skattegrunnlag.Grunnlag.Inntektsfradrag(
                     navn = this.tekniskNavn,
                     beløp = this.beloep,
                 )
+
                 "formuesfradrag" -> Skattegrunnlag.Grunnlag.Formuesfradrag(
                     navn = this.tekniskNavn,
                     beløp = this.beloep,
                 )
+
                 "verdsettingsrabattSomGirGjeldsreduksjon" ->
                     Skattegrunnlag.Grunnlag.VerdsettingsrabattSomGirGjeldsreduksjon(
                         navn = this.tekniskNavn,
                         beløp = this.beloep,
                     )
+
                 "oppjusteringAvEierinntekter" -> Skattegrunnlag.Grunnlag.OppjusteringAvEierinntekter(
                     navn = this.tekniskNavn,
                     beløp = this.beloep,
                 )
+
                 "-" -> Skattegrunnlag.Grunnlag.ManglerKategori(
                     navn = this.tekniskNavn,
                     beløp = this.beloep,
                 )
+
                 else -> Skattegrunnlag.Grunnlag.Annet(
                     navn = this.tekniskNavn,
                     beløp = this.beloep,
@@ -160,7 +167,7 @@ private fun SpesifisertSummertSkattegrunnlagResponseJson.toDomain(
     return Either.catch {
         Skattegrunnlag.Årsgrunnlag(
             inntektsår = inntektsår,
-            grunnlag = grunnlag.toDomain() + svalbardGrunnlag.toDomain(),
+            grunnlag = (grunnlag + (svalbardGrunnlag ?: emptyList())).toDomain(),
             skatteoppgjørsdato = skatteoppgjoersdato?.let { LocalDate.parse(it) },
             stadie = stadie,
         )

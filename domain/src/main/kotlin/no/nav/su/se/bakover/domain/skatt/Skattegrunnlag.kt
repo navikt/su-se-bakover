@@ -54,64 +54,61 @@ data class Skattegrunnlag(
     sealed interface Grunnlag {
         val navn: String
         val beløp: String
-
-        // TODO: Kanskje vi vil heller mappe nullen til en emptyList istedenfor
-        // gjør den nullable for at ting skal deserialisere først
-        val spesifisering: List<Spesifisering>?
+        val spesifisering: List<Spesifisering>
 
         data class Formue(
             override val navn: String,
             override val beløp: String,
-            override val spesifisering: List<Spesifisering.Kjøretøy>? = null,
+            override val spesifisering: List<Spesifisering.Kjøretøy> = emptyList(),
         ) : Grunnlag
 
         data class Inntekt(
             override val navn: String,
             override val beløp: String,
         ) : Grunnlag {
-            override val spesifisering: List<Spesifisering>? = null
+            override val spesifisering: List<Spesifisering> = emptyList()
         }
 
         data class Inntektsfradrag(
             override val navn: String,
             override val beløp: String,
         ) : Grunnlag {
-            override val spesifisering: List<Spesifisering>? = null
+            override val spesifisering: List<Spesifisering> = emptyList()
         }
 
         data class Formuesfradrag(
             override val navn: String,
             override val beløp: String,
         ) : Grunnlag {
-            override val spesifisering: List<Spesifisering>? = null
+            override val spesifisering: List<Spesifisering> = emptyList()
         }
 
         data class VerdsettingsrabattSomGirGjeldsreduksjon(
             override val navn: String,
             override val beløp: String,
         ) : Grunnlag {
-            override val spesifisering: List<Spesifisering>? = null
+            override val spesifisering: List<Spesifisering> = emptyList()
         }
 
         data class OppjusteringAvEierinntekter(
             override val navn: String,
             override val beløp: String,
         ) : Grunnlag {
-            override val spesifisering: List<Spesifisering>? = null
+            override val spesifisering: List<Spesifisering> = emptyList()
         }
 
         data class ManglerKategori(
             override val navn: String,
             override val beløp: String,
         ) : Grunnlag {
-            override val spesifisering: List<Spesifisering>? = null
+            override val spesifisering: List<Spesifisering> = emptyList()
         }
 
         data class Annet(
             override val navn: String,
             override val beløp: String,
         ) : Grunnlag {
-            override val spesifisering: List<Spesifisering>? = null
+            override val spesifisering: List<Spesifisering> = emptyList()
         }
     }
 
