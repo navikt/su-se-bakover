@@ -71,6 +71,9 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
         val (sak2, _) = vedtakSøknadsbehandlingIverksattInnvilget(
             saksnummer = Saksnummer(3001),
         )
+        val (sak3, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+            saksnummer = Saksnummer(3002),
+        )
 
         SendPåminnelseNyStønadsperiodeServiceAndMocks(
             clock = desemberClock,
@@ -78,10 +81,12 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                 on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(
                     SakInfo(sak1.id, sak1.saksnummer, sak1.fnr, sak1.type),
                     SakInfo(sak2.id, sak2.saksnummer, sak2.fnr, sak2.type),
+                    SakInfo(sak3.id, sak3.saksnummer, sak3.fnr, sak3.type),
                 )
                 on { hentSak(any<Saksnummer>()) } doReturnConsecutively listOf(
                     sak1,
                     sak2,
+                    null,
                 )
             },
             sessionFactory = TestSessionFactory(),
@@ -119,6 +124,16 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                 sendt = setOf(
                     Saksnummer(3001),
                 ),
+                feilet = listOf(
+                    SendPåminnelseNyStønadsperiodeContext.Feilet(
+                        Saksnummer(3000),
+                        SendPåminnelseNyStønadsperiodeContext.KunneIkkeSendePåminnelse.KunneIkkeLageBrev.toString(),
+                    ),
+                    SendPåminnelseNyStønadsperiodeContext.Feilet(
+                        Saksnummer(3002),
+                        NullPointerException().toString(),
+                    ),
+                ),
             )
 
             serviceAndMocks.service.sendPåminnelser() shouldBe expectedContext
@@ -148,10 +163,12 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                     desemberClock,
                 ),
             )
-            verify(serviceAndMocks.sendPåminnelseNyStønadsperiodeJobRepo).lagre(
-                context = argThat { it shouldBe expectedContext },
+            val lagreCaptor = argumentCaptor<SendPåminnelseNyStønadsperiodeContext>()
+            verify(serviceAndMocks.sendPåminnelseNyStønadsperiodeJobRepo, times(3)).lagre(
+                context = lagreCaptor.capture(),
                 transactionContext = argThat { it shouldBe serviceAndMocks.sessionFactory.newTransactionContext() },
             )
+            lagreCaptor.lastValue shouldBe expectedContext
         }
     }
 

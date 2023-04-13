@@ -26,6 +26,7 @@ import java.time.YearMonth
  * @param id identifikator utledet av navneet på jobben, år og måned
  * @param prosessert liste over alle saksnummer som har blitt prosessert av denne jobb-instansen
  * @param sendt liste over alle saksnummer hvor det er sendt ut påminnelse om ny stønadsperiode av denne jobb-instansen.
+ * @param feilede liste over alle saksnummer med tilhørende feil
  *  Saker som er [sendt] er også [prosessert], men ikke nødvendigvis omvendt.
  */
 data class SendPåminnelseNyStønadsperiodeContext(
@@ -34,7 +35,10 @@ data class SendPåminnelseNyStønadsperiodeContext(
     private val endret: Tidspunkt,
     private val prosessert: Set<Saksnummer>,
     private val sendt: Set<Saksnummer>,
+    val feilede: List<Feilet>,
 ) : JobContext {
+
+    data class Feilet(val saksnummer: Saksnummer, val feil: String)
 
     constructor(
         clock: Clock,
@@ -43,12 +47,14 @@ data class SendPåminnelseNyStønadsperiodeContext(
         endret: Tidspunkt = opprettet,
         prosessert: Set<Saksnummer> = emptySet(),
         sendt: Set<Saksnummer> = emptySet(),
+        feilet: List<Feilet> = emptyList(),
     ) : this(
         id,
         opprettet,
         endret,
         prosessert,
         sendt,
+        feilet,
     )
 
     override fun id(): NameAndYearMonthId {
@@ -79,6 +85,9 @@ data class SendPåminnelseNyStønadsperiodeContext(
         return prosessert(saksnummer, clock).copy(sendt = sendt + saksnummer, endret = Tidspunkt.now(clock))
     }
 
+    fun feilet(feilet: Feilet, clock: Clock): SendPåminnelseNyStønadsperiodeContext =
+        copy(feilede = this.feilede + feilet, endret = Tidspunkt.now(clock))
+
     fun oppsummering(): String {
         return """
             ${"\n"}
@@ -88,7 +97,8 @@ data class SendPåminnelseNyStønadsperiodeContext(
             Opprettet: $opprettet,
             Endret: $endret,
             Prosessert: $prosessert,
-            Sendt: $sendt
+            Sendt: $sendt,
+            Feilet: ${feilede.map { it.saksnummer }}
             ***********************************
             ${"\n"}
         """.trimIndent()
