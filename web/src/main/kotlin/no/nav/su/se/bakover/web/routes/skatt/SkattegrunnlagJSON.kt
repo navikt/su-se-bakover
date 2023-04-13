@@ -29,7 +29,7 @@ internal data class SkattegrunnlagJSON(
     data class Grunnlag(
         val navn: String,
         val beløp: String,
-        val spesifisering: List<KjøretøySpesifisering>,
+        val spesifisering: List<KjøretøySpesifisering>?,
     )
 
     // jah: Dersom det kommer flere typer bør denne gjøres om til en sealed
@@ -70,7 +70,7 @@ private fun List<Skattegrunnlag.Grunnlag>.toGrunnlagJson(): List<SkattegrunnlagJ
         SkattegrunnlagJSON.Grunnlag(
             navn = it.navn,
             beløp = it.beløp,
-            spesifisering = it.spesifisering.map {
+            spesifisering = it.spesifisering?.map {
                 when (it) {
                     is Skattegrunnlag.Spesifisering.Kjøretøy -> SkattegrunnlagJSON.KjøretøySpesifisering(
                         beløp = it.beløp,

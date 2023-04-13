@@ -60,7 +60,7 @@ fun assertSkattegrunnlag(
                        {
                           "navn":"bruttoformue",
                           "beløp":"1238",
-                          "spesifisering":[]
+                          "spesifisering":null
                        },
                        {
                           "navn":"formuesverdiForKjoeretoey",
@@ -91,21 +91,21 @@ fun assertSkattegrunnlag(
                        {
                           "navn":"alminneligInntektFoerSaerfradrag",
                           "beløp":"1000",
-                          "spesifisering":[]
+                          "spesifisering":null
                        }
                     ],
                     "inntektsfradrag":[
                        {
                           "navn":"fradragForFagforeningskontingent",
                           "beløp":"4000",
-                          "spesifisering":[]
+                          "spesifisering":null
                        }
                     ],
                     "formuesfradrag":[
                        {
                           "navn":"samletAnnenGjeld",
                           "beløp":"6000",
-                          "spesifisering":[]
+                          "spesifisering":null
                        }
                     ],
                     "verdsettingsrabattSomGirGjeldsreduksjon":[],

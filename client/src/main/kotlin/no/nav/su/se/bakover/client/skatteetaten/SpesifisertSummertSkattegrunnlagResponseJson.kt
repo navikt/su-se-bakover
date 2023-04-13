@@ -24,7 +24,7 @@ internal data class SpesifisertSummertSkattegrunnlagResponseJson(
      */
     internal data class SpesifisertSummertSkattegrunnlagsobjekt(
         val beloep: String,
-        val spesifisering: List<EksternSpesifisering> = emptyList(),
+        val spesifisering: List<EksternSpesifisering>? = null,
         val tekniskNavn: String,
         val kategori: String,
     ) {
@@ -43,7 +43,7 @@ internal data class SpesifisertSummertSkattegrunnlagResponseJson(
         )
 
         fun toDomain(): Skattegrunnlag.Grunnlag {
-            val spesifisering = spesifisering.toDomain().also {
+            val spesifisering = spesifisering?.toDomain().also {
                 if (!kategori.contains("formue")) {
                     log.error("Mottok spesifisering av kjøretøy som ikke er tilknyttet formue.")
                 }
