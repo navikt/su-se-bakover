@@ -7,6 +7,8 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.utbetalingslinjeNy
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.temporal.ChronoUnit
@@ -15,13 +17,13 @@ internal class UtbetalingslinjeTest {
 
     @Test
     fun `sortering i stigende rekkefølge - nyeste sist`() {
-        val rekkefølge = Rekkefølge.generator()
+        val førsteUtbetalingslinjeId = UUID30.randomUUID()
         assertThrows<IllegalStateException> {
             listOf(
                 Utbetalingslinje.Ny(
-                    id = UUID30.randomUUID(),
+                    id = førsteUtbetalingslinjeId,
                     opprettet = fixedTidspunkt,
-                    rekkefølge = rekkefølge.neste(),
+                    rekkefølge = Rekkefølge.skip(0),
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.januar(2020),
                     forrigeUtbetalingslinjeId = null,
@@ -32,13 +34,13 @@ internal class UtbetalingslinjeTest {
                 Utbetalingslinje.Ny(
                     id = UUID30.randomUUID(),
                     opprettet = fixedTidspunkt.minus(1, ChronoUnit.DAYS),
-                    rekkefølge = rekkefølge.neste(),
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.januar(2020),
-                    forrigeUtbetalingslinjeId = null,
+                    forrigeUtbetalingslinjeId = førsteUtbetalingslinjeId,
                     beløp = 5000,
                     uføregrad = Uføregrad.parse(100),
                     utbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                    rekkefølge = Rekkefølge.start(),
                 ),
             ).sjekkSortering()
         }.also {
@@ -73,7 +75,7 @@ internal class UtbetalingslinjeTest {
                     uføregrad = Uføregrad.parse(100),
                     utbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                 ),
-            ).sjekkAlleNyeLinjerHarForskjelligForrigeReferanse()
+            ).sjekkAlleNyeLinjerHarForskjelligIdOgForrigeReferanse()
         }.also {
             it.message.shouldContain("Alle nye utbetalingslinjer skal referere til forskjellig forrige utbetalingid")
         }
@@ -109,6 +111,27 @@ internal class UtbetalingslinjeTest {
             ).sjekkIngenNyeOverlapper()
         }.also {
             it.message shouldBe "Nye linjer kan ikke overlappe"
+        }
+    }
+
+    @Nested
+    inner class compareTo {
+        @Test
+        fun `Nye linjer med samme tidspunkt`() {
+            val u1 = utbetalingslinjeNy()
+            val u2 = utbetalingslinjeNy(forrigeUtbetalingslinjeId = u1.id, rekkefølge = Rekkefølge.skip(0))
+            val u3 = utbetalingslinjeNy(forrigeUtbetalingslinjeId = u2.id, rekkefølge = Rekkefølge.skip(1))
+            val u4 = utbetalingslinjeNy(forrigeUtbetalingslinjeId = u3.id, rekkefølge = Rekkefølge.skip(2))
+            listOf(u4, u3, u2, u1).sorted() shouldBe listOf(u1, u2, u3, u4)
+        }
+
+        @Test
+        fun `Nye linjer med samme tidspunkt 2`() {
+            val u1 = utbetalingslinjeNy()
+            val u2 = utbetalingslinjeNy(forrigeUtbetalingslinjeId = u1.id, rekkefølge = Rekkefølge.skip(0))
+            val u3 = utbetalingslinjeNy(forrigeUtbetalingslinjeId = u2.id, rekkefølge = Rekkefølge.skip(1))
+            val u4 = utbetalingslinjeNy(forrigeUtbetalingslinjeId = u3.id, rekkefølge = Rekkefølge.skip(2))
+            listOf(u4, u1, u3, u2).sorted() shouldBe listOf(u1, u2, u3, u4)
         }
     }
 }

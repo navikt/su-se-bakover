@@ -72,7 +72,7 @@ class TilbakekrevingKomponentTest {
                     revurdering
                 }
 
-            appComponents.services.utbetaling.hentUtbetaling(vedtak.utbetalingId).getOrFail()
+            appComponents.databaseRepos.utbetaling.hentOversendtUtbetalingForUtbetalingId(vedtak.utbetalingId)!!
                 .shouldBeType<Utbetaling.OversendtUtbetaling.MedKvittering>()
 
             appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForVedtak(vedtak.id))

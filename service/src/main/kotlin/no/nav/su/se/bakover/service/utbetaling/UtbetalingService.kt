@@ -15,7 +15,6 @@ import java.time.LocalDate
 import java.util.UUID
 
 interface UtbetalingService {
-    fun hentUtbetaling(utbetalingId: UUID30): Either<FantIkkeUtbetaling, Utbetaling>
     fun hentUtbetalingerForSakId(sakId: UUID): Utbetalinger
 
     fun oppdaterMedKvittering(

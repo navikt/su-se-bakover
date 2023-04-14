@@ -54,6 +54,24 @@ fun utbetalingslinjeNy(
     )
 }
 
+/**
+ * Syr sammen en liste med utbetalingslinjer slik at de peker på hverandre.
+ * TODO jah: Bør returnere Utbetalingslinjer istedenfor List<Utbetalingslinje>
+ */
+fun utbetalingslinjer(
+    første: Utbetalingslinje,
+    andre: Utbetalingslinje,
+    vararg utbetalingslinjer: Utbetalingslinje,
+): List<Utbetalingslinje> {
+    return listOf(første) + (listOf(første) + andre + utbetalingslinjer).zipWithNext { a, b ->
+        if (b is Utbetalingslinje.Ny) {
+            b.oppdaterReferanseTilForrigeUtbetalingslinje(a.id)
+        } else {
+            b
+        }
+    }
+}
+
 fun utbetalingslinjeNy(
     id: UUID30 = UUID30.randomUUID(),
     periode: Periode = år(2021),
@@ -284,14 +302,15 @@ fun oversendtUtbetalingUtenKvittering(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     clock: Clock = fixedClock,
     opprettet: Tidspunkt = Tidspunkt.now(clock),
+    eksisterendeUtbetalinger: Utbetalinger = Utbetalinger(),
     utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(
         utbetalingslinjeNy(
             clock = clock,
             periode = periode,
+            forrigeUtbetalingslinjeId = eksisterendeUtbetalinger.lastOrNull()?.utbetalingslinjer?.lastOrNull()?.id,
         ),
     ),
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
-    eksisterendeUtbetalinger: Utbetalinger = Utbetalinger(),
     beregning: Beregning = beregning(periode),
 ): Utbetaling.OversendtUtbetaling.UtenKvittering {
     return Utbetaling.UtbetalingForSimulering(
@@ -318,6 +337,7 @@ fun oversendtUtbetalingUtenKvittering(
     )
 }
 
+@Suppress("unused")
 fun simulertUtbetaling(
     id: UUID30 = UUID30.randomUUID(),
     periode: Periode = år(2021),

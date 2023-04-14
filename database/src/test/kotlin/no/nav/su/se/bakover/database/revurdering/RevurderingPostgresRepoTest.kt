@@ -87,11 +87,11 @@ internal class RevurderingPostgresRepoTest {
                 iverksattRevurdering(
                     sakOgVedtakSomKanRevurderes = sak to vedtak,
                     clock = tdh.clock,
-                ).second.shouldBeType<IverksattRevurdering.Innvilget>().copy(id = opprettet.id).also { iverksattt ->
-                    iverksattt.id shouldBe opprettet.id
-                    iverksattt.opprettet shouldNotBe opprettet.opprettet
+                ).second.shouldBeType<IverksattRevurdering.Innvilget>().copy(id = opprettet.id).also { iverksatt ->
+                    iverksatt.id shouldBe opprettet.id
+                    iverksatt.opprettet shouldNotBe opprettet.opprettet
 
-                    tdh.revurderingRepo.lagre(iverksattt)
+                    tdh.revurderingRepo.lagre(iverksatt)
                     tdh.revurderingRepo.hent(opprettet.id)!!.shouldBeType<IverksattRevurdering.Innvilget>().also {
                         it.id shouldBe opprettet.id
                         it.opprettet shouldBe opprettet.opprettet

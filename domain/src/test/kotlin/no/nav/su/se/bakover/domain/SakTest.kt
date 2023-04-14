@@ -222,6 +222,10 @@ internal class SakTest {
             val (sakStønadsperiode2, stønadsperiode2) = vedtakSøknadsbehandlingIverksattInnvilget(
                 stønadsperiode = stønadsperiode2023,
                 clock = clock,
+                sakOgSøknad = sakRevurdering1 to nySøknadJournalførtMedOppgave(
+                    sakId = sakStønadsperiode1.id,
+                    søknadInnhold = søknadinnholdUføre(),
+                ),
             )
 
             val (sakRevurdering2, revurderingPeriode2) = vedtakRevurderingIverksattInnvilget(
@@ -231,12 +235,7 @@ internal class SakTest {
                 clock = clock,
             )
 
-            sakStønadsperiode1.copy(
-                søknadsbehandlinger = sakRevurdering1.søknadsbehandlinger + sakRevurdering2.søknadsbehandlinger,
-                revurderinger = sakRevurdering1.revurderinger + sakRevurdering2.revurderinger,
-                vedtakListe = sakRevurdering1.vedtakListe + sakRevurdering2.vedtakListe,
-                utbetalinger = Utbetalinger(sakRevurdering1.utbetalinger, sakRevurdering2.utbetalinger),
-            ).let {
+            sakRevurdering2.let {
                 it.hentIkkeOpphørtePerioder() shouldBe listOf(
                     år(2021),
                     år(2023),
@@ -311,14 +310,13 @@ internal class SakTest {
             val (sakStønadsperiode2, stønadsperiode2) = vedtakSøknadsbehandlingIverksattInnvilget(
                 stønadsperiode = stønadsperiode2022,
                 clock = clock,
+                sakOgSøknad = sakStønadsperiode1 to nySøknadJournalførtMedOppgave(
+                    sakId = sakStønadsperiode1.id,
+                    søknadInnhold = søknadinnholdUføre(),
+                ),
             )
 
-            sakStønadsperiode1.copy(
-                søknadsbehandlinger = sakStønadsperiode1.søknadsbehandlinger + sakStønadsperiode2.søknadsbehandlinger,
-                revurderinger = sakStønadsperiode1.revurderinger + sakStønadsperiode2.revurderinger,
-                vedtakListe = sakStønadsperiode1.vedtakListe + sakStønadsperiode2.vedtakListe,
-                utbetalinger = Utbetalinger(sakStønadsperiode1.utbetalinger, sakStønadsperiode2.utbetalinger),
-            ).let {
+            sakStønadsperiode2.let {
                 it.hentIkkeOpphørtePerioder() shouldBe listOf(
                     Periode.create(1.januar(2021), 31.desember(2022)),
                 )

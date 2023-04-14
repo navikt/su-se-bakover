@@ -562,17 +562,18 @@ fun søknadsbehandlingIverksattInnvilget(
     clock: Clock = fixedClock,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     sakstype: Sakstype = Sakstype.UFØRE,
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(
+        clock = clock,
+        sakInfo = SakInfo(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            type = sakstype,
+        ),
+    ),
 ): Triple<Sak, IverksattSøknadsbehandling.Innvilget, VedtakInnvilgetSøknadsbehandling> {
     return iverksattSøknadsbehandling(
-        sakOgSøknad = nySakUføre(
-            clock = clock,
-            sakInfo = SakInfo(
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                type = sakstype,
-            ),
-        ),
+        sakOgSøknad = sakOgSøknad,
         stønadsperiode = stønadsperiode,
         customVilkår = vilkårsvurderinger.vilkår.toList(),
         customGrunnlag = grunnlagsdata.let {

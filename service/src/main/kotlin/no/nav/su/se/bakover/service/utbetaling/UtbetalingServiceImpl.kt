@@ -30,10 +30,6 @@ class UtbetalingServiceImpl(
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun hentUtbetaling(utbetalingId: UUID30): Either<FantIkkeUtbetaling, Utbetaling> {
-        return utbetalingRepo.hentOversendtUtbetalingForUtbetalingId(utbetalingId)?.right() ?: FantIkkeUtbetaling.left()
-    }
-
     override fun hentUtbetalingerForSakId(sakId: UUID): Utbetalinger {
         return utbetalingRepo.hentOversendteUtbetalinger(sakId)
     }

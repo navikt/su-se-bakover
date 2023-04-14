@@ -26,16 +26,6 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 
 internal class UtbetalingServiceImplTest {
-    @Test
-    fun `hent utbetaling - ikke funnet`() {
-        UtbetalingServiceAndMocks(
-            utbetalingRepo = mock {
-                on { hentOversendtUtbetalingForUtbetalingId(any<UUID30>()) } doReturn null
-            },
-        ).let {
-            it.service.hentUtbetaling(UUID30.randomUUID()) shouldBe FantIkkeUtbetaling.left()
-        }
-    }
 
     @Test
     fun `oppdater med kvittering - ikke funnet`() {

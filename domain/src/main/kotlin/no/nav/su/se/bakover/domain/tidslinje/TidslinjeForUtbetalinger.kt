@@ -94,7 +94,7 @@ data class TidslinjeForUtbetalinger private constructor(
         fun fra(
             utbetalinger: Utbetalinger,
         ): TidslinjeForUtbetalinger? {
-            return utbetalinger.flatMap { it.utbetalingslinjer }.toNonEmptyListOrNull()?.let {
+            return utbetalinger.utbetalingslinjer.toNonEmptyListOrNull()?.let {
                 TidslinjeForUtbetalinger(
                     tidslinjeperioder = lagTidslinje(it).toNonEmptyList(),
                 )

@@ -310,7 +310,7 @@ internal class RevurderingBeregnTest {
 
     @Test
     fun `beregning med avkorting`() {
-        val clock = TikkendeKlokke(fixedClock)
+        val clock = TikkendeKlokke()
 
         val (sak, _) = sakMedUteståendeAvkorting(
             stønadsperiode = stønadsperiode2021,
@@ -412,7 +412,7 @@ internal class RevurderingBeregnTest {
         val expectedTotalAvkorting = 4 * 20946
         val arbeidsinntekt = 3750
 
-        val clock = TikkendeKlokke(fixedClock)
+        val clock = TikkendeKlokke()
 
         val (sak, _) = sakMedUteståendeAvkorting(
             stønadsperiode = stønadsperiode2021,
@@ -599,7 +599,7 @@ internal class RevurderingBeregnTest {
         val nyBeregningBeløp = nyBeregning.getSumYtelse()
         val eksisterendeBeløp = eksisterendeUtbetalinger.sumOf {
             TidslinjeForUtbetalinger(
-                utbetalingslinjer = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer }.toNonEmptyList(),
+                utbetalingslinjer = eksisterendeUtbetalinger.utbetalingslinjer.toNonEmptyList(),
             ).sumOf { it.beløp * it.periode.getAntallMåneder() }
         }
         return abs((nyBeregningBeløp.toDouble() - eksisterendeBeløp) / eksisterendeBeløp * 100) > 10.0

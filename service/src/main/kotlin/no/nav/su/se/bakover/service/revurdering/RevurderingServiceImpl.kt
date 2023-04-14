@@ -503,7 +503,7 @@ class RevurderingServiceImpl(
 
                 val potensielleVarsel = listOf(
                     (
-                        eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer }.toNonEmptyListOrNull()?.let {
+                        eksisterendeUtbetalinger.utbetalingslinjer.toNonEmptyListOrNull()?.let {
                             !VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
                                 eksisterendeUtbetalinger = it,
                                 nyBeregning = beregnetRevurdering.beregning,

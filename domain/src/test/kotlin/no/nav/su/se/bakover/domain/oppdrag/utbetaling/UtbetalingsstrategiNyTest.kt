@@ -574,7 +574,7 @@ internal class UtbetalingsstrategiNyTest {
                 ),
             )
             it.utbetalingslinjer.map { it.id }
-                .none { it in sak3.utbetalinger.flatMap { it.utbetalingslinjer }.map { it.id } } shouldBe true
+                .none { it in sak3.utbetalinger.utbetalingslinjer.map { it.id } } shouldBe true
         }
     }
 
