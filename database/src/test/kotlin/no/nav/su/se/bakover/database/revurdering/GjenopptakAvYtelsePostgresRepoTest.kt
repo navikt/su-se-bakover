@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.simulering
+import no.nav.su.se.bakover.test.simulering.simulering
 import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
 import org.junit.jupiter.api.Test
@@ -33,6 +33,7 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
 
             val (_, simulertRevurdering) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
                 sakOgVedtakSomKanRevurderes = sakEtterStans to stansVedtak,
+                clock = testDataHelper.clock,
             )
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)

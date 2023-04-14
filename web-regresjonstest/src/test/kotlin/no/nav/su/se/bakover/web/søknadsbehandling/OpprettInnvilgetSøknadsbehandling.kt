@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.leggTilOpplysningsplikt
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
@@ -38,6 +39,7 @@ internal fun opprettInnvilgetSøknadsbehandling(
     fraOgMed: String = fixedLocalDate.startOfMonth().toString(),
     tilOgMed: String = fixedLocalDate.startOfMonth().plusMonths(11).endOfMonth().toString(),
     client: HttpClient,
+    appComponents: AppComponents?,
     leggTilVirkningstidspunkt: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
         leggTilVirkningstidspunkt(
             sakId = sakId,
@@ -162,6 +164,7 @@ internal fun opprettInnvilgetSøknadsbehandling(
             sakId = sakId,
             behandlingId = behandlingId,
             client = client,
+            appComponents = appComponents,
         )
     },
 ): String {

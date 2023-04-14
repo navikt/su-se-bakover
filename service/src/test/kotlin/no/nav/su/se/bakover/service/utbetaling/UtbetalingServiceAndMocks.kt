@@ -17,7 +17,6 @@ internal class UtbetalingServiceAndMocks(
         utbetalingRepo = utbetalingRepo,
         simuleringClient = simuleringClient,
         utbetalingPublisher = utbetalingPublisher,
-        clock = clock,
     )
 
     fun allMocks() = listOf(

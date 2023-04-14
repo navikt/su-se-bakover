@@ -55,6 +55,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.web.TestClientsBuilder
+import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.komponenttest.withKomptestApplication
 import no.nav.su.se.bakover.web.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.web.sak.hent.hentSak
@@ -168,8 +169,9 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
                 mockData = mockData,
                 kontrollsamtaler = mockData.kontrollsamtaler.map {
                     it.opprettSakMedKontrollsamtale(
-                        client,
-                        kontrollsamtaleService,
+                        client = client,
+                        kontrollsamtaleService = kontrollsamtaleService,
+                        appComponents = appComponents,
                     )
                 },
                 antallKjøringer = antallKjøringer,
@@ -286,6 +288,7 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
         val data: KontrollsamtaleTestData,
         private val client: HttpClient,
         private val kontrollsamtaleService: KontrollsamtaleServiceImpl,
+        private val appComponents: AppComponents,
     ) {
         fun erFeil(kjøring: Int) = data.feil(kjøring).isNotEmpty()
         fun erIkkeFeil(kjøring: Int) = !erFeil(kjøring)
@@ -316,6 +319,7 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
             tilOgMed = data.stønadSlutt,
             client = client,
             fnr = data.fnr.toString(),
+            appComponents = appComponents,
         )
         val kontrollsamtale = kontrollsamtaleService.hentForSak(sakId = sakId).single()
 
@@ -361,11 +365,13 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
         fun opprettSakMedKontrollsamtale(
             client: HttpClient,
             kontrollsamtaleService: KontrollsamtaleServiceImpl,
+            appComponents: AppComponents,
         ): KontrollsamtaleTestDataMedSak {
             return KontrollsamtaleTestDataMedSak(
                 data = this,
                 client = client,
                 kontrollsamtaleService = kontrollsamtaleService,
+                appComponents = appComponents,
             )
         }
 
@@ -386,12 +392,14 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
             tilOgMed: LocalDate,
             client: HttpClient,
             fnr: String = Fnr.generer().toString(),
+            appComponents: AppComponents,
         ): UUID {
             return opprettInnvilgetSøknadsbehandling(
                 fnr = fnr,
                 fraOgMed = fraOgMed.toString(),
                 tilOgMed = tilOgMed.toString(),
                 client = client,
+                appComponents = appComponents,
             ).let {
                 hentSak(BehandlingJson.hentSakId(it), client = client).let { sakJson ->
                     UUID.fromString(hentSakId(sakJson))

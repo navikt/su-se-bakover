@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.beregning.SlåSammenEkvivalenteMånedsberegni
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag.Companion.slåSammenPeriodeOgUføregrad
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import java.time.Clock
@@ -27,11 +28,14 @@ import java.util.UUID
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
+/**
+ * @throws IllegalArgumentException dersom vi ikke har en OK kvittering for alle utbetalingene.
+ */
 sealed class Utbetalingsstrategi {
     abstract val sakId: UUID
     abstract val saksnummer: Saksnummer
     abstract val fnr: Fnr
-    abstract val eksisterendeUtbetalinger: List<Utbetaling>
+    abstract val eksisterendeUtbetalinger: Utbetalinger
     abstract val behandler: NavIdentBruker
     abstract val sakstype: Sakstype
 
@@ -75,19 +79,23 @@ sealed class Utbetalingsstrategi {
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
-        override val eksisterendeUtbetalinger: List<Utbetaling>,
+        override val eksisterendeUtbetalinger: Utbetalinger,
         override val behandler: NavIdentBruker,
         override val sakstype: Sakstype,
         val stansDato: LocalDate,
         val clock: Clock,
     ) : Utbetalingsstrategi() {
 
+        init {
+            eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
+        }
+
         fun generer(): Either<Feil, Utbetaling.UtbetalingForSimulering> {
-            val sisteOversendteUtbetalingslinje = eksisterendeUtbetalinger.hentSisteOversendteUtbetalingslinjeUtenFeil()
+            val sisteOversendteUtbetalingslinje = eksisterendeUtbetalinger.hentSisteUtbetalingslinje()
                 ?: return Feil.FantIngenUtbetalinger.left()
 
             when {
-                !harOversendteUtbetalingerEtter(stansDato) -> {
+                !harUtbetalingerEtter(stansDato) -> {
                     return Feil.IngenUtbetalingerEtterStansDato.left()
                 }
 
@@ -153,7 +161,7 @@ sealed class Utbetalingsstrategi {
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
-        override val eksisterendeUtbetalinger: List<Utbetaling>,
+        override val eksisterendeUtbetalinger: Utbetalinger,
         override val behandler: NavIdentBruker,
         override val sakstype: Sakstype,
         val beregning: Beregning,
@@ -161,6 +169,11 @@ sealed class Utbetalingsstrategi {
         val uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
         val kjøreplan: UtbetalingsinstruksjonForEtterbetalinger,
     ) : Utbetalingsstrategi() {
+
+        init {
+            eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
+        }
+
         fun generate(): Utbetaling.UtbetalingForSimulering {
             val opprettet = Tidspunkt.now(clock)
             val nesteUtbetalingstidspunkt = nesteTidspunktFunksjon(opprettet)
@@ -175,7 +188,7 @@ sealed class Utbetalingsstrategi {
                     rekkefølge = rekkefølgeGenerator.neste(),
                     fraOgMed = it.fraOgMed,
                     tilOgMed = it.tilOgMed,
-                    forrigeUtbetalingslinjeId = eksisterendeUtbetalinger.hentSisteOversendteUtbetalingslinjeUtenFeil()?.id,
+                    forrigeUtbetalingslinjeId = eksisterendeUtbetalinger.hentSisteUtbetalingslinje()?.id,
                     beløp = it.beløp,
                     uføregrad = it.uføregrad,
                     utbetalingsinstruksjonForEtterbetalinger = kjøreplan,
@@ -193,7 +206,7 @@ sealed class Utbetalingsstrategi {
                 fnr = fnr,
                 utbetalingslinjer = Utbetalingshistorikk(
                     nyeUtbetalingslinjer = nyeUtbetalingslinjer,
-                    eksisterendeUtbetalingslinjer = eksisterendeUtbetalinger.hentOversendteUtbetalingslinjerUtenFeil(),
+                    eksisterendeUtbetalinger = eksisterendeUtbetalinger,
                     nesteUtbetalingstidspunkt = nesteUtbetalingstidspunkt,
                     rekkefølgeGenerator = rekkefølgeGenerator,
                 ).generer().toNonEmptyList(),
@@ -261,13 +274,18 @@ sealed class Utbetalingsstrategi {
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
-        override val eksisterendeUtbetalinger: List<Utbetaling>,
+        override val eksisterendeUtbetalinger: Utbetalinger,
         override val behandler: NavIdentBruker,
         override val sakstype: Sakstype,
         val beregning: Beregning,
         val clock: Clock,
         val kjøreplan: UtbetalingsinstruksjonForEtterbetalinger,
     ) : Utbetalingsstrategi() {
+
+        init {
+            eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
+        }
+
         fun generate(): Utbetaling.UtbetalingForSimulering {
             val opprettet = Tidspunkt.now(clock)
             val nesteUtbetalingstidspunkt = nesteTidspunktFunksjon(opprettet)
@@ -280,7 +298,7 @@ sealed class Utbetalingsstrategi {
                     rekkefølge = rekkefølgeGenerator.neste(),
                     fraOgMed = it.periode.fraOgMed,
                     tilOgMed = it.periode.tilOgMed,
-                    forrigeUtbetalingslinjeId = eksisterendeUtbetalinger.hentSisteOversendteUtbetalingslinjeUtenFeil()?.id,
+                    forrigeUtbetalingslinjeId = eksisterendeUtbetalinger.hentSisteUtbetalingslinje()?.id,
                     beløp = it.getSumYtelse(),
                     uføregrad = null,
                     utbetalingsinstruksjonForEtterbetalinger = kjøreplan,
@@ -295,7 +313,7 @@ sealed class Utbetalingsstrategi {
                 saksnummer = saksnummer,
                 utbetalingslinjer = Utbetalingshistorikk(
                     nyeUtbetalingslinjer = nyeUtbetalingslinjer,
-                    eksisterendeUtbetalingslinjer = eksisterendeUtbetalinger.hentOversendteUtbetalingslinjerUtenFeil(),
+                    eksisterendeUtbetalinger = eksisterendeUtbetalinger,
                     nesteUtbetalingstidspunkt = nesteUtbetalingstidspunkt,
                     rekkefølgeGenerator = rekkefølgeGenerator,
                 ).generer().toNonEmptyList(),
@@ -315,14 +333,19 @@ sealed class Utbetalingsstrategi {
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
-        override val eksisterendeUtbetalinger: List<Utbetaling>,
+        override val eksisterendeUtbetalinger: Utbetalinger,
         override val behandler: NavIdentBruker,
         override val sakstype: Sakstype,
         val periode: Periode,
         val clock: Clock,
     ) : Utbetalingsstrategi() {
+
+        init {
+            eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
+        }
+
         fun generate(): Utbetaling.UtbetalingForSimulering {
-            val sisteUtbetalingslinje = eksisterendeUtbetalinger.hentSisteOversendteUtbetalingslinjeUtenFeil()?.also {
+            val sisteUtbetalingslinje = eksisterendeUtbetalinger.hentSisteUtbetalingslinje()?.also {
                 validate(periode.fraOgMed.isBefore(it.periode.tilOgMed)) { "Dato for opphør må være tidligere enn tilOgMed for siste utbetalingslinje" }
                 validate(periode.fraOgMed.erFørsteDagIMåned()) { "Ytelse kan kun opphøres fra første dag i måneden" }
             } ?: throw UtbetalingStrategyException("Ingen oversendte utbetalinger å opphøre")
@@ -345,7 +368,7 @@ sealed class Utbetalingsstrategi {
                             rekkefølge = rekkefølgeGenerator.neste(),
                         ),
                     ).toNonEmptyList(),
-                    eksisterendeUtbetalingslinjer = eksisterendeUtbetalinger.hentOversendteUtbetalingslinjerUtenFeil(),
+                    eksisterendeUtbetalinger = eksisterendeUtbetalinger,
                     nesteUtbetalingstidspunkt = nesteUtbetalingstidspunkt,
                     rekkefølgeGenerator = rekkefølgeGenerator,
                 ).generer().toNonEmptyList(),
@@ -364,13 +387,18 @@ sealed class Utbetalingsstrategi {
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
-        override val eksisterendeUtbetalinger: List<Utbetaling>,
+        override val eksisterendeUtbetalinger: Utbetalinger,
         override val behandler: NavIdentBruker,
         override val sakstype: Sakstype,
         val clock: Clock,
     ) : Utbetalingsstrategi() {
+
+        init {
+            eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
+        }
+
         fun generer(): Either<Feil, Utbetaling.UtbetalingForSimulering> {
-            val sisteOversendteUtbetalingslinje = eksisterendeUtbetalinger.hentSisteOversendteUtbetalingslinjeUtenFeil()
+            val sisteOversendteUtbetalingslinje = eksisterendeUtbetalinger.hentSisteUtbetalingslinje()
                 ?: return Feil.FantIngenUtbetalinger.left()
 
             if (sisteOversendteUtbetalingslinje !is Utbetalingslinje.Endring.Stans) return Feil.SisteUtbetalingErIkkeStans.left()
@@ -427,8 +455,8 @@ sealed class Utbetalingsstrategi {
         }
     }
 
-    protected fun harOversendteUtbetalingerEtter(value: LocalDate) =
-        eksisterendeUtbetalinger.hentOversendteUtbetalingerUtenFeil()
+    protected fun harUtbetalingerEtter(value: LocalDate) =
+        eksisterendeUtbetalinger.utbetalinger
             .flatMap { it.utbetalingslinjer }
             .any {
                 it.periode.tilOgMed.isEqual(value) || it.periode.tilOgMed.isAfter(value)

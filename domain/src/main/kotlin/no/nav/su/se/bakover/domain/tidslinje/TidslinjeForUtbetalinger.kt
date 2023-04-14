@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import java.time.Instant
 import java.time.LocalDate
@@ -90,6 +91,16 @@ data class TidslinjeForUtbetalinger private constructor(
     object RegenerertInformasjonVilOverskriveOriginaleOpplysningerSomErFerskereException : RuntimeException()
 
     companion object {
+        fun fra(
+            utbetalinger: Utbetalinger,
+        ): TidslinjeForUtbetalinger? {
+            return utbetalinger.flatMap { it.utbetalingslinjer }.toNonEmptyListOrNull()?.let {
+                TidslinjeForUtbetalinger(
+                    tidslinjeperioder = lagTidslinje(it).toNonEmptyList(),
+                )
+            }
+        }
+
         operator fun invoke(
             utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
         ): TidslinjeForUtbetalinger {

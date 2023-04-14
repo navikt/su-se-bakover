@@ -55,6 +55,7 @@ class AvkortingKomponentTest {
                 fraOgMed = behandlingStartDato.toString(),
                 tilOgMed = behandlingSluttDato.toString(),
                 client = this.client,
+                appComponents = appComponents,
             ).let { søknadsbehandlingJson ->
                 val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)
 
@@ -73,6 +74,7 @@ class AvkortingKomponentTest {
                         )
                     },
                     client = this.client,
+                    appComponents = appComponents,
                 )
                 UUID.fromString(sakId)
             }
@@ -85,6 +87,7 @@ class AvkortingKomponentTest {
                 fraOgMed = nyBehandlingStartDato.toString(),
                 tilOgMed = nyBehandlingSluttDato.toString(),
                 client = this.client,
+                appComponents = appComponents,
             ).let {
                 BehandlingJson.hentBehandlingId(it)
             }

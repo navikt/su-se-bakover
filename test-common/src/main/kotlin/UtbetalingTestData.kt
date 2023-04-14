@@ -19,10 +19,13 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
+import no.nav.su.se.bakover.test.simulering.simulerNyUtbetaling
+import no.nav.su.se.bakover.test.simulering.simuleringNy
 import java.time.Clock
 import java.util.UUID
 
@@ -234,7 +237,7 @@ fun oversendtUtbetalingUtenKvittering(
             rekkefølge = Rekkefølge.start(),
         ),
     ),
-    eksisterendeUtbetalinger: List<Utbetaling.OversendtUtbetaling> = emptyList(),
+    eksisterendeUtbetalinger: Utbetalinger = Utbetalinger(),
 ) = oversendtUtbetalingUtenKvittering(
     id = id,
     periode = søknadsbehandling.periode,
@@ -261,7 +264,7 @@ fun oversendtUtbetalingUtenKvittering(
             rekkefølge = Rekkefølge.start(),
         ),
     ),
-    eksisterendeUtbetalinger: List<Utbetaling.OversendtUtbetaling> = emptyList(),
+    eksisterendeUtbetalinger: Utbetalinger = Utbetalinger(),
 ) = oversendtUtbetalingUtenKvittering(
     id = id,
     fnr = revurdering.fnr,
@@ -280,6 +283,7 @@ fun oversendtUtbetalingUtenKvittering(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     clock: Clock = fixedClock,
+    opprettet: Tidspunkt = Tidspunkt.now(clock),
     utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(
         utbetalingslinjeNy(
             clock = clock,
@@ -287,12 +291,12 @@ fun oversendtUtbetalingUtenKvittering(
         ),
     ),
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
-    eksisterendeUtbetalinger: List<Utbetaling.OversendtUtbetaling> = emptyList(),
+    eksisterendeUtbetalinger: Utbetalinger = Utbetalinger(),
     beregning: Beregning = beregning(periode),
 ): Utbetaling.OversendtUtbetaling.UtenKvittering {
     return Utbetaling.UtbetalingForSimulering(
         id = id,
-        opprettet = Tidspunkt.now(clock),
+        opprettet = opprettet,
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
@@ -328,7 +332,7 @@ fun simulertUtbetaling(
         ),
     ),
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
-    eksisterendeUtbetalinger: List<Utbetaling.OversendtUtbetaling> = emptyList(),
+    eksisterendeUtbetalinger: Utbetalinger = Utbetalinger(),
 ): Utbetaling.SimulertUtbetaling {
     return Utbetaling.UtbetalingForSimulering(
         id = id,
@@ -362,8 +366,9 @@ fun oversendtUtbetalingMedKvittering(
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
-    eksisterendeUtbetalinger: List<Utbetaling.OversendtUtbetaling> = emptyList(),
+    eksisterendeUtbetalinger: Utbetalinger = Utbetalinger(),
     clock: Clock = fixedClock,
+    beregning: Beregning = beregning(periode),
 ): Utbetaling.OversendtUtbetaling.MedKvittering {
     return oversendtUtbetalingUtenKvittering(
         id = id,
@@ -373,6 +378,7 @@ fun oversendtUtbetalingMedKvittering(
         saksnummer = saksnummer,
         clock = clock,
         eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+        beregning = beregning,
     ).toKvittertUtbetaling(
         kvittering(
             utbetalingsstatus = utbetalingsstatus,

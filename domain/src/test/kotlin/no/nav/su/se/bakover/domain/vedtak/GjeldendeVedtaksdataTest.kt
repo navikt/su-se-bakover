@@ -195,6 +195,7 @@ internal class GjeldendeVedtaksdataTest {
             // Hopper over mai for å lage et hull
             stønadsperiode = Stønadsperiode.create(juni(2021)),
             sakOgSøknad = sak to nySøknadJournalførtMedOppgave(sakId = sak.id, fnr = sak.fnr, clock = clock),
+            clock = clock,
         )
         GjeldendeVedtaksdata(
             periode = år(2021),

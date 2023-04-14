@@ -47,6 +47,8 @@ import no.nav.su.se.bakover.test.persistence.migratedDb
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.web.komponenttest.AppComponents
+import no.nav.su.se.bakover.web.komponenttest.testSusebakover
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
@@ -127,20 +129,44 @@ internal object SharedRegressionTestData {
 
     internal fun withTestApplicationAndEmbeddedDb(
         clock: Clock = fixedClock,
-        test: ApplicationTestBuilder.() -> Unit,
+        test: ApplicationTestBuilder.(appComponents: AppComponents) -> Unit,
     ) {
         withMigratedDb { dataSource ->
+            val appComponents = AppComponents.instance(
+                clock = clock,
+                dataSource = dataSource,
+                repoBuilder = { ds, clock, satsFactory ->
+                    databaseRepos(
+                        dataSource = ds,
+                        clock = clock,
+                        satsFactory = satsFactory,
+                    )
+                },
+                clientBuilder = { db, clock ->
+                    TestClientsBuilder(clock, db).build(applicationConfig)
+                },
+                serviceBuilder = { databaseRepos, clients, clock, satsFactory, unleash ->
+                    ServiceBuilder.build(
+                        databaseRepos = databaseRepos,
+                        clients = clients,
+                        behandlingMetrics = mock(),
+                        søknadMetrics = mock(),
+                        clock = clock,
+                        unleash = unleash,
+                        satsFactory = satsFactory.gjeldende(LocalDate.now(clock)),
+                        applicationConfig = applicationConfig(),
+                        dbMetrics = dbMetricsStub,
+                    )
+                },
+                applicationConfig = applicationConfig,
+            )
             testApplication {
                 application {
                     testSusebakover(
-                        clock = clock,
-                        databaseRepos = databaseRepos(
-                            dataSource = dataSource,
-                            clock = clock,
-                        ),
+                        appComponents = appComponents,
                     )
                 }
-                test()
+                test(appComponents)
             }
         }
     }

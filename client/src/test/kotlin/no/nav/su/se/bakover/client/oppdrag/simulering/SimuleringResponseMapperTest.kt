@@ -25,8 +25,8 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringsOppsummering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
-import no.nav.su.se.bakover.test.SimuleringResponseData.Companion.simuleringXml
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.simulering.SimuleringResponseData.Companion.simuleringXml
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningResponse
 import org.junit.jupiter.api.Test
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse as GrensesnittResponse

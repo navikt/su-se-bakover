@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeIverksetteRevu
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
@@ -29,8 +30,8 @@ import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.nyUtbetalingOversendUtenKvittering
 import no.nav.su.se.bakover.test.revurderingTilAttestering
-import no.nav.su.se.bakover.test.simulerOpphør
-import no.nav.su.se.bakover.test.simulerUtbetaling
+import no.nav.su.se.bakover.test.simulering.simulerOpphør
+import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakRevurdering
@@ -627,7 +628,9 @@ internal class IverksettRevurderingTest {
 
     @Test
     fun `feil ved åpent kravgrunnlag`() {
+        val clock = TikkendeKlokke()
         val (sak, vedtakAvventerKravgrunnlag) = vedtakRevurdering(
+            clock = clock,
             revurderingsperiode = mai(2021)..desember(2021),
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
@@ -639,6 +642,7 @@ internal class IverksettRevurderingTest {
         )
 
         val (sakMedTilAttestering, revurderingTilAttestering) = revurderingTilAttestering(
+            clock = clock,
             sakOgVedtakSomKanRevurderes = sak to vedtakAvventerKravgrunnlag,
         )
 

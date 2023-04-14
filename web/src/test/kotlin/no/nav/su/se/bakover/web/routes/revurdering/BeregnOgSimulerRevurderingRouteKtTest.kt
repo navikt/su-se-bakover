@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
-import no.nav.su.se.bakover.test.simulerUtbetaling
+import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
 import no.nav.su.se.bakover.web.TestServicesBuilder

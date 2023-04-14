@@ -5,6 +5,7 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
@@ -37,7 +38,7 @@ import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.revurderingUnderkjent
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
-import no.nav.su.se.bakover.test.simulerUtbetaling
+import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
@@ -140,10 +141,12 @@ internal class RevurderingBeregnOgSimulerTest {
 
     @Test
     fun `legger ikke ved varsel dersom beløpsendring er mindre enn 10 prosent av gjeldende utbetaling, men opphør pga vilkår`() {
+        val clock = TikkendeKlokke()
         val (sak, revurdering) = opprettetRevurdering(
-            clock = tikkendeFixedClock(),
+            clock = clock,
             vilkårOverrides = listOf(
                 avslåttUførevilkårUtenGrunnlag(
+                    opprettet = Tidspunkt.now(clock),
                     periode = år(2021),
                 ),
             ),
@@ -154,16 +157,17 @@ internal class RevurderingBeregnOgSimulerTest {
             utbetalingService = mock {
                 doAnswer { invocation ->
                     simulerUtbetaling(
-                        sak,
-                        invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
-                        invocation.getArgument(1) as Periode,
+                        sak = sak,
+                        utbetaling = invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
+                        simuleringsperiode = invocation.getArgument(1) as Periode,
+                        clock = clock,
                     )
                 }.whenever(it).simulerUtbetaling(any(), any())
             },
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
-            clock = tikkendeFixedClock(),
+            clock = clock,
         ).let {
             val response = it.revurderingService.beregnOgSimuler(
                 revurderingId = revurdering.id,
@@ -360,10 +364,11 @@ internal class RevurderingBeregnOgSimulerTest {
 
     @Test
     fun `hvis vilkår ikke er oppfylt, fører revurderingen til et opphør`() {
+        val clock = TikkendeKlokke()
         val (sak, opprettet) = opprettetRevurdering(
-            clock = tikkendeFixedClock(),
+            clock = clock,
             vilkårOverrides = listOf(
-                avslåttUførevilkårUtenGrunnlag(),
+                avslåttUførevilkårUtenGrunnlag(opprettet = Tidspunkt.now(clock)),
             ),
         )
 
@@ -372,16 +377,17 @@ internal class RevurderingBeregnOgSimulerTest {
             utbetalingService = mock {
                 doAnswer { invocation ->
                     simulerUtbetaling(
-                        sak,
-                        invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
-                        invocation.getArgument(1) as Periode,
+                        sak = sak,
+                        utbetaling = invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
+                        simuleringsperiode = invocation.getArgument(1) as Periode,
+                        clock = clock,
                     )
                 }.whenever(it).simulerUtbetaling(any(), any())
             },
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
-            clock = tikkendeFixedClock(),
+            clock = clock,
         )
         val actual = serviceAndMocks.revurderingService.beregnOgSimuler(
             revurderingId = opprettet.id,

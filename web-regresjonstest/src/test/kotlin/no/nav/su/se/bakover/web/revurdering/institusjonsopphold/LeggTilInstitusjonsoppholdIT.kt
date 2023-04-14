@@ -19,12 +19,13 @@ import org.skyscreamer.jsonassert.JSONAssert
 internal class LeggTilInstitusjonsoppholdIT {
     @Test
     fun `legg til institusjonsopphold`() {
-        SharedRegressionTestData.withTestApplicationAndEmbeddedDb {
+        SharedRegressionTestData.withTestApplicationAndEmbeddedDb { appComponents ->
             opprettInnvilgetSøknadsbehandling(
                 fnr = fnr,
                 fraOgMed = 1.januar(2022).toString(),
                 tilOgMed = 31.desember(2022).toString(),
                 client = this.client,
+                appComponents = appComponents,
             ).let { søknadsbehandlingJson ->
 
                 val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)

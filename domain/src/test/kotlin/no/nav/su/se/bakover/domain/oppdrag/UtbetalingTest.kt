@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.fixedLocalDate
@@ -46,21 +47,21 @@ internal class UtbetalingTest {
 
     @Test
     fun `finner ikke gjeldende utbetaling for en tom liste`() {
-        emptyList<Utbetaling>().hentGjeldendeUtbetaling(
+        Utbetalinger().hentGjeldendeUtbetaling(
             forDato = fixedLocalDate,
-        ) shouldBe FantIkkeGjeldendeUtbetaling.left()
+        ) shouldBe Utbetalinger.FantIkkeGjeldendeUtbetaling.left()
     }
 
     @Test
     fun `finner ikke gjeldende utbetaling for dato utenfor tidslinja`() {
-        listOf(createUtbetaling()).hentGjeldendeUtbetaling(
+        Utbetalinger(createUtbetaling()).hentGjeldendeUtbetaling(
             forDato = 1.februar(2021),
-        ) shouldBe FantIkkeGjeldendeUtbetaling.left()
+        ) shouldBe Utbetalinger.FantIkkeGjeldendeUtbetaling.left()
     }
 
     @Test
     fun `finner gjeldende utbetaling for dato innenfor tidslinja`() {
-        listOf(createUtbetaling()).hentGjeldendeUtbetaling(
+        Utbetalinger(createUtbetaling()).hentGjeldendeUtbetaling(
             forDato = 31.januar(2021),
         ).shouldBeTypeOf<Either.Right<UtbetalingslinjePåTidslinje.Ny>>()
     }

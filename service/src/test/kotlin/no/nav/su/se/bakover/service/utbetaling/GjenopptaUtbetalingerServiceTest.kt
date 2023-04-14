@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nåtidForSimuleringStub
-import no.nav.su.se.bakover.test.simulerGjenopptak
+import no.nav.su.se.bakover.test.simulering.simulerGjenopptak
 import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
@@ -23,7 +23,6 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import org.mockito.kotlin.verifyNoMoreInteractions
 import java.time.LocalDate
 
 internal class GjenopptaUtbetalingerServiceTest {

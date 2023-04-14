@@ -16,12 +16,13 @@ internal class LeggTilBrevvalgIT {
     fun `oppdatering av brevvalg`() {
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb(
             clock = tikkendeFixedClock(),
-        ) {
+        ) { appComponents ->
             opprettInnvilgetSøknadsbehandling(
                 fnr = fnr,
                 fraOgMed = "2022-01-01",
                 tilOgMed = "2022-12-31",
                 client = this.client,
+                appComponents = appComponents,
             ).let { søknadsbehandlingJson ->
 
                 val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)
@@ -34,6 +35,7 @@ internal class LeggTilBrevvalgIT {
                     sendTilAttestering = { _, _ -> SKIP_STEP },
                     iverksett = { _, _ -> SKIP_STEP },
                     client = this.client,
+                    appComponents = appComponents,
                 ).let { revurderingJson ->
                     val revurderingId = RevurderingJson.hentRevurderingId(revurderingJson)
                     // default satt til send brev av systemet

@@ -41,6 +41,7 @@ class GjenopptaStansEtterRevurdering {
                 fraOgMed = 1.januar(2021).toString(),
                 tilOgMed = 31.desember(2021).toString(),
                 client = this.client,
+                appComponents = appComponents,
             ).let { søknadsbehandlingJson ->
                 val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)
 
@@ -55,12 +56,14 @@ class GjenopptaStansEtterRevurdering {
                     sakId = sakId,
                     behandlingId = stansId,
                     client = this.client,
+                    appComponents = appComponents,
                 )
                 opprettIverksattRevurdering(
                     sakid = sakId,
                     fraogmed = 1.september(2021).toString(),
                     tilogmed = 30.november(2021).toString(),
                     client = this.client,
+                    appComponents = appComponents,
                 )
                 sakId
             }
@@ -79,6 +82,7 @@ class GjenopptaStansEtterRevurdering {
                 sakId = sakId,
                 behandlingId = gjenopptakId,
                 client = this.client,
+                appComponents = appComponents,
             )
             appComponents.services.sak.hentSak(UUID.fromString(sakId)).getOrFail().vedtakstidslinje()!!
                 .map { Pair(it.originaltVedtak::class, it.periode) } shouldBe listOf(

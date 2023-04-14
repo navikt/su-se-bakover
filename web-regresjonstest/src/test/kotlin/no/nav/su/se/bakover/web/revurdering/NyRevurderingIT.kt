@@ -21,7 +21,7 @@ internal class NyRevurderingIT {
     fun `revurdering av eksisterende søknadsbehandling`() {
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb(
             clock = TikkendeKlokke(fixedClock),
-        ) {
+        ) { appComponents ->
             val stønadStart = 1.januar(2021)
             val stønadSlutt = 31.desember(2021)
             val fnr = Fnr.generer().toString()
@@ -31,6 +31,7 @@ internal class NyRevurderingIT {
                 fraOgMed = stønadStart.toString(),
                 tilOgMed = stønadSlutt.toString(),
                 client = this.client,
+                appComponents = appComponents,
             ).let { søknadsbehandlingJson ->
 
                 val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)
@@ -40,6 +41,7 @@ internal class NyRevurderingIT {
                     fraogmed = 1.mai(2021).toString(),
                     tilogmed = 31.juli(2021).toString(),
                     client = this.client,
+                    appComponents = appComponents,
                 ).let { revurderingJson ->
                     hentSak(sakId, client = this.client).also {
                         assertSakJson(
@@ -95,7 +97,7 @@ internal class NyRevurderingIT {
                                           "tilOgMed":"2021-12-31"
                                         },
                                         "type":"SØKNAD",
-                                        "dokumenttilstand": "IKKE_GENERERT_ENDA"
+                                        "dokumenttilstand": "GENERERT"
                                     },
                                     {
                                         "id":"ignore-me",
@@ -114,7 +116,7 @@ internal class NyRevurderingIT {
                                           "tilOgMed":"2021-07-31"
                                         },
                                         "type":"ENDRING",
-                                        "dokumenttilstand": "IKKE_GENERERT_ENDA"
+                                        "dokumenttilstand": "GENERERT"
                                     },
                             ]
                             """.trimIndent(),

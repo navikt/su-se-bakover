@@ -32,10 +32,13 @@ internal class UtbetalingPostgresRepoTest {
             val repo = testDataHelper.utbetalingRepo
             // Lagrer en med kvittering som ikke skal komme med i hent-operasjonen
             testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
-            val utbetalingUtenKvittering1 = testDataHelper.persisterSøknadsbehandlingIverksattInnvilget().third.utbetalingId
-            val utbetalingUtenKvittering2 = testDataHelper.persisterSøknadsbehandlingIverksattInnvilget().third.utbetalingId
 
-            repo.hentUkvitterteUtbetalinger().map { it.id } shouldBe listOf(utbetalingUtenKvittering1, utbetalingUtenKvittering2)
+            val utbetalingUtenKvittering: Utbetaling.OversendtUtbetaling.UtenKvittering =
+                testDataHelper.persisterSøknadsbehandlingIverksattInnvilget(kvittering = null).fourth as Utbetaling.OversendtUtbetaling.UtenKvittering
+
+            repo.hentUkvitterteUtbetalinger().map { it.id } shouldBe listOf(
+                utbetalingUtenKvittering.id,
+            )
         }
     }
 
@@ -48,9 +51,9 @@ internal class UtbetalingPostgresRepoTest {
             val sakId = UUID.randomUUID()
             // Lagrer en kvittering med og uten kvittering som ikke skal komme med i hent-operasjonen
             testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
-            testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
+            testDataHelper.persisterSøknadsbehandlingIverksatt(kvittering = null)
 
-            val utbetalingUtenKvittering1 =
+            val utbetalingMedKvittering1: Utbetaling.OversendtUtbetaling.MedKvittering =
                 testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
                     sakOgSøknad = testDataHelper.persisterJournalførtSøknadMedOppgave(sakId),
                     søknadsbehandling = { (sak, søknad) ->
@@ -62,7 +65,8 @@ internal class UtbetalingPostgresRepoTest {
                         )
                     },
                 ).third
-            val utbetalingUtenKvittering2 =
+
+            val utbetalingMedKvittering2: Utbetaling.OversendtUtbetaling.MedKvittering =
                 testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
                     sakOgSøknad = testDataHelper.persisterJournalførtSøknadMedOppgave(sakId),
                     søknadsbehandling = { (sak, søknad) ->
@@ -74,8 +78,9 @@ internal class UtbetalingPostgresRepoTest {
                         )
                     },
                 ).third
-            val utbetalingMedKvittering1 =
-                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
+
+            val utbetalingUtenKvittering: Utbetaling.OversendtUtbetaling.UtenKvittering =
+                testDataHelper.persisterSøknadsbehandlingIverksatt(
                     sakOgSøknad = testDataHelper.persisterJournalførtSøknadMedOppgave(sakId),
                     søknadsbehandling = { (sak, søknad) ->
                         iverksattSøknadsbehandlingUføre(
@@ -83,27 +88,16 @@ internal class UtbetalingPostgresRepoTest {
                             stønadsperiode = Stønadsperiode.create(år(2023)),
                             sakOgSøknad = sak to søknad,
                             clock = clock,
+                            kvittering = null,
                         )
                     },
-                ).third
-            val utbetalingMedKvittering2 =
-                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
-                    sakOgSøknad = testDataHelper.persisterJournalførtSøknadMedOppgave(sakId),
-                    søknadsbehandling = { (sak, søknad) ->
-                        iverksattSøknadsbehandlingUføre(
-                            sakInfo = sak.info(),
-                            stønadsperiode = Stønadsperiode.create(år(2024)),
-                            sakOgSøknad = sak to søknad,
-                            clock = clock,
-                        )
-                    },
-                ).third
+                    kvittering = null,
+                ).fourth as Utbetaling.OversendtUtbetaling.UtenKvittering
 
             repo.hentOversendteUtbetalinger(sakId).sortedBy { it.avstemmingsnøkkel } shouldBe listOf(
-                utbetalingUtenKvittering1,
-                utbetalingUtenKvittering2,
                 utbetalingMedKvittering1,
                 utbetalingMedKvittering2,
+                utbetalingUtenKvittering,
             ).sortedBy { it.avstemmingsnøkkel }
         }
     }

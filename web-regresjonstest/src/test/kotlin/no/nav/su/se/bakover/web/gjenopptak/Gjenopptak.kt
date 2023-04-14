@@ -12,6 +12,9 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
+import no.nav.su.se.bakover.web.komponenttest.AppComponents
+import no.nav.su.se.bakover.web.komponenttest.mottaKvitteringForUtbetalingFraØkonomi
+import java.util.UUID
 
 internal fun opprettGjenopptak(
     sakId: String,
@@ -49,6 +52,7 @@ internal fun iverksettGjenopptak(
     brukerrolle: Brukerrolle = Brukerrolle.Attestant,
     assertResponse: Boolean = true,
     client: HttpClient,
+    appComponents: AppComponents?,
 ): String {
     return runBlocking {
         defaultRequest(
@@ -62,6 +66,8 @@ internal fun iverksettGjenopptak(
                 status shouldBe HttpStatusCode.OK
             }
             contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
-        }.bodyAsText()
+        }.bodyAsText().also {
+            appComponents?.mottaKvitteringForUtbetalingFraØkonomi(sakId = UUID.fromString(sakId))
+        }
     }
 }

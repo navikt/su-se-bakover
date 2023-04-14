@@ -19,8 +19,8 @@ import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
-import no.nav.su.se.bakover.test.simulerOpphør
-import no.nav.su.se.bakover.test.simulerUtbetaling
+import no.nav.su.se.bakover.test.simulering.simulerOpphør
+import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag

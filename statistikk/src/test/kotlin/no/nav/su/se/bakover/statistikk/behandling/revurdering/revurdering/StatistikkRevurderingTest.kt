@@ -41,7 +41,7 @@ internal class StatistikkRevurderingTest {
             behandlingStatus = "REGISTRERT",
             behandlingStatusBeskrivelse = "Vi har registrert en søknad, klage, revurdering, stans, gjenopptak eller lignende i systemet. Mottatt tidspunkt kan ha skjedd på et tidligere tidspunkt, som f.eks. ved papirsøknad og klage.",
             behandlingYtelseDetaljer = "[]",
-            funksjonellTid = "2021-01-01T01:03:55.456789Z",
+            funksjonellTid = "2021-01-01T01:03:56.456789Z",
         )
     }
 

@@ -121,11 +121,11 @@ data class UtløptFristForKontrollsamtaleContext(
         return (utestående().toSet()).minus(prosessert())
     }
 
-    fun oppsummering(): String {
+    fun oppsummering(clock: Clock): String {
         return """
             ${"\n"}
             ***********************************
-            Oppsummering av jobb: ${id.name}, tidspunkt:${Tidspunkt.now()},
+            Oppsummering av jobb: ${id.name}, tidspunkt:${Tidspunkt.now(clock)},
             Frist utløpt: ${id.date},
             Opprettet: $opprettet,
             Endret: $endret,

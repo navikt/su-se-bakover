@@ -77,6 +77,7 @@ internal class VedtakPostgresRepoTest {
                 .let { it.first to it.second }
 
             val (_, iverksattRevurdering, revurderingUtbetaling, revurderingVedtak) = iverksattRevurdering(
+                clock = testDataHelper.clock,
                 sakOgVedtakSomKanRevurderes = sak to søknadsbehandlingVedtak,
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)

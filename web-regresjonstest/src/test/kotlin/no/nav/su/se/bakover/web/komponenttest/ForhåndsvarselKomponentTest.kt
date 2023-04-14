@@ -31,7 +31,7 @@ class ForhåndsvarselKomponentTest {
         withKomptestApplication(
             clock = TikkendeKlokke(1.oktober(2021).fixedClock()),
         ) { appComponents ->
-            val (sakid, revurderingId) = simulertRevurdering(this.client)
+            val (sakid, revurderingId) = simulertRevurdering(this.client, appComponents)
 
             sendForhåndsvarsel(
                 sakId = sakid,
@@ -59,12 +59,16 @@ class ForhåndsvarselKomponentTest {
         }
     }
 
-    private fun simulertRevurdering(client: HttpClient): Pair<String, String> {
+    private fun simulertRevurdering(
+        client: HttpClient,
+        appComponents: AppComponents,
+    ): Pair<String, String> {
         return opprettInnvilgetSøknadsbehandling(
             fnr = Fnr.generer().toString(),
             fraOgMed = 1.januar(2021).toString(),
             tilOgMed = 31.desember(2021).toString(),
             client = client,
+            appComponents = appComponents,
         ).let { søknadsbehandlingJson ->
             val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)
 

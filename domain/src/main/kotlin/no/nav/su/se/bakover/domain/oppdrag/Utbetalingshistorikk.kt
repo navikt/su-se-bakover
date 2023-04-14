@@ -6,24 +6,28 @@ import no.nav.su.se.bakover.common.RekkefølgeGenerator
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.LocalDate
 import java.util.LinkedList
 
+/**
+ * @throws IllegalArgumentException dersom vi ikke har en OK kvittering for alle utbetalingene.
+ */
 class Utbetalingshistorikk(
     nyeUtbetalingslinjer: NonEmptyList<Utbetalingslinje>,
-    eksisterendeUtbetalingslinjer: List<Utbetalingslinje>,
+    val eksisterendeUtbetalinger: Utbetalinger,
     val nesteUtbetalingstidspunkt: () -> Tidspunkt,
     private val rekkefølgeGenerator: RekkefølgeGenerator,
 ) {
     private val sorterteNyeUtbetalingslinjer = nyeUtbetalingslinjer.sorted()
-    private val sorterteEksisterendeUtbetalingslinjer = eksisterendeUtbetalingslinjer.sorted()
     private val rekonstruerEtterDato = rekonstruerEksisterendeUtbetalingerEtterDato()
     private val minimumFraOgMedForRekonstruerteLinjer = minumumFraOgMedDatoForRekonstruerteLinjer()
 
     init {
         nyeUtbetalingslinjer.sjekkIngenNyeOverlapper()
         nyeUtbetalingslinjer.sjekkUnikOpprettet()
+        eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
     }
 
     fun generer(): List<Utbetalingslinje> {
@@ -54,7 +58,7 @@ class Utbetalingshistorikk(
     }
 
     private fun finnUtbetalingslinjerSomSkalRekonstrueres(): List<Utbetalingslinje> {
-        return sorterteEksisterendeUtbetalingslinjer.filter { it.periode.tilOgMed.isAfter(rekonstruerEtterDato) }
+        return eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer.sorted() }.filter { it.periode.tilOgMed.isAfter(rekonstruerEtterDato) }
     }
 
     private fun rekonstruerEksisterendeUtbetalingerEtterDato(): LocalDate {
@@ -134,7 +138,7 @@ class Utbetalingshistorikk(
                     fraOgMed = minimumFraOgMedForRekonstruerteLinjer,
                     tilOgMed = this.maxOf { it.periode.tilOgMed },
                 )
-                val tidslinjeGammel = sorterteEksisterendeUtbetalingslinjer.tidslinje()
+                val tidslinjeGammel = eksisterendeUtbetalinger.tidslinje()
                     .getOrElse { throw RuntimeException("Kunne ikke generere tidslinje: $it") }.krympTilPeriode(periode)
 
                 val tidslinjeNy = tidslinje().getOrElse { throw RuntimeException("Kunne ikke generere tidslinje: $it") }
@@ -146,7 +150,7 @@ class Utbetalingshistorikk(
 
     private fun List<Utbetalingslinje>.kontrollerAtEksisterendeErKjedetMedNyeUtbetalinger() {
         check(
-            sorterteEksisterendeUtbetalingslinjer.lastOrNull()?.let { siste ->
+            eksisterendeUtbetalinger.hentSisteUtbetalingslinje()?.let { siste ->
                 first().let {
                     when (it) {
                         is Utbetalingslinje.Endring.Opphør -> it.forrigeUtbetalingslinjeId == siste.forrigeUtbetalingslinjeId
@@ -164,7 +168,7 @@ class Utbetalingshistorikk(
             filterIsInstance<Utbetalingslinje.Ny>()
                 .let { nyeLinjer ->
                     nyeLinjer.none { ny ->
-                        ny.id in sorterteEksisterendeUtbetalingslinjer.map { it.id }
+                        ny.id in eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer }.map { it.id }
                     }
                 },
         ) { "Alle nye utbetalingslinjer skal ha ny id" }

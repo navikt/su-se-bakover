@@ -26,7 +26,7 @@ internal class FrikortIT {
     fun frikort() {
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb(
             clock = TikkendeKlokke(),
-        ) {
+        ) { appComponents ->
             val fnrA = "00000000001"
             val fnrB = "00000000002"
             val fnrC = "00000000003"
@@ -35,18 +35,21 @@ internal class FrikortIT {
                 fraOgMed = januar(2021).fraOgMed.toString(),
                 tilOgMed = januar(2021).tilOgMed.toString(),
                 client = this.client,
+                appComponents = appComponents,
             ).let { hentSakId(it) }
             opprettInnvilgetSøknadsbehandling(
                 fnr = fnrB,
                 fraOgMed = januar(2021).fraOgMed.toString(),
                 tilOgMed = februar(2021).tilOgMed.toString(),
                 client = this.client,
+                appComponents = appComponents,
             )
             opprettInnvilgetSøknadsbehandling(
                 fnr = fnrC,
                 fraOgMed = februar(2021).fraOgMed.toString(),
                 tilOgMed = februar(2021).tilOgMed.toString(),
                 client = this.client,
+                appComponents = appComponents,
             )
             opprettIverksattRevurdering(
                 sakid = sakIdA,
@@ -74,6 +77,7 @@ internal class FrikortIT {
                     )
                 },
                 client = this.client,
+                appComponents = appComponents,
             )
             // language=JSON
             JSONAssert.assertEquals(

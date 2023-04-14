@@ -44,7 +44,6 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalin
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
-import no.nav.su.se.bakover.domain.oppdrag.hentOversendteUtbetalingerUtenFeil
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -61,7 +60,7 @@ import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
-import no.nav.su.se.bakover.test.simuleringNy
+import no.nav.su.se.bakover.test.simulering.simuleringNy
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.vedtakIverksattGjenopptakAvYtelseFraIverksattStans
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
@@ -102,7 +101,7 @@ internal class UtbetalingsstrategiNyTest {
                 1.januar(2020),
                 30.april(2020),
             ),
-            eksisterendeUtbetalinger = listOf(),
+            eksisterendeUtbetalinger = Utbetalinger(),
         ).also {
             it shouldBe expectedUtbetaling(
                 actual = it,
@@ -138,14 +137,16 @@ internal class UtbetalingsstrategiNyTest {
             ),
         )
 
-        val eksisterendeUtbetalinger = listOf(
-            kvittertUtbetaling(
-                uføregrunnlag = uføregrunnlagListe,
-                beregning = createBeregning(
-                    fraOgMed = 1.januar(2020),
-                    tilOgMed = 31.mars(2020),
+        val eksisterendeUtbetalinger = Utbetalinger(
+            listOf(
+                kvittertUtbetaling(
+                    uføregrunnlag = uføregrunnlagListe,
+                    beregning = createBeregning(
+                        fraOgMed = 1.januar(2020),
+                        tilOgMed = 31.mars(2020),
+                    ),
+                    eksisterendeUtbetalinger = Utbetalinger(),
                 ),
-                eksisterendeUtbetalinger = emptyList(),
             ),
         )
 
@@ -196,8 +197,8 @@ internal class UtbetalingsstrategiNyTest {
     }
 
     @Test
-    fun `oppretter kobling mot nyeste oversendte utbetaling uten feil ved opprettelse av nye utbetalinger`() {
-        val tikkendeKlokke = TikkendeKlokke(fixedClock)
+    fun `Kan ikke generere utbetaling hvis tidligere utbetaling har feilet`() {
+        val clock = TikkendeKlokke(fixedClock)
 
         val uføregrunnlagListe = listOf(
             Grunnlag.Uføregrunnlag(
@@ -209,101 +210,71 @@ internal class UtbetalingsstrategiNyTest {
             ),
         )
 
-        val first = kvittertUtbetaling(
-            uføregrunnlag = uføregrunnlagListe,
-            beregning = createBeregning(
-                fraOgMed = 1.januar(2020),
-                tilOgMed = 31.mars(2020),
-            ),
-            eksisterendeUtbetalinger = emptyList(),
-            clock = tikkendeKlokke,
-        )
-
-        val second = kvittertUtbetaling(
-            uføregrunnlag = uføregrunnlagListe,
-            beregning = createBeregning(
-                fraOgMed = 1.januar(2020),
-                tilOgMed = 31.mars(2020),
-            ),
-            eksisterendeUtbetalinger = listOf(first),
-            kvittering = Kvittering(
-                Kvittering.Utbetalingsstatus.FEIL,
-                "",
-                mottattTidspunkt = fixedTidspunkt,
-            ),
-            clock = tikkendeKlokke,
-        )
-
-        val third = kvittertUtbetaling(
-            uføregrunnlag = uføregrunnlagListe,
-            beregning = createBeregning(
-                fraOgMed = 1.januar(2020),
-                tilOgMed = 31.mars(2020),
-            ),
-            eksisterendeUtbetalinger = listOf(
-                first,
-                second,
-            ),
-            kvittering = Kvittering(
-                Kvittering.Utbetalingsstatus.OK_MED_VARSEL,
-                "",
-                mottattTidspunkt = fixedTidspunkt,
-            ),
-            clock = tikkendeKlokke,
-        )
-
-        val fourth = kvittertUtbetaling(
-            uføregrunnlag = uføregrunnlagListe,
-            beregning = createBeregning(
-                fraOgMed = 1.januar(2020),
-                tilOgMed = 31.mars(2020),
-            ),
-            eksisterendeUtbetalinger = listOf(
-                first,
-                second,
-                third,
-            ),
-            kvittering = Kvittering(
-                Kvittering.Utbetalingsstatus.FEIL,
-                "",
-                mottattTidspunkt = fixedTidspunkt,
-            ),
-            clock = tikkendeKlokke,
-        )
-
-        val utbetalinger = listOf(
-            first,
-            second,
-            third,
-            fourth,
-        )
-        utbetalinger.hentOversendteUtbetalingerUtenFeil()[1] shouldBe third
-
-        nyUtbetaling(
-            uføregrunnlag = uføregrunnlagListe,
-            beregning = createBeregning(
-                fraOgMed = 1.januar(2020),
-                tilOgMed = 31.mars(2020),
-            ),
-            eksisterendeUtbetalinger = utbetalinger,
-            clock = tikkendeKlokke,
-        ).also {
-            it shouldBe expectedUtbetaling(
-                actual = it,
-                utbetalingslinjer = nonEmptyListOf(
-                    expectedUtbetalingslinje(
-                        utbetalingslinjeId = it.utbetalingslinjer.single().id,
-                        opprettet = it.utbetalingslinjer.single().opprettet,
-                        rekkefølge = Rekkefølge.start(),
-                        fraOgMed = 1.januar(2020),
-                        tilOgMed = 31.mars(2020),
-                        beløp = 20637,
-                        forrigeUtbetalingslinjeId = third.utbetalingslinjer.single().id,
-                        uføregrad = Uføregrad.parse(50),
+        shouldThrow<IllegalArgumentException> {
+            nyUtbetaling(
+                uføregrunnlag = uføregrunnlagListe,
+                beregning = createBeregning(
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.mars(2020),
+                ),
+                eksisterendeUtbetalinger = Utbetalinger(
+                    kvittertUtbetaling(
+                        clock = clock,
+                        uføregrunnlag = uføregrunnlagListe,
+                        beregning = createBeregning(
+                            fraOgMed = 1.januar(2020),
+                            tilOgMed = 31.mars(2020),
+                            clock = clock,
+                        ),
+                        eksisterendeUtbetalinger = Utbetalinger(),
+                        kvittering = Kvittering(
+                            Kvittering.Utbetalingsstatus.FEIL,
+                            "",
+                            mottattTidspunkt = fixedTidspunkt,
+                        ),
                     ),
                 ),
+                clock = clock,
             )
-        }
+        }.message shouldContain "De fleste utbetalingsoperasjoner krever at alle utbetalinger er oversendt og vi har mottatt en OK-kvittering."
+    }
+
+    @Test
+    fun `Kan ikke generere utbetaling hvis tidligere utbetaling ikke er oversendt`() {
+        val clock = TikkendeKlokke(fixedClock)
+
+        val uføregrunnlagListe = listOf(
+            Grunnlag.Uføregrunnlag(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = januar(2000).rangeTo(desember(2050)),
+                uføregrad = Uføregrad.parse(50),
+                forventetInntekt = 0,
+            ),
+        )
+
+        shouldThrow<IllegalArgumentException> {
+            nyUtbetaling(
+                uføregrunnlag = uføregrunnlagListe,
+                beregning = createBeregning(
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.mars(2020),
+                ),
+                eksisterendeUtbetalinger = Utbetalinger(
+                    oversendtUtbetaling(
+                        clock = clock,
+                        uføregrunnlag = uføregrunnlagListe,
+                        beregning = createBeregning(
+                            fraOgMed = 1.januar(2020),
+                            tilOgMed = 31.mars(2020),
+                            clock = clock,
+                        ),
+                        eksisterendeUtbetalinger = Utbetalinger(),
+                    ),
+                ),
+                clock = clock,
+            )
+        }.message shouldContain "De fleste utbetalingsoperasjoner krever at alle utbetalinger er oversendt og vi har mottatt en OK-kvittering."
     }
 
     @Test
@@ -352,7 +323,7 @@ internal class UtbetalingsstrategiNyTest {
                     ),
                 ),
             ),
-            eksisterendeUtbetalinger = listOf(),
+            eksisterendeUtbetalinger = Utbetalinger(),
         ).also {
             it shouldBe expectedUtbetaling(
                 actual = it,
@@ -398,7 +369,7 @@ internal class UtbetalingsstrategiNyTest {
             nyUtbetaling(
                 uføregrunnlag = emptyList(),
                 beregning = BeregningMedTomMånedsbereninger,
-                eksisterendeUtbetalinger = listOf(),
+                eksisterendeUtbetalinger = Utbetalinger(),
             )
         }
     }
@@ -413,7 +384,7 @@ internal class UtbetalingsstrategiNyTest {
                     ),
                 ),
                 beregning = BeregningMedTomMånedsbereninger,
-                eksisterendeUtbetalinger = listOf(),
+                eksisterendeUtbetalinger = Utbetalinger(),
             )
         }
     }
@@ -431,7 +402,7 @@ internal class UtbetalingsstrategiNyTest {
                     ),
                 ),
                 beregning = BeregningMedTomMånedsbereninger,
-                eksisterendeUtbetalinger = listOf(),
+                eksisterendeUtbetalinger = Utbetalinger(),
             )
         }
     }
@@ -445,7 +416,7 @@ internal class UtbetalingsstrategiNyTest {
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.desember(2021),
                 ),
-                eksisterendeUtbetalinger = listOf(),
+                eksisterendeUtbetalinger = Utbetalinger(),
             )
         }
     }
@@ -463,7 +434,7 @@ internal class UtbetalingsstrategiNyTest {
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.desember(2021),
                 ),
-                eksisterendeUtbetalinger = listOf(),
+                eksisterendeUtbetalinger = Utbetalinger(),
             )
         }.also {
             it.message shouldContain "Uføregrunnlaget inneholder ikke alle beregningsperiodene. Grunnlagsperiodene:"
@@ -602,7 +573,8 @@ internal class UtbetalingsstrategiNyTest {
                     ),
                 ),
             )
-            it.utbetalingslinjer.map { it.id }.none { it in sak3.utbetalinger.flatMap { it.utbetalingslinjer }.map { it.id } } shouldBe true
+            it.utbetalingslinjer.map { it.id }
+                .none { it in sak3.utbetalinger.flatMap { it.utbetalingslinjer }.map { it.id } } shouldBe true
         }
     }
 
@@ -838,7 +810,7 @@ fun nyUtbetaling(
         fradrag = listOf(),
         clock = clock,
     ),
-    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
+    eksisterendeUtbetalinger: Utbetalinger = Utbetalinger(),
 ): Utbetaling.UtbetalingForSimulering {
     return Utbetalingsstrategi.NyUføreUtbetaling(
         sakId = sakId,
@@ -865,7 +837,7 @@ fun oversendtUtbetaling(
         fradrag = listOf(),
         clock = clock,
     ),
-    eksisterendeUtbetalinger: List<Utbetaling.OversendtUtbetaling> = emptyList(),
+    eksisterendeUtbetalinger: Utbetalinger = Utbetalinger(),
     utbetalingsrequest: Utbetalingsrequest = Utbetalingsrequest(""),
 ): Utbetaling.OversendtUtbetaling.UtenKvittering {
     return nyUtbetaling(
@@ -880,7 +852,7 @@ fun oversendtUtbetaling(
             fnr = fnr,
             sakId = sakId,
             saksnummer = saksnummer,
-            clock = fixedClock,
+            clock = clock,
             uføregrunnlag = uføregrunnlag,
         ),
     ).toOversendtUtbetaling(
@@ -899,7 +871,7 @@ fun kvittertUtbetaling(
         fradrag = listOf(),
         clock = clock,
     ),
-    eksisterendeUtbetalinger: List<Utbetaling.OversendtUtbetaling> = emptyList(),
+    eksisterendeUtbetalinger: Utbetalinger = Utbetalinger(),
     utbetalingsrequest: Utbetalingsrequest = Utbetalingsrequest(""),
     kvittering: Kvittering = Kvittering(
         Kvittering.Utbetalingsstatus.OK,

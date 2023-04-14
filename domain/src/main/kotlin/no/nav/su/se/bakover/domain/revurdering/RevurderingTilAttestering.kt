@@ -14,9 +14,9 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
@@ -213,7 +213,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
     }
 
     override fun beregn(
-        eksisterendeUtbetalinger: List<Utbetaling>,
+        eksisterendeUtbetalinger: Utbetalinger,
         clock: Clock,
         gjeldendeVedtaksdata: GjeldendeVedtaksdata,
         satsFactory: SatsFactory,

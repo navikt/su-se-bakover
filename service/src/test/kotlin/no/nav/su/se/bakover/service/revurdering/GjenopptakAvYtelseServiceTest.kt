@@ -50,9 +50,9 @@ import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
-import no.nav.su.se.bakover.test.simulerGjenopptak
-import no.nav.su.se.bakover.test.simulerUtbetaling
-import no.nav.su.se.bakover.test.simuleringFeilutbetaling
+import no.nav.su.se.bakover.test.simulering.simulerGjenopptak
+import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
+import no.nav.su.se.bakover.test.simulering.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart

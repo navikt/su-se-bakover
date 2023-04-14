@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.nyUtbetalingSimulert
-import no.nav.su.se.bakover.test.simuleringFeilutbetaling
+import no.nav.su.se.bakover.test.simulering.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import org.junit.jupiter.api.Test

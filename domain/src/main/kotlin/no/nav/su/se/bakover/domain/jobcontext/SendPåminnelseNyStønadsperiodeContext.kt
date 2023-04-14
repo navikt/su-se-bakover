@@ -88,11 +88,11 @@ data class SendPåminnelseNyStønadsperiodeContext(
     fun feilet(feilet: Feilet, clock: Clock): SendPåminnelseNyStønadsperiodeContext =
         copy(feilede = this.feilede + feilet, endret = Tidspunkt.now(clock))
 
-    fun oppsummering(): String {
+    fun oppsummering(clock: Clock): String {
         return """
             ${"\n"}
             ***********************************
-            Oppsummering av jobb: ${id.name}, tidspunkt:${Tidspunkt.now()},
+            Oppsummering av jobb: ${id.name}, tidspunkt:${Tidspunkt.now(clock)},
             Måned: ${id.yearMonth},
             Opprettet: $opprettet,
             Endret: $endret,

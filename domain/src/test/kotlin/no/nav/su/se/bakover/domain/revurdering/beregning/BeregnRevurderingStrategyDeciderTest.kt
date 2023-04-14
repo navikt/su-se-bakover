@@ -94,6 +94,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
             )
 
             val (medNyStønadsperiode, _, nyStønadsperiode) = iverksattSøknadsbehandling(
+                clock = clock,
                 stønadsperiode = stønadsperiode2022,
                 sakOgSøknad = sak to nySøknadJournalførtMedOppgave(
                     clock = clock,

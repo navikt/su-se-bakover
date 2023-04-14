@@ -47,7 +47,7 @@ import no.nav.su.se.bakover.test.nySøknadsbehandlingUtenStønadsperiode
 import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
-import no.nav.su.se.bakover.test.simulerUtbetaling
+import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.søknad.nySøknadPåEksisterendeSak
 import no.nav.su.se.bakover.test.søknad.søknadId

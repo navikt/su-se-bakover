@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.regulering.beregn
 
 import arrow.core.getOrElse
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.oppdrag.hentGjeldendeUtbetaling
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.hentGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBeregneRegulering
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.inneholderAvslag

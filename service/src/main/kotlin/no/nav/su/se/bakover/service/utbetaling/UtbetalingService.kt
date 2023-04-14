@@ -4,19 +4,19 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.oppdrag.FantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import java.time.LocalDate
 import java.util.UUID
 
 interface UtbetalingService {
     fun hentUtbetaling(utbetalingId: UUID30): Either<FantIkkeUtbetaling, Utbetaling>
-    fun hentUtbetalingerForSakId(sakId: UUID): List<Utbetaling>
+    fun hentUtbetalingerForSakId(sakId: UUID): Utbetalinger
 
     fun oppdaterMedKvittering(
         utbetalingId: UUID30,
@@ -45,7 +45,7 @@ interface UtbetalingService {
     fun hentGjeldendeUtbetaling(
         sakId: UUID,
         forDato: LocalDate,
-    ): Either<FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje>
+    ): Either<Utbetalinger.FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje>
 }
 
 object FantIkkeUtbetaling

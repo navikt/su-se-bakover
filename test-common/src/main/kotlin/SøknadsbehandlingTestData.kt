@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -33,7 +34,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
@@ -66,6 +66,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
+import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.søknad.oppgaveIdSøknad
 import no.nav.su.se.bakover.test.søknad.søknadsinnholdAlder
@@ -220,6 +221,7 @@ fun søknadsbehandlingBeregnetInnvilget(
  * @param grunnlagsdata må gi avslag, hvis ikke får man en runtime exception
  */
 fun søknadsbehandlingBeregnetAvslag(
+    clock: Clock = fixedClock,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
@@ -234,7 +236,7 @@ fun søknadsbehandlingBeregnetAvslag(
             ),
         ),
     ),
-    clock: Clock = fixedClock,
+
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk = nySøknadsbehandlingshistorikkBeregnet(
         clock = clock,
@@ -410,8 +412,9 @@ fun søknadsbehandlingTilAttesteringAvslagUtenBeregning(
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    clock: Clock = fixedClock,
     søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk = nySøknadsbehandlingshistorikkSendtTilAttesteringAvslått(
-        clock = fixedClock,
+        clock = clock,
         saksbehandler = saksbehandler,
     ),
 ): Pair<Sak, SøknadsbehandlingTilAttestering.Avslag.UtenBeregning> {
@@ -422,11 +425,12 @@ fun søknadsbehandlingTilAttesteringAvslagUtenBeregning(
         vilkårsvurderinger = vilkårsvurderinger,
         saksbehandler = saksbehandler,
         søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
+        clock = clock,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling.tilAttesteringForSaksbehandler(
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
-            clock = fixedClock,
+            clock = clock,
         ).getOrFail()
         Pair(
             sak.copy(
@@ -448,7 +452,7 @@ fun søknadsbehandlingUnderkjentInnvilget(
     attestering: Attestering = attesteringUnderkjent(clock = clock),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk = nySøknadsbehandlingshistorikkSendtTilAttestering(
-        clock = fixedClock,
+        clock = clock,
         saksbehandler = saksbehandler,
     ),
 ): Pair<Sak, UnderkjentSøknadsbehandling.Innvilget> {
@@ -481,7 +485,7 @@ fun søknadsbehandlingUnderkjentAvslagUtenBeregning(
     attestering: Attestering = attesteringUnderkjent(clock = clock),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk = nySøknadsbehandlingshistorikkSendtTilAttesteringAvslått(
-        clock = fixedClock,
+        clock = clock,
         saksbehandler = saksbehandler,
     ),
 ): Pair<Sak, UnderkjentSøknadsbehandling.Avslag.UtenBeregning> {
@@ -524,7 +528,7 @@ fun søknadsbehandlingUnderkjentAvslagMedBeregning(
     attestering: Attestering = attesteringUnderkjent(clock = clock),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk = nySøknadsbehandlingshistorikkSendtTilAttestering(
-        clock = fixedClock,
+        clock = clock,
         saksbehandler = saksbehandler,
     ),
 ): Pair<Sak, UnderkjentSøknadsbehandling.Avslag.MedBeregning> {
@@ -842,6 +846,7 @@ fun iverksattSøknadsbehandlingUføre(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    kvittering: Kvittering? = kvittering(clock = clock),
 ): Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> {
     return iverksattSøknadsbehandling(
         clock = clock,
@@ -850,11 +855,12 @@ fun iverksattSøknadsbehandlingUføre(
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
         saksbehandler = saksbehandler,
+        kvittering = kvittering,
     )
 }
 
 fun iverksattSøknadsbehandling(
-    clock: Clock = fixedClock,
+    clock: Clock = TikkendeKlokke(),
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(
         clock = clock,
@@ -864,6 +870,7 @@ fun iverksattSøknadsbehandling(
     attestering: Attestering.Iverksatt = attesteringIverksatt(clock),
     fritekstTilBrev: String = "",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    kvittering: Kvittering? = kvittering(clock = clock),
 ): Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> {
     return tilAttesteringSøknadsbehandling(
         clock = clock,
@@ -906,7 +913,14 @@ fun iverksattSøknadsbehandling(
                     is IverksattAvslåttSøknadsbehandlingResponse -> response.sak
                     is IverksattInnvilgetSøknadsbehandlingResponse -> response.sak.copy(
                         utbetalinger = response.sak.utbetalinger.filterNot { it.id == response.utbetaling.id }
-                            .plus(response.utbetaling.toOversendtUtbetaling(UtbetalingStub.generateRequest(response.utbetaling))),
+                            .plus(
+                                response.utbetaling.toOversendtUtbetaling(UtbetalingStub.generateRequest(response.utbetaling))
+                                    .let {
+                                        kvittering?.let { kvittering ->
+                                            it.toKvittertUtbetaling(kvittering)
+                                        } ?: it
+                                    },
+                            ),
                     )
 
                     else -> TODO("Ingen andre nåværende implementasjoner")

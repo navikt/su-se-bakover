@@ -58,6 +58,7 @@ internal fun Route.testDataRoutes() {
                             fraOgMed = it.fraOgMed ?: fixedLocalDate.startOfMonth().toString(),
                             tilOgMed = it.tilOgMed ?: fixedLocalDate.startOfMonth().plusMonths(11).endOfMonth().toString(),
                             client = localClient,
+                            appComponents = null,
                         )
                     } else {
                         opprettAvslåttSøknadsbehandling(

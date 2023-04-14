@@ -6,7 +6,6 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import arrow.core.toNonEmptyListOrNull
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -25,7 +24,6 @@ import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
-import no.nav.su.se.bakover.domain.oppdrag.hentOversendteUtbetalingslinjerUtenFeil
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -98,9 +96,7 @@ data class Sak(
     }
 
     fun utbetalingstidslinje(): TidslinjeForUtbetalinger? {
-        return utbetalinger.hentOversendteUtbetalingslinjerUtenFeil().toNonEmptyListOrNull()?.let {
-            TidslinjeForUtbetalinger(utbetalingslinjer = it)
-        }
+        return utbetalinger.tidslinje().getOrNull()
     }
 
     fun kopierGjeldendeVedtaksdata(
@@ -189,7 +185,7 @@ data class Sak(
     /**
      * Brukes for å hente den seneste gjeldenden/brukte beregningen for en gitt måned i saken.
      *
-     * Per nå så er det kun Vedtak i form av [VedtakSomKanRevurderes.EndringIYtelse] som bidrar til dette.
+     * Per nå så er det kun Vedtak i form av [no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse] som bidrar til dette.
      *
      * ##NB
      * */

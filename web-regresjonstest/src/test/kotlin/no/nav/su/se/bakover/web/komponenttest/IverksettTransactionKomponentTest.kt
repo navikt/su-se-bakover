@@ -65,7 +65,8 @@ internal class IverksettTransactionKomponentTest {
                     it.copy(
                         utbetalingPublisher = object : UtbetalingPublisher by it.utbetalingPublisher {
                             override fun publishRequest(utbetalingsrequest: Utbetalingsrequest): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> {
-                                return UtbetalingPublisher.KunneIkkeSendeUtbetaling(Utbetalingsrequest("det gikk dårlig")).left()
+                                return UtbetalingPublisher.KunneIkkeSendeUtbetaling(Utbetalingsrequest("det gikk dårlig"))
+                                    .left()
                             }
                         },
                     )
@@ -78,8 +79,12 @@ internal class IverksettTransactionKomponentTest {
                 tilOgMed = slutt.toString(),
                 iverksett = { _, _ -> SKIP_STEP },
                 client = this.client,
+                appComponents = appComponents,
             ).let { søknadsbehandling ->
-                val (sakId, behandlingId) = hentSak(BehandlingJson.hentSakId(søknadsbehandling), client = this.client).let { sakJson ->
+                val (sakId, behandlingId) = hentSak(
+                    BehandlingJson.hentSakId(søknadsbehandling),
+                    client = this.client,
+                ).let { sakJson ->
                     hentSakId(sakJson) to BehandlingJson.hentBehandlingId(søknadsbehandling)
                 }
 
@@ -88,6 +93,7 @@ internal class IverksettTransactionKomponentTest {
                     behandlingId = behandlingId,
                     assertResponse = false,
                     client = this.client,
+                    appComponents = appComponents,
                 ).let {
                     JSONObject(it).getString("code") shouldBe "ukjent_feil"
                 }
@@ -122,7 +128,8 @@ internal class IverksettTransactionKomponentTest {
                             override fun publishRequest(utbetalingsrequest: Utbetalingsrequest): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> {
                                 count++
                                 return if (count == 2) {
-                                    UtbetalingPublisher.KunneIkkeSendeUtbetaling(Utbetalingsrequest("det gikk dårlig")).left()
+                                    UtbetalingPublisher.KunneIkkeSendeUtbetaling(Utbetalingsrequest("det gikk dårlig"))
+                                        .left()
                                 } else {
                                     utbetalingsrequest.right()
                                 }
@@ -137,6 +144,7 @@ internal class IverksettTransactionKomponentTest {
                 fraOgMed = start.toString(),
                 tilOgMed = slutt.toString(),
                 client = this.client,
+                appComponents = appComponents,
             ).let { søknadsbehandling ->
                 val sakId = hentSakId(hentSak(BehandlingJson.hentSakId(søknadsbehandling), client = this.client))
 
@@ -146,12 +154,14 @@ internal class IverksettTransactionKomponentTest {
                     tilogmed = start.plusMonths(6).endOfMonth().toString(),
                     iverksett = { _, _ -> SKIP_STEP },
                     client = this.client,
+                    appComponents = appComponents,
                 ).let {
                     iverksettRevurdering(
                         sakId = sakId,
                         behandlingId = RevurderingJson.hentRevurderingId(it),
                         assertResponse = false,
                         client = this.client,
+                        appComponents = appComponents,
                     ).let {
                         JSONObject(it).getString("code") shouldBe "kunne_ikke_utbetale"
                     }
@@ -163,7 +173,9 @@ internal class IverksettTransactionKomponentTest {
                         sak.utbetalinger.single().id shouldBe it.utbetalingId
                     }
                     sak.revurderinger.single().shouldBeType<RevurderingTilAttestering.Innvilget>()
-                    appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(sak.id).getOrFail().shouldBeType<Kontrollsamtale>()
+                    appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(
+                        sak.id,
+                    ).getOrFail().shouldBeType<Kontrollsamtale>()
                 }
             }
         }
@@ -188,7 +200,8 @@ internal class IverksettTransactionKomponentTest {
                             override fun publishRequest(utbetalingsrequest: Utbetalingsrequest): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> {
                                 count++
                                 return if (count == 2) {
-                                    UtbetalingPublisher.KunneIkkeSendeUtbetaling(Utbetalingsrequest("det gikk dårlig")).left()
+                                    UtbetalingPublisher.KunneIkkeSendeUtbetaling(Utbetalingsrequest("det gikk dårlig"))
+                                        .left()
                                 } else {
                                     utbetalingsrequest.right()
                                 }
@@ -203,6 +216,7 @@ internal class IverksettTransactionKomponentTest {
                 fraOgMed = start.toString(),
                 tilOgMed = slutt.toString(),
                 client = this.client,
+                appComponents = appComponents,
             ).let { søknadsbehandling ->
                 val sakId = hentSakId(hentSak(BehandlingJson.hentSakId(søknadsbehandling), client = this.client))
 
@@ -223,12 +237,14 @@ internal class IverksettTransactionKomponentTest {
                     },
                     iverksett = { _, _ -> SKIP_STEP },
                     client = this.client,
+                    appComponents = appComponents,
                 ).let {
                     iverksettRevurdering(
                         sakId = sakId,
                         behandlingId = RevurderingJson.hentRevurderingId(it),
                         assertResponse = false,
                         client = this.client,
+                        appComponents = appComponents,
                     ).let {
                         JSONObject(it).getString("code") shouldBe "kunne_ikke_utbetale"
                     }
@@ -240,7 +256,9 @@ internal class IverksettTransactionKomponentTest {
                         sak.utbetalinger.single().id shouldBe it.utbetalingId
                     }
                     sak.revurderinger.single().shouldBeType<RevurderingTilAttestering.Opphørt>()
-                    appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(sak.id).getOrFail().shouldBeType<Kontrollsamtale>()
+                    appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(
+                        sak.id,
+                    ).getOrFail().shouldBeType<Kontrollsamtale>()
                 }
             }
         }
@@ -265,7 +283,8 @@ internal class IverksettTransactionKomponentTest {
                             override fun publishRequest(utbetalingsrequest: Utbetalingsrequest): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> {
                                 count++
                                 return if (count == 2) {
-                                    UtbetalingPublisher.KunneIkkeSendeUtbetaling(Utbetalingsrequest("det gikk dårlig")).left()
+                                    UtbetalingPublisher.KunneIkkeSendeUtbetaling(Utbetalingsrequest("det gikk dårlig"))
+                                        .left()
                                 } else {
                                     utbetalingsrequest.right()
                                 }
@@ -280,6 +299,7 @@ internal class IverksettTransactionKomponentTest {
                 fraOgMed = start.toString(),
                 tilOgMed = slutt.toString(),
                 client = this.client,
+                appComponents = appComponents,
             ).let { søknadsbehandling ->
                 val sakId = hentSakId(hentSak(BehandlingJson.hentSakId(søknadsbehandling), client = this.client))
 
@@ -293,6 +313,7 @@ internal class IverksettTransactionKomponentTest {
                     behandlingId = stansId,
                     assertResponse = false,
                     client = this.client,
+                    appComponents = appComponents,
                 )
 
                 appComponents.services.sak.hentSak(UUID.fromString(sakId)).getOrFail().also { sak ->
@@ -302,13 +323,16 @@ internal class IverksettTransactionKomponentTest {
                     }
                     sak.utbetalinger.also { utbetalinger ->
                         utbetalinger shouldHaveSize 1
-                        utbetalinger.map { it.id }.shouldContainAll(sak.vedtakListe.map { (it as VedtakEndringIYtelse).utbetalingId })
+                        utbetalinger.map { it.id }
+                            .shouldContainAll(sak.vedtakListe.map { (it as VedtakEndringIYtelse).utbetalingId })
                     }
                     sak.revurderinger.also { revurderinger ->
                         revurderinger shouldHaveSize 1
                         revurderinger.single { it is StansAvYtelseRevurdering.SimulertStansAvYtelse }
                     }
-                    appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(sak.id).getOrFail().shouldBeType<Kontrollsamtale>()
+                    appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(
+                        sak.id,
+                    ).getOrFail().shouldBeType<Kontrollsamtale>()
                 }
             }
         }
@@ -333,7 +357,8 @@ internal class IverksettTransactionKomponentTest {
                             override fun publishRequest(utbetalingsrequest: Utbetalingsrequest): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> {
                                 count++
                                 return if (count == 3) {
-                                    UtbetalingPublisher.KunneIkkeSendeUtbetaling(Utbetalingsrequest("det gikk dårlig")).left()
+                                    UtbetalingPublisher.KunneIkkeSendeUtbetaling(Utbetalingsrequest("det gikk dårlig"))
+                                        .left()
                                 } else {
                                     utbetalingsrequest.right()
                                 }
@@ -348,17 +373,27 @@ internal class IverksettTransactionKomponentTest {
                 fraOgMed = start.toString(),
                 tilOgMed = slutt.toString(),
                 client = this.client,
+                appComponents = appComponents,
             ).let { søknadsbehandling ->
                 val sakId = hentSakId(hentSak(BehandlingJson.hentSakId(søknadsbehandling), client = this.client))
 
-                val stansId = opprettStans(sakId, start.toString(), client = this.client).let { RevurderingJson.hentRevurderingId(it) }
-                iverksettStans(sakId, stansId, client = this.client)
-                val gjenopptakId = opprettGjenopptak(sakId, client = this.client).let { RevurderingJson.hentRevurderingId(it) }
+                val stansId = opprettStans(sakId, start.toString(), client = this.client).let {
+                    RevurderingJson.hentRevurderingId(it)
+                }
+                iverksettStans(
+                    sakId = sakId,
+                    behandlingId = stansId,
+                    client = this.client,
+                    appComponents = appComponents,
+                )
+                val gjenopptakId =
+                    opprettGjenopptak(sakId, client = this.client).let { RevurderingJson.hentRevurderingId(it) }
                 iverksettGjenopptak(
                     sakId = sakId,
                     behandlingId = gjenopptakId,
                     assertResponse = false,
                     client = this.client,
+                    appComponents = appComponents,
                 ).let {
                     JSONObject(it).getString("code") shouldBe "kunne_ikke_utbetale"
                 }
@@ -372,14 +407,17 @@ internal class IverksettTransactionKomponentTest {
                     }
                     sak.utbetalinger.also { utbetalinger ->
                         utbetalinger shouldHaveSize 2
-                        utbetalinger.map { it.id }.shouldContainAll(sak.vedtakListe.map { (it as VedtakEndringIYtelse).utbetalingId })
+                        utbetalinger.map { it.id }
+                            .shouldContainAll(sak.vedtakListe.map { (it as VedtakEndringIYtelse).utbetalingId })
                     }
                     sak.revurderinger.also { revurderinger ->
                         revurderinger shouldHaveSize 2
                         revurderinger.single { it is StansAvYtelseRevurdering.IverksattStansAvYtelse }
                         revurderinger.single { it is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse }
                     }
-                    appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(sak.id).getOrFail().shouldBeType<Kontrollsamtale>()
+                    appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(
+                        sak.id,
+                    ).getOrFail().shouldBeType<Kontrollsamtale>()
                 }
             }
         }

@@ -25,7 +25,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.revurdering.beregning.KunneIkkeBeregneRevurdering
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
@@ -316,9 +316,11 @@ internal class RevurderingBeregnTest {
             stønadsperiode = stønadsperiode2021,
             revurderingsperiode = stønadsperiode2021.periode,
             utbetalingerKjørtTilOgMed = 1.mai(2021), // feilutbetaling for jan-apr
+            clock = clock,
         )
 
         val (medNyStønadsperiode, _, nyStønadsperiode) = iverksattSøknadsbehandling(
+            clock = clock,
             stønadsperiode = stønadsperiode2022,
             sakOgSøknad = sak to nySøknadJournalførtMedOppgave(
                 clock = clock,
@@ -330,6 +332,7 @@ internal class RevurderingBeregnTest {
         opprettetRevurdering(
             revurderingsperiode = stønadsperiode2022.periode,
             sakOgVedtakSomKanRevurderes = medNyStønadsperiode to nyStønadsperiode as VedtakSomKanRevurderes,
+            clock = clock,
         ).let { (sak, revurdering) ->
             revurdering.beregn(
                 eksisterendeUtbetalinger = sak.utbetalinger,
@@ -415,6 +418,7 @@ internal class RevurderingBeregnTest {
             stønadsperiode = stønadsperiode2021,
             revurderingsperiode = stønadsperiode2021.periode,
             utbetalingerKjørtTilOgMed = 1.mai(2021), // feilutbetaling for jan-apr
+            clock = clock,
         )
 
         val (medNyStønadsperiode, _, nyStønadsperiode) = iverksattSøknadsbehandling(
@@ -424,9 +428,11 @@ internal class RevurderingBeregnTest {
                 sakId = sak.id,
                 søknadInnhold = søknadinnholdUføre(),
             ),
+            clock = clock,
         )
 
         opprettetRevurdering(
+            clock = clock,
             sakOgVedtakSomKanRevurderes = medNyStønadsperiode to nyStønadsperiode as VedtakSomKanRevurderes,
             revurderingsperiode = stønadsperiode2022.periode,
             grunnlagsdataOverrides = listOf(
@@ -588,7 +594,7 @@ internal class RevurderingBeregnTest {
 
     private fun over10ProsentEndring(
         nyBeregning: Beregning,
-        eksisterendeUtbetalinger: List<Utbetaling>,
+        eksisterendeUtbetalinger: Utbetalinger,
     ): Boolean {
         val nyBeregningBeløp = nyBeregning.getSumYtelse()
         val eksisterendeBeløp = eksisterendeUtbetalinger.sumOf {
