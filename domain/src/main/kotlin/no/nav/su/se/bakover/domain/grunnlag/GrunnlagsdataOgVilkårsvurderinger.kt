@@ -4,10 +4,13 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.erSammenhengendeSortertOgUtenDuplikater
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harFjernetEllerEndretEps
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderMedEPS
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderUtenEPS
+import no.nav.su.se.bakover.domain.skatt.Skattereferanser
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
@@ -19,6 +22,8 @@ import java.time.Clock
 sealed class GrunnlagsdataOgVilkårsvurderinger {
     abstract val grunnlagsdata: Grunnlagsdata
     abstract val vilkårsvurderinger: Vilkårsvurderinger
+
+    val eps: List<Fnr> get() = grunnlagsdata.eps
 
     fun periode(): Periode? {
         return grunnlagsdata.periode ?: vilkårsvurderinger.periode
@@ -48,8 +53,10 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
 
     private fun oppdaterBosituasjonInternal(
         bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>,
-        oppdaterGrunnlagsdata: (fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>, bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>) -> Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata>,
+        oppdaterGrunnlagsdata: (fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>, bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>, skattereferanser: Skattereferanser?) -> Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata>,
     ): GrunnlagsdataOgVilkårsvurderinger {
+        val skattereferanser = this.grunnlagsdata.skattereferanser
+
         val grunnlagsdataJustertForEPS = oppdaterGrunnlagsdata(
             /*
              * Hvis vi går fra "eps" til "ingen eps" må vi fjerne fradragene for EPS for alle periodene
@@ -58,6 +65,10 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
              */
             grunnlagsdata.fradragsgrunnlag.fjernFradragEPS(bosituasjon.perioderUtenEPS()),
             bosituasjon,
+            /**
+             * TODO: Ved revurdering vil vi fjerne bare den EPS'en som har blitt tatt vekk.
+             */
+            if (this.grunnlagsdata.bosituasjon.harFjernetEllerEndretEps(bosituasjon)) skattereferanser?.fjernEps() else this.grunnlagsdata.skattereferanser,
         ).getOrElse {
             throw IllegalStateException(it.toString())
         }
@@ -104,6 +115,7 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
         return oppdaterBosituasjonInternal(
             bosituasjon = bosituasjon,
             oppdaterGrunnlagsdata = Grunnlagsdata::tryCreate,
+
         )
     }
 
@@ -120,6 +132,7 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
                 grunnlagsdata = Grunnlagsdata.tryCreate(
                     fradragsgrunnlag = grunnlag,
                     bosituasjon = grunnlagsdata.bosituasjonSomFullstendig(),
+                    skattereferanser = grunnlagsdata.skattereferanser,
                 ).getOrElse { throw IllegalArgumentException(it.toString()) },
             )
         }
@@ -143,6 +156,14 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
                     formuegrenserFactory = formuegrenserFactory,
                 ),
             ).right()
+        }
+
+        fun leggTilSkattereferanser(skattereferanser: Skattereferanser): Søknadsbehandling {
+            return this.copy(
+                grunnlagsdata = this.grunnlagsdata.leggTilSkattereferanser(
+                    skattereferanser,
+                ),
+            )
         }
 
         /**

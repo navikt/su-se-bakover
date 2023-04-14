@@ -584,6 +584,7 @@ internal class RevurderingPostgresRepo(
             behandlingId = id,
             session = session,
             sakstype = sakinfo.type,
+            skattereferanser = null,
         )
 
         val avkorting = deserializeNullable<AvkortingVedRevurderingDb>(stringOrNull("avkorting"))?.toDomain()

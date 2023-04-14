@@ -43,6 +43,7 @@ import no.nav.su.se.bakover.database.personhendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.regulering.ReguleringPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
+import no.nav.su.se.bakover.database.skatt.SkattPostgresRepo
 import no.nav.su.se.bakover.database.stønadsperiode.SendPåminnelseNyStønadsperiodeJobPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
@@ -73,6 +74,7 @@ object DatabaseBuilder {
                 // Lokalt ønsker vi ikke noe herjing med rolle; Docker-oppsettet sørger for at vi har riktige tilganger her.
                 Flyway(dataSource)
             }
+
             is RotatingCredentials -> Flyway(
                 dataSource = dataSource,
                 // Pga roterende credentials i preprod/prod må tabeller opprettes/endres av samme rolle hver gang. Se https://github.com/navikt/utvikling/blob/master/PostgreSQL.md#hvordan-kj%C3%B8re-flyway-migreringerendre-p%C3%A5-databaseskjemaet
@@ -134,7 +136,6 @@ object DatabaseBuilder {
         )
 
         val avkortingsvarselRepo = AvkortingsvarselPostgresRepo(sessionFactory, dbMetrics)
-
         val grunnlagsdataOgVilkårsvurderingerPostgresRepo = GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
             dbMetrics = dbMetrics,
             bosituasjongrunnlagPostgresRepo = BosituasjongrunnlagPostgresRepo(
@@ -188,6 +189,7 @@ object DatabaseBuilder {
             grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
             dbMetrics = dbMetrics,
             avkortingsvarselRepo = avkortingsvarselRepo,
+            skattRepo = SkattPostgresRepo,
             satsFactory = satsFactory,
         )
 
@@ -271,7 +273,11 @@ object DatabaseBuilder {
             avkortingsvarselRepo = avkortingsvarselRepo,
             reguleringRepo = reguleringRepo,
             tilbakekrevingRepo = tilbakekrevingRepo,
-            sendPåminnelseNyStønadsperiodeJobRepo = SendPåminnelseNyStønadsperiodeJobPostgresRepo(JobContextPostgresRepo(sessionFactory)),
+            sendPåminnelseNyStønadsperiodeJobRepo = SendPåminnelseNyStønadsperiodeJobPostgresRepo(
+                JobContextPostgresRepo(
+                    sessionFactory,
+                ),
+            ),
             hendelseRepo = hendelseRepo,
             utenlandsoppholdRepo = utenlandsoppholdRepo,
         )

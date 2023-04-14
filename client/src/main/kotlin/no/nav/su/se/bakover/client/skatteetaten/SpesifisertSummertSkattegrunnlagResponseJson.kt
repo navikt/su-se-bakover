@@ -2,23 +2,27 @@ package no.nav.su.se.bakover.client.skatteetaten
 
 import arrow.core.Either
 import arrow.core.flatMap
-import no.nav.su.se.bakover.client.skatteetaten.SpesifisertSummertSkattegrunnlagResponseJson.SpesifisertSummertSkattegrunnlagsobjekt.Companion.toDomain
+import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
-import no.nav.su.se.bakover.domain.skatt.SkatteoppslagFeil
 import no.nav.su.se.bakover.domain.skatt.Stadie
+import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.Year
 import no.nav.su.se.bakover.client.skatteetaten.SpesifisertSummertSkattegrunnlagResponseJson.SpesifisertSummertSkattegrunnlagsobjekt.Spesifisering as EksternSpesifisering
+
+private val log = LoggerFactory.getLogger(SpesifisertSummertSkattegrunnlagResponseJson::class.java)
 
 internal data class SpesifisertSummertSkattegrunnlagResponseJson(
     val grunnlag: List<SpesifisertSummertSkattegrunnlagsobjekt> = emptyList(),
     val skatteoppgjoersdato: String?,
     val svalbardGrunnlag: List<SpesifisertSummertSkattegrunnlagsobjekt>? = null,
 ) {
+
     /**
      * @param spesifisering I følge modellen til skatt, kan et innslag ha 0, 1 eller flere spesifiseringer.
      */
@@ -42,10 +46,10 @@ internal data class SpesifisertSummertSkattegrunnlagResponseJson(
             val antattMarkedsverdi: String?,
         )
 
-        fun toDomain(): Skattegrunnlag.Grunnlag {
+        fun toDomain(år: Year, stadie: Stadie): Skattegrunnlag.Grunnlag {
             val spesifisering = spesifisering?.toDomain().also {
                 if (!kategori.contains("formue")) {
-                    log.error("Mottok spesifisering av kjøretøy som ikke er tilknyttet formue.")
+                    log.error("Mottok spesifisering av kjøretøy som ikke er tilknyttet formue. år: $år, stadie: $stadie, kategori: $kategori")
                 }
             } ?: emptyList()
 
@@ -95,22 +99,6 @@ internal data class SpesifisertSummertSkattegrunnlagResponseJson(
                 }
             }
         }
-
-        companion object {
-            fun List<SpesifisertSummertSkattegrunnlagsobjekt>.toDomain(): Skattegrunnlag.Grunnlagsliste {
-                return this.map { it.toDomain() }.let {
-                    Skattegrunnlag.Grunnlagsliste(
-                        formue = it.filterIsInstance<Skattegrunnlag.Grunnlag.Formue>(),
-                        inntekt = it.filterIsInstance<Skattegrunnlag.Grunnlag.Inntekt>(),
-                        inntektsfradrag = it.filterIsInstance<Skattegrunnlag.Grunnlag.Inntektsfradrag>(),
-                        formuesfradrag = it.filterIsInstance<Skattegrunnlag.Grunnlag.Formuesfradrag>(),
-                        verdsettingsrabattSomGirGjeldsreduksjon = it.filterIsInstance<Skattegrunnlag.Grunnlag.VerdsettingsrabattSomGirGjeldsreduksjon>(),
-                        oppjusteringAvEierinntekter = it.filterIsInstance<Skattegrunnlag.Grunnlag.OppjusteringAvEierinntekter>(),
-                        annet = it.filterIsInstance<Skattegrunnlag.Grunnlag.Annet>(),
-                    )
-                }
-            }
-        }
     }
 
     companion object {
@@ -119,14 +107,11 @@ internal data class SpesifisertSummertSkattegrunnlagResponseJson(
             fnr: Fnr,
             inntektsår: Year,
             stadie: Stadie,
-        ): Either<SkatteoppslagFeil, Skattegrunnlag.Årsgrunnlag> {
+        ): Either<SkatteoppslagFeil, Skattegrunnlag.SkattegrunnlagForÅr> {
             return Either.catch {
                 deserialize<SpesifisertSummertSkattegrunnlagResponseJson>(json)
             }.flatMap {
-                it.toDomain(
-                    inntektsår = inntektsår,
-                    stadie = stadie,
-                )
+                it.toDomain(inntektsår, stadie)
             }.mapLeft {
                 log.error("Feil skjedde under deserialisering/mapping av data fra Sigrun/Skatteetaten. Se sikkerlogg.")
                 sikkerLogg.error(
@@ -161,15 +146,27 @@ private fun List<EksternSpesifisering>.toDomain(): List<Skattegrunnlag.Spesifise
 }
 
 private fun SpesifisertSummertSkattegrunnlagResponseJson.toDomain(
-    inntektsår: Year,
+    år: Year,
     stadie: Stadie,
-): Either<Throwable, Skattegrunnlag.Årsgrunnlag> {
-    return Either.catch {
-        Skattegrunnlag.Årsgrunnlag(
-            inntektsår = inntektsår,
-            grunnlag = (grunnlag + (svalbardGrunnlag ?: emptyList())).toDomain(),
-            skatteoppgjørsdato = skatteoppgjoersdato?.let { LocalDate.parse(it) },
-            stadie = stadie,
-        )
+): Either<Throwable, Skattegrunnlag.SkattegrunnlagForÅr> {
+    val oppgjørsdato: LocalDate? = Either.catch {
+        this.skatteoppgjoersdato?.let { LocalDate.parse(it) }
+    }.getOrElse {
+        return it.left()
     }
+
+    val mappet: List<Skattegrunnlag.Grunnlag> = (this.grunnlag + (this.svalbardGrunnlag ?: emptyList()))
+        .map { it.toDomain(år, stadie) }
+
+    return Skattegrunnlag.SkattegrunnlagForÅr(
+        oppgjørsdato = oppgjørsdato,
+        formue = mappet.filterIsInstance<Skattegrunnlag.Grunnlag.Formue>(),
+        inntekt = mappet.filterIsInstance<Skattegrunnlag.Grunnlag.Inntekt>(),
+        inntektsfradrag = mappet.filterIsInstance<Skattegrunnlag.Grunnlag.Inntektsfradrag>(),
+        formuesfradrag = mappet.filterIsInstance<Skattegrunnlag.Grunnlag.Formuesfradrag>(),
+        verdsettingsrabattSomGirGjeldsreduksjon = mappet.filterIsInstance<Skattegrunnlag.Grunnlag.VerdsettingsrabattSomGirGjeldsreduksjon>(),
+        oppjusteringAvEierinntekter = mappet.filterIsInstance<Skattegrunnlag.Grunnlag.OppjusteringAvEierinntekter>(),
+        manglerKategori = mappet.filterIsInstance<Skattegrunnlag.Grunnlag.ManglerKategori>(),
+        annet = mappet.filterIsInstance<Skattegrunnlag.Grunnlag.Annet>(),
+    ).right()
 }

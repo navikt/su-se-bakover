@@ -61,6 +61,7 @@ sealed class Grunnlag {
             CopyArgs.Tidslinje.Full -> {
                 this.copy(id = UUID.randomUUID())
             }
+
             is CopyArgs.Tidslinje.NyPeriode -> {
                 this.copy(id = UUID.randomUUID(), periode = args.periode)
             }
@@ -155,6 +156,7 @@ sealed class Grunnlag {
                 true -> {
                     fjernPerioder(perioder = perioder)
                 }
+
                 false -> {
                     listOf(this)
                 }
@@ -247,6 +249,7 @@ sealed class Grunnlag {
             CopyArgs.Tidslinje.Full -> {
                 copy(id = UUID.randomUUID())
             }
+
             is CopyArgs.Tidslinje.NyPeriode -> {
                 /**
                  * TODO
@@ -266,8 +269,10 @@ sealed class Grunnlag {
      */
     sealed class Bosituasjon : Grunnlag() {
         abstract override val id: UUID
+        abstract override val periode: Periode
         abstract val opprettet: Tidspunkt
         abstract val satskategori: Satskategori?
+        abstract val eps: Fnr?
 
         /**
          * Bosituasjon med ektefelle/partner/samboer.
@@ -336,6 +341,9 @@ sealed class Grunnlag {
             fun List<Bosituasjon>.inneholderUfullstendigeBosituasjoner(): Boolean {
                 return this.filterIsInstance<Ufullstendig>().isNotEmpty()
             }
+
+            fun List<Bosituasjon>.harFjernetEllerEndretEps(oppdatertBosituasjon: List<Bosituasjon>): Boolean =
+                this.mapNotNull { it.eps }.distinct().containsAll(oppdatertBosituasjon.mapNotNull { it.eps }.distinct())
         }
 
         sealed class Fullstendig : Bosituasjon(), KanPlasseresPåTidslinje<Fullstendig> {
@@ -343,9 +351,8 @@ sealed class Grunnlag {
 
             sealed class EktefellePartnerSamboer : Fullstendig() {
                 abstract val fnr: Fnr
-                override fun harEPS(): Boolean {
-                    return true
-                }
+                override val eps: Fnr? get() = fnr
+                override fun harEPS(): Boolean = true
 
                 sealed class Under67 : EktefellePartnerSamboer() {
                     data class UførFlyktning(
@@ -354,7 +361,6 @@ sealed class Grunnlag {
                         override val periode: Periode,
                         override val fnr: Fnr,
                     ) : EktefellePartnerSamboer() {
-
                         override val satskategori: Satskategori = Satskategori.ORDINÆR
 
                         override fun erLik(other: Grunnlag): Boolean {
@@ -368,6 +374,7 @@ sealed class Grunnlag {
                             CopyArgs.Tidslinje.Full -> {
                                 copy(id = UUID.randomUUID())
                             }
+
                             is CopyArgs.Tidslinje.NyPeriode -> {
                                 copy(id = UUID.randomUUID(), periode = args.periode)
                             }
@@ -394,6 +401,7 @@ sealed class Grunnlag {
                             CopyArgs.Tidslinje.Full -> {
                                 copy(id = UUID.randomUUID())
                             }
+
                             is CopyArgs.Tidslinje.NyPeriode -> {
                                 copy(id = UUID.randomUUID(), periode = args.periode)
                             }
@@ -421,6 +429,7 @@ sealed class Grunnlag {
                         CopyArgs.Tidslinje.Full -> {
                             copy(id = UUID.randomUUID())
                         }
+
                         is CopyArgs.Tidslinje.NyPeriode -> {
                             copy(id = UUID.randomUUID(), periode = args.periode)
                         }
@@ -434,7 +443,7 @@ sealed class Grunnlag {
                 override val opprettet: Tidspunkt,
                 override val periode: Periode,
             ) : Fullstendig() {
-
+                override val eps: Fnr? get() = null
                 override val satskategori: Satskategori = Satskategori.HØY
 
                 override fun harEPS(): Boolean {
@@ -449,6 +458,7 @@ sealed class Grunnlag {
                     CopyArgs.Tidslinje.Full -> {
                         copy(id = UUID.randomUUID())
                     }
+
                     is CopyArgs.Tidslinje.NyPeriode -> {
                         copy(id = UUID.randomUUID(), periode = args.periode)
                     }
@@ -460,7 +470,7 @@ sealed class Grunnlag {
                 override val opprettet: Tidspunkt,
                 override val periode: Periode,
             ) : Fullstendig() {
-
+                override val eps: Fnr? get() = null
                 override val satskategori: Satskategori = Satskategori.ORDINÆR
 
                 override fun harEPS(): Boolean {
@@ -475,6 +485,7 @@ sealed class Grunnlag {
                     CopyArgs.Tidslinje.Full -> {
                         copy(id = UUID.randomUUID())
                     }
+
                     is CopyArgs.Tidslinje.NyPeriode -> {
                         copy(id = UUID.randomUUID(), periode = args.periode)
                     }
@@ -493,6 +504,7 @@ sealed class Grunnlag {
                 override val opprettet: Tidspunkt,
                 override val periode: Periode,
             ) : Ufullstendig() {
+                override val eps: Fnr? get() = null
                 override fun harEPS(): Boolean {
                     return false
                 }
@@ -510,6 +522,7 @@ sealed class Grunnlag {
                 override val periode: Periode,
                 val fnr: Fnr,
             ) : Ufullstendig() {
+                override val eps: Fnr? get() = fnr
                 override fun harEPS(): Boolean {
                     return true
                 }
@@ -529,6 +542,10 @@ fun Grunnlag.Bosituasjon.fullstendigOrThrow(): Grunnlag.Bosituasjon.Fullstendig 
 
 fun List<Grunnlag.Bosituasjon>.singleFullstendigOrThrow(): Grunnlag.Bosituasjon.Fullstendig {
     return singleOrThrow().fullstendigOrThrow()
+}
+
+fun List<Grunnlag.Bosituasjon>.singleFullstendigEpsOrNull(): Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer? {
+    return singleOrNull() as? Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer
 }
 
 fun List<Grunnlag.Bosituasjon>.singleOrThrow(): Grunnlag.Bosituasjon {

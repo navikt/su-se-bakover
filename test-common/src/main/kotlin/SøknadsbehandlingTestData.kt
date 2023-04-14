@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse

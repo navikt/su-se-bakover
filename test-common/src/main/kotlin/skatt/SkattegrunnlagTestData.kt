@@ -1,50 +1,87 @@
 package no.nav.su.se.bakover.test.skatt
 
+import arrow.core.Either
+import arrow.core.NonEmptyList
+import arrow.core.nonEmptyListOf
+import arrow.core.right
 import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.april
+import no.nav.su.se.bakover.common.YearRange
+import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
+import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
-import no.nav.su.se.bakover.domain.skatt.Stadie
+import no.nav.su.se.bakover.domain.skatt.Skattereferanser
+import no.nav.su.se.bakover.domain.skatt.toYearRange
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingMedSkattegrunnlag
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import java.time.Clock
 import java.time.LocalDate
 import java.time.Year
+import java.util.UUID
 
-fun nySkattegrunnlag(
-    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
-    årsgrunnlag: Skattegrunnlag.Årsgrunnlag = nyÅrsgrunnlag(),
-    clock: Clock = fixedClock,
-    hentetTidspunkt: Tidspunkt = Tidspunkt.now(clock),
-): Skattegrunnlag {
-    return Skattegrunnlag(
-        fnr = fnr,
-        hentetTidspunkt = hentetTidspunkt,
-        årsgrunnlag = årsgrunnlag,
+fun nySøknadsbehandlingMedSkattegrunnlag(
+    søkersId: UUID = UUID.randomUUID(),
+    søker: Skattegrunnlag = nySkattegrunnlag(),
+    epsId: UUID = UUID.randomUUID(),
+    eps: Skattegrunnlag? = null,
+    søknadsbehandling: Søknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().second,
+    opprettet: Tidspunkt = fixedTidspunkt,
+): SøknadsbehandlingMedSkattegrunnlag {
+    return SøknadsbehandlingMedSkattegrunnlag(
+        søknadsbehandling = søknadsbehandling.leggTilSkattereferanser(
+            Skattereferanser(søkers = søkersId, eps = if (eps != null) epsId else null),
+        ),
+        opprettet = opprettet,
+        søker = søker,
+        eps = eps,
     )
 }
 
-fun nyÅrsgrunnlag(
-    inntektsÅr: Year = Year.of(2021),
-    skatteoppgjørsdato: LocalDate = 1.april(2021),
-    grunnlag: Skattegrunnlag.Grunnlagsliste = nyGrunnlagsliste(),
-    stadie: Stadie = Stadie.OPPGJØR,
-) = Skattegrunnlag.Årsgrunnlag(
-    inntektsår = inntektsÅr,
-    skatteoppgjørsdato = skatteoppgjørsdato,
-    grunnlag = grunnlag,
-    stadie = stadie,
+fun nySkattegrunnlag(
+    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
+    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    årsgrunnlag: NonEmptyList<SamletSkattegrunnlagForÅrOgStadie> = nonEmptyListOf(
+        nySamletSkattegrunnlagForÅrOgStadieOppgjør(),
+    ),
+    clock: Clock = fixedClock,
+    hentetTidspunkt: Tidspunkt = Tidspunkt.now(clock),
+    årSpurtFor: YearRange = årsgrunnlag.toYearRange(),
+) = Skattegrunnlag(
+    fnr = fnr,
+    hentetTidspunkt = hentetTidspunkt,
+    saksbehandler = saksbehandler,
+    årsgrunnlag = årsgrunnlag,
+    årSpurtFor = årSpurtFor,
 )
 
-fun nyGrunnlagsliste(
+fun nySamletSkattegrunnlagForÅrOgStadieOppgjør(
+    inntektsÅr: Year = Year.of(2021),
+    oppslag: Either<KunneIkkeHenteSkattemelding, Skattegrunnlag.SkattegrunnlagForÅr> = nySkattegrunnlagForÅr().right(),
+): SamletSkattegrunnlagForÅrOgStadie.Oppgjør = SamletSkattegrunnlagForÅrOgStadie.Oppgjør(
+    oppslag = oppslag,
+    inntektsår = inntektsÅr,
+)
+
+fun nySkattegrunnlagForÅr(
+    oppgjørsdato: LocalDate? = null,
     inntekt: List<Skattegrunnlag.Grunnlag.Inntekt> = nyListeAvSkattegrunnlagInntekt(),
     formue: List<Skattegrunnlag.Grunnlag.Formue> = nyListeAvSkattegrunnlagFormue(),
     formuesFradrag: List<Skattegrunnlag.Grunnlag.Formuesfradrag> = nyListeAvFormuesfradrag(),
-    inntektsFradrag: List<Skattegrunnlag.Grunnlag.Inntektsfradrag> = nyListeAvInntektsfradrag(),
-) = Skattegrunnlag.Grunnlagsliste(
-    inntekt = inntekt,
-    formue = formue,
-    formuesfradrag = formuesFradrag,
-    inntektsfradrag = inntektsFradrag,
+    inntektsfradrag: List<Skattegrunnlag.Grunnlag.Inntektsfradrag> = nyListeAvInntektsfradrag(),
+    verdsettingsrabattSomGirGjeldsreduksjon: List<Skattegrunnlag.Grunnlag.VerdsettingsrabattSomGirGjeldsreduksjon> = nyListeAvVerdsettingsrabattSomGirGjeldsreduksjon(),
+    oppjusteringAvEierinntekt: List<Skattegrunnlag.Grunnlag.OppjusteringAvEierinntekter> = nyListeAvOppjusteringAvEierinntekt(),
+    manglerKategori: List<Skattegrunnlag.Grunnlag.ManglerKategori> = nyListeAvManglerKategori(),
+    annet: List<Skattegrunnlag.Grunnlag.Annet> = nyListeAvAnnet(),
+) = Skattegrunnlag.SkattegrunnlagForÅr(
+    oppgjørsdato = oppgjørsdato, inntekt = inntekt, formue = formue,
+    formuesfradrag = formuesFradrag, inntektsfradrag = inntektsfradrag,
+    verdsettingsrabattSomGirGjeldsreduksjon = verdsettingsrabattSomGirGjeldsreduksjon,
+    oppjusteringAvEierinntekter = oppjusteringAvEierinntekt,
+    manglerKategori = manglerKategori, annet = annet,
 )
 
 fun nyListeAvSkattegrunnlagInntekt(
@@ -54,10 +91,7 @@ fun nyListeAvSkattegrunnlagInntekt(
 fun nySkattegrunnlagInntekt(
     navn: String = "alminneligInntektFoerSaerfradrag",
     beløp: String = "1000",
-) = Skattegrunnlag.Grunnlag.Inntekt(
-    navn = navn,
-    beløp = beløp,
-)
+) = Skattegrunnlag.Grunnlag.Inntekt(navn = navn, beløp = beløp)
 
 fun nyListeAvSkattegrunnlagFormue(
     input: List<Skattegrunnlag.Grunnlag.Formue> = listOf(
@@ -120,3 +154,39 @@ fun nyInntektsFradrag(
     navn: String = "fradragForFagforeningskontingent",
     beløp: String = "4000",
 ) = Skattegrunnlag.Grunnlag.Inntektsfradrag(navn = navn, beløp = beløp)
+
+fun nyListeAvVerdsettingsrabattSomGirGjeldsreduksjon(
+    verdsetting: List<Skattegrunnlag.Grunnlag.VerdsettingsrabattSomGirGjeldsreduksjon> = listOf(
+        nyVerdsettingsrabattSomGirGjeldsreduksjon(),
+    ),
+) = verdsetting
+
+fun nyVerdsettingsrabattSomGirGjeldsreduksjon(
+    navn: String = "fradragForFagforeningskontingent",
+    beløp: String = "4000",
+) = Skattegrunnlag.Grunnlag.VerdsettingsrabattSomGirGjeldsreduksjon(navn = navn, beløp = beløp)
+
+fun nyListeAvOppjusteringAvEierinntekt(
+    oppjustering: List<Skattegrunnlag.Grunnlag.OppjusteringAvEierinntekter> = listOf(nyOppjusteringAvEierinntekt()),
+) = oppjustering
+
+fun nyOppjusteringAvEierinntekt(
+    navn: String = "fradragForFagforeningskontingent",
+    beløp: String = "4000",
+) = Skattegrunnlag.Grunnlag.OppjusteringAvEierinntekter(navn = navn, beløp = beløp)
+
+fun nyListeAvManglerKategori(
+    mangler: List<Skattegrunnlag.Grunnlag.ManglerKategori> = listOf(nyManglerKategori()),
+) = mangler
+
+fun nyManglerKategori(
+    navn: String = "fradragForFagforeningskontingent",
+    beløp: String = "4000",
+) = Skattegrunnlag.Grunnlag.ManglerKategori(navn = navn, beløp = beløp)
+
+fun nyListeAvAnnet(annet: List<Skattegrunnlag.Grunnlag.Annet> = listOf(nyAnnet())) = annet
+
+fun nyAnnet(
+    navn: String = "fradragForFagforeningskontingent",
+    beløp: String = "4000",
+) = Skattegrunnlag.Grunnlag.Annet(navn = navn, beløp = beløp)

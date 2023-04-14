@@ -4,8 +4,10 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.YearRange
 import no.nav.su.se.bakover.common.periode.Periode
 import org.jetbrains.annotations.TestOnly
+import java.time.Year
 
 data class Stønadsperiode private constructor(
     val periode: Periode,
@@ -40,4 +42,5 @@ data class Stønadsperiode private constructor(
 
     override fun compareTo(other: Stønadsperiode) = periode.compareTo(other.periode)
     fun måneder() = periode.måneder()
+    fun toYearRange(): YearRange = YearRange(Year.of(this.periode.fraOgMed.year), Year.of(this.periode.tilOgMed.year))
 }

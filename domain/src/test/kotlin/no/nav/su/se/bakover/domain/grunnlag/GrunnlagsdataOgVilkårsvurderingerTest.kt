@@ -56,6 +56,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                             ),
                         ),
                     ),
+                    skattereferanser = null,
                 ),
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.Uføre(
                     uføre = innvilgetUførevilkårForventetInntekt0(
@@ -99,6 +100,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                         ),
                     ),
                 ),
+                skattereferanser = null,
             ),
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.Uføre(
                 uføre = innvilgetUførevilkårForventetInntekt0(
@@ -164,6 +166,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                         ),
                     ),
                 ),
+                skattereferanser = null,
             ),
             vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
         )
@@ -179,12 +182,12 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
 
     @Test
     fun `oppdaterGrunnlagsperioder på tomme lister`() {
-        val tomGrunnlagsdata = Grunnlagsdata.create(emptyList(), emptyList())
+        val tomGrunnlagsdata = Grunnlagsdata.create(emptyList(), emptyList(), null)
 
         tomGrunnlagsdata.oppdaterGrunnlagsperioder(
             oppdatertPeriode = januar(2021),
             clock = fixedClock,
-        ) shouldBe Grunnlagsdata.create(emptyList(), emptyList()).right()
+        ) shouldBe Grunnlagsdata.create(emptyList(), emptyList(), null).right()
     }
 
     @Test
@@ -210,6 +213,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
         val grunnlagsdata = Grunnlagsdata.create(
             fradragsgrunnlag = listOf(fradragsgrunnlag),
             bosituasjon = listOf(bosiutasjongrunnlag),
+            skattereferanser = null,
         )
 
         val actual = grunnlagsdata.oppdaterGrunnlagsperioder(

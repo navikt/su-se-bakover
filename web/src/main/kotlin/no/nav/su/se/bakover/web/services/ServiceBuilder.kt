@@ -123,6 +123,11 @@ object ServiceBuilder {
             clock = clock,
         )
 
+        val skatteServiceImpl = SkatteServiceImpl(
+            skatteClient = clients.skatteOppslag,
+            clock = clock,
+        )
+
         val stansAvYtelseService = StansYtelseServiceImpl(
             utbetalingService = utbetalingService,
             revurderingRepo = databaseRepos.revurderingRepo,
@@ -200,6 +205,8 @@ object ServiceBuilder {
             tilbakekrevingService = tilbakekrevingService,
             formuegrenserFactory = satsFactory.formuegrenserFactory,
             satsFactory = satsFactory,
+            sessionFactory = databaseRepos.sessionFactory,
+            skatteService = skatteServiceImpl,
         ).apply {
             addObserver(statistikkEventObserver)
         }
@@ -222,11 +229,6 @@ object ServiceBuilder {
             oppgaveService = oppgaveService,
             personService = personService,
             sessionFactory = databaseRepos.sessionFactory,
-            clock = clock,
-        )
-        val skatteServiceImpl = SkatteServiceImpl(
-            skatteClient = clients.skatteOppslag,
-            søknadsbehandlingService = søknadsbehandlingService,
             clock = clock,
         )
         val iverksettSøknadsbehandlingService = IverksettSøknadsbehandlingServiceImpl(

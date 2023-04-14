@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
 import io.ktor.server.routing.Route
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.toggle.domain.ToggleClient
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.iverksett.iverksettSøknadsbehandlingRoute
@@ -13,6 +14,7 @@ internal fun Route.overordnetSøknadsbehandligRoutes(
     søknadsbehandlingServices: SøknadsbehandlingServices,
     clock: Clock,
     satsFactory: SatsFactory,
+    toggleClient: ToggleClient,
     applicationConfig: ApplicationConfig,
 ) {
     søknadsbehandlingRoutes(søknadsbehandlingServices.søknadsbehandlingService, clock, satsFactory)
@@ -49,4 +51,5 @@ internal fun Route.overordnetSøknadsbehandligRoutes(
         clock,
         applicationConfig,
     )
+    hentSamletSkattegrunnlagRoute(søknadsbehandlingServices.søknadsbehandlingService, toggleClient)
 }

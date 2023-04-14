@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknad.Søknad
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk

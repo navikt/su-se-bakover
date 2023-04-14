@@ -21,6 +21,8 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
+import no.nav.su.se.bakover.domain.skatt.Skattereferanser
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
@@ -37,6 +39,24 @@ sealed class VilkårsvurdertSøknadsbehandling :
     Søknadsbehandling.KanOppdaterePeriodeGrunnlagVilkår {
 
     abstract override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert
+
+    fun leggTilSkattegrunnlag(
+        søkers: Skattegrunnlag,
+        eps: Skattegrunnlag?,
+        clock: Clock,
+    ): SøknadsbehandlingMedSkattegrunnlag = SøknadsbehandlingMedSkattegrunnlag(
+        søknadsbehandling = this.copyInternal(
+            grunnlagsdataOgVilkårsvurderinger = this.grunnlagsdataOgVilkårsvurderinger.leggTilSkattereferanser(
+                Skattereferanser(
+                    søkers = UUID.randomUUID(),
+                    eps = if (eps != null) UUID.randomUUID() else null,
+                ),
+            ),
+        ),
+        opprettet = Tidspunkt.now(clock),
+        søker = søkers,
+        eps = eps,
+    )
 
     companion object {
         fun opprett(
@@ -88,43 +108,43 @@ sealed class VilkårsvurdertSøknadsbehandling :
             return when (oppdaterteVilkårsvurderinger.vurdering) {
                 is Vilkårsvurderingsresultat.Avslag -> {
                     Avslag(
-                        id,
-                        opprettet,
-                        sakId,
-                        saksnummer,
-                        søknad,
-                        oppgaveId,
-                        fnr,
-                        fritekstTilBrev,
-                        aldersvurdering,
-                        grunnlagsdata,
-                        oppdaterteVilkårsvurderinger,
-                        attesteringer,
-                        saksbehandlingsHistorikk,
-                        avkorting.kanIkke(),
-                        sakstype,
-                        saksbehandler,
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        søknad = søknad,
+                        oppgaveId = oppgaveId,
+                        fnr = fnr,
+                        fritekstTilBrev = fritekstTilBrev,
+                        aldersvurdering = aldersvurdering,
+                        grunnlagsdata = grunnlagsdata,
+                        vilkårsvurderinger = oppdaterteVilkårsvurderinger,
+                        attesteringer = attesteringer,
+                        søknadsbehandlingsHistorikk = saksbehandlingsHistorikk,
+                        avkorting = avkorting.kanIkke(),
+                        sakstype = sakstype,
+                        saksbehandler = saksbehandler,
                     )
                 }
 
                 is Vilkårsvurderingsresultat.Innvilget -> {
                     Innvilget(
-                        id,
-                        opprettet,
-                        sakId,
-                        saksnummer,
-                        søknad,
-                        oppgaveId,
-                        fnr,
-                        fritekstTilBrev,
-                        aldersvurdering,
-                        grunnlagsdata,
-                        oppdaterteVilkårsvurderinger,
-                        attesteringer,
-                        saksbehandlingsHistorikk,
-                        avkorting.uhåndtert(),
-                        sakstype,
-                        saksbehandler,
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        søknad = søknad,
+                        oppgaveId = oppgaveId,
+                        fnr = fnr,
+                        fritekstTilBrev = fritekstTilBrev,
+                        aldersvurdering = aldersvurdering,
+                        grunnlagsdata = grunnlagsdata,
+                        vilkårsvurderinger = oppdaterteVilkårsvurderinger,
+                        attesteringer = attesteringer,
+                        søknadsbehandlingsHistorikk = saksbehandlingsHistorikk,
+                        avkorting = avkorting.uhåndtert(),
+                        sakstype = sakstype,
+                        saksbehandler = saksbehandler,
                     )
                 }
 
@@ -145,7 +165,7 @@ sealed class VilkårsvurdertSøknadsbehandling :
                         søknadsbehandlingsHistorikk = saksbehandlingsHistorikk,
                         avkorting = avkorting.kanIkke(),
                         sakstype = sakstype,
-                        saksbehandler,
+                        saksbehandler = saksbehandler,
                     )
                 }
             }

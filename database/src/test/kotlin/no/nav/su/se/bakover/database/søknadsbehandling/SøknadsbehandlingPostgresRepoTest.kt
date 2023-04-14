@@ -6,7 +6,6 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.år
@@ -19,7 +18,9 @@ import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.skatt.Skattereferanser
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingMedSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
@@ -31,6 +32,7 @@ import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.grunnlagsdataMedEpsMedFradrag
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
@@ -42,6 +44,7 @@ import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
+import no.nav.su.se.bakover.test.skatt.nySkattegrunnlag
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.stønadsperiode2022
 import no.nav.su.se.bakover.test.toFormueRequestGrunnlag
@@ -106,9 +109,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
     fun `kan oppdatere med alle vilkår oppfylt`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.søknadsbehandlingRepo
             val vilkårsvurdert: VilkårsvurdertSøknadsbehandling.Innvilget =
                 testDataHelper.persisterSøknadsbehandlingVilkårsvurdertInnvilget().second
+            val repo = testDataHelper.søknadsbehandlingRepo
             repo.hent(vilkårsvurdert.id).also {
                 it shouldBe vilkårsvurdert
             }
@@ -317,7 +320,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
     @Nested
     inner class Iverksatt {
         @Test
-        fun `iverksatt avslag innvilget`() {
+        fun `iverksatt innvilget`() {
             withMigratedDb { dataSource ->
                 val testDataHelper = TestDataHelper(dataSource)
                 val repo = testDataHelper.søknadsbehandlingRepo
@@ -525,6 +528,132 @@ internal class SøknadsbehandlingPostgresRepoTest {
                         behandlingId = iverksattSøknadsbehandlingVedtak.behandling.id,
                     )
                 }
+        }
+    }
+
+    @Test
+    fun `lagrer & erstatter & fjerner med skattegrunnlag`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.søknadsbehandlingRepo
+            val behandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertInnvilget().second
+            repo.hent(behandling.id).let {
+                it shouldNotBe null
+                it!!.grunnlagsdata.skattereferanser shouldBe null
+                repo.hentSkattegrunnlag(behandling.id) shouldBe null
+            }
+
+            val søkersId = UUID.randomUUID()
+            val epsId = UUID.randomUUID()
+            val oppdatertBehandlingMedSkattereferanserForSøker = behandling.copy(
+                grunnlagsdata = behandling.grunnlagsdata.copy(
+                    skattereferanser = Skattereferanser(søkersId, null),
+                ),
+            ).also { oppdatertSøknadsbehandling ->
+                repo.lagreMedSkattegrunnlag(
+                    SøknadsbehandlingMedSkattegrunnlag(
+                        søknadsbehandling = oppdatertSøknadsbehandling,
+                        opprettet = fixedTidspunkt,
+                        søker = nySkattegrunnlag(),
+                        eps = null,
+                    ),
+                )
+                repo.hent(oppdatertSøknadsbehandling.id).let {
+                    it shouldNotBe null
+                    it!!.grunnlagsdata.skattereferanser shouldNotBe null
+                    it.grunnlagsdata.skattereferanser?.eps shouldBe null
+                    repo.hentSkattegrunnlag(behandling.id)!!.let {
+                        it.eps shouldBe null
+                        it.søker shouldNotBe null
+                        it.søknadsbehandling shouldBe oppdatertSøknadsbehandling
+                    }
+                }
+            }
+
+            val oppdatertMedEps = oppdatertBehandlingMedSkattereferanserForSøker.copy(
+                grunnlagsdata = grunnlagsdataMedEpsMedFradrag(
+                    skattereferanser = Skattereferanser(søkersId, epsId),
+                ),
+            ).also { oppdatertSøknadsbehandlingMedEps ->
+                repo.lagreMedSkattegrunnlag(
+                    SøknadsbehandlingMedSkattegrunnlag(
+                        søknadsbehandling = oppdatertSøknadsbehandlingMedEps,
+                        opprettet = fixedTidspunkt,
+                        søker = nySkattegrunnlag(),
+                        eps = nySkattegrunnlag(),
+                    ),
+                )
+                repo.hent(oppdatertSøknadsbehandlingMedEps.id)!!.let {
+                    it.grunnlagsdata.skattereferanser shouldNotBe null
+                    it.grunnlagsdata.skattereferanser?.eps shouldNotBe null
+                    repo.hentSkattegrunnlag(behandling.id)!!.let {
+                        it.eps shouldNotBe null
+                        it.søker shouldNotBe null
+                        it.søknadsbehandling shouldBe oppdatertSøknadsbehandlingMedEps
+                    }
+                }
+            }
+            oppdatertMedEps.copy(
+                grunnlagsdata = grunnlagsdataMedEpsMedFradrag(
+                    skattereferanser = Skattereferanser(søkersId, null),
+                ),
+            ).also { oppdatertUtenEps ->
+                repo.lagreMedSkattegrunnlag(
+                    SøknadsbehandlingMedSkattegrunnlag(
+                        søknadsbehandling = oppdatertUtenEps,
+                        opprettet = fixedTidspunkt,
+                        søker = nySkattegrunnlag(),
+                        eps = null,
+                    ),
+                )
+                repo.hentSkattegrunnlag(oppdatertUtenEps.id)!!.let {
+                    it.eps shouldBe null
+                    it.søker shouldNotBe null
+                    it.søknadsbehandling shouldBe oppdatertUtenEps
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `fjerner skattemelding ved lagring av behandling`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.søknadsbehandlingRepo
+            val persistertSkattegrunnlag = testDataHelper.persisterSkattegrunnlag(eps = nySkattegrunnlag())
+            val behandling = persistertSkattegrunnlag.søknadsbehandling as VilkårsvurdertSøknadsbehandling.Uavklart
+            val søkersId = persistertSkattegrunnlag.søkersSkatteId
+
+            repo.hent(behandling.id)!!.let {
+                it.grunnlagsdata.skattereferanser shouldNotBe null
+                it.grunnlagsdata.skattereferanser!!.søkers shouldBe persistertSkattegrunnlag.søkersSkatteId
+                it.grunnlagsdata.skattereferanser?.eps shouldNotBe null
+                it.grunnlagsdata.skattereferanser?.eps shouldBe persistertSkattegrunnlag.epsSkatteId
+            }
+
+            repo.hentSkattegrunnlag(behandling.id)!!.let {
+                it.eps shouldNotBe null
+                it.søknadsbehandling shouldBe behandling
+            }
+
+            behandling.copy(
+                grunnlagsdata = behandling.grunnlagsdata.copy(
+                    skattereferanser = Skattereferanser(søkersId, null),
+                ),
+            ).also { oppdatertSøknadsbehandling ->
+                repo.lagre(oppdatertSøknadsbehandling)
+                repo.hent(oppdatertSøknadsbehandling.id)!!.let {
+                    it.grunnlagsdata.skattereferanser shouldNotBe null
+                    it.grunnlagsdata.skattereferanser!!.søkers shouldBe persistertSkattegrunnlag.søkersSkatteId
+                    it.grunnlagsdata.skattereferanser?.eps shouldBe null
+                }
+                repo.hentSkattegrunnlag(oppdatertSøknadsbehandling.id)!!.let {
+                    it.epsSkatteId shouldBe oppdatertSøknadsbehandling.grunnlagsdata.skattereferanser?.eps
+                    it.eps shouldBe null
+                    it.epsSkatteId shouldBe null
+                    it.søknadsbehandling shouldBe oppdatertSøknadsbehandling
+                }
+            }
         }
     }
 

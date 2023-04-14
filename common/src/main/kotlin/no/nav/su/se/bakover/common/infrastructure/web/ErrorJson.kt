@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.common.infrastructure.web
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.ktor.http.HttpStatusCode
 
 data class ErrorJson(
     val message: String,
@@ -12,4 +13,12 @@ data class ErrorJson(
      * */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     val code: String? = null,
-)
+) {
+    /**
+     * Kaster exception dersom denne brukes på en ErrorJson uten code
+     */
+    fun tilResultat(httpStatusCode: HttpStatusCode): Resultat {
+        if (code == null) throw IllegalArgumentException("Prøvde å gjøre en errorJson til resultat uten en error code. Error code er påkrevd")
+        return httpStatusCode.errorJson(message, code)
+    }
+}

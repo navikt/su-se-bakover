@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.domain.skatt.Skattereferanser
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 
@@ -115,12 +116,17 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
         behandlingId: UUID,
         session: Session,
         sakstype: Sakstype,
+        skattereferanser: Skattereferanser?,
     ): GrunnlagsdataOgVilkårsvurderinger.Revurdering {
         return dbMetrics.timeQuery("hentGrunnlagOgVilkårsvurderingerForRevurderingId") {
             val grunnlagsdata = Grunnlagsdata.create(
                 fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandlingId, session),
                 // for revurdering kan man bare ha fullstendige bosituasjoner
-                bosituasjon = bosituasjongrunnlagPostgresRepo.hentBosituasjongrunnlag(behandlingId, session) as List<Grunnlag.Bosituasjon.Fullstendig>,
+                bosituasjon = bosituasjongrunnlagPostgresRepo.hentBosituasjongrunnlag(
+                    behandlingId,
+                    session,
+                ) as List<Grunnlag.Bosituasjon.Fullstendig>,
+                skattereferanser = skattereferanser,
             )
             val vilkårsvurderinger = when (sakstype) {
                 Sakstype.ALDER -> {
@@ -138,6 +144,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                         personligOppmøte = personligOppmøteVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                     )
                 }
+
                 Sakstype.UFØRE -> {
                     Vilkårsvurderinger.Revurdering.Uføre(
                         uføre = uføreVilkårsvurderingPostgresRepo.hent(behandlingId, session),
@@ -166,11 +173,13 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
         behandlingId: UUID,
         session: Session,
         sakstype: Sakstype,
+        skattereferanser: Skattereferanser? = null,
     ): GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling {
         return dbMetrics.timeQuery("hentGrunnlagOgVilkårsvurderingerForSøknadsbehandlingId") {
             val grunnlagsdata = Grunnlagsdata.createTillatUfullstendigBosituasjon(
                 fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandlingId, session),
                 bosituasjon = bosituasjongrunnlagPostgresRepo.hentBosituasjongrunnlag(behandlingId, session),
+                skattereferanser = skattereferanser,
             )
 
             val vilkårsvurderinger = when (sakstype) {
@@ -193,6 +202,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                         ),
                     )
                 }
+
                 Sakstype.UFØRE -> {
                     Vilkårsvurderinger.Søknadsbehandling.Uføre(
                         uføre = uføreVilkårsvurderingPostgresRepo.hent(behandlingId, session),

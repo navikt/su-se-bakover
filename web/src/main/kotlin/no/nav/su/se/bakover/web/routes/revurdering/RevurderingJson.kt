@@ -29,6 +29,7 @@ import java.time.format.DateTimeFormatter
 
 internal sealed class RevurderingJson {
     abstract val id: String
+    abstract val sakId: String
     abstract val status: RevurderingsStatus
     abstract val opprettet: String
     abstract val periode: PeriodeJson
@@ -101,6 +102,7 @@ internal enum class RevurderingsStatus {
 
 internal data class OpprettetRevurderingJson(
     override val id: String,
+    override val sakId: String,
     override val status: RevurderingsStatus,
     override val opprettet: String,
     override val periode: PeriodeJson,
@@ -117,6 +119,7 @@ internal data class OpprettetRevurderingJson(
 
 internal data class BeregnetRevurderingJson(
     override val id: String,
+    override val sakId: String,
     override val status: RevurderingsStatus,
     override val opprettet: String,
     override val periode: PeriodeJson,
@@ -134,6 +137,7 @@ internal data class BeregnetRevurderingJson(
 
 internal data class SimulertRevurderingJson(
     override val id: String,
+    override val sakId: String,
     override val opprettet: String,
     override val periode: PeriodeJson,
     override val tilRevurdering: String,
@@ -154,6 +158,7 @@ internal data class SimulertRevurderingJson(
 
 internal data class TilAttesteringJson(
     override val id: String,
+    override val sakId: String,
     override val opprettet: String,
     override val periode: PeriodeJson,
     override val tilRevurdering: String,
@@ -174,6 +179,7 @@ internal data class TilAttesteringJson(
 
 internal data class IverksattRevurderingJson(
     override val id: String,
+    override val sakId: String,
     override val opprettet: String,
     override val periode: PeriodeJson,
     override val tilRevurdering: String,
@@ -194,6 +200,7 @@ internal data class IverksattRevurderingJson(
 
 internal data class UnderkjentRevurderingJson(
     override val id: String,
+    override val sakId: String,
     override val opprettet: String,
     override val status: RevurderingsStatus,
     override val periode: PeriodeJson,
@@ -214,6 +221,7 @@ internal data class UnderkjentRevurderingJson(
 
 internal data class AvsluttetRevurderingJson(
     override val id: String,
+    override val sakId: String,
     override val opprettet: String,
     override val periode: PeriodeJson,
     override val tilRevurdering: String,
@@ -233,6 +241,7 @@ internal data class AvsluttetRevurderingJson(
 
 internal data class StansAvUtbetalingJson(
     override val id: String,
+    override val sakId: String,
     override val opprettet: String,
     override val periode: PeriodeJson,
     override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
@@ -250,6 +259,7 @@ internal data class StansAvUtbetalingJson(
 
 internal data class GjenopptakAvYtelseJson(
     override val id: String,
+    override val sakId: String,
     override val opprettet: String,
     override val status: RevurderingsStatus,
     override val periode: PeriodeJson,
@@ -270,6 +280,7 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson {
     return when (this) {
         is OpprettetRevurdering -> OpprettetRevurderingJson(
             id = id.toString(),
+            sakId = sakId.toString(),
             opprettet = formatertOpprettet,
             status = InstansTilStatusMapper(this).status,
             periode = periode.toJson(),
@@ -290,6 +301,7 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson {
 
         is SimulertRevurdering -> SimulertRevurderingJson(
             id = id.toString(),
+            sakId = sakId.toString(),
             opprettet = formatertOpprettet,
             periode = periode.toJson(),
             tilRevurdering = tilRevurdering.toString(),
@@ -317,6 +329,7 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson {
 
         is RevurderingTilAttestering -> TilAttesteringJson(
             id = id.toString(),
+            sakId = sakId.toString(),
             opprettet = formatertOpprettet,
             periode = periode.toJson(),
             tilRevurdering = tilRevurdering.toString(),
@@ -350,6 +363,7 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson {
 
         is IverksattRevurdering -> IverksattRevurderingJson(
             id = id.toString(),
+            sakId = sakId.toString(),
             opprettet = formatertOpprettet,
             periode = periode.toJson(),
             tilRevurdering = tilRevurdering.toString(),
@@ -383,6 +397,7 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson {
 
         is UnderkjentRevurdering -> UnderkjentRevurderingJson(
             id = id.toString(),
+            sakId = sakId.toString(),
             opprettet = formatertOpprettet,
             periode = periode.toJson(),
             tilRevurdering = tilRevurdering.toString(),
@@ -416,6 +431,7 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson {
 
         is BeregnetRevurdering -> BeregnetRevurderingJson(
             id = id.toString(),
+            sakId = sakId.toString(),
             opprettet = formatertOpprettet,
             periode = periode.toJson(),
             tilRevurdering = tilRevurdering.toString(),
@@ -437,6 +453,7 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson {
 
         is AvsluttetRevurdering -> AvsluttetRevurderingJson(
             id = id.toString(),
+            sakId = sakId.toString(),
             opprettet = formatertOpprettet,
             periode = periode.toJson(),
             tilRevurdering = tilRevurdering.toString(),
@@ -496,6 +513,7 @@ internal fun StansAvYtelseRevurdering.toJson(satsFactory: SatsFactory): Revurder
     return when (this) {
         is StansAvYtelseRevurdering.IverksattStansAvYtelse -> StansAvUtbetalingJson(
             id = id.toString(),
+            sakId = sakId.toString(),
             opprettet = formatertOpprettet,
             periode = periode.toJson(),
             grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(
@@ -516,6 +534,7 @@ internal fun StansAvYtelseRevurdering.toJson(satsFactory: SatsFactory): Revurder
         is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {
             StansAvUtbetalingJson(
                 id = id.toString(),
+                sakId = sakId.toString(),
                 opprettet = formatertOpprettet,
                 periode = periode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(
@@ -536,6 +555,7 @@ internal fun StansAvYtelseRevurdering.toJson(satsFactory: SatsFactory): Revurder
         }
         is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> StansAvUtbetalingJson(
             id = id.toString(),
+            sakId = sakId.toString(),
             opprettet = formatertOpprettet,
             periode = periode.toJson(),
             grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(
@@ -563,6 +583,7 @@ internal fun GjenopptaYtelseRevurdering.toJson(satsFactory: SatsFactory): Revurd
         is GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse -> {
             GjenopptakAvYtelseJson(
                 id = id.toString(),
+                sakId = sakId.toString(),
                 opprettet = formatertOpprettet,
                 periode = periode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(
@@ -583,6 +604,7 @@ internal fun GjenopptaYtelseRevurdering.toJson(satsFactory: SatsFactory): Revurd
         }
         is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> GjenopptakAvYtelseJson(
             id = id.toString(),
+            sakId = sakId.toString(),
             opprettet = formatertOpprettet,
             periode = periode.toJson(),
             grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(
@@ -602,6 +624,7 @@ internal fun GjenopptaYtelseRevurdering.toJson(satsFactory: SatsFactory): Revurd
         )
         is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> GjenopptakAvYtelseJson(
             id = id.toString(),
+            sakId = sakId.toString(),
             opprettet = formatertOpprettet,
             periode = periode.toJson(),
             grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(
