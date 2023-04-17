@@ -28,7 +28,7 @@
     "MQ_SEND_QUEUE_AVSTEMMING": "queue:///QA.Q1_234.OB29_AVSTEMMING_XML?targetClient=1",
     "FRIKORT_SERVICE_USERNAME": "srvfrikortborger,srvfrikorttjenester",
     "PDL_CLIENT_ID": "api://dev-fss.pdl.pdl-api",
-    "KABAL_URL": "https://kabal-api.dev.intern.nav.no",
+    "KABAL_URL": "https://kabal-api.intern.dev.nav.no",
     "KABAL_CLIENT_ID": "api://dev-gcp.klage.kabal-api",
     "SAF_URL": "https://saf.dev.intern.nav.no",
     "SAF_CLIENT_ID": "api://dev-fss.teamdokumenthandtering.saf",
