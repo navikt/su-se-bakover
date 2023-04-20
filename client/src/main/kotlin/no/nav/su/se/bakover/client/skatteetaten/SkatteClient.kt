@@ -125,18 +125,6 @@ internal class SkatteClient(
         correlationId: CorrelationId,
     ): SamletSkattegrunnlagResponseMedYear {
         return withContext(Dispatchers.IO) {
-            /**
-             * Fastsatt kan ikke hentes fra sigrunn enda. Vi hardkoder den til at den ikke
-             * eksisterer intill videre
-             */
-            /*
-            val samletSkattFastsatt = async(Dispatchers.IO) {
-                Pair(
-                    hentSamletSkattegrunnlagFraSkatt(fnr, inntektsÅr, Stadie.FASTSATT, token, correlationId),
-                    Stadie.FASTSATT,
-                )
-            }
-             */
             val samletSkattOppgjør = async(Dispatchers.IO) {
                 Pair(
                     hentSamletSkattegrunnlagFraSkatt(fnr, inntektsÅr, Stadie.OPPGJØR, token, correlationId),
@@ -149,7 +137,7 @@ internal class SkatteClient(
                     Stadie.UTKAST,
                 )
             }
-            listOf(/*samletSkattFastsatt,*/ samletSkattOppgjør, samletSkattUtkast)
+            listOf(samletSkattOppgjør, samletSkattUtkast)
                 .awaitAll().let {
                     SamletSkattegrunnlagResponseMedYear(
                         it.map { SamletSkattegrunnlagResponseMedStadie(it.first, it.second, inntektsÅr) },
@@ -167,7 +155,7 @@ internal class SkatteClient(
         correlationId: CorrelationId,
     ): Either<SkatteoppslagFeil, Skattegrunnlag.Årsgrunnlag> {
         val getRequest = HttpRequest.newBuilder()
-            .uri(URI.create("${skatteetatenConfig.apiBaseUrl}/api/spesifisertsummertskattegrunnlag"))
+            .uri(URI.create("${skatteetatenConfig.apiBaseUrl}/api/v1/spesifisertsummertskattegrunnlag"))
             .setHeader("Accept", "application/json")
             .setHeader("Authorization", "Bearer $token")
             .setHeader("Nav-Personident", fnr.toString())

@@ -33,11 +33,6 @@ class SkatteClientStub(
     private fun samletYear(år: Year) = SamletSkattegrunnlagResponseMedYear(
         skatteResponser = listOf(
             SamletSkattegrunnlagResponseMedStadie(
-                stadie = Stadie.FASTSATT,
-                oppslag = årsgrunnlag(år, Stadie.FASTSATT).right(),
-                inntektsår = år,
-            ),
-            SamletSkattegrunnlagResponseMedStadie(
                 stadie = Stadie.OPPGJØR,
                 oppslag = årsgrunnlag(år, Stadie.OPPGJØR).right(),
                 inntektsår = år,

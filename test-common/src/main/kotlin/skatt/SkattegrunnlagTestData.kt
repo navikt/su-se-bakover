@@ -27,7 +27,7 @@ fun nyÅrsgrunnlag(
     inntektsÅr: Year = Year.of(2021),
     skatteoppgjørsdato: LocalDate = 1.april(2021),
     grunnlag: Skattegrunnlag.Grunnlagsliste = nyGrunnlagsliste(),
-    stadie: Stadie = Stadie.FASTSATT,
+    stadie: Stadie = Stadie.OPPGJØR,
 ) = Skattegrunnlag.Årsgrunnlag(
     inntektsår = inntektsÅr,
     skatteoppgjørsdato = skatteoppgjørsdato,

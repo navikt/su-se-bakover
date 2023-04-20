@@ -60,7 +60,7 @@ internal class SamletSkattegrunnlagTest {
     @Test
     fun `nettverks feil håndteres`() {
         wireMockServer.stubFor(
-            WireMock.get("/api/spesifisertsummertskattegrunnlag")
+            WireMock.get("/api/v1/spesifisertsummertskattegrunnlag")
                 .willReturn(WireMock.aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)),
         )
 
@@ -68,7 +68,6 @@ internal class SamletSkattegrunnlagTest {
         val år = Year.of(2021)
         val expected = SamletSkattegrunnlagResponseMedYear(
             skatteResponser = listOf(
-                // SamletSkattegrunnlagResponseMedStadie(oppslag = nettverksfeil.left(), stadie = Stadie.FASTSATT, år),
                 SamletSkattegrunnlagResponseMedStadie(oppslag = nettverksfeil.left(), stadie = Stadie.OPPGJØR, år),
                 SamletSkattegrunnlagResponseMedStadie(oppslag = nettverksfeil.left(), stadie = Stadie.UTKAST, år),
             ),
@@ -78,9 +77,6 @@ internal class SamletSkattegrunnlagTest {
         client.hentSamletSkattegrunnlag(fnr, år).let {
             it.shouldBeInstanceOf<Either.Right<SamletSkattegrunnlagResponseMedYear>>()
             it.value.år shouldBe expected.år
-
-            // it.value.skatteResponser.first().stadie shouldBe Stadie.FASTSATT
-            // it.value.skatteResponser.first().oppslag.shouldBeLeft()
             it.value.skatteResponser[0].stadie shouldBe Stadie.OPPGJØR
             it.value.skatteResponser[0].oppslag.shouldBeLeft()
             it.value.skatteResponser.last().stadie shouldBe Stadie.UTKAST
@@ -91,7 +87,7 @@ internal class SamletSkattegrunnlagTest {
     @Test
     fun `ukjent fnr returnerer feilkode og tilsvarende skatteoppslagsfeil`() {
         wireMockServer.stubFor(
-            WireMock.get("/api/spesifisertsummertskattegrunnlag")
+            WireMock.get("/api/v1/spesifisertsummertskattegrunnlag")
                 .willReturn(
                     WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
@@ -118,11 +114,6 @@ internal class SamletSkattegrunnlagTest {
             år = år,
         ) shouldBe SamletSkattegrunnlagResponseMedYear(
             skatteResponser = listOf(
-                /* SamletSkattegrunnlagResponseMedStadie(
-                     oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år).left(),
-                     stadie = Stadie.FASTSATT,
-                     inntektsår = år,
-                 ),*/
                 SamletSkattegrunnlagResponseMedStadie(
                     oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år).left(),
                     stadie = Stadie.OPPGJØR,
@@ -141,7 +132,7 @@ internal class SamletSkattegrunnlagTest {
     @Test
     fun `hvis skattegrunnlag ikke eksisterer for fnr og gitt år så mapper vi til tilsvarende skatteoppslagsfeil`() {
         wireMockServer.stubFor(
-            WireMock.get("/api/spesifisertsummertskattegrunnlag")
+            WireMock.get("/api/v1/spesifisertsummertskattegrunnlag")
                 .willReturn(
                     WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
@@ -168,11 +159,6 @@ internal class SamletSkattegrunnlagTest {
             år = år,
         ) shouldBe SamletSkattegrunnlagResponseMedYear(
             skatteResponser = listOf(
-               /* SamletSkattegrunnlagResponseMedStadie(
-                    oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år).left(),
-                    stadie = Stadie.FASTSATT,
-                    inntektsår = år,
-                ),*/
                 SamletSkattegrunnlagResponseMedStadie(
                     oppslag = SkatteoppslagFeil.FantIkkeSkattegrunnlagForPersonOgÅr(år).left(),
                     stadie = Stadie.OPPGJØR,
@@ -191,7 +177,7 @@ internal class SamletSkattegrunnlagTest {
     @Test
     fun `feil i mapping håndteres`() {
         wireMockServer.stubFor(
-            WireMock.get("/api/spesifisertsummertskattegrunnlag")
+            WireMock.get("/api/v1/spesifisertsummertskattegrunnlag")
                 .willReturn(
                     WireMock.ok(
                         """
@@ -216,7 +202,7 @@ internal class SamletSkattegrunnlagTest {
     @Test
     fun `feil i deserializering håndteres`() {
         wireMockServer.stubFor(
-            WireMock.get("/api/spesifisertsummertskattegrunnlag")
+            WireMock.get("/api/v1/spesifisertsummertskattegrunnlag")
                 .willReturn(
                     WireMock.ok(
                         """
@@ -242,7 +228,7 @@ internal class SamletSkattegrunnlagTest {
     @Test
     fun `success response gir mapped data`() {
         wireMockServer.stubFor(
-            WireMock.get("/api/spesifisertsummertskattegrunnlag")
+            WireMock.get("/api/v1/spesifisertsummertskattegrunnlag")
                 .willReturn(
                     // language=JSON
                     WireMock.ok(
@@ -311,12 +297,6 @@ internal class SamletSkattegrunnlagTest {
             år = år,
         ) shouldBe SamletSkattegrunnlagResponseMedYear(
             skatteResponser = listOf(
-                /*SamletSkattegrunnlagResponseMedStadie(
-                    oppslag = nyÅrsgrunnlag().right(),
-                    stadie = Stadie.FASTSATT,
-                    inntektsår = år,
-                ),
-                 */
                 SamletSkattegrunnlagResponseMedStadie(
                     oppslag = nyÅrsgrunnlag(stadie = Stadie.OPPGJØR).right(),
                     stadie = Stadie.OPPGJØR,
