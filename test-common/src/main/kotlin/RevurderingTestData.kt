@@ -65,6 +65,7 @@ import no.nav.su.se.bakover.test.simulering.simulerGjenopptak
 import no.nav.su.se.bakover.test.simulering.simulerOpphør
 import no.nav.su.se.bakover.test.simulering.simulerStans
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
+import no.nav.su.se.bakover.test.utbetaling.kvittering
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID

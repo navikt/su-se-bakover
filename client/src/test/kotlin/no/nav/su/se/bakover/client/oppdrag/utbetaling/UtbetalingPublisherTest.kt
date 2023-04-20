@@ -7,8 +7,8 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher.CouldNotPublish
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.nyUtbetalingSimulert
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
+import no.nav.su.se.bakover.test.utbetaling.nyUtbetalingSimulert
 import org.junit.jupiter.api.Test
 
 internal class UtbetalingPublisherTest {

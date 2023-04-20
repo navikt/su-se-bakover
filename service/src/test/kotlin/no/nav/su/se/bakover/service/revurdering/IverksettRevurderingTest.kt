@@ -28,12 +28,12 @@ import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.iverksattRevurdering
-import no.nav.su.se.bakover.test.nyUtbetalingOversendUtenKvittering
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.simulering.simulerOpphør
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.tikkendeFixedClock
-import no.nav.su.se.bakover.test.utbetalingsRequest
+import no.nav.su.se.bakover.test.utbetaling.nyUtbetalingOversendUtenKvittering
+import no.nav.su.se.bakover.test.utbetaling.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag

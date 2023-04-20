@@ -18,10 +18,10 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
-import no.nav.su.se.bakover.test.nyUtbetalingSimulert
 import no.nav.su.se.bakover.test.simulering.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
+import no.nav.su.se.bakover.test.utbetaling.nyUtbetalingSimulert
 import org.junit.jupiter.api.Test
 
 class KryssjekkSaksbehandlersOgAttestantsSimuleringTest {

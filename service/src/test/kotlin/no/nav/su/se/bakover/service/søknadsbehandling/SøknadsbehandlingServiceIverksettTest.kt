@@ -67,7 +67,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagMedBeregn
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.tilAttesteringSøknadsbehandling
-import no.nav.su.se.bakover.test.utbetalingsRequest
+import no.nav.su.se.bakover.test.utbetaling.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested

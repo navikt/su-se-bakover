@@ -5,7 +5,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.test.utbetalingslinjeNy
+import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeNy
 import org.junit.jupiter.api.Test
 
 internal class GrunnlagBuilderTest {

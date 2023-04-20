@@ -14,9 +14,9 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
-import no.nav.su.se.bakover.test.kvittering
-import no.nav.su.se.bakover.test.oversendtUtbetalingMedKvittering
-import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
+import no.nav.su.se.bakover.test.utbetaling.kvittering
+import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingMedKvittering
+import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingUtenKvittering
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any

@@ -17,12 +17,12 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nåtidForSimuleringStub
-import no.nav.su.se.bakover.test.oversendtUtbetalingMedKvittering
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulering.simuleringOpphørt
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
+import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingMedKvittering
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID

@@ -23,8 +23,8 @@ import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.UtbetalingJson
 import org.junit.jupiter.api.Nested

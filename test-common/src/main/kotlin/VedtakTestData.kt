@@ -41,6 +41,8 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.simulering.simulerGjenopptak
 import no.nav.su.se.bakover.test.simulering.simulerStans
+import no.nav.su.se.bakover.test.utbetaling.kvittering
+import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingMedKvittering
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import java.time.Clock
 import java.time.LocalDate

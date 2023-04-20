@@ -29,10 +29,10 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.kvittering
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
+import no.nav.su.se.bakover.test.utbetaling.kvittering
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.ZoneOffset

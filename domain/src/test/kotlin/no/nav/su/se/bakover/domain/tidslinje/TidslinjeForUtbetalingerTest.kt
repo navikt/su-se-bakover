@@ -35,8 +35,8 @@ import no.nav.su.se.bakover.domain.oppdrag.tidslinje
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.plus
-import no.nav.su.se.bakover.test.utbetalingslinjeNy
-import no.nav.su.se.bakover.test.utbetalingslinjeOpphørt
+import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeNy
+import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeOpphørt
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.temporal.ChronoUnit

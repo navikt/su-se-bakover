@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.utbetalingslinjeNy
+import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeNy
 import org.junit.jupiter.api.Test
 import java.util.UUID
 

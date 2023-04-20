@@ -57,7 +57,7 @@ import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvY
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.tikkendeFixedClock
-import no.nav.su.se.bakover.test.utbetalingsRequest
+import no.nav.su.se.bakover.test.utbetaling.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any

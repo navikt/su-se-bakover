@@ -25,9 +25,9 @@ import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.ikkeSendBrev
-import no.nav.su.se.bakover.test.oversendtUtbetalingMedKvittering
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingMedKvittering
 import no.nav.su.se.bakover.test.vedtakIverksattGjenopptakAvYtelseFraIverksattStans
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget

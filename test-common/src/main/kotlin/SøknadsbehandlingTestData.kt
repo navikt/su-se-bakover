@@ -70,6 +70,7 @@ import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.søknad.oppgaveIdSøknad
 import no.nav.su.se.bakover.test.søknad.søknadsinnholdAlder
+import no.nav.su.se.bakover.test.utbetaling.kvittering
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock

@@ -14,9 +14,9 @@ import no.nav.su.se.bakover.test.beregnetSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nySakUføre
-import no.nav.su.se.bakover.test.nyUtbetalingSimulert
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
+import no.nav.su.se.bakover.test.utbetaling.nyUtbetalingSimulert
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn

@@ -102,11 +102,9 @@ import no.nav.su.se.bakover.test.grunnlagsdataMedEpsMedFradrag
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
-import no.nav.su.se.bakover.test.kvittering
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurdering
-import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.revurderingUnderkjent
@@ -125,7 +123,9 @@ import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.tilAttesteringSøknadsbehandling
 import no.nav.su.se.bakover.test.trekkSøknad
 import no.nav.su.se.bakover.test.underkjentSøknadsbehandling
-import no.nav.su.se.bakover.test.utbetalingslinjeNy
+import no.nav.su.se.bakover.test.utbetaling.kvittering
+import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingUtenKvittering
+import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeNy
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.veileder
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
@@ -392,7 +392,7 @@ class TestDataHelper(
     fun persisterVedtakForGjenopptak(
         stans: GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse = persisterGjenopptakAvYtelseIverksatt(),
         periode: Periode = stønadsperiode2021.periode,
-        avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
+        avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.utbetaling.avstemmingsnøkkel,
         utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinjeNy(periode = periode)),
         utbetalingId: UUID30 = UUID30.randomUUID(),
     ): VedtakGjenopptakAvYtelse {

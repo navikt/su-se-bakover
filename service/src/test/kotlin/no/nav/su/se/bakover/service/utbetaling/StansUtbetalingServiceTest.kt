@@ -22,7 +22,7 @@ import no.nav.su.se.bakover.test.simulering.simulerStans
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.stønadsperiode2022
 import no.nav.su.se.bakover.test.tikkendeFixedClock
-import no.nav.su.se.bakover.test.utbetalingsRequest
+import no.nav.su.se.bakover.test.utbetaling.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any

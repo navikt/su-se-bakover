@@ -33,7 +33,7 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.utbetalingslinjeNy
+import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeNy
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID

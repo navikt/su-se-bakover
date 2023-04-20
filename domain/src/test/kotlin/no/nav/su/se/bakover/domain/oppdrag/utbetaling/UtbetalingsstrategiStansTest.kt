@@ -39,7 +39,7 @@ import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksnummer
-import no.nav.su.se.bakover.test.utbetalingslinjeNy
+import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeNy
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.ZoneOffset

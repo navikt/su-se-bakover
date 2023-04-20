@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.test
+package no.nav.su.se.bakover.test.utbetaling
 
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
@@ -24,6 +24,12 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
+import no.nav.su.se.bakover.test.attestant
+import no.nav.su.se.bakover.test.beregning
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulering.simulerNyUtbetaling
 import no.nav.su.se.bakover.test.simulering.simuleringNy
 import java.time.Clock
@@ -246,7 +252,7 @@ fun nyUtbetalingOversendUtenKvittering(
 fun oversendtUtbetalingUtenKvittering(
     id: UUID30 = UUID30.randomUUID(),
     søknadsbehandling: IverksattSøknadsbehandling.Innvilget,
-    avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
+    avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.utbetaling.avstemmingsnøkkel,
     clock: Clock = fixedClock,
     utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(
         utbetalingslinjeNy(
@@ -273,7 +279,7 @@ fun oversendtUtbetalingUtenKvittering(
     id: UUID30 = UUID30.randomUUID(),
     periode: Periode = år(2021),
     revurdering: RevurderingTilAttestering,
-    avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
+    avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.utbetaling.avstemmingsnøkkel,
     clock: Clock = fixedClock,
     utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(
         utbetalingslinjeNy(
@@ -310,7 +316,7 @@ fun oversendtUtbetalingUtenKvittering(
             forrigeUtbetalingslinjeId = eksisterendeUtbetalinger.lastOrNull()?.utbetalingslinjer?.lastOrNull()?.id,
         ),
     ),
-    avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
+    avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.utbetaling.avstemmingsnøkkel,
     beregning: Beregning = beregning(periode),
 ): Utbetaling.OversendtUtbetaling.UtenKvittering {
     return Utbetaling.UtbetalingForSimulering(
@@ -351,7 +357,7 @@ fun simulertUtbetaling(
             clock = clock,
         ),
     ),
-    avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
+    avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.utbetaling.avstemmingsnøkkel,
     eksisterendeUtbetalinger: Utbetalinger = Utbetalinger(),
 ): Utbetaling.SimulertUtbetaling {
     return Utbetaling.UtbetalingForSimulering(

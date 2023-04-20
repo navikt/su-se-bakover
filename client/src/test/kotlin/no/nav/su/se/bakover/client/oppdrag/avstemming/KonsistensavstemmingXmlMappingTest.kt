@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
+import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingUtenKvittering
 import org.hamcrest.MatcherAssert
 import org.junit.jupiter.api.Test
 import org.xmlunit.diff.DefaultNodeMatcher
