@@ -28,6 +28,22 @@ import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
 
 internal class PeriodeTest {
+
+    val årSomListeMed12Måneder = listOf(
+        januar(2021),
+        februar(2021),
+        mars(2021),
+        april(2021),
+        mai(2021),
+        juni(2021),
+        juli(2021),
+        august(2021),
+        september(2021),
+        oktober(2021),
+        november(2021),
+        desember(2021),
+    )
+
     @Test
     fun `fra og med og til og med`() {
         val periode = januar(2021)
@@ -271,7 +287,10 @@ internal class PeriodeTest {
 
     @Test
     fun `justerer fraOgMed hvis original starter før maks`() {
-        Periode.create(1.juli(2021), 31.desember(2021)) snitt år(2021) shouldBe Periode.create(1.juli(2021), 31.desember(2021))
+        Periode.create(1.juli(2021), 31.desember(2021)) snitt år(2021) shouldBe Periode.create(
+            1.juli(2021),
+            31.desember(2021),
+        )
         år(2021) snitt Periode.create(
             1.juli(2021),
             31.desember(2021),
@@ -280,7 +299,10 @@ internal class PeriodeTest {
 
     @Test
     fun `justerer tilOgMed hvis original slutter etter maks`() {
-        Periode.create(1.januar(2021), 31.juli(2021)) snitt år(2021) shouldBe Periode.create(1.januar(2021), 31.juli(2021))
+        Periode.create(1.januar(2021), 31.juli(2021)) snitt år(2021) shouldBe Periode.create(
+            1.januar(2021),
+            31.juli(2021),
+        )
         år(2021) snitt Periode.create(
             1.januar(2021),
             31.juli(2021),
@@ -599,59 +621,155 @@ internal class PeriodeTest {
             år(2020)
     }
 
-    @Test
-    fun `minus`() {
-        januar(2021) minus februar(2021) shouldBe listOf(januar(2021))
-        januar(2021) minus januar(2021) shouldBe emptyList()
-        år(2021) minus juni(2021) shouldBe listOf(
-            Periode.create(1.januar(2021), 31.mai(2021)),
-            Periode.create(1.juli(2021), 31.desember(2021)),
-        )
-        år(2021) minus
-            Periode.create(1.mars(2021), 31.juli(2021)) shouldBe listOf(
-            Periode.create(1.januar(2021), 28.februar(2021)),
-            Periode.create(1.august(2021), 31.desember(2021)),
-        )
+    @Nested
+    inner class Minus {
+        @Nested
+        inner class PeriodeMinusPeriode {
+
+            @Test
+            fun `fjerner samme element skal gi tom liste`() {
+                januar(2021) minus januar(2021) shouldBe emptyList()
+            }
+
+            @Test
+            fun `januar (ytterkant) minus år skal gi tom liste`() {
+                januar(2021) minus år(2021) shouldBe emptyList()
+            }
+
+            @Test
+            fun `desember (ytterkant) minus år skal gi tom liste`() {
+                desember(2021) minus år(2021) shouldBe emptyList()
+            }
+
+            @Test
+            fun `ingen overlapp skal gi this`() {
+                januar(2021) minus februar(2021) shouldBe listOf(januar(2021))
+            }
+
+            @Test
+            fun `fjerner måned midt i år skal splitte i 2`() {
+                år(2021) minus juni(2021) shouldBe listOf(
+                    januar(2021)..mai(2021),
+                    juli(2021)..desember(2021),
+                )
+            }
+
+            @Test
+            fun `fjerner periode midt i år skal splitte i 2`() {
+                år(2021) minus
+                    mars(2021)..juli(2021) shouldBe listOf(
+                    januar(2021)..februar(2021),
+                    august(2021)..desember(2021),
+                )
+            }
+        }
+
+        @Nested
+        inner class PeriodeMinusPeriodeliste {
+            @Test
+            fun `fjerner ytterkanter`() {
+                år(2021) minus
+                    listOf(
+                        desember(2020)..januar(2021),
+                        desember(2021)..januar(2022),
+                    ) shouldBe listOf(
+                    februar(2021)..november(
+                        2021,
+                    ),
+                )
+            }
+
+            @Test
+            fun `fjerner samme element skal gi tom liste`() {
+                år(2021) minus listOf(år(2021)) shouldBe emptyList()
+                år(2021) minus årSomListeMed12Måneder shouldBe emptyList()
+            }
+
+            @Test
+            fun `støtter duplikater i lista`() {
+                år(2021) minus listOf(år(2021), år(2021), januar(2021), desember(2021)) shouldBe emptyList()
+            }
+        }
+
+        @Nested
+        inner class PeriodelisteMinusPeriode {
+            @Test
+            fun `fjerner samme element skal gi tom liste`() {
+                listOf(år(2021)) minus år(2021) shouldBe emptyList()
+                årSomListeMed12Måneder minus år(2021) shouldBe emptyList()
+            }
+
+            @Test
+            fun `fjerner ytterkanter`() {
+                listOf(
+                    desember(2020)..januar(2021),
+                    desember(2021)..januar(2022),
+                ) minus år(2021) shouldBe listOf(
+                    desember(2020),
+                    januar(2022),
+                )
+            }
+
+            @Test
+            fun `fjerner samme element skal gi tom liste - med duplikater`() {
+                listOf(år(2021), år(2021), januar(2021), desember(2021)) minus år(2021) shouldBe emptyList()
+            }
+        }
+
+        @Nested
+        inner class PeriodelisteMinusPeriodeliste {
+            @Test
+            fun `fjerner første element`() {
+                listOf(
+                    januar(2021),
+                    februar(2021),
+                    mars(2021),
+                ).minus(listOf(januar(2021))) shouldBe listOf(
+                    februar(2021)..mars(2021),
+                )
+            }
+
+            @Test
+            fun `fjerner midtre element`() {
+                listOf(
+                    januar(2021),
+                    februar(2021),
+                    mars(2021),
+                ).minus(listOf(februar(2021))) shouldBe listOf(
+                    januar(2021),
+                    mars(2021),
+                )
+            }
+
+            @Test
+            fun `hull i perioder`() {
+                listOf(
+                    år(2021),
+                    Periode.create(1.mars(2022), 31.mai(2022)),
+                ).minus(
+                    listOf(
+                        Periode.create(1.april(2021), 31.august(2021)),
+                        januar(2022),
+                        februar(2022),
+                        mars(2022),
+                    ),
+                ) shouldBe listOf(
+                    Periode.create(1.januar(2021), 31.mars(2021)),
+                    Periode.create(1.september(2021), 31.desember(2021)),
+                    Periode.create(1.april(2022), 31.mai(2022)),
+                )
+            }
+        }
     }
 
     @Test
-    fun `minus liste`() {
-        listOf(
-            januar(2021),
-            februar(2021),
-            mars(2021),
-        ).minus(listOf(januar(2021))) shouldBe listOf(
-            Periode.create(1.februar(2021), 31.mars(2021)),
-        )
+    fun `overlappende - mix`() {
+        emptyList<Periode>().harOverlappende() shouldBe false
 
         listOf(
             januar(2021),
-            februar(2021),
-            mars(2021),
-        ).minus(listOf(februar(2021))) shouldBe listOf(
-            januar(2021),
-            mars(2021),
-        )
+        ).harOverlappende() shouldBe false
 
-        listOf(
-            år(2021),
-            Periode.create(1.mars(2022), 31.mai(2022)),
-        ).minus(
-            listOf(
-                Periode.create(1.april(2021), 31.august(2021)),
-                januar(2022),
-                februar(2022),
-                mars(2022),
-            ),
-        ) shouldBe listOf(
-            Periode.create(1.januar(2021), 31.mars(2021)),
-            Periode.create(1.september(2021), 31.desember(2021)),
-            Periode.create(1.april(2022), 31.mai(2022)),
-        )
-    }
-
-    @Test
-    fun `overlappende`() {
         listOf(
             januar(2021),
             januar(2021),
@@ -661,8 +779,6 @@ internal class PeriodeTest {
             januar(2021),
             februar(2021),
         ).harOverlappende() shouldBe false
-
-        listOf<Periode>().harOverlappende() shouldBe false
 
         listOf(
             mai(2021),
@@ -674,6 +790,25 @@ internal class PeriodeTest {
             år(2021),
             år(2022),
         ).harOverlappende() shouldBe true
+
+        listOf(
+            januar(2021),
+            februar(2021),
+            mars(2021),
+            april(2021),
+            april(2021),
+            mai(2021),
+            juni(2021),
+        ).harOverlappende() shouldBe true
+
+        listOf(
+            januar(2021),
+            februar(2021),
+            mars(2021),
+            april(2021),
+            mai(2021),
+            juni(2021),
+        ).harOverlappende() shouldBe false
     }
 
     @Nested

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.tidslinje
 
 import arrow.core.nonEmptyListOf
+import io.kotest.assertions.throwables.shouldThrowWithMessage
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -986,7 +987,7 @@ internal class TidslinjeTest {
                     Tidslinjeobjekt(opprettet = Tidspunkt.now(tikkendeKlokke), periode = år(2021)),
                 ),
             )
-        }.message shouldBe "Tidslinje har flere elementer med samme fraOgMed dato!"
+        }.message shouldBe "Tidslinje har elementer med overlappende perioder!"
 
         assertThrows<IllegalStateException> {
             Validator.valider(
@@ -1005,7 +1006,7 @@ internal class TidslinjeTest {
                     ),
                 ),
             )
-        }.message shouldBe "Tidslinje har flere elementer med samme fraOgMed dato!"
+        }.message shouldBe "Tidslinje har elementer med overlappende perioder!"
     }
 
     @Test
@@ -1020,7 +1021,7 @@ internal class TidslinjeTest {
                     ),
                 ),
             )
-        }.message shouldBe "Tidslinje har flere elementer med samme tilOgMed dato!"
+        }.message shouldBe "Tidslinje har elementer med overlappende perioder!"
 
         assertThrows<IllegalStateException> {
             Validator.valider(
@@ -1039,12 +1040,12 @@ internal class TidslinjeTest {
                     ),
                 ),
             )
-        }.message shouldBe "Tidslinje har flere elementer med samme tilOgMed dato!"
+        }.message shouldBe "Tidslinje har elementer med overlappende perioder!"
     }
 
     @Test
     fun `validator kaster exception dersom tidslinja har elementer med overlappende perioder`() {
-        assertThrows<IllegalStateException> {
+        shouldThrowWithMessage<IllegalStateException>("Tidslinje har elementer med overlappende perioder!") {
             Validator.valider(
                 nonEmptyListOf(
                     Tidslinjeobjekt(
@@ -1060,7 +1061,7 @@ internal class TidslinjeTest {
                     ),
                 ),
             )
-        }.message shouldBe "Tidslinje har elementer med overlappende perioder!"
+        }
     }
 
     @Nested

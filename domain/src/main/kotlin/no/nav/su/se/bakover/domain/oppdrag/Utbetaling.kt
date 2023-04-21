@@ -2,20 +2,17 @@ package no.nav.su.se.bakover.domain.oppdrag
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import arrow.core.left
-import arrow.core.right
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.and
-import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
-import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import java.util.UUID
 
 sealed interface Utbetaling : Comparable<Utbetaling> {
@@ -63,16 +60,11 @@ sealed interface Utbetaling : Comparable<Utbetaling> {
         .and { utbetalingslinjer.count() == 1 }
 
     fun kontrollerUtbetalingslinjer() {
-        utbetalingslinjer.sjekkAlleNyeLinjerHarForskjelligIdOgForrigeReferanse()
-        utbetalingslinjer.sjekkSortering()
-        utbetalingslinjer.sjekkRekkefølge()
-        utbetalingslinjer.sjekkSammeForrigeUtbetalingsId()
-        utbetalingslinjer.sjekkSammeUtbetalingsId()
-        utbetalingslinjer.sjekkForrigeForNye()
+        utbetalingslinjer.kontrollerUtbetalingslinjer()
     }
 
     fun tidslinje(): TidslinjeForUtbetalinger {
-        return utbetalingslinjer.tidslinje().getOrNull()!!
+        return TidslinjeForUtbetalinger.fra(this)
     }
 
     data class UtbetalingForSimulering(
@@ -149,6 +141,18 @@ sealed interface Utbetaling : Comparable<Utbetaling> {
     }
 }
 
+/**
+ * Brukes internt av [Utbetaling], men også av [TidslinjeForUtbetalinger] (siden den lager en tidslinje av utbetalingslinjer før den har laget en komplett utbetaling.)
+ */
+fun List<Utbetalingslinje>.kontrollerUtbetalingslinjer() {
+    this.sjekkAlleNyeLinjerHarForskjelligIdOgForrigeReferanse()
+    this.sjekkSortering()
+    this.sjekkRekkefølge()
+    this.sjekkSammeForrigeUtbetalingsId()
+    this.sjekkSammeUtbetalingsId()
+    this.sjekkForrigeForNye()
+}
+
 sealed class UtbetalingFeilet {
     data class SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(val feil: KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet) :
         UtbetalingFeilet()
@@ -161,15 +165,6 @@ sealed class UtbetalingFeilet {
     object FantIkkeSak : UtbetalingFeilet() {
         override fun toString() = this::class.simpleName!!
     }
-}
-
-// TODO jah: La TidslinjeForUtbetalinger ta inn Utbetalinger og en enkelt Utbetaling
-@JvmName("utbetalingslinjeTidslinje")
-fun List<Utbetalingslinje>.tidslinje(): Either<IngenUtbetalinger, TidslinjeForUtbetalinger> {
-    return ifEmpty { return IngenUtbetalinger.left() }
-        .let { utbetalingslinjer ->
-            TidslinjeForUtbetalinger(utbetalingslinjer = utbetalingslinjer.toNonEmptyList()).right()
-        }
 }
 
 object IngenUtbetalinger

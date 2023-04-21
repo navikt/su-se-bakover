@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mars
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
@@ -109,7 +109,6 @@ internal class UtbetalingServiceImplTest {
                     forDato = 15.januar(2021),
                 ) shouldBe UtbetalingslinjePåTidslinje.Ny(
                     kopiertFraId = sak.utbetalinger.first().utbetalingslinjer[0].id,
-                    opprettet = sak.utbetalinger.first().utbetalingslinjer[0].opprettet,
                     periode = januar(2021),
                     beløp = 19946,
                 ).right()
@@ -119,7 +118,6 @@ internal class UtbetalingServiceImplTest {
                     forDato = 29.mars(2021),
                 ) shouldBe UtbetalingslinjePåTidslinje.Ny(
                     kopiertFraId = sak.utbetalinger.first().utbetalingslinjer[2].id,
-                    opprettet = sak.utbetalinger.first().utbetalingslinjer[2].opprettet,
                     periode = mars(2021),
                     beløp = 17946,
                 ).right()

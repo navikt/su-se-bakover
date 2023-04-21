@@ -1,12 +1,13 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
 import arrow.core.NonEmptyList
-import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.RekkefølgeGenerator
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.ekvivalentMedInnenforPeriode
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.mapTilTidslinje
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.LocalDate
 import java.util.LinkedList
@@ -15,24 +16,24 @@ import java.util.LinkedList
  * @throws IllegalArgumentException dersom vi ikke har en OK kvittering for alle utbetalingene.
  */
 class Utbetalingshistorikk(
-    nyeUtbetalingslinjer: NonEmptyList<Utbetalingslinje>,
+    private val nyeUtbetalingslinjer: NonEmptyList<Utbetalingslinje>,
     val eksisterendeUtbetalinger: Utbetalinger,
-    val nesteUtbetalingstidspunkt: () -> Tidspunkt,
+    private val nesteUtbetalingstidspunkt: () -> Tidspunkt,
     private val rekkefølgeGenerator: RekkefølgeGenerator,
 ) {
-    private val sorterteNyeUtbetalingslinjer = nyeUtbetalingslinjer.sorted()
     private val rekonstruerEtterDato = rekonstruerEksisterendeUtbetalingerEtterDato()
     private val minimumFraOgMedForRekonstruerteLinjer = minumumFraOgMedDatoForRekonstruerteLinjer()
 
     init {
         nyeUtbetalingslinjer.sjekkIngenNyeOverlapper()
         nyeUtbetalingslinjer.sjekkUnikOpprettet()
+        nyeUtbetalingslinjer.sjekkSortering()
         eksisterendeUtbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
     }
 
     fun generer(): List<Utbetalingslinje> {
         return ForrigeUtbetalingslinjeKoblendeListe().apply {
-            sorterteNyeUtbetalingslinjer.forEach { this.add(it) }
+            nyeUtbetalingslinjer.forEach { this.add(it) }
             finnEndringerForNyeLinjer(
                 nye = finnUtbetalingslinjerSomSkalRekonstrueres()
                     .filterIsInstance<Utbetalingslinje.Ny>(),
@@ -44,7 +45,7 @@ class Utbetalingshistorikk(
                 listOf(rekonstruertNy) + rekonstruerteEndringer
             }.forEach { this.add(it) }
         }.also {
-            kontrollerAtTidslinjeForRekonstruertPeriodeErUforandret()
+            kontrollerRekonstruertPeriodeErUforandret()
             it.kontrollerAtNyeLinjerHarFåttNyId()
             it.kontrollerAtEksisterendeErKjedetMedNyeUtbetalinger()
             it.sjekkAlleNyeLinjerHarForskjelligIdOgForrigeReferanse()
@@ -62,7 +63,7 @@ class Utbetalingshistorikk(
     }
 
     private fun rekonstruerEksisterendeUtbetalingerEtterDato(): LocalDate {
-        return sorterteNyeUtbetalingslinjer.last().periode.tilOgMed
+        return nyeUtbetalingslinjer.last().periode.tilOgMed
     }
 
     private fun finnEndringerForNyeLinjer(
@@ -131,26 +132,30 @@ class Utbetalingshistorikk(
         }
     }
 
-    private fun kontrollerAtTidslinjeForRekonstruertPeriodeErUforandret() {
+    private fun kontrollerRekonstruertPeriodeErUforandret() {
         finnUtbetalingslinjerSomSkalRekonstrueres()
             .ifNotEmpty {
                 val periode = Periode.create(
                     fraOgMed = minimumFraOgMedForRekonstruerteLinjer,
                     tilOgMed = this.maxOf { it.periode.tilOgMed },
                 )
-                val tidslinjeGammel = eksisterendeUtbetalinger.tidslinje()
-                    .getOrElse { throw RuntimeException("Kunne ikke generere tidslinje: $it") }.krympTilPeriode(periode)
+                val eksisterende = eksisterendeUtbetalinger.utbetalingslinjer.mapTilTidslinje()
 
-                val tidslinjeNy = tidslinje().getOrElse { throw RuntimeException("Kunne ikke generere tidslinje: $it") }
-                    .krympTilPeriode(periode)
+                val rekonstruert = this.mapTilTidslinje()
 
-                check(tidslinjeGammel!!.ekvivalentMed(tidslinjeNy!!)) { "Rekonstuert tidslinje: $tidslinjeNy er ulik original: $tidslinjeGammel" }
+                // TODO jah: Dersom utbetalingslinjene hadde en ekvivalentMed-metode, kunne vi brukt den istedet for mapTilTidslinje().
+                check(
+                    eksisterende.ekvivalentMedInnenforPeriode(
+                        rekonstruert,
+                        periode,
+                    ),
+                ) { "Rekonstuerte utbetalingslinjer: $rekonstruert er ulik eksisterende: $eksisterende" }
             }
     }
 
     private fun List<Utbetalingslinje>.kontrollerAtEksisterendeErKjedetMedNyeUtbetalinger() {
         check(
-            eksisterendeUtbetalinger.hentSisteUtbetalingslinje()?.let { siste ->
+            eksisterendeUtbetalinger.sisteUtbetalingslinje()?.let { siste ->
                 first().let {
                     when (it) {
                         is Utbetalingslinje.Endring.Opphør -> it.forrigeUtbetalingslinjeId == siste.forrigeUtbetalingslinjeId

@@ -47,6 +47,12 @@ value class Rekkefølge(
         fun generator(): RekkefølgeGenerator {
             return RekkefølgeGenerator()
         }
+
+        val FØRSTE = Rekkefølge.start()
+        val ANDRE = Rekkefølge.skip(0)
+        val TREDJE = Rekkefølge.skip(1)
+        val FJERDE = Rekkefølge.skip(2)
+        val FEMTE = Rekkefølge.skip(3)
     }
 }
 

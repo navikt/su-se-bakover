@@ -116,7 +116,11 @@ internal class StansUtbetalingRouteKtTest {
                     any(),
                     any(),
                 )
-            } doReturn KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil)).left()
+            } doReturn KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(
+                UtbetalStansFeil.KunneIkkeUtbetale(
+                    UtbetalingFeilet.Protokollfeil,
+                ),
+            ).left()
         }
         testApplication {
             application {

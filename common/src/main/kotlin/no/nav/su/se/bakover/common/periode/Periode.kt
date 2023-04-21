@@ -19,6 +19,7 @@ import java.time.Month
 import java.time.Period
 import java.time.YearMonth
 import java.util.LinkedList
+import kotlin.collections.minus as setsMinus
 
 open class Periode protected constructor(
     fraOgMed: LocalDate,
@@ -26,6 +27,10 @@ open class Periode protected constructor(
 ) : DatoIntervall(fraOgMed, tilOgMed) {
 
     constructor(måned: YearMonth) : this(måned.atDay(1), måned.atEndOfMonth()) {
+        validateOrThrow(fraOgMed, tilOgMed)
+    }
+
+    init {
         validateOrThrow(fraOgMed, tilOgMed)
     }
 
@@ -82,14 +87,19 @@ open class Periode protected constructor(
         return (måneder() - other.måneder().toSet()).minsteAntallSammenhengendePerioder()
     }
 
-    infix operator fun minus(other: List<Periode>): List<Periode> {
-        return (måneder() - other.måneder().toSet()).minsteAntallSammenhengendePerioder()
+    infix operator fun minus(other: Collection<Periode>): List<Periode> {
+        return (måneder() - other.toList().måneder().toSet()).minsteAntallSammenhengendePerioder()
     }
 
     infix fun slåSammen(
         other: Periode,
     ): Either<PerioderKanIkkeSlåsSammen, Periode> {
-        return slåSammen(other) { fraOgMed, tilOgMed -> create(fraOgMed, tilOgMed) }.mapLeft { PerioderKanIkkeSlåsSammen }
+        return slåSammen(other) { fraOgMed, tilOgMed ->
+            create(
+                fraOgMed,
+                tilOgMed,
+            )
+        }.mapLeft { PerioderKanIkkeSlåsSammen }
     }
 
     object PerioderKanIkkeSlåsSammen
@@ -188,8 +198,14 @@ fun Nel<Periode>.minsteAntallSammenhengendePerioder(): Nel<Periode> {
  * Fjerner alle periodene inneholdt i [other] fra [this]. Eliminerer duplikater og slår sammen gjenstående
  * perioder i [this] til en minimum antall sammenhengende perioder.
  */
-operator fun List<Periode>.minus(other: List<Periode>): List<Periode> {
-    return (flatMap { it.måneder() }.toSet() - other.flatMap { it.måneder() }.toSet())
+infix operator fun Iterable<Periode>.minus(other: Iterable<Periode>): List<Periode> {
+    return (flatMap { it.måneder() }.toSet().setsMinus(other.flatMap { it.måneder() }.toSet()))
+        .toList()
+        .minsteAntallSammenhengendePerioder()
+}
+
+infix operator fun Iterable<Periode>.minus(other: Periode): List<Periode> {
+    return (flatMap { it.måneder() }.toSet() - other.måneder())
         .toList()
         .minsteAntallSammenhengendePerioder()
 }
@@ -199,9 +215,9 @@ operator fun List<Periode>.minus(other: List<Periode>): List<Periode> {
  *
  * @return En sortert liste med måneder uten duplikater som kan være usammenhengende.
  */
-fun List<Periode>.måneder(): List<Måned> {
+fun Collection<Periode>.måneder(): List<Måned> {
     if (this.isEmpty()) return emptyList()
-    return this.toNonEmptyList().måneder()
+    return this.toList().toNonEmptyList().måneder()
 }
 
 /**
@@ -263,7 +279,12 @@ fun <T> Map<Måned, T>.erSammenhengendeSortertOgUtenDuplikater(): Boolean {
 }
 
 fun List<Periode>.harOverlappende(): Boolean {
-    return if (isEmpty()) false else this.any { p1 -> this.minus(p1).any { p2 -> p1 overlapper p2 } }
+    return this
+        .sorted()
+        .zipWithNext()
+        .any { (a, b) ->
+            a overlapper b
+        }
 }
 
 fun List<Periode>.komplement(): List<Periode> {
@@ -286,6 +307,7 @@ fun List<Periode>.komplement(): List<Periode> {
     }
     return result
 }
+
 fun januar(year: Int) = Måned.fra(YearMonth.of(year, Month.JANUARY))
 fun februar(year: Int) = Måned.fra(YearMonth.of(year, Month.FEBRUARY))
 fun mars(year: Int) = Måned.fra(YearMonth.of(year, Month.MARCH))

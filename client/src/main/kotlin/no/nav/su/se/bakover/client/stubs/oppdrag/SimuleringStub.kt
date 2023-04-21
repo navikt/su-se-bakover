@@ -5,7 +5,6 @@ import arrow.core.getOrElse
 import arrow.core.right
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.periode.Måned
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingRequest
@@ -16,10 +15,10 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.toYtelsekode
-import no.nav.su.se.bakover.domain.oppdrag.tidslinje
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.sak.Sakstype
-import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import java.time.Clock
 import java.time.LocalDate
 import kotlin.math.abs
@@ -37,23 +36,20 @@ class SimuleringStub(
     private fun simulerUtbetalinger(request: SimulerUtbetalingRequest): Simulering {
         val utbetaling = request.utbetaling
         val simuleringsperiode = request.simuleringsperiode
-        val oversendteUtbetalinger = utbetalingRepo.hentOversendteUtbetalinger(utbetaling.sakId)
+        val eksisterendeUtbetalinger = utbetalingRepo.hentOversendteUtbetalinger(utbetaling.sakId)
 
-        val tidslinjeEksisterendeUtbetalinger = oversendteUtbetalinger.tidslinje()
-        val tidslinjeNyUtbetaling = utbetaling.utbetalingslinjer.tidslinje().getOrElse {
-            throw RuntimeException("Kunne ikke lage tidslinje fra ny utbetaling: $utbetaling")
-        }
+        val tidslinjeEksisterendeUtbetalinger = eksisterendeUtbetalinger.tidslinje()
         val tidslinjeEksisterendeOgNy: TidslinjeForUtbetalinger by lazy {
-            (oversendteUtbetalinger + utbetaling).tidslinje().getOrElse {
-                throw RuntimeException("Kunne ikke lage tidslinje fra eksisterende $oversendteUtbetalinger og ny utbetaling: $utbetaling")
-            }
+            (eksisterendeUtbetalinger + utbetaling).tidslinje().getOrElse {
+                throw RuntimeException("Kunne ikke lage tidslinje fra eksisterende $eksisterendeUtbetalinger og ny utbetaling: $utbetaling")
+            }.krympTilPeriode(simuleringsperiode)!!
         }
 
         /**
          * Reaktiveringen vil bare bære med seg 1 beløp for utbetaling. Dersom vi reaktiverer over perioder med flere
          * endringer i ytelse må vi finne fram til det faktiske beløpet for hver enkelt periode. Lager en midlertidig
          * tidslinje som inkuderer utbetalingen som simuleres slik at vi kan delegere denne jobben til
-         * [no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger].
+         * [no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger].
          */
         fun finnBeløpVedReaktivering(måned: Måned): Int {
             return tidslinjeEksisterendeOgNy.gjeldendeForDato(måned.fraOgMed)!!.beløp
@@ -66,7 +62,7 @@ class SimuleringStub(
                     { null },
                     { it.gjeldendeForDato(måned.fraOgMed) },
                 )
-                val nyLinje = tidslinjeNyUtbetaling.gjeldendeForDato(måned.fraOgMed)
+                val nyLinje = tidslinjeEksisterendeOgNy.gjeldendeForDato(måned.fraOgMed)
                 if (utbetaltLinje == null && nyLinje != null) {
                     // ingen tidligere utbetaling for måned
                     when (nyLinje) {

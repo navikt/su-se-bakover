@@ -11,8 +11,9 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
-import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingslinjePåTidslinje
 
 object KryssjekkTidslinjerOgSimulering {
     fun sjekk(
@@ -110,8 +111,8 @@ private fun sjekkTidslinjeMotSimulering(
                 if (!(
                     utbetaling is UtbetalingslinjePåTidslinje.Stans ||
                         utbetaling is UtbetalingslinjePåTidslinje.Opphør ||
-                        utbetaling is UtbetalingslinjePåTidslinje.Ny && utbetaling.beløp == 0 ||
-                        utbetaling is UtbetalingslinjePåTidslinje.Reaktivering && utbetaling.beløp == 0
+                        (utbetaling is UtbetalingslinjePåTidslinje.Ny && utbetaling.beløp == 0) ||
+                        (utbetaling is UtbetalingslinjePåTidslinje.Reaktivering && utbetaling.beløp == 0)
                     )
                 ) {
                     feil.add(
@@ -126,14 +127,14 @@ private fun sjekkTidslinjeMotSimulering(
         }
     } else {
         simulering.månederMedSimuleringsresultat().forEach { måned ->
-            val utbetaling = tidslinjeEksisterendeOgUnderArbeid.gjeldendeForDato(måned.fraOgMed)!!
+            val utbetaling = tidslinjeEksisterendeOgUnderArbeid.gjeldendeForMåned(måned)!!
             if (utbetaling is UtbetalingslinjePåTidslinje.Stans && simulering.harFeilutbetalinger()) {
                 feil.add(KryssjekkFeil.StansMedFeilutbetaling(måned))
             }
         }
 
         simulering.månederMedSimuleringsresultat().forEach { måned ->
-            val utbetaling = tidslinjeEksisterendeOgUnderArbeid.gjeldendeForDato(måned.fraOgMed)!!
+            val utbetaling = tidslinjeEksisterendeOgUnderArbeid.gjeldendeForMåned(måned)!!
             if (utbetaling is UtbetalingslinjePåTidslinje.Reaktivering && simulering.harFeilutbetalinger()) {
                 feil.add(KryssjekkFeil.GjenopptakMedFeilutbetaling(måned))
             }

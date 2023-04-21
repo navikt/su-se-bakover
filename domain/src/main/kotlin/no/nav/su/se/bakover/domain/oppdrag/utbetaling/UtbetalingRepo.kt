@@ -15,7 +15,11 @@ interface UtbetalingRepo {
         utbetaling: Utbetaling.OversendtUtbetaling,
         transactionContext: TransactionContext = defaultTransactionContext(),
     )
-    fun hentUkvitterteUtbetalinger(): Utbetalinger
+
+    /**
+     * Kan ikke bruke [Utbetalinger] i dette tilfellet, da den ikke er beregnet på å bruke et ukomplett sett utbetalinger for en sak.
+     */
+    fun hentUkvitterteUtbetalinger(): List<Utbetaling.OversendtUtbetaling.UtenKvittering>
 
     fun defaultTransactionContext(): TransactionContext
 }

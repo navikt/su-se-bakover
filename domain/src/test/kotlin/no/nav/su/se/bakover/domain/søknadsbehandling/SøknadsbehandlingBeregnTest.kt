@@ -4,6 +4,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
@@ -13,6 +14,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
@@ -121,13 +123,15 @@ internal class SøknadsbehandlingBeregnTest {
 
     @Test
     fun `beregner med avkorting`() {
+        val clock = TikkendeKlokke()
         val antallMånederMedFeilutbetaling = 3L
-        val eksisterendeUtbetalinger = Utbetalinger(oversendtUtbetalingMedKvittering())
+        val eksisterendeUtbetalinger = Utbetalinger(oversendtUtbetalingMedKvittering(clock = clock))
         val expectedAvkortingBeløp = eksisterendeUtbetalinger.utbetalingslinjer
             .sumOf { it.beløp } * antallMånederMedFeilutbetaling.toDouble()
 
         søknadsbehandlingVilkårsvurdertInnvilget(
             stønadsperiode = stønadsperiode2021,
+            clock = clock,
         ).let { (_, førBeregning) ->
             førBeregning.copy(
                 avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
@@ -137,6 +141,7 @@ internal class SøknadsbehandlingBeregnTest {
                         revurderingId = UUID.randomUUID(),
                         opprettet = førBeregning.opprettet,
                         simulering = simuleringOpphørt(
+                            clock = clock,
                             opphørsperiode = Periode.create(
                                 fraOgMed = LocalDate.now(nåtidForSimuleringStub).startOfMonth()
                                     .minusMonths(antallMånederMedFeilutbetaling),
@@ -146,13 +151,12 @@ internal class SøknadsbehandlingBeregnTest {
                             fnr = førBeregning.fnr,
                             sakId = førBeregning.sakId,
                             saksnummer = førBeregning.saksnummer,
-                            clock = fixedClock,
                         ),
                     ).skalAvkortes(),
                 ),
             ).beregn(
                 begrunnelse = "kakota",
-                clock = fixedClock,
+                clock = clock,
                 satsFactory = satsFactoryTestPåDato(),
                 nySaksbehandler = saksbehandler,
             ).getOrFail().let { etterBeregning ->
@@ -171,19 +175,21 @@ internal class SøknadsbehandlingBeregnTest {
 
     @Test
     fun `fjerner evt gammelt grunnlag for avkorting dersom avkorting skal beregnes på nytt`() {
+        val clock = TikkendeKlokke()
         val antallMånederMedFeilutbetaling = 3L
-        val eksisterendeUtbetalinger = Utbetalinger(oversendtUtbetalingMedKvittering())
+        val eksisterendeUtbetalinger = Utbetalinger(oversendtUtbetalingMedKvittering(clock = clock))
         val expectedAvkortingBeløp = eksisterendeUtbetalinger.utbetalingslinjer
             .sumOf { it.beløp } * antallMånederMedFeilutbetaling.toDouble()
 
         søknadsbehandlingVilkårsvurdertInnvilget(
             stønadsperiode = stønadsperiode2021,
+            clock = clock,
         ).let { (_, vilkårsvurdert) ->
             vilkårsvurdert.leggTilFradragsgrunnlagFraSaksbehandler(
                 fradragsgrunnlag = listOf(
                     Grunnlag.Fradragsgrunnlag.create(
                         id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
+                        opprettet = Tidspunkt.now(clock),
                         fradrag = FradragFactory.nyFradragsperiode(
                             fradragstype = Fradragstype.AvkortingUtenlandsopphold,
                             månedsbeløp = 5000.0,
@@ -194,7 +200,7 @@ internal class SøknadsbehandlingBeregnTest {
                     ),
                 ),
                 saksbehandler = saksbehandler,
-                clock = fixedClock,
+                clock = clock,
             ).getOrFail().copy(
                 avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
                     Avkortingsvarsel.Utenlandsopphold.Opprettet(
@@ -212,7 +218,7 @@ internal class SøknadsbehandlingBeregnTest {
                             fnr = vilkårsvurdert.fnr,
                             sakId = vilkårsvurdert.sakId,
                             saksnummer = vilkårsvurdert.saksnummer,
-                            clock = fixedClock,
+                            clock = clock,
                         ),
                     ).skalAvkortes(),
                 ),

@@ -210,7 +210,7 @@ internal class UtbetalingsstrategiNyTest {
             ),
         )
 
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<IllegalStateException> {
             nyUtbetaling(
                 uføregrunnlag = uføregrunnlagListe,
                 beregning = createBeregning(
@@ -253,7 +253,7 @@ internal class UtbetalingsstrategiNyTest {
             ),
         )
 
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<IllegalStateException> {
             nyUtbetaling(
                 uføregrunnlag = uføregrunnlagListe,
                 beregning = createBeregning(
@@ -765,7 +765,7 @@ internal class UtbetalingsstrategiNyTest {
     }
 }
 
-fun createBeregning(
+internal fun createBeregning(
     fraOgMed: LocalDate,
     tilOgMed: LocalDate,
     fradrag: List<Fradrag> = emptyList(),
@@ -799,7 +799,7 @@ fun createBeregning(
     )
 }
 
-fun nyUtbetaling(
+internal fun nyUtbetaling(
     clock: Clock = fixedClock,
     uføregrunnlag: List<Grunnlag.Uføregrunnlag> = listOf(
         uføregrunnlag(periode = år(2021)),
@@ -826,7 +826,7 @@ fun nyUtbetaling(
     ).generate()
 }
 
-fun oversendtUtbetaling(
+internal fun oversendtUtbetaling(
     clock: Clock = fixedClock,
     uføregrunnlag: List<Grunnlag.Uføregrunnlag> = listOf(
         uføregrunnlag(periode = år(2021)),
@@ -860,7 +860,7 @@ fun oversendtUtbetaling(
     )
 }
 
-fun kvittertUtbetaling(
+internal fun kvittertUtbetaling(
     clock: Clock = fixedClock,
     uføregrunnlag: List<Grunnlag.Uføregrunnlag> = listOf(
         uføregrunnlag(periode = år(2021)),
@@ -890,7 +890,7 @@ fun kvittertUtbetaling(
     )
 }
 
-fun expectedUtbetaling(
+internal fun expectedUtbetaling(
     actual: Utbetaling.UtbetalingForSimulering,
     utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
 ): Utbetaling.UtbetalingForSimulering {

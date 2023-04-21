@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -25,10 +24,10 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.revurdering.beregning.KunneIkkeBeregneRevurdering
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
-import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.beregnetRevurdering
@@ -598,9 +597,9 @@ internal class RevurderingBeregnTest {
     ): Boolean {
         val nyBeregningBeløp = nyBeregning.getSumYtelse()
         val eksisterendeBeløp = eksisterendeUtbetalinger.sumOf {
-            TidslinjeForUtbetalinger(
-                utbetalingslinjer = eksisterendeUtbetalinger.utbetalingslinjer.toNonEmptyList(),
-            ).sumOf { it.beløp * it.periode.getAntallMåneder() }
+            TidslinjeForUtbetalinger.fra(
+                utbetalinger = eksisterendeUtbetalinger,
+            )!!.sumOf { it.beløp * it.periode.getAntallMåneder() }
         }
         return abs((nyBeregningBeløp.toDouble() - eksisterendeBeløp) / eksisterendeBeløp * 100) > 10.0
     }

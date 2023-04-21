@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.april
 import no.nav.su.se.bakover.common.periode.august
 import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.november
 import no.nav.su.se.bakover.common.periode.år
@@ -35,6 +36,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.TikkendeKlokke
+import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.sakId
@@ -43,6 +45,7 @@ import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeNy
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.ZoneOffset
+import java.time.temporal.ChronoUnit
 
 internal class UtbetalingsstrategiStansTest {
 
@@ -362,6 +365,55 @@ internal class UtbetalingsstrategiStansTest {
             clock = clock15Juli21,
             sakstype = Sakstype.UFØRE,
         ).generer() shouldBe Utbetalingsstrategi.Stans.Feil.KanIkkeStanseOpphørtePerioder.left()
+    }
+
+    @Test
+    fun `stans over 2 utbetalingslinjer`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2021)))
+        val førsteNy = utbetalingslinjeNy(
+            clock = clock,
+            periode = januar(2021),
+        )
+        val andreNy = utbetalingslinjeNy(
+            clock = clock,
+            periode = februar(2021),
+            forrigeUtbetalingslinjeId = førsteNy.id,
+            rekkefølge = Rekkefølge.ANDRE,
+        )
+        val førsteUtbetaling = createUtbetaling(
+            nonEmptyListOf(
+                førsteNy,
+                andreNy,
+            ),
+            clock = clock,
+        )
+        /**
+         * Either.Right(UtbetalingForSimulering(id=d257c153-75f0-4480-958f-941001, opprettet=2021-01-01T01:02:11.456789Z, sakId=47b96ad2-11a5-4900-a251-627259362975, saksnummer=12345676, fnr=74124290794, utbetalingslinjer=NonEmptyList(Stans(id=25e19df3-180a-47ca-bffa-c1975e, opprettet=2021-01-01T01:02:11.456789Z, rekkefølge=Rekkefølge(value=0), fraOgMed=2021-02-01, tilOgMed=2021-02-28, forrigeUtbetalingslinjeId=064c957a-cacd-44e8-8907-12c304, beløp=15000, virkningsperiode=Periode(fraOgMed=2021-01-01, tilOgMed=2021-02-28), uføregrad=Uføregrad(value=50), utbetalingsinstruksjonForEtterbetalinger=SåFortSomMulig)), behandler=Z123, avstemmingsnøkkel=1609462931456789000, sakstype=UFØRE))
+         */
+        Utbetalingsstrategi.Stans(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            eksisterendeUtbetalinger = Utbetalinger(førsteUtbetaling),
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            stansDato = 1.januar(2021),
+            clock = clock,
+            sakstype = Sakstype.UFØRE,
+        ).generer().getOrNull()!!.utbetalingslinjer.single() shouldBe Utbetalingslinje.Endring.Stans(
+            id = andreNy.id,
+            opprettet = andreNy.opprettet.plus(6, ChronoUnit.SECONDS),
+            rekkefølge = Rekkefølge.start(),
+            fraOgMed = andreNy.periode.fraOgMed,
+            tilOgMed = andreNy.periode.tilOgMed,
+            forrigeUtbetalingslinjeId = andreNy.forrigeUtbetalingslinjeId,
+            beløp = andreNy.beløp,
+            virkningsperiode = Periode.create(
+                fraOgMed = 1.januar(2021),
+                tilOgMed = andreNy.periode.tilOgMed,
+            ),
+            uføregrad = andreNy.uføregrad,
+            utbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+        )
     }
 
     private fun createUtbetaling(

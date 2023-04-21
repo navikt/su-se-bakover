@@ -105,7 +105,9 @@ internal class IverksettSøknadsbehandlingRouteTest {
                         søknadsbehandling = SøknadsbehandlingServices(
                             søknadsbehandlingService = mock(),
                             iverksettSøknadsbehandlingService = mock {
-                                on { iverksett(any<IverksettSøknadsbehandlingCommand>()) } doReturn KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil)
+                                on { iverksett(any<IverksettSøknadsbehandlingCommand>()) } doReturn KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale(
+                                    UtbetalingFeilet.Protokollfeil,
+                                )
                                     .left()
                             },
                         ),

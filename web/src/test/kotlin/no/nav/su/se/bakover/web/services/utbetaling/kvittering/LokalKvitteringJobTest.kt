@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
@@ -92,7 +91,7 @@ internal class LokalKvitteringJobTest {
     @Test
     fun `lokalt kvittering jobb persisterer og ferdigstiller innvilgelse`() {
         val utbetalingRepoMock = mock<UtbetalingRepo> {
-            on { hentUkvitterteUtbetalinger() } doReturn Utbetalinger(utbetaling)
+            on { hentUkvitterteUtbetalinger() } doReturn listOf(utbetaling)
         }
         val utbetalingMedKvittering = utbetaling.toKvittertUtbetaling(
             kvittering = kvittering,
