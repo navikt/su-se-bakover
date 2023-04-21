@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.sak
 
 import arrow.core.right
-import io.kotest.assertions.json.shouldMatchJson
+import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.setBody
@@ -98,7 +98,7 @@ internal class SakRoutesKtTest {
                     listOf(Brukerrolle.Veileder),
                 ).apply {
                     status shouldBe OK
-                    bodyAsText() shouldMatchJson """
+                    bodyAsText() shouldEqualJson """
                         {
                             "uføre": {
                                 "harÅpenSøknad": false,
@@ -144,7 +144,7 @@ internal class SakRoutesKtTest {
                     listOf(Brukerrolle.Veileder),
                 ).apply {
                     status shouldBe OK
-                    bodyAsText() shouldMatchJson """
+                    bodyAsText() shouldEqualJson """
                             {
                                 "uføre": {
                                     "harÅpenSøknad": true,
@@ -193,7 +193,7 @@ internal class SakRoutesKtTest {
                     listOf(Brukerrolle.Veileder),
                 ).apply {
                     status shouldBe OK
-                    bodyAsText() shouldMatchJson """
+                    bodyAsText() shouldEqualJson """
                             {
                                 "uføre": {
                                     "harÅpenSøknad": false,
