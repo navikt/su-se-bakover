@@ -161,17 +161,19 @@ internal class OppgaveHttpClient(
             client.send(request, HttpResponse.BodyHandlers.ofString()).let {
                 val body = it.body()
                 if (it.isSuccess()) {
-                    log.info("Lagret oppgave i oppgave. status=${it.statusCode()} se sikkerlogg for detaljer")
+                    val oppgaveId = objectMapper.readValue(body, OppgaveResponse::class.java).getOppgaveId().right()
+                    log.info("Lagret oppgave med id $oppgaveId i oppgavesystemet for sak ${config.saksreferanse}. status=${it.statusCode()} se sikkerlogg for detaljer")
                     sikkerLogg.info("Lagret oppgave i oppgave. status=${it.statusCode()} body=$body")
-                    objectMapper.readValue(body, OppgaveResponse::class.java).getOppgaveId().right()
+
+                    oppgaveId
                 } else {
-                    log.error("Feil i kallet mot oppgave. status=${it.statusCode()}, body=$body")
+                    log.error("Feil i kallet mot oppgave for sak ${config.saksreferanse}. status=${it.statusCode()}, body=$body")
                     sikkerLogg.error("Feil i kallet mot oppgave. Requestcontent=$config, ${it.statusCode()}, body=$body")
                     OppgaveFeil.KunneIkkeOppretteOppgave.left()
                 }
             }
         }.mapLeft { throwable ->
-            log.error("Feil i kallet mot oppgave.", throwable)
+            log.error("Feil i kallet mot oppgave for sak ${config.saksreferanse}", throwable)
             OppgaveFeil.KunneIkkeOppretteOppgave
         }.flatten()
     }
@@ -181,7 +183,7 @@ internal class OppgaveHttpClient(
             OppgaveFeil.KunneIkkeLukkeOppgave
         }.flatMap {
             if (it.erFerdigstilt()) {
-                log.info("Oppgave $oppgaveId er allerede lukket")
+                log.info("Oppgave $oppgaveId er allerede lukket for sak ${it.saksreferanse}.")
                 Unit.right()
             } else {
                 lukkOppgave(it, token).map { }
@@ -294,17 +296,17 @@ internal class OppgaveHttpClient(
             client.send(request, HttpResponse.BodyHandlers.ofString()).let {
                 if (it.isSuccess()) {
                     val loggmelding =
-                        "Endret oppgave ${oppgave.id} med versjon ${oppgave.versjon} sin status til FERDIGSTILT"
+                        "Endret oppgave ${oppgave.id} for sak ${oppgave.saksreferanse} med versjon ${oppgave.versjon} sin status til FERDIGSTILT"
                     log.info("$loggmelding. Response-json finnes i sikkerlogg.")
                     sikkerLogg.info("$loggmelding. Response-json: $it")
                     objectMapper.readValue(it.body(), OppdatertOppgaveResponse::class.java).right()
                 } else {
-                    log.error("Kunne ikke endre oppgave ${oppgave.id} med status=${it.statusCode()} og body=${it.body()}")
+                    log.error("Kunne ikke endre oppgave ${oppgave.id} for saksreferanse ${oppgave.saksreferanse} med status=${it.statusCode()} og body=${it.body()}")
                     OppgaveFeil.KunneIkkeEndreOppgave.left()
                 }
             }
         }.mapLeft { throwable ->
-            log.error("Kunne ikke endre oppgave ${oppgave.id}.", throwable)
+            log.error("Kunne ikke endre oppgave ${oppgave.id} for saksreferanse ${oppgave.saksreferanse}.", throwable)
             OppgaveFeil.KunneIkkeEndreOppgave
         }.flatten()
     }
