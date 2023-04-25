@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.stans
 
+import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.client.request.setBody
@@ -42,8 +43,10 @@ internal fun opprettStans(
                 """.trimIndent(),
             )
         }.apply {
-            status shouldBe HttpStatusCode.Created
-            contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+            withClue("opprettStans feilet med status: $status og body: ${this.bodyAsText()}") {
+                status shouldBe HttpStatusCode.Created
+                contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+            }
         }.bodyAsText()
     }
 }
@@ -64,10 +67,12 @@ internal fun iverksettStans(
             "automatiskIverksattStans",
             client = client,
         ).apply {
-            if (assertResponse) {
-                status shouldBe HttpStatusCode.OK
+            withClue("iverksettStans feilet med status: $status og body: ${this.bodyAsText()}") {
+                if (assertResponse) {
+                    status shouldBe HttpStatusCode.OK
+                }
+                contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
             }
-            contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
         }.bodyAsText().also {
             appComponents?.mottaKvitteringForUtbetalingFraØkonomi(sakId = UUID.fromString(sakId))
         }
