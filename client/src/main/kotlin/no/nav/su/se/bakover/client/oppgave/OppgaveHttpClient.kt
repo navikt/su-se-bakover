@@ -106,18 +106,30 @@ internal class OppgaveHttpClient(
                 "--- ${
                 Tidspunkt.now(clock).toOppgaveFormat()
                 } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}"
+
             is OppgaveConfig.Personhendelse ->
                 "--- ${
                 Tidspunkt.now(clock).toOppgaveFormat()
-                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}\nPersonhendelse: ${OppgavebeskrivelseMapper.map(config.personhendelsestype)}"
+                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}\nPersonhendelse: ${
+                OppgavebeskrivelseMapper.map(
+                    config.personhendelsestype,
+                )
+                }"
+
             is OppgaveConfig.Kontrollsamtale ->
                 "--- ${
                 Tidspunkt.now(clock).toOppgaveFormat()
                 } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}"
+
             is OppgaveConfig.Klage.Klageinstanshendelse ->
                 "--- ${
                 Tidspunkt.now(clock).toOppgaveFormat()
-                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}\n${OppgavebeskrivelseMapper.map(config)}"
+                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}\n${
+                OppgavebeskrivelseMapper.map(
+                    config,
+                )
+                }"
+
             is OppgaveConfig.Klage ->
                 "--- ${
                 Tidspunkt.now(clock).toOppgaveFormat()
@@ -167,7 +179,10 @@ internal class OppgaveHttpClient(
 
                     oppgaveId
                 } else {
-                    log.error("Feil i kallet mot oppgave for sak ${config.saksreferanse}. status=${it.statusCode()}, body=$body")
+                    log.error(
+                        "Feil i kallet mot oppgave for sak ${config.saksreferanse}. status=${it.statusCode()}, body=$body",
+                        RuntimeException("Genererer en stacktrace for enklere debugging."),
+                    )
                     sikkerLogg.error("Feil i kallet mot oppgave. Requestcontent=$config, ${it.statusCode()}, body=$body")
                     OppgaveFeil.KunneIkkeOppretteOppgave.left()
                 }
@@ -210,7 +225,10 @@ internal class OppgaveHttpClient(
                     val oppgave = objectMapper.readValue<OppgaveResponse>(it.body())
                     oppgave.right()
                 } else {
-                    log.error("Feil ved hent av oppgave $oppgaveId. status=${it.statusCode()} body=${it.body()}")
+                    log.error(
+                        "Feil ved hent av oppgave $oppgaveId. status=${it.statusCode()} body=${it.body()}",
+                        RuntimeException("Genererer en stacktrace for enklere debugging."),
+                    )
                     OppgaveFeil.KunneIkkeSøkeEtterOppgave.left()
                 }
             }
@@ -301,7 +319,10 @@ internal class OppgaveHttpClient(
                     sikkerLogg.info("$loggmelding. Response-json: $it")
                     objectMapper.readValue(it.body(), OppdatertOppgaveResponse::class.java).right()
                 } else {
-                    log.error("Kunne ikke endre oppgave ${oppgave.id} for saksreferanse ${oppgave.saksreferanse} med status=${it.statusCode()} og body=${it.body()}")
+                    log.error(
+                        "Kunne ikke endre oppgave ${oppgave.id} for saksreferanse ${oppgave.saksreferanse} med status=${it.statusCode()} og body=${it.body()}",
+                        RuntimeException("Genererer en stacktrace for enklere debugging."),
+                    )
                     OppgaveFeil.KunneIkkeEndreOppgave.left()
                 }
             }

@@ -27,7 +27,7 @@ data class Resultat private constructor(
         if (isCommitted || isSent) {
             log.error(
                 "Ktor-response already {committed=$isCommitted, sent=$isSent}. Ignored response: See sikkerLogg for more details.",
-                IllegalStateException("Stacktrace for easier debugging."),
+                IllegalStateException("Genererer en stacktrace for enklere debugging."),
             )
             sikkerLogg.error("Ktor-response already {committed=$isCommitted, sent=$isSent}. Ignored response: contentType=$contentType, httpCode=$httpCode, json=$json. See main log for stacktrace.")
         } else {

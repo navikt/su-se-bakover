@@ -10,7 +10,7 @@ class SessionCounter(
     private val whenOverThreshold: (numberOfSession: Int) -> Unit = {
         logger.error(
             "Sessions per thread over threshold: We started a new session while a session for this thread was already open. Total number of session: $it.",
-            RuntimeException("Triggering a stacktrace for logs."),
+            RuntimeException("Genererer en stacktrace for enklere debugging."),
         )
     },
 ) {
