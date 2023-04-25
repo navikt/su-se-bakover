@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.april
 import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.juli
 import no.nav.su.se.bakover.common.periode.juni
@@ -44,12 +45,17 @@ import no.nav.su.se.bakover.test.createFromGrunnlag
 import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.epsFnr
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.shouldBeType
+import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
+import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårInnvilget
@@ -535,6 +541,52 @@ internal class VedtakstidslinjeTest {
             tidslinje!!.single().also {
                 it.periode shouldBe år(2021)
                 it.originaltVedtak shouldBe andre
+            }
+        }
+    }
+
+    @Test
+    fun `stønadperiode x3 - stans over 2 stønadsperioder`() {
+        val tikkendeKlokke = TikkendeKlokke()
+        val (sakFørste, _, _) = iverksattSøknadsbehandlingUføre(
+            clock = tikkendeKlokke,
+            stønadsperiode = Stønadsperiode.create(år(2022)),
+        )
+        val (sakAndre, _, _) = iverksattSøknadsbehandlingUføre(
+            clock = tikkendeKlokke,
+            stønadsperiode = Stønadsperiode.create(år(2023)),
+            sakOgSøknad = sakFørste to nySøknadJournalførtMedOppgave(
+                sakId = sakFørste.id,
+                fnr = sakFørste.fnr,
+            ),
+        )
+        val (sakTredje, _, tredje) = iverksattSøknadsbehandlingUføre(
+            clock = tikkendeKlokke,
+            stønadsperiode = Stønadsperiode.create(januar(2024)..februar(2024)),
+            sakOgSøknad = sakAndre to nySøknadJournalførtMedOppgave(
+                sakId = sakFørste.id,
+                fnr = sakFørste.fnr,
+            ),
+        )
+        val (sakFjerde, _, _) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            // Kan bare stanse inneværende eller neste måned.
+            clock = fixedClockAt(1.februar(2023)),
+            sakOgVedtakSomKanRevurderes = sakTredje to tredje as VedtakSomKanRevurderes,
+            periode = februar(2023)..februar(2024),
+        )
+        sakFjerde.vedtakstidslinje().also { tidslinje ->
+            tidslinje!!.size shouldBe 3
+            tidslinje[0].let {
+                it.periode shouldBe år(2022)
+                it.originaltVedtak.shouldBeType<VedtakInnvilgetSøknadsbehandling>()
+            }
+            tidslinje[1].let {
+                it.periode shouldBe januar(2023)
+                it.originaltVedtak.shouldBeType<VedtakInnvilgetSøknadsbehandling>()
+            }
+            tidslinje[2].let {
+                it.periode shouldBe februar(2023)..februar(2024)
+                it.originaltVedtak.shouldBeType<VedtakStansAvYtelse>()
             }
         }
     }
