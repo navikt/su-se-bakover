@@ -3,6 +3,8 @@
 package db.migration
 
 import arrow.core.Nel
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import no.nav.su.se.bakover.common.Rekkefølge
@@ -19,7 +21,9 @@ import org.slf4j.LoggerFactory
 import java.sql.Statement
 import java.util.UUID
 
-val xmlMapperForTest = xmlMapper.registerKotlinModule()
+val xmlMapperForTest: ObjectMapper = xmlMapper
+    .registerKotlinModule()
+    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
 internal class V180__utbetalingslinje_legg_på_rekkefølge : BaseJavaMigration() {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -77,7 +81,8 @@ private fun leggTilRekkefølgePåUtbetalingslinjene(
                 },
                 saksbehId = "SU",
                 utbetalesTilId = utbetaling.fnr,
-                utbetalingId = utbetalingslinje.utbetalingId,
+                /* Kalt henvisning i selve requesten; denne ble lagt på, på et senere tidspunkt */
+                utbetalingId = if(oppdragslinje.utbetalingId != null) utbetalingslinje.utbetalingId else null,
                 refDelytelseId = if (!erEndring) utbetalingslinje.forrigeUtbetalingslinjeId else null,
                 refFagsystemId = if (!erEndring) utbetalingslinje.forrigeUtbetalingslinjeId?.let { utbetaling.saksnummer } else null,
                 grad = utbetalingslinje.uføregrad?.let {
