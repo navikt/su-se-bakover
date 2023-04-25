@@ -1,0 +1,21 @@
+name: Deploy to prod automatically on published release
+
+on:
+  release:
+    types: [published]
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}/su-se-bakover:${{ github.sha }}
+
+jobs:
+  deploy_to_prod:
+    name: Deploy to prod
+    runs-on: ubuntu-latest
+    steps:
+      -  uses: actions/checkout@v3
+      -  uses: nais/deploy/actions/deploy@v1
+         env:
+           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+           CLUSTER: prod-fss
+           RESOURCE: nais.yml
+           VARS: nais-prod.json
