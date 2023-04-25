@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.client.skatteetaten
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.http.Body
 import com.github.tomakehurst.wiremock.http.Fault
@@ -220,7 +219,8 @@ internal class SamletSkattegrunnlagTest {
             år = Year.of(2021),
         ).getOrFail().skatteResponser.first().oppslag.onLeft {
             it.shouldBeInstanceOf<SkatteoppslagFeil.UkjentFeil>()
-            it.throwable.shouldBeInstanceOf<MissingKotlinParameterException>()
+            // Denne vil endre seg i en senere jackson versjon fra com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException til com.fasterxml.jackson.databind.exc.MismatchedInputException
+            it.throwable::class.simpleName shouldBe "MissingKotlinParameterException"
             it.throwable.message shouldContain "non-nullable type"
         }.onRight { fail("Forventet left") }
     }
