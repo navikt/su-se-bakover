@@ -31,7 +31,12 @@ with
     tilbakekrevingz as (delete from tilbakekrevingsbehandling where sakid in (select id from sakz) returning id, sakid),
     avkortingz as (delete from avkortingsvarsel where sakid in (select id from sakz) returning id, sakid),
     personhendelsez as (delete from personhendelse where sakid in (select id from sakz) returning sakid),
-    klagehendelsez as (delete from klageinstanshendelse where utlest_klageid in (select id from klagez) returning id, utlest_klageid)
+    klagehendelsez as (delete from klageinstanshendelse where utlest_klageid in (select id from klagez) returning id, utlest_klageid),
+    hendelsez as (delete from hendelse where sakid in (select id from sakz) returning sakid),
+    gr_personlig_oppmøte as (delete from grunnlag_personlig_oppmøte where behandlingid in ((select id from behandlingz) union (select id from revurderingz) union (select id from reguleringz)) returning id, behandlingid),
+    vv_fastopphold as (delete from vilkårsvurdering_fastopphold where behandlingid in ((select id from behandlingz) union (select id from revurderingz) union (select id from reguleringz)) returning id, behandlingid),
+    vv_institusjonsopphold as (delete from vilkårsvurdering_institusjonsopphold where behandlingid in ((select id from behandlingz) union (select id from revurderingz) union (select id from reguleringz)) returning id, behandlingid),
+    vv_personlig_oppmøte as (delete from vilkårsvurdering_personlig_oppmøte where behandlingid in ((select id from behandlingz) union (select id from revurderingz) union (select id from reguleringz)) returning id, behandlingid)
 select sakz.id
 from sakz
          left join søknadz on sakz.id = søknadz.sakid
@@ -66,4 +71,9 @@ from sakz
          left join avkortingz on sakz.id = avkortingz.sakid
          left join personhendelsez on sakz.id = personhendelsez.sakid
          left join klagehendelsez on utlest_klageid = klagehendelsez.utlest_klageid
+         left join hendelsez on sakz.id = hendelsez.sakid
+         left join gr_personlig_oppmøte on behandlingz.id = gr_personlig_oppmøte.behandlingid
+         left join vv_fastopphold on behandlingz.id = vv_fastopphold.behandlingid
+         left join vv_institusjonsopphold on behandlingz.id = vv_institusjonsopphold.behandlingid
+         left join vv_personlig_oppmøte on behandlingz.id = vv_personlig_oppmøte.behandlingid
 ;
