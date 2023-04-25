@@ -29,7 +29,7 @@ internal class DokumentPostgresRepo(
 ) : DokumentRepo {
 
     private val joinDokumentOgDistribusjonQuery =
-        "select d.*, dd.journalpostid, dd.brevbestillingid from dokument d left join dokument_distribusjon dd on dd.dokumentid = d.id"
+        "select d.*, dd.journalpostid, dd.brevbestillingid from dokument d left join dokument_distribusjon dd on dd.dokumentid = d.id where d.duplikatAv is null"
 
     override fun lagre(dokument: Dokument.MedMetadata, transactionContext: TransactionContext) {
         dbMetrics.timeQuery("lagreDokumentMedMetadata") {
@@ -86,7 +86,7 @@ internal class DokumentPostgresRepo(
         return dbMetrics.timeQuery("hentDokumentMedMetadataForSakId") {
             sessionFactory.withSession { session ->
                 """
-                $joinDokumentOgDistribusjonQuery where sakId = :id
+                $joinDokumentOgDistribusjonQuery and sakId = :id
                 """.trimIndent()
                     .hentListe(mapOf("id" to id), session) {
                         it.toDokumentMedStatus()
@@ -99,7 +99,7 @@ internal class DokumentPostgresRepo(
         return dbMetrics.timeQuery("hentDokumentMedMetadataForSøknadId") {
             sessionFactory.withSession { session ->
                 """
-                $joinDokumentOgDistribusjonQuery where søknadId = :id
+                $joinDokumentOgDistribusjonQuery and søknadId = :id
                 """.trimIndent()
                     .hentListe(mapOf("id" to id), session) {
                         it.toDokumentMedStatus()
@@ -112,7 +112,7 @@ internal class DokumentPostgresRepo(
         return dbMetrics.timeQuery("hentDokumentMedMetadataForVedtakId") {
             sessionFactory.withSession { session ->
                 """
-                $joinDokumentOgDistribusjonQuery where vedtakId = :id
+                $joinDokumentOgDistribusjonQuery and vedtakId = :id
                 """.trimIndent()
                     .hentListe(mapOf("id" to id), session) {
                         it.toDokumentMedStatus()
@@ -125,7 +125,7 @@ internal class DokumentPostgresRepo(
         return dbMetrics.timeQuery("hentDokumentMedMetadataForRevurderingId") {
             sessionFactory.withSession { session ->
                 """
-                $joinDokumentOgDistribusjonQuery where revurderingId = :id
+                $joinDokumentOgDistribusjonQuery and revurderingId = :id
                 """.trimIndent()
                     .hentListe(mapOf("id" to id), session) {
                         it.toDokumentMedStatus()
@@ -138,7 +138,7 @@ internal class DokumentPostgresRepo(
         return dbMetrics.timeQuery("hentDokumentMedMetadataForKlageId") {
             sessionFactory.withSession { session ->
                 """
-                $joinDokumentOgDistribusjonQuery where klageId = :id
+                $joinDokumentOgDistribusjonQuery and klageId = :id
                 """.trimIndent()
                     .hentListe(mapOf("id" to id), session) {
                         it.toDokumentMedStatus()
@@ -230,7 +230,7 @@ internal class DokumentPostgresRepo(
 
     private fun hentDokument(id: UUID, session: Session) =
         """
-            $joinDokumentOgDistribusjonQuery where d.id = :id
+            $joinDokumentOgDistribusjonQuery and d.id = :id
         """.trimIndent()
             .hent(mapOf("id" to id), session) {
                 it.toDokumentMedStatus()

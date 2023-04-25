@@ -313,6 +313,7 @@ internal class KlagePostgresRepo(
                   join vedtak v on k.vedtakid = v.id
                   join dokument d on d.vedtakid = v.id
                   where k.id = :id
+                  and d.duplikatAv is null
                 """.trimIndent()
                     .hent(mapOf("id" to klageId), it) { row ->
                         row.string("vedtaksbrevdato").let {
