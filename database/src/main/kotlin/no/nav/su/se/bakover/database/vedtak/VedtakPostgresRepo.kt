@@ -106,6 +106,7 @@ internal class VedtakPostgresRepo(
                 left join dokument d on v.id = d.vedtakid
                 left join dokument_distribusjon dd on d.id = dd.dokumentid
                 where v.id = :vedtakId
+                and d.duplikatAv is null
                 order by v.opprettet
         """.trimIndent()
             .hent(mapOf("vedtakId" to vedtakId), session) {
@@ -127,6 +128,7 @@ internal class VedtakPostgresRepo(
                 join behandling_vedtak bv on bv.vedtakid = v.id
                 join revurdering r on r.id = bv.revurderingId
                 where r.id = :revurderingId
+                and d.duplikatAv is null
                 order by v.opprettet
             """.trimIndent()
                 .hent(mapOf("revurderingId" to revurderingId), session) {
@@ -146,10 +148,15 @@ internal class VedtakPostgresRepo(
             left join dokument d on v.id = d.vedtakid
             left join dokument_distribusjon dd on d.id = dd.dokumentid
             where v.sakId = :sakId
+            and d.duplikatAv is null
             order by v.opprettet
         """.trimIndent()
             .hentListe(mapOf("sakId" to sakId), session) {
                 it.toVedtak(session)
+            }.also {
+                it.map { it.id }.let {
+                    check(it.distinct().size == it.size) { "Fant duplikate vedtak/dokument/dokument_distribusjon for sakId=$sakId" }
+                }
             }
 
     override fun lagre(vedtak: Vedtak) {
@@ -186,6 +193,7 @@ internal class VedtakPostgresRepo(
                 left join dokument d on v.id = d.vedtakid
                 left join dokument_distribusjon dd on d.id = dd.dokumentid
                 where v.utbetalingId = :utbetalingId
+                and d.duplikatAv is null
                 order by v.opprettet
                 """.trimIndent()
                     .hent(mapOf("utbetalingId" to utbetalingId), session) {
@@ -205,7 +213,7 @@ internal class VedtakPostgresRepo(
                 from dokument
                 inner join dokument_distribusjon dd
                   on dokument.id = dd.dokumentid
-                where vedtakid = :vedtakId
+                where vedtakid = :vedtakId and d.duplikatAv is null
                 """.trimIndent().hent(mapOf("vedtakId" to vedtakId), session) {
                     JournalpostId(it.string("journalpostid"))
                 }
