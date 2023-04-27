@@ -49,7 +49,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
     fun `kan lagre EPS selvom man ikke har tilgang til saken`() {
         val (_, uavklart) = søknadsbehandlingVilkårsvurdertUavklart()
 
-        val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarEps(
+        val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = uavklart.periode,

@@ -73,7 +73,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             aldersvurdering = behandling.aldersvurdering,
             grunnlagsdata = Grunnlagsdata.create(
                 fradragsgrunnlag = fradragsgrunnlag,
-                bosituasjon = behandling.grunnlagsdata.bosituasjon,
+                bosituasjon = behandling.grunnlagsdata.bosituasjonSomFullstendig(),
             ),
             vilkårsvurderinger = behandling.vilkårsvurderinger,
             attesteringer = behandling.attesteringer,

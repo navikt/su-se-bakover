@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.grunnlag
 import no.nav.su.se.bakover.common.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.Session
 import no.nav.su.se.bakover.common.persistence.TransactionalSession
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.sak.Sakstype
@@ -109,6 +110,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun hentForRevurdering(
         behandlingId: UUID,
         session: Session,
@@ -117,7 +119,8 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
         return dbMetrics.timeQuery("hentGrunnlagOgVilkårsvurderingerForRevurderingId") {
             val grunnlagsdata = Grunnlagsdata.create(
                 fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandlingId, session),
-                bosituasjon = bosituasjongrunnlagPostgresRepo.hentBosituasjongrunnlag(behandlingId, session),
+                // for revurdering kan man bare ha fullstendige bosituasjoner
+                bosituasjon = bosituasjongrunnlagPostgresRepo.hentBosituasjongrunnlag(behandlingId, session) as List<Grunnlag.Bosituasjon.Fullstendig>,
             )
             val vilkårsvurderinger = when (sakstype) {
                 Sakstype.ALDER -> {

@@ -178,6 +178,8 @@ sealed class VilkårsvurdertSøknadsbehandling :
 
         init {
             kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
+            // TODO jah: Enable denne når det ikke finnes proddata med ufullstendig i denne tilstanden:
+            // grunnlagsdata.kastHvisIkkeAlleBosituasjonerErFullstendig()
         }
 
         override fun skalSendeVedtaksbrev(): Boolean {

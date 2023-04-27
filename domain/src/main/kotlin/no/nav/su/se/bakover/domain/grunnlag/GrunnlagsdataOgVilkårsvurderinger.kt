@@ -40,24 +40,15 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
     }
 
     /**
-     * Litt forskjellig valideringskrav avhengig om bosituasjonen er ufullstendig/fullstendig.
-     *
      * Fjerner EPS sin formue/fradrag dersom søker ikke har EPS.
      * */
-    @Suppress("UNCHECKED_CAST")
-    open fun oppdaterBosituasjon(bosituasjon: List<Grunnlag.Bosituasjon>): GrunnlagsdataOgVilkårsvurderinger {
-        return when {
-            bosituasjon.all { it is Grunnlag.Bosituasjon.Ufullstendig } -> oppdaterBosituasjonUfullstendig(bosituasjon as List<Grunnlag.Bosituasjon.Ufullstendig>)
-            bosituasjon.all { it is Grunnlag.Bosituasjon.Fullstendig } -> oppdaterBosituasjonFullstendig(bosituasjon as List<Grunnlag.Bosituasjon.Fullstendig>)
-            else -> {
-                throw IllegalArgumentException("Alle elementer i listen må ha samme grad av kompletthet")
-            }
-        }
+    open fun oppdaterBosituasjon(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>): GrunnlagsdataOgVilkårsvurderinger {
+        return oppdaterBosituasjonFullstendig(bosituasjon)
     }
 
     private fun oppdaterBosituasjonInternal(
-        bosituasjon: List<Grunnlag.Bosituasjon>,
-        oppdaterGrunnlagsdata: (fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>, bosituasjon: List<Grunnlag.Bosituasjon>) -> Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata>,
+        bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>,
+        oppdaterGrunnlagsdata: (fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>, bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>) -> Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata>,
     ): GrunnlagsdataOgVilkårsvurderinger {
         val grunnlagsdataJustertForEPS = oppdaterGrunnlagsdata(
             /*
@@ -102,22 +93,6 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
     }
 
     /**
-     * Oppdaterer bosituasjon ufullstendig.
-     * Tenkt brukt i steget der man velger om søker har EPS eller ikke, men før man tar stilling til om EPS er ufør/67+ eller om man bor med voksne/er enslig.
-     *
-     * Fjerner EPS sin formue/fradrag dersom søker ikke har EPS.
-     * */
-    private fun oppdaterBosituasjonUfullstendig(
-        bosituasjon: List<Grunnlag.Bosituasjon.Ufullstendig>,
-    ): GrunnlagsdataOgVilkårsvurderinger {
-        if (this is Revurdering) throw IllegalArgumentException("Kan ikke oppdatere med en ufullstendig bosituasjon for revurdering.")
-        return oppdaterBosituasjonInternal(
-            bosituasjon = bosituasjon,
-            oppdaterGrunnlagsdata = Grunnlagsdata::tryCreateTillatUfullstendigBosituasjon,
-        )
-    }
-
-    /**
      * Oppdaterer bosituasjon med en fullstendig.
      * Tenkt brukt når man fullfører bosituasjonssteget i søknadsbehandling og for revurdering og evt. regulering/o.l.
      *
@@ -144,12 +119,12 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
             return copy(
                 grunnlagsdata = Grunnlagsdata.tryCreate(
                     fradragsgrunnlag = grunnlag,
-                    bosituasjon = grunnlagsdata.bosituasjon,
+                    bosituasjon = grunnlagsdata.bosituasjonSomFullstendig(),
                 ).getOrElse { throw IllegalArgumentException(it.toString()) },
             )
         }
 
-        override fun oppdaterBosituasjon(bosituasjon: List<Grunnlag.Bosituasjon>): Søknadsbehandling {
+        override fun oppdaterBosituasjon(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>): Søknadsbehandling {
             return super.oppdaterBosituasjon(bosituasjon) as Søknadsbehandling
         }
 
@@ -207,7 +182,7 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
                                     "Konsistenssjekk mellom bosituasjon og formue feilet: $it",
                                 )
 
-                                Konsistensproblem.Bosituasjon.Ufullstendig -> Unit // Bosituasjon trenger ikke være fullstendig på dette tidspunktet.
+                                Konsistensproblem.Bosituasjon.Ufullstendig -> throw IllegalStateException("Bosituasjon kan ikke være")
                             }
                         }
                     }
@@ -227,7 +202,7 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
     ) : GrunnlagsdataOgVilkårsvurderinger() {
 
-        fun oppdaterBosituasjon(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>): Revurdering {
+        override fun oppdaterBosituasjon(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>): Revurdering {
             return super.oppdaterBosituasjon(bosituasjon) as Revurdering
         }
 

@@ -52,7 +52,7 @@ data class GjeldendeVedtaksdata(
                 it.grunnlagsdata.fradragsgrunnlag
             }.slåSammenPeriodeOgFradrag(clock),
             bosituasjon = vedtakPåTidslinje.flatMap {
-                it.grunnlagsdata.bosituasjon
+                it.grunnlagsdata.bosituasjonSomFullstendig()
             }.slåSammenPeriodeOgBosituasjon(),
         )
         vilkårsvurderinger = vedtakPåTidslinje.let {

@@ -73,7 +73,7 @@ class LeggTilBosituasjonTest {
                     1.januar(2021),
                     30.september(2021),
                 )
-                oppdatert.grunnlagsdata.bosituasjon.perioderUtenEPS().single() shouldBe Periode.create(
+                oppdatert.grunnlagsdata.bosituasjonSomFullstendig().perioderUtenEPS().single() shouldBe Periode.create(
                     1.oktober(2021),
                     31.desember(2021),
                 )

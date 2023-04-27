@@ -70,7 +70,7 @@ data class OpprettetRegulering(
         this.copy(
             grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
                 grunnlagsdata = Grunnlagsdata.tryCreate(
-                    bosituasjon = grunnlagsdata.bosituasjon,
+                    bosituasjon = grunnlagsdata.bosituasjonSomFullstendig(),
                     fradragsgrunnlag = fradragsgrunnlag,
                 ).getOrElse { throw IllegalStateException("Kunne ikke legge til fradrag ved regulering: $it") },
                 vilkårsvurderinger = vilkårsvurderinger,

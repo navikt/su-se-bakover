@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 data class SjekkOmGrunnlagErKonsistent(
     private val formuegrunnlag: List<Formuegrunnlag>,
     private val uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
-    private val bosituasjongrunnlag: List<Grunnlag.Bosituasjon>,
+    private val bosituasjongrunnlag: List<Grunnlag.Bosituasjon.Fullstendig>,
     private val fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
 ) {
     constructor(gjeldendeVedtaksdata: GjeldendeVedtaksdata) : this(
@@ -29,7 +29,7 @@ data class SjekkOmGrunnlagErKonsistent(
                 it.grunnlag
             },
         ),
-        bosituasjongrunnlag = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
+        bosituasjongrunnlag = gjeldendeVedtaksdata.grunnlagsdata.bosituasjonSomFullstendig(),
         fradragsgrunnlag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
     )
 

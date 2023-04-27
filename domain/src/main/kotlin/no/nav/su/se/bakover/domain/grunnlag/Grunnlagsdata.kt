@@ -34,6 +34,14 @@ data class Grunnlagsdata private constructor(
      */
     val erUtfylt: Boolean = bosituasjon.isNotEmpty()
 
+    fun bosituasjonSomFullstendig(): List<Bosituasjon.Fullstendig> {
+        return bosituasjon.map { it as Bosituasjon.Fullstendig }
+    }
+
+    fun kastHvisIkkeAlleBosituasjonerErFullstendig() {
+        check(bosituasjon.all { it is Bosituasjon.Fullstendig })
+    }
+
     init {
         val bosituasjonsperiode = bosituasjon.map { it.periode }
         bosituasjonsperiode.zipWithNext { a, b ->
@@ -50,15 +58,21 @@ data class Grunnlagsdata private constructor(
         }
     }
 
+    /**
+     * Kaster dersom ikke alle bosituasjonene er fullstendig.
+     */
     // TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
     fun oppdaterGrunnlagsperioder(
         oppdatertPeriode: Periode,
         clock: Clock,
     ): Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata> {
-        return tryCreateTillatUfullstendigBosituasjon(
+        require(bosituasjon.size <= 1) {
+            "Denne er kun beregnet på Søknadsbehandling med 1 bosituasjon, siden oppdaterBosituasjonsperiode vil sette alle bosituasjonene til samme periode."
+        }
+        return tryCreate(
             fradragsgrunnlag = fradragsgrunnlag.oppdaterFradragsperiode(oppdatertPeriode, clock)
                 .getOrElse { return KunneIkkeLageGrunnlagsdata.UgyldigFradragsgrunnlag(it).left() },
-            bosituasjon = bosituasjon.oppdaterBosituasjonsperiode(oppdatertPeriode),
+            bosituasjon = bosituasjonSomFullstendig().oppdaterBosituasjonsperiode(oppdatertPeriode),
         )
     }
 
@@ -73,24 +87,14 @@ data class Grunnlagsdata private constructor(
 
     companion object {
         val IkkeVurdert = Grunnlagsdata(fradragsgrunnlag = emptyList(), bosituasjon = emptyList())
-
-        /** Denne skal ikke kalles på produksjon på sikt */
         fun create(
             fradragsgrunnlag: List<Fradragsgrunnlag> = emptyList(),
-            bosituasjon: List<Bosituasjon> = emptyList(),
+            bosituasjon: List<Bosituasjon.Fullstendig> = emptyList(),
         ) = tryCreate(fradragsgrunnlag, bosituasjon).getOrElse { throw IllegalStateException(it.toString()) }
-
-        fun createTillatUfullstendigBosituasjon(
-            fradragsgrunnlag: List<Fradragsgrunnlag> = emptyList(),
-            bosituasjon: List<Bosituasjon> = emptyList(),
-        ) = tryCreateTillatUfullstendigBosituasjon(
-            fradragsgrunnlag,
-            bosituasjon,
-        ).getOrElse { throw IllegalStateException(it.toString()) }
 
         fun tryCreate(
             fradragsgrunnlag: List<Fradragsgrunnlag>,
-            bosituasjon: List<Bosituasjon>,
+            bosituasjon: List<Bosituasjon.Fullstendig>,
         ): Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata> {
             return SjekkOmGrunnlagErKonsistent.BosituasjonOgFradrag(
                 bosituasjon = bosituasjon,
@@ -106,10 +110,23 @@ data class Grunnlagsdata private constructor(
         }
 
         /**
+         * Skal kun kalles av persisteringslaget og expect i tester.
+         */
+        fun createTillatUfullstendigBosituasjon(
+            fradragsgrunnlag: List<Fradragsgrunnlag> = emptyList(),
+            bosituasjon: List<Bosituasjon> = emptyList(),
+        ) = tryCreateTillatUfullstendigBosituasjon(
+            fradragsgrunnlag,
+            bosituasjon,
+        ).getOrElse { throw IllegalStateException(it.toString()) }
+
+        /**
+         * Skal kun kalles av persisteringslaget og expect i tester.
+         *
          * Tillater at vi oppretter med ufullstendig bosituasjon for å støtte søknadsbehandlinger i tidlige faser,
          * og/eller avslag før sats er tatt stilling til.
          */
-        fun tryCreateTillatUfullstendigBosituasjon(
+        private fun tryCreateTillatUfullstendigBosituasjon(
             fradragsgrunnlag: List<Fradragsgrunnlag>,
             bosituasjon: List<Bosituasjon>,
         ): Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata> {

@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.slåS
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
 internal class BosituasjonTest {
@@ -71,7 +70,7 @@ internal class BosituasjonTest {
     @Test
     fun `oppdaterer periode i bosituasjon`() {
         val oppdatertPeriode = Periode.create(1.februar(2021), 31.januar(2022))
-        val gjeldendeBosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
+        val gjeldendeBosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = år(2021),
@@ -112,23 +111,5 @@ internal class BosituasjonTest {
             periode = mars(2021),
             fnr = b3.fnr,
         )
-    }
-
-    @Test
-    fun `kaster exception dersom det finnes ufullstendig bostiuasjon når den skal slå sammen`() {
-        val b1 = Grunnlag.Bosituasjon.Fullstendig.Enslig(
-            id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
-            periode = januar(2021),
-        )
-        val b2 = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
-            id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
-            periode = februar(2021),
-        )
-
-        assertThrows<IllegalStateException> {
-            listOf(b1, b2).slåSammenPeriodeOgBosituasjon()
-        }
     }
 }

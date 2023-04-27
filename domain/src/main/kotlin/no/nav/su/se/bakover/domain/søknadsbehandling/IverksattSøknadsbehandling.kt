@@ -74,6 +74,7 @@ sealed class IverksattSøknadsbehandling : Søknadsbehandling() {
         init {
             grunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget()
             kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
+            grunnlagsdata.kastHvisIkkeAlleBosituasjonerErFullstendig()
         }
 
         override fun accept(visitor: SøknadsbehandlingVisitor) {
@@ -112,6 +113,7 @@ sealed class IverksattSøknadsbehandling : Søknadsbehandling() {
             init {
                 grunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget()
                 kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
+                grunnlagsdata.kastHvisIkkeAlleBosituasjonerErFullstendig()
             }
 
             override fun skalSendeVedtaksbrev(): Boolean {

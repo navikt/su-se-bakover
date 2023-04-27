@@ -1265,7 +1265,7 @@ fun vilkårsvurdertSøknadsbehandling(
                     .getOrFail()
                     .oppdaterBosituasjon(
                         saksbehandler = saksbehandler,
-                        bosituasjon = customGrunnlag.customOrDefault { grunnlagsdata.bosituasjon }.single(),
+                        bosituasjon = customGrunnlag.customOrDefault { grunnlagsdata.bosituasjonSomFullstendig() }.single(),
                         hendelse = Søknadsbehandlingshendelse(
                             tidspunkt = Tidspunkt.now(clock),
                             saksbehandler = saksbehandler,
@@ -1337,7 +1337,7 @@ fun vilkårsvurdertSøknadsbehandling(
                     .getOrFail()
                     .oppdaterBosituasjon(
                         saksbehandler = saksbehandler,
-                        bosituasjon = customGrunnlag.customOrDefault { grunnlagsdata.bosituasjon }.single(),
+                        bosituasjon = customGrunnlag.customOrDefault { grunnlagsdata.bosituasjonSomFullstendig() }.single(),
                         hendelse = Søknadsbehandlingshendelse(
                             tidspunkt = Tidspunkt.now(clock),
                             saksbehandler = saksbehandler,

@@ -75,6 +75,7 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling(), Søknadsbehand
 
         init {
             kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
+            grunnlagsdata.kastHvisIkkeAlleBosituasjonerErFullstendig()
         }
 
         override fun nyOppgaveId(nyOppgaveId: OppgaveId): Innvilget {
@@ -226,6 +227,7 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling(), Søknadsbehand
 
             init {
                 kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
+                grunnlagsdata.kastHvisIkkeAlleBosituasjonerErFullstendig()
             }
 
             override fun skalSendeVedtaksbrev(): Boolean {

@@ -173,7 +173,7 @@ sealed class Søknadsbehandling :
      */
     fun oppdaterBosituasjon(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        bosituasjon: Grunnlag.Bosituasjon,
+        bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
         hendelse: Søknadsbehandlingshendelse,
     ) = if (this is KanOppdaterePeriodeGrunnlagVilkår) {
         oppdaterBosituasjonInternal(saksbehandler, bosituasjon, hendelse).right()
@@ -189,7 +189,7 @@ sealed class Søknadsbehandling :
      */
     private fun oppdaterBosituasjonInternal(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        bosituasjon: Grunnlag.Bosituasjon,
+        bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
         hendelse: Søknadsbehandlingshendelse,
     ) = grunnlagsdataOgVilkårsvurderinger.oppdaterBosituasjon(listOf(bosituasjon)).let {
         copyInternal(

@@ -275,27 +275,26 @@ sealed class Grunnlag {
          */
         abstract fun harEPS(): Boolean
 
-        fun oppdaterBosituasjonsperiode(oppdatertPeriode: Periode): Bosituasjon {
+        fun oppdaterBosituasjonsperiode(oppdatertPeriode: Periode): Fullstendig {
             return when (this) {
                 is Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> this.copy(periode = oppdatertPeriode)
                 is Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> this.copy(periode = oppdatertPeriode)
                 is Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> this.copy(periode = oppdatertPeriode)
                 is Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> this.copy(periode = oppdatertPeriode)
                 is Fullstendig.Enslig -> this.copy(periode = oppdatertPeriode)
-                is Ufullstendig.HarEps -> this.copy(periode = oppdatertPeriode)
-                is Ufullstendig.HarIkkeEps -> this.copy(periode = oppdatertPeriode)
+                is Ufullstendig -> throw IllegalStateException("Tillatter ikke ufullstendige bosituasjoner")
             }
         }
 
         companion object {
             // TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
-            fun List<Bosituasjon>.oppdaterBosituasjonsperiode(oppdatertPeriode: Periode): List<Bosituasjon> {
+            fun List<Fullstendig>.oppdaterBosituasjonsperiode(oppdatertPeriode: Periode): List<Fullstendig> {
                 return this.map { it.oppdaterBosituasjonsperiode(oppdatertPeriode) }
             }
 
-            fun List<Bosituasjon>.slåSammenPeriodeOgBosituasjon(): List<Bosituasjon> {
+            fun List<Fullstendig>.slåSammenPeriodeOgBosituasjon(): List<Fullstendig> {
                 return this.sortedBy { it.periode.fraOgMed }
-                    .fold(mutableListOf<MutableList<Bosituasjon>>()) { acc, bosituasjon ->
+                    .fold(mutableListOf<MutableList<Fullstendig>>()) { acc, bosituasjon ->
                         if (acc.isEmpty()) {
                             acc.add(mutableListOf(bosituasjon))
                         } else if (acc.last().sisteBosituasjonsgrunnlagErLikOgTilstøtende(bosituasjon)) {
@@ -306,16 +305,13 @@ sealed class Grunnlag {
                         acc
                     }.map {
                         val periode = it.map { it.periode }.minAndMaxOf()
-
-                        when (val bosituasjon = it.first()) {
-                            is Fullstendig -> bosituasjon.oppdaterBosituasjonsperiode(periode)
-                            is Ufullstendig -> throw IllegalStateException("Kan ikke ha ufullstendige bosituasjoner")
-                        }
+                        it.first().oppdaterBosituasjonsperiode(periode)
                     }
             }
 
-            private fun List<Bosituasjon>.sisteBosituasjonsgrunnlagErLikOgTilstøtende(other: Bosituasjon) =
-                this.last().let { it.tilstøter(other) && it.erLik(other) }
+            private fun List<Fullstendig>.sisteBosituasjonsgrunnlagErLikOgTilstøtende(other: Fullstendig): Boolean {
+                return this.last().let { it.tilstøter(other) && it.erLik(other) }
+            }
 
             fun List<Bosituasjon>.minsteAntallSammenhengendePerioder(): List<Periode> {
                 return map { it.periode }.minsteAntallSammenhengendePerioder()
@@ -325,7 +321,7 @@ sealed class Grunnlag {
                 return filter { it.harEPS() }.map { it.periode }.minsteAntallSammenhengendePerioder()
             }
 
-            fun List<Bosituasjon>.perioderUtenEPS(): List<Periode> {
+            fun List<Fullstendig>.perioderUtenEPS(): List<Periode> {
                 return filter { !it.harEPS() }.map { it.periode }.minsteAntallSammenhengendePerioder()
             }
 

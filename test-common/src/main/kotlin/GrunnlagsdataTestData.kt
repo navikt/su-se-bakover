@@ -115,7 +115,7 @@ fun bosituasjongrunnlagEpsUførFlyktning(
 fun grunnlagsdataEnsligUtenFradrag(
     periode: Periode = år(2021),
     fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag> = emptyList(),
-    bosituasjon: Nel<Grunnlag.Bosituasjon> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
+    bosituasjon: Nel<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
 ): Grunnlagsdata {
     return Grunnlagsdata.create(fradragsgrunnlag, bosituasjon)
 }
@@ -133,7 +133,7 @@ fun grunnlagsdataEnsligMedFradrag(
             periode = periode,
         ),
     ),
-    bosituasjon: Nel<Grunnlag.Bosituasjon> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
+    bosituasjon: Nel<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
 ): Grunnlagsdata {
     return Grunnlagsdata.create(fradragsgrunnlag, bosituasjon)
 }

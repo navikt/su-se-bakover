@@ -54,6 +54,7 @@ data class SimulertSøknadsbehandling(
 
     init {
         kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
+        grunnlagsdata.kastHvisIkkeAlleBosituasjonerErFullstendig()
     }
 
     override fun skalSendeVedtaksbrev(): Boolean {
