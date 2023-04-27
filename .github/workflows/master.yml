@@ -8,6 +8,11 @@ on:
       - master
     paths-ignore:
       - '.github/workflows/datapakker.yml'
+      - '.github/workflows/codeql.yml'
+      - '.github/workflows/alerts-deploy.yml'
+      - 'alerts.yml'
+      - 'README.md'
+      - 'docker-compose.yml'
       - 'datapakker/**'
 
 env:
