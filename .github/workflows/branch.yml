@@ -10,6 +10,8 @@ on:
       - '!main'     # excludes main (will probably replace master)
     paths-ignore:
       - '.github/workflows/datapakker.yml'
+      - '.github/workflows/codeql.yml'
+      - '.github/workflows/alerts-deploy.yml'
       - 'datapakker/**'
 
 env:
