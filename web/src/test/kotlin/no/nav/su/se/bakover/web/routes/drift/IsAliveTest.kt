@@ -8,7 +8,7 @@ import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.testSusebakover
+import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
@@ -21,7 +21,7 @@ internal class IsAliveTest {
         Brukerrolle.values().filterNot { it == Brukerrolle.Drift }.forEach {
             testApplication {
                 application {
-                    testSusebakover(services = services)
+                    testSusebakoverWithMockedDb(services = services)
                 }
                 defaultRequest(
                     method = HttpMethod.Get,
@@ -39,7 +39,7 @@ internal class IsAliveTest {
     fun `isAlive-endepunktet gir status ok`() {
         testApplication {
             application {
-                testSusebakover()
+                testSusebakoverWithMockedDb()
             }
             defaultRequest(
                 HttpMethod.Get,

@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.testSusebakover
+import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -35,7 +35,7 @@ internal class BrevutkastForRevurderingRouteTest {
     @Test
     fun `uautoriserte kan ikke lage brevutkast`() {
         testApplication {
-            application { testSusebakover() }
+            application { testSusebakoverWithMockedDb() }
             defaultRequest(
                 HttpMethod.Post,
                 "/saker/$sakId/revurderinger/$revurderingId/brevutkast",
@@ -70,7 +70,7 @@ internal class BrevutkastForRevurderingRouteTest {
         }
 
         testApplication {
-            application { testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock)) }
+            application { testSusebakoverWithMockedDb(services = TestServicesBuilder.services(revurdering = revurderingServiceMock)) }
             defaultRequest(
                 HttpMethod.Post,
                 "/saker/$sakId/revurderinger/$revurderingId/brevutkast",
@@ -156,7 +156,7 @@ internal class BrevutkastForRevurderingRouteTest {
         }
 
         testApplication {
-            application { testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock)) }
+            application { testSusebakoverWithMockedDb(services = TestServicesBuilder.services(revurdering = revurderingServiceMock)) }
             defaultRequest(
                 HttpMethod.Post,
                 "/saker/$sakId/revurderinger/$revurderingId/brevutkast",

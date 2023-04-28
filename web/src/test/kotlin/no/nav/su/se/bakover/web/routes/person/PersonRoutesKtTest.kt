@@ -25,7 +25,7 @@ import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
-import no.nav.su.se.bakover.web.testSusebakover
+import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -43,7 +43,7 @@ internal class PersonRoutesKtTest {
     fun `får ikke hente persondata uten å være innlogget`() {
         testApplication {
             application {
-                testSusebakover()
+                testSusebakoverWithMockedDb()
             }
 
             client.post("$personPath/søk") {
@@ -58,7 +58,7 @@ internal class PersonRoutesKtTest {
     fun `bad request ved ugyldig fnr`() {
         testApplication {
             application {
-                testSusebakover()
+                testSusebakoverWithMockedDb()
             }
             defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"qwertyuiopå"}""")
@@ -133,7 +133,7 @@ internal class PersonRoutesKtTest {
 
         testApplication {
             application {
-                testSusebakover(accessCheckProxy = accessCheckProxyMock, clock = fixedClock)
+                testSusebakoverWithMockedDb(accessCheckProxy = accessCheckProxyMock, clock = fixedClock)
             }
             defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"$testIdent"}""")
@@ -160,7 +160,7 @@ internal class PersonRoutesKtTest {
 
         testApplication {
             application {
-                testSusebakover(clients = clients)
+                testSusebakoverWithMockedDb(clients = clients)
             }
             defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"$testIdent"}""")
@@ -196,7 +196,7 @@ internal class PersonRoutesKtTest {
 
         testApplication {
             application {
-                testSusebakover(clients = clients)
+                testSusebakoverWithMockedDb(clients = clients)
             }
             defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr": $testIdent}""")
@@ -232,7 +232,7 @@ internal class PersonRoutesKtTest {
 
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     clients = clients,
                 )
             }

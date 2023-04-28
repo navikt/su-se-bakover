@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web
+package no.nav.su.se.bakover.application
 
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
@@ -11,9 +11,11 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
 import io.ktor.server.testing.testApplication
+import no.nav.su.se.bakover.application.LoggingTest.Companion.konfigurerLogback
 import no.nav.su.se.bakover.common.Brukerrolle
-import no.nav.su.se.bakover.web.LoggingTest.Companion.konfigurerLogback
-import no.nav.su.se.bakover.web.stubs.asBearerToken
+import no.nav.su.se.bakover.test.jwt.asBearerToken
+import no.nav.su.se.bakover.test.jwt.jwtStub
+import no.nav.su.se.bakover.web.SharedRegressionTestData.testSusebakover
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -55,7 +57,7 @@ class MDCLogTest {
                     it.apply { addAppender(appender) }
                 }
             }
-            client.get(secureEndpoint) {
+            client.get("/me") {
                 header(
                     HttpHeaders.Authorization,
                     jwtStub.createJwtToken(roller = listOf(Brukerrolle.Veileder)).asBearerToken(),

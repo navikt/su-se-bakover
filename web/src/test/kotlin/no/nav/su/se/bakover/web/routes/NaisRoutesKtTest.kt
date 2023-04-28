@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.web.routes
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.server.testing.testApplication
-import no.nav.su.se.bakover.web.testSusebakover
+import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -13,7 +13,7 @@ internal class NaisRoutesKtTest {
     fun naisRoutes() {
         testApplication {
             application {
-                testSusebakover()
+                testSusebakoverWithMockedDb()
             }
             client.get("/isalive").apply {
                 assertEquals(200, status.value)

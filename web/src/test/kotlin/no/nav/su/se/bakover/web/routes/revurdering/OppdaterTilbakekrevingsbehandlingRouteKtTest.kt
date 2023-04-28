@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.testSusebakover
+import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -27,7 +27,7 @@ internal class OppdaterTilbakekrevingsbehandlingRouteKtTest {
     fun `oppdaterer tilbakekrevingsbehandling`() {
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         revurdering = mock {
                             on { oppdaterTilbakekrevingsbehandling(any()) } doReturn simulertRevurdering().let { (sak, revurdering) ->
@@ -68,7 +68,7 @@ internal class OppdaterTilbakekrevingsbehandlingRouteKtTest {
         (Brukerrolle.values().toList() - Brukerrolle.Saksbehandler).forEach {
             testApplication {
                 application {
-                    testSusebakover()
+                    testSusebakoverWithMockedDb()
                 }
                 defaultRequest(
                     HttpMethod.Post,
@@ -93,7 +93,7 @@ internal class OppdaterTilbakekrevingsbehandlingRouteKtTest {
     fun `ugyldig input`() {
         testApplication {
             application {
-                testSusebakover()
+                testSusebakoverWithMockedDb()
             }
             defaultRequest(
                 HttpMethod.Post,

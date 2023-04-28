@@ -16,13 +16,13 @@ import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.jwt.JwtStub
+import no.nav.su.se.bakover.test.jwt.asBearerToken
 import no.nav.su.se.bakover.test.persistence.dbMetricsStub
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
-import no.nav.su.se.bakover.web.stubs.JwtStub
-import no.nav.su.se.bakover.web.stubs.asBearerToken
 import java.time.Clock
 import java.time.LocalDate
 
@@ -33,7 +33,7 @@ internal val jwtStub = JwtStub(applicationConfig.azure)
 
 internal fun mockedDb() = MockDatabaseBuilder.build()
 
-internal fun Application.testSusebakover(
+internal fun Application.testSusebakoverWithMockedDb(
     clock: Clock = fixedClock,
     databaseRepos: DatabaseRepos = mockedDb(),
     clients: Clients = TestClientsBuilder(clock, databaseRepos).build(applicationConfig),

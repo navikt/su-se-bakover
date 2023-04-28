@@ -17,12 +17,12 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.applicationConfig
+import no.nav.su.se.bakover.test.jwt.asBearerToken
 import no.nav.su.se.bakover.web.DEFAULT_CALL_ID
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.jwtStub
-import no.nav.su.se.bakover.web.stubs.asBearerToken
-import no.nav.su.se.bakover.web.testSusebakover
+import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -37,7 +37,7 @@ internal class FrikortRoutesKtTest {
     fun `secure endpoint krever autentisering`() {
         testApplication {
             application {
-                testSusebakover()
+                testSusebakoverWithMockedDb()
             }
             defaultRequest(HttpMethod.Get, frikortPath, navIdent = "Z990Lokal", jwtSubject = "unknownSubject").apply {
                 this.status shouldBe HttpStatusCode.Unauthorized
@@ -53,7 +53,7 @@ internal class FrikortRoutesKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = TestServicesBuilder.services(vedtakService = vedtakServiceMock))
+                testSusebakoverWithMockedDb(services = TestServicesBuilder.services(vedtakService = vedtakServiceMock))
             }
             client.get(frikortPath) {
                 header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
@@ -71,7 +71,7 @@ internal class FrikortRoutesKtTest {
     fun `sjekk feilmelding ved ugyldig dato`() {
         testApplication {
             application {
-                testSusebakover()
+                testSusebakoverWithMockedDb()
             }
             client.get("$frikortPath/202121") {
                 header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
@@ -96,7 +96,7 @@ internal class FrikortRoutesKtTest {
 
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(vedtakService = vedtakServiceMock),
                     clock = Clock.fixed(31.januar(2021).startOfDay().instant, ZoneOffset.UTC),
                 )
@@ -122,7 +122,7 @@ internal class FrikortRoutesKtTest {
 
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(vedtakService = vedtakServiceMock),
                     clock = Clock.fixed(31.januar(2021).startOfDay().instant, ZoneOffset.UTC),
                 )
@@ -149,7 +149,7 @@ internal class FrikortRoutesKtTest {
 
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(vedtakService = vedtakServiceMock),
                     clock = Clock.fixed(31.januar(2021).startOfDay().instant, ZoneOffset.UTC),
                 )

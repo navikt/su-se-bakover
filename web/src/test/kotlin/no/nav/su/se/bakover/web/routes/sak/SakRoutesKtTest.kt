@@ -27,7 +27,7 @@ import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.testSusebakover
+import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -42,7 +42,7 @@ internal class SakRoutesKtTest {
     fun `henter sak for fødselsnummer`() {
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         sak = mock {
                             on { hentSak(any<Fnr>(), any()) } doReturn nySakUføre(
@@ -72,7 +72,7 @@ internal class SakRoutesKtTest {
         fun `gir korrekt data når person ikke har søknad`() {
             testApplication {
                 application {
-                    testSusebakover(
+                    testSusebakoverWithMockedDb(
                         services = TestServicesBuilder.services(
                             sak = mock {
                                 on { hentAlleredeGjeldendeSakForBruker(any()) } doReturn AlleredeGjeldendeSakForBruker(
@@ -118,7 +118,7 @@ internal class SakRoutesKtTest {
         fun `finner ut om bruker har åpen søknad`() {
             testApplication {
                 application {
-                    testSusebakover(
+                    testSusebakoverWithMockedDb(
                         services = TestServicesBuilder.services(
                             sak = mock {
                                 on { hentAlleredeGjeldendeSakForBruker(any()) } doReturn AlleredeGjeldendeSakForBruker(
@@ -164,7 +164,7 @@ internal class SakRoutesKtTest {
         fun `finner ut om bruker har iverksatt innvilget stønadsperiode`() {
             testApplication {
                 application {
-                    testSusebakover(
+                    testSusebakoverWithMockedDb(
                         services = TestServicesBuilder.services(
                             sak = mock {
                                 on { hentAlleredeGjeldendeSakForBruker(any()) } doReturn AlleredeGjeldendeSakForBruker(
@@ -216,7 +216,7 @@ internal class SakRoutesKtTest {
     @Test
     fun `error handling`() {
         testApplication {
-            application { testSusebakover() }
+            application { testSusebakoverWithMockedDb() }
 
             defaultRequest(
                 HttpMethod.Post,

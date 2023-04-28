@@ -42,6 +42,8 @@ import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.jwt.JwtStub
+import no.nav.su.se.bakover.test.jwt.asBearerToken
 import no.nav.su.se.bakover.test.persistence.dbMetricsStub
 import no.nav.su.se.bakover.test.persistence.migratedDb
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
@@ -52,8 +54,6 @@ import no.nav.su.se.bakover.web.komponenttest.testSusebakover
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
-import no.nav.su.se.bakover.web.stubs.JwtStub
-import no.nav.su.se.bakover.web.stubs.asBearerToken
 import org.mockito.kotlin.mock
 import org.slf4j.MDC
 import java.time.Clock
@@ -64,7 +64,7 @@ import javax.sql.DataSource
  * TODO jah: Dette er foreløpig en kopi av TestEnvironment.kt og TestClientsBuilder.kt fra web/src/test (på sikt bør det meste av dette slettes derfra)
  * Vurder å trekk ut ting til test-common for de tingene som både web og web-regresjonstest trenger.
  */
-internal object SharedRegressionTestData {
+object SharedRegressionTestData {
     internal val fnr: String = Fnr.generer().toString()
     internal val epsFnr: String = Fnr.generer().toString()
 
@@ -171,7 +171,7 @@ internal object SharedRegressionTestData {
         }
     }
 
-    private fun Application.testSusebakover(
+    fun Application.testSusebakover(
         clock: Clock = fixedClock,
         satsFactory: SatsFactoryForSupplerendeStønad = satsFactoryTest,
         databaseRepos: DatabaseRepos = databaseRepos(

@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.testSusebakover
+import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -22,7 +22,7 @@ internal class NøkkeltallRoutesKtTest {
     fun `må være innlogget for å få nøkkeltall`() {
         testApplication {
             application {
-                testSusebakover()
+                testSusebakoverWithMockedDb()
             }
             client.get(nøkkeltallPath).apply {
                 status shouldBe HttpStatusCode.Unauthorized
@@ -51,7 +51,7 @@ internal class NøkkeltallRoutesKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = TestServicesBuilder.services(nøkkeltallService = nøkkelServiceMock))
+                testSusebakoverWithMockedDb(services = TestServicesBuilder.services(nøkkeltallService = nøkkelServiceMock))
             }
             defaultRequest(HttpMethod.Get, nøkkeltallPath, listOf(Brukerrolle.Saksbehandler)).apply {
                 val expected = """

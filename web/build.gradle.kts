@@ -27,25 +27,6 @@ dependencies {
     testImplementation("org.awaitility:awaitility:4.2.0")
 }
 
-tasks.named<Jar>("jar") {
-    archiveBaseName.set("app")
-    archiveVersion.set("")
-    manifest {
-        attributes["Main-Class"] = "no.nav.su.se.bakover.web.ApplicationKt"
-        attributes["Class-Path"] = configurations.runtimeClasspath.get().joinToString(separator = " ") {
-            it.name
-        }
-    }
-    doLast {
-        configurations.runtimeClasspath.get().forEach {
-            val file = File("$buildDir/libs/${it.name}")
-            if (!file.exists()) {
-                it.copyTo(file)
-            }
-        }
-    }
-}
-
 // Pluginen burde sette opp dette selv, men den virker discontinued.
 tasks.named("compileKotlin").get().dependsOn(":web:generateAvroJava")
 tasks.named("compileTestKotlin").get().dependsOn(":web:generateTestAvroJava")

@@ -10,9 +10,9 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.test.jwt.asBearerToken
 import no.nav.su.se.bakover.web.jwtStub
-import no.nav.su.se.bakover.web.stubs.asBearerToken
-import no.nav.su.se.bakover.web.testSusebakover
+import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 
 internal class MeRoutesKtTest {
@@ -20,12 +20,13 @@ internal class MeRoutesKtTest {
     @Test
     fun `GET me should return NAVIdent and roller`() {
         testApplication {
-            application { testSusebakover() }
+            application { testSusebakoverWithMockedDb() }
             client.get(
                 "/me",
             ) {
                 header(
                     HttpHeaders.Authorization,
+
                     jwtStub.createJwtToken(
                         subject = "random",
                         roller = listOf(Brukerrolle.Attestant),

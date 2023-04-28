@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.testSusebakover
+import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -40,7 +40,7 @@ internal class IverksettRevurderingRouteKtTest {
     fun `uautoriserte kan ikke iverksette revurdering`() {
         testApplication {
             application {
-                testSusebakover()
+                testSusebakoverWithMockedDb()
             }
             defaultRequest(
                 HttpMethod.Post,
@@ -71,7 +71,7 @@ internal class IverksettRevurderingRouteKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
+                testSusebakoverWithMockedDb(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             }
             defaultRequest(
                 HttpMethod.Post,
@@ -174,7 +174,7 @@ internal class IverksettRevurderingRouteKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
+                testSusebakoverWithMockedDb(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             }
             defaultRequest(
                 HttpMethod.Post,

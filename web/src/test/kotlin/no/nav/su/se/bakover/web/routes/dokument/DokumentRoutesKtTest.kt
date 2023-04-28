@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.testSusebakover
+import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -27,7 +27,7 @@ internal class DokumentRoutesKtTest {
     fun `sjekker tilganger`() {
         testApplication {
             application {
-                testSusebakover(services = TestServicesBuilder.services())
+                testSusebakoverWithMockedDb(services = TestServicesBuilder.services())
             }
             Brukerrolle.values()
                 .filterNot { it == Brukerrolle.Saksbehandler }
@@ -47,7 +47,7 @@ internal class DokumentRoutesKtTest {
     fun `validerer request`() {
         testApplication {
             application {
-                testSusebakover(services = TestServicesBuilder.services())
+                testSusebakoverWithMockedDb(services = TestServicesBuilder.services())
             }
             defaultRequest(
                 Get,
@@ -105,7 +105,7 @@ internal class DokumentRoutesKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = services)
+                testSusebakoverWithMockedDb(services = services)
             }
             defaultRequest(
                 method = Get,
@@ -138,7 +138,7 @@ internal class DokumentRoutesKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = services)
+                testSusebakoverWithMockedDb(services = services)
             }
             defaultRequest(
                 method = Get,

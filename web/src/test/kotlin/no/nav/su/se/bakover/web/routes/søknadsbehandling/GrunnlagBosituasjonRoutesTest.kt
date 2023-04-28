@@ -21,7 +21,7 @@ import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.sakPath
-import no.nav.su.se.bakover.web.testSusebakover
+import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -39,7 +39,7 @@ class GrunnlagBosituasjonRoutesTest {
         Brukerrolle.values().filterNot { it == Brukerrolle.Saksbehandler }.forEach { rolle ->
             testApplication {
                 application {
-                    testSusebakover()
+                    testSusebakoverWithMockedDb()
                 }
                 defaultRequest(
                     HttpMethod.Post,
@@ -75,7 +75,7 @@ class GrunnlagBosituasjonRoutesTest {
 
         testApplication {
             application {
-                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServicesMock))
+                testSusebakoverWithMockedDb(services = services.copy(søknadsbehandling = søknadsbehandlingServicesMock))
             }
             defaultRequest(
                 HttpMethod.Post,
@@ -127,7 +127,7 @@ class GrunnlagBosituasjonRoutesTest {
 
         testApplication {
             application {
-                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServicesMock))
+                testSusebakoverWithMockedDb(services = services.copy(søknadsbehandling = søknadsbehandlingServicesMock))
             }
             defaultRequest(
                 HttpMethod.Post,
@@ -181,7 +181,7 @@ class GrunnlagBosituasjonRoutesTest {
 
         testApplication {
             application {
-                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServicesMock))
+                testSusebakoverWithMockedDb(services = services.copy(søknadsbehandling = søknadsbehandlingServicesMock))
             }
             defaultRequest(
                 HttpMethod.Post,
@@ -233,7 +233,7 @@ class GrunnlagBosituasjonRoutesTest {
 
         testApplication {
             application {
-                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServicesMock))
+                testSusebakoverWithMockedDb(services = services.copy(søknadsbehandling = søknadsbehandlingServicesMock))
             }
             defaultRequest(
                 HttpMethod.Post,
@@ -285,7 +285,7 @@ class GrunnlagBosituasjonRoutesTest {
 
         testApplication {
             application {
-                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServicesMock))
+                testSusebakoverWithMockedDb(services = services.copy(søknadsbehandling = søknadsbehandlingServicesMock))
             }
             defaultRequest(
                 HttpMethod.Post,
@@ -339,7 +339,7 @@ class GrunnlagBosituasjonRoutesTest {
 
         testApplication {
             application {
-                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServicesMock))
+                testSusebakoverWithMockedDb(services = services.copy(søknadsbehandling = søknadsbehandlingServicesMock))
             }
             defaultRequest(
                 HttpMethod.Post,

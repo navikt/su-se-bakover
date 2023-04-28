@@ -28,7 +28,7 @@ import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvY
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.testSusebakover
+import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doAnswer
@@ -44,7 +44,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
         val enRevurdering = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse().second
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         gjenopptakAvYtelseService = mock {
                             on { gjenopptaYtelse(any()) } doReturn enRevurdering.right()
@@ -80,7 +80,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
         ).second
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         gjenopptakAvYtelseService = mock {
                             on {
@@ -113,7 +113,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
         ).second
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         gjenopptakAvYtelseService = mock {
                             on {
@@ -153,7 +153,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
 
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         gjenopptakAvYtelseService = mock {
                             doAnswer {
@@ -199,7 +199,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
             .second
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         gjenopptakAvYtelseService = mock {
                             on { gjenopptaYtelse(any()) } doReturn enRevurdering.right()
@@ -233,7 +233,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
     fun `svarer med 500 ved forsøk på gjenopptak av opphørt periode`() {
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         gjenopptakAvYtelseService = mock {
                             on { gjenopptaYtelse(any()) } doReturn KunneIkkeSimulereGjenopptakAvYtelse.KunneIkkeSimulere(

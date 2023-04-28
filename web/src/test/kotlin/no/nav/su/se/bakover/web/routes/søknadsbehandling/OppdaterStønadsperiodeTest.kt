@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.sakPath
-import no.nav.su.se.bakover.web.testSusebakover
+import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -30,7 +30,7 @@ class OppdaterStønadsperiodeTest {
     @Test
     fun `svarer med 400 dersom perioden starter tidligere enn 2021`() {
         testApplication {
-            application { testSusebakover(services = services) }
+            application { testSusebakoverWithMockedDb(services = services) }
             defaultRequest(
                 HttpMethod.Post,
                 url,
@@ -52,7 +52,7 @@ class OppdaterStønadsperiodeTest {
     @Test
     fun `svarer med 400 dersom perioden er lenger enn 12 måneder`() {
         testApplication {
-            application { testSusebakover(services = services) }
+            application { testSusebakoverWithMockedDb(services = services) }
             defaultRequest(
                 HttpMethod.Post,
                 url,
@@ -74,7 +74,7 @@ class OppdaterStønadsperiodeTest {
     @Test
     fun `svarer med 400 dersom fraOgMed ikke er første dag i måneden`() {
         testApplication {
-            application { testSusebakover(services = services) }
+            application { testSusebakoverWithMockedDb(services = services) }
             defaultRequest(
                 HttpMethod.Post,
                 url,
@@ -96,7 +96,7 @@ class OppdaterStønadsperiodeTest {
     @Test
     fun `svarer med 400 dersom tilOgMed ikke er siste dag i måneden`() {
         testApplication {
-            application { testSusebakover(services = services) }
+            application { testSusebakoverWithMockedDb(services = services) }
             defaultRequest(
                 HttpMethod.Post,
                 url,
@@ -118,7 +118,7 @@ class OppdaterStønadsperiodeTest {
     @Test
     fun `svarer med 400 dersom tilOgMed er før fraOgMed`() {
         testApplication {
-            application { testSusebakover(services = services) }
+            application { testSusebakoverWithMockedDb(services = services) }
             defaultRequest(
                 HttpMethod.Post,
                 url,
@@ -147,7 +147,7 @@ class OppdaterStønadsperiodeTest {
 
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         søknadsbehandling = SøknadsbehandlingServices(
                             søknadsbehandlingService = serviceMock,

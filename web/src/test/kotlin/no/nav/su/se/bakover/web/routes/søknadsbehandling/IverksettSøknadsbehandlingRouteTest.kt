@@ -18,13 +18,13 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.jwt.asBearerToken
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.jwtStub
 import no.nav.su.se.bakover.web.requestSomAttestant
 import no.nav.su.se.bakover.web.routes.sak.sakPath
-import no.nav.su.se.bakover.web.stubs.asBearerToken
-import no.nav.su.se.bakover.web.testSusebakover
+import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -40,7 +40,7 @@ internal class IverksettSøknadsbehandlingRouteTest {
     fun `Forbidden når den som behandlet saken prøver å attestere seg selv`() {
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         søknadsbehandling = SøknadsbehandlingServices(
                             søknadsbehandlingService = mock(),
@@ -70,7 +70,7 @@ internal class IverksettSøknadsbehandlingRouteTest {
     fun `OK når bruker er attestant, og sak ble behandlet av en annen person`() {
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         søknadsbehandling = SøknadsbehandlingServices(
                             søknadsbehandlingService = mock(),
@@ -100,7 +100,7 @@ internal class IverksettSøknadsbehandlingRouteTest {
     fun `Feiler dersom man ikke får sendt til utbetaling`() {
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         søknadsbehandling = SøknadsbehandlingServices(
                             søknadsbehandlingService = mock(),
@@ -128,7 +128,7 @@ internal class IverksettSøknadsbehandlingRouteTest {
     fun `Forbidden når bruker ikke er attestant`() {
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         søknadsbehandling = SøknadsbehandlingServices(
                             søknadsbehandlingService = mock {

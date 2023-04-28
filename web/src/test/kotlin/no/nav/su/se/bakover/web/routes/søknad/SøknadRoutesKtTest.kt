@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukketJson
-import no.nav.su.se.bakover.web.testSusebakover
+import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -33,7 +33,7 @@ internal class SøknadRoutesKtTest {
     fun `ok lukking av søknad svarer med OK`() {
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         lukkSøknad = mock { on { lukkSøknad(any()) } doReturn nySakMedLukketSøknad().first },
                     ),
@@ -62,7 +62,7 @@ internal class SøknadRoutesKtTest {
     @Test
     fun `fritekst er påkrevet for lukking med fritekst`() {
         testApplication {
-            application { testSusebakover() }
+            application { testSusebakoverWithMockedDb() }
             defaultRequest(
                 method = Post,
                 uri = "soknad/${UUID.randomUUID()}/lukk",
@@ -89,7 +89,7 @@ internal class SøknadRoutesKtTest {
     @Test
     fun `ugyldig input gir bad request`() {
         testApplication {
-            application { testSusebakover() }
+            application { testSusebakoverWithMockedDb() }
             defaultRequest(
                 method = Post,
                 uri = "soknad/${UUID.randomUUID()}/lukk",
@@ -114,7 +114,7 @@ internal class SøknadRoutesKtTest {
     fun `brevutkast svarer med OK og tilhørende pdf`() {
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         lukkSøknad = mock {
                             on { lagBrevutkast(any()) } doReturn Pair(fnr, "".toByteArray())
@@ -146,7 +146,7 @@ internal class SøknadRoutesKtTest {
     fun `svarer med OK hvis avslått med manglende dokumentasjon`() {
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         avslåSøknadManglendeDokumentasjonService = mock {
                             on { avslå(any()) } doReturn søknadsbehandlingIverksattAvslagUtenBeregning().first.right()

@@ -21,7 +21,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.planlagtKontrollsamtale
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.testSusebakover
+import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -39,7 +39,7 @@ internal class KontrollsamtaleRoutesKtTest {
     @Test
     fun `må være innlogget for å endre dato på kontrollsamtale`() {
         testApplication {
-            application { testSusebakover() }
+            application { testSusebakoverWithMockedDb() }
             client.post("/kontrollsamtale/nyDato").apply {
                 status shouldBe HttpStatusCode.Unauthorized
             }
@@ -53,7 +53,7 @@ internal class KontrollsamtaleRoutesKtTest {
         }
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         kontrollsamtaleSetup = object : KontrollsamtaleSetup {
                             override val kontrollsamtaleService = kontrollsamtaleMock
@@ -78,7 +78,7 @@ internal class KontrollsamtaleRoutesKtTest {
     @Test
     fun `må være innlogget for å hente kontrollsamtale`() {
         testApplication {
-            application { testSusebakover() }
+            application { testSusebakoverWithMockedDb() }
             client.get("/kontrollsamtale/hent/${UUID.randomUUID()}").apply {
                 status shouldBe HttpStatusCode.Unauthorized
             }
@@ -93,7 +93,7 @@ internal class KontrollsamtaleRoutesKtTest {
         }
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         kontrollsamtaleSetup = object : KontrollsamtaleSetup {
                             override val kontrollsamtaleService = kontrollsamtaleMock
@@ -130,7 +130,7 @@ internal class KontrollsamtaleRoutesKtTest {
         }
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         kontrollsamtaleSetup = object : KontrollsamtaleSetup {
                             override val kontrollsamtaleService = kontrollsamtaleMock
@@ -167,7 +167,7 @@ internal class KontrollsamtaleRoutesKtTest {
         }
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         kontrollsamtaleSetup = object : KontrollsamtaleSetup {
                             override val kontrollsamtaleService = kontrollsamtaleMock

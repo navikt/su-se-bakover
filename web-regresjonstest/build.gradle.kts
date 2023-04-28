@@ -2,23 +2,24 @@
 // Separert til sin egen modul for å kunne bygges parallelt med de andre testene på byggserveren.
 val ktorVersion: String by project
 dependencies {
-    testImplementation(project(":domain"))
-    testImplementation(project(":database"))
-    testImplementation(project(":web"))
-    testImplementation(project(":client"))
-    testImplementation(project(":common"))
-    testImplementation(project(":service"))
-    testImplementation(project(":test-common"))
-    testImplementation(project(":kontrollsamtale:domain"))
-    testImplementation(project(":kontrollsamtale:application"))
-    testImplementation(project(":kontrollsamtale:infrastructure"))
+    implementation(project(":domain"))
+    implementation(project(":database"))
+    implementation(project(":web"))
+    implementation(project(":client"))
+    implementation(project(":common"))
+    implementation(project(":service"))
+    implementation(project(":test-common"))
+    implementation(project(":kontrollsamtale:domain"))
+    implementation(project(":kontrollsamtale:application"))
+    implementation(project(":kontrollsamtale:infrastructure"))
 
-    testImplementation("io.ktor:ktor-client-java:$ktorVersion")
-    testImplementation("io.ktor:ktor-server-test-host:$ktorVersion") {
+    implementation("io.ktor:ktor-client-java:$ktorVersion")
+    implementation("io.ktor:ktor-server-test-host:$ktorVersion") {
         exclude(group = "junit")
         exclude(group = "org.eclipse.jetty") // conflicts with WireMock
         exclude(group = "org.eclipse.jetty.http2") // conflicts with WireMock
     }
+    implementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
 }
 
 task<JavaExec>("nySøknad") {

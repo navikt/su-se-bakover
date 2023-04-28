@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.testSusebakover
+import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -52,7 +52,7 @@ internal class LeggTilFormueRevurderingRouteKtTest {
         Brukerrolle.values().filterNot { it == Brukerrolle.Saksbehandler }.forEach { rolle ->
             testApplication {
                 application {
-                    testSusebakover()
+                    testSusebakoverWithMockedDb()
                 }
 
                 defaultRequest(
@@ -154,7 +154,7 @@ internal class LeggTilFormueRevurderingRouteKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
+                testSusebakoverWithMockedDb(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             }
             defaultRequest(
                 HttpMethod.Post,
@@ -185,7 +185,7 @@ internal class LeggTilFormueRevurderingRouteKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
+                testSusebakoverWithMockedDb(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             }
             defaultRequest(
                 HttpMethod.Post,

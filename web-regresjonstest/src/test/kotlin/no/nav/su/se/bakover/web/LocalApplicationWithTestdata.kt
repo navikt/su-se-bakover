@@ -9,9 +9,7 @@ fun main() {
     if (ApplicationConfig.isRunningLocally()) {
         System.setProperty(ClassicConstants.CONFIG_FILE_PROPERTY, "logback-local.xml")
     }
-    embeddedServer(factory = Netty, port = 8080) {
-        susebakover {
-            testDataRoutes()
-        }
-    }.start(true)
+    embeddedServer(factory = Netty, port = 8080, module = {
+        susebakover(extraRoutes = { this.testDataRoutes() })
+    },).start(true)
 }
