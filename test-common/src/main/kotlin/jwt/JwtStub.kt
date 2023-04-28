@@ -1,12 +1,15 @@
-package no.nav.su.se.bakover.web.stubs
+package no.nav.su.se.bakover.test.jwt
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.stubs.AuthStubCommonConfig
+import no.nav.su.se.bakover.test.applicationConfig
 import org.jetbrains.annotations.TestOnly
 import java.util.Date
+
+val jwtStub get() = JwtStub(applicationConfig().azure)
 
 class JwtStub(
     private val azureConfig: ApplicationConfig.AzureConfig,

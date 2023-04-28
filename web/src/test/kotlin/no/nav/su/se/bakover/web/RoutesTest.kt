@@ -25,8 +25,8 @@ import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.jwt.asBearerToken
 import no.nav.su.se.bakover.web.routes.person.personPath
-import no.nav.su.se.bakover.web.stubs.asBearerToken
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
@@ -42,7 +42,7 @@ class RoutesTest {
     fun `should add provided X-Correlation-ID header to response`() {
         testApplication {
             application {
-                testSusebakover()
+                testSusebakoverWithMockedDb()
             }
             defaultRequest(Get, secureEndpoint, listOf(Brukerrolle.Veileder)).apply {
                 this.status shouldBe OK
@@ -55,7 +55,7 @@ class RoutesTest {
     fun `should generate X-Correlation-ID header if not present`() {
         testApplication {
             application {
-                testSusebakover()
+                testSusebakoverWithMockedDb()
             }
             client.get(secureEndpoint) {
                 header(
@@ -74,7 +74,7 @@ class RoutesTest {
     fun `should transform exceptions to appropriate error responses`() {
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     clients = TestClientsBuilder(fixedClock, mock { on { utbetaling } doReturn mock() }).build(
                         applicationConfig(),
                     ).copy(
@@ -109,7 +109,7 @@ class RoutesTest {
     fun `should use content-type application-json by default`() {
         testApplication {
             application {
-                testSusebakover()
+                testSusebakoverWithMockedDb()
             }
             val response = defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"${Fnr.generer()}"}""")

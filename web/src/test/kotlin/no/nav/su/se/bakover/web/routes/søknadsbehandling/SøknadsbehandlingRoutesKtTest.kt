@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
+import no.nav.su.se.bakover.test.jwt.asBearerToken
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.underkjentSøknadsbehandlingUføre
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -23,8 +24,7 @@ import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.jwtStub
 import no.nav.su.se.bakover.web.requestSomAttestant
 import no.nav.su.se.bakover.web.routes.sak.sakPath
-import no.nav.su.se.bakover.web.stubs.asBearerToken
-import no.nav.su.se.bakover.web.testSusebakover
+import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -42,7 +42,7 @@ internal class SøknadsbehandlingRoutesKtTest {
         @Test
         fun `driftspersonell har ikke lov til å hente søknadsbehandlinger`() {
             testApplication {
-                application { testSusebakover() }
+                application { testSusebakoverWithMockedDb() }
                 repeat(
                     Brukerrolle.values().filterNot { it == Brukerrolle.Veileder || it == Brukerrolle.Drift }.size,
                 ) {
@@ -61,7 +61,7 @@ internal class SøknadsbehandlingRoutesKtTest {
         fun `saksbehandlere kan hente søknadsbehandlinger`() {
             testApplication {
                 application {
-                    testSusebakover(
+                    testSusebakoverWithMockedDb(
                         services = TestServicesBuilder.services(
                             søknadsbehandling = SøknadsbehandlingServices(
                                 søknadsbehandlingService = mock {
@@ -91,7 +91,7 @@ internal class SøknadsbehandlingRoutesKtTest {
     fun `opprettelse av oppgave feiler ved send til attestering`() {
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         søknadsbehandling = SøknadsbehandlingServices(
                             søknadsbehandlingService = mock {
@@ -121,7 +121,7 @@ internal class SøknadsbehandlingRoutesKtTest {
         fun `Forbidden når bruker ikke er attestant`() {
             testApplication {
                 application {
-                    testSusebakover()
+                    testSusebakoverWithMockedDb()
                 }
                 defaultRequest(
                     HttpMethod.Patch,
@@ -154,7 +154,7 @@ internal class SøknadsbehandlingRoutesKtTest {
         fun `BadRequest når sakId eller behandlingId er ugyldig`() {
             testApplication {
                 application {
-                    testSusebakover()
+                    testSusebakoverWithMockedDb()
                 }
                 requestSomAttestant(
                     HttpMethod.Patch,
@@ -178,7 +178,7 @@ internal class SøknadsbehandlingRoutesKtTest {
         fun `NotFound når behandling ikke finnes`() {
             testApplication {
                 application {
-                    testSusebakover(
+                    testSusebakoverWithMockedDb(
                         services = TestServicesBuilder.services(
                             søknadsbehandling = SøknadsbehandlingServices(
                                 søknadsbehandlingService = mock {
@@ -205,7 +205,7 @@ internal class SøknadsbehandlingRoutesKtTest {
         @Test
         fun `BadRequest når kommentar ikke er oppgitt`() {
             testApplication {
-                application { testSusebakover() }
+                application { testSusebakoverWithMockedDb() }
                 requestSomAttestant(
                     HttpMethod.Patch,
                     "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/underkjenn",
@@ -230,7 +230,7 @@ internal class SøknadsbehandlingRoutesKtTest {
         fun `Forbidden når saksbehandler og attestant er samme person`() {
             testApplication {
                 application {
-                    testSusebakover(
+                    testSusebakoverWithMockedDb(
                         services = TestServicesBuilder.services(
                             søknadsbehandling = SøknadsbehandlingServices(
                                 søknadsbehandlingService = mock { on { underkjenn(any()) } doReturn SøknadsbehandlingService.KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left() },
@@ -266,7 +266,7 @@ internal class SøknadsbehandlingRoutesKtTest {
         fun `OK når alt er som det skal være`() {
             testApplication {
                 application {
-                    testSusebakover(
+                    testSusebakoverWithMockedDb(
                         services = TestServicesBuilder.services(
                             søknadsbehandling = SøknadsbehandlingServices(
                                 søknadsbehandlingService = mock {

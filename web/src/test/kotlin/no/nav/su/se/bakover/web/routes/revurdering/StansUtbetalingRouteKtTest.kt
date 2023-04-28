@@ -25,7 +25,7 @@ import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehand
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.testSusebakover
+import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doAnswer
@@ -46,7 +46,7 @@ internal class StansUtbetalingRouteKtTest {
         }
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = mockServices.copy(
                         stansYtelse = stansAvYtelseServiceMock,
                     ),
@@ -88,7 +88,7 @@ internal class StansUtbetalingRouteKtTest {
         }
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = mockServices.copy(
                         stansYtelse = stansAvYtelseServiceMock,
                     ),
@@ -124,7 +124,7 @@ internal class StansUtbetalingRouteKtTest {
         }
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = mockServices.copy(
                         stansYtelse = stansAvYtelseServiceMock,
                     ),
@@ -155,7 +155,7 @@ internal class StansUtbetalingRouteKtTest {
         }
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = mockServices.copy(
                         stansYtelse = stansAvYtelseServiceMock,
                     ),
@@ -192,7 +192,7 @@ internal class StansUtbetalingRouteKtTest {
         }
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = mockServices.copy(
                         stansYtelse = stansAvYtelseServiceMock,
                     ),
@@ -227,7 +227,7 @@ internal class StansUtbetalingRouteKtTest {
         }
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = mockServices.copy(
                         stansYtelse = stansAvYtelseServiceMock,
                     ),

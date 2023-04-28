@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.test.påbegyntVurdertKlage
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.sakPath
-import no.nav.su.se.bakover.web.testSusebakover
+import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -43,7 +43,7 @@ internal class VurderKlageTest {
     fun `ingen tilgang gir unauthorized`() {
         testApplication {
             application {
-                testSusebakover()
+                testSusebakoverWithMockedDb()
             }
             defaultRequest(
                 HttpMethod.Post,
@@ -65,7 +65,7 @@ internal class VurderKlageTest {
         ).forEach {
             testApplication {
                 application {
-                    testSusebakover()
+                    testSusebakoverWithMockedDb()
                 }
                 defaultRequest(
                     HttpMethod.Post,
@@ -143,7 +143,7 @@ internal class VurderKlageTest {
         }
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services()
                         .copy(klageService = klageServiceMock),
                 )
@@ -166,7 +166,7 @@ internal class VurderKlageTest {
         }
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services()
                         .copy(klageService = klageServiceMock),
                 )

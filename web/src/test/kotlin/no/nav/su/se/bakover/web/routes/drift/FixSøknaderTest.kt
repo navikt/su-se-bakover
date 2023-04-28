@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.veileder
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.testSusebakover
+import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -36,7 +36,7 @@ internal class FixSøknaderTest {
         Brukerrolle.values().filterNot { it == Brukerrolle.Drift }.forEach {
             testApplication {
                 application {
-                    testSusebakover(services = services)
+                    testSusebakoverWithMockedDb(services = services)
                 }
                 defaultRequest(
                     Patch,
@@ -59,7 +59,7 @@ internal class FixSøknaderTest {
         }
         testApplication {
             application {
-                testSusebakover(services = services.copy(søknad = søknadServiceMock))
+                testSusebakoverWithMockedDb(services = services.copy(søknad = søknadServiceMock))
             }
             defaultRequest(
                 Patch,
@@ -130,7 +130,7 @@ internal class FixSøknaderTest {
         }
         testApplication {
             application {
-                testSusebakover(services = services.copy(søknad = søknadServiceMock))
+                testSusebakoverWithMockedDb(services = services.copy(søknad = søknadServiceMock))
             }
 
             defaultRequest(

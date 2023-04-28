@@ -8,7 +8,7 @@ import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.testSusebakover
+import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -23,7 +23,7 @@ internal class ForhåndsvarslingRouteTest {
         fun `kun saksbehandler får lov til å opprette forhåndsvarsel`() {
             testApplication {
                 application {
-                    testSusebakover()
+                    testSusebakoverWithMockedDb()
                 }
                 Brukerrolle.values().toList().minus(Brukerrolle.Saksbehandler).forEach {
                     defaultRequest(

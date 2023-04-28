@@ -15,7 +15,7 @@ import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.web.stubs.asBearerToken
+import no.nav.su.se.bakover.test.jwt.asBearerToken
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.Instant
@@ -29,7 +29,7 @@ internal class AuthenticationTest {
     fun `secure endpoint krever autentisering`() {
         testApplication {
             application {
-                testSusebakover()
+                testSusebakoverWithMockedDb()
             }
             defaultRequest(Get, secureEndpoint).apply {
                 assertEquals(Unauthorized, this.status)
@@ -41,7 +41,7 @@ internal class AuthenticationTest {
     fun `secure endpoint ok med gyldig token`() {
         testApplication {
             application {
-                testSusebakover()
+                testSusebakoverWithMockedDb()
             }
             defaultRequest(Get, secureEndpoint, listOf(Brukerrolle.Veileder)).apply {
                 assertEquals(OK, status)
@@ -53,7 +53,7 @@ internal class AuthenticationTest {
     fun `svarer med 500 hvis brukerinformasjon ikke lar seg hente`() {
         testApplication {
             application {
-                testSusebakover()
+                testSusebakoverWithMockedDb()
             }
             client.get(secureEndpoint) {
                 headers {
@@ -70,7 +70,7 @@ internal class AuthenticationTest {
     fun `forespørsel uten påkrevet audience skal svare med 401`() {
         testApplication {
             application {
-                testSusebakover()
+                testSusebakoverWithMockedDb()
             }
             client.get(secureEndpoint) {
                 header(Authorization, jwtStub.createJwtToken(audience = "wrong_audience").asBearerToken())
@@ -84,7 +84,7 @@ internal class AuthenticationTest {
     fun `forespørsel uten medlemskap i påkrevet gruppe skal svare med 401`() {
         testApplication {
             application {
-                testSusebakover()
+                testSusebakoverWithMockedDb()
             }
             client.get(secureEndpoint) {
                 header(Authorization, jwtStub.createJwtToken(roller = emptyList()).asBearerToken())
@@ -98,7 +98,7 @@ internal class AuthenticationTest {
     fun `forespørsel med utgått token skal svare med 401`() {
         testApplication {
             application {
-                testSusebakover()
+                testSusebakoverWithMockedDb()
             }
             client.get(secureEndpoint) {
                 header(
@@ -115,7 +115,7 @@ internal class AuthenticationTest {
     fun `forespørsel med feil issuer skal svare med 401`() {
         testApplication {
             application {
-                testSusebakover()
+                testSusebakoverWithMockedDb()
             }
             client.get(secureEndpoint) {
                 header(Authorization, jwtStub.createJwtToken(issuer = "wrong_issuer").asBearerToken())

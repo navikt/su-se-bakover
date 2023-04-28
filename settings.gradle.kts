@@ -20,6 +20,7 @@ pluginManagement {
 
 rootProject.name = "su-se-bakover"
 include("domain")
+include("application")
 include("web")
 include("common")
 include("service")

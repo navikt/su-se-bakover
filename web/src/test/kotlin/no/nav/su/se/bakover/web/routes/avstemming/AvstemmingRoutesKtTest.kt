@@ -21,7 +21,7 @@ import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.testSusebakover
+import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -79,7 +79,7 @@ internal class AvstemmingRoutesKtTest {
     fun `kall uten periode parametre gir OK`() {
         testApplication {
             application {
-                testSusebakover(services = services())
+                testSusebakoverWithMockedDb(services = services())
             }
             defaultRequest(
                 Post,
@@ -95,7 +95,7 @@ internal class AvstemmingRoutesKtTest {
     fun `kall med enten fraOgMed _eller_ tilOgMed feiler`() {
         testApplication {
             application {
-                testSusebakover(services = services())
+                testSusebakoverWithMockedDb(services = services())
             }
             defaultRequest(
                 Post,
@@ -119,7 +119,7 @@ internal class AvstemmingRoutesKtTest {
     fun `kall med fraOgMed eller tilOgMed på feil format feiler`() {
         testApplication {
             application {
-                testSusebakover(services = services())
+                testSusebakoverWithMockedDb(services = services())
             }
             listOf(
                 "/avstemming/grensesnitt?fraOgMed=2020-11-17T11:02:19Z&tilOgMed=2020-11-17&fagomrade=SUUFORE",
@@ -140,7 +140,7 @@ internal class AvstemmingRoutesKtTest {
     fun `kall med fraOgMed eller tilOgMed må ha fraOgMed før tilOgMed`() {
         testApplication {
             application {
-                testSusebakover(services = services())
+                testSusebakoverWithMockedDb(services = services())
             }
             listOf(
                 "/avstemming/grensesnitt?fraOgMed=2020-11-18&tilOgMed=2020-11-17&fagomrade=SUUFORE",
@@ -160,7 +160,7 @@ internal class AvstemmingRoutesKtTest {
     @Test
     fun `kall med tilOgMed etter dagens dato feiler`() {
         testApplication {
-            application { testSusebakover(services = services()) }
+            application { testSusebakoverWithMockedDb(services = services()) }
 
             listOf(
                 "/avstemming/grensesnitt?fraOgMed=2020-11-11&tilOgMed=${
@@ -181,7 +181,7 @@ internal class AvstemmingRoutesKtTest {
     @Test
     fun `kall til konsistensavstemming uten fraOgMed går ikke`() {
         testApplication {
-            application { testSusebakover(services = services()) }
+            application { testSusebakoverWithMockedDb(services = services()) }
 
             listOf(
                 "/avstemming/konsistens",
@@ -201,7 +201,7 @@ internal class AvstemmingRoutesKtTest {
     @Test
     fun `kall til konsistensavstemming går fint`() {
         testApplication {
-            application { testSusebakover(services = services()) }
+            application { testSusebakoverWithMockedDb(services = services()) }
 
             listOf(
                 "/avstemming/konsistens?fraOgMed=2021-01-01&fagomrade=SUUFORE",
@@ -220,7 +220,7 @@ internal class AvstemmingRoutesKtTest {
     @Test
     fun `kun driftspersonell kan kalle endepunktet for avstemming`() {
         testApplication {
-            application { testSusebakover(services = services()) }
+            application { testSusebakoverWithMockedDb(services = services()) }
 
             Brukerrolle.values()
                 .filterNot { it == Brukerrolle.Drift }

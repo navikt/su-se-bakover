@@ -21,7 +21,7 @@ import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingJson
-import no.nav.su.se.bakover.web.testSusebakover
+import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -34,7 +34,7 @@ internal class BeregnRoutesKtTest {
     fun `svarer med CREATED hvis suksess`() {
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         søknadsbehandling = SøknadsbehandlingServices(
                             søknadsbehandlingService = mock {
@@ -73,7 +73,7 @@ internal class BeregnRoutesKtTest {
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 application {
-                    testSusebakover(
+                    testSusebakoverWithMockedDb(
                         services = TestServicesBuilder.services(
                             søknadsbehandling = SøknadsbehandlingServices(
                                 søknadsbehandlingService = mock {

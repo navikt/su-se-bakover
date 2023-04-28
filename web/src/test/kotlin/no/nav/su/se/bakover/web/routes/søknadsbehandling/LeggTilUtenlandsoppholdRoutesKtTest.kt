@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.sakPath
-import no.nav.su.se.bakover.web.testSusebakover
+import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -31,7 +31,7 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
     fun `svarer med feilmelding ved ugyldig body`() {
         testApplication {
             application {
-                testSusebakover()
+                testSusebakoverWithMockedDb()
             }
             defaultRequest(
                 HttpMethod.Post,
@@ -56,7 +56,7 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
     fun `svarer med feilmelding fra service`() {
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         søknadsbehandling = SøknadsbehandlingServices(
                             søknadsbehandlingService = mock {
@@ -96,7 +96,7 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
         val vilkårsvurdert = søknadsbehandlingVilkårsvurdertInnvilget().second
         testApplication {
             application {
-                testSusebakover(
+                testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         søknadsbehandling = SøknadsbehandlingServices(
                             søknadsbehandlingService = mock {
@@ -139,7 +139,7 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
     fun `feilmelding for ugyldig periode`() {
         testApplication {
             application {
-                testSusebakover(services = TestServicesBuilder.services())
+                testSusebakoverWithMockedDb(services = TestServicesBuilder.services())
             }
             defaultRequest(
                 HttpMethod.Post,
