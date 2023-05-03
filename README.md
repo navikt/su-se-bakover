@@ -9,6 +9,25 @@ Lokal database startes med `docker compose up`
 
 Hvis man ønsker å resette hele databasen og starte fra scratch er det enkleste å slette volumet ved å kjøre `./resetdb.sh`
 
+#### Local backup
+Lokal backup kan gjøres på denne måten
+1. start databasen (se over)
+2. For å finne container Id'en kan du kjøre `docker ps`
+3. Gå inn i containeren `docker exec -it containerId bash`. Shellet ditt blir interaktiv med containeren
+4. kjør så `pg_dump -U user -F c supstonad-db-local > filnavn.dump`. Filen havner inne i containeren
+5. Gjerne gå ut av shellet ved bruk av `exit`
+6. Kopier så filen fra containeren inn til maskinen din `docker cp containerID:/filnavn.dump sti/til/hvor/du/vil/ha/filen`
+7. Filen skal ligge der du valgte å lagre den! gjerne åpne den og se innholdet :) 
+
+#### Importer backupen din
+1. start databasen (se over)
+2. For å finne container Id'en kan du kjøre `docker ps`
+3. kopier backupen din til containeren `docker cp filnavn.dump containerId:/filnavn.dump`
+4. Gå inn i containeren `docker exec -it containerId bash`. Shellet ditt blir interaktiv med containeren
+   - Gjerne kjør `ls` for å verifisere at du har filen
+5. Kjør `pg_restore -c --if-exists -U user -d supstonad-db-local filnavn.dump` for å sette inn all dataen inn i basen
+
+
 ### Troubleshooting lokal/embedded postgres
 Dersom man får feilen `running bootstrap script ... 2022-08-30 16:10:20.342 CEST [53606] FATAL:  could not create shared memory segment: Cannot allocate memory` kan man øke shared memory:
  * `sudo sysctl kern.sysv.shmmax=104857600` eller en annen ønsket verdi
