@@ -37,6 +37,7 @@ Hvis prosessen over ikke fungerte lokalt, kan du gjøre følgende med docker
 4. Gå inn i containeren `docker exec -it containerId bash`. Shellet ditt blir interaktiv med containeren
    - Gjerne kjør `ls` for å verifisere at du har filen
 5. Kjør `pg_restore -c --if-exists -U user -d supstonad-db-local filnavn.dump` for å sette inn all dataen inn i basen
+   - Dersom du legger in data fra testmiljøret inn lokalt, kan det være at du får en del rolle errors. Disse kan du se bort ifra
 
 
 ### Troubleshooting lokal/embedded postgres
