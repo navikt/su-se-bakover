@@ -352,6 +352,18 @@ internal class ReguleringServiceImplTest {
 
     @Nested
     inner class PeriodeTester {
+
+        @Test
+        fun `skal kunne regulere selv om reguleringsdato er langt etter vedtaksperioden`() {
+            val sak = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(år(2021))).first
+            val reguleringService = lagReguleringServiceImpl(sak)
+
+            reguleringService.startAutomatiskRegulering(1.mai(2023)).let {
+                it.size shouldBe 1
+                it.first() shouldBe KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(feil = Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode).left()
+            }
+        }
+
         @Test
         fun `reguleringen kan ikke starte tidligere enn reguleringsdatoen`() {
             val sak = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(år(2021))).first

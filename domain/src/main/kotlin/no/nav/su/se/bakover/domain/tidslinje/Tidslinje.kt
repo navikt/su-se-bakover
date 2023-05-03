@@ -65,7 +65,10 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
      * [krympTilPeriode]
      */
     fun krympTilPeriode(fraOgMed: Måned): Tidslinje<T>? =
-        krympTilPeriode(Periode.create(fraOgMed.fraOgMed, periode.tilOgMed))
+        Periode.tryCreate(fraOgMed.fraOgMed, periode.tilOgMed).fold(
+            { null },
+            { krympTilPeriode(it) },
+        )
 
     companion object {
 

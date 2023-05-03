@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.november
+import no.nav.su.se.bakover.common.periode.tilMåned
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -38,6 +39,8 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
+import java.time.Month
+import java.time.YearMonth
 
 private data class Tidslinjeobjekt(
     override val opprettet: Tidspunkt,
@@ -1061,6 +1064,41 @@ internal class TidslinjeTest {
                     ),
                 ),
             )
+        }
+    }
+
+    @Test
+    fun `krympTilPeriode måned returnerer null dersom periode ikke kan lages`() {
+        val a = Tidslinjeobjekt(opprettet = Tidspunkt.now(tikkendeKlokke), periode = år(2021))
+
+        val b = Tidslinjeobjekt(
+            opprettet = Tidspunkt.now(tikkendeKlokke),
+            periode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 31.mai(2021)),
+        )
+        listOf(a, b).lagTidslinje()!!.krympTilPeriode(YearMonth.of(2023, Month.MAY).tilMåned()) shouldBe null
+    }
+
+    @Test
+    fun `krympTilPeriode måned returnerer tidslinje dersom den krympes OK`() {
+        val a = Tidslinjeobjekt(opprettet = Tidspunkt.now(tikkendeKlokke), periode = år(2021))
+
+        val b = Tidslinjeobjekt(
+            opprettet = Tidspunkt.now(tikkendeKlokke),
+            periode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 31.mai(2021)),
+        )
+        listOf(a, b).lagTidslinje()!!.krympTilPeriode(YearMonth.of(2021, Month.MAY).tilMåned()).let {
+            it shouldNotBe null
+            val expectedA = Tidslinjeobjekt(
+                opprettet = b.opprettet,
+                periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.mai(2021)),
+            )
+            val expectedB = Tidslinjeobjekt(
+                opprettet = a.opprettet,
+                periode = Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.desember(2021)),
+            )
+            it shouldBe listOf(expectedA, expectedB)
+            it!!.gjeldendeForDato(1.mai(2021)) shouldBe expectedA
+            it.gjeldendeForDato(1.desember(2021)) shouldBe expectedB
         }
     }
 

@@ -118,7 +118,7 @@ open class Periode protected constructor(
     companion object {
 
         fun create(fraOgMed: LocalDate, tilOgMed: LocalDate): Periode {
-            return tryCreate(fraOgMed, tilOgMed).getOrElse { throw IllegalArgumentException(it.toString()) }
+            return tryCreate(fraOgMed, tilOgMed).getOrElse { throw IllegalArgumentException("fraOgMed: $fraOgMed, tilOgMed:$tilOgMed. $it") }
         }
 
         fun tryCreate(fraOgMed: LocalDate, tilOgMed: LocalDate): Either<UgyldigPeriode, Periode> {
