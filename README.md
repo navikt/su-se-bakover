@@ -9,8 +9,16 @@ Lokal database startes med `docker compose up`
 
 Hvis man ønsker å resette hele databasen og starte fra scratch er det enkleste å slette volumet ved å kjøre `./resetdb.sh`
 
-#### Local backup
-Lokal backup kan gjøres på denne måten
+#### Backup av databasen
+For backup av test, må du hente brukernavn og password for admin fra vault
+
+1. For å ta en kopi av databasen kan du bruke følgende script `pg_dump -U username -W -h remote_hostname -p remote_port -F c database_name > filnavn.dump`
+   - eksempel for test `pg_dump -U brukernavnFraVault -h b27dbvl009.preprod.local -p 5432 -F c supstonad-db-dev > filnavn.dump`
+
+Hvis du vil ha kopi av databasen din lokalt, kan det gjøres på samme måte over.
+Dersom det skulle vise seg at du ikke får gjort det av en eller annen grunn, kan du gjøre følgende kan du 
+gå inn i dockeren for  fiske dem ut.
+
 1. start databasen (se over)
 2. For å finne container Id'en kan du kjøre `docker ps`
 3. Gå inn i containeren `docker exec -it containerId bash`. Shellet ditt blir interaktiv med containeren
@@ -20,9 +28,12 @@ Lokal backup kan gjøres på denne måten
 7. Filen skal ligge der du valgte å lagre den! gjerne åpne den og se innholdet :) 
 
 #### Importer backupen din
+1. For å legge inn dataen i basen kan du kjøre følgende `pg_restore -h remote_host -p remote_port -U brukernavn -d database_name filnavn.dump`
+
+Hvis prosessen over ikke fungerte lokalt, kan du gjøre følgende med docker
 1. start databasen (se over)
 2. For å finne container Id'en kan du kjøre `docker ps`
-3. kopier backupen din til containeren `docker cp filnavn.dump containerId:/filnavn.dump`
+3. Hvis du ikke har backupen din i containeren - kopier backupen din til containeren `docker cp filnavn.dump containerId:/filnavn.dump`
 4. Gå inn i containeren `docker exec -it containerId bash`. Shellet ditt blir interaktiv med containeren
    - Gjerne kjør `ls` for å verifisere at du har filen
 5. Kjør `pg_restore -c --if-exists -U user -d supstonad-db-local filnavn.dump` for å sette inn all dataen inn i basen
