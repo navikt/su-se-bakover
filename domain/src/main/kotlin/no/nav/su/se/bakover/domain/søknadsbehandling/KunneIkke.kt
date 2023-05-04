@@ -134,8 +134,8 @@ sealed class KunneIkkeLeggeTilGrunnlag {
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out VilkårsvurdertSøknadsbehandling>,
-        ) :
-            KunneIkkeOppdatereBosituasjon()
+        ) : KunneIkkeOppdatereBosituasjon()
+        object GrunnlagetMåVæreInnenforBehandlingsperioden : KunneIkkeOppdatereBosituasjon()
     }
 }
 

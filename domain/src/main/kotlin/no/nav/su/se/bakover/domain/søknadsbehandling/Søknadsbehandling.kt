@@ -175,13 +175,18 @@ sealed class Søknadsbehandling :
         saksbehandler: NavIdentBruker.Saksbehandler,
         bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
         hendelse: Søknadsbehandlingshendelse,
-    ) = if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-        oppdaterBosituasjonInternal(saksbehandler, bosituasjon, hendelse).right()
-    } else {
-        KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
-            this::class,
-            VilkårsvurdertSøknadsbehandling::class,
-        ).left()
+    ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon, VilkårsvurdertSøknadsbehandling> {
+        return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
+            if (this.periode != bosituasjon.periode) {
+                return KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.GrunnlagetMåVæreInnenforBehandlingsperioden.left()
+            }
+            oppdaterBosituasjonInternal(saksbehandler, bosituasjon, hendelse).right()
+        } else {
+            KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
+                this::class,
+                VilkårsvurdertSøknadsbehandling::class,
+            ).left()
+        }
     }
 
     /**
@@ -191,12 +196,14 @@ sealed class Søknadsbehandling :
         saksbehandler: NavIdentBruker.Saksbehandler,
         bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
         hendelse: Søknadsbehandlingshendelse,
-    ) = grunnlagsdataOgVilkårsvurderinger.oppdaterBosituasjon(listOf(bosituasjon)).let {
-        copyInternal(
-            grunnlagsdataOgVilkårsvurderinger = it,
-            avkorting = avkorting,
-            søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.leggTilNyHendelse(hendelse),
-        ).vilkårsvurder(saksbehandler)
+    ): VilkårsvurdertSøknadsbehandling {
+        return grunnlagsdataOgVilkårsvurderinger.oppdaterBosituasjon(listOf(bosituasjon)).let {
+            copyInternal(
+                grunnlagsdataOgVilkårsvurderinger = it,
+                avkorting = avkorting,
+                søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.leggTilNyHendelse(hendelse),
+            ).vilkårsvurder(saksbehandler)
+        }
     }
 
     /**

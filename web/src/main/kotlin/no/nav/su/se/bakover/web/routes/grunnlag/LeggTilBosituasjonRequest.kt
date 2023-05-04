@@ -60,6 +60,8 @@ internal fun KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.tilResultat
         this.fra,
         this.til,
     )
+
+    KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.GrunnlagetMåVæreInnenforBehandlingsperioden -> Feilresponser.utenforBehandlingsperioden
 }
 
 internal fun KunneIkkeLeggeTilBosituasjongrunnlag.tilResultat() = when (this) {
@@ -116,4 +118,6 @@ internal fun KunneIkkeLeggeTilGrunnlag.tilResultat(): Resultat = when (this) {
         this.fra,
         this.til,
     ).tilResultat()
+
+    KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.GrunnlagetMåVæreInnenforBehandlingsperioden -> Feilresponser.utenforBehandlingsperioden
 }
