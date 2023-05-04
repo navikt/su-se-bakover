@@ -243,7 +243,7 @@ data class Sak(
     fun vedtakstidslinje(
         fraOgMed: Måned,
     ): Tidslinje<VedtakPåTidslinje>? =
-        vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().lagTidslinje()?.krympTilPeriode(fraOgMed)
+        vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().lagTidslinje()?.fjernMånederFør(fraOgMed)
 
     fun vedtakstidslinje(): Tidslinje<VedtakPåTidslinje>? =
         vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().lagTidslinje()

@@ -117,15 +117,14 @@ open class Periode protected constructor(
 
     companion object {
 
-        fun create(fraOgMed: LocalDate, tilOgMed: LocalDate): Periode {
-            return tryCreate(fraOgMed, tilOgMed).getOrElse { throw IllegalArgumentException(it.toString()) }
+        fun create(fraOgMed: LocalDate, tilOgMed: LocalDate): Periode = tryCreate(fraOgMed, tilOgMed).getOrElse {
+            throw IllegalArgumentException(
+                "Perioder må være fra første til siste i måneden. fraOgMed må være før tilOgMed, men var: fraOgMed: $fraOgMed, tilOgMed: $tilOgMed",
+            )
         }
 
-        fun tryCreate(fraOgMed: LocalDate, tilOgMed: LocalDate): Either<UgyldigPeriode, Periode> {
-            return validate(fraOgMed, tilOgMed).map {
-                Periode(fraOgMed, tilOgMed)
-            }
-        }
+        fun tryCreate(fraOgMed: LocalDate, tilOgMed: LocalDate): Either<UgyldigPeriode, Periode> =
+            validate(fraOgMed, tilOgMed).map { Periode(fraOgMed, tilOgMed) }
 
         @JvmStatic
         protected fun validateOrThrow(fraOgMed: LocalDate, tilOgMed: LocalDate) {
