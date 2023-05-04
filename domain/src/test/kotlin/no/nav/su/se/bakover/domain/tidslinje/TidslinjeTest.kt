@@ -7,28 +7,26 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.application.CopyArgs
-import no.nav.su.se.bakover.common.april
-import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.common.mars
-import no.nav.su.se.bakover.common.november
-import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.april
+import no.nav.su.se.bakover.common.periode.august
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.juli
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.november
+import no.nav.su.se.bakover.common.periode.oktober
+import no.nav.su.se.bakover.common.periode.september
 import no.nav.su.se.bakover.common.periode.tilMåned
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.Validator
@@ -64,21 +62,11 @@ internal class TidslinjeTest {
      */
     @Test
     fun `ny overlapper gammel fullstendig`() {
-        val a = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = år(2021),
-        )
-
-        val b = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = år(2021),
-        )
+        val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), år(2021))
+        val b = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), år(2021))
 
         listOf(a, b).lagTidslinje()!!.krympTilPeriode(år(2021))?.let {
-            val expected = Tidslinjeobjekt(
-                opprettet = b.opprettet,
-                periode = år(2021),
-            )
+            val expected = Tidslinjeobjekt(b.opprettet, år(2021))
             it shouldBe listOf(expected)
 
             it.gjeldendeForDato(1.januar(2021)) shouldBe expected
@@ -96,37 +84,12 @@ internal class TidslinjeTest {
      */
     @Test
     fun `kombinerer gammel og ny som ikke overlapper `() {
-        val a = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.januar(2021),
-                tilOgMed = 30.april(2021),
-            ),
-        )
-
-        val b = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.mai(2021),
-                tilOgMed = 31.desember(2021),
-            ),
-        )
+        val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), januar(2021)..april(2021))
+        val b = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), mai(2021)..desember(2021))
 
         listOf(a, b).lagTidslinje()!!.krympTilPeriode(år(2021)) shouldBe listOf(
-            Tidslinjeobjekt(
-                opprettet = a.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.januar(2021),
-                    tilOgMed = 30.april(2021),
-                ),
-            ),
-            Tidslinjeobjekt(
-                opprettet = b.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.mai(2021),
-                    tilOgMed = 31.desember(2021),
-                ),
-            ),
+            Tidslinjeobjekt(a.opprettet, januar(2021)..april(2021)),
+            Tidslinjeobjekt(b.opprettet, mai(2021)..desember(2021)),
         )
     }
 
@@ -137,37 +100,12 @@ internal class TidslinjeTest {
      */
     @Test
     fun `kombinerer gammel og ny som ikke overlapper 2`() {
-        val a = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.mai(2021),
-                tilOgMed = 31.desember(2021),
-            ),
-        )
-
-        val b = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.januar(2021),
-                tilOgMed = 30.april(2021),
-            ),
-        )
+        val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), mai(2021)..desember(2021))
+        val b = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), januar(2021)..april(2021))
 
         listOf(a, b).lagTidslinje()!!.krympTilPeriode(år(2021)) shouldBe listOf(
-            Tidslinjeobjekt(
-                opprettet = b.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.januar(2021),
-                    tilOgMed = 30.april(2021),
-                ),
-            ),
-            Tidslinjeobjekt(
-                opprettet = a.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.mai(2021),
-                    tilOgMed = 31.desember(2021),
-                ),
-            ),
+            Tidslinjeobjekt(b.opprettet, januar(2021)..april(2021)),
+            Tidslinjeobjekt(a.opprettet, mai(2021)..desember(2021)),
         )
     }
 
@@ -178,37 +116,12 @@ internal class TidslinjeTest {
      */
     @Test
     fun `kombinerer gammel og ny som overlapper delvis framover i tid`() {
-        val a = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.januar(2021),
-                tilOgMed = 31.juli(2021),
-            ),
-        )
-
-        val b = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.april(2021),
-                tilOgMed = 31.desember(2021),
-            ),
-        )
+        val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), januar(2021)..juli(2021))
+        val b = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), april(2021)..desember(2021))
 
         listOf(a, b).lagTidslinje()!!.krympTilPeriode(år(2021)) shouldBe listOf(
-            Tidslinjeobjekt(
-                opprettet = a.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.januar(2021),
-                    tilOgMed = 31.mars(2021),
-                ),
-            ),
-            Tidslinjeobjekt(
-                opprettet = b.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.april(2021),
-                    tilOgMed = 31.desember(2021),
-                ),
-            ),
+            Tidslinjeobjekt(a.opprettet, januar(2021)..mars(2021)),
+            Tidslinjeobjekt(b.opprettet, april(2021)..desember(2021)),
         )
     }
 
@@ -219,37 +132,12 @@ internal class TidslinjeTest {
      */
     @Test
     fun `kombinerer gammel og ny som overlapper delvis bakover tid`() {
-        val a = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.mars(2021),
-                tilOgMed = 31.desember(2021),
-            ),
-        )
-
-        val b = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.januar(2021),
-                tilOgMed = 30.april(2021),
-            ),
-        )
+        val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), mars(2021)..desember(2021))
+        val b = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), januar(2021)..april(2021))
 
         listOf(a, b).lagTidslinje()!!.krympTilPeriode(år(2021)) shouldBe listOf(
-            Tidslinjeobjekt(
-                opprettet = b.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.januar(2021),
-                    tilOgMed = 30.april(2021),
-                ),
-            ),
-            Tidslinjeobjekt(
-                opprettet = a.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.mai(2021),
-                    tilOgMed = 31.desember(2021),
-                ),
-            ),
+            Tidslinjeobjekt(b.opprettet, januar(2021)..april(2021)),
+            Tidslinjeobjekt(a.opprettet, mai(2021)..desember(2021)),
         )
     }
 
@@ -260,34 +148,12 @@ internal class TidslinjeTest {
      */
     @Test
     fun `kombinerer gammel og ny som overlapper delvis bakover tid 2`() {
-        val a = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = år(2021),
-        )
-
-        val b = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.januar(2021),
-                tilOgMed = 31.mai(2021),
-            ),
-        )
+        val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), år(2021))
+        val b = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), januar(2021)..mai(2021))
 
         listOf(a, b).lagTidslinje()!!.krympTilPeriode(år(2021)) shouldBe listOf(
-            Tidslinjeobjekt(
-                opprettet = b.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.januar(2021),
-                    tilOgMed = 31.mai(2021),
-                ),
-            ),
-            Tidslinjeobjekt(
-                opprettet = a.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.juni(2021),
-                    tilOgMed = 31.desember(2021),
-                ),
-            ),
+            Tidslinjeobjekt(b.opprettet, januar(2021)..mai(2021)),
+            Tidslinjeobjekt(a.opprettet, juni(2021)..desember(2021)),
         )
     }
 
@@ -299,52 +165,14 @@ internal class TidslinjeTest {
      */
     @Test
     fun `kombinerer gammel og ny som overlapper delvis bakover og framover i tid`() {
-        val a = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.februar(2021),
-                tilOgMed = 30.november(2021),
-            ),
-        )
-
-        val b = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.januar(2021),
-                tilOgMed = 28.februar(2021),
-            ),
-        )
-
-        val c = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.oktober(2021),
-                tilOgMed = 31.desember(2021),
-            ),
-        )
+        val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), februar(2021)..november(2021))
+        val b = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), januar(2021)..februar(2021))
+        val c = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), oktober(2021)..desember(2021))
 
         listOf(b, c, a).lagTidslinje()!!.krympTilPeriode(år(2021)) shouldBe listOf(
-            Tidslinjeobjekt(
-                opprettet = b.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.januar(2021),
-                    tilOgMed = 28.februar(2021),
-                ),
-            ),
-            Tidslinjeobjekt(
-                opprettet = a.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.mars(2021),
-                    tilOgMed = 30.september(2021),
-                ),
-            ),
-            Tidslinjeobjekt(
-                opprettet = c.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.oktober(2021),
-                    tilOgMed = 31.desember(2021),
-                ),
-            ),
+            Tidslinjeobjekt(b.opprettet, januar(2021)..februar(2021)),
+            Tidslinjeobjekt(a.opprettet, mars(2021)..september(2021)),
+            Tidslinjeobjekt(c.opprettet, oktober(2021)..desember(2021)),
         )
     }
 
@@ -357,72 +185,20 @@ internal class TidslinjeTest {
      */
     @Test
     fun `takler at kombinasjonen b, c, d fungerer uavhengig av rekkefølgen`() {
-        val a = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.januar(2021),
-                tilOgMed = 30.april(2021),
-            ),
-        )
-
-        val b = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.mai(2021),
-                tilOgMed = 31.januar(2022),
-            ),
-        )
-
-        val c = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.mai(2021),
-                tilOgMed = 31.desember(2021),
-            ),
-        )
-
-        val d = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.juni(2021),
-                tilOgMed = 31.desember(2021),
-            ),
-        )
+        val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), januar(2021)..april(2021))
+        val b = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), mai(2021)..januar(2022))
+        val c = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), mai(2021)..desember(2021))
+        val d = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), juni(2021)..desember(2021))
 
         listOf(a, b, c, d).lagTidslinje()!!.krympTilPeriode(
-            Periode.create(
-                fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2022),
-            ),
+            januar(2021)..desember(2022),
         )?.let {
-            val expecteda = Tidslinjeobjekt(
-                opprettet = a.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.januar(2021),
-                    tilOgMed = 30.april(2021),
-                ),
-            )
-            val expectedc = Tidslinjeobjekt(
-                opprettet = c.opprettet,
-                periode = mai(2021),
-            )
-            val expectedd = Tidslinjeobjekt(
-                opprettet = d.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.juni(2021),
-                    tilOgMed = 31.desember(2021),
-                ),
-            )
-            val expectedb = Tidslinjeobjekt(
-                opprettet = b.opprettet,
-                periode = januar(2022),
-            )
-            it shouldBe listOf(
-                expecteda,
-                expectedc,
-                expectedd,
-                expectedb,
-            )
+            val expecteda = Tidslinjeobjekt(a.opprettet, januar(2021)..april(2021))
+            val expectedc = Tidslinjeobjekt(c.opprettet, mai(2021))
+            val expectedd = Tidslinjeobjekt(d.opprettet, juni(2021)..desember(2021))
+            val expectedb = Tidslinjeobjekt(b.opprettet, januar(2022))
+
+            it shouldBe listOf(expecteda, expectedc, expectedd, expectedb)
             it.gjeldendeForDato(1.januar(2021)) shouldBe expecteda
             it.gjeldendeForDato(1.mai(2021)) shouldBe expectedc
             it.gjeldendeForDato(1.juni(2021)) shouldBe expectedd
@@ -437,41 +213,13 @@ internal class TidslinjeTest {
      */
     @Test
     fun `gammel overlapper ny fullstendig`() {
-        val a = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = år(2021),
-        )
-
-        val b = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.april(2021),
-                tilOgMed = 31.mai(2021),
-            ),
-        )
+        val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), år(2021))
+        val b = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), april(2021)..mai(2021))
 
         listOf(a, b).lagTidslinje()!!.krympTilPeriode(år(2021)) shouldBe listOf(
-            Tidslinjeobjekt(
-                opprettet = a.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.januar(2021),
-                    tilOgMed = 31.mars(2021),
-                ),
-            ),
-            Tidslinjeobjekt(
-                opprettet = b.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.april(2021),
-                    tilOgMed = 31.mai(2021),
-                ),
-            ),
-            Tidslinjeobjekt(
-                opprettet = a.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.juni(2021),
-                    tilOgMed = 31.desember(2021),
-                ),
-            ),
+            Tidslinjeobjekt(a.opprettet, januar(2021)..mars(2021)),
+            Tidslinjeobjekt(b.opprettet, april(2021)..mai(2021)),
+            Tidslinjeobjekt(a.opprettet, juni(2021)..desember(2021)),
         )
     }
 
@@ -482,34 +230,12 @@ internal class TidslinjeTest {
      */
     @Test
     fun `ny erstatter siste del av gammel`() {
-        val a = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = år(2021),
-        )
-
-        val b = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.april(2021),
-                tilOgMed = 31.desember(2021),
-            ),
-        )
+        val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), år(2021))
+        val b = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), april(2021)..desember(2021))
 
         listOf(a, b).lagTidslinje()!!.krympTilPeriode(år(2021)) shouldBe listOf(
-            Tidslinjeobjekt(
-                opprettet = a.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.januar(2021),
-                    tilOgMed = 31.mars(2021),
-                ),
-            ),
-            Tidslinjeobjekt(
-                opprettet = b.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.april(2021),
-                    tilOgMed = 31.desember(2021),
-                ),
-            ),
+            Tidslinjeobjekt(a.opprettet, januar(2021)..mars(2021)),
+            Tidslinjeobjekt(b.opprettet, april(2021)..desember(2021)),
         )
     }
 
@@ -522,54 +248,15 @@ internal class TidslinjeTest {
      */
     @Test
     fun `potpurri 1`() {
-        val a = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = år(2021),
-        )
-
-        val b = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = juni(2021),
-        )
-
-        val c = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.juli(2021),
-                tilOgMed = 31.desember(2021),
-            ),
-        )
-
-        val d = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.mars(2021),
-                tilOgMed = 30.juni(2021),
-            ),
-        )
+        val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), år(2021))
+        val b = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), juni(2021))
+        val c = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), juli(2021)..desember(2021))
+        val d = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), mars(2021)..juni(2021))
 
         listOf(a, d, c, b).lagTidslinje()!!.krympTilPeriode(år(2021)) shouldBe listOf(
-            Tidslinjeobjekt(
-                opprettet = a.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.januar(2021),
-                    tilOgMed = 28.februar(2021),
-                ),
-            ),
-            Tidslinjeobjekt(
-                opprettet = d.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.mars(2021),
-                    tilOgMed = 30.juni(2021),
-                ),
-            ),
-            Tidslinjeobjekt(
-                opprettet = c.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.juli(2021),
-                    tilOgMed = 31.desember(2021),
-                ),
-            ),
+            Tidslinjeobjekt(a.opprettet, januar(2021)..februar(2021)),
+            Tidslinjeobjekt(d.opprettet, mars(2021)..juni(2021)),
+            Tidslinjeobjekt(c.opprettet, juli(2021)..desember(2021)),
         )
     }
 
@@ -582,64 +269,16 @@ internal class TidslinjeTest {
      */
     @Test
     fun `potpurri 2`() {
-        val a = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = år(2021),
-        )
-
-        val b = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.mars(2021),
-                tilOgMed = 30.april(2021),
-            ),
-        )
-
-        val c = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.mai(2021),
-                tilOgMed = 31.juli(2021),
-            ),
-        )
-
-        val d = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.august(2021),
-                tilOgMed = 31.desember(2021),
-            ),
-        )
+        val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), år(2021))
+        val b = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), mars(2021)..april(2021))
+        val c = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), mai(2021)..juli(2021))
+        val d = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), august(2021)..desember(2021))
 
         listOf(b, a, c, d).lagTidslinje()!!.krympTilPeriode(år(2021)) shouldBe listOf(
-            Tidslinjeobjekt(
-                opprettet = a.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.januar(2021),
-                    tilOgMed = 28.februar(2021),
-                ),
-            ),
-            Tidslinjeobjekt(
-                opprettet = b.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.mars(2021),
-                    tilOgMed = 30.april(2021),
-                ),
-            ),
-            Tidslinjeobjekt(
-                opprettet = c.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.mai(2021),
-                    tilOgMed = 31.juli(2021),
-                ),
-            ),
-            Tidslinjeobjekt(
-                opprettet = d.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.august(2021),
-                    tilOgMed = 31.desember(2021),
-                ),
-            ),
+            Tidslinjeobjekt(a.opprettet, januar(2021)..februar(2021)),
+            Tidslinjeobjekt(b.opprettet, mars(2021)..april(2021)),
+            Tidslinjeobjekt(c.opprettet, mai(2021)..juli(2021)),
+            Tidslinjeobjekt(d.opprettet, august(2021)..desember(2021)),
         )
     }
 
@@ -651,49 +290,14 @@ internal class TidslinjeTest {
      */
     @Test
     fun `kombinerer gammel og ny hvor ny verken overlapper eller tilstøter`() {
-        val a = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = år(2021),
-        )
-
-        val b = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.januar(2021),
-                tilOgMed = 31.mars(2021),
-            ),
-        )
-
-        val c = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.juli(2021),
-                tilOgMed = 31.desember(2021),
-            ),
-        )
+        val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), år(2021))
+        val b = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), januar(2021)..mars(2021))
+        val c = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), juli(2021)..desember(2021))
 
         listOf(a, b, c).lagTidslinje()!!.krympTilPeriode(år(2021)) shouldBe listOf(
-            Tidslinjeobjekt(
-                opprettet = b.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.januar(2021),
-                    tilOgMed = 31.mars(2021),
-                ),
-            ),
-            Tidslinjeobjekt(
-                opprettet = a.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.april(2021),
-                    tilOgMed = 30.juni(2021),
-                ),
-            ),
-            Tidslinjeobjekt(
-                opprettet = c.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.juli(2021),
-                    tilOgMed = 31.desember(2021),
-                ),
-            ),
+            Tidslinjeobjekt(b.opprettet, januar(2021)..mars(2021)),
+            Tidslinjeobjekt(a.opprettet, april(2021)..juni(2021)),
+            Tidslinjeobjekt(c.opprettet, juli(2021)..desember(2021)),
         )
     }
 
@@ -704,37 +308,12 @@ internal class TidslinjeTest {
      */
     @Test
     fun `kombinerer gammel og ny som er fullstendig adskilt i tid`() {
-        val a = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.januar(2021),
-                tilOgMed = 31.mars(2021),
-            ),
-        )
-
-        val b = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.juli(2021),
-                tilOgMed = 31.desember(2021),
-            ),
-        )
+        val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), januar(2021)..mars(2021))
+        val b = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), juli(2021)..desember(2021))
 
         listOf(a, b).lagTidslinje()!!.krympTilPeriode(år(2021)) shouldBe listOf(
-            Tidslinjeobjekt(
-                opprettet = a.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.januar(2021),
-                    tilOgMed = 31.mars(2021),
-                ),
-            ),
-            Tidslinjeobjekt(
-                opprettet = b.opprettet,
-                periode = Periode.create(
-                    fraOgMed = 1.juli(2021),
-                    tilOgMed = 31.desember(2021),
-                ),
-            ),
+            Tidslinjeobjekt(a.opprettet, januar(2021)..mars(2021)),
+            Tidslinjeobjekt(b.opprettet, juli(2021)..desember(2021)),
         )
     }
 
@@ -747,40 +326,13 @@ internal class TidslinjeTest {
      */
     @Test
     fun `overskriver gamle med nyere`() {
-        val a = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.februar(2021),
-                tilOgMed = 31.desember(2021),
-            ),
-        )
-
-        val b = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.mars(2021),
-                tilOgMed = 31.desember(2021),
-            ),
-        )
-
-        val c = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(
-                fraOgMed = 1.juli(2021),
-                tilOgMed = 31.desember(2021),
-            ),
-        )
-
-        val d = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = år(2021),
-        )
+        val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), februar(2021)..desember(2021))
+        val b = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), mars(2021)..desember(2021))
+        val c = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), juli(2021)..desember(2021))
+        val d = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), år(2021))
 
         listOf(c, a, b, d).lagTidslinje()!!.krympTilPeriode(år(2021)) shouldBe listOf(
-            Tidslinjeobjekt(
-                opprettet = d.opprettet,
-                periode = år(2021),
-            ),
+            Tidslinjeobjekt(d.opprettet, år(2021)),
         )
     }
 
@@ -793,39 +345,15 @@ internal class TidslinjeTest {
      */
     @Test
     fun `potpurri 3`() {
-        val a = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(fraOgMed = 1.februar(2021), tilOgMed = 31.mai(2021)),
-        )
-
-        val b = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
-        )
-
-        val c = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.desember(2021)),
-        )
-
-        val d = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 30.juni(2021)),
-        )
+        val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), februar(2021)..mai(2021))
+        val b = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), januar(2021)..juni(2021))
+        val c = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), juni(2021)..desember(2021))
+        val d = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), april(2021)..juni(2021))
 
         listOf(a, b, c, d).lagTidslinje()!!.krympTilPeriode(år(2021)) shouldBe listOf(
-            Tidslinjeobjekt(
-                opprettet = b.opprettet,
-                periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.mars(2021)),
-            ),
-            Tidslinjeobjekt(
-                opprettet = d.opprettet,
-                periode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 30.juni(2021)),
-            ),
-            Tidslinjeobjekt(
-                opprettet = c.opprettet,
-                periode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 31.desember(2021)),
-            ),
+            Tidslinjeobjekt(b.opprettet, januar(2021)..mars(2021)),
+            Tidslinjeobjekt(d.opprettet, april(2021)..juni(2021)),
+            Tidslinjeobjekt(c.opprettet, juli(2021)..desember(2021)),
         )
     }
 
@@ -837,38 +365,15 @@ internal class TidslinjeTest {
      */
     @Test
     fun `potpurri 4`() {
-        val a = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.oktober(2021)),
-        )
-
-        val b = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(fraOgMed = 1.mars(2021), tilOgMed = 31.desember(2021)),
-        )
-
-        val c = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.juli(2021)),
-        )
+        val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), januar(2021)..oktober(2021))
+        val b = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), mars(2021)..desember(2021))
+        val c = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), juni(2021)..juli(2021))
 
         listOf(a, b, c).lagTidslinje()!!.krympTilPeriode(år(2021)) shouldBe listOf(
-            Tidslinjeobjekt(
-                opprettet = a.opprettet,
-                periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 28.februar(2021)),
-            ),
-            Tidslinjeobjekt(
-                opprettet = b.opprettet,
-                periode = Periode.create(fraOgMed = 1.mars(2021), tilOgMed = 31.mai(2021)),
-            ),
-            Tidslinjeobjekt(
-                opprettet = c.opprettet,
-                periode = Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.juli(2021)),
-            ),
-            Tidslinjeobjekt(
-                opprettet = b.opprettet,
-                periode = Periode.create(fraOgMed = 1.august(2021), tilOgMed = 31.desember(2021)),
-            ),
+            Tidslinjeobjekt(a.opprettet, januar(2021)..februar(2021)),
+            Tidslinjeobjekt(b.opprettet, mars(2021)..mai(2021)),
+            Tidslinjeobjekt(c.opprettet, juni(2021)..juli(2021)),
+            Tidslinjeobjekt(b.opprettet, august(2021)..desember(2021)),
         )
     }
 
@@ -912,12 +417,8 @@ internal class TidslinjeTest {
      */
     @Test
     fun `justerer tidslinjen i forhold til perioden som etterspørres`() {
-        val a = Tidslinjeobjekt(opprettet = Tidspunkt.now(tikkendeKlokke), periode = år(2021))
-
-        val b = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 31.mai(2021)),
-        )
+        val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), år(2021))
+        val b = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), april(2021)..mai(2021))
 
         /** |-|     periode
          *  |-----| a
@@ -925,12 +426,9 @@ internal class TidslinjeTest {
          *  |-|     resultat
          */
         listOf(a, b).lagTidslinje()!!.krympTilPeriode(
-            Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.mars(2021)),
+            januar(2021)..mars(2021),
         )?.let {
-            val expected = Tidslinjeobjekt(
-                opprettet = a.opprettet,
-                periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.mars(2021)),
-            )
+            val expected = Tidslinjeobjekt(a.opprettet, januar(2021)..mars(2021))
             it shouldBe listOf(expected)
             it.gjeldendeForDato(1.januar(2021)) shouldBe expected
             it.gjeldendeForDato(1.desember(2021)) shouldBe null
@@ -943,12 +441,9 @@ internal class TidslinjeTest {
          */
 
         listOf(a, b).lagTidslinje()!!.krympTilPeriode(
-            Periode.create(fraOgMed = 1.april(2021), tilOgMed = 31.mai(2021)),
+            april(2021)..mai(2021),
         ) shouldBe listOf(
-            Tidslinjeobjekt(
-                opprettet = b.opprettet,
-                periode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 31.mai(2021)),
-            ),
+            Tidslinjeobjekt(b.opprettet, april(2021)..mai(2021)),
         )
 
         /**   |---| periode
@@ -957,16 +452,10 @@ internal class TidslinjeTest {
          *    |-|-| resultat
          */
         listOf(a, b).lagTidslinje()!!.krympTilPeriode(
-            Periode.create(fraOgMed = 1.april(2021), tilOgMed = 31.desember(2021)),
+            april(2021)..desember(2021),
         ) shouldBe listOf(
-            Tidslinjeobjekt(
-                opprettet = b.opprettet,
-                periode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 31.mai(2021)),
-            ),
-            Tidslinjeobjekt(
-                opprettet = a.opprettet,
-                periode = Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.desember(2021)),
-            ),
+            Tidslinjeobjekt(b.opprettet, april(2021)..mai(2021)),
+            Tidslinjeobjekt(a.opprettet, juni(2021)..desember(2021)),
         )
 
         /**        |-| periode
@@ -980,14 +469,14 @@ internal class TidslinjeTest {
     fun `validator kaster exception dersom tidslinja ikke har distinkte fra og med datoer`() {
         assertDoesNotThrow {
             Validator.valider(
-                nonEmptyListOf(Tidslinjeobjekt(opprettet = Tidspunkt.now(tikkendeKlokke), periode = år(2021))),
+                nonEmptyListOf(Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), år(2021))),
             )
         }
         assertThrows<IllegalStateException> {
             Validator.valider(
                 nonEmptyListOf(
-                    Tidslinjeobjekt(opprettet = Tidspunkt.now(tikkendeKlokke), periode = år(2021)),
-                    Tidslinjeobjekt(opprettet = Tidspunkt.now(tikkendeKlokke), periode = år(2021)),
+                    Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), år(2021)),
+                    Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), år(2021)),
                 ),
             )
         }.message shouldBe "Tidslinje har elementer med overlappende perioder!"
@@ -995,18 +484,9 @@ internal class TidslinjeTest {
         assertThrows<IllegalStateException> {
             Validator.valider(
                 nonEmptyListOf(
-                    Tidslinjeobjekt(
-                        opprettet = Tidspunkt.now(tikkendeKlokke),
-                        periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.april(2021)),
-                    ),
-                    Tidslinjeobjekt(
-                        opprettet = Tidspunkt.now(tikkendeKlokke),
-                        periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021)),
-                    ),
-                    Tidslinjeobjekt(
-                        opprettet = Tidspunkt.now(tikkendeKlokke),
-                        periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.juli(2021)),
-                    ),
+                    Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), januar(2021)..april(2021)),
+                    Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), mai(2021)..desember(2021)),
+                    Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), mai(2021)..juli(2021)),
                 ),
             )
         }.message shouldBe "Tidslinje har elementer med overlappende perioder!"
@@ -1017,11 +497,8 @@ internal class TidslinjeTest {
         assertThrows<IllegalStateException> {
             Validator.valider(
                 nonEmptyListOf(
-                    Tidslinjeobjekt(opprettet = Tidspunkt.now(tikkendeKlokke), periode = år(2021)),
-                    Tidslinjeobjekt(
-                        opprettet = Tidspunkt.now(tikkendeKlokke),
-                        periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021)),
-                    ),
+                    Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), år(2021)),
+                    Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), mai(2021)..desember(2021)),
                 ),
             )
         }.message shouldBe "Tidslinje har elementer med overlappende perioder!"
@@ -1029,18 +506,9 @@ internal class TidslinjeTest {
         assertThrows<IllegalStateException> {
             Validator.valider(
                 nonEmptyListOf(
-                    Tidslinjeobjekt(
-                        opprettet = Tidspunkt.now(tikkendeKlokke),
-                        periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.april(2021)),
-                    ),
-                    Tidslinjeobjekt(
-                        opprettet = Tidspunkt.now(tikkendeKlokke),
-                        periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021)),
-                    ),
-                    Tidslinjeobjekt(
-                        opprettet = Tidspunkt.now(tikkendeKlokke),
-                        periode = Periode.create(fraOgMed = 1.august(2021), tilOgMed = 31.desember(2021)),
-                    ),
+                    Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), januar(2021)..april(2021)),
+                    Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), mai(2021)..desember(2021)),
+                    Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), august(2021)..desember(2021)),
                 ),
             )
         }.message shouldBe "Tidslinje har elementer med overlappende perioder!"
@@ -1051,51 +519,29 @@ internal class TidslinjeTest {
         shouldThrowWithMessage<IllegalStateException>("Tidslinje har elementer med overlappende perioder!") {
             Validator.valider(
                 nonEmptyListOf(
-                    Tidslinjeobjekt(
-                        opprettet = Tidspunkt.now(tikkendeKlokke),
-                        periode = år(2021),
-                    ),
-                    Tidslinjeobjekt(
-                        opprettet = Tidspunkt.now(tikkendeKlokke),
-                        periode = Periode.create(
-                            fraOgMed = 1.juni(2021),
-                            tilOgMed = 31.oktober(2021),
-                        ),
-                    ),
+                    Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), år(2021)),
+                    Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), juni(2021)..oktober(2021)),
                 ),
             )
         }
     }
 
     @Test
-    fun `krympTilPeriode måned returnerer null dersom periode ikke kan lages`() {
-        val a = Tidslinjeobjekt(opprettet = Tidspunkt.now(tikkendeKlokke), periode = år(2021))
-
-        val b = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 31.mai(2021)),
-        )
-        listOf(a, b).lagTidslinje()!!.krympTilPeriode(YearMonth.of(2023, Month.MAY).tilMåned()) shouldBe null
+    fun `måned etter tidslinje gir null`() {
+        val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), år(2021))
+        val b = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), mai(2021)..mai(2021))
+        listOf(a, b).lagTidslinje()!!.fjernMånederFør(YearMonth.of(2023, Month.MAY).tilMåned()) shouldBe null
     }
 
     @Test
-    fun `krympTilPeriode måned returnerer tidslinje dersom den krympes OK`() {
-        val a = Tidslinjeobjekt(opprettet = Tidspunkt.now(tikkendeKlokke), periode = år(2021))
+    fun `fjerner månedene som er før angitt dato`() {
+        val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), år(2021))
+        val b = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), april(2021)..mai(2021))
 
-        val b = Tidslinjeobjekt(
-            opprettet = Tidspunkt.now(tikkendeKlokke),
-            periode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 31.mai(2021)),
-        )
-        listOf(a, b).lagTidslinje()!!.krympTilPeriode(YearMonth.of(2021, Month.MAY).tilMåned()).let {
+        listOf(a, b).lagTidslinje()!!.fjernMånederFør(mai(2021)).let {
             it shouldNotBe null
-            val expectedA = Tidslinjeobjekt(
-                opprettet = b.opprettet,
-                periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.mai(2021)),
-            )
-            val expectedB = Tidslinjeobjekt(
-                opprettet = a.opprettet,
-                periode = Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.desember(2021)),
-            )
+            val expectedA = Tidslinjeobjekt(b.opprettet, mai(2021)..mai(2021))
+            val expectedB = Tidslinjeobjekt(a.opprettet, juni(2021)..desember(2021))
             it shouldBe listOf(expectedA, expectedB)
             it!!.gjeldendeForDato(1.mai(2021)) shouldBe expectedA
             it.gjeldendeForDato(1.desember(2021)) shouldBe expectedB
@@ -1106,10 +552,7 @@ internal class TidslinjeTest {
     inner class Maskering {
         @Test
         fun `maskerer en enkelt verdi`() {
-            val a = Tidslinjeobjekt(
-                opprettet = Tidspunkt.now(tikkendeKlokke),
-                periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.mars(2021)),
-            )
+            val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), januar(2021)..mars(2021))
 
             a.fjernPeriode().let {
                 it shouldBe emptyList()
@@ -1119,68 +562,49 @@ internal class TidslinjeTest {
 
         @Test
         fun `maskerer en enkelt verdi for en gitt periode og justerer tidslinjen i henhold`() {
-            val a = Tidslinjeobjekt(
-                opprettet = Tidspunkt.now(tikkendeKlokke),
-                periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.mars(2021)),
-            )
+            val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), januar(2021)..mars(2021))
 
             a.fjernPerioder(listOf(februar(2021))).lagTidslinje()!!.krympTilPeriode(
-                Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.mars(2021)),
+                januar(2021)..mars(2021),
             ) shouldBe listOf(
-                Tidslinjeobjekt(opprettet = a.opprettet, periode = januar(2021)),
-                Tidslinjeobjekt(opprettet = a.opprettet, periode = mars(2021)),
+                Tidslinjeobjekt(a.opprettet, januar(2021)),
+                Tidslinjeobjekt(a.opprettet, mars(2021)),
             )
         }
 
         @Test
         fun `maskerer en av flere verdier`() {
-            val a = Tidslinjeobjekt(
-                opprettet = Tidspunkt.now(tikkendeKlokke),
-                periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.mars(2021)),
-            )
-
-            val b = Tidslinjeobjekt(opprettet = Tidspunkt.now(tikkendeKlokke), periode = februar(2021))
+            val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), januar(2021)..mars(2021))
+            val b = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), februar(2021))
 
             (a.fjernPeriode() + b).lagTidslinje()!!.krympTilPeriode(
-                Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.mars(2021)),
+                januar(2021)..mars(2021),
             ) shouldBe listOf(
-                Tidslinjeobjekt(opprettet = b.opprettet, periode = februar(2021)),
+                Tidslinjeobjekt(b.opprettet, februar(2021)),
             )
         }
 
         @Test
         fun `maskerer verdier potpurri`() {
             val tikkendeKlokke = TikkendeKlokke()
-            val a = Tidslinjeobjekt(opprettet = Tidspunkt.now(tikkendeKlokke), periode = år(2021))
-            val b = Tidslinjeobjekt(opprettet = Tidspunkt.now(tikkendeKlokke), periode = februar(2021))
-            val c = Tidslinjeobjekt(
-                opprettet = Tidspunkt.now(tikkendeKlokke),
-                periode = november(2021)..desember(2021),
-            )
-            val d = Tidslinjeobjekt(
-                opprettet = Tidspunkt.now(tikkendeKlokke),
-                periode = mai(2021)..desember(2021),
-            )
+            val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), år(2021))
+            val b = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), februar(2021))
+            val c = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), november(2021)..desember(2021))
+            val d = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), mai(2021)..desember(2021))
 
             (listOf(a) + b.fjernPeriode() + c.fjernPeriode() + listOf(d))
                 .lagTidslinje()!!
                 .krympTilPeriode(år(2021)) shouldBe listOf(
-                Tidslinjeobjekt(
-                    opprettet = a.opprettet,
-                    periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.april(2021)),
-                ),
-                Tidslinjeobjekt(
-                    opprettet = d.opprettet,
-                    periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021)),
-                ),
+                Tidslinjeobjekt(a.opprettet, januar(2021)..april(2021)),
+                Tidslinjeobjekt(d.opprettet, mai(2021)..desember(2021)),
             )
         }
 
         @Test
         fun `maskering for perioder som ikke overlapper elementer`() {
-            val a = Tidslinjeobjekt(opprettet = Tidspunkt.now(tikkendeKlokke), periode = år(2021))
+            val a = Tidslinjeobjekt(Tidspunkt.now(tikkendeKlokke), år(2021))
 
-            a.fjernPerioder(listOf(Periode.create(1.desember(2022), 31.mars(2023)))) shouldBe listOf(a)
+            a.fjernPerioder(listOf(desember(2022)..mars(2023))) shouldBe listOf(a)
         }
     }
 }
