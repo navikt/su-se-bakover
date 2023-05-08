@@ -29,12 +29,11 @@ class SendPåminnelserOmNyStønadsperiodeServiceImpl(
         val initialContext = hentEllerOpprettContext()
         return initialContext.uprosesserte { sakRepo.hentSakIdSaksnummerOgFnrForAlleSaker() }
             .ifEmpty {
-                log.info("Fant ingen flere saker for mulig utsending av påminnelse om ny stønadsperiode.")
-                log.info(initialContext.oppsummering(clock))
+                log.debug("Fant ingen flere saker for mulig utsending av påminnelse om ny stønadsperiode.")
                 return initialContext
             }
             .also {
-                log.info("Fant ${it.count()} saker for mulig utsendelse av påminnelse om ny stønadsperiode")
+                log.debug("Fant {} saker for mulig utsendelse av påminnelse om ny stønadsperiode", it.count())
             }
             .fold(initialContext) { context, saksnummer ->
                 try {

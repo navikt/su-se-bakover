@@ -42,12 +42,11 @@ class UtløptFristForKontrollsamtaleServiceImpl(
         val kontrollsamtaler = kontrollsamtaleService.hentInnkalteKontrollsamtalerMedFristUtløpt(dato)
         return initialContext.uprosesserte { kontrollsamtaler.map { it.id } }
             .ifEmpty {
-                log.info("Fant ingen uprosesserte kontrollsamtaler med utløp: $dato.")
-                log.info(initialContext.oppsummering(clock))
+                log.debug("Fant ingen uprosesserte kontrollsamtaler med utløp: {}.", dato)
                 return initialContext
             }
             .also {
-                log.info("Fant ${it.count()} uprosesserte kontrollsamtaler med utløp: $dato")
+                log.debug("Fant {} uprosesserte kontrollsamtaler med utløp: {}", it.count(), dato)
             }
             .fold(initialContext) { context, prosesseres ->
                 val kontrollsamtale = kontrollsamtaler.single { it.id == prosesseres }
