@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
@@ -31,12 +32,17 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeFerdigstilleOgIverksette
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
+import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
+import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
+import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
@@ -72,6 +78,7 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import java.time.Clock
 import java.util.UUID
@@ -360,7 +367,8 @@ internal class ReguleringServiceImplTest {
 
             reguleringService.startAutomatiskRegulering(1.mai(2023)).let {
                 it.size shouldBe 1
-                it.first() shouldBe KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(feil = Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode).left()
+                it.first() shouldBe KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(feil = Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode)
+                    .left()
             }
         }
 
@@ -488,6 +496,37 @@ internal class ReguleringServiceImplTest {
         }.startAutomatiskRegulering(1.mai(2021))
 
         verify(eventObserverMock).handle(argThat { it.shouldBeTypeOf<StatistikkEvent.Stønadsvedtak>() })
+    }
+
+    @Test
+    fun `gjør ingen sideeffekter ved dry run`() {
+        val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
+
+        val reguleringMock = mock<ReguleringRepo> {}
+        val sakRepo = mock<SakRepo> {
+            on { hentSak(any<UUID>()) } doReturn sak
+        }
+        val utbetalingMock = mock<UtbetalingService> {}
+        val vedtakMock = mock<VedtakService> {}
+        val sessionMock = mock<SessionFactory> {}
+        val tilbakekrevingMock = mock<TilbakekrevingService> {}
+
+        ReguleringServiceImpl(
+            reguleringRepo = reguleringMock,
+            sakRepo = sakRepo,
+            utbetalingService = utbetalingMock,
+            vedtakService = vedtakMock,
+            sessionFactory = sessionMock,
+            tilbakekrevingService = tilbakekrevingMock,
+            clock = fixedClock,
+            satsFactory = satsFactoryTestPåDato(),
+        ).startAutomatiskRegulering(1.mai(2022), false)
+
+        verifyNoInteractions(reguleringMock)
+        verifyNoInteractions(utbetalingMock)
+        verifyNoInteractions(vedtakMock)
+        verifyNoInteractions(sessionMock)
+        verifyNoInteractions(tilbakekrevingMock)
     }
 
     /**
