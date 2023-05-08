@@ -23,6 +23,19 @@ interface ReguleringRunType {
 
 sealed class LiveRun : ReguleringRunType {
 
+    data class Opprettet(
+        override val sessionFactory: SessionFactory,
+        override val lagreRegulering: (Regulering, TransactionContext) -> Unit,
+        override val lagreVedtak: (Vedtak, TransactionContext) -> Unit,
+        override val klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
+    ) : LiveRun() {
+        fun kjørSideffekter(regulering: OpprettetRegulering) {
+            sessionFactory.withTransactionContext { tx ->
+                lagreRegulering(regulering, tx)
+            }
+        }
+    }
+
     data class Iverksatt(
         override val sessionFactory: SessionFactory,
         override val lagreRegulering: (Regulering, TransactionContext) -> Unit,

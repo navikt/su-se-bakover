@@ -123,11 +123,21 @@ class ReguleringServiceImpl(
                     return@map regulering.copy(
                         reguleringstype = Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.AvventerKravgrunnlag)),
                     ).right().onRight {
-                        reguleringRepo.lagre(it)
+                        LiveRun.Opprettet(
+                            sessionFactory = sessionFactory,
+                            lagreRegulering = reguleringRepo::lagre,
+                            lagreVedtak = vedtakService::lagreITransaksjon,
+                            klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
+                        ).kjørSideffekter(it)
                     }
                 }
 
-            reguleringRepo.lagre(regulering)
+            LiveRun.Opprettet(
+                sessionFactory = sessionFactory,
+                lagreRegulering = reguleringRepo::lagre,
+                lagreVedtak = vedtakService::lagreITransaksjon,
+                klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
+            ).kjørSideffekter(regulering)
 
             if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
                 ferdigstillOgIverksettRegulering(regulering, sak)
@@ -249,7 +259,12 @@ class ReguleringServiceImpl(
             .map { simulertRegulering -> simulertRegulering.tilIverksatt() }
             .flatMap { lagVedtakOgUtbetal(it, sak) }
             .onLeft {
-                reguleringRepo.lagre(
+                LiveRun.Opprettet(
+                    sessionFactory = sessionFactory,
+                    lagreRegulering = reguleringRepo::lagre,
+                    lagreVedtak = vedtakService::lagreITransaksjon,
+                    klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
+                ).kjørSideffekter(
                     regulering.copy(
                         reguleringstype = Reguleringstype.MANUELL(
                             setOf(
