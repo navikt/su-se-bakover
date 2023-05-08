@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
-import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
@@ -132,7 +132,7 @@ internal class StatistikkRevurderingTest {
         val (_, vedtak) = vedtakRevurdering(
             clock = tikkendeFixedClock(),
             vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
-        ).let { (sak, vedtak) -> sak to vedtak as VedtakOpphørtRevurdering }
+        ).let { (sak, vedtak) -> sak to vedtak as VedtakOpphørMedUtbetaling }
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt(
                 vedtak = vedtak,

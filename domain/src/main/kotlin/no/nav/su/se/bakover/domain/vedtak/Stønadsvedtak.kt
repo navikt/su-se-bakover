@@ -1,8 +1,11 @@
 package no.nav.su.se.bakover.domain.vedtak
 
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.visitor.Visitable
 
 /**
@@ -13,15 +16,19 @@ import no.nav.su.se.bakover.domain.visitor.Visitable
 sealed interface Stønadsvedtak : Vedtak, Visitable<VedtakVisitor> {
     val periode: Periode
     val behandling: Behandling
+    val beregning: Beregning? get() = behandling.beregning
+    val simulering: Simulering? get() = behandling.simulering
+
+    val utbetalingId: UUID30?
 
     val sakId get() = behandling.sakId
     val fnr get() = behandling.fnr
     val saksnummer get() = behandling.saksnummer
     val sakstype get() = behandling.sakstype
 
-    fun erOpphør() = this is VedtakOpphørtRevurdering
-    fun erStans() = this is VedtakStansAvYtelse
-    fun erGjenopptak() = this is VedtakGjenopptakAvYtelse
+    fun erOpphør(): Boolean
+    fun erStans(): Boolean
+    fun erGjenopptak(): Boolean
 
     /**
      * Kun true dersom vi skal sende brev og brevet ikke er generert enda.

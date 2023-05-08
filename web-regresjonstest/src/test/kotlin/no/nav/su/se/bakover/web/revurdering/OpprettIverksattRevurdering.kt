@@ -119,12 +119,23 @@ internal fun opprettIverksattRevurdering(
             appComponents = appComponents,
         )
     },
+    informasjonSomRevurderes: String = """
+            [
+                "Uførhet",
+                "Bosituasjon",
+                "Formue",
+                "Utenlandsopphold",
+                "Flyktning",
+                "Inntekt"
+            ]
+    """.trimIndent(),
 ): String {
     return opprettRevurdering(
         sakId = sakid,
         fraOgMed = fraogmed,
         tilOgMed = tilogmed,
         client = client,
+        informasjonSomRevurderes = informasjonSomRevurderes,
     ).let { revurderingJson ->
         val revurderingId = hentRevurderingId(revurderingJson)
         listOf(

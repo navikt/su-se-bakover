@@ -66,6 +66,7 @@ private fun KunneIkkeIverksetteRevurdering.tilResultat() = when (this) {
             is KunneIkkeIverksetteRevurdering.Saksfeil.UgyldigTilstand -> ugyldigTilstand(fra, til)
             is KunneIkkeIverksetteRevurdering.Saksfeil.Revurderingsfeil -> underliggende.tilResultat()
             is KunneIkkeIverksetteRevurdering.Saksfeil.DetHarKommetNyeOverlappendeVedtak -> Feilresponser.detHarKommetNyeOverlappendeVedtak
+            is KunneIkkeIverksetteRevurdering.Saksfeil.KontrollsimuleringFeilet -> this.feil.tilResultat()
         }
     }
     is KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet -> {

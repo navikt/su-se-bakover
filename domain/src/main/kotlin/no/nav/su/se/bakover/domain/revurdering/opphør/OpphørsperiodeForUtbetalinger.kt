@@ -17,8 +17,6 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
  * Foreløpig gjelder det kun avkorting etter utenlandsopphold.
  * Vi ønsker ikke sende endringer for de månedene vi avkorter, men for de andre månedene som opphører av andre grunner.
  * Andre grunner kan være feilutbetaling som førte eller ikke førte til tilbakekreving, eller opphør av måneder som ikke har vært utbetalt før.
- *
- * TODO jah: Vi støtter per tidspunkt ikke tomme opphørsperioder. Ved rene avkortingsopphør, ønsker vi ikke sende utbetalingslinjer i det hele tatt; men det er det ikke støtte for enda.
  */
 @JvmInline
 value class OpphørsperiodeForUtbetalinger private constructor(
@@ -28,7 +26,7 @@ value class OpphørsperiodeForUtbetalinger private constructor(
         operator fun invoke(
             revurdering: BeregnetRevurdering.Opphørt,
             avkortingsvarsel: Avkortingsvarsel,
-        ): Either<OpphørMedAvkortingManglerMånedSomKanSendesTilOppdrag, OpphørsperiodeForUtbetalinger> {
+        ): Either<AvkortingsopphørUtenUtbetalingslinjer, OpphørsperiodeForUtbetalinger> {
             return bestem(
                 revurdering = revurdering,
                 avkortingsvarsel = avkortingsvarsel,
@@ -37,7 +35,7 @@ value class OpphørsperiodeForUtbetalinger private constructor(
 
         operator fun invoke(
             revurdering: SimulertRevurdering.Opphørt,
-        ): Either<OpphørMedAvkortingManglerMånedSomKanSendesTilOppdrag, OpphørsperiodeForUtbetalinger> {
+        ): Either<AvkortingsopphørUtenUtbetalingslinjer, OpphørsperiodeForUtbetalinger> {
             return bestem(
                 revurdering = revurdering,
                 avkortingsvarsel = revurdering.avkorting.avkortingsvarsel(),
@@ -46,7 +44,7 @@ value class OpphørsperiodeForUtbetalinger private constructor(
 
         operator fun invoke(
             revurdering: RevurderingTilAttestering.Opphørt,
-        ): Either<OpphørMedAvkortingManglerMånedSomKanSendesTilOppdrag, OpphørsperiodeForUtbetalinger> {
+        ): Either<AvkortingsopphørUtenUtbetalingslinjer, OpphørsperiodeForUtbetalinger> {
             return bestem(
                 revurdering = revurdering,
                 avkortingsvarsel = revurdering.avkorting.avkortingsvarsel(),
@@ -76,7 +74,7 @@ value class OpphørsperiodeForUtbetalinger private constructor(
         private fun bestem(
             revurdering: Revurdering,
             avkortingsvarsel: Avkortingsvarsel,
-        ): Either<OpphørMedAvkortingManglerMånedSomKanSendesTilOppdrag, OpphørsperiodeForUtbetalinger> {
+        ): Either<AvkortingsopphørUtenUtbetalingslinjer, OpphørsperiodeForUtbetalinger> {
             return when (avkortingsvarsel) {
                 is Avkortingsvarsel.Ingen -> {
                     OpphørsperiodeForUtbetalinger(revurdering.periode).right()
@@ -91,10 +89,7 @@ value class OpphørsperiodeForUtbetalinger private constructor(
                     if (revurdering.periode inneholder tidligsteIkkeUtbetalteMånedEtterAvkortingsperiode) {
                         OpphørsperiodeForUtbetalinger(Periode.create(tidligsteIkkeUtbetalteMånedEtterAvkortingsperiode, revurdering.periode.tilOgMed)).right()
                     } else {
-                        OpphørMedAvkortingManglerMånedSomKanSendesTilOppdrag(
-                            revurderinsperiode = revurdering.periode,
-                            tidligsteIkkeUtbetalteMånedEtterAvkortingsperiode = tidligsteIkkeUtbetalteMånedEtterAvkortingsperiode,
-                        ).left()
+                        AvkortingsopphørUtenUtbetalingslinjer.left()
                     }
                 }
             }

@@ -16,6 +16,7 @@ sealed interface AbstraktRevurdering : Behandling {
             vilkårsvurderinger = vilkårsvurderinger,
         )
 
+    /** TODO jah: Fjern fra domenemodellen? Bør heller bruke [vedtakSomRevurderesMånedsvis]*/
     val tilRevurdering: UUID
     val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis
     val sakinfo: SakInfo

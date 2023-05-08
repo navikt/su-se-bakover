@@ -11,8 +11,9 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.innvilg.iverksettInnvilgetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.iverksett.opphør.iverksettOpphørtRevurdering
-import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
+import no.nav.su.se.bakover.domain.revurdering.iverksett.opphør.medUtbetaling.iverksettOpphørtRevurderingMedUtbetaling
+import no.nav.su.se.bakover.domain.revurdering.iverksett.opphør.utenUtbetaling.iverksettOpphørtRevurderingUtenUtbetaling
+import no.nav.su.se.bakover.domain.vedtak.Revurderingsvedtak
 import java.time.Clock
 import java.util.UUID
 
@@ -21,7 +22,7 @@ fun Sak.iverksettRevurdering(
     attestant: NavIdentBruker.Attestant,
     clock: Clock,
     simuler: (utbetaling: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
-): Either<KunneIkkeIverksetteRevurdering.Saksfeil, IverksettRevurderingResponse<VedtakEndringIYtelse>> {
+): Either<KunneIkkeIverksetteRevurdering.Saksfeil, IverksettRevurderingResponse<Revurderingsvedtak>> {
     return either.eager {
         val revurdering = finnRevurderingOgValiderTilstand(revurderingId).bind()
         when (revurdering) {
@@ -32,12 +33,23 @@ fun Sak.iverksettRevurdering(
                 simuler = simuler,
             )
 
-            is RevurderingTilAttestering.Opphørt -> iverksettOpphørtRevurdering(
-                revurdering = revurdering,
-                attestant = attestant,
-                clock = clock,
-                simuler = simuler,
-            )
+            is RevurderingTilAttestering.Opphørt -> {
+                if (revurdering.erAlleMånedeneAvkorting()) {
+                    iverksettOpphørtRevurderingUtenUtbetaling(
+                        revurdering = revurdering,
+                        attestant = attestant,
+                        clock = clock,
+                        simuler = simuler,
+                    )
+                } else {
+                    iverksettOpphørtRevurderingMedUtbetaling(
+                        revurdering = revurdering,
+                        attestant = attestant,
+                        clock = clock,
+                        simuler = simuler,
+                    )
+                }
+            }
         }.bind()
     }
 }

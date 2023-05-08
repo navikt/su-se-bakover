@@ -5,6 +5,8 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -25,6 +27,9 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
     override val attestant: NavIdentBruker.Attestant
     override val periode: Periode
     override val behandling: Behandling
+    override val beregning: Beregning?
+    override val simulering: Simulering
+    override val utbetalingId: UUID30?
 
     fun sakinfo(): SakInfo {
         return behandling.sakinfo()
@@ -55,9 +60,17 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             revurdering: IverksattRevurdering.Opphørt,
             utbetalingId: UUID30,
             clock: Clock,
-        ) = VedtakOpphørtRevurdering.from(
+        ) = VedtakOpphørMedUtbetaling.from(
             revurdering = revurdering,
             utbetalingId = utbetalingId,
+            clock = clock,
+        )
+
+        fun from(
+            revurdering: IverksattRevurdering.Opphørt,
+            clock: Clock,
+        ) = VedtakOpphørAvkorting.from(
+            revurdering = revurdering,
             clock = clock,
         )
 

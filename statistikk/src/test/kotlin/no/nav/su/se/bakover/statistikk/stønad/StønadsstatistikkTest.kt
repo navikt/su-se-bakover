@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
-import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -337,7 +337,7 @@ internal class StønadsstatistikkTest {
             ),
             revurderingsperiode = januar(2021),
             vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = januar(2021))),
-        ).let { (sak, vedtak) -> sak to vedtak as VedtakOpphørtRevurdering }
+        ).let { (sak, vedtak) -> sak to vedtak as VedtakOpphørMedUtbetaling }
         assert(
             event = StatistikkEvent.Stønadsvedtak(revurdering) { sak },
             vedtakstype = "REVURDERING",

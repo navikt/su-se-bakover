@@ -7,8 +7,8 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 
 interface Reguleringsfelter : Behandling {
-    val beregning: Beregning?
-    val simulering: Simulering?
+    override val beregning: Beregning?
+    override val simulering: Simulering?
     val saksbehandler: NavIdentBruker.Saksbehandler
     val reguleringstype: Reguleringstype
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger

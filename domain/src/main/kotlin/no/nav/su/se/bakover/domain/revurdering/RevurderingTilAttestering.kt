@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.Either
-import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
@@ -19,6 +18,7 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandl
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
+import no.nav.su.se.bakover.domain.revurdering.opphør.AvkortingsopphørUtenUtbetalingslinjer
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørsperiodeForUtbetalinger
 import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOpphørVedRevurdering
@@ -153,10 +153,8 @@ sealed class RevurderingTilAttestering : Revurdering() {
 
         override fun skalTilbakekreve() = tilbakekrevingsbehandling.skalTilbakekreve().isRight()
 
-        // Det er ikke i dette steget revurderingsperioden og simuleringen kjøres/lagres, så denne feilen bør ikke inntreffe.
-        val opphørsperiodeForUtbetalinger = OpphørsperiodeForUtbetalinger(this).getOrElse {
-            throw IllegalArgumentException(it.toString())
-        }.value
+        val opphørsperiodeForUtbetalinger: Either<AvkortingsopphørUtenUtbetalingslinjer, Periode> =
+            OpphørsperiodeForUtbetalinger(this).map { it.value }
 
         fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> {
             return when (
@@ -169,6 +167,13 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 is OpphørVedRevurdering.Ja -> opphør.opphørsgrunner
                 OpphørVedRevurdering.Nei -> emptyList()
             }
+        }
+
+        /**
+         * Hvis alle månedene i en revurdering fører til avkorting, skal vi ikke sende utbetalingslinjer.
+         */
+        fun erAlleMånedeneAvkorting(): Boolean {
+            return opphørsperiodeForUtbetalinger is Either.Left<AvkortingsopphørUtenUtbetalingslinjer>
         }
 
         override fun tilIverksatt(

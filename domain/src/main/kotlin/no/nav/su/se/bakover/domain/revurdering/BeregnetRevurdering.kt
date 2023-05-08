@@ -256,73 +256,93 @@ sealed class BeregnetRevurdering : Revurdering() {
             clock: Clock,
             simuler: (opphørsperiode: Periode, saksbehandler: NavIdentBruker.Saksbehandler) -> Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling>,
         ): Either<SimulerUtbetalingFeilet, SimulertRevurdering.Opphørt> {
-            val (simulertUtbetaling, håndtertAvkorting) = simuler(periode, saksbehandler)
+            val (simulertUtbetaling, håndtertAvkorting, tilbakekrevingsbehandling) = simuler(periode, saksbehandler)
                 .getOrElse { return it.left() }
                 .let { simulering ->
                     when (val avkortingsvarsel = lagAvkortingsvarsel(simulering, clock)) {
                         is Avkortingsvarsel.Ingen -> {
-                            simulering to when (avkorting) {
-                                is AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående -> {
-                                    avkorting.håndter()
-                                }
+                            Triple(
+                                simulering,
+                                when (avkorting) {
+                                    is AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående -> {
+                                        avkorting.håndter()
+                                    }
 
-                                is AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående -> {
-                                    avkorting.håndter()
-                                }
+                                    is AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående -> {
+                                        avkorting.håndter()
+                                    }
 
-                                is AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere -> {
-                                    throw IllegalStateException("Skal ikke kunne skje")
-                                }
-                            }
+                                    is AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere -> {
+                                        throw IllegalStateException("Skal ikke kunne skje")
+                                    }
+                                },
+                                when (simulering.simulering.harFeilutbetalinger()) {
+                                    true -> IkkeAvgjort(
+                                        id = UUID.randomUUID(),
+                                        opprettet = Tidspunkt.now(clock),
+                                        sakId = sakId,
+                                        revurderingId = id,
+                                        periode = periode,
+                                    )
+
+                                    false -> IkkeBehovForTilbakekrevingUnderBehandling
+                                },
+                            )
                         }
 
                         is Avkortingsvarsel.Utenlandsopphold -> {
-                            val nyOpphørsperiode = OpphørsperiodeForUtbetalinger(
+                            val nyOpphørsperiode: Periode? = OpphørsperiodeForUtbetalinger(
                                 revurdering = this,
                                 avkortingsvarsel = avkortingsvarsel,
-                            ).getOrElse { return SimulerUtbetalingFeilet.Avkorting(it).left() }.value
-                            val simuleringMedNyOpphørsdato = simuler(nyOpphørsperiode, saksbehandler)
-                                .getOrElse { return it.left() }
+                            ).getOrNull()?.value
+                            val simuleringMedNyOpphørsdato: Utbetaling.SimulertUtbetaling? = nyOpphørsperiode?.let {
+                                simuler(it, saksbehandler)
+                                    .getOrElse { return it.left() }
+                            }
 
-                            if (simuleringMedNyOpphørsdato.simulering.harFeilutbetalinger()) {
+                            if (simuleringMedNyOpphørsdato?.simulering?.harFeilutbetalinger() == true) {
                                 sikkerLogg.error(
                                     "Simulering: ${objectMapper.writeValueAsString(simuleringMedNyOpphørsdato.simulering)}",
                                 )
                                 throw IllegalStateException("Simulering med justert opphørsdato for utbetalinger pga avkorting utenlandsopphold inneholder feilutbetaling, se sikkerlogg for detaljer")
                             }
 
-                            simuleringMedNyOpphørsdato to when (avkorting) {
-                                is AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående -> {
-                                    avkorting.håndter(avkortingsvarsel as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes)
-                                }
+                            // TODO jah: Dersom det er avkorting+utbetaling persisterer vi kun simuleringen for opphørsperioden.
+                            //  Hadde det vært bedre og alltid persistere simuleringen for hele perioden? Evt. begge.
+                            Triple(
+                                (simuleringMedNyOpphørsdato ?: simulering),
+                                when (avkorting) {
+                                    is AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående -> {
+                                        avkorting.håndter(avkortingsvarsel as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes)
+                                    }
 
-                                is AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående -> {
-                                    avkorting.håndter(avkortingsvarsel as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes)
-                                }
+                                    is AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående -> {
+                                        avkorting.håndter(avkortingsvarsel as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes)
+                                    }
 
-                                is AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere -> {
-                                    throw IllegalStateException("Skal ikke kunne skje")
-                                }
-                            }
+                                    is AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere -> {
+                                        throw IllegalStateException("Skal ikke kunne skje")
+                                    }
+                                },
+                                if (simuleringMedNyOpphørsdato == null) {
+                                    IkkeBehovForTilbakekrevingUnderBehandling
+                                } else {
+                                    when (simuleringMedNyOpphørsdato.simulering.harFeilutbetalinger()) {
+                                        true -> IkkeAvgjort(
+                                            id = UUID.randomUUID(),
+                                            opprettet = Tidspunkt.now(clock),
+                                            sakId = sakId,
+                                            revurderingId = id,
+                                            periode = periode,
+                                        )
+
+                                        false -> IkkeBehovForTilbakekrevingUnderBehandling
+                                    }
+                                },
+                            )
                         }
                     }
                 }
-
-            val tilbakekrevingsbehandling = when (simulertUtbetaling.simulering.harFeilutbetalinger()) {
-                true -> {
-                    IkkeAvgjort(
-                        id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(clock),
-                        sakId = sakId,
-                        revurderingId = id,
-                        periode = periode,
-                    )
-                }
-
-                false -> {
-                    IkkeBehovForTilbakekrevingUnderBehandling
-                }
-            }
 
             unngåNyAvkortingOgNyTilbakekrevingPåSammeTid(
                 avkorting = håndtertAvkorting,

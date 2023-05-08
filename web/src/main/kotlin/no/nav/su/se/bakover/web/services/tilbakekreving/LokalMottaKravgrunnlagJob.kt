@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Kravgrunnlag
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
-import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import org.slf4j.LoggerFactory
@@ -52,7 +52,8 @@ internal class LokalMottaKravgrunnlagJob(
                                         kravgrunnlag(vedtak)
                                     }
 
-                                    is VedtakOpphørtRevurdering -> {
+                                    // Her sjekker vi kun på opphør med utbetaling, siden opphør uten utbetaling ikke har kravgrunnlag
+                                    is VedtakOpphørMedUtbetaling -> {
                                         kravgrunnlag(vedtak)
                                     }
 
@@ -77,7 +78,7 @@ internal class LokalMottaKravgrunnlagJob(
         )
     }
 
-    private fun kravgrunnlag(vedtak: VedtakOpphørtRevurdering): String {
+    private fun kravgrunnlag(vedtak: VedtakOpphørMedUtbetaling): String {
         return lagKravgrunnlagXml(
             revurdering = vedtak.behandling,
             simulering = vedtak.simulering,

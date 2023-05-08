@@ -1,15 +1,17 @@
 package no.nav.su.se.bakover.domain.revurdering
 
+import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.beOfType
+import io.kotest.matchers.types.shouldBeInstanceOf
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.fixedClock
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
-import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørsperiodeForUtbetalinger
@@ -17,11 +19,10 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nåtidForSimuleringStub
 import no.nav.su.se.bakover.test.simulertRevurdering
-import no.nav.su.se.bakover.test.tikkendeFixedClock
+import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 
 internal class OpphørsperiodeForUtbetalingerTest {
@@ -55,19 +56,22 @@ internal class OpphørsperiodeForUtbetalingerTest {
     }
 
     @Test
-    fun `kaster exception hvis tidligsteIkkeUtbetalteMånedEtterAvkortingsperiode er utenfor revurderingsperioden`() {
-        assertThrows<AssertionError> {
-            val revurderingsperiode = Periode.create(1.januar(2021), 31.mars(2021))
-            simulertRevurdering(
-                revurderingsperiode = revurderingsperiode,
-                vilkårOverrides = listOf(utenlandsoppholdAvslag(periode = revurderingsperiode)),
-                clock = tikkendeFixedClock(),
-                utbetalingerKjørtTilOgMed = 1.juli(2021),
-            ).second as SimulertRevurdering.Opphørt
-        }.also {
-            it.message shouldContain "OpphørMedAvkortingManglerMånedSomKanSendesTilOppdrag"
-            it.message shouldContain "Periode(fraOgMed=2021-01-01, tilOgMed=2021-03-31)"
-            it.message shouldContain "tidligsteIkkeUtbetalteMånedEtterAvkortingsperiode=2021-04-01"
+    fun `Kan simulere simulere periode der alle månedene fører til avkorting`() {
+        val revurderingsperiode = januar(2021)..mars(2021)
+        val clock = TikkendeKlokke()
+        simulertRevurdering(
+            stønadsperiode = stønadsperiode2021,
+            revurderingsperiode = revurderingsperiode,
+            vilkårOverrides = listOf(
+                utenlandsoppholdAvslag(
+                    periode = revurderingsperiode,
+                    opprettet = Tidspunkt.now(clock),
+                ),
+            ),
+            clock = clock,
+            utbetalingerKjørtTilOgMed = 1.juli(2021),
+        ).second.shouldBeInstanceOf<SimulertRevurdering.Opphørt>().also {
+            OpphørsperiodeForUtbetalinger(it).shouldBeLeft()
         }
     }
 }

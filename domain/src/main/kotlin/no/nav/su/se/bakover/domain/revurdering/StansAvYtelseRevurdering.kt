@@ -22,7 +22,7 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering {
 
     abstract val attesteringer: Attesteringshistorikk
     abstract val saksbehandler: NavIdentBruker.Saksbehandler
-    abstract val simulering: Simulering
+    abstract override val simulering: Simulering
     abstract val revurderingsårsak: Revurderingsårsak
 
     /**
@@ -62,6 +62,8 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering {
         override val saksbehandler = underliggendeStansAvYtelse.saksbehandler
         override val simulering = underliggendeStansAvYtelse.simulering
         override val revurderingsårsak = underliggendeStansAvYtelse.revurderingsårsak
+
+        override val beregning = null
 
         // vi sender ikke noe brev ved stans/gjenoppta
         fun skalSendeAvslutningsbrev(): Boolean {
@@ -107,6 +109,8 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering {
             bestemtAv = BrevvalgRevurdering.BestemtAv.Systembruker,
         ),
     ) : StansAvYtelseRevurdering() {
+
+        override val beregning = null
 
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
 
@@ -162,6 +166,8 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering {
             bestemtAv = BrevvalgRevurdering.BestemtAv.Systembruker,
         ),
     ) : StansAvYtelseRevurdering(), BehandlingMedAttestering {
+
+        override val beregning = null
         override fun erÅpen() = false
     }
 }

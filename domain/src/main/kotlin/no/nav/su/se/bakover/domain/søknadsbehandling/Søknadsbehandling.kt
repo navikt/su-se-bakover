@@ -73,8 +73,8 @@ sealed class Søknadsbehandling :
     val erLukket: Boolean by lazy { this is LukketSøknadsbehandling }
 
     abstract val saksbehandler: NavIdentBruker.Saksbehandler
-    abstract val beregning: Beregning?
-    abstract val simulering: Simulering?
+    abstract override val beregning: Beregning?
+    abstract override val simulering: Simulering?
 
     fun erÅpen(): Boolean {
         return !(erIverksatt || erLukket)

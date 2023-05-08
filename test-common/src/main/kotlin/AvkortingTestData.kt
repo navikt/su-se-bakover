@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørtRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
 import no.nav.su.se.bakover.test.simulering.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import java.time.Clock
@@ -69,7 +69,7 @@ fun sakMedUteståendeAvkorting(
     revurderingsperiode: Periode = stønadsperiode.periode,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     utbetalingerKjørtTilOgMed: LocalDate = revurderingsperiode.tilOgMed,
-): Triple<Sak, VedtakInnvilgetSøknadsbehandling, VedtakOpphørtRevurdering> {
+): Triple<Sak, VedtakInnvilgetSøknadsbehandling, VedtakOpphørMedUtbetaling> {
     val sakOgVedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -92,6 +92,6 @@ fun sakMedUteståendeAvkorting(
     return Triple(
         sak,
         sakOgVedtakSomKanRevurderes.second,
-        revurderingsvedtak as VedtakOpphørtRevurdering,
+        revurderingsvedtak as VedtakOpphørMedUtbetaling,
     )
 }

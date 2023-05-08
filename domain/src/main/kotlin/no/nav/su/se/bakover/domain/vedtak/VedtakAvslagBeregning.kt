@@ -19,10 +19,12 @@ data class VedtakAvslagBeregning private constructor(
     override val saksbehandler: NavIdentBruker.Saksbehandler,
     override val attestant: NavIdentBruker.Attestant,
     override val periode: Periode,
-    val beregning: Beregning,
+    override val beregning: Beregning,
     override val avslagsgrunner: List<Avslagsgrunn>,
     override val dokumenttilstand: Dokumenttilstand,
 ) : Avslagsvedtak {
+
+    override val utbetalingId = null
     init {
         behandling.grunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget()
         require(dokumenttilstand != Dokumenttilstand.SKAL_IKKE_GENERERE)
@@ -89,4 +91,8 @@ data class VedtakAvslagBeregning private constructor(
     override fun accept(visitor: VedtakVisitor) {
         visitor.visit(this)
     }
+
+    override fun erOpphør(): Boolean = false
+    override fun erStans(): Boolean = false
+    override fun erGjenopptak(): Boolean = false
 }
