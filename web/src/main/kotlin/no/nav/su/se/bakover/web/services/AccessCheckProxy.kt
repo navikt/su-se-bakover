@@ -1022,8 +1022,8 @@ open class AccessCheckProxy(
                 ) = kastKanKunKallesFraAnnenService()
             },
             reguleringService = object : ReguleringService {
-                override fun startAutomatiskRegulering(startDato: LocalDate): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
-                    return services.reguleringService.startAutomatiskRegulering(startDato)
+                override fun startAutomatiskRegulering(startDato: LocalDate, isLiveRun: Boolean): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
+                    return services.reguleringService.startAutomatiskRegulering(startDato, isLiveRun)
                 }
 
                 override fun avslutt(reguleringId: UUID): Either<KunneIkkeAvslutte, AvsluttetRegulering> {
@@ -1043,12 +1043,14 @@ open class AccessCheckProxy(
                     uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
                     fradrag: List<Grunnlag.Fradragsgrunnlag>,
                     saksbehandler: NavIdentBruker.Saksbehandler,
+                    isLiveRun: Boolean,
                 ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
                     return services.reguleringService.regulerManuelt(
                         reguleringId,
                         uføregrunnlag,
                         fradrag,
                         saksbehandler,
+                        isLiveRun,
                     )
                 }
             },

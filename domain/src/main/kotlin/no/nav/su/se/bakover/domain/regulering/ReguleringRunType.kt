@@ -19,6 +19,7 @@ interface ReguleringRunType {
     val lagreRegulering: (Regulering, TransactionContext) -> Unit
     val lagreVedtak: (Vedtak, TransactionContext) -> Unit
     val klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>
+    val notifyObservers: (VedtakInnvilgetRegulering) -> Unit
 }
 
 sealed class LiveRun : ReguleringRunType {
@@ -28,6 +29,7 @@ sealed class LiveRun : ReguleringRunType {
         override val lagreRegulering: (Regulering, TransactionContext) -> Unit,
         override val lagreVedtak: (Vedtak, TransactionContext) -> Unit,
         override val klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
+        override val notifyObservers: (VedtakInnvilgetRegulering) -> Unit,
     ) : LiveRun() {
         fun kjørSideffekter(regulering: OpprettetRegulering) {
             sessionFactory.withTransactionContext { tx ->
@@ -41,13 +43,14 @@ sealed class LiveRun : ReguleringRunType {
         override val lagreRegulering: (Regulering, TransactionContext) -> Unit,
         override val lagreVedtak: (Vedtak, TransactionContext) -> Unit,
         override val klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
+        override val notifyObservers: (VedtakInnvilgetRegulering) -> Unit,
     ) : LiveRun() {
         fun kjørSideffekter(
             regulering: IverksattRegulering,
             utbetaling: Utbetaling.SimulertUtbetaling,
             clock: Clock,
-        ): VedtakInnvilgetRegulering {
-            return sessionFactory.withTransactionContext { tx ->
+        ) {
+            sessionFactory.withTransactionContext { tx ->
                 val nyUtbetaling = klargjørUtbetaling(
                     utbetaling,
                     tx,
@@ -70,7 +73,7 @@ sealed class LiveRun : ReguleringRunType {
                 nyUtbetaling.sendUtbetaling()
                     .getOrElse { throw RuntimeException(it.toString()) }
 
-                vedtak
+                notifyObservers(vedtak)
             }
         }
     }
