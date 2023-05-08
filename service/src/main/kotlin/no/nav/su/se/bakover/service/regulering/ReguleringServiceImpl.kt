@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeBeregneRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeFerdigstilleOgIverksette
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
+import no.nav.su.se.bakover.domain.regulering.LiveRun
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
@@ -38,7 +39,6 @@ import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
@@ -103,6 +103,8 @@ class ReguleringServiceImpl(
                     Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes, Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
                         "Regulering for saksnummer $saksnummer: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
                     )
+
+                    else -> TODO("fjern meg")
                 }
 
                 return@map KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(feil).left()
@@ -342,33 +344,14 @@ class ReguleringServiceImpl(
             }.getOrElse { feil ->
                 throw KunneIkkeSendeTilUtbetalingException(UtbetalingFeilet.KunneIkkeSimulere(feil))
             }
-            sessionFactory.withTransactionContext { tx ->
-                val nyUtbetaling = utbetalingService.klargjørUtbetaling(
-                    utbetaling = utbetaling,
-                    transactionContext = tx,
-                ).getOrElse {
-                    throw KunneIkkeSendeTilUtbetalingException(it)
-                }
 
-                val vedtak = VedtakSomKanRevurderes.from(
-                    regulering = regulering,
-                    utbetalingId = nyUtbetaling.utbetaling.id,
-                    clock = clock,
-                )
-
-                vedtakService.lagreITransaksjon(
-                    vedtak = vedtak,
-                    sessionContext = tx,
-                )
-                reguleringRepo.lagre(
-                    regulering = regulering,
-                    sessionContext = tx,
-                )
-                nyUtbetaling.sendUtbetaling()
-                    .getOrElse { throw KunneIkkeSendeTilUtbetalingException(it) }
-
-                vedtak
-            }
+            LiveRun.Iverksatt(
+                sessionFactory = sessionFactory,
+                lagreRegulering = reguleringRepo::lagre,
+                lagreVedtak = vedtakService::lagreITransaksjon,
+                klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
+            )
+                .kjørSideffekter(regulering, utbetaling, clock)
         }.mapLeft {
             log.error(
                 "Regulering for saksnummer ${regulering.saksnummer}: En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket; og sende utbetalingen til oppdrag for regulering",
