@@ -67,11 +67,24 @@ class ReguleringServiceImpl(
 
     fun getObservers(): List<StatistikkEventObserver> = observers.toList()
 
+    override fun startAutomatiskRegulering(
+        startDato: LocalDate,
+    ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
+        return start(startDato, true)
+    }
+
+    override fun startAutomatiskReguleringForInnsyn(
+        startDato: LocalDate,
+        gVerdi: Int,
+    ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
+        return start(startDato, false)
+    }
+
     /**
      * Henter saksinformasjon for alle saker og løper igjennom alle sakene et etter en.
      * Dette kan ta lang tid, så denne bør ikke kjøres synkront.
      */
-    override fun startAutomatiskRegulering(
+    private fun start(
         startDato: LocalDate,
         isLiveRun: Boolean,
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
@@ -98,14 +111,12 @@ class ReguleringServiceImpl(
                 // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
                 when (feil) {
                     Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode -> log.info(
-                        "Regulering for saksnummer $saksnummer: Skippet. Fantes ingen vedtak for valgt periode.",
+                        "Regulering for saksnummer ${sak.saksnummer}: Skippet. Fantes ingen vedtak for valgt periode.",
                     )
 
                     Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes, Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
-                        "Regulering for saksnummer $saksnummer: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
+                        "Regulering for saksnummer ${sak.saksnummer}: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
                     )
-
-                    else -> TODO("fjern meg")
                 }
 
                 return@map KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(feil).left()

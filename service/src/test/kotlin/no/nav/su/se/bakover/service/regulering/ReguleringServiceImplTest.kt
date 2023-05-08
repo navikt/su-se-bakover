@@ -520,7 +520,7 @@ internal class ReguleringServiceImplTest {
             tilbakekrevingService = tilbakekrevingMock,
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
-        ).startAutomatiskRegulering(1.mai(2022), false)
+        ).startAutomatiskRegulering(1.mai(2022))
 
         verifyNoInteractions(reguleringMock)
         verifyNoInteractions(utbetalingMock)

@@ -155,6 +155,18 @@ internal fun Route.reguler(
             )
         }
     }
+
+    post("$reguleringPath/automatisk/dry") {
+        authorize(Brukerrolle.Drift) {
+            data class Request(val startDato: LocalDate, val verdi: Int)
+            call.withBody<Request> {
+                CoroutineScope(Dispatchers.IO).launch {
+                    reguleringService.startAutomatiskReguleringForInnsyn(it.startDato, it.verdi)
+                }
+                call.svar(Resultat.okJson())
+            }
+        }
+    }
 }
 
 private fun List<FradragRequestJson>.toDomain(clock: Clock): Either<Resultat, List<Grunnlag.Fradragsgrunnlag>> {

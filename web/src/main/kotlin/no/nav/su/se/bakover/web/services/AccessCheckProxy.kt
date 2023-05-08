@@ -1022,8 +1022,15 @@ open class AccessCheckProxy(
                 ) = kastKanKunKallesFraAnnenService()
             },
             reguleringService = object : ReguleringService {
-                override fun startAutomatiskRegulering(startDato: LocalDate, isLiveRun: Boolean): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
-                    return services.reguleringService.startAutomatiskRegulering(startDato, isLiveRun)
+                override fun startAutomatiskRegulering(startDato: LocalDate): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
+                    return services.reguleringService.startAutomatiskRegulering(startDato)
+                }
+
+                override fun startAutomatiskReguleringForInnsyn(
+                    startDato: LocalDate,
+                    gVerdi: Int,
+                ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
+                    return services.reguleringService.startAutomatiskReguleringForInnsyn(startDato, gVerdi)
                 }
 
                 override fun avslutt(reguleringId: UUID): Either<KunneIkkeAvslutte, AvsluttetRegulering> {

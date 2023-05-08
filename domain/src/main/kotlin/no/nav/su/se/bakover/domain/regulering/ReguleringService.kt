@@ -46,9 +46,11 @@ sealed class KunneIkkeAvslutte {
 }
 
 interface ReguleringService {
-    fun startAutomatiskRegulering(
+    fun startAutomatiskRegulering(startDato: LocalDate): List<Either<KunneIkkeOppretteRegulering, Regulering>>
+
+    fun startAutomatiskReguleringForInnsyn(
         startDato: LocalDate,
-        isLiveRun: Boolean = true,
+        gVerdi: Int,
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>>
 
     fun avslutt(reguleringId: UUID): Either<KunneIkkeAvslutte, AvsluttetRegulering>
