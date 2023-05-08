@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory
 internal const val personPath = "/rest/v1/person"
 
 /**
- * @see https://digdir-krr-proxy.dev.intern.nav.no/swagger-ui/index.html#/
+ * @see https://digdir-krr-proxy.intern.dev.nav.no/swagger-ui/index.html#/
  */
 class KontaktOgReservasjonsregisterClient(
     val config: ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig,
