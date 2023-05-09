@@ -25,6 +25,28 @@ import java.time.ZoneId
  * Per tidspunkt er alle virkningstidspunkt og ikrafttredelser i stigende rekkefølge, men det trenger ikke være tilfelle i framtiden.
  * Da må vi skrive om denne logikken. På sikt bør nok disse gjøres om til en lenket liste, som modellerer virkeligheten bedre.
  */
+
+val grunnbeløpsendringer = nonEmptyListOf(
+    Grunnbeløpsendring(1.mai(2005), 1.mai(2005), 60699),
+    Grunnbeløpsendring(1.mai(2006), 1.mai(2006), 62892),
+    Grunnbeløpsendring(1.mai(2007), 1.mai(2007), 66812),
+    Grunnbeløpsendring(1.mai(2008), 1.mai(2008), 70256),
+    Grunnbeløpsendring(1.mai(2009), 1.mai(2009), 72881),
+    Grunnbeløpsendring(1.mai(2010), 1.mai(2010), 75641),
+    Grunnbeløpsendring(1.mai(2011), 1.mai(2011), 79216),
+    Grunnbeløpsendring(1.mai(2012), 1.mai(2012), 82122),
+    Grunnbeløpsendring(1.mai(2013), 1.mai(2013), 85245),
+    Grunnbeløpsendring(1.mai(2014), 1.mai(2014), 88370),
+    Grunnbeløpsendring(1.mai(2015), 1.mai(2015), 90068),
+    Grunnbeløpsendring(1.mai(2016), 1.mai(2016), 92576),
+    Grunnbeløpsendring(1.mai(2017), 1.mai(2017), 93634),
+    Grunnbeløpsendring(1.mai(2018), 1.mai(2018), 96883),
+    Grunnbeløpsendring(1.mai(2019), 1.mai(2019), 99858),
+    Grunnbeløpsendring(1.mai(2020), 4.september(2020), 101351),
+    Grunnbeløpsendring(1.mai(2021), 21.mai(2021), 106399),
+    Grunnbeløpsendring(1.mai(2022), 20.mai(2022), 111477),
+)
+
 class SatsFactoryForSupplerendeStønad(
     // TODO(satsfactory_alder) jah: I lov om supplerende stønad ble satsen for alder endret fra minste pensjonsnivå til garantipensjon fra og med 2021-01-01.
     //  Vi må legge inn minste pensjonsnivå og ta høyde for det før vi skal revurdere tilbake til før 2021-01-01.
@@ -32,26 +54,7 @@ class SatsFactoryForSupplerendeStønad(
     private val tidligsteTilgjengeligeMåned: Måned = januar(2020),
     private val datoTilFactory: MutableMap<Knekkpunkt, SatsFactoryForSupplerendeStønadPåKnekkpunkt> = mutableMapOf(),
     /** Se kommentarer på garantipensjon lav for lovreferanser. */
-    private val grunnbeløpsendringer: Nel<Grunnbeløpsendring> = nonEmptyListOf(
-        Grunnbeløpsendring(1.mai(2005), 1.mai(2005), 60699),
-        Grunnbeløpsendring(1.mai(2006), 1.mai(2006), 62892),
-        Grunnbeløpsendring(1.mai(2007), 1.mai(2007), 66812),
-        Grunnbeløpsendring(1.mai(2008), 1.mai(2008), 70256),
-        Grunnbeløpsendring(1.mai(2009), 1.mai(2009), 72881),
-        Grunnbeløpsendring(1.mai(2010), 1.mai(2010), 75641),
-        Grunnbeløpsendring(1.mai(2011), 1.mai(2011), 79216),
-        Grunnbeløpsendring(1.mai(2012), 1.mai(2012), 82122),
-        Grunnbeløpsendring(1.mai(2013), 1.mai(2013), 85245),
-        Grunnbeløpsendring(1.mai(2014), 1.mai(2014), 88370),
-        Grunnbeløpsendring(1.mai(2015), 1.mai(2015), 90068),
-        Grunnbeløpsendring(1.mai(2016), 1.mai(2016), 92576),
-        Grunnbeløpsendring(1.mai(2017), 1.mai(2017), 93634),
-        Grunnbeløpsendring(1.mai(2018), 1.mai(2018), 96883),
-        Grunnbeløpsendring(1.mai(2019), 1.mai(2019), 99858),
-        Grunnbeløpsendring(1.mai(2020), 4.september(2020), 101351),
-        Grunnbeløpsendring(1.mai(2021), 21.mai(2021), 106399),
-        Grunnbeløpsendring(1.mai(2022), 20.mai(2022), 111477),
-    ),
+    private val grunnbeløpsendringer: Nel<Grunnbeløpsendring> = no.nav.su.se.bakover.domain.satser.grunnbeløpsendringer,
     /**
      * Garantipensjon ble innført som konsept 2016-01-01: https://lovdata.no/forskrift/2015-11-20-1335/§1.
      * Satsene endres ofte sammen med grunnbeløpet.

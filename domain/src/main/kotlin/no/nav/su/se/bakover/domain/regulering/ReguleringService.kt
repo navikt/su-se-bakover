@@ -61,6 +61,5 @@ interface ReguleringService {
         uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
         fradrag: List<Grunnlag.Fradragsgrunnlag>,
         saksbehandler: NavIdentBruker.Saksbehandler,
-        isLiveRun: Boolean = true,
     ): Either<KunneIkkeRegulereManuelt, IverksattRegulering>
 }

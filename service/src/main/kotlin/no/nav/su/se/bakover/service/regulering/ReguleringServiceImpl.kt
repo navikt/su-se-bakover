@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.grunnbeløp.Grunnbeløpsendring
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
@@ -36,6 +37,8 @@ import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
+import no.nav.su.se.bakover.domain.satser.grunnbeløpsendringer
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
@@ -70,14 +73,20 @@ class ReguleringServiceImpl(
     override fun startAutomatiskRegulering(
         startDato: LocalDate,
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
-        return start(startDato, true)
+        return start(startDato, true, satsFactory)
     }
 
     override fun startAutomatiskReguleringForInnsyn(
         startDato: LocalDate,
         gVerdi: Int,
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
-        return start(startDato, false)
+        return start(
+            startDato,
+            false,
+            SatsFactoryForSupplerendeStønad(
+                grunnbeløpsendringer = grunnbeløpsendringer + Grunnbeløpsendring(startDato, startDato, gVerdi),
+            ).gjeldende(startDato),
+        )
     }
 
     /**
@@ -87,6 +96,7 @@ class ReguleringServiceImpl(
     private fun start(
         startDato: LocalDate,
         isLiveRun: Boolean,
+        satsFactory: SatsFactory,
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
         return sakRepo.hentSakIdSaksnummerOgFnrForAlleSaker().map { (sakid, saksnummer, _) ->
             log.info("Regulering for saksnummer $saksnummer: Starter")
@@ -117,6 +127,8 @@ class ReguleringServiceImpl(
                     Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes, Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
                         "Regulering for saksnummer ${sak.saksnummer}: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
                     )
+
+                    else -> TODO("fjern meg")
                 }
 
                 return@map KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(feil).left()
@@ -158,11 +170,11 @@ class ReguleringServiceImpl(
             }
 
             if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
-                ferdigstillOgIverksettRegulering(regulering, sak, isLiveRun)
+                ferdigstillOgIverksettRegulering(regulering, sak, isLiveRun, satsFactory)
                     .onRight { log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen ble ferdigstilt automatisk") }
                     .mapLeft { feil -> KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(feil = feil) }
             } else {
-                log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen må behandles manuelt.")
+                log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen må behandles manuelt. ${(regulering.reguleringstype as Reguleringstype.MANUELL).problemer}")
                 regulering.right()
             }
         }.also {
@@ -174,6 +186,14 @@ class ReguleringServiceImpl(
         val regulert = it.mapNotNull { regulering ->
             regulering.fold(ifLeft = { null }, ifRight = { it })
         }
+
+        val årsaker = regulert
+            .filter { regulering -> regulering.reguleringstype is Reguleringstype.MANUELL }
+            .flatMap { (it.reguleringstype as Reguleringstype.MANUELL).problemer.toList() }
+            .groupBy { it }
+            .map { it.key to it.value.size }
+            .joinToString { "${it.first}: ${it.second}" }
+
         val antallAutomatiske =
             regulert.filter { regulering -> regulering.reguleringstype is Reguleringstype.AUTOMATISK }.size
         val antallManuelle =
@@ -187,7 +207,6 @@ class ReguleringServiceImpl(
         uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
         fradrag: List<Grunnlag.Fradragsgrunnlag>,
         saksbehandler: NavIdentBruker.Saksbehandler,
-        isLiveRun: Boolean,
     ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
         if (regulering.erFerdigstilt) return KunneIkkeRegulereManuelt.AlleredeFerdigstilt.left()
@@ -220,7 +239,7 @@ class ReguleringServiceImpl(
                 .leggTilUføre(uføregrunnlag, clock)
                 .leggTilSaksbehandler(saksbehandler)
                 .let {
-                    ferdigstillOgIverksettRegulering(it, sak, isLiveRun)
+                    ferdigstillOgIverksettRegulering(it, sak, true, satsFactory)
                         .mapLeft { feil -> KunneIkkeRegulereManuelt.KunneIkkeFerdigstille(feil = feil) }
                 }
         }
@@ -230,6 +249,7 @@ class ReguleringServiceImpl(
         regulering: OpprettetRegulering,
         sak: Sak,
         isLiveRun: Boolean,
+        satsFactory: SatsFactory,
     ): Either<KunneIkkeFerdigstilleOgIverksette, IverksattRegulering> {
         return regulering.beregn(
             satsFactory = satsFactory,
