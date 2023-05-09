@@ -11,11 +11,12 @@ import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
+import no.nav.su.se.bakover.common.infrastructure.web.withVedtakId
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.web.features.authorize
 import java.time.LocalDate
 
-internal fun Route.resendStatistikkRoute(
+internal fun Route.resendStatistikkRoutes(
     resendStatistikkhendelserService: ResendStatistikkhendelserService,
 ) {
     data class Body(
@@ -30,6 +31,19 @@ internal fun Route.resendStatistikkRoute(
                 }
 
                 call.svar(Resultat.json(HttpStatusCode.Accepted, """{"status": "Accepted"}"""))
+            }
+        }
+    }
+
+    post("/drift/resend-statistikk/vedtak/{vedtakId}") {
+        authorize(Brukerrolle.Drift) {
+            call.withVedtakId { vedtakId ->
+                call.svar(
+                    resendStatistikkhendelserService.resendStatistikkForVedtak(vedtakId).fold(
+                        { Resultat.json(HttpStatusCode.InternalServerError, """{"status": "Failed"}""") },
+                        { Resultat.okJson() },
+                    ),
+                )
             }
         }
     }

@@ -419,15 +419,25 @@ open class AccessCheckProxy(
 
                 override fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): List<Dokument> {
                     when (hentDokumenterForIdType) {
-                        is HentDokumenterForIdType.HentDokumenterForRevurdering -> assertHarTilgangTilRevurdering(hentDokumenterForIdType.id)
+                        is HentDokumenterForIdType.HentDokumenterForRevurdering -> assertHarTilgangTilRevurdering(
+                            hentDokumenterForIdType.id,
+                        )
 
-                        is HentDokumenterForIdType.HentDokumenterForSak -> assertHarTilgangTilSak(hentDokumenterForIdType.id)
+                        is HentDokumenterForIdType.HentDokumenterForSak -> assertHarTilgangTilSak(
+                            hentDokumenterForIdType.id,
+                        )
 
-                        is HentDokumenterForIdType.HentDokumenterForSøknad -> assertHarTilgangTilSøknad(hentDokumenterForIdType.id)
+                        is HentDokumenterForIdType.HentDokumenterForSøknad -> assertHarTilgangTilSøknad(
+                            hentDokumenterForIdType.id,
+                        )
 
-                        is HentDokumenterForIdType.HentDokumenterForVedtak -> assertHarTilgangTilVedtak(hentDokumenterForIdType.id)
+                        is HentDokumenterForIdType.HentDokumenterForVedtak -> assertHarTilgangTilVedtak(
+                            hentDokumenterForIdType.id,
+                        )
 
-                        is HentDokumenterForIdType.HentDokumenterForKlage -> assertHarTilgangTilKlage(hentDokumenterForIdType.id)
+                        is HentDokumenterForIdType.HentDokumenterForKlage -> assertHarTilgangTilKlage(
+                            hentDokumenterForIdType.id,
+                        )
                     }.let {
                         return services.brev.hentDokumenterFor(hentDokumenterForIdType)
                     }
@@ -1144,6 +1154,11 @@ open class AccessCheckProxy(
                 override fun resendIverksattSøknadsbehandling(fraOgMedDato: LocalDate) {
                     // Driftsendepunkt, ingen direkteoppslag på person og ingen returdata
                     services.resendStatistikkhendelserService.resendIverksattSøknadsbehandling(fraOgMedDato)
+                }
+
+                override fun resendStatistikkForVedtak(vedtakId: UUID): Either<Unit, Unit> {
+                    // Driftsendepunkt - returnerer ikke data, bare status
+                    return services.resendStatistikkhendelserService.resendStatistikkForVedtak(vedtakId)
                 }
             },
         )

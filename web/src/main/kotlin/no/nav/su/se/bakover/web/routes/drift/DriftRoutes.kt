@@ -34,5 +34,5 @@ internal fun Route.driftRoutes(
         }
     }
 
-    resendStatistikkRoute(resendStatistikkhendelserService)
+    resendStatistikkRoutes(resendStatistikkhendelserService)
 }
