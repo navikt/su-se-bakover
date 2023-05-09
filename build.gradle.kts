@@ -16,6 +16,9 @@ subprojects {
         maven("https://jitpack.io")
         maven("https://oss.sonatype.org/content/repositories/releases/")
         maven("https://packages.confluent.io/maven/")
+        // org.apache.cxf:cxf-rt-ws-security:4.0.0 er avhengig av opensaml-xacml-saml-impl:4.2.0
+        // som i skrivende stund ikke er tilgjengelig på maven central, men i shibboleth
+        maven("https://build.shibboleth.net/nexus/content/repositories/releases/")
     }
     val junitJupiterVersion = "5.9.3"
     val kotestVersion = "5.6.1"
