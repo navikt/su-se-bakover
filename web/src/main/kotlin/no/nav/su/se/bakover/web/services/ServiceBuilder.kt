@@ -238,7 +238,7 @@ object ServiceBuilder {
             sakService = sakService,
             opprettPlanlagtKontrollsamtaleService = kontrollsamtaleSetup.opprettPlanlagtKontrollsamtaleService,
             sessionFactory = databaseRepos.sessionFactory,
-        )
+        ).apply { addObserver(statistikkEventObserver) }
         return Services(
             avstemming = AvstemmingServiceImpl(
                 repo = databaseRepos.avstemming,
