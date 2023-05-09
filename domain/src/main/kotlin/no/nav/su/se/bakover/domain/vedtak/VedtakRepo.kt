@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import java.time.LocalDate
 import java.util.UUID
 
 interface VedtakRepo {
@@ -16,4 +17,7 @@ interface VedtakRepo {
     fun lagreITransaksjon(vedtak: Vedtak, tx: TransactionContext)
     fun hentForUtbetaling(utbetalingId: UUID30): VedtakSomKanRevurderes?
     fun hentJournalpostId(vedtakId: UUID): JournalpostId?
+    fun hentSøknadsbehandlingsvedtakFraOgMed(
+        fraOgMed: LocalDate,
+    ): List<UUID>
 }

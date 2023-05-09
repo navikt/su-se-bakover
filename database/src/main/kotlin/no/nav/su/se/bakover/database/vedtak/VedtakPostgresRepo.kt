@@ -63,6 +63,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.Vedtaksammendrag
 import no.nav.su.se.bakover.domain.vedtak.Vedtakstype
+import java.time.LocalDate
 import java.util.UUID
 
 internal enum class VedtakType {
@@ -307,6 +308,27 @@ internal class VedtakPostgresRepo(
                         )
                     }
             }
+        }
+    }
+
+    override fun hentSøknadsbehandlingsvedtakFraOgMed(
+        fraOgMed: LocalDate,
+    ): List<UUID> {
+        return sessionFactory.withSession { session ->
+            """
+                select
+                  v.id
+                from
+                  vedtak v
+                where
+                  v.vedtaktype IN ('SØKNAD','AVSLAG')
+                  and v.opprettet >= :fraOgMed::date
+                order by
+                  v.opprettet
+            """.trimIndent()
+                .hentListe(mapOf("fraOgMed" to fraOgMed.toString()), session) {
+                    it.uuid("id")
+                }
         }
     }
 

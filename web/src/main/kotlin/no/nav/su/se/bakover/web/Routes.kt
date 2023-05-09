@@ -80,7 +80,10 @@ internal fun Application.setupKtorRoutes(
                         applicationConfig,
                     )
                     avstemmingRoutes(accessProtectedServices.avstemming, clock)
-                    driftRoutes(accessProtectedServices.søknad)
+                    driftRoutes(
+                        søknadService = accessProtectedServices.søknad,
+                        resendStatistikkhendelserService = accessProtectedServices.resendStatistikkhendelserService,
+                    )
                     revurderingRoutes(
                         revurderingService = accessProtectedServices.revurdering,
                         sakService = accessProtectedServices.sak,

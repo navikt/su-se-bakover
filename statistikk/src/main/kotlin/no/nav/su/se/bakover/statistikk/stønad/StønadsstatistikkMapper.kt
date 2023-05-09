@@ -186,7 +186,7 @@ private fun mapBeregning(
     val beregningForMåned = vedtak.periode.måneder()
         .toList()
         .flatMap {
-            val beregning = hentSak().hentGjeldendeBeregningForEndringIYtelsePåDato(it, clock)!!
+            val beregning = hentSak().hentGjeldendeBeregningForEndringIYtelseForMåned(it, clock)!!
             mapBeregning(vedtak, beregning)
         }
     val gjeldendeBeregningForMåned = beregningForMåned.associateBy { it.måned }

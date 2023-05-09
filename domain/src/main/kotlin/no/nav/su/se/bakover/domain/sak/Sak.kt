@@ -188,7 +188,7 @@ data class Sak(
      *
      * ##NB
      * */
-    fun hentGjeldendeBeregningForEndringIYtelsePåDato(
+    fun hentGjeldendeBeregningForEndringIYtelseForMåned(
         måned: Måned,
         clock: Clock,
     ): Beregning? {

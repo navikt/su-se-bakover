@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.skatt.SkatteService
+import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
@@ -50,4 +51,5 @@ data class Services(
     val sendPåminnelserOmNyStønadsperiodeService: SendPåminnelserOmNyStønadsperiodeService,
     val skatteService: SkatteService,
     val kontrollsamtaleSetup: KontrollsamtaleSetup,
+    val resendStatistikkhendelserService: ResendStatistikkhendelserService,
 )
