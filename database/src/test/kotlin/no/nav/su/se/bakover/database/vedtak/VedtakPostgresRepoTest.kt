@@ -1,13 +1,16 @@
 package no.nav.su.se.bakover.database.vedtak
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.persistence.hent
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
+import no.nav.su.se.bakover.domain.vedtak.VedtakIverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtaksammendrag
 import no.nav.su.se.bakover.domain.vedtak.Vedtakstype
 import no.nav.su.se.bakover.test.fixedClock
@@ -17,6 +20,7 @@ import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
 import no.nav.su.se.bakover.test.plus
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
 
@@ -170,6 +174,67 @@ internal class VedtakPostgresRepoTest {
             val vedtakRepo = testDataHelper.vedtakRepo as VedtakPostgresRepo
             testDataHelper.dataSource.withSession {
                 vedtakRepo.hentVedtakForIdOgSession(vedtak.id, it) shouldBe vedtak
+            }
+        }
+    }
+
+    @Nested
+    inner class hentSøknadsbehandlingsvedtakFraOgMed {
+
+        @Test
+        fun `fraOgMed før`() {
+            withMigratedDb { dataSource ->
+                val testDataHelper = TestDataHelper(dataSource)
+                val vedtak = testDataHelper.persisterSøknadsbehandlingIverksatt()
+                val vedtakRepo = testDataHelper.vedtakRepo as VedtakPostgresRepo
+                testDataHelper.dataSource.withSession {
+                    vedtakRepo.hentSøknadsbehandlingsvedtakFraOgMed(31.desember(2020)) shouldBe listOf(vedtak.third.id)
+                }
+            }
+        }
+
+        @Test
+        fun `fraOgMed på`() {
+            withMigratedDb { dataSource ->
+                val testDataHelper = TestDataHelper(dataSource)
+                val vedtak = testDataHelper.persisterSøknadsbehandlingIverksatt()
+                val vedtakRepo = testDataHelper.vedtakRepo as VedtakPostgresRepo
+                testDataHelper.dataSource.withSession {
+                    vedtakRepo.hentSøknadsbehandlingsvedtakFraOgMed(1.januar(2021)) shouldBe listOf(vedtak.third.id)
+                }
+            }
+        }
+
+        @Test
+        fun `fraOgMed etter`() {
+            withMigratedDb { dataSource ->
+                val testDataHelper = TestDataHelper(dataSource)
+                testDataHelper.persisterSøknadsbehandlingIverksatt()
+                val vedtakRepo = testDataHelper.vedtakRepo as VedtakPostgresRepo
+                testDataHelper.dataSource.withSession {
+                    vedtakRepo.hentSøknadsbehandlingsvedtakFraOgMed(2.januar(2021)) shouldBe emptyList()
+                }
+            }
+        }
+
+        @Test
+        fun `ignorerer vedtak som ikke er søknadsbehandling`() {
+            withMigratedDb { dataSource ->
+                val testDataHelper = TestDataHelper(dataSource)
+                val første = testDataHelper.persisterRevurderingIverksattInnvilget().let {
+                    it.first.vedtakListe.first() as VedtakIverksattSøknadsbehandling
+                }
+                val andre = testDataHelper.persisterIverksattStansOgVedtak().let {
+                    it.first.vedtakListe.first() as VedtakIverksattSøknadsbehandling
+                }
+
+                val vedtakRepo = testDataHelper.vedtakRepo as VedtakPostgresRepo
+                testDataHelper.dataSource.withSession {
+                    vedtakRepo.hentSøknadsbehandlingsvedtakFraOgMed(1.januar(2021)) shouldBe listOf(
+                        første.id,
+                        andre.id,
+                    )
+                }
             }
         }
     }

@@ -13,7 +13,7 @@ import java.time.Clock
  * [GjeldendeVedtaksdata] tar ikke hensyn til avslagsvedtak per tidspunkt, siden de ikke påvirker selve ytelsen.
  * Så hvis vi på et tidspunkt skal kunne revurdere/omgjøre disse vedtakene, så kan man ikke blindt arve [VedtakSomKanRevurderes].
  */
-sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvslag {
+sealed interface Avslagsvedtak : VedtakIverksattSøknadsbehandling, Visitable<VedtakVisitor>, ErAvslag {
     override val periode: Periode
     override val behandling: IverksattSøknadsbehandling.Avslag
 

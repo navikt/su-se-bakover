@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.skatt.SkatteService
+import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
@@ -65,6 +66,7 @@ object TestServicesBuilder {
             override val opprettPlanlagtKontrollsamtaleService: OpprettKontrollsamtaleVedNyStønadsperiodeService = mock()
             override val utløptFristForKontrollsamtaleService: UtløptFristForKontrollsamtaleService = mock()
         },
+        resendStatistikkhendelserService: ResendStatistikkhendelserService = mock(),
     ): Services = Services(
         avstemming = avstemming,
         utbetaling = utbetaling,
@@ -90,5 +92,6 @@ object TestServicesBuilder {
         stansYtelse = stansAvYtelseService,
         gjenopptaYtelse = gjenopptakAvYtelseService,
         kontrollsamtaleSetup = kontrollsamtaleSetup,
+        resendStatistikkhendelserService = resendStatistikkhendelserService,
     )
 }

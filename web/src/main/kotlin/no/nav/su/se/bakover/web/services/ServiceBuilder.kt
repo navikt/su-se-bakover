@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.revurdering.StansYtelseServiceImpl
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.skatt.SkatteServiceImpl
+import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserServiceImpl
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
@@ -298,6 +299,11 @@ object ServiceBuilder {
             stansYtelse = stansAvYtelseService,
             gjenopptaYtelse = gjenopptakAvYtelseService,
             kontrollsamtaleSetup = kontrollsamtaleSetup,
+            resendStatistikkhendelserService = ResendStatistikkhendelserServiceImpl(
+                vedtakRepo = databaseRepos.vedtakRepo,
+                sakRepo = databaseRepos.sak,
+                statistikkEventObserver = statistikkEventObserver,
+            ),
         )
     }
 }

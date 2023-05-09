@@ -140,6 +140,18 @@ internal class SakPostgresRepo(
             }
         }
     }
+    override fun hentSakForVedtak(vedtakId: UUID): Sak? {
+        return dbMetrics.timeQuery("hentSakForVedtak") {
+            sessionFactory.withSessionContext { sessionContext ->
+                sessionContext.withSession { session ->
+                    "select s.* from sak s join vedtak v on v.sakid = s.id where v.id =:vedtakId".hent(
+                        mapOf("vedtakId" to vedtakId),
+                        session,
+                    ) { it.toSak(sessionContext) }
+                }
+            }
+        }
+    }
 
     /***
      * @param personidenter Inneholder alle identer til brukeren, f.eks fnr og aktørid.

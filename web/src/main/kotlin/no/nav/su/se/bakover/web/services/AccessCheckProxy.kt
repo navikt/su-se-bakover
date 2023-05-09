@@ -192,6 +192,7 @@ import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.skatt.HentSamletSkattegrunnlagForBehandlingResponse
 import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.service.skatt.SkatteService
+import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
@@ -1138,6 +1139,12 @@ open class AccessCheckProxy(
 
                 override val utløptFristForKontrollsamtaleService: UtløptFristForKontrollsamtaleService
                     get() = kastKanKunKallesFraAnnenService()
+            },
+            resendStatistikkhendelserService = object : ResendStatistikkhendelserService {
+                override fun resendIverksattSøknadsbehandling(fraOgMedDato: LocalDate) {
+                    // Driftsendepunkt, ingen direkteoppslag på person og ingen returdata
+                    services.resendStatistikkhendelserService.resendIverksattSøknadsbehandling(fraOgMedDato)
+                }
             },
         )
     }
