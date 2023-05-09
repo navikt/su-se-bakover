@@ -199,7 +199,7 @@ class ReguleringServiceImpl(
         val antallManuelle =
             regulert.filter { regulering -> regulering.reguleringstype is Reguleringstype.MANUELL }.size
 
-        log.info("Totalt antall prosesserte reguleringer: ${regulert.size}, antall automatiske: $antallAutomatiske, antall manuelle: $antallManuelle")
+        log.info("Totalt antall prosesserte reguleringer: ${regulert.size}, antall automatiske: $antallAutomatiske, antall manuelle: $antallManuelle, årsaker: $årsaker")
     }
 
     override fun regulerManuelt(

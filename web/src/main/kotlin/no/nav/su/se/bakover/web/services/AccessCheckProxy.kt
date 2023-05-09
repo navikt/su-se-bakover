@@ -1050,14 +1050,12 @@ open class AccessCheckProxy(
                     uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
                     fradrag: List<Grunnlag.Fradragsgrunnlag>,
                     saksbehandler: NavIdentBruker.Saksbehandler,
-                    isLiveRun: Boolean,
                 ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
                     return services.reguleringService.regulerManuelt(
                         reguleringId,
                         uføregrunnlag,
                         fradrag,
                         saksbehandler,
-                        isLiveRun,
                     )
                 }
             },
