@@ -1037,6 +1037,13 @@ open class AccessCheckProxy(
                     return services.reguleringService.startAutomatiskRegulering(startDato)
                 }
 
+                override fun startAutomatiskReguleringForInnsyn(
+                    startDato: LocalDate,
+                    gVerdi: Int,
+                ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
+                    return services.reguleringService.startAutomatiskReguleringForInnsyn(startDato, gVerdi)
+                }
+
                 override fun avslutt(reguleringId: UUID): Either<KunneIkkeAvslutte, AvsluttetRegulering> {
                     return services.reguleringService.avslutt(reguleringId)
                 }

@@ -34,7 +34,9 @@ sealed class BeregnOgSimulerFeilet {
 sealed class KunneIkkeOppretteRegulering {
     object FantIkkeSak : KunneIkkeOppretteRegulering()
     object FørerIkkeTilEnEndring : KunneIkkeOppretteRegulering()
-    data class KunneIkkeHenteEllerOppretteRegulering(val feil: Sak.KunneIkkeOppretteEllerOppdatereRegulering) : KunneIkkeOppretteRegulering()
+    data class KunneIkkeHenteEllerOppretteRegulering(val feil: Sak.KunneIkkeOppretteEllerOppdatereRegulering) :
+        KunneIkkeOppretteRegulering()
+
     data class KunneIkkeRegulereAutomatisk(val feil: KunneIkkeFerdigstilleOgIverksette) : KunneIkkeOppretteRegulering()
 }
 
@@ -45,6 +47,12 @@ sealed class KunneIkkeAvslutte {
 
 interface ReguleringService {
     fun startAutomatiskRegulering(startDato: LocalDate): List<Either<KunneIkkeOppretteRegulering, Regulering>>
+
+    fun startAutomatiskReguleringForInnsyn(
+        startDato: LocalDate,
+        gVerdi: Int,
+    ): List<Either<KunneIkkeOppretteRegulering, Regulering>>
+
     fun avslutt(reguleringId: UUID): Either<KunneIkkeAvslutte, AvsluttetRegulering>
     fun hentStatus(): List<Pair<Regulering, List<ReguleringMerknad>>>
     fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer>
