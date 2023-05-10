@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.skatt
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.YearRange
 import java.time.Year
 
@@ -54,5 +55,5 @@ sealed class SamletSkattegrunnlagForÅrOgStadie {
     }
 }
 
-fun List<SamletSkattegrunnlagForÅrOgStadie>.toYearRange(): YearRange =
+fun NonEmptyList<SamletSkattegrunnlagForÅrOgStadie>.toYearRange(): YearRange =
     YearRange(this.minOf { it.inntektsår }, this.maxOf { it.inntektsår })
