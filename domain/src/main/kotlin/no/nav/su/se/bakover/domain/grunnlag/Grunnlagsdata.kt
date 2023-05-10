@@ -62,12 +62,6 @@ data class Grunnlagsdata private constructor(
                 "Bosituasjonsperiodene: $bosituasjonsperiode må inneholde fradragsperiodene: $fradragsperiode."
             }
         }
-        // TODO: Her burde vi ha en sjekk på at vi har begge på et tidspunkt
-//        skattereferanser?.let {
-//            require(bosituasjon.harEPS() == it.harEPS()) {
-//                "Eps må henge sammen for bosituasjon (${bosituasjon.harEPS()}) og skattereferanser (${skattereferanser.harEPS()})"
-//            }
-//        }
     }
 
     /**
