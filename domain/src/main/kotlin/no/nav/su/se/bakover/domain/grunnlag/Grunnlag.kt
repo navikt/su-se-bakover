@@ -342,8 +342,16 @@ sealed class Grunnlag {
                 return this.filterIsInstance<Ufullstendig>().isNotEmpty()
             }
 
-            fun List<Bosituasjon>.harFjernetEllerEndretEps(oppdatertBosituasjon: List<Bosituasjon>): Boolean =
-                this.mapNotNull { it.eps }.distinct().containsAll(oppdatertBosituasjon.mapNotNull { it.eps }.distinct())
+            /**
+             * Ignorerer rekkefølge & perioder
+             * Passer ikke så bra for revurdering
+             */
+            fun List<Bosituasjon>.harFjernetEllerEndretEps(oppdatertBosituasjon: List<Bosituasjon>): Boolean {
+                val nåværende = this.mapNotNull { it.eps }.distinct()
+                val oppdatert = oppdatertBosituasjon.mapNotNull { it.eps }.distinct()
+
+                return nåværende.intersect(oppdatert).toList() != nåværende
+            }
         }
 
         sealed class Fullstendig : Bosituasjon(), KanPlasseresPåTidslinje<Fullstendig> {
