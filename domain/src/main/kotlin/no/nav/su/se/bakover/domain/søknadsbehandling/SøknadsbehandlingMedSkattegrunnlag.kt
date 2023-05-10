@@ -16,6 +16,9 @@ import java.time.Clock
 import java.time.Year
 import java.util.UUID
 
+/**
+ * TODO: private constructor - create/tryCreate - søknadsbehandling skal kun være Vilkårsvurdert
+ */
 data class SøknadsbehandlingMedSkattegrunnlag(
     val søknadsbehandling: Søknadsbehandling,
     val opprettet: Tidspunkt,

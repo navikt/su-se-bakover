@@ -681,6 +681,7 @@ class SøknadsbehandlingServiceImpl(
             søknadsbehandlingRepo.hent(behandlingId)
                 ?: throw IllegalStateException("Fant ikke behandling $behandlingId")
             ).also {
+            // TODO: flytt til denne typen logikk til en create/tryCreate på SøknadsbehandlingMedSkattegrunnlag
             if (it !is VilkårsvurdertSøknadsbehandling) {
                 throw IllegalStateException("Skal ikke kunne hente skattemelding automatisk ved andre tilstander enn vilkårsvurdert")
             }
@@ -712,6 +713,8 @@ class SøknadsbehandlingServiceImpl(
         søknadsbehandlingRepo.hentSkattegrunnlag(behandlingId)?.let {
             it.hentNySkattedata { fnr, yearRange ->
                 skatteService.hentSamletSkattegrunnlagForÅr(fnr, saksbehandler, yearRange)
+            }.onRight {
+                søknadsbehandlingRepo.lagreMedSkattegrunnlag(it)
             }
         } ?: throw IllegalArgumentException("Fant ikke søknadsbehandling med skattegrunnlag for id $behandlingId")
 

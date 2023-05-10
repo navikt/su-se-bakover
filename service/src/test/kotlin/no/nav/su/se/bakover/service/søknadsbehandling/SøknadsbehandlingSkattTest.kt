@@ -2,12 +2,14 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.left
 import arrow.core.right
+import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.toRange
 import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.test.argThat
+import no.nav.su.se.bakover.test.grunnlagsdataMedEpsMedFradrag
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.skatt.nySkattegrunnlag
 import no.nav.su.se.bakover.test.skatt.nySøknadsbehandlingMedSkattegrunnlag
@@ -22,6 +24,7 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import java.time.Year
+import java.util.UUID
 
 class SøknadsbehandlingSkattTest {
 
@@ -105,10 +108,31 @@ class SøknadsbehandlingSkattTest {
 
         assertThrows<IllegalStateException> {
             createSøknadsbehandlingService(søknadsbehandlingRepo = søknadsbehandlingRepoMock)
-                .nySkattegrunnlag(
-                    søknadsbehandling.id,
-                    saksbehandler,
-                )
+                .nySkattegrunnlag(søknadsbehandling.id, saksbehandler)
         }
+    }
+
+    @Test
+    fun `oppfrisker skattegrunnlag`() {
+        val søknadsbehandling = søknadsbehandlingSimulert(grunnlagsdata = grunnlagsdataMedEpsMedFradrag()).second
+        val medSkattegrunnlag = nySøknadsbehandlingMedSkattegrunnlag(
+            søknadsbehandling = søknadsbehandling,
+            epsId = UUID.randomUUID(),
+            eps = nySkattegrunnlag(),
+        )
+
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
+            on { hentSkattegrunnlag(any()) } doReturn medSkattegrunnlag
+        }
+        val skatteServiceMock = mock<SkatteService> {
+            on { this.hentSamletSkattegrunnlagForÅr(any(), any(), any()) } doReturn nySkattegrunnlag()
+        }
+
+        createSøknadsbehandlingService(søknadsbehandlingRepo = søknadsbehandlingRepoMock, skatteService = skatteServiceMock)
+            .oppfrisk(søknadsbehandling.id, saksbehandler).shouldBeRight()
+
+        verify(søknadsbehandlingRepoMock, times(1)).lagreMedSkattegrunnlag(
+            argThat { it shouldBe medSkattegrunnlag },
+        )
     }
 }
