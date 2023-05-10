@@ -7,10 +7,12 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.toggle.domain.ToggleClient
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeHenteNySkattedata
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.skatt.tilErrorJson
@@ -52,5 +54,29 @@ internal fun Route.hentSamletSkattegrunnlagRoute(
                 )
             }
         }
+    }
+
+    get("$behandlingPath/{behandlingId}/samletSkattegrunnlag/oppfrisk") {
+        if (!toggleClient.isEnabled("supstonad.skattemelding")) {
+            call.respond(HttpStatusCode.NotFound)
+            return@get
+        }
+        authorize(Brukerrolle.Saksbehandler) {
+            call.withBehandlingId { behandlingId ->
+                søknadsbehandlingService.oppfrisk(behandlingId, call.suUserContext.saksbehandler).fold(
+                    { call.svar(it.tilResultat()) },
+                    { call.svar(Resultat.json(HttpStatusCode.OK, it.toJson())) },
+                )
+            }
+        }
+    }
+}
+
+internal fun KunneIkkeHenteNySkattedata.tilResultat(): Resultat {
+    return when (this) {
+        KunneIkkeHenteNySkattedata.UgyldigTilstand -> HttpStatusCode.BadRequest.errorJson(
+            "Kan ikke oppfriske skattegrunnlag for behandlingens tilstand",
+            "kan_ikke_oppfriske_skattegrunnlag_ugyldig_tilstand",
+        )
     }
 }
