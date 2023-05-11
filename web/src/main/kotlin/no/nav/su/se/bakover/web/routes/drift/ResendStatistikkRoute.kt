@@ -11,10 +11,11 @@ import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
-import no.nav.su.se.bakover.common.infrastructure.web.withVedtakId
+import no.nav.su.se.bakover.common.trimWhitespace
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.web.features.authorize
 import java.time.LocalDate
+import java.util.UUID
 
 internal fun Route.resendStatistikkRoutes(
     resendStatistikkhendelserService: ResendStatistikkhendelserService,
@@ -23,7 +24,7 @@ internal fun Route.resendStatistikkRoutes(
         val fraOgMed: String,
     )
 
-    post("/drift/resend-statistikk/vedtak/søknadsbehandling") {
+    post("$DRIFT_PATH/resend-statistikk/vedtak/søknadsbehandling") {
         authorize(Brukerrolle.Drift) {
             call.withBody<Body> { body ->
                 CoroutineScope(Dispatchers.IO).launch {
@@ -35,15 +36,17 @@ internal fun Route.resendStatistikkRoutes(
         }
     }
 
-    post("/drift/resend-statistikk/vedtak/{vedtakId}") {
+    post("$DRIFT_PATH/resend-statistikk/vedtak") {
+        data class Body(val vedtak: String)
         authorize(Brukerrolle.Drift) {
-            call.withVedtakId { vedtakId ->
-                call.svar(
-                    resendStatistikkhendelserService.resendStatistikkForVedtak(vedtakId).fold(
-                        { Resultat.json(HttpStatusCode.InternalServerError, """{"status": "Failed"}""") },
-                        { Resultat.okJson() },
-                    ),
-                )
+            call.withBody<Body> {
+                val ider = it.vedtak.trimWhitespace().split(",").map { UUID.fromString(it.trim()) }
+                CoroutineScope(Dispatchers.IO).launch {
+                    ider.forEach {
+                        resendStatistikkhendelserService.resendStatistikkForVedtak(it)
+                    }
+                }
+                Resultat.okJson()
             }
         }
     }

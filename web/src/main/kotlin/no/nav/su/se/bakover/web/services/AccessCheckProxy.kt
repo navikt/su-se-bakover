@@ -207,6 +207,7 @@ import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import java.time.LocalDate
 import java.util.UUID
+import kotlin.reflect.KClass
 
 open class AccessCheckProxy(
     private val personRepo: PersonRepo,
@@ -1163,9 +1164,9 @@ open class AccessCheckProxy(
                     services.resendStatistikkhendelserService.resendIverksattSøknadsbehandling(fraOgMedDato)
                 }
 
-                override fun resendStatistikkForVedtak(vedtakId: UUID): Either<Unit, Unit> {
+                override fun resendStatistikkForVedtak(vedtakId: UUID, requiredType: KClass<*>?): Either<Unit, Unit> {
                     // Driftsendepunkt - returnerer ikke data, bare status
-                    return services.resendStatistikkhendelserService.resendStatistikkForVedtak(vedtakId)
+                    return services.resendStatistikkhendelserService.resendStatistikkForVedtak(vedtakId, requiredType)
                 }
             },
         )
