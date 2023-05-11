@@ -54,7 +54,7 @@ class ResendStatistikkhendelserServiceImpl(
         vedtakId: UUID,
         requiredType: KClass<*>?,
     ): Either<Unit, Unit> {
-        log.info("Resend statistikk: for søknadsbehandlingvedtak $vedtakId")
+        log.info("Resend statistikk: $vedtakId")
         sakRepo.hentSakForVedtak(vedtakId).let { sak ->
             val vedtak = Either.catch {
                 sak!!.vedtakListe.single { it.id == vedtakId }.also {
@@ -64,7 +64,7 @@ class ResendStatistikkhendelserServiceImpl(
                 }
             }.getOrElse {
                 log.error(
-                    "Resend statistikk: Fant ikke sak for vedtak ($vedtakId) eller var ikke av type VedtakIverksattSøknadsbehandling.",
+                    "Resend statistikk: Fant ikke sak for vedtak ($vedtakId) eller var ikke av type $requiredType.",
                     it,
                 )
                 return Unit.left()
