@@ -8,10 +8,10 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.YearRange
 import no.nav.su.se.bakover.common.krympTilØvreGrense
 import no.nav.su.se.bakover.common.toRange
-import no.nav.su.se.bakover.common.toYearRange
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harEPS
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigEpsOrNull
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
+import no.nav.su.se.bakover.domain.skatt.Skattereferanser
 import java.time.Clock
 import java.time.Year
 import java.util.UUID
@@ -42,7 +42,14 @@ data class SøknadsbehandlingMedSkattegrunnlag(
             is BeregnetSøknadsbehandling,
             is SimulertSøknadsbehandling,
             is UnderkjentSøknadsbehandling,
+            // TODO: tester
             -> this.copy(
+                søknadsbehandling = søknadsbehandling.leggTilSkattereferanser(
+                    Skattereferanser(
+                        søkersSkatteId,
+                        if (søknadsbehandling.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.harEPS() && epsSkatteId == null) UUID.randomUUID() else epsSkatteId,
+                    ),
+                ),
                 søker = hentSkattegrunnlag(søknadsbehandling.fnr, søknadsbehandling.stønadsperiode!!.toYearRange()),
                 eps = if (søknadsbehandling.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.harEPS()) {
                     hentSkattegrunnlag(
