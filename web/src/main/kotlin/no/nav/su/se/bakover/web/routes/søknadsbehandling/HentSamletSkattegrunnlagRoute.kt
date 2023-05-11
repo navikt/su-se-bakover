@@ -23,11 +23,11 @@ internal fun Route.hentSamletSkattegrunnlagRoute(
     toggleClient: ToggleClient,
 ) {
     get("$behandlingPath/{behandlingId}/samletSkattegrunnlag") {
-        if (!toggleClient.isEnabled("supstonad.skattemelding")) {
-            call.respond(HttpStatusCode.NotFound)
-            return@get
-        }
         authorize(Brukerrolle.Saksbehandler) {
+            if (!toggleClient.isEnabled("supstonad.skattemelding")) {
+                call.respond(HttpStatusCode.NotFound)
+                return@authorize
+            }
             call.withBehandlingId { behandlingId ->
                 søknadsbehandlingService.nySkattegrunnlag(
                     behandlingId,
@@ -40,11 +40,11 @@ internal fun Route.hentSamletSkattegrunnlagRoute(
     }
 
     get("$behandlingPath/{behandlingId}/samletSkattegrunnlag/eksisterende") {
-        if (!toggleClient.isEnabled("supstonad.skattemelding")) {
-            call.respond(HttpStatusCode.NotFound)
-            return@get
-        }
         authorize(Brukerrolle.Saksbehandler) {
+            if (!toggleClient.isEnabled("supstonad.skattemelding")) {
+                call.respond(HttpStatusCode.NotFound)
+                return@authorize
+            }
             call.withBehandlingId { behandlingId ->
                 søknadsbehandlingService.hentSkattegrunnlag(behandlingId).fold(
                     { call.svar(it.tilErrorJson().tilResultat(HttpStatusCode.NotFound)) },
@@ -57,11 +57,11 @@ internal fun Route.hentSamletSkattegrunnlagRoute(
     }
 
     get("$behandlingPath/{behandlingId}/samletSkattegrunnlag/oppfrisk") {
-        if (!toggleClient.isEnabled("supstonad.skattemelding")) {
-            call.respond(HttpStatusCode.NotFound)
-            return@get
-        }
         authorize(Brukerrolle.Saksbehandler) {
+            if (!toggleClient.isEnabled("supstonad.skattemelding")) {
+                call.respond(HttpStatusCode.NotFound)
+                return@authorize
+            }
             call.withBehandlingId { behandlingId ->
                 søknadsbehandlingService.oppfrisk(behandlingId, call.suUserContext.saksbehandler).fold(
                     { call.svar(it.tilResultat()) },

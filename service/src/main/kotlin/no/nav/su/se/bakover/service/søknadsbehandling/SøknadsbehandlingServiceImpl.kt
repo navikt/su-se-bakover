@@ -671,7 +671,9 @@ class SøknadsbehandlingServiceImpl(
     }
 
     /**
-     * Denne overlagrer potensielt, så her vil vi kaste en exception dersom man er i tilstanden attestering eller senere.
+     * Kun ment for førstegangshenting for formue steget
+     *
+     * For alle andre steg skal [oppfrisk] brukes
      */
     override fun nySkattegrunnlag(
         behandlingId: UUID,
@@ -701,10 +703,9 @@ class SøknadsbehandlingServiceImpl(
     }
 
     /**
-     * Henter ny skattemelding fra skatteetaten
-     * lagrer & returnerer
+     * Baserer seg på en allerede hentet skattegrunnlag for å oppfriske.
      *
-     * Tilstandssjekk: Ikke iverksatt, ikke lukket, ikke til attestering
+     * Enten fordi man har endret stønadsperiode, eller fordi Api-kallet feilet
      */
     override fun oppfrisk(
         behandlingId: UUID,
