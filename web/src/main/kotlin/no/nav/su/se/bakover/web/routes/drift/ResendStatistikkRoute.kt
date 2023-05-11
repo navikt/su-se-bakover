@@ -46,7 +46,7 @@ internal fun Route.resendStatistikkRoutes(
                         resendStatistikkhendelserService.resendStatistikkForVedtak(it)
                     }
                 }
-                Resultat.okJson()
+                call.svar(Resultat.okJson())
             }
         }
     }
