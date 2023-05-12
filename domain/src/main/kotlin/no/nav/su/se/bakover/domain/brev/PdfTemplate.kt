@@ -24,10 +24,14 @@ sealed class PdfTemplate(
         object MedTilbakekreving : Revurdering("revurderingMedTilbakekreving")
         object Avslutt : Revurdering("avsluttRevurdering")
     }
+
     sealed class Klage(templateName: String) : PdfTemplate(templateName) {
         object Oppretthold : Klage("sendtTilKlageinstans")
         object Avvist : Klage("avvistKlage")
     }
 
     object FritekstDokument : PdfTemplate("fritekstDokument")
+
+    object Skattemelding : PdfTemplate("skattemelding")
+
 }

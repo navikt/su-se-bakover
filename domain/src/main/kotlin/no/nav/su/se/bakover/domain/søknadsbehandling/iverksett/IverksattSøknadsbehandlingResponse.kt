@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
+import no.nav.su.se.bakover.domain.skatt.Skattedokument
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
@@ -29,5 +30,6 @@ interface IverksattSøknadsbehandlingResponse<T : IverksattSøknadsbehandling> {
         lagreDokument: (Dokument.MedMetadata, TransactionContext) -> Unit,
         lukkOppgave: (IverksattSøknadsbehandling.Avslag) -> Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit>,
         opprettPlanlagtKontrollsamtale: (VedtakInnvilgetSøknadsbehandling, TransactionContext) -> Unit,
+        lagreSkatteDokument: (Skattedokument, TransactionContext) -> Unit
     )
 }

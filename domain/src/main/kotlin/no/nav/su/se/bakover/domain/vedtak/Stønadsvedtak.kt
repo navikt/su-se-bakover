@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.dokument.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.visitor.Visitable
 
@@ -16,6 +17,7 @@ import no.nav.su.se.bakover.domain.visitor.Visitable
 sealed interface Stønadsvedtak : Vedtak, Visitable<VedtakVisitor> {
     val periode: Periode
     val behandling: Behandling
+    val eksterneGrunnlag: EksterneGrunnlag?
     val beregning: Beregning? get() = behandling.beregning
     val simulering: Simulering? get() = behandling.simulering
 
@@ -48,4 +50,9 @@ sealed interface Stønadsvedtak : Vedtak, Visitable<VedtakVisitor> {
      * Avkortingen av aktuelle beløp er enda ikke påbegynt, men behovet er identifisert.
      */
     fun harIdentifisertBehovForFremtidigAvkorting(): Boolean
+}
+
+
+sealed interface KunneIkkeGenerereSkattedokument {
+    object Feil : KunneIkkeGenerereSkattedokument
 }

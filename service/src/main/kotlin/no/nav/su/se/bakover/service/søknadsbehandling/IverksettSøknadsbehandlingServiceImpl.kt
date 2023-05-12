@@ -4,6 +4,8 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.BrevService
+import no.nav.su.se.bakover.domain.dokument.DokumentRepo
+import no.nav.su.se.bakover.domain.dokument.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
@@ -30,6 +32,7 @@ class IverksettSøknadsbehandlingServiceImpl(
     private val opprettPlanlagtKontrollsamtaleService: OpprettKontrollsamtaleVedNyStønadsperiodeService,
     private val ferdigstillVedtakService: FerdigstillVedtakService,
     private val brevService: BrevService,
+    private val dokumentRepo: DokumentRepo,
 ) : IverksettSøknadsbehandlingService {
 
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
@@ -41,12 +44,21 @@ class IverksettSøknadsbehandlingServiceImpl(
     override fun iverksett(
         command: IverksettSøknadsbehandlingCommand,
     ): Either<KunneIkkeIverksetteSøknadsbehandling, Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak>> {
+        val eksterneGrunnlag = søknadsbehandlingRepo.hentSkattegrunnlag(command.behandlingId)?.let {
+            val samletEksterneGrunnlag = it.tilSamletEksternSkattegrunnlag()
+            EksterneGrunnlag(
+                skattegrunnlagSøker = samletEksterneGrunnlag.first,
+                skattegrunnlagEps = samletEksterneGrunnlag.second
+            )
+        } ?: throw RuntimeException("Henting av skattegrunnlag for ${command.behandlingId} feilet")
+
         return sakService.hentSakForSøknadsbehandling(command.behandlingId)
             .iverksettSøknadsbehandling(
                 command = command,
                 lagDokument = brevService::lagDokument,
                 clock = clock,
                 simulerUtbetaling = utbetalingService::simulerUtbetaling,
+                eksterneGrunnlag = eksterneGrunnlag
             )
             .map {
                 iverksett(it)
@@ -58,14 +70,15 @@ class IverksettSøknadsbehandlingServiceImpl(
         iverksattSøknadsbehandlingResponse: IverksattSøknadsbehandlingResponse<*>,
     ) {
         iverksattSøknadsbehandlingResponse.ferdigstillIverksettelseITransaksjon(
+            klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
             sessionFactory = sessionFactory,
             lagreSøknadsbehandling = søknadsbehandlingRepo::lagre,
             lagreVedtak = vedtakRepo::lagreITransaksjon,
             statistikkObservers = observers,
             lagreDokument = brevService::lagreDokument,
             lukkOppgave = ferdigstillVedtakService::lukkOppgaveMedBruker,
-            klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
             opprettPlanlagtKontrollsamtale = opprettPlanlagtKontrollsamtaleService::opprett,
+            lagreSkatteDokument = dokumentRepo::lagreSkatteDokument,
         )
     }
 }

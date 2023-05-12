@@ -6,7 +6,7 @@ import java.util.UUID
 interface SkattedokumentFelter {
     val id: UUID
     val søkersSkatteId: UUID
-    val epsSkatteId: UUID
+    val epsSkatteId: UUID?
     val sakid: UUID
     val vedtakid: UUID
     val generertDokument: ByteArray
@@ -20,7 +20,7 @@ sealed interface Skattedokument : SkattedokumentFelter {
     data class Generert(
         override val id: UUID,
         override val søkersSkatteId: UUID,
-        override val epsSkatteId: UUID,
+        override val epsSkatteId: UUID?,
         override val sakid: UUID,
         override val vedtakid: UUID,
         override val generertDokument: ByteArray,

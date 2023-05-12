@@ -7,6 +7,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.dokument.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
@@ -30,22 +31,24 @@ internal fun Sak.iverksettAvslagSøknadsbehandling(
     clock: Clock,
     // TODO jah: Burde kunne lage en brevrequest uten å gå via service-funksjon
     lagDokument: (visitable: Visitable<LagBrevRequestVisitor>) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
+    eksterneGrunnlag: EksterneGrunnlag,
 ): Either<KunneIkkeIverksetteSøknadsbehandling, IverksattAvslåttSøknadsbehandlingResponse> {
     require(this.søknadsbehandlinger.any { it == søknadsbehandling })
 
     val iverksattBehandling = søknadsbehandling.iverksett(attestering)
-    val vedtak: Avslagsvedtak = opprettAvslagsvedtak(iverksattBehandling, clock)
+    val vedtak: Avslagsvedtak = opprettAvslagsvedtak(iverksattBehandling, eksterneGrunnlag, clock)
 
     val dokument = lagDokument(vedtak)
         .getOrElse { return KunneIkkeIverksetteSøknadsbehandling.KunneIkkeGenerereVedtaksbrev(it).left() }
         .leggTilMetadata(
             Dokument.Metadata(
-                sakId = vedtak.behandling.sakId,
-                søknadId = null,
-                vedtakId = vedtak.id,
-                revurderingId = null,
+                sakId = vedtak.behandling.sakId, søknadId = null, vedtakId = vedtak.id, revurderingId = null,
             ),
         )
+
+
+
+
 
     return IverksattAvslåttSøknadsbehandlingResponse(
         sak = this.copy(
@@ -61,6 +64,7 @@ internal fun Sak.iverksettAvslagSøknadsbehandling(
 
 private fun opprettAvslagsvedtak(
     iverksattBehandling: IverksattSøknadsbehandling.Avslag,
+    eksterneGrunnlag: EksterneGrunnlag,
     clock: Clock,
 ): Avslagsvedtak {
     return when (iverksattBehandling) {
@@ -74,6 +78,7 @@ private fun opprettAvslagsvedtak(
         is IverksattSøknadsbehandling.Avslag.UtenBeregning -> {
             Avslagsvedtak.fromSøknadsbehandlingUtenBeregning(
                 avslag = iverksattBehandling,
+                eksterneGrunnlag = eksterneGrunnlag,
                 clock = clock,
             )
         }

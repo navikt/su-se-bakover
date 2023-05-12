@@ -217,8 +217,8 @@ internal class DokumentPostgresRepo(
         }
     }
 
-    override fun lagreSkatteDokument(dokument: Skattedokument) {
-        sessionFactory.withSession {
+    override fun lagreSkatteDokument(dokument: Skattedokument, tc: TransactionContext) {
+        tc.withTransaction {
             dokumentSkatt.lagre(dokument, it)
         }
     }

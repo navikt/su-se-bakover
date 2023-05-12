@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 interface PdfGenerator {
     fun genererPdf(søknadPdfInnhold: SøknadPdfInnhold): Either<ClientError, ByteArray>
     fun genererPdf(pdfInnhold: PdfInnhold): Either<KunneIkkeGenererePdf, ByteArray>
+    fun genererPdf(pdf: PdfDokument): Either<KunneIkkeGenererePdf, ByteArray>
 }
 
 object KunneIkkeGenererePdf

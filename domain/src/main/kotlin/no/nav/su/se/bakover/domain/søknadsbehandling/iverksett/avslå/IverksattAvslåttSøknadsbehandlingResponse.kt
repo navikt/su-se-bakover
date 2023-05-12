@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.skatt.Skattedokument
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
@@ -45,6 +46,7 @@ data class IverksattAvslåttSøknadsbehandlingResponse(
         lukkOppgave: (IverksattSøknadsbehandling.Avslag) -> Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit>,
         // Denne er kun brukt ved innvilgelse, men må være med i interfacet for slippe å ha denne domenelogikken i servicelaget. På sikt bør denne gjøres asynkront.
         opprettPlanlagtKontrollsamtale: (VedtakInnvilgetSøknadsbehandling, TransactionContext) -> Unit,
+        lagreSkatteDokument: (Skattedokument, TransactionContext) -> Unit,
     ) {
         sessionFactory.withTransactionContext { tx ->
             /**
@@ -56,6 +58,7 @@ data class IverksattAvslåttSøknadsbehandlingResponse(
             lagreSøknadsbehandling(søknadsbehandling, tx)
             lagreVedtak(vedtak, tx)
             lagreDokument(dokument, tx)
+            //TODO(): lagre skattedokumentet
         }
         log.info("Iverksatt avslag for søknadsbehandling: ${søknadsbehandling.id}, vedtak: ${vedtak.id}")
         statistikkObservers.notify(statistikkhendelse)
