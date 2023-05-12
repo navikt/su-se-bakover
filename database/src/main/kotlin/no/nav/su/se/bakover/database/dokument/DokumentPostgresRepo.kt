@@ -14,15 +14,24 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.persistence.TransactionalSession
+import no.nav.su.se.bakover.common.persistence.hent
+import no.nav.su.se.bakover.common.persistence.hentListe
+import no.nav.su.se.bakover.common.persistence.insert
+import no.nav.su.se.bakover.common.persistence.oppdatering
+import no.nav.su.se.bakover.common.persistence.tidspunkt
+import no.nav.su.se.bakover.database.skatt.DokumentSkattPostgresRepo
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
+import no.nav.su.se.bakover.domain.skatt.Skattedokument
 import java.time.Clock
 import java.util.UUID
 
 internal class DokumentPostgresRepo(
+    private val dokumentSkatt: DokumentSkattPostgresRepo,
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
     private val clock: Clock,
@@ -205,6 +214,12 @@ internal class DokumentPostgresRepo(
                         session,
                     )
             }
+        }
+    }
+
+    override fun lagreSkatteDokument(dokument: Skattedokument) {
+        sessionFactory.withSession {
+            dokumentSkatt.lagre(dokument, it)
         }
     }
 

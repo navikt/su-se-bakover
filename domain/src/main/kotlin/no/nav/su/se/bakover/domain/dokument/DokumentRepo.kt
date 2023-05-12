@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.dokument
 
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.domain.skatt.Skattedokument
 import java.util.UUID
 
 interface DokumentRepo {
@@ -15,6 +16,8 @@ interface DokumentRepo {
     fun hentDokumentdistribusjon(id: UUID): Dokumentdistribusjon?
     fun hentDokumenterForDistribusjon(): List<Dokumentdistribusjon>
     fun oppdaterDokumentdistribusjon(dokumentdistribusjon: Dokumentdistribusjon)
+
+    fun lagreSkatteDokument(dokument: Skattedokument)
 
     fun defaultTransactionContext(): TransactionContext
 }
