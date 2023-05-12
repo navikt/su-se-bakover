@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.domain.skatt.Skattereferanser
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling.Companion.opprett
@@ -1008,6 +1009,10 @@ sealed class Søknadsbehandling :
             )
         }
     }
+
+    fun leggTilSkattereferanser(skattereferanser: Skattereferanser): Søknadsbehandling = copyInternal(
+        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilSkattereferanser(skattereferanser),
+    )
 }
 
 // Her trikses det litt for å få til at funksjonen returnerer den samme konkrete typen som den kalles på.

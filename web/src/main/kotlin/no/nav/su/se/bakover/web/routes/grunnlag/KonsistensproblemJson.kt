@@ -65,6 +65,6 @@ internal fun Konsistensproblem.tilResultat() = when (this) {
 }.let {
     HttpStatusCode.BadRequest.errorJson(
         message = it.message,
-        code = it.code!!,
+        code = it.code,
     )
 }

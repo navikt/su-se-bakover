@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.søknadsbehandling
 
+import jdk.jshell.spi.ExecutionControl.NotImplementedException
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
@@ -28,6 +29,7 @@ import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
 import no.nav.su.se.bakover.database.simulering.deserializeNullableSimulering
 import no.nav.su.se.bakover.database.simulering.serializeNullableSimulering
+import no.nav.su.se.bakover.database.skatt.SkattPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.database.søknadsbehandling.AldersvurderingJson.Companion.toDBJson
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB.Companion.status
@@ -43,12 +45,14 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
+import no.nav.su.se.bakover.domain.skatt.Skattereferanser
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingMedSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
@@ -95,6 +99,7 @@ internal class SøknadsbehandlingPostgresRepo(
     private val grunnlagsdataOgVilkårsvurderingerPostgresRepo: GrunnlagsdataOgVilkårsvurderingerPostgresRepo,
     private val avkortingsvarselRepo: AvkortingsvarselPostgresRepo,
     private val satsFactory: SatsFactoryForSupplerendeStønad,
+    private val skattRepo: SkattPostgresRepo,
 ) : SøknadsbehandlingRepo {
 
     override fun lagre(søknadsbehandling: Søknadsbehandling, sessionContext: TransactionContext) {
@@ -310,6 +315,7 @@ internal class SøknadsbehandlingPostgresRepo(
     }
 
     private fun lagre(søknadsbehandling: SøknadsbehandlingDb, tx: TransactionalSession) {
+        val (eksisterendeSøkerId, eksisterendeEpsId) = hentSkatteIDerForBehandling(søknadsbehandling.base.id, tx)
         (
             """
                     insert into behandling (
@@ -328,7 +334,9 @@ internal class SøknadsbehandlingPostgresRepo(
                         simulering,
                         lukket,
                         saksbehandling,
-                        aldersvurdering
+                        aldersvurdering,
+                        søkersskatteid,
+                        epsskatteid
                     ) values (
                         :id,
                         :sakId,
@@ -345,7 +353,9 @@ internal class SøknadsbehandlingPostgresRepo(
                         to_json(:simulering::json),
                         :lukket,
                         to_json(:saksbehandling::json),
-                        to_json(:aldersvurdering::json)
+                        to_json(:aldersvurdering::json),
+                        :sokersskatteid,
+                        :epsskatteid
                     ) on conflict(id) do update set
                         status = :status,
                         stønadsperiode = to_json(:stonadsperiode::json),
@@ -358,7 +368,9 @@ internal class SøknadsbehandlingPostgresRepo(
                         beregning = to_json(:beregning::json),
                         simulering =  to_json(:simulering::json),
                         lukket = :lukket,
-                        aldersvurdering = to_json(:aldersvurdering::json)
+                        aldersvurdering = to_json(:aldersvurdering::json),
+                        søkersskatteid = :sokersskatteid,
+                        epsskatteid = :epsskatteid
             """.trimIndent()
             ).insert(
             params = mapOf(
@@ -378,6 +390,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 "lukket" to søknadsbehandling.lukket,
                 "saksbehandling" to søknadsbehandling.base.søknadsbehandlingshistorikk,
                 "aldersvurdering" to søknadsbehandling.base.aldersvurdering,
+                "sokersskatteid" to søknadsbehandling.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.skattereferanser?.søkers,
+                "epsskatteid" to søknadsbehandling.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.skattereferanser?.eps,
             ),
             session = tx,
         )
@@ -385,6 +399,13 @@ internal class SøknadsbehandlingPostgresRepo(
         grunnlagsdataOgVilkårsvurderingerPostgresRepo.lagre(
             behandlingId = søknadsbehandling.base.id,
             grunnlagsdataOgVilkårsvurderinger = søknadsbehandling.grunnlagsdataOgVilkårsvurderinger,
+            tx = tx,
+        )
+
+        fjernSkattedataDersomSkattereferanserIkkeErIHenholdTilBehandling(
+            eksisterendeEpsId = eksisterendeEpsId,
+            eksisterendeSøkersId = eksisterendeSøkerId,
+            søknadsbehandling = søknadsbehandling,
             tx = tx,
         )
 
@@ -398,6 +419,20 @@ internal class SøknadsbehandlingPostgresRepo(
 
             else -> { /*noop*/
             }
+        }
+    }
+
+    private fun fjernSkattedataDersomSkattereferanserIkkeErIHenholdTilBehandling(
+        eksisterendeSøkersId: UUID?,
+        eksisterendeEpsId: UUID?,
+        søknadsbehandling: SøknadsbehandlingDb,
+        tx: TransactionalSession,
+    ) {
+        if (eksisterendeSøkersId != null && eksisterendeSøkersId != søknadsbehandling.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.skattereferanser?.søkers) {
+            throw NotImplementedException("Vi har ikke støtte for å fjerne søkers skattegrunnlag gjennom endring av søknadsbehandling. behandling id ${søknadsbehandling.base.id}")
+        }
+        if (eksisterendeEpsId != null && eksisterendeEpsId != søknadsbehandling.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.skattereferanser?.eps) {
+            skattRepo.slettSkattegrunnlag(eksisterendeEpsId, tx)
         }
     }
 
@@ -442,6 +477,114 @@ internal class SøknadsbehandlingPostgresRepo(
         return sessionFactory.newSessionContext()
     }
 
+    /**
+     * obs: Kan ikke slette søkers skattemelding, men kun oppdatere den til non-null.
+     *
+     * 1) hent skatteIDer på behandling (søker + eps)
+     * 2) lagre ny(e) skattegrunnlag
+     * 3) lagre behandling i sin helhet med skattegrunnlag
+     * 4) Slett overflødige skattegrunnlag
+     */
+    override fun lagreMedSkattegrunnlag(skattegrunnlagForSøknadsbehandling: SøknadsbehandlingMedSkattegrunnlag) {
+        dbMetrics.timeQuery("lagreMedSkattegrunnlag") {
+            sessionFactory.withTransaction { tx ->
+                val (eksisterendeSøker: UUID?, eksisterendeEps: UUID?) = hentSkatteIDerForBehandling(
+                    skattegrunnlagForSøknadsbehandling.søknadsbehandling.id,
+                    tx,
+                ).let { Pair(it.first, it.second) }
+
+                val skalOppdatereSøker = eksisterendeSøker != skattegrunnlagForSøknadsbehandling.søkersSkatteId
+
+                val skalSletteSøker =
+                    eksisterendeSøker != null && eksisterendeSøker != skattegrunnlagForSøknadsbehandling.søkersSkatteId
+
+                val skalOppdatereEps =
+                    skattegrunnlagForSøknadsbehandling.eps != null && eksisterendeEps != skattegrunnlagForSøknadsbehandling.epsSkatteId
+
+                val skalSletteEps =
+                    eksisterendeEps != null && eksisterendeEps != skattegrunnlagForSøknadsbehandling.epsSkatteId
+
+                if (!skalOppdatereSøker && !skalOppdatereEps && !skalSletteSøker && !skalSletteEps) {
+                    return@withTransaction
+                }
+
+                if (skalOppdatereSøker) {
+                    skattRepo.lagreSkattegrunnlag(
+                        id = skattegrunnlagForSøknadsbehandling.søkersSkatteId,
+                        sakId = skattegrunnlagForSøknadsbehandling.sakId,
+                        fnr = skattegrunnlagForSøknadsbehandling.søker.fnr,
+                        erEps = false,
+                        opprettet = skattegrunnlagForSøknadsbehandling.opprettet,
+                        data = skattegrunnlagForSøknadsbehandling.søker,
+                        saksbehandler = skattegrunnlagForSøknadsbehandling.søker.saksbehandler,
+                        årSpurtFor = skattegrunnlagForSøknadsbehandling.søker.årSpurtFor,
+                        session = tx,
+                    )
+                }
+
+                if (skalOppdatereEps) {
+                    skattRepo.lagreSkattegrunnlag(
+                        id = skattegrunnlagForSøknadsbehandling.epsSkatteId!!,
+                        sakId = skattegrunnlagForSøknadsbehandling.sakId,
+                        fnr = skattegrunnlagForSøknadsbehandling.eps!!.fnr,
+                        erEps = true,
+                        opprettet = skattegrunnlagForSøknadsbehandling.opprettet,
+                        data = skattegrunnlagForSøknadsbehandling.eps!!,
+                        saksbehandler = skattegrunnlagForSøknadsbehandling.eps!!.saksbehandler,
+                        årSpurtFor = skattegrunnlagForSøknadsbehandling.eps!!.årSpurtFor,
+                        session = tx,
+                    )
+                }
+                lagre(skattegrunnlagForSøknadsbehandling.søknadsbehandling.toDb(), tx)
+
+                if (skalSletteSøker) {
+                    skattRepo.slettSkattegrunnlag(eksisterendeSøker!!, tx)
+                }
+                if (skalSletteEps) {
+                    skattRepo.slettSkattegrunnlag(eksisterendeEps!!, tx)
+                }
+            }
+        }
+    }
+
+    private fun hentSkatteIDerForBehandling(
+        behandlingId: UUID,
+        session: Session,
+    ): Pair<UUID?, UUID?> {
+        return "select søkersSkatteId, epsSkatteId from behandling where id=:id"
+            .hent(mapOf("id" to behandlingId), session) {
+                it.uuidOrNull("søkersSkatteId") to it.uuidOrNull("epsSkatteId")
+            } ?: Pair(null, null)
+    }
+
+    override fun hentSkattegrunnlag(behandlingId: UUID): SøknadsbehandlingMedSkattegrunnlag? {
+        return dbMetrics.timeQuery("hentSkattegrunnlagForSøknadsbehandling") {
+            sessionFactory.withSession { session ->
+                internalHentSkattegrunnlag(behandlingId, session)
+            }
+        }
+    }
+
+    private fun internalHentSkattegrunnlag(behandlingId: UUID, session: Session): SøknadsbehandlingMedSkattegrunnlag? {
+        return hentSkatteIDerForBehandling(behandlingId, session).let {
+            val søkers = it.first?.let { skattRepo.hent(it, session) }
+            val eps = it.second?.let { skattRepo.hent(it, session) }
+
+            if (søkers == null) {
+                null
+            } else {
+                val søknadsbehandling = hent(behandlingId, session)
+                SøknadsbehandlingMedSkattegrunnlag(
+                    søknadsbehandling = søknadsbehandling
+                        ?: throw IllegalStateException("Fant ikke søknadsbehandling for id $behandlingId. Denne har eksistert tidligere?"),
+                    opprettet = søkers.hentetTidspunkt,
+                    søker = søkers,
+                    eps = eps,
+                )
+            }
+        }
+    }
+
     internal fun hent(id: UUID, session: Session): Søknadsbehandling? {
         return "select b.*, s.fnr, s.saksnummer, s.type from behandling b inner join sak s on s.id = b.sakId where b.id=:id"
             .hent(mapOf("id" to id), session) { row ->
@@ -477,10 +620,16 @@ internal class SøknadsbehandlingPostgresRepo(
             stønadsperiode?.let { AldersvurderingJson.toAldersvurdering(string("aldersvurdering"), it) }
 
         val fnr = Fnr(string("fnr"))
+
+        val skattereferanser = uuidOrNull("søkersSkatteId")?.let {
+            Skattereferanser(it, uuidOrNull("epsSkatteId"))
+        }
+
         val (grunnlagsdata, vilkårsvurderinger) = grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForSøknadsbehandling(
             behandlingId = behandlingId,
             session = session,
             sakstype = Sakstype.from(string("type")),
+            skattereferanser = skattereferanser,
         )
 
         val avkorting = deserializeNullable<AvkortingVedSøknadsbehandlingDb>(stringOrNull("avkorting"))?.toDomain()

@@ -89,6 +89,7 @@ data class VedtakPåTidslinje private constructor(
                  */
                 fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag
                     .mapNotNull { it.copy(args = CopyArgs.Snitt(periode)) },
+                skattereferanser = grunnlagsdata.skattereferanser,
             ),
             vilkårsvurderinger = vilkårsvurderinger.lagTidslinje(periode),
         )
@@ -108,6 +109,7 @@ data class VedtakPåTidslinje private constructor(
                 fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag
                     .filterNot { it.fradragstype == Fradragstype.ForventetInntekt }
                     .mapNotNull { it.copy(args = CopyArgs.Snitt(p)) },
+                skattereferanser = grunnlagsdata.skattereferanser,
             ),
             vilkårsvurderinger = vilkårsvurderinger.lagTidslinje(p),
             originaltVedtak = originaltVedtak,

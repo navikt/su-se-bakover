@@ -20,8 +20,8 @@ import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 internal fun leggTilBosituasjon(
     sakId: String,
     behandlingId: String,
-    fraOgMed: String,
-    tilOgMed: String,
+    fraOgMed: String = "2021-01-01",
+    tilOgMed: String = "2021-12-31",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
     body: () -> String = {
         """

@@ -77,6 +77,7 @@ internal fun Application.setupKtorRoutes(
                         accessProtectedServices.søknadsbehandling,
                         clock,
                         satsFactoryIDag,
+                        accessProtectedServices.toggles,
                         applicationConfig,
                     )
                     avstemmingRoutes(accessProtectedServices.avstemming, clock)

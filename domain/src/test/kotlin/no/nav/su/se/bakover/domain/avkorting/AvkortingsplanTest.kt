@@ -119,6 +119,7 @@ internal class AvkortingsplanTest {
                     ),
                 ),
                 bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = år(2021))),
+                skattereferanser = null,
             ),
         )
 
@@ -183,6 +184,7 @@ internal class AvkortingsplanTest {
                     ),
                 ),
                 bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = år(2021))),
+                skattereferanser = null,
             ),
         )
 
@@ -223,6 +225,7 @@ internal class AvkortingsplanTest {
                     ),
                 ),
                 bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = år(2021))),
+                skattereferanser = null,
             ),
         )
 

@@ -9,8 +9,10 @@ import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
+import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
@@ -31,6 +33,8 @@ internal fun createSøknadsbehandlingService(
     tilbakekrevingService: TilbakekrevingService = mock(),
     formuegrenserFactory: FormuegrenserFactory = formuegrenserFactoryTestPåDato(),
     satsFactory: SatsFactory = satsFactoryTestPåDato(),
+    sessionFactory: TestSessionFactory = TestSessionFactory(),
+    skatteService: SkatteService = mock(),
 ) = SøknadsbehandlingServiceImpl(
     søknadsbehandlingRepo = søknadsbehandlingRepo,
     utbetalingService = utbetalingService,
@@ -43,6 +47,8 @@ internal fun createSøknadsbehandlingService(
     tilbakekrevingService = tilbakekrevingService,
     formuegrenserFactory = formuegrenserFactory,
     satsFactory = satsFactory,
+    sessionFactory = sessionFactory,
+    skatteService = skatteService,
 ).apply { addObserver(observer) }
 
 internal data class SøknadsbehandlingServiceAndMocks(
@@ -58,6 +64,8 @@ internal data class SøknadsbehandlingServiceAndMocks(
     val tilbakekrevingService: TilbakekrevingService = defaultMock(),
     val formuegrenserFactory: FormuegrenserFactory = formuegrenserFactoryTestPåDato(),
     val satsFactory: SatsFactory = satsFactoryTestPåDato(),
+    val sessionFactory: TestSessionFactory = TestSessionFactory(),
+    val skatteService: SkatteService = mock(),
 ) {
     val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
         søknadsbehandlingRepo = søknadsbehandlingRepo,
@@ -71,6 +79,8 @@ internal data class SøknadsbehandlingServiceAndMocks(
         tilbakekrevingService = tilbakekrevingService,
         formuegrenserFactory = formuegrenserFactory,
         satsFactory = satsFactory,
+        sessionFactory = sessionFactory,
+        skatteService = skatteService,
     ).apply { addObserver(observer) }
 
     fun allMocks(): Array<Any> {

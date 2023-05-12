@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonAlias
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.domain.skatt.SkatteoppslagFeil
 import no.nav.su.se.bakover.domain.skatt.Stadie
 import org.slf4j.LoggerFactory
 import java.net.http.HttpHeaders

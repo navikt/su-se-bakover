@@ -10,9 +10,13 @@ import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harFjernetEllerEndretEps
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.slåSammenPeriodeOgBosituasjon
+import no.nav.su.se.bakover.test.bosituasjonEpsOver67
+import no.nav.su.se.bakover.test.bosituasjonEpsUnder67
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -111,5 +115,59 @@ internal class BosituasjonTest {
             periode = mars(2021),
             fnr = b3.fnr,
         )
+    }
+
+    @Nested
+    // Alle bosituasjoner med eps
+    inner class HarFjernetEllerEndretEps {
+        @Test
+        fun `tom bosituasjon som blir oppdatert til tom - gir false`() {
+            listOf<Grunnlag.Bosituasjon>().harFjernetEllerEndretEps(emptyList()) shouldBe false
+        }
+
+        @Test
+        fun `fra 1 til tom - true`() {
+            listOf(bosituasjonEpsOver67()).harFjernetEllerEndretEps(emptyList()) shouldBe true
+        }
+
+        @Test
+        fun `fra tom til 1 - false`() {
+            emptyList<Grunnlag.Bosituasjon>().harFjernetEllerEndretEps(listOf(bosituasjonEpsOver67())) shouldBe false
+        }
+
+        @Test
+        fun `liste med 2, fjerner 1 eps - true`() {
+            val over67 = bosituasjonEpsOver67()
+            listOf(over67, bosituasjonEpsUnder67()).harFjernetEllerEndretEps(listOf(over67)) shouldBe true
+        }
+
+        @Test
+        fun `liste med 2, endrer bare eps fnr - true`() {
+            val over67 = bosituasjonEpsOver67()
+            listOf(over67, bosituasjonEpsUnder67(fnr = Fnr.generer())).harFjernetEllerEndretEps(
+                listOf(over67, bosituasjonEpsUnder67(fnr = Fnr.generer())),
+            ) shouldBe true
+        }
+
+        @Test
+        fun `liste med 2, endrer ingenting - false`() {
+            val over67 = bosituasjonEpsOver67()
+            val under67 = bosituasjonEpsUnder67()
+            listOf(over67, under67).harFjernetEllerEndretEps(listOf(over67, under67)) shouldBe false
+        }
+
+        @Test
+        fun `liste med 2, endrer rekkefølge - false`() {
+            val over67 = bosituasjonEpsOver67()
+            val under67 = bosituasjonEpsUnder67()
+            listOf(over67, under67).harFjernetEllerEndretEps(listOf(under67, over67)) shouldBe false
+        }
+
+        @Test
+        fun `liste med 2, legger til 1 - false`() {
+            val over67 = bosituasjonEpsOver67()
+            val under67 = bosituasjonEpsUnder67()
+            listOf(over67, under67).harFjernetEllerEndretEps(listOf(over67, under67, bosituasjonEpsUnder67(fnr = Fnr.generer()))) shouldBe false
+        }
     }
 }

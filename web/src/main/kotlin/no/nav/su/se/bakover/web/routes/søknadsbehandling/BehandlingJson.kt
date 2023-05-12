@@ -23,4 +23,5 @@ internal data class BehandlingJson(
     val simuleringForAvkortingsvarsel: SimuleringJson?,
     val sakstype: String,
     val aldersvurdering: AldersvurderingJson?,
+    val harSkattegrunnlag: Boolean,
 )

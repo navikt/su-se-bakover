@@ -253,7 +253,7 @@ data class TestClientsBuilder(
         klageClient = KlageClientStub,
         journalpostClient = JournalpostClientStub,
         tilbakekrevingClient = TilbakekrevingClientStub(clock),
-        skatteOppslag = SkatteClientStub(clock),
+        skatteOppslag = SkatteClientStub(),
     )
 
     override fun build(applicationConfig: ApplicationConfig): Clients = testClients

@@ -59,6 +59,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         val expected = uavklart.copy(
             grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(bosituasjon),
+                skattereferanser = null,
             ),
             vilkårsvurderinger = uavklart.vilkårsvurderinger.leggTil(
                 tilstrekkeligDokumentert(),
@@ -161,7 +162,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
     }
 
     @Test
-    fun `happy case`() {
+    fun `endrer bosituasjon & sletter skattegrunnlaget`() {
         val søknadsbehandling = vilkårsvurdertSøknadsbehandling(
             stønadsperiode = stønadsperiode,
             sakOgSøknad = nySakMedjournalførtSøknadOgOppgave(),
@@ -216,7 +217,6 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         )
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe søknadsbehandling.id })
-        verify(søknadsbehandlingRepoMock).defaultTransactionContext()
         verify(søknadsbehandlingRepoMock).lagre(any(), anyOrNull())
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)
     }

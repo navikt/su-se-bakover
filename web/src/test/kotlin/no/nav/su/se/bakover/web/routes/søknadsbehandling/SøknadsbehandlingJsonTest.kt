@@ -441,7 +441,8 @@ internal class SøknadsbehandlingJsonTest {
               "aldersvurdering": {
                 "harSaksbehandlerAvgjort": false,
                 "maskinellVurderingsresultat": "RETT_PÅ_UFØRE"
-              }
+              },
+              "harSkattegrunnlag": false
             }
         """.trimIndent()
         JSONAssert.assertEquals(expected, serialize(søknadsbehandling.toJson(satsFactoryTestPåDato())), true)
@@ -644,7 +645,8 @@ internal class SøknadsbehandlingJsonTest {
               "aldersvurdering": {
                 "harSaksbehandlerAvgjort": false,
                 "maskinellVurderingsresultat": "RETT_PÅ_UFØRE"
-              }
+              },
+              "harSkattegrunnlag": false
             }
         """.trimIndent()
 

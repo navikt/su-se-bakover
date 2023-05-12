@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
 /* forstår seg på hvordan et resultat med en melding blir til en http-response */
 data class Resultat private constructor(
     val httpCode: HttpStatusCode,
-    private val json: String,
+    val json: String,
     private val contentType: ContentType,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)

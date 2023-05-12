@@ -127,16 +127,19 @@ import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeHenteNySkattedata
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingMedSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
@@ -189,8 +192,6 @@ import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
-import no.nav.su.se.bakover.service.skatt.HentSamletSkattegrunnlagForBehandlingResponse
-import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
@@ -660,6 +661,27 @@ open class AccessCheckProxy(
                         assertHarTilgangTilBehandling(request.behandlingId)
                         return service.leggTilBosituasjongrunnlag(request, saksbehandler)
                     }
+
+                    override fun nySkattegrunnlag(
+                        behandlingId: UUID,
+                        saksbehandler: NavIdentBruker.Saksbehandler,
+                    ): SøknadsbehandlingMedSkattegrunnlag {
+                        assertHarTilgangTilBehandling(behandlingId)
+                        return service.nySkattegrunnlag(behandlingId, saksbehandler)
+                    }
+
+                    override fun hentSkattegrunnlag(behandlingId: UUID): Either<KunneIkkeHenteSkattemelding.FinnesIkke, SøknadsbehandlingMedSkattegrunnlag> {
+                        assertHarTilgangTilBehandling(behandlingId)
+                        return service.hentSkattegrunnlag(behandlingId)
+                    }
+
+                    override fun oppfrisk(
+                        behandlingId: UUID,
+                        saksbehandler: NavIdentBruker.Saksbehandler,
+                    ): Either<KunneIkkeHenteNySkattedata, SøknadsbehandlingMedSkattegrunnlag> {
+                        assertHarTilgangTilBehandling(behandlingId)
+                        return service.oppfrisk(behandlingId, saksbehandler)
+                    }
                 },
             ),
             ferdigstillVedtak = object : FerdigstillVedtakService {
@@ -1094,22 +1116,19 @@ open class AccessCheckProxy(
             skatteService = object : SkatteService {
                 override fun hentSamletSkattegrunnlag(
                     fnr: Fnr,
-                ): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag> {
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                ): Skattegrunnlag {
                     assertHarTilgangTilPerson(fnr)
-                    return services.skatteService.hentSamletSkattegrunnlag(fnr)
+                    return services.skatteService.hentSamletSkattegrunnlag(fnr, saksbehandler)
                 }
 
                 override fun hentSamletSkattegrunnlagForÅr(
                     fnr: Fnr,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
                     yearRange: YearRange,
-                ): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag> {
+                ): Skattegrunnlag {
                     assertHarTilgangTilPerson(fnr)
-                    return services.skatteService.hentSamletSkattegrunnlagForÅr(fnr, yearRange)
-                }
-
-                override fun hentSamletSkattegrunnlagForBehandling(behandlingId: UUID): HentSamletSkattegrunnlagForBehandlingResponse {
-                    assertHarTilgangTilBehandling(behandlingId)
-                    return services.skatteService.hentSamletSkattegrunnlagForBehandling(behandlingId)
+                    return services.skatteService.hentSamletSkattegrunnlagForÅr(fnr, saksbehandler, yearRange)
                 }
             },
             kontrollsamtaleSetup = object : KontrollsamtaleSetup {

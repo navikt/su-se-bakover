@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.skatt
+package no.nav.su.se.bakover.web.søknadsbehandling.skatt
 
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
@@ -14,8 +14,9 @@ import no.nav.su.se.bakover.web.SharedRegressionTestData
 
 fun hentSkattegrunnlagForÅr(
     behandlingId: String,
+    sakId: String,
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
-    url: String = "/skatt/soknadsbehandling/$behandlingId",
+    url: String = "/saker/$sakId/behandlinger/$behandlingId/samletSkattegrunnlag",
     client: HttpClient,
 ): String {
     return runBlocking {

@@ -57,6 +57,11 @@ data class GjeldendeVedtaksdata(
             bosituasjon = vedtakPåTidslinje.flatMap {
                 it.grunnlagsdata.bosituasjonSomFullstendig()
             }.slåSammenPeriodeOgBosituasjon(),
+            /**
+             * Vi vil ikke bruke eksisterende skattegrunnlag på tvers av behandlinger.
+             * Heller hent et nytt et på behandlingen dersom man har behov for det
+             */
+            skattereferanser = null,
         )
         vilkårsvurderinger = vedtakPåTidslinje.let {
             // TODO("vilkårsvurdering_alder mulig vi må/bør gjøre dette på en annen måte")

@@ -64,9 +64,9 @@ object MockDatabaseBuilder {
             avkortingsvarselRepo = avkortingsvarselRepo,
             reguleringRepo = reguleringRepo,
             tilbakekrevingRepo = tilbakekrevingRepo,
+            sendPåminnelseNyStønadsperiodeJobRepo = sendPåminnelseNyStønadsperiodeJobRepo,
             hendelseRepo = hendelseRepo,
             utenlandsoppholdRepo = utenlandsoppholdRepo,
-            sendPåminnelseNyStønadsperiodeJobRepo = sendPåminnelseNyStønadsperiodeJobRepo,
         )
     }
 }

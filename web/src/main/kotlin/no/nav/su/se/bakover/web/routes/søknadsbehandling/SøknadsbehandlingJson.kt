@@ -47,6 +47,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
             simuleringForAvkortingsvarsel = avkorting.toJson(),
             sakstype = sakstype.toJson(),
             aldersvurdering = this.aldersvurdering?.toJson(),
+            harSkattegrunnlag = this.grunnlagsdata.skattereferanser != null,
         )
 
         is BeregnetSøknadsbehandling -> {
@@ -67,6 +68,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
+                harSkattegrunnlag = this.grunnlagsdata.skattereferanser != null,
             )
         }
 
@@ -88,6 +90,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
+                harSkattegrunnlag = this.grunnlagsdata.skattereferanser != null,
             )
         }
 
@@ -109,6 +112,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
+                harSkattegrunnlag = this.grunnlagsdata.skattereferanser != null,
             )
         }
 
@@ -130,6 +134,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
+                harSkattegrunnlag = this.grunnlagsdata.skattereferanser != null,
             )
         }
 
@@ -151,6 +156,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
+                harSkattegrunnlag = this.grunnlagsdata.skattereferanser != null,
             )
         }
 
@@ -189,6 +195,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
+                harSkattegrunnlag = this.grunnlagsdata.skattereferanser != null,
             )
         }
 
@@ -210,6 +217,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
+                harSkattegrunnlag = this.grunnlagsdata.skattereferanser != null,
             )
         }
 
@@ -231,6 +239,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
+                harSkattegrunnlag = this.grunnlagsdata.skattereferanser != null,
             )
         }
 
@@ -252,6 +261,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
+                harSkattegrunnlag = this.grunnlagsdata.skattereferanser != null,
             )
         }
 
@@ -273,6 +283,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
+                harSkattegrunnlag = this.grunnlagsdata.skattereferanser != null,
             )
         }
 
@@ -294,6 +305,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
+                harSkattegrunnlag = this.grunnlagsdata.skattereferanser != null,
             )
         }
 

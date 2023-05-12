@@ -3,49 +3,44 @@ package no.nav.su.se.bakover.domain.skatt
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.YearRange
+import no.nav.su.se.bakover.common.toYearRange
 import java.time.LocalDate
-import java.time.Year
 
 data class Skattegrunnlag(
     val fnr: Fnr,
     val hentetTidspunkt: Tidspunkt,
-    val årsgrunnlag: NonEmptyList<Årsgrunnlag>,
+    val saksbehandler: NavIdentBruker.Saksbehandler,
+    val årsgrunnlag: NonEmptyList<SamletSkattegrunnlagForÅrOgStadie>,
+    val årSpurtFor: YearRange,
 ) {
+    init {
+        require(årsgrunnlag.map { it.inntektsår }.toYearRange() == årSpurtFor) {
+            "År som er spurt for, er ikke lik det som finnes i årsgrunnlagene"
+        }
+    }
+
     constructor(
         fnr: Fnr,
         hentetTidspunkt: Tidspunkt,
-        årsgrunnlag: Årsgrunnlag,
-    ) : this(fnr, hentetTidspunkt, nonEmptyListOf(årsgrunnlag))
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        årsgrunnlag: SamletSkattegrunnlagForÅrOgStadie,
+        årSpurtFor: YearRange,
+    ) : this(fnr, hentetTidspunkt, saksbehandler, nonEmptyListOf(årsgrunnlag), årSpurtFor)
 
-    data class Årsgrunnlag(
-        val inntektsår: Year,
-        val skatteoppgjørsdato: LocalDate?,
-        val grunnlag: Grunnlagsliste,
-        val stadie: Stadie,
-    )
-
-    data class Grunnlagsliste(
+    data class SkattegrunnlagForÅr(
+        val oppgjørsdato: LocalDate?,
         val formue: List<Grunnlag.Formue> = emptyList(),
         val inntekt: List<Grunnlag.Inntekt> = emptyList(),
         val inntektsfradrag: List<Grunnlag.Inntektsfradrag> = emptyList(),
         val formuesfradrag: List<Grunnlag.Formuesfradrag> = emptyList(),
         val verdsettingsrabattSomGirGjeldsreduksjon: List<Grunnlag.VerdsettingsrabattSomGirGjeldsreduksjon> = emptyList(),
         val oppjusteringAvEierinntekter: List<Grunnlag.OppjusteringAvEierinntekter> = emptyList(),
+        val manglerKategori: List<Grunnlag.ManglerKategori> = emptyList(),
         val annet: List<Grunnlag.Annet> = emptyList(),
-    ) {
-        operator fun plus(b: Grunnlagsliste): Grunnlagsliste {
-            return Grunnlagsliste(
-                formue = this.formue + b.formue,
-                inntekt = this.inntekt + b.inntekt,
-                inntektsfradrag = this.inntektsfradrag + b.inntektsfradrag,
-                formuesfradrag = this.formuesfradrag + b.formuesfradrag,
-                verdsettingsrabattSomGirGjeldsreduksjon = this.verdsettingsrabattSomGirGjeldsreduksjon + b.verdsettingsrabattSomGirGjeldsreduksjon,
-                oppjusteringAvEierinntekter = this.oppjusteringAvEierinntekter + b.oppjusteringAvEierinntekter,
-                annet = this.annet + b.annet,
-            )
-        }
-    }
+    )
 
     /**
      * https://skatteetaten.github.io/datasamarbeid-api-dokumentasjon/data_summertskattegrunnlag2021

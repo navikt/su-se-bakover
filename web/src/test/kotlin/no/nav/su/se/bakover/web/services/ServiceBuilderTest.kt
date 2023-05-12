@@ -44,9 +44,9 @@ internal class ServiceBuilderTest {
                 avkortingsvarselRepo = mock(),
                 reguleringRepo = defaultMock(),
                 tilbakekrevingRepo = mock(),
+                sendPåminnelseNyStønadsperiodeJobRepo = mock(),
                 hendelseRepo = mock(),
                 utenlandsoppholdRepo = mock(),
-                sendPåminnelseNyStønadsperiodeJobRepo = mock(),
             ),
             clients = Clients(
                 oauth = mock(),

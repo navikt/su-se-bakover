@@ -6,6 +6,8 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.YearRange
+import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
@@ -30,6 +32,7 @@ import no.nav.su.se.bakover.common.periode.oktober
 import no.nav.su.se.bakover.common.periode.september
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
+import no.nav.su.se.bakover.common.toPeriode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.søknadsbehandling.StøtterIkkeOverlappendeStønadsperioder
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
@@ -50,6 +53,7 @@ import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandling
 import org.junit.jupiter.api.Test
+import java.time.Year
 
 internal class OppdaterStønadsperiodeTest {
 
@@ -293,5 +297,16 @@ internal class OppdaterStønadsperiodeTest {
                 saksbehandlersAvgjørelse = null,
             ).shouldBeRight()
         }
+    }
+
+    @Test
+    fun `stønadsperiode som kun går innenfor et år, gir en YearRange for kun det året`() {
+        Stønadsperiode.create(år(2021)).toYearRange() shouldBe YearRange(Year.of(2021), Year.of(2021))
+    }
+
+    @Test
+    fun `stønadsperiode som krysser over 2 år, gir en YearRange på start og slutt året`() {
+        Stønadsperiode.create((1.mai(2021)..30.april(2022)).toPeriode()).toYearRange() shouldBe
+            YearRange(Year.of(2021), Year.of(2022))
     }
 }
