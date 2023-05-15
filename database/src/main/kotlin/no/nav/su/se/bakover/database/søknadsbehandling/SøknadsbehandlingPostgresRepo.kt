@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.database.søknadsbehandling
 
-import jdk.jshell.spi.ExecutionControl.NotImplementedException
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
@@ -429,7 +428,7 @@ internal class SøknadsbehandlingPostgresRepo(
         tx: TransactionalSession,
     ) {
         if (eksisterendeSøkersId != null && eksisterendeSøkersId != søknadsbehandling.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.skattereferanser?.søkers) {
-            throw NotImplementedException("Vi har ikke støtte for å fjerne søkers skattegrunnlag gjennom endring av søknadsbehandling. behandling id ${søknadsbehandling.base.id}")
+            TODO("Vi har ikke støtte for å fjerne søkers skattegrunnlag gjennom endring av søknadsbehandling. behandling id ${søknadsbehandling.base.id}")
         }
         if (eksisterendeEpsId != null && eksisterendeEpsId != søknadsbehandling.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.skattereferanser?.eps) {
             skattRepo.slettSkattegrunnlag(eksisterendeEpsId, tx)
