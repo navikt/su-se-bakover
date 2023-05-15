@@ -5,7 +5,7 @@ import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
+import no.nav.su.se.bakover.domain.skatt.EksternGrunnlagSkattRequest
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandling
 import no.nav.su.se.bakover.test.enUkeEtterFixedTidspunkt
 import no.nav.su.se.bakover.test.fixedClock
@@ -31,21 +31,21 @@ internal class SøknadsbehandlingSkattTest {
         @Test
         fun `tilstand tilAttestering`() {
             søknadsbehandlingTilAttesteringInnvilget().second.leggTilSkatt(
-                EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest(nySkattegrunnlag(), null),
+                EksternGrunnlagSkattRequest(nySkattegrunnlag(), null),
             ).shouldBeLeft()
         }
 
         @Test
         fun `tilstand iverksatt`() {
             søknadsbehandlingIverksattInnvilget().second.leggTilSkatt(
-                EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest(nySkattegrunnlag(), null),
+                EksternGrunnlagSkattRequest(nySkattegrunnlag(), null),
             ).shouldBeLeft()
         }
 
         @Test
         fun `tilstand lukket`() {
             søknadsbehandlingTrukket().second.leggTilSkatt(
-                EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest(nySkattegrunnlag(), null),
+                EksternGrunnlagSkattRequest(nySkattegrunnlag(), null),
             ).shouldBeLeft()
         }
     }
@@ -55,42 +55,33 @@ internal class SøknadsbehandlingSkattTest {
         @Test
         fun `tilstand vilkårsvurdert med eps`() {
             søknadsbehandlingVilkårsvurdertUavklart().second.leggTilSkatt(
-                EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest(
-                    nySkattegrunnlag(),
-                    nySkattegrunnlag(),
-                ),
+                EksternGrunnlagSkattRequest(nySkattegrunnlag(), nySkattegrunnlag()),
             ).shouldBeRight()
         }
 
         @Test
         fun `tilstand beregnet - kan legge til dersom hentet fra før, ellers left`() {
             beregnetSøknadsbehandling().second.leggTilSkatt(
-                EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest(nySkattegrunnlag(), null),
+                EksternGrunnlagSkattRequest(nySkattegrunnlag(), null),
             ).shouldBeLeft()
 
             søknadsbehandlingVilkårsvurdertInnvilget().second
-                .leggTilSkatt(
-                    EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest(nySkattegrunnlag(), null),
-                )
+                .leggTilSkatt(EksternGrunnlagSkattRequest(nySkattegrunnlag(), null))
                 .getOrFail()
                 .beregn(saksbehandler, "", fixedClock, satsFactoryTestPåDato())
                 .getOrFail()
-                .leggTilSkatt(
-                    EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest(nySkattegrunnlag(), null),
-                )
+                .leggTilSkatt(EksternGrunnlagSkattRequest(nySkattegrunnlag(), null))
                 .shouldBeRight()
         }
 
         @Test
         fun `tilstand simulert - kan legge til dersom hentet fra før, ellers left`() {
             simulertSøknadsbehandling().second.leggTilSkatt(
-                EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest(nySkattegrunnlag(), null),
+                EksternGrunnlagSkattRequest(nySkattegrunnlag(), null),
             ).shouldBeLeft()
 
             søknadsbehandlingVilkårsvurdertInnvilget().second
-                .leggTilSkatt(
-                    EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest(nySkattegrunnlag(), null),
-                )
+                .leggTilSkatt(EksternGrunnlagSkattRequest(nySkattegrunnlag(), null))
                 .getOrFail()
                 .beregn(saksbehandler, "", fixedClock, satsFactoryTestPåDato())
                 .getOrFail()
@@ -99,21 +90,18 @@ internal class SøknadsbehandlingSkattTest {
                     fixedClock,
                 ) { _, _ -> simuleringNy().right() }
                 .getOrFail()
-                .leggTilSkatt(
-                    EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest(nySkattegrunnlag(), null),
-                ).shouldBeRight()
+                .leggTilSkatt(EksternGrunnlagSkattRequest(nySkattegrunnlag(), null))
+                .shouldBeRight()
         }
 
         @Test
         fun `tilstand underkjent - kan legge til dersom hentet fra før, ellers left`() {
             underkjentSøknadsbehandling().second.leggTilSkatt(
-                EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest(nySkattegrunnlag(), null),
+                EksternGrunnlagSkattRequest(nySkattegrunnlag(), null),
             ).shouldBeLeft()
 
             søknadsbehandlingVilkårsvurdertInnvilget().second
-                .leggTilSkatt(
-                    EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest(nySkattegrunnlag(), null),
-                )
+                .leggTilSkatt(EksternGrunnlagSkattRequest(nySkattegrunnlag(), null))
                 .getOrFail()
                 .beregn(saksbehandler, "", fixedClock, satsFactoryTestPåDato())
                 .getOrFail()
@@ -129,9 +117,7 @@ internal class SøknadsbehandlingSkattTest {
                         "Skal underkjenne for å kunne hente ny skattegrunnlag",
                     ),
                 )
-                .leggTilSkatt(
-                    EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest(nySkattegrunnlag(), null),
-                ).shouldBeRight()
+                .leggTilSkatt(EksternGrunnlagSkattRequest(nySkattegrunnlag(), null)).shouldBeRight()
         }
     }
 }

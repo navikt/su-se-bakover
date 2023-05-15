@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
-import java.util.UUID
 
 sealed interface EksterneGrunnlag {
     fun leggTilSkatt(skatt: EksterneGrunnlagSkatt.Hentet): EksterneGrunnlag
@@ -32,39 +31,13 @@ sealed interface EksterneGrunnlagSkatt {
     }
 
     data class Hentet(
-        val søkers: SkattegrunnlagMedId,
-        val eps: SkattegrunnlagMedId?,
+        val søkers: Skattegrunnlag,
+        val eps: Skattegrunnlag?,
     ) : EksterneGrunnlagSkatt {
 
         override fun fjernEps(): EksterneGrunnlagSkatt = this.copy(eps = null)
-
-        companion object {
-            data class EksternGrunnlagSkattRequest(
-                val søkers: Skattegrunnlag,
-                val eps: Skattegrunnlag?,
-            ) {
-                fun tilHentet(): Hentet {
-                    return Hentet(
-                        søkers = SkattegrunnlagMedId(id = UUID.randomUUID(), skattegrunnlag = søkers),
-                        eps = if (eps == null) {
-                            null
-                        } else {
-                            SkattegrunnlagMedId(
-                                id = UUID.randomUUID(),
-                                skattegrunnlag = eps,
-                            )
-                        },
-                    )
-                }
-            }
-        }
     }
 }
-
-data class SkattegrunnlagMedId(
-    val id: UUID,
-    val skattegrunnlag: Skattegrunnlag,
-)
 
 object StøtterIkkeHentingAvEksternGrunnlag : EksterneGrunnlag {
     override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt.Hentet): EksterneGrunnlag {

@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.periode.erSammenhengendeSortertOgUtenDuplikat
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harFjernetEllerEndretEps
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderMedEPS
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderUtenEPS
+import no.nav.su.se.bakover.domain.skatt.EksternGrunnlagSkattRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
@@ -33,7 +34,7 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
 
     abstract fun leggTil(vilkår: Vilkår): GrunnlagsdataOgVilkårsvurderinger
     abstract fun leggTilFradragsgrunnlag(grunnlag: List<Grunnlag.Fradragsgrunnlag>): GrunnlagsdataOgVilkårsvurderinger
-    abstract fun leggTilSkatt(skatt: EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest): GrunnlagsdataOgVilkårsvurderinger
+    abstract fun leggTilSkatt(skatt: EksternGrunnlagSkattRequest): GrunnlagsdataOgVilkårsvurderinger
 
     protected fun kastHvisPerioderIkkeErLike() {
         if (grunnlagsdata.periode != null && vilkårsvurderinger.periode != null) {
@@ -137,7 +138,7 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
             )
         }
 
-        override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest): GrunnlagsdataOgVilkårsvurderinger =
+        override fun leggTilSkatt(skatt: EksternGrunnlagSkattRequest): GrunnlagsdataOgVilkårsvurderinger =
             this.copy(eksterneGrunnlag = eksterneGrunnlag.leggTilSkatt(skatt.tilHentet()))
 
         override fun oppdaterBosituasjon(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>): Søknadsbehandling {
@@ -236,7 +237,7 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
             return copy(grunnlagsdata = grunnlagsdata.copy(fradragsgrunnlag = grunnlag))
         }
 
-        override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest): GrunnlagsdataOgVilkårsvurderinger =
+        override fun leggTilSkatt(skatt: EksternGrunnlagSkattRequest): GrunnlagsdataOgVilkårsvurderinger =
             throw UnsupportedOperationException("Støtter ikke å legge til skatt fra ekstern kilde for revurdering")
     }
 }

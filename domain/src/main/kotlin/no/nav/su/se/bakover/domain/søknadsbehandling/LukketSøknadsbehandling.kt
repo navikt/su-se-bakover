@@ -5,9 +5,9 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.domain.skatt.EksternGrunnlagSkattRequest
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
@@ -108,7 +108,7 @@ data class LukketSøknadsbehandling private constructor(
         }
     }
 
-    override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> =
+    override fun leggTilSkatt(skatt: EksternGrunnlagSkattRequest): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> =
         KunneIkkeLeggeTilSkattegrunnlag.UgyldigTilstand.left()
 
     companion object {

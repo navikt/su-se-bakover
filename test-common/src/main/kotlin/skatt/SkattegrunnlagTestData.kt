@@ -16,8 +16,10 @@ import no.nav.su.se.bakover.test.fixedClock
 import java.time.Clock
 import java.time.LocalDate
 import java.time.Year
+import java.util.UUID
 
 fun nySkattegrunnlag(
+    id: UUID = UUID.randomUUID(),
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     årsgrunnlag: NonEmptyList<SamletSkattegrunnlagForÅrOgStadie> = nonEmptyListOf(
@@ -27,6 +29,7 @@ fun nySkattegrunnlag(
     hentetTidspunkt: Tidspunkt = Tidspunkt.now(clock),
     årSpurtFor: YearRange = årsgrunnlag.toYearRange(),
 ) = Skattegrunnlag(
+    id = id,
     fnr = fnr,
     hentetTidspunkt = hentetTidspunkt,
     saksbehandler = saksbehandler,

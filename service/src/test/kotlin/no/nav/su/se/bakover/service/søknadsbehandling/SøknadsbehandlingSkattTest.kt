@@ -5,7 +5,6 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.toRange
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
-import no.nav.su.se.bakover.domain.grunnlag.SkattegrunnlagMedId
 import no.nav.su.se.bakover.domain.grunnlag.StøtterHentingAvEksternGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.service.skatt.SkatteService
@@ -23,14 +22,16 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import java.time.Year
+import java.util.UUID
 
 class SøknadsbehandlingSkattTest {
 
     @Test
     fun `henter ny`() {
         val søknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().second
+        val skatteId = UUID.randomUUID()
         val skatteServiceMock = mock<SkatteService> {
-            on { this.hentSamletSkattegrunnlagForÅr(any(), any(), any()) } doReturn nySkattegrunnlag()
+            on { this.hentSamletSkattegrunnlagForÅr(any(), any(), any()) } doReturn nySkattegrunnlag(skatteId)
         }
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn søknadsbehandling
@@ -53,13 +54,7 @@ class SøknadsbehandlingSkattTest {
             søknadsbehandling = argThat {
                 it shouldBe søknadsbehandling.copy(
                     eksterneGrunnlag = StøtterHentingAvEksternGrunnlag(
-                        skatt = EksterneGrunnlagSkatt.Hentet(
-                            søkers = SkattegrunnlagMedId(
-                                id = (it.eksterneGrunnlag.skatt as EksterneGrunnlagSkatt.Hentet).søkers.id,
-                                skattegrunnlag = nySkattegrunnlag(),
-                            ),
-                            eps = null,
-                        ),
+                        skatt = EksterneGrunnlagSkatt.Hentet(søkers = nySkattegrunnlag(skatteId), eps = null),
                     ),
                 )
             },

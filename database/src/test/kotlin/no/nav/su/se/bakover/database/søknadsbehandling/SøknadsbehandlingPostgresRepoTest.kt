@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.skatt.EksternGrunnlagSkattRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
@@ -543,24 +544,21 @@ internal class SøknadsbehandlingPostgresRepoTest {
             }
 
             val behandlingMedSkatt = behandling.leggTilSkatt(
-                EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest(nySkattegrunnlag(), null),
+                EksternGrunnlagSkattRequest(nySkattegrunnlag(), null),
             ).getOrFail().also { medSkatt ->
                 repo.lagre(medSkatt)
                 repo.hent(medSkatt.id) shouldBe medSkatt
             }
 
             val oppdatertMedEps = behandlingMedSkatt.leggTilSkatt(
-                EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest(
-                    nySkattegrunnlag(),
-                    nySkattegrunnlag(),
-                ),
+                EksternGrunnlagSkattRequest(nySkattegrunnlag(), nySkattegrunnlag()),
             ).getOrFail().also { medEps ->
                 repo.lagre(medEps)
                 repo.hent(medEps.id) shouldBe medEps
             }
 
             oppdatertMedEps.leggTilSkatt(
-                EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest(nySkattegrunnlag(), null),
+                EksternGrunnlagSkattRequest(nySkattegrunnlag(), null),
             ).getOrFail().also { utenEps ->
                 repo.lagre(utenEps)
                 repo.hent(utenEps.id) shouldBe utenEps
@@ -574,10 +572,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.søknadsbehandlingRepo
             val medEps = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklartMedSkatt(
-                EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest(
-                    nySkattegrunnlag(),
-                    nySkattegrunnlag(),
-                ),
+                EksternGrunnlagSkattRequest(nySkattegrunnlag(), nySkattegrunnlag()),
             )
             val skattRepo = SkattPostgresRepo
             val medEpsSøkersId = (medEps.eksterneGrunnlag.skatt as EksterneGrunnlagSkatt.Hentet).søkers.id

@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.persistence.tidspunkt
 import no.nav.su.se.bakover.database.common.YearRangeJson.Companion.toStringifiedYearRangeJson
 import no.nav.su.se.bakover.database.skatt.SkattegrunnlagDbJson.Companion.toDbJson
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
-import no.nav.su.se.bakover.domain.grunnlag.SkattegrunnlagMedId
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import java.util.UUID
 
@@ -50,26 +49,26 @@ internal object SkattPostgresRepo {
         }
     }
 
-    fun slettSkattegrunnlag(id: UUID, session: Session) {
+    private fun slettSkattegrunnlag(id: UUID, session: Session) {
         "delete from skatt where id=:id".oppdatering(mapOf("id" to id), session)
     }
 
-    private fun lagreForSøker(sakId: UUID, skatt: SkattegrunnlagMedId, session: Session) {
+    private fun lagreForSøker(sakId: UUID, skatt: Skattegrunnlag, session: Session) {
         lagreSkattekall(
             id = skatt.id, sakId = sakId,
-            fnr = skatt.skattegrunnlag.fnr, erEps = false,
-            opprettet = skatt.skattegrunnlag.hentetTidspunkt, data = skatt.skattegrunnlag,
-            saksbehandler = skatt.skattegrunnlag.saksbehandler, årSpurtFor = skatt.skattegrunnlag.årSpurtFor,
+            fnr = skatt.fnr, erEps = false,
+            opprettet = skatt.hentetTidspunkt, data = skatt,
+            saksbehandler = skatt.saksbehandler, årSpurtFor = skatt.årSpurtFor,
             session = session,
         )
     }
 
-    private fun lagreForEps(sakId: UUID, skatt: SkattegrunnlagMedId, session: Session) {
+    private fun lagreForEps(sakId: UUID, skatt: Skattegrunnlag, session: Session) {
         lagreSkattekall(
             id = skatt.id, sakId = sakId,
-            fnr = skatt.skattegrunnlag.fnr, erEps = true,
-            opprettet = skatt.skattegrunnlag.hentetTidspunkt, data = skatt.skattegrunnlag,
-            saksbehandler = skatt.skattegrunnlag.saksbehandler, årSpurtFor = skatt.skattegrunnlag.årSpurtFor,
+            fnr = skatt.fnr, erEps = true,
+            opprettet = skatt.hentetTidspunkt, data = skatt,
+            saksbehandler = skatt.saksbehandler, årSpurtFor = skatt.årSpurtFor,
             session = session,
         )
     }
@@ -110,6 +109,7 @@ internal object SkattPostgresRepo {
 
 fun Row.toSkattegrunnlag(): Skattegrunnlag {
     return SkattegrunnlagDbJson.toSkattegrunnlag(
+        id = uuid("id"),
         årsgrunnlagJson = string("data"),
         fnr = string("fnr"),
         hentetTidspunkt = tidspunkt("opprettet"),

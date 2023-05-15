@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
+import no.nav.su.se.bakover.domain.skatt.EksternGrunnlagSkattRequest
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
@@ -94,7 +95,7 @@ sealed class BeregnetSøknadsbehandling : Søknadsbehandling(), Søknadsbehandli
         }
     }
 
-    override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> =
+    override fun leggTilSkatt(skatt: EksternGrunnlagSkattRequest): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> =
         when (this.eksterneGrunnlag.skatt) {
             is EksterneGrunnlagSkatt.Hentet -> this.copyInternal(
                 grunnlagsdataOgVilkårsvurderinger = this.grunnlagsdataOgVilkårsvurderinger.leggTilSkatt(skatt).let {

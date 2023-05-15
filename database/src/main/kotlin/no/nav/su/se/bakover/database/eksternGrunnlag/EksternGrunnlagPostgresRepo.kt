@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.persistence.TransactionalSession
 import no.nav.su.se.bakover.database.skatt.SkattPostgresRepo
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
-import no.nav.su.se.bakover.domain.grunnlag.SkattegrunnlagMedId
 import java.util.UUID
 
 internal class EksternGrunnlagPostgresRepo(
@@ -23,8 +22,8 @@ internal class EksternGrunnlagPostgresRepo(
         return when (søkersId) {
             null -> EksterneGrunnlagSkatt.IkkeHentet
             else -> EksterneGrunnlagSkatt.Hentet(
-                søkers = SkattegrunnlagMedId(id = søkersId, skattegrunnlag = søkers!!),
-                eps = if (eps != null) SkattegrunnlagMedId(id = epsId, skattegrunnlag = eps) else null,
+                søkers = søkers!!,
+                eps = eps,
             )
         }
     }

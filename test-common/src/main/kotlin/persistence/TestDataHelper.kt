@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
@@ -64,6 +63,7 @@ import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
+import no.nav.su.se.bakover.domain.skatt.EksternGrunnlagSkattRequest
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
@@ -1247,10 +1247,7 @@ class TestDataHelper(
     }
 
     fun persisterSøknadsbehandlingVilkårsvurdertUavklartMedSkatt(
-        skatt: EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest = EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest(
-            søkers = nySkattegrunnlag(),
-            eps = null,
-        ),
+        skatt: EksternGrunnlagSkattRequest = EksternGrunnlagSkattRequest(søkers = nySkattegrunnlag(), eps = null),
     ): VilkårsvurdertSøknadsbehandling.Uavklart {
         return persisterSøknadsbehandlingVilkårsvurdertUavklart().second.leggTilSkatt(skatt).getOrFail().also {
             søknadsbehandlingRepo.lagre(it)
