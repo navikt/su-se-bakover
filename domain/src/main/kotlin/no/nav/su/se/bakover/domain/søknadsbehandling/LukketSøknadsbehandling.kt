@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
+import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
@@ -21,6 +22,7 @@ data class LukketSøknadsbehandling private constructor(
     override val stønadsperiode: Stønadsperiode? get() = aldersvurdering?.stønadsperiode
     override val grunnlagsdata = underliggendeSøknadsbehandling.grunnlagsdata
     override val vilkårsvurderinger = underliggendeSøknadsbehandling.vilkårsvurderinger
+    override val eksterneGrunnlag = underliggendeSøknadsbehandling.eksterneGrunnlag
     override val attesteringer = underliggendeSøknadsbehandling.attesteringer
     override val fritekstTilBrev = underliggendeSøknadsbehandling.fritekstTilBrev
     override val oppgaveId = underliggendeSøknadsbehandling.oppgaveId
@@ -105,6 +107,9 @@ data class LukketSøknadsbehandling private constructor(
             throw IllegalArgumentException("Ugyldig tilstand. Underliggende feil: $it")
         }
     }
+
+    override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> =
+        KunneIkkeLeggeTilSkattegrunnlag.UgyldigTilstand.left()
 
     companion object {
 

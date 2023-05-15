@@ -12,6 +12,8 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.inneholderUfullstendigeBosituasjoner
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
@@ -21,8 +23,6 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
-import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
-import no.nav.su.se.bakover.domain.skatt.Skattereferanser
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
@@ -40,23 +40,13 @@ sealed class VilkårsvurdertSøknadsbehandling :
 
     abstract override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert
 
-    fun leggTilSkattegrunnlag(
-        søkers: Skattegrunnlag,
-        eps: Skattegrunnlag?,
-        clock: Clock,
-    ): SøknadsbehandlingMedSkattegrunnlag = SøknadsbehandlingMedSkattegrunnlag(
-        søknadsbehandling = this.copyInternal(
-            grunnlagsdataOgVilkårsvurderinger = this.grunnlagsdataOgVilkårsvurderinger.leggTilSkattereferanser(
-                Skattereferanser(
-                    søkers = UUID.randomUUID(),
-                    eps = if (eps != null) UUID.randomUUID() else null,
-                ),
-            ),
-        ),
-        opprettet = Tidspunkt.now(clock),
-        søker = søkers,
-        eps = eps,
-    )
+    override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> {
+        return copyInternal(
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilSkatt(skatt).let {
+                if (it !is GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling) throw IllegalStateException("Søknadsbehandling kan kun ha GrunnlagsdataOgVilkårsvurderinger av typen Søkndsbehandling") else it
+            },
+        ).right()
+    }
 
     companion object {
         fun opprett(
@@ -78,6 +68,7 @@ sealed class VilkårsvurdertSøknadsbehandling :
         ): VilkårsvurdertSøknadsbehandling {
             val grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata
             val vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
+            val eksterneGrunnlag = grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag
             val oppdaterteVilkårsvurderinger = vilkårsvurderinger.let {
                 if (vilkårsvurderinger.opplysningspliktVilkår() !is OpplysningspliktVilkår.Vurdert) {
                     it.leggTil(
@@ -119,6 +110,7 @@ sealed class VilkårsvurdertSøknadsbehandling :
                         aldersvurdering = aldersvurdering,
                         grunnlagsdata = grunnlagsdata,
                         vilkårsvurderinger = oppdaterteVilkårsvurderinger,
+                        eksterneGrunnlag = eksterneGrunnlag,
                         attesteringer = attesteringer,
                         søknadsbehandlingsHistorikk = saksbehandlingsHistorikk,
                         avkorting = avkorting.kanIkke(),
@@ -140,6 +132,7 @@ sealed class VilkårsvurdertSøknadsbehandling :
                         aldersvurdering = aldersvurdering,
                         grunnlagsdata = grunnlagsdata,
                         vilkårsvurderinger = oppdaterteVilkårsvurderinger,
+                        eksterneGrunnlag = eksterneGrunnlag,
                         attesteringer = attesteringer,
                         søknadsbehandlingsHistorikk = saksbehandlingsHistorikk,
                         avkorting = avkorting.uhåndtert(),
@@ -161,6 +154,7 @@ sealed class VilkårsvurdertSøknadsbehandling :
                         aldersvurdering = aldersvurdering,
                         grunnlagsdata = grunnlagsdata,
                         vilkårsvurderinger = oppdaterteVilkårsvurderinger,
+                        eksterneGrunnlag = eksterneGrunnlag,
                         attesteringer = attesteringer,
                         søknadsbehandlingsHistorikk = saksbehandlingsHistorikk,
                         avkorting = avkorting.kanIkke(),
@@ -184,6 +178,7 @@ sealed class VilkårsvurdertSøknadsbehandling :
         override val aldersvurdering: Aldersvurdering,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+        override val eksterneGrunnlag: EksterneGrunnlag,
         override val attesteringer: Attesteringshistorikk,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
@@ -221,6 +216,7 @@ sealed class VilkårsvurdertSøknadsbehandling :
                 aldersvurdering = aldersvurdering,
                 grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                 vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
+                eksterneGrunnlag = grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag,
                 søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
             )
         }
@@ -238,6 +234,7 @@ sealed class VilkårsvurdertSøknadsbehandling :
         override val aldersvurdering: Aldersvurdering,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+        override val eksterneGrunnlag: EksterneGrunnlag,
         override val attesteringer: Attesteringshistorikk,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
@@ -263,6 +260,7 @@ sealed class VilkårsvurdertSøknadsbehandling :
                 aldersvurdering = aldersvurdering,
                 grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                 vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
+                eksterneGrunnlag = grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag,
                 søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
             )
         }
@@ -300,6 +298,7 @@ sealed class VilkårsvurdertSøknadsbehandling :
                 aldersvurdering = aldersvurdering,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
+                eksterneGrunnlag = eksterneGrunnlag,
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = this.søknadsbehandlingsHistorikk,
                 avkorting = avkorting.håndter().kanIkke(),
@@ -328,6 +327,7 @@ sealed class VilkårsvurdertSøknadsbehandling :
                 aldersvurdering = aldersvurdering,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
+                eksterneGrunnlag = eksterneGrunnlag,
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk.leggTilNyHendelse(
                     saksbehandlingsHendelse = Søknadsbehandlingshendelse(
@@ -361,6 +361,7 @@ sealed class VilkårsvurdertSøknadsbehandling :
         override val aldersvurdering: Aldersvurdering?,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+        override val eksterneGrunnlag: EksterneGrunnlag,
         override val attesteringer: Attesteringshistorikk,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
@@ -386,6 +387,7 @@ sealed class VilkårsvurdertSøknadsbehandling :
                 aldersvurdering = aldersvurdering,
                 grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                 vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
+                eksterneGrunnlag = grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag,
                 søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
             )
         }

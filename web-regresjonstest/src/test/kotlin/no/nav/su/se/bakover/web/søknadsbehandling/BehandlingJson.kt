@@ -34,6 +34,8 @@ object BehandlingJson {
     fun hentInstitusjonsoppholdVilkår(json: String): String {
         return JSONObject(json).getJSONObject("grunnlagsdataOgVilkårsvurderinger").getJSONObject("institusjonsopphold").toString()
     }
+
+    fun hentEksterneGrunnlag(json: String): String = JSONObject(json).getJSONObject("eksterneGrunnlag").toString()
 }
 
 object RevurderingJson {

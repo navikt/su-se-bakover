@@ -2,7 +2,9 @@ package no.nav.su.se.bakover.domain.revurdering
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.grunnlag.StøtterIkkeHentingAvEksternGrunnlag
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.sak.SakInfo
@@ -34,6 +36,9 @@ sealed interface AbstraktRevurdering : Behandling {
     override val sakstype get() = sakinfo.type
 
     abstract override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
+    override val eksterneGrunnlag: EksterneGrunnlag
+        get() = StøtterIkkeHentingAvEksternGrunnlag
+
     fun erÅpen(): Boolean
 
     val brevvalgRevurdering: BrevvalgRevurdering

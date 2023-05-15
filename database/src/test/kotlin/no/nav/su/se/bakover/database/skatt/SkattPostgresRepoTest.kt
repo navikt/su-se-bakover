@@ -1,7 +1,8 @@
 package no.nav.su.se.bakover.database.skatt
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
+import no.nav.su.se.bakover.domain.grunnlag.SkattegrunnlagMedId
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.skatt.nySkattegrunnlag
@@ -20,17 +21,15 @@ internal class SkattPostgresRepoTest {
                 val (sak, _) = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart()
                 val id = UUID.randomUUID()
                 val skattegrunnlag = nySkattegrunnlag()
-                repo.lagreSkattegrunnlag(
-                    id = id,
+                repo.lagre(
                     sakId = sak.id,
-                    fnr = skattegrunnlag.fnr,
-                    erEps = false,
-                    opprettet = fixedTidspunkt,
-                    data = skattegrunnlag,
-                    saksbehandler = skattegrunnlag.saksbehandler,
-                    årSpurtFor = skattegrunnlag.årSpurtFor,
+                    skatt = EksterneGrunnlagSkatt.Hentet(
+                        søkers = SkattegrunnlagMedId(id = id, skattegrunnlag = skattegrunnlag),
+                        eps = null,
+                    ),
                     session = session,
                 )
+
                 repo.hent(id, session) shouldBe skattegrunnlag
                 repo.slettSkattegrunnlag(id, session)
                 repo.hent(id, session) shouldBe null

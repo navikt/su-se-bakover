@@ -254,6 +254,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 aldersvurdering = avslagTilAttestering.aldersvurdering,
                 grunnlagsdata = avslagTilAttestering.grunnlagsdata,
                 vilkårsvurderinger = avslagTilAttestering.vilkårsvurderinger,
+                eksterneGrunnlag = avslagTilAttestering.eksterneGrunnlag,
                 avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
                     håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
                 ),

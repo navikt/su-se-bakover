@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.StøtterHentingAvEksternGrunnlag
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
@@ -61,6 +62,7 @@ data class NySøknadsbehandling(
                 Sakstype.ALDER -> Vilkårsvurderinger.Søknadsbehandling.Alder.ikkeVurdert()
                 Sakstype.UFØRE -> Vilkårsvurderinger.Søknadsbehandling.Uføre.ikkeVurdert()
             },
+            eksterneGrunnlag = StøtterHentingAvEksternGrunnlag.ikkeHentet(),
             attesteringer = Attesteringshistorikk.empty(),
             søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
             avkorting = avkorting,

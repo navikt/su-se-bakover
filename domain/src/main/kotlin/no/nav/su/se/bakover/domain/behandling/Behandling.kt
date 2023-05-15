@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -26,6 +27,7 @@ interface Behandling {
     val periode: Periode
     val grunnlagsdata: Grunnlagsdata
     val vilkårsvurderinger: Vilkårsvurderinger
+    val eksterneGrunnlag: EksterneGrunnlag
     val sakstype: Sakstype
 
     val beregning: Beregning?

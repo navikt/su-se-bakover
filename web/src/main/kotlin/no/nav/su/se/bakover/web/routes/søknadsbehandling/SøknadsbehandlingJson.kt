@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
+import no.nav.su.se.bakover.web.routes.grunnlag.EksterneGrunnlagJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson.Companion.create
 import no.nav.su.se.bakover.web.routes.sak.toJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
@@ -32,141 +33,142 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
     return when (this) {
         is VilkårsvurdertSøknadsbehandling -> BehandlingJson(
             id = id.toString(),
-            opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-            sakId = sakId,
             søknad = søknad.toJson(),
+            beregning = null,
             status = status().toString(),
+            simulering = null,
+            opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
             attesteringer = attesteringer.toJson(),
             saksbehandler = saksbehandler.toString(),
-            beregning = null,
-            simulering = null,
+            fritekstTilBrev = fritekstTilBrev,
+            sakId = sakId,
             stønadsperiode = stønadsperiode?.toJson(),
             grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
-            fritekstTilBrev = fritekstTilBrev,
             erLukket = false,
             simuleringForAvkortingsvarsel = avkorting.toJson(),
             sakstype = sakstype.toJson(),
             aldersvurdering = this.aldersvurdering?.toJson(),
-            harSkattegrunnlag = this.grunnlagsdata.skattereferanser != null,
+            eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
         )
 
         is BeregnetSøknadsbehandling -> {
             BehandlingJson(
                 id = id.toString(),
-                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-                sakId = sakId,
                 søknad = søknad.toJson(),
+                beregning = beregning.toJson(),
                 status = status().toString(),
+                simulering = null,
+                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
-                beregning = beregning.toJson(),
-                simulering = null,
+                fritekstTilBrev = fritekstTilBrev,
+                sakId = sakId,
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
-                fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
-                harSkattegrunnlag = this.grunnlagsdata.skattereferanser != null,
+                eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
             )
         }
 
         is SimulertSøknadsbehandling -> {
             BehandlingJson(
                 id = id.toString(),
-                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-                sakId = sakId,
                 søknad = søknad.toJson(),
+                beregning = beregning.toJson(),
                 status = status().toString(),
+                simulering = simulering.toJson(),
+                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
-                beregning = beregning.toJson(),
-                simulering = simulering.toJson(),
+                fritekstTilBrev = fritekstTilBrev,
+                sakId = sakId,
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
-                fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
-                harSkattegrunnlag = this.grunnlagsdata.skattereferanser != null,
+                eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
             )
         }
 
         is SøknadsbehandlingTilAttestering.Innvilget -> {
             BehandlingJson(
                 id = id.toString(),
-                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-                sakId = sakId,
                 søknad = søknad.toJson(),
+                beregning = beregning.toJson(),
                 status = status().toString(),
+                simulering = simulering.toJson(),
+                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
-                beregning = beregning.toJson(),
-                simulering = simulering.toJson(),
+                fritekstTilBrev = fritekstTilBrev,
+                sakId = sakId,
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
-                fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
-                harSkattegrunnlag = this.grunnlagsdata.skattereferanser != null,
+                eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
             )
         }
 
         is SøknadsbehandlingTilAttestering.Avslag.MedBeregning -> {
             BehandlingJson(
                 id = id.toString(),
-                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-                sakId = sakId,
                 søknad = søknad.toJson(),
+                beregning = beregning.toJson(),
                 status = status().toString(),
+                simulering = null,
+                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
-                beregning = beregning.toJson(),
-                simulering = null,
+                fritekstTilBrev = fritekstTilBrev,
+                sakId = sakId,
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
-                fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
-                harSkattegrunnlag = this.grunnlagsdata.skattereferanser != null,
+                eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
             )
         }
 
         is SøknadsbehandlingTilAttestering.Avslag.UtenBeregning -> {
             BehandlingJson(
                 id = id.toString(),
-                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-                sakId = sakId,
                 søknad = søknad.toJson(),
+                beregning = null,
                 status = status().toString(),
+                simulering = null,
+                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
-                beregning = null,
-                simulering = null,
+                fritekstTilBrev = fritekstTilBrev,
+                sakId = sakId,
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
-                fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
-                harSkattegrunnlag = this.grunnlagsdata.skattereferanser != null,
+                eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
             )
         }
 
         is UnderkjentSøknadsbehandling.Innvilget -> {
             BehandlingJson(
                 id = id.toString(),
-                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-                sakId = sakId,
                 søknad = søknad.toJson(),
+                beregning = beregning.toJson(),
                 status = status().toString(),
+                simulering = simulering.toJson(),
+                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 attesteringer = attesteringer.map {
                     when (it) {
                         is Attestering.Iverksatt -> AttesteringJson(
@@ -186,126 +188,125 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                     }
                 },
                 saksbehandler = saksbehandler.toString(),
-                beregning = beregning.toJson(),
-                simulering = simulering.toJson(),
+                fritekstTilBrev = fritekstTilBrev,
+                sakId = sakId,
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
-                fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
-                harSkattegrunnlag = this.grunnlagsdata.skattereferanser != null,
+                eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
             )
         }
 
         is UnderkjentSøknadsbehandling.Avslag.UtenBeregning -> {
             BehandlingJson(
                 id = id.toString(),
-                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-                sakId = sakId,
                 søknad = søknad.toJson(),
+                beregning = null,
                 status = status().toString(),
+                simulering = null,
+                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
-                beregning = null,
-                simulering = null,
+                fritekstTilBrev = fritekstTilBrev,
+                sakId = sakId,
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
-                fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
-                harSkattegrunnlag = this.grunnlagsdata.skattereferanser != null,
+                eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
             )
         }
 
         is UnderkjentSøknadsbehandling.Avslag.MedBeregning -> {
             BehandlingJson(
                 id = id.toString(),
-                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-                sakId = sakId,
                 søknad = søknad.toJson(),
+                beregning = beregning.toJson(),
                 status = status().toString(),
+                simulering = null,
+                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
-                beregning = beregning.toJson(),
-                simulering = null,
+                fritekstTilBrev = fritekstTilBrev,
+                sakId = sakId,
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
-                fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
-                harSkattegrunnlag = this.grunnlagsdata.skattereferanser != null,
+                eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
             )
         }
 
         is IverksattSøknadsbehandling.Avslag.MedBeregning -> {
             BehandlingJson(
                 id = id.toString(),
-                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-                sakId = sakId,
                 søknad = søknad.toJson(),
+                beregning = beregning.toJson(),
                 status = status().toString(),
+                simulering = null,
+                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
-                beregning = beregning.toJson(),
-                simulering = null,
+                fritekstTilBrev = fritekstTilBrev,
+                sakId = sakId,
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
-                fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
-                harSkattegrunnlag = this.grunnlagsdata.skattereferanser != null,
+                eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
             )
         }
 
         is IverksattSøknadsbehandling.Avslag.UtenBeregning -> {
             BehandlingJson(
                 id = id.toString(),
-                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-                sakId = sakId,
                 søknad = søknad.toJson(),
+                beregning = null,
                 status = status().toString(),
+                simulering = null,
+                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
-                beregning = null,
-                simulering = null,
+                fritekstTilBrev = fritekstTilBrev,
+                sakId = sakId,
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
-                fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
-                harSkattegrunnlag = this.grunnlagsdata.skattereferanser != null,
+                eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
             )
         }
 
         is IverksattSøknadsbehandling.Innvilget -> {
             BehandlingJson(
                 id = id.toString(),
-                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-                sakId = sakId,
                 søknad = søknad.toJson(),
+                beregning = beregning.toJson(),
                 status = status().toString(),
+                simulering = simulering.toJson(),
+                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
-                beregning = beregning.toJson(),
-                simulering = simulering.toJson(),
+                fritekstTilBrev = fritekstTilBrev,
+                sakId = sakId,
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
-                fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
-                harSkattegrunnlag = this.grunnlagsdata.skattereferanser != null,
+                eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
             )
         }
 

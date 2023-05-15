@@ -76,6 +76,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
                 bosituasjon = behandling.grunnlagsdata.bosituasjonSomFullstendig(),
             ),
             vilkårsvurderinger = behandling.vilkårsvurderinger,
+            eksterneGrunnlag = behandling.eksterneGrunnlag,
             attesteringer = behandling.attesteringer,
             avkorting = behandling.avkorting,
             sakstype = behandling.sakstype,

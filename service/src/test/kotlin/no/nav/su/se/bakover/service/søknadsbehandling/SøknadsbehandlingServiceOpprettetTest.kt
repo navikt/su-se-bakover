@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.StøtterHentingAvEksternGrunnlag
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
@@ -199,6 +200,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                 aldersvurdering = null,
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
+                eksterneGrunnlag = StøtterHentingAvEksternGrunnlag.ikkeHentet(),
                 attesteringer = Attesteringshistorikk.empty(),
                 avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
                 sakstype = sak.type,
@@ -245,6 +247,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                         aldersvurdering = null,
                         grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                         vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
+                        eksterneGrunnlag = StøtterHentingAvEksternGrunnlag.ikkeHentet(),
                         attesteringer = Attesteringshistorikk.empty(),
                         avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
                         sakstype = sak.type,

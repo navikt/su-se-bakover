@@ -254,7 +254,6 @@ internal class ReguleringPostgresRepo(
             behandlingId = id,
             session = session,
             sakstype = Sakstype.from(string("type")),
-            skattereferanser = null,
         )
 
         val avsluttet = deserializeNullable<AvsluttetReguleringJson>(stringOrNull("avsluttet"))

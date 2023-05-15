@@ -256,6 +256,8 @@ object Feilresponser {
         "ukjent_feil",
     )
 
+    val ugyldigTilstand = BadRequest.errorJson("Ugyldig tilstand", "ugyldig_tilstand")
+
     fun ugyldigTilstand(fra: KClass<*>, til: KClass<*>): Resultat {
         return ugyldigTilstand(fra.simpleName.toString(), til.simpleName.toString())
     }

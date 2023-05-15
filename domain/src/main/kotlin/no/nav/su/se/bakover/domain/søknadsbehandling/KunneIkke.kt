@@ -135,6 +135,7 @@ sealed class KunneIkkeLeggeTilGrunnlag {
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out VilkårsvurdertSøknadsbehandling>,
         ) : KunneIkkeOppdatereBosituasjon()
+
         object GrunnlagetMåVæreInnenforBehandlingsperioden : KunneIkkeOppdatereBosituasjon()
     }
 }
@@ -178,4 +179,9 @@ sealed class KunneIkkeSimulereBehandling {
         val fra: KClass<out Søknadsbehandling>,
         val til: KClass<out SimulertSøknadsbehandling> = SimulertSøknadsbehandling::class,
     ) : KunneIkkeSimulereBehandling()
+}
+
+sealed interface KunneIkkeLeggeTilSkattegrunnlag {
+    object KanIkkeLeggeTilSkattForTilstandUtenAtDenHarBlittHentetFør : KunneIkkeLeggeTilSkattegrunnlag
+    object UgyldigTilstand : KunneIkkeLeggeTilSkattegrunnlag
 }

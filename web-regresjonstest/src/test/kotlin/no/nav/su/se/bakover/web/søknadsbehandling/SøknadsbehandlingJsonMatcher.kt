@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.søknadsbehandling
 
+import no.nav.su.se.bakover.web.søknadsbehandling.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlagResponse
 import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
@@ -26,7 +27,7 @@ fun assertSøknadsbehandlingJson(
     expectedSimuleringForAvkortingsvarsel: String? = null,
     expectedSakstype: String = "uføre",
     expectedAldersvurdering: String? = null,
-    expectedHarSkattegrunnlag: Boolean = false,
+    expectedEksterneGrunnlag: String = eksterneGrunnlagResponse(),
 ) {
     val expectedSakJson = """
     {
@@ -46,7 +47,7 @@ fun assertSøknadsbehandlingJson(
         "simuleringForAvkortingsvarsel": $expectedSimuleringForAvkortingsvarsel,
         "sakstype": $expectedSakstype,
         "aldersvurdering": $expectedAldersvurdering,
-        "harSkattegrunnlag": $expectedHarSkattegrunnlag
+        "eksterneGrunnlag": $expectedEksterneGrunnlag
     }
     """.trimIndent()
     JSONAssert.assertEquals(

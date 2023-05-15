@@ -3,19 +3,21 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
-import arrow.core.merge
 import arrow.core.right
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.YearRange
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
+import no.nav.su.se.bakover.common.krympTilØvreGrense
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.common.toRange
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
+import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harEPS
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigEpsOrNull
@@ -30,23 +32,20 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeHenteNySkattedata
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingMedSkattegrunnlag
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingMedSkattegrunnlag.Companion.getYearRangeForSkatt
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
@@ -101,6 +100,7 @@ import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.slf4j.LoggerFactory
 import java.time.Clock
+import java.time.Year
 import java.util.UUID
 
 class SøknadsbehandlingServiceImpl(
@@ -670,85 +670,38 @@ class SøknadsbehandlingServiceImpl(
         }
     }
 
-    /**
-     * Kun ment for førstegangshenting for formue steget
-     *
-     * For alle andre steg skal [oppfrisk] brukes
-     */
-    override fun nySkattegrunnlag(
+    override fun leggTilEksternSkattegrunnlag(
         behandlingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): SøknadsbehandlingMedSkattegrunnlag {
-        val søknadsbehandling = (
-            søknadsbehandlingRepo.hent(behandlingId)
-                ?: throw IllegalStateException("Fant ikke behandling $behandlingId")
-            ).also {
-            // TODO: flytt til denne typen logikk til en create/tryCreate på SøknadsbehandlingMedSkattegrunnlag
-            if (it !is VilkårsvurdertSøknadsbehandling) {
-                throw IllegalStateException("Skal ikke kunne hente skattemelding automatisk ved andre tilstander enn vilkårsvurdert")
-            }
-        }
+    ): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> {
+        val søknadsbehandling = søknadsbehandlingRepo.hent(behandlingId)
+            ?: throw IllegalStateException("Fant ikke behandling $behandlingId")
 
-        return hentSkattegrunnlag(søknadsbehandling.id).mapLeft {
-            hentNyOgLagreSamletSamletSkattegrunnlagForBehandling(
-                søknadsbehandling as VilkårsvurdertSøknadsbehandling,
-                saksbehandler,
-            )
-        }.merge()
-    }
-
-    override fun hentSkattegrunnlag(behandlingId: UUID): Either<KunneIkkeHenteSkattemelding.FinnesIkke, SøknadsbehandlingMedSkattegrunnlag> {
-        return søknadsbehandlingRepo.hentSkattegrunnlag(behandlingId)?.right()
-            ?: KunneIkkeHenteSkattemelding.FinnesIkke.left()
-    }
-
-    /**
-     * Baserer seg på en allerede hentet skattegrunnlag for å oppfriske.
-     *
-     * Enten fordi man har endret stønadsperiode, eller fordi Api-kallet feilet
-     */
-    override fun oppfrisk(
-        behandlingId: UUID,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeHenteNySkattedata, SøknadsbehandlingMedSkattegrunnlag> =
-        søknadsbehandlingRepo.hentSkattegrunnlag(behandlingId)?.let {
-            it.hentNySkattedata { fnr, yearRange ->
-                skatteService.hentSamletSkattegrunnlagForÅr(fnr, saksbehandler, yearRange)
-            }.onRight {
-                søknadsbehandlingRepo.lagreMedSkattegrunnlag(it)
-            }
-        } ?: throw IllegalArgumentException("Fant ikke søknadsbehandling med skattegrunnlag for id $behandlingId")
-
-    private fun hentNyOgLagreSamletSamletSkattegrunnlagForBehandling(
-        søknadsbehandling: VilkårsvurdertSøknadsbehandling,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-    ): SøknadsbehandlingMedSkattegrunnlag {
-        val søkers = søknadsbehandling.hentSkattegrunnlagForSøker(
-            saksbehandler,
-            skatteService::hentSamletSkattegrunnlagForÅr,
-            clock,
-        )
-        val eps = søknadsbehandling.hentSkattegrunnlagForEps(
-            saksbehandler,
-            skatteService::hentSamletSkattegrunnlagForÅr,
-            clock,
-        )
-        return søknadsbehandling.leggTilSkattegrunnlag(
-            clock = clock,
-            søkers = søkers,
-            eps = eps,
-        ).also { søknadsbehandlingRepo.lagreMedSkattegrunnlag(it) }
+        return søknadsbehandling.leggTilSkatt(
+            EksterneGrunnlagSkatt.Hentet.Companion.EksternGrunnlagSkattRequest(
+                søkers = søknadsbehandling.hentSkattegrunnlagForSøker(
+                    saksbehandler,
+                    skatteService::hentSamletSkattegrunnlagForÅr,
+                    clock,
+                ),
+                eps = søknadsbehandling.hentSkattegrunnlagForEps(
+                    saksbehandler,
+                    skatteService::hentSamletSkattegrunnlagForÅr,
+                    clock,
+                ),
+            ),
+        ).onRight { søknadsbehandlingRepo.lagre(it) }
     }
 
     private fun Søknadsbehandling.hentSkattegrunnlagForSøker(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        samletSkattegrunnlag: (fnr: Fnr, saksbehandler: NavIdentBruker.Saksbehandler, yearRange: YearRange) -> Skattegrunnlag,
+        samletSkattegrunnlag: (Fnr, NavIdentBruker.Saksbehandler, YearRange) -> Skattegrunnlag,
         clock: Clock,
     ): Skattegrunnlag = samletSkattegrunnlag(fnr, saksbehandler, getYearRangeForSkatt(clock))
 
     private fun Søknadsbehandling.hentSkattegrunnlagForEps(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        samletSkattegrunnlag: (fnr: Fnr, saksbehandler: NavIdentBruker.Saksbehandler, yearRange: YearRange) -> Skattegrunnlag,
+        samletSkattegrunnlag: (Fnr, NavIdentBruker.Saksbehandler, YearRange) -> Skattegrunnlag,
         clock: Clock,
     ): Skattegrunnlag? = if (grunnlagsdata.bosituasjon.harEPS()) {
         samletSkattegrunnlag(
@@ -758,6 +711,12 @@ class SøknadsbehandlingServiceImpl(
         )
     } else {
         null
+    }
+
+    private fun Søknadsbehandling.getYearRangeForSkatt(clock: Clock): YearRange {
+        return Year.now(clock).minusYears(1).let {
+            stønadsperiode?.toYearRange()?.krympTilØvreGrense(it) ?: it.toRange()
+        }
     }
 
     private fun KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.tilService(): KunneIkkeLeggeTilUtenlandsopphold =

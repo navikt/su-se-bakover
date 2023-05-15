@@ -63,8 +63,6 @@ import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
-import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
-import no.nav.su.se.bakover.domain.skatt.Skattereferanser
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
@@ -72,7 +70,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingMedSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
@@ -120,7 +117,6 @@ import no.nav.su.se.bakover.test.simulering.simulering
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.simulertSøknadsbehandling
-import no.nav.su.se.bakover.test.skatt.nySøknadsbehandlingMedSkattegrunnlag
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.journalpostIdSøknad
 import no.nav.su.se.bakover.test.søknad.oppgaveIdSøknad
@@ -1518,24 +1514,6 @@ class TestDataHelper(
         )
 
         return Pair(id, klageId)
-    }
-
-    fun persisterSkattegrunnlag(
-        eps: Skattegrunnlag? = null,
-    ): SøknadsbehandlingMedSkattegrunnlag = persisterSøknadsbehandlingVilkårsvurdertUavklart().let {
-        nySøknadsbehandlingMedSkattegrunnlag(
-            eps = eps,
-            søknadsbehandling = it.second.copy(
-                grunnlagsdata = it.second.grunnlagsdata.copy(
-                    skattereferanser = Skattereferanser(
-                        søkers = UUID.randomUUID(),
-                        eps = if (eps == null) null else UUID.randomUUID(),
-                    ),
-                ),
-            ),
-        ).also {
-            søknadsbehandlingRepo.lagreMedSkattegrunnlag(it)
-        }
     }
 
     companion object {

@@ -442,7 +442,9 @@ internal class SøknadsbehandlingJsonTest {
                 "harSaksbehandlerAvgjort": false,
                 "maskinellVurderingsresultat": "RETT_PÅ_UFØRE"
               },
-              "harSkattegrunnlag": false
+              "eksterneGrunnlag": {
+                  "skatt": null
+                }
             }
         """.trimIndent()
         JSONAssert.assertEquals(expected, serialize(søknadsbehandling.toJson(satsFactoryTestPåDato())), true)
@@ -646,7 +648,9 @@ internal class SøknadsbehandlingJsonTest {
                 "harSaksbehandlerAvgjort": false,
                 "maskinellVurderingsresultat": "RETT_PÅ_UFØRE"
               },
-              "harSkattegrunnlag": false
+              "eksterneGrunnlag": {
+                  "skatt": null
+                }
             }
         """.trimIndent()
 
