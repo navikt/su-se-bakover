@@ -45,10 +45,7 @@ sealed interface EksterneGrunnlagSkatt {
             ) {
                 fun tilHentet(): Hentet {
                     return Hentet(
-                        søkers = SkattegrunnlagMedId(
-                            id = UUID.randomUUID(),
-                            skattegrunnlag = søkers,
-                        ),
+                        søkers = SkattegrunnlagMedId(id = UUID.randomUUID(), skattegrunnlag = søkers),
                         eps = if (eps == null) {
                             null
                         } else {

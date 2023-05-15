@@ -23,11 +23,11 @@ internal object SkattPostgresRepo {
             it.toSkattegrunnlag()
         }
 
-    fun slettSkattegrunnlag(id: UUID, session: Session) {
-        "delete from skatt where id=:id".oppdatering(mapOf("id" to id), session)
-    }
-
-    fun lagre(sakId: UUID, skatt: EksterneGrunnlagSkatt, session: Session) {
+    fun lagre(
+        sakId: UUID,
+        skatt: EksterneGrunnlagSkatt,
+        session: Session,
+    ) {
         return when (skatt) {
             is EksterneGrunnlagSkatt.Hentet -> {
                 skatt.eps?.let { lagreForEps(sakId, it, session) }
@@ -36,6 +36,22 @@ internal object SkattPostgresRepo {
 
             EksterneGrunnlagSkatt.IkkeHentet -> Unit
         }
+    }
+
+    fun slettEksisterende(eksisterende: Skattereferanser, oppdterte: Skattereferanser, session: Session) {
+        val skalSletteSøker = eksisterende.søkers != oppdterte.søkers
+        val skalSletteEps = eksisterende.eps != null && eksisterende.eps != oppdterte.eps
+
+        if (skalSletteSøker) {
+            slettSkattegrunnlag(eksisterende.søkers, session)
+        }
+        if (skalSletteEps) {
+            slettSkattegrunnlag(eksisterende.eps!!, session)
+        }
+    }
+
+    fun slettSkattegrunnlag(id: UUID, session: Session) {
+        "delete from skatt where id=:id".oppdatering(mapOf("id" to id), session)
     }
 
     private fun lagreForSøker(sakId: UUID, skatt: SkattegrunnlagMedId, session: Session) {

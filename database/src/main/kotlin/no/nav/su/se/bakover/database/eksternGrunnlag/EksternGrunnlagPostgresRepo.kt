@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.database.grunnlag
+package no.nav.su.se.bakover.database.eksternGrunnlag
 
 import no.nav.su.se.bakover.common.persistence.Session
 import no.nav.su.se.bakover.common.persistence.TransactionalSession
@@ -25,6 +25,16 @@ internal class EksternGrunnlagPostgresRepo(
             else -> EksterneGrunnlagSkatt.Hentet(
                 søkers = SkattegrunnlagMedId(id = søkersId, skattegrunnlag = søkers!!),
                 eps = if (eps != null) SkattegrunnlagMedId(id = epsId, skattegrunnlag = eps) else null,
+            )
+        }
+    }
+
+    fun slettEksisterende(eksisterendeReferanser: IdReferanser, oppdaterteReferanser: IdReferanser, session: Session) {
+        if (eksisterendeReferanser.skattereferanser != null && oppdaterteReferanser.skattereferanser != null) {
+            skattRepo.slettEksisterende(
+                eksisterendeReferanser.skattereferanser,
+                oppdaterteReferanser.skattereferanser,
+                session,
             )
         }
     }

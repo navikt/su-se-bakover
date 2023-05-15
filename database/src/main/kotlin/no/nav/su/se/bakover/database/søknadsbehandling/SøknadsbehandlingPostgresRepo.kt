@@ -25,10 +25,12 @@ import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.avkorting.toDb
 import no.nav.su.se.bakover.database.avkorting.toDomain
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
-import no.nav.su.se.bakover.database.grunnlag.EksternGrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.eksternGrunnlag.EksternGrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.eksternGrunnlag.IdReferanser
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
 import no.nav.su.se.bakover.database.simulering.deserializeNullableSimulering
 import no.nav.su.se.bakover.database.simulering.serializeNullableSimulering
+import no.nav.su.se.bakover.database.skatt.Skattereferanser
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.database.søknadsbehandling.AldersvurderingJson.Companion.toDBJson
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB.Companion.status
@@ -318,7 +320,22 @@ internal class SøknadsbehandlingPostgresRepo(
         )
     }
 
+    private fun hentSkatteIDerForBehandling(
+        behandlingId: UUID,
+        session: Session,
+    ): Pair<UUID?, UUID?> {
+        return "select søkersSkatteId, epsSkatteId from behandling where id=:id"
+            .hent(mapOf("id" to behandlingId), session) {
+                it.uuidOrNull("søkersSkatteId") to it.uuidOrNull("epsSkatteId")
+            } ?: Pair(null, null)
+    }
+
     private fun lagre(søknadsbehandling: SøknadsbehandlingDb, tx: TransactionalSession) {
+        val (eksisterendeSøkersSkatteId, eksisterendeEpsSkatteId) = hentSkatteIDerForBehandling(
+            søknadsbehandling.base.id,
+            tx,
+        )
+
         eksterneGrunnlag.lagre(
             søknadsbehandling.base.sakId,
             søknadsbehandling.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag,
@@ -415,6 +432,27 @@ internal class SøknadsbehandlingPostgresRepo(
                 },
             ),
             session = tx,
+        )
+
+        eksterneGrunnlag.slettEksisterende(
+            eksisterendeReferanser = IdReferanser(
+                skattereferanser = if (eksisterendeSøkersSkatteId != null) {
+                    Skattereferanser(eksisterendeSøkersSkatteId, eksisterendeEpsSkatteId)
+                } else {
+                    null
+                },
+            ),
+            oppdaterteReferanser = IdReferanser(
+                skattereferanser = if (søknadsbehandling.base.eksterneGrunnlag.skatt is EksterneGrunnlagSkatt.Hentet) {
+                    Skattereferanser(
+                        (søknadsbehandling.base.eksterneGrunnlag.skatt as EksterneGrunnlagSkatt.Hentet).søkers.id,
+                        (søknadsbehandling.base.eksterneGrunnlag.skatt as EksterneGrunnlagSkatt.Hentet).eps?.id,
+                    )
+                } else {
+                    null
+                },
+            ),
+            tx,
         )
 
         grunnlagsdataOgVilkårsvurderingerPostgresRepo.lagre(

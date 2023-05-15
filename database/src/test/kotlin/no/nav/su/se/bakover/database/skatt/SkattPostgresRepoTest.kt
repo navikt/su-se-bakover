@@ -12,27 +12,26 @@ import java.util.UUID
 internal class SkattPostgresRepoTest {
 
     @Test
-    fun `lagrer & henter & sletter skattegrunnlag fra basen`() {
+    fun `lagrer for søker - så lagrer for søker & eps`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             testDataHelper.sessionFactory.withSession { session ->
                 val repo = SkattPostgresRepo
 
                 val (sak, _) = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart()
-                val id = UUID.randomUUID()
-                val skattegrunnlag = nySkattegrunnlag()
-                repo.lagre(
-                    sakId = sak.id,
-                    skatt = EksterneGrunnlagSkatt.Hentet(
-                        søkers = SkattegrunnlagMedId(id = id, skattegrunnlag = skattegrunnlag),
-                        eps = null,
-                    ),
-                    session = session,
-                )
 
-                repo.hent(id, session) shouldBe skattegrunnlag
-                repo.slettSkattegrunnlag(id, session)
-                repo.hent(id, session) shouldBe null
+                val skatt =
+                    EksterneGrunnlagSkatt.Hentet(SkattegrunnlagMedId(UUID.randomUUID(), nySkattegrunnlag()), null)
+                repo.lagre(sak.id, skatt, session)
+                repo.hent(skatt.søkers.id, session) shouldBe nySkattegrunnlag()
+
+                Skattereferanser(skatt.søkers.id, null)
+                val skattMedEps = skatt.copy(
+                    eps = SkattegrunnlagMedId(id = UUID.randomUUID(), skattegrunnlag = nySkattegrunnlag()),
+                )
+                repo.lagre(sak.id, skattMedEps, session)
+                repo.hent(skattMedEps.søkers.id, session) shouldBe nySkattegrunnlag()
+                repo.hent(skattMedEps.eps!!.id, session) shouldBe nySkattegrunnlag()
             }
         }
     }
