@@ -45,6 +45,10 @@ data class VedtakOpphørAvkorting(
         }
     }
 
+    override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
+        return behandling.skalSendeVedtaksbrev()
+    }
+
     companion object {
 
         fun from(

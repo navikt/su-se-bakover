@@ -84,6 +84,14 @@ data class VedtakOpphørMedUtbetaling private constructor(
     fun førteTilFeilutbetaling(periode: Periode): Boolean =
         behandling.simulering.harFeilutbetalinger(periode) || simulering.harFeilutbetalinger(periode)
 
+    /**
+     *  Dersom dette er en tilbakekreving som avventer kravvgrunnlag, så ønsker vi ikke å sende brev før vi mottar kravgrunnlaget
+     *  Brevutsending skjer i [no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService.sendTilbakekrevingsvedtak]
+     */
+    override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
+        return behandling.skalSendeVedtaksbrev() && !behandling.avventerKravgrunnlag()
+    }
+
     override fun accept(visitor: VedtakVisitor) {
         visitor.visit(this)
     }

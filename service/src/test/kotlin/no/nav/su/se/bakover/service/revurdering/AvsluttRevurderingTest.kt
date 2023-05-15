@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.avsluttetGjenopptakelseAvYtelseeFraIverksattSøknadsbehandlignsvedtak
@@ -335,6 +336,7 @@ internal class AvsluttRevurderingTest {
         sessionFactory: SessionFactory = TestSessionFactory(),
         tilbakekrevingService: TilbakekrevingService = mock(),
         satsFactory: SatsFactory = satsFactoryTestPåDato(),
+        ferdigstillVedtakService: FerdigstillVedtakService = mock(),
     ) =
         RevurderingServiceImpl(
             utbetalingService = utbetalingService,
@@ -351,5 +353,6 @@ internal class AvsluttRevurderingTest {
             sakService = sakService,
             tilbakekrevingService = tilbakekrevingService,
             satsFactory = satsFactory,
+            ferdigstillVedtakService = ferdigstillVedtakService,
         )
 }

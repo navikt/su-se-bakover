@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
+import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtakMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
@@ -100,7 +101,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 (sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
             val feil =
                 service.ferdigstillVedtakEtterUtbetaling(utbetaling)
-            feil shouldBe KunneIkkeFerdigstilleVedtak.FantIkkeVedtakForUtbetalingId(vedtak.utbetalingId).left()
+            feil shouldBe KunneIkkeFerdigstilleVedtakMedUtbetaling.FantIkkeVedtakForUtbetalingId(vedtak.utbetalingId).left()
 
             verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
         }

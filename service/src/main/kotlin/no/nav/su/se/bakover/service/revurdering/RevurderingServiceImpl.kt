@@ -107,6 +107,7 @@ import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerReques
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
 import java.util.UUID
@@ -126,6 +127,7 @@ class RevurderingServiceImpl(
     private val sakService: SakService,
     private val tilbakekrevingService: TilbakekrevingService,
     private val satsFactory: SatsFactory,
+    private val ferdigstillVedtakService: FerdigstillVedtakService,
 ) : RevurderingService {
 
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
@@ -929,6 +931,7 @@ class RevurderingServiceImpl(
             attestant = attestant,
             clock = clock,
             simuler = utbetalingService::simulerUtbetaling,
+            lagDokument = brevService::lagDokument,
         ).flatMap {
             it.ferdigstillIverksettelseITransaksjon(
                 sessionFactory = sessionFactory,
@@ -939,6 +942,8 @@ class RevurderingServiceImpl(
                 annullerKontrollsamtale = { sakId, tx ->
                     annullerKontrollsamtaleService.annuller(sakId, tx)
                 },
+                lagreDokument = brevService::lagreDokument,
+                lukkOppgave = ferdigstillVedtakService::lukkOppgaveMedBruker,
             ).mapLeft {
                 KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(it)
             }

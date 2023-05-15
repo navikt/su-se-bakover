@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.test
 
 import arrow.core.Tuple4
+import arrow.core.right
 import io.kotest.assertions.fail
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.common.NavIdentBruker
@@ -16,6 +17,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.brev.Brevvalg
+import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -496,6 +498,14 @@ fun iverksattRevurdering(
                     clock = clock,
                     utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
                 )
+            },
+            lagDokument = {
+                Dokument.UtenMetadata.Vedtak(
+                    opprettet = Tidspunkt.now(clock),
+                    tittel = "TODO: BrevRequesten bør lages i domenet",
+                    generertDokument = "".toByteArray(),
+                    generertDokumentJson = "{}",
+                ).right()
             },
         ).getOrFail().let { response ->
             /**

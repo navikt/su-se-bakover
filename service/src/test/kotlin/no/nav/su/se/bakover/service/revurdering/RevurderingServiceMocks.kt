@@ -60,6 +60,7 @@ internal data class RevurderingServiceMocks(
         sakService = sakService,
         tilbakekrevingService = tilbakekrevingService,
         satsFactory = satsFactory,
+        ferdigstillVedtakService = ferdigstillVedtakService,
     ).apply { addObserver(observer) }
 
     fun all() = listOf(

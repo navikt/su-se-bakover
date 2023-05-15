@@ -12,7 +12,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
+import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtakMedUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse.Companion.toKvitteringResponse
@@ -74,7 +74,7 @@ class UtbetalingKvitteringConsumer(
 
     private fun ferdigstillInnvilgelse(
         utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering,
-    ): Either<KunneIkkeFerdigstilleVedtak, Unit> {
+    ): Either<KunneIkkeFerdigstilleVedtakMedUtbetaling, Unit> {
         return ferdigstillVedtakService.ferdigstillVedtakEtterUtbetaling(utbetaling)
     }
 }

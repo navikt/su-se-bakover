@@ -15,14 +15,20 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
+import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtakMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import org.slf4j.LoggerFactory
+import java.util.UUID
 
 interface FerdigstillVedtakService {
     fun ferdigstillVedtakEtterUtbetaling(
         utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering,
-    ): Either<KunneIkkeFerdigstilleVedtak, Unit>
+    ): Either<KunneIkkeFerdigstilleVedtakMedUtbetaling, Unit>
+
+    fun ferdigstillVedtak(
+        vedtakId: UUID,
+    ): Either<KunneIkkeFerdigstilleVedtak, VedtakSomKanRevurderes>
 
     fun lukkOppgaveMedBruker(
         behandling: Behandling,
@@ -42,7 +48,7 @@ class FerdigstillVedtakServiceImpl(
      */
     override fun ferdigstillVedtakEtterUtbetaling(
         utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering,
-    ): Either<KunneIkkeFerdigstilleVedtak, Unit> {
+    ): Either<KunneIkkeFerdigstilleVedtakMedUtbetaling, Unit> {
         return if (utbetaling.trengerIkkeFerdigstilles()) {
             log.info("Utbetaling ${utbetaling.id} trenger ikke ferdigstilles.")
             Unit.right()
@@ -52,10 +58,31 @@ class FerdigstillVedtakServiceImpl(
                 Unit.right()
             } else {
                 log.info("Ferdigstiller vedtak etter utbetaling")
-                vedtakRepo.hentForUtbetaling(utbetaling.id)?.let { return ferdigstillVedtak(it).map { Unit.right() } }
-                    ?: return KunneIkkeFerdigstilleVedtak.FantIkkeVedtakForUtbetalingId(utbetaling.id).left()
+                vedtakRepo.hentForUtbetaling(utbetaling.id)?.let { return ferdigstillVedtak(it).map { Unit } }
+                    ?: return KunneIkkeFerdigstilleVedtakMedUtbetaling.FantIkkeVedtakForUtbetalingId(utbetaling.id)
+                        .left()
                         .also { log.warn("Kunne ikke ferdigstille vedtak - fant ikke vedtaket som tilhører utbetaling ${utbetaling.id}.") }
             }
+        }
+    }
+
+    override fun ferdigstillVedtak(vedtakId: UUID): Either<KunneIkkeFerdigstilleVedtak, VedtakSomKanRevurderes> {
+        return vedtakRepo.hentVedtakForId(vedtakId)!!.let { vedtak ->
+            vedtak as VedtakSomKanRevurderes
+            ferdigstillVedtak(vedtak).onLeft {
+                log.error(
+                    "Kunne ikke ferdigstille vedtak ${vedtak.id}: $it",
+                    RuntimeException("Trigger stacktrace for enklere debugging"),
+                )
+            }.onRight {
+                log.info("Ferdigstilte vedtak ${vedtak.id}")
+            }
+        }
+    }
+
+    override fun lukkOppgaveMedBruker(behandling: Behandling): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit> {
+        return lukkOppgaveIntern(behandling) {
+            oppgaveService.lukkOppgave(it)
         }
     }
 
@@ -74,7 +101,7 @@ class FerdigstillVedtakServiceImpl(
         }
     }
 
-    fun lagreDokument(vedtak: VedtakSomKanRevurderes): Either<KunneIkkeFerdigstilleVedtak, VedtakSomKanRevurderes> {
+    private fun lagreDokument(vedtak: VedtakSomKanRevurderes): Either<KunneIkkeFerdigstilleVedtak, VedtakSomKanRevurderes> {
         return brevService.lagDokument(vedtak).mapLeft {
             KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev(it)
         }.map {
@@ -95,12 +122,6 @@ class FerdigstillVedtakServiceImpl(
     private fun lukkOppgaveMedSystembruker(behandling: Behandling): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit> {
         return lukkOppgaveIntern(behandling) {
             oppgaveService.lukkOppgaveMedSystembruker(it)
-        }
-    }
-
-    override fun lukkOppgaveMedBruker(behandling: Behandling): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit> {
-        return lukkOppgaveIntern(behandling) {
-            oppgaveService.lukkOppgave(it)
         }
     }
 

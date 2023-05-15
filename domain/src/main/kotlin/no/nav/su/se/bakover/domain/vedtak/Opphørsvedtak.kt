@@ -23,15 +23,6 @@ sealed interface Opphørsvedtak : VedtakSomKanRevurderes, Revurderingsvedtak {
         return behandling.utledOpphørsgrunner(clock)
     }
 
-    /**
-     *  Dersom dette er en tilbakekreving som avventer kravvgrunnlag, så ønsker vi ikke å sende brev før vi mottar kravgrunnlaget
-     *  Brevutsending skjer i [no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService.sendTilbakekrevingsvedtak]
-     *  TODO: Er det mulig å flytte denne logikken til ut fra vedtaks-biten til en felles plass?
-     */
-    override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
-        return behandling.skalSendeVedtaksbrev() && !behandling.avventerKravgrunnlag()
-    }
-
     override fun harIdentifisertBehovForFremtidigAvkorting() =
         behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel
 

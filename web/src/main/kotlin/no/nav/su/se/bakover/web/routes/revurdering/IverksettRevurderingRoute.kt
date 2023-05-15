@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
+import no.nav.su.se.bakover.web.routes.sak.tilResultat
 import no.nav.su.se.bakover.web.routes.tilResultat
 
 internal fun Route.iverksettRevurderingRoute(
@@ -67,6 +68,7 @@ private fun KunneIkkeIverksetteRevurdering.tilResultat() = when (this) {
             is KunneIkkeIverksetteRevurdering.Saksfeil.Revurderingsfeil -> underliggende.tilResultat()
             is KunneIkkeIverksetteRevurdering.Saksfeil.DetHarKommetNyeOverlappendeVedtak -> Feilresponser.detHarKommetNyeOverlappendeVedtak
             is KunneIkkeIverksetteRevurdering.Saksfeil.KontrollsimuleringFeilet -> this.feil.tilResultat()
+            is KunneIkkeIverksetteRevurdering.Saksfeil.KunneIkkeGenerereDokument -> this.feil.tilResultat()
         }
     }
     is KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet -> {
