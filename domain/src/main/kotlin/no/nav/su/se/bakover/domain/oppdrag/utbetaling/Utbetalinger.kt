@@ -93,7 +93,7 @@ data class Utbetalinger(
         this.map { it.id }.let {
             check(it.distinct() == it) {
                 "Kan ikke inneholde duplikate utbetalinger. Fant duplikater for: ${
-                it.groupingBy { it }.eachCount().filter { it.value > 1 }
+                    it.groupingBy { it }.eachCount().filter { it.value > 1 }
                 }"
             }
         }
@@ -176,9 +176,9 @@ data class Utbetalinger(
             val tail = utbetalingslinjer.subList(1, utbetalingslinjer.size)
             check(tail.all { it is Utbetalingslinje.Endring }) {
                 "Oppdaget ${utbetalingslinjer.size} av denne samme utbetalingslinjeIDen ${head.id} hvor de N siste elementene burde vært endring, men var: [${
-                tail.joinToString {
-                    """{"id": "${it.id}", "type": "${it::class.simpleName}"}"""
-                }
+                    tail.joinToString {
+                        """{"id": "${it.id}", "type": "${it::class.simpleName}"}"""
+                    }
                 }]"
             }
 

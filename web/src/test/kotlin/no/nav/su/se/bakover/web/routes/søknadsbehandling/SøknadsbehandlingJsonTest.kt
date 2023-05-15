@@ -261,30 +261,30 @@ internal class SøknadsbehandlingJsonTest {
                   "vurderinger": [
                     {
                       "id": "${
-        (
-            søknadsbehandling.vilkårsvurderinger.uføreVilkår()
-                .getOrFail() as UføreVilkår.Vurdert
-            ).vurderingsperioder.single().id
+            (
+                søknadsbehandling.vilkårsvurderinger.uføreVilkår()
+                    .getOrFail() as UføreVilkår.Vurdert
+                ).vurderingsperioder.single().id
         }",
                       "opprettet": "${
-        (
-            søknadsbehandling.vilkårsvurderinger.uføreVilkår()
-                .getOrFail() as UføreVilkår.Vurdert
-            ).vurderingsperioder.single().opprettet
+            (
+                søknadsbehandling.vilkårsvurderinger.uføreVilkår()
+                    .getOrFail() as UføreVilkår.Vurdert
+                ).vurderingsperioder.single().opprettet
         }",
                       "resultat": "VilkårOppfylt",
                       "grunnlag": {
                         "id": "${
-        (
-            søknadsbehandling.vilkårsvurderinger.uføreVilkår()
-                .getOrFail() as UføreVilkår.Vurdert
-            ).vurderingsperioder.single().grunnlag!!.id
+            (
+                søknadsbehandling.vilkårsvurderinger.uføreVilkår()
+                    .getOrFail() as UføreVilkår.Vurdert
+                ).vurderingsperioder.single().grunnlag!!.id
         }",
                         "opprettet": "${
-        (
-            søknadsbehandling.vilkårsvurderinger.uføreVilkår()
-                .getOrFail() as UføreVilkår.Vurdert
-            ).vurderingsperioder.single().grunnlag!!.opprettet
+            (
+                søknadsbehandling.vilkårsvurderinger.uføreVilkår()
+                    .getOrFail() as UføreVilkår.Vurdert
+                ).vurderingsperioder.single().grunnlag!!.opprettet
         }",
                         "periode": {
                           "fraOgMed": "2021-01-01",

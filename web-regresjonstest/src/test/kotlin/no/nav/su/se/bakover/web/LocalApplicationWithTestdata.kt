@@ -11,5 +11,5 @@ fun main() {
     }
     embeddedServer(factory = Netty, port = 8080, module = {
         susebakover(extraRoutes = { this.testDataRoutes() })
-    },).start(true)
+    }).start(true)
 }

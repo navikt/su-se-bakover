@@ -90,8 +90,8 @@ internal class DokArkivClientTest : WiremockBase {
                             {
                               "filtype": "JSON",
                               "fysiskDokument": "${
-        Base64.getEncoder()
-            .encodeToString(objectMapper.writeValueAsString(søknadInnhold).toByteArray())
+            Base64.getEncoder()
+                .encodeToString(objectMapper.writeValueAsString(søknadInnhold).toByteArray())
         }",
                               "variantformat": "ORIGINAL"
                             }
@@ -138,8 +138,8 @@ internal class DokArkivClientTest : WiremockBase {
                             {
                               "filtype": "JSON",
                               "fysiskDokument": "${
-        Base64.getEncoder()
-            .encodeToString(objectMapper.writeValueAsString(vedtakInnhold).toByteArray())}",
+            Base64.getEncoder()
+                .encodeToString(objectMapper.writeValueAsString(vedtakInnhold).toByteArray())}",
                               "variantformat": "ORIGINAL"
                             }
                           ]

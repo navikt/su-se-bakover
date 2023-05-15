@@ -20,7 +20,6 @@ internal object PersonhendelseMapper {
         SIVILSTAND("SIVILSTAND_V1"),
         BOSTEDSADRESSE("BOSTEDSADRESSE_V1"),
         KONTAKTADRESSE("KONTAKTADRESSE_V1"),
-        ;
         // https://github.com/navikt/pdl/blob/master/libs/contract-pdl-avro/src/main/java/no/nav/person/pdl/leesah/Opplysningstype.java
     }
 

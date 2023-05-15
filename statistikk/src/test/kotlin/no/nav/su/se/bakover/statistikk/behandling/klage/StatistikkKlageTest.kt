@@ -140,10 +140,10 @@ internal class StatistikkKlageTest {
                        "avsluttet": $avsluttet,
                        "totrinnsbehandling": $totrinnsbehandling,
                        ${
-                    when (val v = statistikkEvent.klage.vilkårsvurderinger?.vedtakId) {
-                        null -> ""
-                        else -> """"relatertBehandlingId":"$v","""
-                    }
+                        when (val v = statistikkEvent.klage.vilkårsvurderinger?.vedtakId) {
+                            null -> ""
+                            else -> """"relatertBehandlingId":"$v","""
+                        }
                     }
                        "versjon":"87a3a5155bf00b4d6854efcc24e8b929549c9302"
                     }

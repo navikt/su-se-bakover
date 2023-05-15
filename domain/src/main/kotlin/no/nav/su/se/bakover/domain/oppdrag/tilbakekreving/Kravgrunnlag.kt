@@ -72,6 +72,5 @@ data class Kravgrunnlag(
         MANU,
         NY,
         SPER,
-        ;
     }
 }

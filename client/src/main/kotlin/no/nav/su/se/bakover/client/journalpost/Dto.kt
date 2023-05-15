@@ -70,7 +70,6 @@ internal data class HentJournalpostVariables(
 
 internal enum class JournalpostTema {
     SUP,
-    ;
 }
 
 internal fun JournalpostTema.toDomain(): no.nav.su.se.bakover.domain.journalpost.JournalpostTema {
@@ -82,7 +81,6 @@ internal fun JournalpostTema.toDomain(): no.nav.su.se.bakover.domain.journalpost
 internal enum class JournalpostStatus {
     JOURNALFOERT,
     FERDIGSTILT,
-    ;
 }
 
 internal fun JournalpostStatus.toDomain(): no.nav.su.se.bakover.domain.journalpost.JournalpostStatus {
@@ -94,7 +92,6 @@ internal fun JournalpostStatus.toDomain(): no.nav.su.se.bakover.domain.journalpo
 
 internal enum class JournalpostType {
     I, // Innkommende dokument
-    ;
 }
 
 internal fun JournalpostType.toDomain(): no.nav.su.se.bakover.domain.journalpost.JournalpostType {

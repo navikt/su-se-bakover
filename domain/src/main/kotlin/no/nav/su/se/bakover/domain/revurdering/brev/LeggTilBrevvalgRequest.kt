@@ -13,7 +13,6 @@ data class LeggTilBrevvalgRequest(
     enum class Valg {
         SEND,
         IKKE_SEND,
-        ;
     }
 
     fun toDomain(): BrevvalgRevurdering {

@@ -155,7 +155,6 @@ sealed interface VurderingerTilKlage {
             ULIK_SKJØNNSVURDERING,
             SAKSBEHANDLINGSFEIL,
             NYTT_FAKTUM,
-            ;
         }
 
         enum class Utfall {

@@ -23,7 +23,6 @@ sealed class ForNav {
         enum class Vergemål() {
             FULLMEKTIG,
             VERGE,
-            ;
         }
 
         override fun erPapirsøknad(): Boolean {

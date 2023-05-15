@@ -7,5 +7,4 @@ enum class Distribusjonstype {
     VEDTAK,
     VIKTIG,
     ANNET,
-    ;
 }

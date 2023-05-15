@@ -5,5 +5,4 @@ enum class Brukerrolle(val type: String) {
     Saksbehandler("SAKSBEHANDLER"),
     Veileder("VEILEDER"),
     Drift("DRIFT"),
-    ;
 }

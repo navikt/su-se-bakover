@@ -92,12 +92,10 @@ private sealed class PayloadTyper {
         VEDTAK("VEDTAK"),
         VIKTIG("VIKTIG"),
         ANNET("ANNET"),
-        ;
     }
 
     enum class Distribusjonstidspunkt(val value: String) {
         UMIDDELBART("UMIDDELBART"),
         KJERNETID("KJERNETID"),
-        ;
     }
 }

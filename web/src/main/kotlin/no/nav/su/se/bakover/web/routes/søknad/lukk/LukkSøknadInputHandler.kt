@@ -20,7 +20,6 @@ internal sealed class LukketJson {
         AVVIST,
         BORTFALT,
         TRUKKET,
-        ;
     }
 
     data class TrukketJson(

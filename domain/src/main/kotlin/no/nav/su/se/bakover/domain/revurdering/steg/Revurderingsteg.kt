@@ -17,5 +17,4 @@ enum class Revurderingsteg(val vilkår: String) {
     Opplysningsplikt("Opplysningsplikt"),
     Pensjon("Pensjon"),
     FastOppholdINorge("FastOppholdINorge"),
-    ;
 }

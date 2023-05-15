@@ -109,11 +109,11 @@ private fun sjekkTidslinjeMotSimulering(
             periode.måneder().forEach {
                 val utbetaling = tidslinjeEksisterendeOgUnderArbeid.gjeldendeForDato(it.fraOgMed)!!
                 if (!(
-                    utbetaling is UtbetalingslinjePåTidslinje.Stans ||
-                        utbetaling is UtbetalingslinjePåTidslinje.Opphør ||
-                        (utbetaling is UtbetalingslinjePåTidslinje.Ny && utbetaling.beløp == 0) ||
-                        (utbetaling is UtbetalingslinjePåTidslinje.Reaktivering && utbetaling.beløp == 0)
-                    )
+                        utbetaling is UtbetalingslinjePåTidslinje.Stans ||
+                            utbetaling is UtbetalingslinjePåTidslinje.Opphør ||
+                            (utbetaling is UtbetalingslinjePåTidslinje.Ny && utbetaling.beløp == 0) ||
+                            (utbetaling is UtbetalingslinjePåTidslinje.Reaktivering && utbetaling.beløp == 0)
+                        )
                 ) {
                     feil.add(
                         KryssjekkFeil.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(

@@ -63,7 +63,6 @@ internal data class KlageJson(
         enum class Type {
             OMGJØR,
             OPPRETTHOLD,
-            ;
         }
 
         data class OmgjørJson(

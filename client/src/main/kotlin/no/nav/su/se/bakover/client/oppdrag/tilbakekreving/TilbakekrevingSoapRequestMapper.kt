@@ -46,7 +46,6 @@ internal enum class Tilbakekrevingsresultat {
 
 internal enum class TilbakekrevingsÅrsak {
     ANNET,
-    ;
 }
 
 enum class Skyld {

@@ -281,7 +281,6 @@ internal class ReguleringPostgresRepo(
         OPPRETTET,
         IVERKSATT,
         AVSLUTTET,
-        ;
     }
 
     private fun lagRegulering(

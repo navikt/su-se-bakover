@@ -20,7 +20,6 @@ data class Behandlingssammendrag(
         SØKNADSBEHANDLING,
         REVURDERING,
         KLAGE,
-        ;
     }
 
     enum class Behandlingsstatus {
@@ -35,6 +34,5 @@ data class Behandlingssammendrag(
         STANS,
         GJENOPPTAK,
         OVERSENDT,
-        ;
     }
 }

@@ -179,7 +179,7 @@ subprojects {
     configure<com.diffplug.gradle.spotless.SpotlessExtension> {
         kotlin {
             /** spotless støtter ikke .editorconfig enda så vi må duplisere den her :( */
-            ktlint("0.47.1").editorConfigOverride(
+            ktlint().editorConfigOverride(
                 mapOf(
                     "indent_size" to 4,
                     "insert_final_newline" to true,

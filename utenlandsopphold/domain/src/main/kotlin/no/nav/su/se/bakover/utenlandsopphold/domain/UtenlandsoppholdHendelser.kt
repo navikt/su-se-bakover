@@ -44,18 +44,18 @@ data class UtenlandsoppholdHendelser private constructor(
         sorterteHendelser.mapNotNull { it.tidligereHendelseId }.let {
             require(it.distinct() == it) {
                 "En hendelse kan kun bli korrigert/annullert en gang. Oppdaget duplikate tidligereHendelseId: ${
-                it.groupBy { it }.filter { it.value.size > 1 }.values
+                    it.groupBy { it }.filter { it.value.size > 1 }.values
                 }"
             }
         }
         require(sorterteHendelser.map { it.sakId }.distinct().size <= 1) {
             "UtenlandsoppholdHendelser kan kun være knyttet til én sak, men var: ${
-            sorterteHendelser.map { it.sakId }.distinct()
+                sorterteHendelser.map { it.sakId }.distinct()
             }"
         }
         require(sorterteHendelser.map { it.entitetId }.distinct().size <= 1) {
             "UtenlandsoppholdHendelser kan kun være knyttet til én enitetId (samme som sakId), men var: ${
-            sorterteHendelser.map { it.entitetId }.distinct()
+                sorterteHendelser.map { it.entitetId }.distinct()
             }"
         }
     }

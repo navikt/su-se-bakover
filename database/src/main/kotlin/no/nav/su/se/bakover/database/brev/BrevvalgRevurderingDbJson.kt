@@ -13,7 +13,6 @@ internal enum class BrevvalgRevurderingDbType {
     SEND_BREV,
     IKKE_SEND_BREV,
     IKKE_VALGT,
-    ;
 }
 
 private val SYSTEMBRUKER_DB = suSeBakoverConsumerId

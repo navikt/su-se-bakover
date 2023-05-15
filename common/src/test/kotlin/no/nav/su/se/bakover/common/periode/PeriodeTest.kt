@@ -506,43 +506,43 @@ internal class PeriodeTest {
     fun `slår sammen perioder hvis mulig`() {
         januar(2021) slåSammen
             februar(2021) shouldBe (
-            Periode.create(
-                1.januar(2021),
-                28.februar(2021),
-            )
-            ).right()
+                Periode.create(
+                    1.januar(2021),
+                    28.februar(2021),
+                )
+                ).right()
 
         Periode.create(1.januar(2021), 31.juli(2021)) slåSammen
             februar(2021) shouldBe (
-            Periode.create(
-                1.januar(2021),
-                31.juli(2021),
-            )
-            ).right()
+                Periode.create(
+                    1.januar(2021),
+                    31.juli(2021),
+                )
+                ).right()
 
         Periode.create(1.september(2021), 31.desember(2021)) slåSammen
             Periode.create(1.mars(2021), 31.oktober(2021)) shouldBe (
-            Periode.create(
-                1.mars(2021),
-                31.desember(2021),
-            )
-            ).right()
+                Periode.create(
+                    1.mars(2021),
+                    31.desember(2021),
+                )
+                ).right()
 
         mars(2021) slåSammen
             april(2021) shouldBe (
-            Periode.create(
-                1.mars(2021),
-                30.april(2021),
-            )
-            ).right()
+                Periode.create(
+                    1.mars(2021),
+                    30.april(2021),
+                )
+                ).right()
 
         Periode.create(1.juni(2021), 31.desember(2021)) slåSammen
             Periode.create(1.mars(2021), 31.mai(2021)) shouldBe (
-            Periode.create(
-                1.mars(2021),
-                31.desember(2021),
-            )
-            ).right()
+                Periode.create(
+                    1.mars(2021),
+                    31.desember(2021),
+                )
+                ).right()
 
         Periode.create(1.juni(2021), 31.juli(2021)) slåSammen
             Periode.create(1.oktober(2021), 31.desember(2021)) shouldBe Periode.PerioderKanIkkeSlåsSammen.left()
@@ -658,9 +658,9 @@ internal class PeriodeTest {
             fun `fjerner periode midt i år skal splitte i 2`() {
                 år(2021) minus
                     mars(2021)..juli(2021) shouldBe listOf(
-                    januar(2021)..februar(2021),
-                    august(2021)..desember(2021),
-                )
+                        januar(2021)..februar(2021),
+                        august(2021)..desember(2021),
+                    )
             }
         }
 
@@ -673,10 +673,10 @@ internal class PeriodeTest {
                         desember(2020)..januar(2021),
                         desember(2021)..januar(2022),
                     ) shouldBe listOf(
-                    februar(2021)..november(
-                        2021,
-                    ),
-                )
+                        februar(2021)..november(
+                            2021,
+                        ),
+                    )
             }
 
             @Test

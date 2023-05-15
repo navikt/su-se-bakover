@@ -835,16 +835,16 @@ data class SimuleringResponseData(
                         <kodeFaggruppe>${it.kodeFaggruppe}</kodeFaggruppe>
                         <belop>${it.belop}</belop>
                         ${
-                it.perioder.joinToString("") {
-                    // language=XML
-                    """
+                    it.perioder.joinToString("") {
+                        // language=XML
+                        """
                         <beregningsPeriode xmlns="http://nav.no/system/os/entiteter/beregningSkjema">
                           <periodeFom xmlns="">${it.periodeFom}</periodeFom>
                           <periodeTom xmlns="">${it.periodeTom}</periodeTom>
                           ${
-                    it.stoppnivåer.joinToString("\n") {
-                        // language=XML
-                        """
+                            it.stoppnivåer.joinToString("\n") {
+                                // language=XML
+                                """
                           <beregningStoppnivaa>
                             <kodeFagomraade xmlns="">${it.kodeFagomraade}</kodeFagomraade>
                             <stoppNivaaId xmlns="">1</stoppNivaaId>
@@ -858,8 +858,8 @@ data class SimuleringResponseData(
                             <forfall xmlns="">${it.forfall}</forfall>
                             <feilkonto xmlns="">${it.feilkonto}</feilkonto>
                             ${
-                        it.detaljer.joinToString("\n") {
-                            """
+                                    it.detaljer.joinToString("\n") {
+                                        """
                             <beregningStoppnivaaDetaljer>
                               <faktiskFom xmlns="">${it.faktiskFom}</faktiskFom>
                               <faktiskTom xmlns="">${it.faktiskTom}</faktiskTom>
@@ -886,16 +886,16 @@ data class SimuleringResponseData(
                               <typeKlasseBeskrivelse xmlns="">${it.typeKlasseBeskrivelse}</typeKlasseBeskrivelse>
                               <refunderesOrgNr xmlns=""></refunderesOrgNr>
                             </beregningStoppnivaaDetaljer>
-                            """.trimIndent()
-                        }
-                        }
+                                        """.trimIndent()
+                                    }
+                                }
                           </beregningStoppnivaa>
+                                """.trimIndent()
+                            }
+                        }
+                        </beregningsPeriode>
                         """.trimIndent()
                     }
-                    }
-                        </beregningsPeriode>
-                    """.trimIndent()
-                }
                 }
                       </simulering>
                       <infomelding>

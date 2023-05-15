@@ -30,10 +30,10 @@ internal class LeggTilFlyktningVilkårIT {
                     actualSakJson = sakJson,
                     expectedSaksnummer = 2021,
                     expectedSøknader = "[${
-                    digitalUføreSøknadJson(
-                        SharedRegressionTestData.fnr,
-                        SharedRegressionTestData.epsFnr,
-                    )
+                        digitalUføreSøknadJson(
+                            SharedRegressionTestData.fnr,
+                            SharedRegressionTestData.epsFnr,
+                        )
                     }]",
                     expectedSakstype = "uføre",
                 )

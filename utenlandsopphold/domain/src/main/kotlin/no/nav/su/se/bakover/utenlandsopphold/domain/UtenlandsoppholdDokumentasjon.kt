@@ -4,5 +4,4 @@ enum class UtenlandsoppholdDokumentasjon {
     Udokumentert,
     Dokumentert,
     Sannsynliggjort,
-    ;
 }

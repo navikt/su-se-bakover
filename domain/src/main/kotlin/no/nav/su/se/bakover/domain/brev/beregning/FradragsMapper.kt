@@ -33,10 +33,10 @@ internal fun List<Fradrag>.toMånedsfradragPerType(): List<Månedsfradrag> =
     this
         .groupBy {
             "${it.fradragstype}${
-            it.utenlandskInntekt
-                ?.let { u ->
-                    "${u.valuta}${u.beløpIUtenlandskValuta}"
-                }
+                it.utenlandskInntekt
+                    ?.let { u ->
+                        "${u.valuta}${u.beløpIUtenlandskValuta}"
+                    }
             }"
         }
         .map { (_, fradrag) ->

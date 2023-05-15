@@ -43,7 +43,6 @@ enum class CefFieldName(val kode: String) {
      */
     DECISION_VERDI("flexString1"),
     DECISION_LABEL("flexString1Label"),
-    ;
 }
 
 data class CefField(val cefFieldName: CefFieldName, val value: String)

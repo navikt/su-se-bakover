@@ -184,8 +184,8 @@ data class VurderingsperiodeFormue private constructor(
                 id = id,
                 opprettet = grunnlag.opprettet,
                 vurdering = if (grunnlag.periode.måneder().all {
-                    grunnlag.sumFormue() <= formuegrenserFactory.forMåned(it).formuegrense.avrund()
-                }
+                        grunnlag.sumFormue() <= formuegrenserFactory.forMåned(it).formuegrense.avrund()
+                    }
                 ) {
                     Vurdering.Innvilget
                 } else {

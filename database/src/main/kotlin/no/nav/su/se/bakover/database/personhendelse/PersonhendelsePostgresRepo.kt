@@ -194,7 +194,6 @@ internal class PersonhendelsePostgresRepo(
         SIVILSTAND("sivilstand"),
         BOSTEDSADRESSE("bostedsadresse"),
         KONTAKTADRESSE("kontaktadresse"),
-        ;
     }
 
     private fun Personhendelse.Endringstype.toDatabasetype(): String = when (this) {

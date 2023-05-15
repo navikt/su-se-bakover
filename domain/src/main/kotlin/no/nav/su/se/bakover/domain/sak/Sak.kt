@@ -547,5 +547,4 @@ data class BegrensetSakinfo(
 
 enum class KanStansesEllerGjenopptas {
     STANS, GJENOPPTA, INGEN,
-    ;
 }

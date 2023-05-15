@@ -6,6 +6,5 @@ interface JournalpostClientMetrics {
     enum class BenyttetSkjema {
         NAV_SU_KONTROLLNOTAT,
         DOKUMENTASJON_AV_OPPFØLGINGSSAMTALE,
-        ;
     }
 }

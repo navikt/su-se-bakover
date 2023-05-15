@@ -115,7 +115,6 @@ enum class Hjemmel(val lov: Lov, val kapittel: Int, val paragrafnummer: Int) {
 
     /** Kapittel 4 - § 21.Kontroll (2021-01-01) */
     SU_PARAGRAF_21(Lov.LOV_OM_SUPPLERENDE_STØNAD_TIL_PERSONER_MED_KORT_BOTID_I_NORGE, 4, 21),
-    ;
 }
 
 enum class Lov(val tittel: String) {

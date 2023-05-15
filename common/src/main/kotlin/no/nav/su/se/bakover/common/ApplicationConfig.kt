@@ -541,10 +541,10 @@ data class ApplicationConfig(
         ) {
             companion object {
                 fun getUserInfoConfig() = "${
-                getEnvironmentVariableOrDefault(
-                    "KAFKA_SCHEMA_REGISTRY_USER",
-                    "usr",
-                )
+                    getEnvironmentVariableOrDefault(
+                        "KAFKA_SCHEMA_REGISTRY_USER",
+                        "usr",
+                    )
                 }:${getEnvironmentVariableOrDefault("KAFKA_SCHEMA_REGISTRY_PASSWORD", "pwd")}"
             }
         }

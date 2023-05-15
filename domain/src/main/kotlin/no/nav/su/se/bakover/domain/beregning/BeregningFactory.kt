@@ -64,9 +64,9 @@ class BeregningFactory(val clock: Clock) {
             // hvis sum uten avkorting gjør at vi havner under 2% er det sosialstønad som har skylda
             if (sumYtelseUtenAvkorting(måned = måned, strategy = strategy) < toProsentAvHøy &&
                 sumYtelseUtenSosialstønad(
-                        måned = måned,
-                        strategy = strategy,
-                    ) != getSumYtelse() // se om det finnes sosialstønad
+                    måned = måned,
+                    strategy = strategy,
+                ) != getSumYtelse() // se om det finnes sosialstønad
             ) {
                 return true
             }
@@ -84,9 +84,9 @@ class BeregningFactory(val clock: Clock) {
             // hvis sum uten avkorting gjør at vi havner under 2% er det sosialstønad som har skylda
             if (sumYtelseUtenAvkorting(måned = måned, strategy = strategy) < toProsentAvHøy &&
                 sumYtelseUtenSosialstønad(
-                        måned = måned,
-                        strategy = strategy,
-                    ) != getSumYtelse() // se om det finnes sosialstønad
+                    måned = måned,
+                    strategy = strategy,
+                ) != getSumYtelse() // se om det finnes sosialstønad
             ) {
                 return false
             }

@@ -18,6 +18,4 @@ enum class UtbetalingsinstruksjonForEtterbetalinger {
      * er at denne innstillingne fører til at prosessen med å utbetale starter med en gang oppdrag mottar utbetalingen.
      */
     SåFortSomMulig,
-
-    ;
 }

@@ -20,7 +20,6 @@ data class Boforhold private constructor(
         EKTEMAKE_SAMBOER, // TODO AI: Skal endres till ektefelle (14/10/2020 LOL)
         VOKSNE_BARN,
         ANNEN_VOKSEN,
-        ;
     }
 
     companion object {

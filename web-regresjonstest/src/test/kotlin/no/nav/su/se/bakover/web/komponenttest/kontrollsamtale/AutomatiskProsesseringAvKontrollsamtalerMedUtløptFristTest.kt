@@ -483,7 +483,6 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
         Oppgave("FIXME"),
         Utbetaling("class no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet${"\$"}Protokollfeil"),
         Journalpost("class no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkKontrollnotatMottatt"),
-        ;
     }
 
     private fun journalpostKontrollnotat(id: JournalpostId): KontrollnotatMottattJournalpost {

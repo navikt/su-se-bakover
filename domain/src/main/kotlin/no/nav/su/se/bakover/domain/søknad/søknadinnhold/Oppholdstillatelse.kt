@@ -14,7 +14,6 @@ data class Oppholdstillatelse private constructor(
     enum class OppholdstillatelseType() {
         MIDLERTIDIG,
         PERMANENT,
-        ;
     }
 
     companion object {

@@ -60,14 +60,14 @@ sealed class Utbetalingsstrategi {
         datoForStanEllerReaktivering: LocalDate,
     ): Either<Unit, Unit> {
         if (eksisterendeUtbetalinger.utbetalingslinjerAvTypenOpphør
-            .any {
-                it.periode.fraOgMed.between(
+                .any {
+                    it.periode.fraOgMed.between(
                         Periode.create(
-                                fraOgMed = datoForStanEllerReaktivering,
-                                tilOgMed = eksisterendeUtbetalinger.maxOf { it.senesteDato() },
-                            ),
+                            fraOgMed = datoForStanEllerReaktivering,
+                            tilOgMed = eksisterendeUtbetalinger.maxOf { it.senesteDato() },
+                        ),
                     )
-            }
+                }
         ) {
             return Unit.left()
         }

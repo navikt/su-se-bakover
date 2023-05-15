@@ -20,8 +20,8 @@ fun utenlandsoppholdResponseJson(
 {
   "utenlandsopphold":[
     ${
-elements.joinToString {
-    """
+    elements.joinToString {
+        """
     {
       "periode":{
         "fraOgMed":"${it.fraOgMed}",
@@ -38,8 +38,8 @@ elements.joinToString {
       "antallDager":${it.antallDagerForPeriode},
       "erAnnullert":${it.erAnnullert}
     }
-    """.trimIndent()
-}
+        """.trimIndent()
+    }
 }
   ],
   "antallDager":$antallDagerTotal

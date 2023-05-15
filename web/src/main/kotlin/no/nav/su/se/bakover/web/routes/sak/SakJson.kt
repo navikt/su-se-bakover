@@ -81,7 +81,6 @@ internal data class SakJson(
 enum class SakstypeJson {
     ALDER,
     UFØRE,
-    ;
 }
 
 internal fun Sakstype.toJson(): String {

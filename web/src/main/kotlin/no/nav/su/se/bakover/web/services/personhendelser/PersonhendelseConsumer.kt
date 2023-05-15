@@ -61,7 +61,7 @@ class PersonhendelseConsumer(
         val processedMessages = mutableMapOf<TopicPartition, OffsetAndMetadata>()
         log.debug(
             "Personhendelse: ${messages.count()} nye meldinger fra PDL. Første melding er fra ${
-            messages.first().value().getOpprettet()
+                messages.first().value().getOpprettet()
             }",
         )
         run processMessages@{
@@ -83,7 +83,7 @@ class PersonhendelseConsumer(
         }
         log.debug(
             "Personhendelse: Prosessert ferdig meldingene. Siste var til og med: ${
-            messages.last().value().opprettet
+                messages.last().value().opprettet
             })",
         )
     }

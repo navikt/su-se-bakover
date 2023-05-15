@@ -37,7 +37,7 @@ import java.time.LocalDate
 fun startServer() {
     embeddedServer(factory = Netty, port = 8080, module = {
         susebakover()
-    },).start(true)
+    }).start(true)
 }
 
 fun Application.susebakover(

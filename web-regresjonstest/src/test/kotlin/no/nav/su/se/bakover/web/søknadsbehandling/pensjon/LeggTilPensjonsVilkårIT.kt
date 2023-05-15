@@ -34,10 +34,10 @@ internal class LeggTilPensjonsVilkårIT {
                     actualSakJson = sakJson,
                     expectedSaksnummer = 2021,
                     expectedSøknader = "[${
-                    digitalAlderSøknadJson(
-                        SharedRegressionTestData.fnr,
-                        SharedRegressionTestData.epsFnr,
-                    )
+                        digitalAlderSøknadJson(
+                            SharedRegressionTestData.fnr,
+                            SharedRegressionTestData.epsFnr,
+                        )
                     }]",
                     expectedSakstype = "alder",
                 )

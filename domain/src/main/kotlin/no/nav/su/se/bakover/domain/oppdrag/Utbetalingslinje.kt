@@ -347,7 +347,6 @@ sealed class Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingsli
             OPPHØR,
             STANS,
             REAKTIVERING,
-            ;
         }
     }
 }

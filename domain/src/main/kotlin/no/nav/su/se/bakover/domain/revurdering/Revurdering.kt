@@ -478,8 +478,8 @@ sealed class Revurdering :
             return KunneIkkeLeggeTilFastOppholdINorgeVilkår.HeleBehandlingsperiodenErIkkeVurdert.left()
         }
         if (!vilkår.vurderingsperioder.all {
-            it.vurdering == vilkår.vurderingsperioder.first().vurdering
-        }
+                it.vurdering == vilkår.vurderingsperioder.first().vurdering
+            }
         ) {
             return KunneIkkeLeggeTilFastOppholdINorgeVilkår.AlleVurderingsperioderMåHaSammeResultat.left()
         }
