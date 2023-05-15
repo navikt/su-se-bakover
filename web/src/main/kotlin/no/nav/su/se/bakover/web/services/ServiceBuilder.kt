@@ -169,6 +169,7 @@ object ServiceBuilder {
             tilbakekrevingService = tilbakekrevingService,
             satsFactory = satsFactory,
             annullerKontrollsamtaleService = kontrollsamtaleSetup.annullerKontrollsamtaleService,
+            ferdigstillVedtakService = ferdigstillVedtakService,
         ).apply { addObserver(statistikkEventObserver) }
 
         val gjenopptakAvYtelseService = GjenopptaYtelseServiceImpl(

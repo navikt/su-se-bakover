@@ -7,6 +7,7 @@ import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
@@ -17,6 +18,7 @@ import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIv
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
+import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -41,6 +43,9 @@ data class IverksettInnvilgetRevurderingResponse(
         lagreRevurdering: (revurdering: IverksattRevurdering, tx: TransactionContext) -> Unit,
         annullerKontrollsamtale: (sakId: UUID, tx: TransactionContext) -> Unit,
         statistikkObservers: () -> List<StatistikkEventObserver>,
+        // lagreDokument  og lukkOppgave er kun brukt ved rene avkortinger.
+        lagreDokument: (Dokument.MedMetadata, TransactionContext) -> Unit,
+        lukkOppgave: (IverksattRevurdering.Opphørt) -> Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit>,
     ): Either<KunneIkkeFerdigstilleIverksettelsestransaksjon, IverksattRevurdering> {
         return Either.catch {
             sessionFactory.withTransactionContext { tx ->

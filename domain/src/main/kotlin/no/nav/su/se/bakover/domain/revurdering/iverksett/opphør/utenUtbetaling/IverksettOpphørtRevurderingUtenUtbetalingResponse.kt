@@ -6,6 +6,7 @@ import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
@@ -16,6 +17,7 @@ import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIv
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
+import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
 import no.nav.su.se.bakover.domain.vedtak.Opphørsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørAvkorting
 import org.slf4j.LoggerFactory
@@ -26,6 +28,7 @@ private val log = LoggerFactory.getLogger("IverksettOpphørtRevurderingResponse"
 data class IverksettOpphørtRevurderingUtenUtbetalingResponse(
     override val sak: Sak,
     override val vedtak: VedtakOpphørAvkorting,
+    val dokument: Dokument.MedMetadata,
 ) : IverksettRevurderingResponse<Opphørsvedtak> {
 
     override val utbetaling: Utbetaling.SimulertUtbetaling? = null
@@ -37,11 +40,14 @@ data class IverksettOpphørtRevurderingUtenUtbetalingResponse(
 
     override fun ferdigstillIverksettelseITransaksjon(
         sessionFactory: SessionFactory,
+        // Brukes kun for utbetalingstilfellene.
         klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
         lagreVedtak: (vedtak: Opphørsvedtak, tx: TransactionContext) -> Unit,
         lagreRevurdering: (revurdering: IverksattRevurdering, tx: TransactionContext) -> Unit,
         annullerKontrollsamtale: (sakId: UUID, tx: TransactionContext) -> Unit,
         statistikkObservers: () -> List<StatistikkEventObserver>,
+        lagreDokument: (Dokument.MedMetadata, TransactionContext) -> Unit,
+        lukkOppgave: (IverksattRevurdering.Opphørt) -> Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit>,
     ): Either<KunneIkkeFerdigstilleIverksettelsestransaksjon, IverksattRevurdering> {
         return Either.catch {
             sessionFactory.withTransactionContext { tx ->
@@ -53,9 +59,14 @@ data class IverksettOpphørtRevurderingUtenUtbetalingResponse(
                 lagreVedtak(vedtak, tx)
                 annullerKontrollsamtale(sak.id, tx)
                 lagreRevurdering(vedtak.behandling, tx)
-                statistikkObservers().notify(statistikkhendelser)
+                lagreDokument(dokument, tx)
                 vedtak.behandling
             }
+        }.onRight { revurdering ->
+            lukkOppgave(revurdering).mapLeft {
+                log.error("Lukking av oppgave ${revurdering.oppgaveId} for revurderingId: ${revurdering.id} feilet. Må ryddes opp manuelt.")
+            }
+            statistikkObservers().notify(statistikkhendelser)
         }.mapLeft {
             when (it) {
                 is IverksettTransactionException -> {

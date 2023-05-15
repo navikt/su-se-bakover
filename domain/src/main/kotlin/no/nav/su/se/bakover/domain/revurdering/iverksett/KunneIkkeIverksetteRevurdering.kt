@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.revurdering.iverksett
 
+import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -26,5 +27,7 @@ sealed interface KunneIkkeIverksetteRevurdering {
         data class Revurderingsfeil(val underliggende: RevurderingTilAttestering.KunneIkkeIverksetteRevurdering) : Saksfeil
 
         object DetHarKommetNyeOverlappendeVedtak : Saksfeil
+
+        data class KunneIkkeGenerereDokument(val feil: KunneIkkeLageDokument) : Saksfeil
     }
 }
