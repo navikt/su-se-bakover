@@ -89,7 +89,20 @@ data class VedtakOpphørMedUtbetaling private constructor(
      *  Brevutsending skjer i [no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService.sendTilbakekrevingsvedtak]
      */
     override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
-        return behandling.skalSendeVedtaksbrev() && !behandling.avventerKravgrunnlag()
+        return when (dokumenttilstand) {
+            Dokumenttilstand.SKAL_IKKE_GENERERE -> false.also {
+                require(!behandling.skalSendeVedtaksbrev())
+            }
+
+            Dokumenttilstand.IKKE_GENERERT_ENDA -> !behandling.avventerKravgrunnlag().also {
+                require(behandling.skalSendeVedtaksbrev())
+            }
+            // Her har vi allerede generert brev fra før og ønsker ikke generere et til.
+            Dokumenttilstand.GENERERT,
+            Dokumenttilstand.JOURNALFØRT,
+            Dokumenttilstand.SENDT,
+            -> false
+        }
     }
 
     override fun accept(visitor: VedtakVisitor) {

@@ -46,7 +46,19 @@ data class VedtakOpphørAvkorting(
     }
 
     override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
-        return behandling.skalSendeVedtaksbrev()
+        return when (dokumenttilstand) {
+            Dokumenttilstand.SKAL_IKKE_GENERERE -> false.also {
+                require(!behandling.skalSendeVedtaksbrev())
+            }
+            Dokumenttilstand.IKKE_GENERERT_ENDA -> true.also {
+                require(behandling.skalSendeVedtaksbrev())
+            }
+            // Her har vi allerede generert brev fra før og ønsker ikke generere et til.
+            Dokumenttilstand.GENERERT,
+            Dokumenttilstand.JOURNALFØRT,
+            Dokumenttilstand.SENDT,
+            -> false
+        }
     }
 
     companion object {
