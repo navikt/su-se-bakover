@@ -17,7 +17,7 @@ interface DokumentRepo {
     fun hentDokumenterForDistribusjon(): List<Dokumentdistribusjon>
     fun oppdaterDokumentdistribusjon(dokumentdistribusjon: Dokumentdistribusjon)
 
-    fun lagreSkatteDokument(dokument: Skattedokument, tc: TransactionContext)
+    fun lagreSkatteDokument(dokument: Skattedokument, tc: TransactionContext = defaultTransactionContext())
 
     fun defaultTransactionContext(): TransactionContext
 }

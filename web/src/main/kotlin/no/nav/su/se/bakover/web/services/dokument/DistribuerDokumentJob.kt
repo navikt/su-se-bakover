@@ -42,6 +42,7 @@ internal class DistribuerDokumentJob(
                             // Disse er debug siden jobben kjører hvert minutt.
                             log.debug("Kjører skeduleringsjobb '$jobName'")
                             distribuerBrevService.journalførOgDistribuerUtgåendeDokumenter()
+                            //TODO: hack inn journalføring av skattedokumenter
                             log.debug("Fullførte skeduleringsjobb '$jobName'")
                         }
                     }

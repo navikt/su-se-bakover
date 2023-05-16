@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
+import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import org.slf4j.LoggerFactory
@@ -38,11 +39,11 @@ data class IverksattInnvilgetSøknadsbehandlingResponse(
         lagreSøknadsbehandling: (IverksattSøknadsbehandling.Innvilget, TransactionContext) -> Unit,
         lagreVedtak: (Vedtak, TransactionContext) -> Unit,
         statistikkObservers: List<StatistikkEventObserver>,
-        // lagreDokument og lukkOppgave er kun i bruk for avslag, men den må være med hvis vi ikke skal trekke domenelogikk ut i domenet. På sikt bør disse gjøres asynkront.
+        opprettPlanlagtKontrollsamtale: (VedtakInnvilgetSøknadsbehandling, TransactionContext) -> Unit,
+        // disse er kun i bruk for avslag, men den må være med hvis vi ikke skal trekke domenelogikk ut i domenet. På sikt bør disse gjøres asynkront.
         lagreDokument: (Dokument.MedMetadata, TransactionContext) -> Unit,
         lukkOppgave: (IverksattSøknadsbehandling.Avslag) -> Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit>,
-        opprettPlanlagtKontrollsamtale: (VedtakInnvilgetSøknadsbehandling, TransactionContext) -> Unit,
-        lagreSkatteDokument: (Skattedokument, TransactionContext) -> Unit,
+        genererOgLagreSkattedokument: (Stønadsvedtak, TransactionContext) -> Unit,
     ) {
         val søknadsbehandling = vedtak.behandling
         sessionFactory.withTransactionContext { tx ->
@@ -60,7 +61,7 @@ data class IverksattInnvilgetSøknadsbehandlingResponse(
                     )
                 }
             lagreVedtak(vedtak, tx)
-            //TODO: finn ut hvor vi skal lage skattedokumentet
+            // TODO: finn ut hvor vi skal lage skattedokumentet
 
             // Så fremt denne ikke kaster ønsker vi å gå igjennom med iverksettingen.
             opprettPlanlagtKontrollsamtale(vedtak, tx)

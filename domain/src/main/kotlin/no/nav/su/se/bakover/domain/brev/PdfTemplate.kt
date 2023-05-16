@@ -32,6 +32,5 @@ sealed class PdfTemplate(
 
     object FritekstDokument : PdfTemplate("fritekstDokument")
 
-    object Skattemelding : PdfTemplate("skattemelding")
-
+    object Skattegrunnlag : PdfTemplate("skattegrunnlag")
 }

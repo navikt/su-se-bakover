@@ -2,6 +2,9 @@ package no.nav.su.se.bakover.domain.brev
 
 sealed class PdfTemplateMedDokumentNavn(
     private val pdfTemplate: PdfTemplate,
+    /**
+     * navnet vi bruker i gosys og journalføring
+     */
     private val dokumentNavn: String,
 ) {
     fun template() = pdfTemplate.name()

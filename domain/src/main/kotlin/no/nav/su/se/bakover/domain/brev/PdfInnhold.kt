@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.brev
 
+import arrow.core.NonEmptyList
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
@@ -11,7 +12,12 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevTilbakekrevingInfo
+import no.nav.su.se.bakover.domain.person.Person
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
+import java.time.LocalDate
+import java.util.UUID
 
 /**
  * TODO jah: Dette er en ren JsonDto som sendes serialisert til su-pdfgen. Den bør bo under client-modulen eller en tilsvarende infrastruktur-modul.
@@ -235,6 +241,83 @@ abstract class PdfInnhold {
         val fritekst: String,
     ) : PdfInnhold() {
         override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.Fritekst(tittel)
+    }
+
+    private data class SkattPdfData private constructor(
+        val fnr: Fnr,
+        val navn: Person.Navn,
+        val årsgrunnlag: NonEmptyList<SamletSkattegrunnlagForÅrOgStadie>,
+    ) {
+        companion object {
+            fun lagSkattePdfData(
+                fnr: Fnr,
+                hentPerson: (Fnr) -> Person,
+                årsgrunnlag: NonEmptyList<SamletSkattegrunnlagForÅrOgStadie>,
+            ): SkattPdfData {
+                return SkattPdfData(
+                    fnr = fnr,
+                    navn = hentPerson(fnr).navn,
+                    årsgrunnlag = årsgrunnlag,
+                )
+            }
+        }
+    }
+
+    data class SkattemeldingsPdf private constructor(
+        // TODO: legg in vedtaksid, saksid, saksnummer, behandlingstype?
+        val saksnummer: Saksnummer,
+        val søknadsbehandlingsId: UUID,
+        val vedtaksId: UUID,
+        val sakId: UUID,
+        // TODO: kanskje ha med en behandlingstype som er riktig for type + behandling
+        // val behandlingstype: Behandlingssammendrag.Behandlingstype
+        val hentetDato: LocalDate,
+        private val søkers: SkattPdfData,
+        private val eps: SkattPdfData?,
+    ) : PdfInnhold() {
+        override val pdfTemplate: PdfTemplateMedDokumentNavn = SkattegrunnlagPdfTemplate
+
+        data class ÅrsgrunnlagMedFnr(
+            val fnr: Fnr,
+            val årsgrunlag: NonEmptyList<SamletSkattegrunnlagForÅrOgStadie>,
+        )
+
+        data class ÅrsgrunnlagForPdf(
+            val søkers: ÅrsgrunnlagMedFnr,
+            val eps: ÅrsgrunnlagMedFnr?,
+        )
+
+        companion object {
+            fun lagSkattemeldingsPdf(
+                saksnummer: Saksnummer,
+                søknadsbehandlingsId: UUID,
+                vedtaksId: UUID,
+                sakId: UUID,
+                hentetDato: LocalDate,
+                skatt: ÅrsgrunnlagForPdf,
+                hentPerson: (Fnr) -> Person,
+            ): SkattemeldingsPdf {
+                return SkattemeldingsPdf(
+                    saksnummer = saksnummer,
+                    søknadsbehandlingsId = søknadsbehandlingsId,
+                    vedtaksId = vedtaksId,
+                    sakId = sakId,
+                    hentetDato = hentetDato,
+                    søkers = SkattPdfData.lagSkattePdfData(
+                        fnr = skatt.søkers.fnr,
+                        hentPerson = hentPerson,
+                        årsgrunnlag = skatt.søkers.årsgrunlag,
+                    ),
+                    eps = skatt.eps?.let {
+                        SkattPdfData.lagSkattePdfData(
+                            fnr = skatt.eps.fnr,
+                            hentPerson = hentPerson,
+                            årsgrunnlag = skatt.eps.årsgrunlag,
+                        )
+                    },
+                )
+            }
+        }
     }
 }
 

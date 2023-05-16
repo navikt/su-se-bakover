@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.vedtak
 
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.dokument.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.visitor.Visitable
@@ -29,11 +28,9 @@ sealed interface Avslagsvedtak : VedtakIverksattSøknadsbehandling, Visitable<Ve
 
         fun fromSøknadsbehandlingUtenBeregning(
             avslag: IverksattSøknadsbehandling.Avslag.UtenBeregning,
-            eksterneGrunnlag: EksterneGrunnlag,
             clock: Clock,
         ) = VedtakAvslagVilkår.from(
             avslag = avslag,
-            eksterneGrunnlag = eksterneGrunnlag,
             clock = clock,
         )
     }

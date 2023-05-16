@@ -4,8 +4,6 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.BrevService
-import no.nav.su.se.bakover.domain.dokument.DokumentRepo
-import no.nav.su.se.bakover.domain.dokument.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
@@ -18,6 +16,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrolls
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.iverksettSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.service.skatt.SkattDokumentService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import java.time.Clock
@@ -32,7 +31,7 @@ class IverksettSøknadsbehandlingServiceImpl(
     private val opprettPlanlagtKontrollsamtaleService: OpprettKontrollsamtaleVedNyStønadsperiodeService,
     private val ferdigstillVedtakService: FerdigstillVedtakService,
     private val brevService: BrevService,
-    private val dokumentRepo: DokumentRepo,
+    private val skattDokumentService: SkattDokumentService,
 ) : IverksettSøknadsbehandlingService {
 
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
@@ -44,21 +43,12 @@ class IverksettSøknadsbehandlingServiceImpl(
     override fun iverksett(
         command: IverksettSøknadsbehandlingCommand,
     ): Either<KunneIkkeIverksetteSøknadsbehandling, Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak>> {
-        val eksterneGrunnlag = søknadsbehandlingRepo.hentSkattegrunnlag(command.behandlingId)?.let {
-            val samletEksterneGrunnlag = it.tilSamletEksternSkattegrunnlag()
-            EksterneGrunnlag(
-                skattegrunnlagSøker = samletEksterneGrunnlag.first,
-                skattegrunnlagEps = samletEksterneGrunnlag.second
-            )
-        } ?: throw RuntimeException("Henting av skattegrunnlag for ${command.behandlingId} feilet")
-
         return sakService.hentSakForSøknadsbehandling(command.behandlingId)
             .iverksettSøknadsbehandling(
                 command = command,
                 lagDokument = brevService::lagDokument,
                 clock = clock,
                 simulerUtbetaling = utbetalingService::simulerUtbetaling,
-                eksterneGrunnlag = eksterneGrunnlag
             )
             .map {
                 iverksett(it)
@@ -75,10 +65,9 @@ class IverksettSøknadsbehandlingServiceImpl(
             lagreSøknadsbehandling = søknadsbehandlingRepo::lagre,
             lagreVedtak = vedtakRepo::lagreITransaksjon,
             statistikkObservers = observers,
+            opprettPlanlagtKontrollsamtale = opprettPlanlagtKontrollsamtaleService::opprett,
             lagreDokument = brevService::lagreDokument,
             lukkOppgave = ferdigstillVedtakService::lukkOppgaveMedBruker,
-            opprettPlanlagtKontrollsamtale = opprettPlanlagtKontrollsamtaleService::opprett,
-            lagreSkatteDokument = dokumentRepo::lagreSkatteDokument,
-        )
+        ) { vedtak, tx -> skattDokumentService.genererMedContext(vedtak, tx) }
     }
 }

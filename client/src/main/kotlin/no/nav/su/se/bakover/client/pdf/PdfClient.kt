@@ -29,12 +29,6 @@ internal class PdfClient(private val baseUrl: String) : PdfGenerator {
             .mapLeft { KunneIkkeGenererePdf }
     }
 
-    override fun genererPdf(pdf: PdfDokument): Either<KunneIkkeGenererePdf, ByteArray> {
-        return genererPdf(pdf.toJson(), pdf.template.name()).mapLeft {
-            KunneIkkeGenererePdf
-        }
-    }
-
     private fun genererPdf(input: String, template: String): Either<ClientError, ByteArray> {
         val (_, response, result) = "$baseUrl$suPdfGenPath/$template".httpPost()
             .header("Content-Type", "application/json")

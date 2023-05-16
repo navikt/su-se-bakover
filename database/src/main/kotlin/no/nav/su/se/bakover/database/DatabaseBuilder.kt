@@ -44,6 +44,7 @@ import no.nav.su.se.bakover.database.personhendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.regulering.ReguleringPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
+import no.nav.su.se.bakover.database.skatt.DokumentSkattPostgresRepo
 import no.nav.su.se.bakover.database.skatt.SkattPostgresRepo
 import no.nav.su.se.bakover.database.stønadsperiode.SendPåminnelseNyStønadsperiodeJobPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
@@ -266,7 +267,12 @@ object DatabaseBuilder {
             revurderingRepo = revurderingRepo,
             vedtakRepo = vedtakRepo,
             personhendelseRepo = personhendelseRepo,
-            dokumentRepo = DokumentPostgresRepo(sessionFactory, dbMetrics, clock),
+            dokumentRepo = DokumentPostgresRepo(
+                DokumentSkattPostgresRepo(sessionFactory),
+                sessionFactory,
+                dbMetrics,
+                clock
+            ),
             nøkkeltallRepo = nøkkeltallRepo,
             sessionFactory = sessionFactory,
             klageRepo = klageRepo,
@@ -275,12 +281,11 @@ object DatabaseBuilder {
             reguleringRepo = reguleringRepo,
             tilbakekrevingRepo = tilbakekrevingRepo,
             sendPåminnelseNyStønadsperiodeJobRepo = SendPåminnelseNyStønadsperiodeJobPostgresRepo(
-                JobContextPostgresRepo(
-                    sessionFactory,
-                ),
+                JobContextPostgresRepo(sessionFactory),
             ),
             hendelseRepo = hendelseRepo,
             utenlandsoppholdRepo = utenlandsoppholdRepo,
+            dokumentSkattRepo = DokumentSkattPostgresRepo(sessionFactory)
         )
     }
 }

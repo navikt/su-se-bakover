@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.dokument.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -39,7 +38,6 @@ fun Sak.iverksettSøknadsbehandling(
     command: IverksettSøknadsbehandlingCommand,
     lagDokument: (visitable: Visitable<LagBrevRequestVisitor>) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
     simulerUtbetaling: (utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
-    eksterneGrunnlag: EksterneGrunnlag,
     clock: Clock,
 ): Either<KunneIkkeIverksetteSøknadsbehandling, IverksattSøknadsbehandlingResponse<out IverksattSøknadsbehandling>> {
     val søknadsbehandling = hentSøknadsbehandlingEllerKast(command)
@@ -60,7 +58,6 @@ fun Sak.iverksettSøknadsbehandling(
             attestering = command.attestering,
             clock = clock,
             lagDokument = lagDokument,
-            eksterneGrunnlag = eksterneGrunnlag,
         )
     }
 }

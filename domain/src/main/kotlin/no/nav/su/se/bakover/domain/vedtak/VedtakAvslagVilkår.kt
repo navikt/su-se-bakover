@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.dokument.Dokumenttilstand
-import no.nav.su.se.bakover.domain.dokument.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.dokument.setDokumentTilstandBasertPåBehandlingHvisNull
 import no.nav.su.se.bakover.domain.grunnlag.krevMinstEttAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
@@ -21,7 +20,6 @@ data class VedtakAvslagVilkår private constructor(
     override val behandling: IverksattSøknadsbehandling.Avslag.UtenBeregning,
     override val periode: Periode,
     override val dokumenttilstand: Dokumenttilstand,
-    override val eksterneGrunnlag: EksterneGrunnlag?,
 ) : Avslagsvedtak {
 
     override val utbetalingId = null
@@ -36,7 +34,6 @@ data class VedtakAvslagVilkår private constructor(
     companion object {
         fun from(
             avslag: IverksattSøknadsbehandling.Avslag.UtenBeregning,
-            eksterneGrunnlag: EksterneGrunnlag?,
             clock: Clock,
         ): VedtakAvslagVilkår {
             return VedtakAvslagVilkår(
@@ -50,7 +47,6 @@ data class VedtakAvslagVilkår private constructor(
                 // Per tidspunkt er det implisitt at vi genererer og lagrer brev samtidig som vi oppretter vedtaket.
                 // TODO jah: Hvis vi heller flytter brevgenereringen ut til ferdigstill-jobben, blir det mer riktig og sette denne til IKKE_GENERERT_ENDA
                 dokumenttilstand = Dokumenttilstand.GENERERT,
-                eksterneGrunnlag = eksterneGrunnlag,
             )
         }
 
@@ -63,7 +59,6 @@ data class VedtakAvslagVilkår private constructor(
             behandling: IverksattSøknadsbehandling.Avslag.UtenBeregning,
             periode: Periode,
             dokumenttilstand: Dokumenttilstand?,
-            eksterneGrunnlag: EksterneGrunnlag
         ) = VedtakAvslagVilkår(
             id = id,
             opprettet = opprettet,
@@ -73,7 +68,6 @@ data class VedtakAvslagVilkår private constructor(
             periode = periode,
             avslagsgrunner = avslagsgrunner,
             dokumenttilstand = dokumenttilstand.setDokumentTilstandBasertPåBehandlingHvisNull(behandling),
-            eksterneGrunnlag = eksterneGrunnlag
         )
     }
 

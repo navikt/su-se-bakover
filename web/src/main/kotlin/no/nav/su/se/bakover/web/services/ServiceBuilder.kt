@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseServiceImpl
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.revurdering.StansYtelseServiceImpl
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
+import no.nav.su.se.bakover.service.skatt.SkattDokumentServiceImpl
 import no.nav.su.se.bakover.service.skatt.SkatteServiceImpl
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserServiceImpl
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonServiceImpl
@@ -233,15 +234,20 @@ object ServiceBuilder {
             clock = clock,
         )
         val iverksettSøknadsbehandlingService = IverksettSøknadsbehandlingServiceImpl(
-            søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
-            utbetalingService = utbetalingService,
-            brevService = brevService,
-            clock = clock,
-            vedtakRepo = databaseRepos.vedtakRepo,
-            ferdigstillVedtakService = ferdigstillVedtakService,
             sakService = sakService,
-            opprettPlanlagtKontrollsamtaleService = kontrollsamtaleSetup.opprettPlanlagtKontrollsamtaleService,
+            clock = clock,
+            utbetalingService = utbetalingService,
             sessionFactory = databaseRepos.sessionFactory,
+            søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
+            vedtakRepo = databaseRepos.vedtakRepo,
+            opprettPlanlagtKontrollsamtaleService = kontrollsamtaleSetup.opprettPlanlagtKontrollsamtaleService,
+            ferdigstillVedtakService = ferdigstillVedtakService,
+            brevService = brevService,
+            skattDokumentService = SkattDokumentServiceImpl(
+                pdfGenerator = clients.pdfGenerator,
+                personOppslag = clients.personOppslag,
+                dokumentSkattRepo = databaseRepos.dokumentSkattRepo,
+            )
         ).apply { addObserver(statistikkEventObserver) }
         return Services(
             avstemming = AvstemmingServiceImpl(
