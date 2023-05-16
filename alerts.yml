@@ -19,9 +19,9 @@ spec:
           namespace: supstonad
           severity: critical
       - alert: su-se-bakover-error-logg
-        expr: 'sum(max_over_time(logd_messages_total{log_app="su-se-bakover",log_level="Error"}[15m])
+        expr: 'sum(max_over_time(log_messages_errors{namespace="supstonad",app="su-se-bakover",level="Error"}[15m])
                 or vector(0)) -
-               sum(max_over_time(logd_messages_total{log_app="su-se-bakover",log_level="Error"}[15m]
+               sum(max_over_time(log_messages_errors{namespace="supstonad",app="su-se-bakover",level="Error"}[15m]
                offset 15m) or vector(0)) > 0'
         for: 1s
         annotations:
@@ -31,9 +31,9 @@ spec:
           namespace: supstonad
           severity: critical
       - alert: su-datapakke-soknad-error-logg
-        expr: 'sum(max_over_time(logd_messages_total{log_app="su-datapakke-soknad",log_level="Error"}[15m])
+        expr: 'sum(max_over_time(log_messages_errors{namespace="supstonad"app="su-datapakke-soknad",level="Error"}[15m])
                 or vector(0)) -
-               sum(max_over_time(logd_messages_total{log_app="su-datapakke-soknad",log_level="Error"}[15m]
+               sum(max_over_time(log_messages_errors{namespace="supstonad"app="su-datapakke-soknad",level="Error"}[15m]
                offset 15m) or vector(0)) > 0'
         for: 1s
         annotations:
