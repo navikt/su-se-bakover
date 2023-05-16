@@ -8,8 +8,10 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.YearRange
 import no.nav.su.se.bakover.common.toYearRange
 import java.time.LocalDate
+import java.util.UUID
 
 data class Skattegrunnlag(
+    val id: UUID,
     val fnr: Fnr,
     val hentetTidspunkt: Tidspunkt,
     val saksbehandler: NavIdentBruker.Saksbehandler,
@@ -23,12 +25,13 @@ data class Skattegrunnlag(
     }
 
     constructor(
+        id: UUID,
         fnr: Fnr,
         hentetTidspunkt: Tidspunkt,
         saksbehandler: NavIdentBruker.Saksbehandler,
         årsgrunnlag: SamletSkattegrunnlagForÅrOgStadie,
         årSpurtFor: YearRange,
-    ) : this(fnr, hentetTidspunkt, saksbehandler, nonEmptyListOf(årsgrunnlag), årSpurtFor)
+    ) : this(id, fnr, hentetTidspunkt, saksbehandler, nonEmptyListOf(årsgrunnlag), årSpurtFor)
 
     data class SkattegrunnlagForÅr(
         val oppgjørsdato: LocalDate?,

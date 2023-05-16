@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
+import no.nav.su.se.bakover.web.routes.grunnlag.EksterneGrunnlagJson
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.BeregningJson
@@ -23,5 +24,5 @@ internal data class BehandlingJson(
     val simuleringForAvkortingsvarsel: SimuleringJson?,
     val sakstype: String,
     val aldersvurdering: AldersvurderingJson?,
-    val harSkattegrunnlag: Boolean,
+    val eksterneGrunnlag: EksterneGrunnlagJson,
 )

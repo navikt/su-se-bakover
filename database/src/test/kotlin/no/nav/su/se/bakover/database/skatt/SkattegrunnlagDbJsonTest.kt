@@ -9,13 +9,16 @@ import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.skatt.nySamletSkattegrunnlagForÅrOgStadieOppgjør
 import no.nav.su.se.bakover.test.skatt.nySkattegrunnlag
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 class SkattegrunnlagDbJsonTest {
 
     @Test
     fun `kan serialisere og deserialisere skattegrunnlag`() {
-        val expected = nySkattegrunnlag(årsgrunnlag = nonEmptyListOf(nySamletSkattegrunnlagForÅrOgStadieOppgjør()))
+        val id = UUID.randomUUID()
+        val expected = nySkattegrunnlag(id = id, årsgrunnlag = nonEmptyListOf(nySamletSkattegrunnlagForÅrOgStadieOppgjør()))
         SkattegrunnlagDbJson.toSkattegrunnlag(
+            id = id,
             årsgrunnlagJson = expected.toDbJson(),
             fnr = fnr.toString(),
             hentetTidspunkt = fixedTidspunkt,

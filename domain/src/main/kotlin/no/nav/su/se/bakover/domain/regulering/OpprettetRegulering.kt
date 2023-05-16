@@ -72,7 +72,6 @@ data class OpprettetRegulering(
                 grunnlagsdata = Grunnlagsdata.tryCreate(
                     bosituasjon = grunnlagsdata.bosituasjonSomFullstendig(),
                     fradragsgrunnlag = fradragsgrunnlag,
-                    skattereferanser = grunnlagsdata.skattereferanser,
                 ).getOrElse { throw IllegalStateException("Kunne ikke legge til fradrag ved regulering: $it") },
                 vilkårsvurderinger = vilkårsvurderinger,
             ),

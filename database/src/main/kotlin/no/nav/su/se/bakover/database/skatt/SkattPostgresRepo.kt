@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.persistence.oppdatering
 import no.nav.su.se.bakover.common.persistence.tidspunkt
 import no.nav.su.se.bakover.database.common.YearRangeJson.Companion.toStringifiedYearRangeJson
 import no.nav.su.se.bakover.database.skatt.SkattegrunnlagDbJson.Companion.toDbJson
+import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import java.util.UUID
 
@@ -21,31 +22,54 @@ internal object SkattPostgresRepo {
             it.toSkattegrunnlag()
         }
 
-    fun slettSkattegrunnlag(id: UUID, session: Session) {
+    fun lagre(
+        sakId: UUID,
+        skatt: EksterneGrunnlagSkatt,
+        session: Session,
+    ) {
+        return when (skatt) {
+            is EksterneGrunnlagSkatt.Hentet -> {
+                skatt.eps?.let { lagreForEps(sakId, it, session) }
+                lagreForSøker(sakId, skatt.søkers, session)
+            }
+
+            EksterneGrunnlagSkatt.IkkeHentet -> Unit
+        }
+    }
+
+    fun slettEksisterende(eksisterende: Skattereferanser, oppdterte: Skattereferanser, session: Session) {
+        val skalSletteSøker = eksisterende.søkers != oppdterte.søkers
+        val skalSletteEps = eksisterende.eps != null && eksisterende.eps != oppdterte.eps
+
+        if (skalSletteSøker) {
+            slettSkattegrunnlag(eksisterende.søkers, session)
+        }
+        if (skalSletteEps) {
+            slettSkattegrunnlag(eksisterende.eps!!, session)
+        }
+    }
+
+    private fun slettSkattegrunnlag(id: UUID, session: Session) {
         "delete from skatt where id=:id".oppdatering(mapOf("id" to id), session)
     }
 
-    fun lagreSkattegrunnlag(
-        id: UUID,
-        sakId: UUID,
-        fnr: Fnr,
-        erEps: Boolean,
-        opprettet: Tidspunkt,
-        data: Skattegrunnlag?,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-        årSpurtFor: YearRange,
-        session: Session,
-    ) {
+    private fun lagreForSøker(sakId: UUID, skatt: Skattegrunnlag, session: Session) {
         lagreSkattekall(
-            id = id,
-            sakId = sakId,
-            fnr = fnr,
-            erEps = erEps,
-            opprettet = opprettet,
-            data = data,
+            id = skatt.id, sakId = sakId,
+            fnr = skatt.fnr, erEps = false,
+            opprettet = skatt.hentetTidspunkt, data = skatt,
+            saksbehandler = skatt.saksbehandler, årSpurtFor = skatt.årSpurtFor,
             session = session,
-            saksbehandler = saksbehandler,
-            årSpurtFor = årSpurtFor,
+        )
+    }
+
+    private fun lagreForEps(sakId: UUID, skatt: Skattegrunnlag, session: Session) {
+        lagreSkattekall(
+            id = skatt.id, sakId = sakId,
+            fnr = skatt.fnr, erEps = true,
+            opprettet = skatt.hentetTidspunkt, data = skatt,
+            saksbehandler = skatt.saksbehandler, årSpurtFor = skatt.årSpurtFor,
+            session = session,
         )
     }
 
@@ -61,10 +85,12 @@ internal object SkattPostgresRepo {
         session: Session,
     ) {
         """
-                    insert into
-                        skatt (id, sakId, fnr, erEps, opprettet, saksbehandler, årSpurtFor, data)
-                    values
-                        (:id, :sakId, :fnr, :erEps, :opprettet, :saksbehandler, to_json(:aarSpurtFor::jsonb), to_json(:data::jsonb))
+            insert into
+                skatt (id, sakId, fnr, erEps, opprettet, saksbehandler, årSpurtFor, data)
+            values
+                (:id, :sakId, :fnr, :erEps, :opprettet, :saksbehandler, to_json(:aarSpurtFor::jsonb), to_json(:data::jsonb))
+            on conflict (id) do update set
+                opprettet=:opprettet, saksbehandler=:saksbehandler, årSpurtFor=to_json(:aarSpurtFor::jsonb), data=to_json(:data::jsonb)
         """.trimIndent().insert(
             mapOf(
                 "id" to id,
@@ -83,6 +109,7 @@ internal object SkattPostgresRepo {
 
 fun Row.toSkattegrunnlag(): Skattegrunnlag {
     return SkattegrunnlagDbJson.toSkattegrunnlag(
+        id = uuid("id"),
         årsgrunnlagJson = string("data"),
         fnr = string("fnr"),
         hentetTidspunkt = tidspunkt("opprettet"),

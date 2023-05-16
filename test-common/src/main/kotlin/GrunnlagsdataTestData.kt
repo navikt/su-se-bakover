@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.skatt.Skattereferanser
 import java.util.UUID
 
 fun fradragsgrunnlagArbeidsinntekt1000(
@@ -117,9 +116,8 @@ fun grunnlagsdataEnsligUtenFradrag(
     periode: Periode = år(2021),
     fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag> = emptyList(),
     bosituasjon: Nel<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
-    skattereferanser: Skattereferanser? = null,
 ): Grunnlagsdata {
-    return Grunnlagsdata.create(fradragsgrunnlag, bosituasjon, skattereferanser)
+    return Grunnlagsdata.create(fradragsgrunnlag, bosituasjon)
 }
 
 /**
@@ -136,9 +134,8 @@ fun grunnlagsdataEnsligMedFradrag(
         ),
     ),
     bosituasjon: Nel<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
-    skattereferanser: Skattereferanser? = null,
 ): Grunnlagsdata {
-    return Grunnlagsdata.create(fradragsgrunnlag, bosituasjon, skattereferanser)
+    return Grunnlagsdata.create(fradragsgrunnlag, bosituasjon)
 }
 
 /**
@@ -166,9 +163,8 @@ fun grunnlagsdataMedEpsMedFradrag(
             periode = periode,
         ),
     ),
-    skattereferanser: Skattereferanser? = null,
 ): Grunnlagsdata {
-    return Grunnlagsdata.create(fradragsgrunnlag, bosituasjon, skattereferanser)
+    return Grunnlagsdata.create(fradragsgrunnlag, bosituasjon)
 }
 
 fun arbeidsinntekt(periode: Periode, tilhører: FradragTilhører): Grunnlag.Fradragsgrunnlag {

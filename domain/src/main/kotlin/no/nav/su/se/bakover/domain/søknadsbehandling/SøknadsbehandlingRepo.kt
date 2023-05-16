@@ -15,7 +15,4 @@ interface SøknadsbehandlingRepo {
     fun hentForSøknad(søknadId: UUID): Søknadsbehandling?
     fun defaultTransactionContext(): TransactionContext
     fun defaultSessionContext(): SessionContext
-
-    fun lagreMedSkattegrunnlag(skattegrunnlagForSøknadsbehandling: SøknadsbehandlingMedSkattegrunnlag)
-    fun hentSkattegrunnlag(behandlingId: UUID): SøknadsbehandlingMedSkattegrunnlag?
 }

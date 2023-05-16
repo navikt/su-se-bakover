@@ -8,12 +8,10 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.inneholder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harEPS
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.oppdaterBosituasjonsperiode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.oppdaterFradragsperiode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag
-import no.nav.su.se.bakover.domain.skatt.Skattereferanser
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
@@ -30,7 +28,6 @@ data class Grunnlagsdata private constructor(
      * Etter vilkårsvurdering: Skal være en. Senere kan den være fler hvis vi støtter sats per måned.
      * */
     val bosituasjon: List<Bosituasjon>,
-    val skattereferanser: Skattereferanser? = null,
 ) {
     val eps: List<Fnr> = bosituasjon.mapNotNull { it.eps }.distinct().sortedBy { it.toString() }
 
@@ -79,12 +76,7 @@ data class Grunnlagsdata private constructor(
             fradragsgrunnlag = fradragsgrunnlag.oppdaterFradragsperiode(oppdatertPeriode, clock)
                 .getOrElse { return KunneIkkeLageGrunnlagsdata.UgyldigFradragsgrunnlag(it).left() },
             bosituasjon = bosituasjonSomFullstendig().oppdaterBosituasjonsperiode(oppdatertPeriode),
-            skattereferanser = skattereferanser,
         )
-    }
-
-    fun leggTilSkattereferanser(skattereferanser: Skattereferanser): Grunnlagsdata {
-        return this.copy(skattereferanser = skattereferanser)
     }
 
     val periode: Periode? by lazy {
@@ -101,17 +93,14 @@ data class Grunnlagsdata private constructor(
         fun create(
             fradragsgrunnlag: List<Fradragsgrunnlag> = emptyList(),
             bosituasjon: List<Bosituasjon.Fullstendig> = emptyList(),
-            skattereferanser: Skattereferanser? = null,
         ) = tryCreate(
             fradragsgrunnlag,
             bosituasjon,
-            skattereferanser,
         ).getOrElse { throw IllegalStateException(it.toString()) }
 
         fun tryCreate(
             fradragsgrunnlag: List<Fradragsgrunnlag>,
             bosituasjon: List<Bosituasjon.Fullstendig>,
-            skattereferanser: Skattereferanser?,
         ): Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata> {
             return SjekkOmGrunnlagErKonsistent.BosituasjonOgFradrag(
                 bosituasjon = bosituasjon,
@@ -122,7 +111,6 @@ data class Grunnlagsdata private constructor(
                 Grunnlagsdata(
                     fradragsgrunnlag = fradragsgrunnlag.sortedBy { it.periode },
                     bosituasjon = bosituasjon.sortedBy { it.periode },
-                    skattereferanser = skattereferanser,
                 )
             }
         }
@@ -133,11 +121,9 @@ data class Grunnlagsdata private constructor(
         fun createTillatUfullstendigBosituasjon(
             fradragsgrunnlag: List<Fradragsgrunnlag> = emptyList(),
             bosituasjon: List<Bosituasjon> = emptyList(),
-            skattereferanser: Skattereferanser? = null,
         ) = tryCreateTillatUfullstendigBosituasjon(
             fradragsgrunnlag,
             bosituasjon,
-            skattereferanser,
         ).getOrElse { throw IllegalStateException(it.toString()) }
 
         /**
@@ -149,7 +135,6 @@ data class Grunnlagsdata private constructor(
         private fun tryCreateTillatUfullstendigBosituasjon(
             fradragsgrunnlag: List<Fradragsgrunnlag>,
             bosituasjon: List<Bosituasjon>,
-            skattereferanser: Skattereferanser? = null,
         ): Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata> {
             return SjekkOmGrunnlagErKonsistent.BosituasjonOgFradrag(
                 bosituasjon = bosituasjon,
@@ -163,7 +148,6 @@ data class Grunnlagsdata private constructor(
                             return Grunnlagsdata(
                                 fradragsgrunnlag = fradragsgrunnlag.sortedBy { it.periode },
                                 bosituasjon = bosituasjon.sortedBy { it.periode },
-                                skattereferanser = skattereferanser,
                             ).right()
                         }
                     }
@@ -176,7 +160,6 @@ data class Grunnlagsdata private constructor(
                 Grunnlagsdata(
                     fradragsgrunnlag = fradragsgrunnlag.sortedBy { it.periode },
                     bosituasjon = bosituasjon.sortedBy { it.periode },
-                    skattereferanser = skattereferanser,
                 )
             }
         }

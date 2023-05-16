@@ -148,6 +148,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                         ),
                     ).getOrFail(),
                 ),
+                eksterneGrunnlag = uavklart.eksterneGrunnlag,
                 avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
                     håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
                 ),
@@ -293,6 +294,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                         ),
                     ).getOrFail(),
                 ),
+                eksterneGrunnlag = vilkårsvurdertInnvilget.eksterneGrunnlag,
                 avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
                     håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
                 ),

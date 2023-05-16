@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.periode.erSammenhengendeSortertOgUtenDuplikat
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harFjernetEllerEndretEps
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderMedEPS
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderUtenEPS
-import no.nav.su.se.bakover.domain.skatt.Skattereferanser
+import no.nav.su.se.bakover.domain.skatt.EksternGrunnlagSkattRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
@@ -22,6 +22,7 @@ import java.time.Clock
 sealed class GrunnlagsdataOgVilkårsvurderinger {
     abstract val grunnlagsdata: Grunnlagsdata
     abstract val vilkårsvurderinger: Vilkårsvurderinger
+    abstract val eksterneGrunnlag: EksterneGrunnlag
 
     val eps: List<Fnr> get() = grunnlagsdata.eps
 
@@ -33,6 +34,7 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
 
     abstract fun leggTil(vilkår: Vilkår): GrunnlagsdataOgVilkårsvurderinger
     abstract fun leggTilFradragsgrunnlag(grunnlag: List<Grunnlag.Fradragsgrunnlag>): GrunnlagsdataOgVilkårsvurderinger
+    abstract fun leggTilSkatt(skatt: EksternGrunnlagSkattRequest): GrunnlagsdataOgVilkårsvurderinger
 
     protected fun kastHvisPerioderIkkeErLike() {
         if (grunnlagsdata.periode != null && vilkårsvurderinger.periode != null) {
@@ -53,10 +55,8 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
 
     private fun oppdaterBosituasjonInternal(
         bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>,
-        oppdaterGrunnlagsdata: (fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>, bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>, skattereferanser: Skattereferanser?) -> Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata>,
+        oppdaterGrunnlagsdata: (fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>, bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>) -> Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata>,
     ): GrunnlagsdataOgVilkårsvurderinger {
-        val skattereferanser = this.grunnlagsdata.skattereferanser
-
         val grunnlagsdataJustertForEPS = oppdaterGrunnlagsdata(
             /*
              * Hvis vi går fra "eps" til "ingen eps" må vi fjerne fradragene for EPS for alle periodene
@@ -65,10 +65,6 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
              */
             grunnlagsdata.fradragsgrunnlag.fjernFradragEPS(bosituasjon.perioderUtenEPS()),
             bosituasjon,
-            /**
-             * TODO: Ved revurdering vil vi fjerne bare den EPS'en som har blitt tatt vekk.
-             */
-            if (this.grunnlagsdata.bosituasjon.harFjernetEllerEndretEps(bosituasjon)) skattereferanser?.fjernEps() else this.grunnlagsdata.skattereferanser,
         ).getOrElse {
             throw IllegalStateException(it.toString())
         }
@@ -98,6 +94,11 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
                 Søknadsbehandling(
                     grunnlagsdata = grunnlagsdataJustertForEPS,
                     vilkårsvurderinger = vilkårsvurderinger.leggTil(formueJustertForEPS),
+                    eksterneGrunnlag = if (this.grunnlagsdata.bosituasjon.harFjernetEllerEndretEps(bosituasjon)) {
+                        eksterneGrunnlag.fjernEps()
+                    } else {
+                        eksterneGrunnlag
+                    },
                 )
             }
         }
@@ -122,6 +123,7 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
     data class Søknadsbehandling(
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+        override val eksterneGrunnlag: EksterneGrunnlag,
     ) : GrunnlagsdataOgVilkårsvurderinger() {
         override fun leggTil(vilkår: Vilkår): Søknadsbehandling {
             return copy(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår))
@@ -132,10 +134,12 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
                 grunnlagsdata = Grunnlagsdata.tryCreate(
                     fradragsgrunnlag = grunnlag,
                     bosituasjon = grunnlagsdata.bosituasjonSomFullstendig(),
-                    skattereferanser = grunnlagsdata.skattereferanser,
                 ).getOrElse { throw IllegalArgumentException(it.toString()) },
             )
         }
+
+        override fun leggTilSkatt(skatt: EksternGrunnlagSkattRequest): GrunnlagsdataOgVilkårsvurderinger =
+            this.copy(eksterneGrunnlag = eksterneGrunnlag.leggTilSkatt(skatt.tilHentet()))
 
         override fun oppdaterBosituasjon(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>): Søknadsbehandling {
             return super.oppdaterBosituasjon(bosituasjon) as Søknadsbehandling
@@ -155,15 +159,8 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
                     stønadsperiode = stønadsperiode,
                     formuegrenserFactory = formuegrenserFactory,
                 ),
+                eksterneGrunnlag = eksterneGrunnlag,
             ).right()
-        }
-
-        fun leggTilSkattereferanser(skattereferanser: Skattereferanser): Søknadsbehandling {
-            return this.copy(
-                grunnlagsdata = this.grunnlagsdata.leggTilSkattereferanser(
-                    skattereferanser,
-                ),
-            )
         }
 
         /**
@@ -221,6 +218,7 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
     data class Revurdering(
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        override val eksterneGrunnlag: EksterneGrunnlag = StøtterIkkeHentingAvEksternGrunnlag,
     ) : GrunnlagsdataOgVilkårsvurderinger() {
 
         override fun oppdaterBosituasjon(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>): Revurdering {
@@ -238,6 +236,9 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
         override fun leggTilFradragsgrunnlag(grunnlag: List<Grunnlag.Fradragsgrunnlag>): Revurdering {
             return copy(grunnlagsdata = grunnlagsdata.copy(fradragsgrunnlag = grunnlag))
         }
+
+        override fun leggTilSkatt(skatt: EksternGrunnlagSkattRequest): GrunnlagsdataOgVilkårsvurderinger =
+            throw UnsupportedOperationException("Støtter ikke å legge til skatt fra ekstern kilde for revurdering")
     }
 }
 

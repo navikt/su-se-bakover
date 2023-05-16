@@ -57,13 +57,8 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         )
 
         val expected = uavklart.copy(
-            grunnlagsdata = Grunnlagsdata.create(
-                bosituasjon = listOf(bosituasjon),
-                skattereferanser = null,
-            ),
-            vilkårsvurderinger = uavklart.vilkårsvurderinger.leggTil(
-                tilstrekkeligDokumentert(),
-            ),
+            grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjon)),
+            vilkårsvurderinger = uavklart.vilkårsvurderinger.leggTil(tilstrekkeligDokumentert()),
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {

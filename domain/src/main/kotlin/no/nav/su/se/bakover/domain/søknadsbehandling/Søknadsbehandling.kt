@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.perioder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -26,7 +27,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.domain.skatt.Skattereferanser
+import no.nav.su.se.bakover.domain.skatt.EksternGrunnlagSkattRequest
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling.Companion.opprett
@@ -62,6 +63,7 @@ sealed class Søknadsbehandling :
     abstract val stønadsperiode: Stønadsperiode?
     abstract override val grunnlagsdata: Grunnlagsdata
     abstract override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling
+    abstract override val eksterneGrunnlag: EksterneGrunnlag
     abstract override val attesteringer: Attesteringshistorikk
     abstract val avkorting: AvkortingVedSøknadsbehandling
 
@@ -85,6 +87,7 @@ sealed class Søknadsbehandling :
         get() = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
+            eksterneGrunnlag = eksterneGrunnlag,
         )
 
     protected fun kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike() {
@@ -95,6 +98,8 @@ sealed class Søknadsbehandling :
             throw IllegalArgumentException("Perioden til søknadsbehandlingen: $periode var ulik grunnlagene/vilkårsvurderingene sin periode: ${grunnlagsdataOgVilkårsvurderinger.periode()}")
         }
     }
+
+    abstract fun leggTilSkatt(skatt: EksternGrunnlagSkattRequest): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling>
 
     fun lukkSøknadsbehandlingOgSøknad(
         lukkSøknadCommand: LukkSøknadCommand,
@@ -912,6 +917,7 @@ sealed class Søknadsbehandling :
                     aldersvurdering = behandling.aldersvurdering!!,
                     grunnlagsdata = behandling.grunnlagsdata,
                     vilkårsvurderinger = behandling.vilkårsvurderinger,
+                    eksterneGrunnlag = behandling.eksterneGrunnlag,
                     attesteringer = behandling.attesteringer,
                     søknadsbehandlingsHistorikk = nySøknadsbehandlingshistorikk,
                     avkorting = behandling.avkorting.håndter().kanIkke(),
@@ -933,6 +939,7 @@ sealed class Søknadsbehandling :
                         aldersvurdering = behandling.aldersvurdering!!,
                         grunnlagsdata = behandling.grunnlagsdata,
                         vilkårsvurderinger = behandling.vilkårsvurderinger,
+                        eksterneGrunnlag = behandling.eksterneGrunnlag,
                         attesteringer = behandling.attesteringer,
                         søknadsbehandlingsHistorikk = nySøknadsbehandlingshistorikk,
                         avkorting = behandling.avkorting.håndter(),
@@ -1009,10 +1016,6 @@ sealed class Søknadsbehandling :
             )
         }
     }
-
-    fun leggTilSkattereferanser(skattereferanser: Skattereferanser): Søknadsbehandling = copyInternal(
-        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilSkattereferanser(skattereferanser),
-    )
 }
 
 // Her trikses det litt for å få til at funksjonen returnerer den samme konkrete typen som den kalles på.

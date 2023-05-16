@@ -29,16 +29,19 @@ import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import java.time.LocalDate
 import java.time.Year
+import java.util.UUID
 
 internal data class SkattegrunnlagDbJson(
     val årsgrunnlag: List<ÅrsgrunnlagDbJson>,
 ) {
     fun toSkattegrunnlag(
+        id: UUID,
         fnr: String,
         hentetTidspunkt: Tidspunkt,
         saksbehandler: String,
         årSpurtFor: String,
     ): Skattegrunnlag = Skattegrunnlag(
+        id = id,
         fnr = Fnr.tryCreate(fnr)!!,
         hentetTidspunkt = hentetTidspunkt,
         saksbehandler = NavIdentBruker.Saksbehandler(saksbehandler),
@@ -52,12 +55,14 @@ internal data class SkattegrunnlagDbJson(
         ).let { serialize(it) }
 
         fun toSkattegrunnlag(
+            id: UUID,
             årsgrunnlagJson: String,
             fnr: String,
             hentetTidspunkt: Tidspunkt,
             saksbehandler: String,
             årSpurtFor: String,
         ): Skattegrunnlag = deserialize<SkattegrunnlagDbJson>(årsgrunnlagJson).toSkattegrunnlag(
+            id = id,
             fnr = fnr,
             hentetTidspunkt = hentetTidspunkt,
             saksbehandler = saksbehandler,

@@ -25,10 +25,12 @@ import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.avkorting.toDb
 import no.nav.su.se.bakover.database.avkorting.toDomain
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
+import no.nav.su.se.bakover.database.eksternGrunnlag.EksternGrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.eksternGrunnlag.IdReferanser
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
 import no.nav.su.se.bakover.database.simulering.deserializeNullableSimulering
 import no.nav.su.se.bakover.database.simulering.serializeNullableSimulering
-import no.nav.su.se.bakover.database.skatt.SkattPostgresRepo
+import no.nav.su.se.bakover.database.skatt.Skattereferanser
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.database.søknadsbehandling.AldersvurderingJson.Companion.toDBJson
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB.Companion.status
@@ -37,21 +39,22 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
+import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.grunnlag.StøtterHentingAvEksternGrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
-import no.nav.su.se.bakover.domain.skatt.Skattereferanser
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingMedSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
@@ -71,6 +74,7 @@ internal data class BaseSøknadsbehandlingDb(
     val stønadsperiode: Stønadsperiode?,
     val grunnlagsdata: Grunnlagsdata,
     val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+    val eksterneGrunnlag: EksterneGrunnlag,
     val attesteringer: Attesteringshistorikk,
     val avkorting: AvkortingVedSøknadsbehandling,
     val sakstype: Sakstype,
@@ -89,6 +93,7 @@ internal data class SøknadsbehandlingDb(
     val grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
         grunnlagsdata = base.grunnlagsdata,
         vilkårsvurderinger = base.vilkårsvurderinger,
+        eksterneGrunnlag = base.eksterneGrunnlag,
     )
 }
 
@@ -98,7 +103,7 @@ internal class SøknadsbehandlingPostgresRepo(
     private val grunnlagsdataOgVilkårsvurderingerPostgresRepo: GrunnlagsdataOgVilkårsvurderingerPostgresRepo,
     private val avkortingsvarselRepo: AvkortingsvarselPostgresRepo,
     private val satsFactory: SatsFactoryForSupplerendeStønad,
-    private val skattRepo: SkattPostgresRepo,
+    private val eksterneGrunnlag: EksternGrunnlagPostgresRepo,
 ) : SøknadsbehandlingRepo {
 
     override fun lagre(søknadsbehandling: Søknadsbehandling, sessionContext: TransactionContext) {
@@ -129,6 +134,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 stønadsperiode = null,
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre.ikkeVurdert(),
+                eksterneGrunnlag = StøtterHentingAvEksternGrunnlag.ikkeHentet(),
                 attesteringer = Attesteringshistorikk.empty(),
                 avkorting = this.avkorting,
                 sakstype = this.sakstype,
@@ -303,6 +309,7 @@ internal class SøknadsbehandlingPostgresRepo(
             stønadsperiode = this.stønadsperiode,
             grunnlagsdata = this.grunnlagsdata,
             vilkårsvurderinger = this.vilkårsvurderinger,
+            eksterneGrunnlag = this.eksterneGrunnlag,
             attesteringer = this.attesteringer,
             avkorting = this.avkorting,
             sakstype = this.sakstype,
@@ -313,8 +320,28 @@ internal class SøknadsbehandlingPostgresRepo(
         )
     }
 
+    private fun hentSkatteIDerForBehandling(
+        behandlingId: UUID,
+        session: Session,
+    ): Pair<UUID?, UUID?> {
+        return "select søkersSkatteId, epsSkatteId from behandling where id=:id"
+            .hent(mapOf("id" to behandlingId), session) {
+                it.uuidOrNull("søkersSkatteId") to it.uuidOrNull("epsSkatteId")
+            } ?: Pair(null, null)
+    }
+
     private fun lagre(søknadsbehandling: SøknadsbehandlingDb, tx: TransactionalSession) {
-        val (eksisterendeSøkerId, eksisterendeEpsId) = hentSkatteIDerForBehandling(søknadsbehandling.base.id, tx)
+        val (eksisterendeSøkersSkatteId, eksisterendeEpsSkatteId) = hentSkatteIDerForBehandling(
+            søknadsbehandling.base.id,
+            tx,
+        )
+
+        eksterneGrunnlag.lagre(
+            søknadsbehandling.base.sakId,
+            søknadsbehandling.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag,
+            tx,
+        )
+
         (
             """
                     insert into behandling (
@@ -389,22 +416,48 @@ internal class SøknadsbehandlingPostgresRepo(
                 "lukket" to søknadsbehandling.lukket,
                 "saksbehandling" to søknadsbehandling.base.søknadsbehandlingshistorikk,
                 "aldersvurdering" to søknadsbehandling.base.aldersvurdering,
-                "sokersskatteid" to søknadsbehandling.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.skattereferanser?.søkers,
-                "epsskatteid" to søknadsbehandling.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.skattereferanser?.eps,
+                "sokersskatteid" to when (
+                    val x =
+                        søknadsbehandling.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.skatt
+                ) {
+                    is EksterneGrunnlagSkatt.Hentet -> x.søkers.id
+                    EksterneGrunnlagSkatt.IkkeHentet -> null
+                },
+                "epsskatteid" to when (
+                    val x =
+                        søknadsbehandling.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.skatt
+                ) {
+                    is EksterneGrunnlagSkatt.Hentet -> x.eps?.id
+                    EksterneGrunnlagSkatt.IkkeHentet -> null
+                },
             ),
             session = tx,
+        )
+
+        eksterneGrunnlag.slettEksisterende(
+            eksisterendeReferanser = IdReferanser(
+                skattereferanser = if (eksisterendeSøkersSkatteId != null) {
+                    Skattereferanser(eksisterendeSøkersSkatteId, eksisterendeEpsSkatteId)
+                } else {
+                    null
+                },
+            ),
+            oppdaterteReferanser = IdReferanser(
+                skattereferanser = if (søknadsbehandling.base.eksterneGrunnlag.skatt is EksterneGrunnlagSkatt.Hentet) {
+                    Skattereferanser(
+                        (søknadsbehandling.base.eksterneGrunnlag.skatt as EksterneGrunnlagSkatt.Hentet).søkers.id,
+                        (søknadsbehandling.base.eksterneGrunnlag.skatt as EksterneGrunnlagSkatt.Hentet).eps?.id,
+                    )
+                } else {
+                    null
+                },
+            ),
+            tx,
         )
 
         grunnlagsdataOgVilkårsvurderingerPostgresRepo.lagre(
             behandlingId = søknadsbehandling.base.id,
             grunnlagsdataOgVilkårsvurderinger = søknadsbehandling.grunnlagsdataOgVilkårsvurderinger,
-            tx = tx,
-        )
-
-        fjernSkattedataDersomSkattereferanserIkkeErIHenholdTilBehandling(
-            eksisterendeEpsId = eksisterendeEpsId,
-            eksisterendeSøkersId = eksisterendeSøkerId,
-            søknadsbehandling = søknadsbehandling,
             tx = tx,
         )
 
@@ -418,20 +471,6 @@ internal class SøknadsbehandlingPostgresRepo(
 
             else -> { /*noop*/
             }
-        }
-    }
-
-    private fun fjernSkattedataDersomSkattereferanserIkkeErIHenholdTilBehandling(
-        eksisterendeSøkersId: UUID?,
-        eksisterendeEpsId: UUID?,
-        søknadsbehandling: SøknadsbehandlingDb,
-        tx: TransactionalSession,
-    ) {
-        if (eksisterendeSøkersId != null && eksisterendeSøkersId != søknadsbehandling.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.skattereferanser?.søkers) {
-            TODO("Vi har ikke støtte for å fjerne søkers skattegrunnlag gjennom endring av søknadsbehandling. behandling id ${søknadsbehandling.base.id}")
-        }
-        if (eksisterendeEpsId != null && eksisterendeEpsId != søknadsbehandling.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.skattereferanser?.eps) {
-            skattRepo.slettSkattegrunnlag(eksisterendeEpsId, tx)
         }
     }
 
@@ -476,114 +515,6 @@ internal class SøknadsbehandlingPostgresRepo(
         return sessionFactory.newSessionContext()
     }
 
-    /**
-     * obs: Kan ikke slette søkers skattemelding, men kun oppdatere den til non-null.
-     *
-     * 1) hent skatteIDer på behandling (søker + eps)
-     * 2) lagre ny(e) skattegrunnlag
-     * 3) lagre behandling i sin helhet med skattegrunnlag
-     * 4) Slett overflødige skattegrunnlag
-     */
-    override fun lagreMedSkattegrunnlag(skattegrunnlagForSøknadsbehandling: SøknadsbehandlingMedSkattegrunnlag) {
-        dbMetrics.timeQuery("lagreMedSkattegrunnlag") {
-            sessionFactory.withTransaction { tx ->
-                val (eksisterendeSøker: UUID?, eksisterendeEps: UUID?) = hentSkatteIDerForBehandling(
-                    skattegrunnlagForSøknadsbehandling.søknadsbehandling.id,
-                    tx,
-                ).let { Pair(it.first, it.second) }
-
-                val skalOppdatereSøker = eksisterendeSøker != skattegrunnlagForSøknadsbehandling.søkersSkatteId
-
-                val skalSletteSøker =
-                    eksisterendeSøker != null && eksisterendeSøker != skattegrunnlagForSøknadsbehandling.søkersSkatteId
-
-                val skalOppdatereEps =
-                    skattegrunnlagForSøknadsbehandling.eps != null && eksisterendeEps != skattegrunnlagForSøknadsbehandling.epsSkatteId
-
-                val skalSletteEps =
-                    eksisterendeEps != null && eksisterendeEps != skattegrunnlagForSøknadsbehandling.epsSkatteId
-
-                if (!skalOppdatereSøker && !skalOppdatereEps && !skalSletteSøker && !skalSletteEps) {
-                    return@withTransaction
-                }
-
-                if (skalOppdatereSøker) {
-                    skattRepo.lagreSkattegrunnlag(
-                        id = skattegrunnlagForSøknadsbehandling.søkersSkatteId,
-                        sakId = skattegrunnlagForSøknadsbehandling.sakId,
-                        fnr = skattegrunnlagForSøknadsbehandling.søker.fnr,
-                        erEps = false,
-                        opprettet = skattegrunnlagForSøknadsbehandling.opprettet,
-                        data = skattegrunnlagForSøknadsbehandling.søker,
-                        saksbehandler = skattegrunnlagForSøknadsbehandling.søker.saksbehandler,
-                        årSpurtFor = skattegrunnlagForSøknadsbehandling.søker.årSpurtFor,
-                        session = tx,
-                    )
-                }
-
-                if (skalOppdatereEps) {
-                    skattRepo.lagreSkattegrunnlag(
-                        id = skattegrunnlagForSøknadsbehandling.epsSkatteId!!,
-                        sakId = skattegrunnlagForSøknadsbehandling.sakId,
-                        fnr = skattegrunnlagForSøknadsbehandling.eps!!.fnr,
-                        erEps = true,
-                        opprettet = skattegrunnlagForSøknadsbehandling.opprettet,
-                        data = skattegrunnlagForSøknadsbehandling.eps!!,
-                        saksbehandler = skattegrunnlagForSøknadsbehandling.eps!!.saksbehandler,
-                        årSpurtFor = skattegrunnlagForSøknadsbehandling.eps!!.årSpurtFor,
-                        session = tx,
-                    )
-                }
-                lagre(skattegrunnlagForSøknadsbehandling.søknadsbehandling.toDb(), tx)
-
-                if (skalSletteSøker) {
-                    skattRepo.slettSkattegrunnlag(eksisterendeSøker!!, tx)
-                }
-                if (skalSletteEps) {
-                    skattRepo.slettSkattegrunnlag(eksisterendeEps!!, tx)
-                }
-            }
-        }
-    }
-
-    private fun hentSkatteIDerForBehandling(
-        behandlingId: UUID,
-        session: Session,
-    ): Pair<UUID?, UUID?> {
-        return "select søkersSkatteId, epsSkatteId from behandling where id=:id"
-            .hent(mapOf("id" to behandlingId), session) {
-                it.uuidOrNull("søkersSkatteId") to it.uuidOrNull("epsSkatteId")
-            } ?: Pair(null, null)
-    }
-
-    override fun hentSkattegrunnlag(behandlingId: UUID): SøknadsbehandlingMedSkattegrunnlag? {
-        return dbMetrics.timeQuery("hentSkattegrunnlagForSøknadsbehandling") {
-            sessionFactory.withSession { session ->
-                internalHentSkattegrunnlag(behandlingId, session)
-            }
-        }
-    }
-
-    private fun internalHentSkattegrunnlag(behandlingId: UUID, session: Session): SøknadsbehandlingMedSkattegrunnlag? {
-        return hentSkatteIDerForBehandling(behandlingId, session).let {
-            val søkers = it.first?.let { skattRepo.hent(it, session) }
-            val eps = it.second?.let { skattRepo.hent(it, session) }
-
-            if (søkers == null) {
-                null
-            } else {
-                val søknadsbehandling = hent(behandlingId, session)
-                SøknadsbehandlingMedSkattegrunnlag(
-                    søknadsbehandling = søknadsbehandling
-                        ?: throw IllegalStateException("Fant ikke søknadsbehandling for id $behandlingId. Denne har eksistert tidligere?"),
-                    opprettet = søkers.hentetTidspunkt,
-                    søker = søkers,
-                    eps = eps,
-                )
-            }
-        }
-    }
-
     internal fun hent(id: UUID, session: Session): Søknadsbehandling? {
         return "select b.*, s.fnr, s.saksnummer, s.type from behandling b inner join sak s on s.id = b.sakId where b.id=:id"
             .hent(mapOf("id" to id), session) { row ->
@@ -620,15 +551,19 @@ internal class SøknadsbehandlingPostgresRepo(
 
         val fnr = Fnr(string("fnr"))
 
-        val skattereferanser = uuidOrNull("søkersSkatteId")?.let {
-            Skattereferanser(it, uuidOrNull("epsSkatteId"))
-        }
+        val eksterneGrunnlag = StøtterHentingAvEksternGrunnlag(
+            skatt = eksterneGrunnlag.hentSkattegrunnlag(
+                uuidOrNull("søkersSkatteId"),
+                uuidOrNull("epsSkatteId"),
+                session,
+            ),
+        )
 
         val (grunnlagsdata, vilkårsvurderinger) = grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForSøknadsbehandling(
             behandlingId = behandlingId,
             session = session,
             sakstype = Sakstype.from(string("type")),
-            skattereferanser = skattereferanser,
+            eksterneGrunnlag = eksterneGrunnlag,
         )
 
         val avkorting = deserializeNullable<AvkortingVedSøknadsbehandlingDb>(stringOrNull("avkorting"))?.toDomain()
@@ -646,6 +581,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 aldersvurdering = aldersvurdering,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
+                eksterneGrunnlag = eksterneGrunnlag,
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
@@ -665,6 +601,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 aldersvurdering = aldersvurdering!!,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
+                eksterneGrunnlag = eksterneGrunnlag,
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Uhåndtert,
@@ -684,6 +621,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 aldersvurdering = aldersvurdering!!,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
+                eksterneGrunnlag = eksterneGrunnlag,
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
@@ -704,6 +642,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 aldersvurdering = aldersvurdering!!,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
+                eksterneGrunnlag = eksterneGrunnlag,
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert,
@@ -724,6 +663,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 aldersvurdering = aldersvurdering!!,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
+                eksterneGrunnlag = eksterneGrunnlag,
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
@@ -745,6 +685,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 aldersvurdering = aldersvurdering!!,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
+                eksterneGrunnlag = eksterneGrunnlag,
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert,
@@ -767,6 +708,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 aldersvurdering = aldersvurdering!!,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
+                eksterneGrunnlag = eksterneGrunnlag,
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert,
@@ -788,6 +730,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     attesteringer = attesteringer,
+                    eksterneGrunnlag = eksterneGrunnlag,
                     søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                     avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
                     sakstype = sakstype,
@@ -807,6 +750,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     aldersvurdering = aldersvurdering!!,
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
+                    eksterneGrunnlag = eksterneGrunnlag,
                     attesteringer = attesteringer,
                     søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                     avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
@@ -831,6 +775,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 aldersvurdering = aldersvurdering!!,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
+                eksterneGrunnlag = eksterneGrunnlag,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert,
                 sakstype = sakstype,
             )
@@ -851,6 +796,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     aldersvurdering = aldersvurdering!!,
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
+                    eksterneGrunnlag = eksterneGrunnlag,
                     avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
                     sakstype = sakstype,
                 )
@@ -871,6 +817,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     aldersvurdering = aldersvurdering!!,
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
+                    eksterneGrunnlag = eksterneGrunnlag,
                     avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
                     sakstype = sakstype,
                 )
@@ -894,6 +841,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     aldersvurdering = aldersvurdering!!,
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
+                    eksterneGrunnlag = eksterneGrunnlag,
                     avkorting = avkorting as AvkortingVedSøknadsbehandling.Iverksatt,
                     sakstype = sakstype,
                 )
@@ -916,6 +864,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         aldersvurdering = aldersvurdering!!,
                         grunnlagsdata = grunnlagsdata,
                         vilkårsvurderinger = vilkårsvurderinger,
+                        eksterneGrunnlag = eksterneGrunnlag,
                         avkorting = avkorting as AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
                         sakstype = sakstype,
                     )
@@ -936,6 +885,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         aldersvurdering = aldersvurdering!!,
                         grunnlagsdata = grunnlagsdata,
                         vilkårsvurderinger = vilkårsvurderinger,
+                        eksterneGrunnlag = eksterneGrunnlag,
                         avkorting = avkorting as AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
                         sakstype = sakstype,
                     )

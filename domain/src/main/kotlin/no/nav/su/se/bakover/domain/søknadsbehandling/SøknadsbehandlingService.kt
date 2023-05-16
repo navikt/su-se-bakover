@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
-import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.SaksbehandlersAvgjørelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.UgyldigFamiliegjenforeningVilkår
@@ -116,28 +115,10 @@ interface SøknadsbehandlingService {
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, VilkårsvurdertSøknadsbehandling>
 
-    /**
-     * Henter det som eksisterer fra databsen, ellers gjør et nytt oppslag
-     */
-    fun nySkattegrunnlag(
+    fun leggTilEksternSkattegrunnlag(
         behandlingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): SøknadsbehandlingMedSkattegrunnlag
-
-    fun hentSkattegrunnlag(
-        behandlingId: UUID,
-    ): Either<KunneIkkeHenteSkattemelding.FinnesIkke, SøknadsbehandlingMedSkattegrunnlag>
-
-    /**
-     * Henter ny skattemelding fra skatteetaten
-     * lagrer & returnerer
-     *
-     * Tilstandssjekk: Ikke iverksatt, ikke lukket, ikke til attestering
-     */
-    fun oppfrisk(
-        behandlingId: UUID,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeHenteNySkattedata, SøknadsbehandlingMedSkattegrunnlag>
+    ): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling>
 
     data class OpprettRequest(
         val søknadId: UUID,

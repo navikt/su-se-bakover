@@ -424,7 +424,6 @@ sealed class Revurdering :
         return Grunnlagsdata.tryCreate(
             bosituasjon = grunnlagsdata.bosituasjonSomFullstendig(),
             fradragsgrunnlag = fradragsgrunnlag,
-            skattereferanser = grunnlagsdata.skattereferanser,
         ).mapLeft {
             KunneIkkeLeggeTilFradrag.Valideringsfeil(it)
         }.map {

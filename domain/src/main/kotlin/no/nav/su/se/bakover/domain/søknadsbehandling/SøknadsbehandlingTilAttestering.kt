@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
+import arrow.core.Either
+import arrow.core.left
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -12,12 +14,14 @@ import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.toAvslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.domain.skatt.EksternGrunnlagSkattRequest
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
@@ -34,6 +38,9 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling() {
     abstract override val attesteringer: Attesteringshistorikk
     abstract override val avkorting: AvkortingVedSøknadsbehandling.Håndtert
 
+    override fun leggTilSkatt(skatt: EksternGrunnlagSkattRequest): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> =
+        KunneIkkeLeggeTilSkattegrunnlag.UgyldigTilstand.left()
+
     data class Innvilget(
         override val id: UUID,
         override val opprettet: Tidspunkt,
@@ -49,6 +56,7 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling() {
         override val aldersvurdering: Aldersvurdering,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+        override val eksterneGrunnlag: EksterneGrunnlag,
         override val attesteringer: Attesteringshistorikk,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
@@ -66,6 +74,7 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling() {
                 aldersvurdering = aldersvurdering,
                 grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                 vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
+                eksterneGrunnlag = grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag,
                 søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
             )
         }
@@ -107,6 +116,7 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling() {
                 aldersvurdering = aldersvurdering,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
+                eksterneGrunnlag = eksterneGrunnlag,
                 avkorting = avkorting,
                 sakstype = sakstype,
             )
@@ -130,6 +140,7 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling() {
                 aldersvurdering = aldersvurdering,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
+                eksterneGrunnlag = eksterneGrunnlag,
                 avkorting = avkorting.iverksett(id),
                 sakstype = sakstype,
             )
@@ -159,6 +170,7 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling() {
             override val aldersvurdering: Aldersvurdering,
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+            override val eksterneGrunnlag: EksterneGrunnlag,
             override val attesteringer: Attesteringshistorikk,
             override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
@@ -210,6 +222,7 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling() {
                     aldersvurdering = aldersvurdering,
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
+                    eksterneGrunnlag = eksterneGrunnlag,
                     avkorting = avkorting,
                     sakstype = sakstype,
                 )
@@ -226,6 +239,7 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling() {
                     aldersvurdering = aldersvurdering,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
+                    eksterneGrunnlag = grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag,
                     søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
                 )
             }
@@ -248,6 +262,7 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling() {
                     aldersvurdering = aldersvurdering,
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
+                    eksterneGrunnlag = eksterneGrunnlag,
                     avkorting = avkorting.iverksett(id),
                     sakstype = sakstype,
                 )
@@ -268,6 +283,7 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling() {
             override val aldersvurdering: Aldersvurdering,
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+            override val eksterneGrunnlag: EksterneGrunnlag,
             override val attesteringer: Attesteringshistorikk,
             override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
@@ -324,6 +340,7 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling() {
                     aldersvurdering = aldersvurdering,
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
+                    eksterneGrunnlag = eksterneGrunnlag,
                     avkorting = avkorting,
                     sakstype = sakstype,
                 )
@@ -340,6 +357,7 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling() {
                     aldersvurdering = aldersvurdering,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
+                    eksterneGrunnlag = grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag,
                     søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
                 )
             }
@@ -363,6 +381,7 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling() {
                     aldersvurdering = aldersvurdering,
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
+                    eksterneGrunnlag = eksterneGrunnlag,
                     avkorting = avkorting.iverksett(id),
                     sakstype = sakstype,
                 )

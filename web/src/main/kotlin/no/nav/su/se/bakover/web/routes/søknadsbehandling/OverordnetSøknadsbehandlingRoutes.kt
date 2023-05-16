@@ -51,5 +51,5 @@ internal fun Route.overordnetSøknadsbehandligRoutes(
         clock,
         applicationConfig,
     )
-    hentSamletSkattegrunnlagRoute(søknadsbehandlingServices.søknadsbehandlingService, toggleClient)
+    hentSamletSkattegrunnlagRoute(søknadsbehandlingServices.søknadsbehandlingService, satsFactory, toggleClient)
 }

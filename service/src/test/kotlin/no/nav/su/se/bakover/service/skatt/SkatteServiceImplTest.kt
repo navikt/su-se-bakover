@@ -50,19 +50,19 @@ class SkatteServiceImplTest {
             },
         )
 
-        mocked.service.hentSamletSkattegrunnlag(
-            fnr,
-            saksbehandler,
-        ) shouldBe nySkattegrunnlag(
-            fnr = fnr,
-            saksbehandler = saksbehandler,
-            årsgrunnlag = nonEmptyListOf(
-                SamletSkattegrunnlagForÅrOgStadie.Oppgjør(
-                    oppslag = KunneIkkeHenteSkattemelding.Nettverksfeil.left(),
-                    inntektsår = Year.of(2020),
+        mocked.service.hentSamletSkattegrunnlag(fnr, saksbehandler).let {
+            it shouldBe nySkattegrunnlag(
+                id = it.id,
+                fnr = fnr,
+                saksbehandler = saksbehandler,
+                årsgrunnlag = nonEmptyListOf(
+                    SamletSkattegrunnlagForÅrOgStadie.Oppgjør(
+                        oppslag = KunneIkkeHenteSkattemelding.Nettverksfeil.left(),
+                        inntektsår = Year.of(2020),
+                    ),
                 ),
-            ),
-        )
+            )
+        }
     }
 
     @Test
@@ -84,19 +84,22 @@ class SkatteServiceImplTest {
             },
         )
 
-        mocked.service.hentSamletSkattegrunnlag(fnr, saksbehandler) shouldBe nySkattegrunnlag(
-            fnr = fnr,
-            saksbehandler = saksbehandler,
-            årsgrunnlag = nonEmptyListOf(
-                SamletSkattegrunnlagForÅrOgStadie.Oppgjør(
-                    oppslag = nySkattegrunnlagForÅr().right(),
-                    inntektsår = Year.of(2020),
+        mocked.service.hentSamletSkattegrunnlag(fnr, saksbehandler).let {
+            it shouldBe nySkattegrunnlag(
+                id = it.id,
+                fnr = fnr,
+                saksbehandler = saksbehandler,
+                årsgrunnlag = nonEmptyListOf(
+                    SamletSkattegrunnlagForÅrOgStadie.Oppgjør(
+                        oppslag = nySkattegrunnlagForÅr().right(),
+                        inntektsår = Year.of(2020),
+                    ),
                 ),
-            ),
-            clock = fixedClock,
-            hentetTidspunkt = fixedTidspunkt,
-            årSpurtFor = Year.of(2020).toRange(),
-        )
+                clock = fixedClock,
+                hentetTidspunkt = fixedTidspunkt,
+                årSpurtFor = Year.of(2020).toRange(),
+            )
+        }
     }
 
     @Test
@@ -118,22 +121,22 @@ class SkatteServiceImplTest {
             },
         )
 
-        mocked.service.hentSamletSkattegrunnlag(
-            fnr,
-            saksbehandler,
-        ) shouldBe nySkattegrunnlag(
-            fnr = fnr,
-            saksbehandler = saksbehandler,
-            årsgrunnlag = nonEmptyListOf(
-                SamletSkattegrunnlagForÅrOgStadie.Utkast(
-                    oppslag = KunneIkkeHenteSkattemelding.Nettverksfeil.left(),
-                    inntektsår = Year.of(2020),
+        mocked.service.hentSamletSkattegrunnlag(fnr, saksbehandler).let {
+            it shouldBe nySkattegrunnlag(
+                id = it.id,
+                fnr = fnr,
+                saksbehandler = saksbehandler,
+                årsgrunnlag = nonEmptyListOf(
+                    SamletSkattegrunnlagForÅrOgStadie.Utkast(
+                        oppslag = KunneIkkeHenteSkattemelding.Nettverksfeil.left(),
+                        inntektsår = Year.of(2020),
+                    ),
                 ),
-            ),
-            clock = fixedClock,
-            hentetTidspunkt = fixedTidspunkt,
-            årSpurtFor = Year.of(2020).toRange(),
-        )
+                clock = fixedClock,
+                hentetTidspunkt = fixedTidspunkt,
+                årSpurtFor = Year.of(2020).toRange(),
+            )
+        }
     }
 
     @Test
@@ -155,19 +158,22 @@ class SkatteServiceImplTest {
             },
         )
 
-        mocked.service.hentSamletSkattegrunnlag(fnr, saksbehandler) shouldBe nySkattegrunnlag(
-            fnr = fnr,
-            saksbehandler = saksbehandler,
-            årsgrunnlag = nonEmptyListOf(
-                SamletSkattegrunnlagForÅrOgStadie.Utkast(
-                    oppslag = nySkattegrunnlagForÅr().right(),
-                    inntektsår = Year.of(2020),
+        mocked.service.hentSamletSkattegrunnlag(fnr, saksbehandler).let {
+            it shouldBe nySkattegrunnlag(
+                id = it.id,
+                fnr = fnr,
+                saksbehandler = saksbehandler,
+                årsgrunnlag = nonEmptyListOf(
+                    SamletSkattegrunnlagForÅrOgStadie.Utkast(
+                        oppslag = nySkattegrunnlagForÅr().right(),
+                        inntektsår = Year.of(2020),
+                    ),
                 ),
-            ),
-            clock = fixedClock,
-            hentetTidspunkt = fixedTidspunkt,
-            årSpurtFor = Year.of(2020).toRange(),
-        )
+                clock = fixedClock,
+                hentetTidspunkt = fixedTidspunkt,
+                årSpurtFor = Year.of(2020).toRange(),
+            )
+        }
     }
 
     @Test
@@ -189,22 +195,22 @@ class SkatteServiceImplTest {
             },
         )
 
-        mocked.service.hentSamletSkattegrunnlag(
-            fnr,
-            saksbehandler,
-        ) shouldBe nySkattegrunnlag(
-            fnr = fnr,
-            saksbehandler = saksbehandler,
-            årsgrunnlag = nonEmptyListOf(
-                SamletSkattegrunnlagForÅrOgStadie.Utkast(
-                    oppslag = KunneIkkeHenteSkattemelding.FinnesIkke.left(),
-                    inntektsår = Year.of(2020),
+        mocked.service.hentSamletSkattegrunnlag(fnr, saksbehandler).let {
+            it shouldBe nySkattegrunnlag(
+                id = it.id,
+                fnr = fnr,
+                saksbehandler = saksbehandler,
+                årsgrunnlag = nonEmptyListOf(
+                    SamletSkattegrunnlagForÅrOgStadie.Utkast(
+                        oppslag = KunneIkkeHenteSkattemelding.FinnesIkke.left(),
+                        inntektsår = Year.of(2020),
+                    ),
                 ),
-            ),
-            clock = fixedClock,
-            hentetTidspunkt = fixedTidspunkt,
-            årSpurtFor = Year.of(2020).toRange(),
-        )
+                clock = fixedClock,
+                hentetTidspunkt = fixedTidspunkt,
+                årSpurtFor = Year.of(2020).toRange(),
+            )
+        }
     }
 
     @Test
@@ -253,27 +259,30 @@ class SkatteServiceImplTest {
             fnr,
             saksbehandler,
             YearRange(Year.of(2021), Year.of(2023)),
-        ) shouldBe nySkattegrunnlag(
-            fnr = fnr,
-            saksbehandler = saksbehandler,
-            årsgrunnlag = nonEmptyListOf(
-                SamletSkattegrunnlagForÅrOgStadie.Utkast(
-                    oppslag = KunneIkkeHenteSkattemelding.FinnesIkke.left(),
-                    inntektsår = Year.of(2021),
+        ).let {
+            it shouldBe nySkattegrunnlag(
+                id = it.id,
+                fnr = fnr,
+                saksbehandler = saksbehandler,
+                årsgrunnlag = nonEmptyListOf(
+                    SamletSkattegrunnlagForÅrOgStadie.Utkast(
+                        oppslag = KunneIkkeHenteSkattemelding.FinnesIkke.left(),
+                        inntektsår = Year.of(2021),
+                    ),
+                    SamletSkattegrunnlagForÅrOgStadie.Utkast(
+                        oppslag = KunneIkkeHenteSkattemelding.FinnesIkke.left(),
+                        inntektsår = Year.of(2022),
+                    ),
+                    SamletSkattegrunnlagForÅrOgStadie.Utkast(
+                        oppslag = KunneIkkeHenteSkattemelding.FinnesIkke.left(),
+                        inntektsår = Year.of(2023),
+                    ),
                 ),
-                SamletSkattegrunnlagForÅrOgStadie.Utkast(
-                    oppslag = KunneIkkeHenteSkattemelding.FinnesIkke.left(),
-                    inntektsår = Year.of(2022),
-                ),
-                SamletSkattegrunnlagForÅrOgStadie.Utkast(
-                    oppslag = KunneIkkeHenteSkattemelding.FinnesIkke.left(),
-                    inntektsår = Year.of(2023),
-                ),
-            ),
-            clock = fixedClock,
-            hentetTidspunkt = fixedTidspunkt,
-            årSpurtFor = YearRange(Year.of(2021), Year.of(2023)),
-        )
+                clock = fixedClock,
+                hentetTidspunkt = fixedTidspunkt,
+                årSpurtFor = YearRange(Year.of(2021), Year.of(2023)),
+            )
+        }
     }
 
     @Test
@@ -297,11 +306,9 @@ class SkatteServiceImplTest {
             },
         )
 
-        mocked.service.hentSamletSkattegrunnlagForÅr(
-            fnr,
-            saksbehandler,
-            YearRange(år, år),
-        ) shouldBe nySkattegrunnlag()
+        mocked.service.hentSamletSkattegrunnlagForÅr(fnr, saksbehandler, YearRange(år, år)).let {
+            it shouldBe nySkattegrunnlag(it.id)
+        }
     }
 
     @Test
@@ -349,27 +356,30 @@ class SkatteServiceImplTest {
             fnr,
             saksbehandler,
             YearRange(Year.of(2021), Year.of(2023)),
-        ) shouldBe nySkattegrunnlag(
-            fnr = fnr,
-            saksbehandler = saksbehandler,
-            årsgrunnlag = nonEmptyListOf(
-                SamletSkattegrunnlagForÅrOgStadie.Oppgjør(
-                    oppslag = nySkattegrunnlagForÅr().right(),
-                    inntektsår = Year.of(2021),
+        ).let {
+            it shouldBe nySkattegrunnlag(
+                id = it.id,
+                fnr = fnr,
+                saksbehandler = saksbehandler,
+                årsgrunnlag = nonEmptyListOf(
+                    SamletSkattegrunnlagForÅrOgStadie.Oppgjør(
+                        oppslag = nySkattegrunnlagForÅr().right(),
+                        inntektsår = Year.of(2021),
+                    ),
+                    SamletSkattegrunnlagForÅrOgStadie.Oppgjør(
+                        oppslag = nySkattegrunnlagForÅr().right(),
+                        inntektsår = Year.of(2022),
+                    ),
+                    SamletSkattegrunnlagForÅrOgStadie.Oppgjør(
+                        oppslag = nySkattegrunnlagForÅr().right(),
+                        inntektsår = Year.of(2023),
+                    ),
                 ),
-                SamletSkattegrunnlagForÅrOgStadie.Oppgjør(
-                    oppslag = nySkattegrunnlagForÅr().right(),
-                    inntektsår = Year.of(2022),
-                ),
-                SamletSkattegrunnlagForÅrOgStadie.Oppgjør(
-                    oppslag = nySkattegrunnlagForÅr().right(),
-                    inntektsår = Year.of(2023),
-                ),
-            ),
-            clock = fixedClock,
-            hentetTidspunkt = fixedTidspunkt,
-            årSpurtFor = YearRange(Year.of(2021), Year.of(2023)),
-        )
+                clock = fixedClock,
+                hentetTidspunkt = fixedTidspunkt,
+                årSpurtFor = YearRange(Year.of(2021), Year.of(2023)),
+            )
+        }
     }
 
     private data class mockedServices(

@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.grunnlag.StøtterHentingAvEksternGrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
@@ -1217,6 +1218,7 @@ fun vilkårsvurdertSøknadsbehandling(
                 )
             }
         },
+        eksterneGrunnlag = StøtterHentingAvEksternGrunnlag.ikkeHentet(),
     )
     return nySøknadsbehandlingMedStønadsperiode(
         clock = clock,

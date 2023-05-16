@@ -11,37 +11,15 @@ import no.nav.su.se.bakover.common.YearRange
 import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
-import no.nav.su.se.bakover.domain.skatt.Skattereferanser
 import no.nav.su.se.bakover.domain.skatt.toYearRange
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingMedSkattegrunnlag
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import java.time.Clock
 import java.time.LocalDate
 import java.time.Year
 import java.util.UUID
 
-fun nySøknadsbehandlingMedSkattegrunnlag(
-    søkersId: UUID = UUID.randomUUID(),
-    søker: Skattegrunnlag = nySkattegrunnlag(),
-    epsId: UUID = UUID.randomUUID(),
-    eps: Skattegrunnlag? = null,
-    søknadsbehandling: Søknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().second,
-    opprettet: Tidspunkt = fixedTidspunkt,
-): SøknadsbehandlingMedSkattegrunnlag {
-    return SøknadsbehandlingMedSkattegrunnlag(
-        søknadsbehandling = søknadsbehandling.leggTilSkattereferanser(
-            Skattereferanser(søkers = søkersId, eps = if (eps != null) epsId else null),
-        ),
-        opprettet = opprettet,
-        søker = søker,
-        eps = eps,
-    )
-}
-
 fun nySkattegrunnlag(
+    id: UUID = UUID.randomUUID(),
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     årsgrunnlag: NonEmptyList<SamletSkattegrunnlagForÅrOgStadie> = nonEmptyListOf(
@@ -51,6 +29,7 @@ fun nySkattegrunnlag(
     hentetTidspunkt: Tidspunkt = Tidspunkt.now(clock),
     årSpurtFor: YearRange = årsgrunnlag.toYearRange(),
 ) = Skattegrunnlag(
+    id = id,
     fnr = fnr,
     hentetTidspunkt = hentetTidspunkt,
     saksbehandler = saksbehandler,

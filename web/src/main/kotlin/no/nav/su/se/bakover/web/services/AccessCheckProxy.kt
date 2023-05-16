@@ -127,19 +127,17 @@ import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
-import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeHenteNySkattedata
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingMedSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
@@ -664,25 +662,12 @@ open class AccessCheckProxy(
                         return service.leggTilBosituasjongrunnlag(request, saksbehandler)
                     }
 
-                    override fun nySkattegrunnlag(
+                    override fun leggTilEksternSkattegrunnlag(
                         behandlingId: UUID,
                         saksbehandler: NavIdentBruker.Saksbehandler,
-                    ): SøknadsbehandlingMedSkattegrunnlag {
+                    ): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> {
                         assertHarTilgangTilBehandling(behandlingId)
-                        return service.nySkattegrunnlag(behandlingId, saksbehandler)
-                    }
-
-                    override fun hentSkattegrunnlag(behandlingId: UUID): Either<KunneIkkeHenteSkattemelding.FinnesIkke, SøknadsbehandlingMedSkattegrunnlag> {
-                        assertHarTilgangTilBehandling(behandlingId)
-                        return service.hentSkattegrunnlag(behandlingId)
-                    }
-
-                    override fun oppfrisk(
-                        behandlingId: UUID,
-                        saksbehandler: NavIdentBruker.Saksbehandler,
-                    ): Either<KunneIkkeHenteNySkattedata, SøknadsbehandlingMedSkattegrunnlag> {
-                        assertHarTilgangTilBehandling(behandlingId)
-                        return service.oppfrisk(behandlingId, saksbehandler)
+                        return service.leggTilEksternSkattegrunnlag(behandlingId, saksbehandler)
                     }
                 },
             ),
