@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.GitCommit
 import no.nav.su.se.bakover.common.februar
-import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.januar

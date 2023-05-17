@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.application.Beløp
 import no.nav.su.se.bakover.common.application.MånedBeløp
 import no.nav.su.se.bakover.common.application.Månedsbeløp
-import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode

@@ -2,7 +2,8 @@ description = "Ansvaret for å bygge main jar og kjøre applikasjonen i produksj
 
 dependencies {
     implementation(project(":web"))
-    implementation(project(":common"))
+    implementation(project(":common:domain"))
+    implementation(project(":common:infrastructure"))
 
     testImplementation(project(":client"))
     testImplementation(project(":domain"))

@@ -3,8 +3,9 @@ val ktorVersion: String by project
 dependencies {
     val kotestVersion = "5.6.1"
 
+    implementation(project(":common:domain"))
+    implementation(project(":common:infrastructure"))
     implementation(project(":domain"))
-    implementation(project(":common"))
     implementation(project(":client"))
     implementation(project(":database"))
     implementation(project(":hendelse:domain"))

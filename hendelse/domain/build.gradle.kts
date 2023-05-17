@@ -1,5 +1,5 @@
 dependencies {
-    implementation(project(":common"))
+    implementation(project(":common:domain"))
     testImplementation(project(":domain"))
     testImplementation(project(":test-common"))
 }

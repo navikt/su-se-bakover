@@ -3,7 +3,8 @@ val tjenestespesifikasjonVersion = "2616.df1f47c"
 val cxfVersion = "3.5.5"
 
 dependencies {
-    implementation(project(":common"))
+    implementation(project(":common:domain"))
+    implementation(project(":common:infrastructure"))
     implementation(project(":domain"))
 
     implementation("com.github.kittinunf.fuel:fuel:$fuelVersion")

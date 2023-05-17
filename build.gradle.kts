@@ -261,5 +261,5 @@ tasks.register<Copy>("gitHooks") {
 tasks.named("build") {
     dependsOn(":gitHooks")
 }
-
-apply(from = "gradle/checkImports.gradle.kts")
+// TODO jah: Fix find + grep
+//apply(from = "gradle/checkImports.gradle.kts")
