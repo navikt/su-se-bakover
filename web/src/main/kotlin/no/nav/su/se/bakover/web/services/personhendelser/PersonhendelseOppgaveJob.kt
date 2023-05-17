@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.web.services.personhendelser
 
 import arrow.core.Either
-import no.nav.su.se.bakover.common.CorrelationId.Companion.withCorrelationId
-import no.nav.su.se.bakover.common.jobs.infrastructure.RunCheckFactory
-import no.nav.su.se.bakover.common.jobs.infrastructure.shouldRun
+import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
+import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
+import no.nav.su.se.bakover.common.infrastructure.jobs.shouldRun
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory

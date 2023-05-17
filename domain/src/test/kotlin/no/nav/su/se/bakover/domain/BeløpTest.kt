@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.application.Beløp
+import no.nav.su.se.bakover.common.Beløp
 import org.junit.jupiter.api.Test
 
 internal class BeløpTest {

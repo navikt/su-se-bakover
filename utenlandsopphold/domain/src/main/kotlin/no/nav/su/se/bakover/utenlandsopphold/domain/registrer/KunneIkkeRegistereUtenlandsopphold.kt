@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.utenlandsopphold.domain.registrer
 
 import arrow.core.NonEmptyList
-import no.nav.su.se.bakover.common.application.journal.JournalpostId
+import no.nav.su.se.bakover.common.journal.JournalpostId
 
 sealed interface KunneIkkeRegistereUtenlandsopphold {
     object OverlappendePeriode : KunneIkkeRegistereUtenlandsopphold

@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.database.klage.klageinstans
 
 import arrow.core.Either
 import kotliquery.Row
-import no.nav.su.se.bakover.common.application.journal.JournalpostId
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.persistence.PostgresTransactionContext.Companion.withTransaction

@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.client.cache
 
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
-import no.nav.su.se.bakover.common.metrics.SuMetrics
+import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import java.time.Duration
 
 internal fun <K, V> newCache(

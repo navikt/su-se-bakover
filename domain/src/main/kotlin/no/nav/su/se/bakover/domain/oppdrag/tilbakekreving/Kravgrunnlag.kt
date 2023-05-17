@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.domain.oppdrag.tilbakekreving
 
+import no.nav.su.se.bakover.common.Beløp
+import no.nav.su.se.bakover.common.MånedBeløp
+import no.nav.su.se.bakover.common.Månedsbeløp
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.application.Beløp
-import no.nav.su.se.bakover.common.application.MånedBeløp
-import no.nav.su.se.bakover.common.application.Månedsbeløp
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.tilMåned
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode

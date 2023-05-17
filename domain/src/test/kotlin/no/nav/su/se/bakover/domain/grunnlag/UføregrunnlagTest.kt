@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.grunnlag
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.su.se.bakover.common.application.CopyArgs
+import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar

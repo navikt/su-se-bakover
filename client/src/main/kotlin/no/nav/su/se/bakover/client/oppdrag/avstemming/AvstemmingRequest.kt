@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 import no.nav.su.se.bakover.client.oppdrag.OppdragDefaults
-import no.nav.su.se.bakover.common.xmlMapper
+import no.nav.su.se.bakover.common.infrastructure.xml.xmlMapper
 import java.math.BigDecimal
 
 /**

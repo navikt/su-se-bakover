@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.domain
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.application.Beløp
-import no.nav.su.se.bakover.common.application.MånedBeløp
-import no.nav.su.se.bakover.common.application.Månedsbeløp
+import no.nav.su.se.bakover.common.Beløp
+import no.nav.su.se.bakover.common.MånedBeløp
+import no.nav.su.se.bakover.common.Månedsbeløp
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import org.junit.jupiter.api.Test

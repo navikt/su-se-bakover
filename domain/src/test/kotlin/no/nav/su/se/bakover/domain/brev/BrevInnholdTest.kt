@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.brev
 
+import no.nav.su.se.bakover.common.Beløp
 import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.application.Beløp
-import no.nav.su.se.bakover.common.application.MånedBeløp
+import no.nav.su.se.bakover.common.MånedBeløp
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper

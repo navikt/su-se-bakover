@@ -9,7 +9,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import no.nav.su.se.bakover.common.CorrelationId
+import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtakMedUtbetaling
@@ -35,7 +35,7 @@ class UtbetalingKvitteringConsumer(
     }
 
     fun onMessage(xmlMessage: String) {
-        CorrelationId.withCorrelationId {
+        withCorrelationId {
             val kvitteringResponse: UtbetalingKvitteringResponse = xmlMessage.toKvitteringResponse(xmlMapper)
 
             val kvittering: Kvittering = kvitteringResponse.toKvittering(xmlMessage, clock)

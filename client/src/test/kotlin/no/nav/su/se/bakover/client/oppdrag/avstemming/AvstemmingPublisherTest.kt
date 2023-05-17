@@ -15,10 +15,10 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.idag
+import no.nav.su.se.bakover.common.infrastructure.xml.xmlMapper
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.startOfDay
-import no.nav.su.se.bakover.common.xmlMapper
 import no.nav.su.se.bakover.domain.oppdrag.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling

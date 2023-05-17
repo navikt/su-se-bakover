@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.kontrollsamtale.infrastructure.persistence
 
 import kotliquery.Row
-import no.nav.su.se.bakover.common.application.journal.JournalpostId
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory

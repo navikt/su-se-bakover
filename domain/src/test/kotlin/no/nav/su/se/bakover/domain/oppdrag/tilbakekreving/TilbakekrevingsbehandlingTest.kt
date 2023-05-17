@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.domain.oppdrag.tilbakekreving
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Beløp
+import no.nav.su.se.bakover.common.MånedBeløp
+import no.nav.su.se.bakover.common.Månedsbeløp
 import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.application.Beløp
-import no.nav.su.se.bakover.common.application.MånedBeløp
-import no.nav.su.se.bakover.common.application.Månedsbeløp
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode

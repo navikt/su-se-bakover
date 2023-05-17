@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.YearRange
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.erI
+import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.toNonEmptyList
@@ -89,7 +90,7 @@ internal class SkatteClient(
         }
 
     private fun hentForÅrsperiode(fnr: Fnr, yearRange: YearRange): NonEmptyList<SamletSkattegrunnlagForÅr> {
-        val correlationId = CorrelationId.getOrCreateCorrelationIdFromThreadLocal()
+        val correlationId = getOrCreateCorrelationIdFromThreadLocal()
         val token = azureAd.onBehalfOfToken(hentBrukerToken().toString(), skatteetatenConfig.clientId)
 
         return runBlocking {

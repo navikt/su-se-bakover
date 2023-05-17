@@ -23,12 +23,11 @@ internal fun Application.configureAuthentication(
 ) {
     val log: Logger = LoggerFactory.getLogger("Application.configureAuthentication()")
 
-    val jwkConfig = azureAd.jwkConfig()
     val jwkProvider =
         if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
             JwkProviderStub
         } else {
-            JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri")))
+            JwkProviderBuilder(URL(azureAd.jwksUri))
                 .cached(10, 24, TimeUnit.HOURS) // cache up to 10 JWKs for 24 hours
                 .rateLimited(
                     10,
@@ -55,7 +54,7 @@ internal fun Application.configureAuthentication(
 
     install(Authentication) {
         jwt("jwt") {
-            verifier(jwkProvider, jwkConfig.getString("issuer"))
+            verifier(jwkProvider, azureAd.issuer)
             realm = "su-se-bakover"
             validate { credentials ->
                 try {

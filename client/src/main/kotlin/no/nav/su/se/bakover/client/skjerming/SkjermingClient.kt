@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.client.skjerming
 
 import com.github.kittinunf.fuel.httpGet
-import no.nav.su.se.bakover.common.CorrelationId.Companion.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.CorrelationIdHeader
 import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 

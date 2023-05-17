@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.eksterneiverksettingssteg
 
 import arrow.core.Either
 import arrow.core.left
-import no.nav.su.se.bakover.common.application.journal.JournalpostId
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert.medJournalpost
 

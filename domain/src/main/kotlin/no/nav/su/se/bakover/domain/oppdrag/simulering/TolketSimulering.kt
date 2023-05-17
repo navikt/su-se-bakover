@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.oppdrag.simulering
 
-import no.nav.su.se.bakover.common.application.Beløp
-import no.nav.su.se.bakover.common.application.MånedBeløp
-import no.nav.su.se.bakover.common.application.Månedsbeløp
+import no.nav.su.se.bakover.common.Beløp
+import no.nav.su.se.bakover.common.MånedBeløp
+import no.nav.su.se.bakover.common.Månedsbeløp
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode

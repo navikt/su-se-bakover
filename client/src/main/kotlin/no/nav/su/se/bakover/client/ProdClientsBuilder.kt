@@ -28,7 +28,7 @@ import no.nav.su.se.bakover.client.skatteetaten.SkatteClient
 import no.nav.su.se.bakover.client.skjerming.SkjermingClient
 import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.common.JmsConfig
+import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
 import no.nav.su.se.bakover.common.suSeBakoverConsumerId
 import no.nav.su.se.bakover.domain.metrics.ClientMetrics
 import java.time.Clock

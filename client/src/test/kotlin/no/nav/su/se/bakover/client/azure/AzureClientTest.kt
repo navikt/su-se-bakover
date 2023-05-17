@@ -50,9 +50,8 @@ internal class AzureClientTest : WiremockBase {
     }
 
     @Test
-    fun `get jwks config`() {
-        val jwkConfig = oauth.jwkConfig()
-        assertEquals(ISSUER, jwkConfig.getString("issuer"))
+    fun `get issuer`() {
+        assertEquals(ISSUER, oauth.issuer)
     }
 
     @Test

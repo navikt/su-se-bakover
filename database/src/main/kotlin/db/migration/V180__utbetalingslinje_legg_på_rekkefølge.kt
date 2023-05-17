@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.common.toTidspunkt
-import no.nav.su.se.bakover.common.xmlMapper
+import no.nav.su.se.bakover.common.infrastructure.xml.xmlMapper
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
 import org.slf4j.LoggerFactory

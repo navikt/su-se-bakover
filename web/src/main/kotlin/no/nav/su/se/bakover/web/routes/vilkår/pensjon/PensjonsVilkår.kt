@@ -5,6 +5,7 @@ import arrow.core.flatMap
 import arrow.core.sequence
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
+import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.toNonEmptyList
@@ -213,7 +214,7 @@ internal fun VurderingsperiodePensjon.toJson(): VurderingsperiodePensjonsvilkår
     )
 }
 
-internal fun KunneIkkeLeggeTilPensjonsVilkår.tilResultat(): no.nav.su.se.bakover.common.infrastructure.web.Resultat {
+internal fun KunneIkkeLeggeTilPensjonsVilkår.tilResultat(): Resultat {
     return when (this) {
         is KunneIkkeLeggeTilPensjonsVilkår.FantIkkeBehandling -> {
             Feilresponser.fantIkkeBehandling

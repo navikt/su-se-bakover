@@ -11,8 +11,8 @@ import no.nav.su.se.bakover.client.cache.newCache
 import no.nav.su.se.bakover.client.isSuccess
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.auth.AzureAd
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.DatoIntervall
 import no.nav.su.se.bakover.common.sikkerLogg

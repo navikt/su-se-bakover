@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.vilkår
 
 import arrow.core.Nel
 import arrow.core.NonEmptyList
-import no.nav.su.se.bakover.common.application.CopyArgs
+import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.toNonEmptyList

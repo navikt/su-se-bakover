@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.client.oppdrag.avstemming.Aksjonsdata.AksjonType.DAT
 import no.nav.su.se.bakover.client.oppdrag.avstemming.GrensesnittsavstemmingData.Detaljdata
 import no.nav.su.se.bakover.client.oppdrag.avstemming.GrensesnittsavstemmingData.Detaljdata.Detaljtype.GODKJENT_MED_VARSEL
 import no.nav.su.se.bakover.client.oppdrag.avstemming.GrensesnittsavstemmingData.Grunnlagdata
-import no.nav.su.se.bakover.common.xmlMapper
+import no.nav.su.se.bakover.common.infrastructure.xml.xmlMapper
 import org.hamcrest.MatcherAssert
 import org.junit.jupiter.api.Test
 import org.xmlunit.diff.DefaultNodeMatcher

@@ -8,7 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import no.nav.su.se.bakover.common.CorrelationId.Companion.withCorrelationIdSuspend
+import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationIdSuspend
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -60,9 +60,9 @@ class PersonhendelseConsumer(
     private suspend fun consume(messages: ConsumerRecords<String, EksternPersonhendelse>) {
         val processedMessages = mutableMapOf<TopicPartition, OffsetAndMetadata>()
         log.debug(
-            "Personhendelse: ${messages.count()} nye meldinger fra PDL. Første melding er fra ${
-                messages.first().value().getOpprettet()
-            }",
+            "Personhendelse: {} nye meldinger fra PDL. Første melding er fra {}",
+            messages.count(),
+            messages.first().value().opprettet,
         )
         run processMessages@{
             messages.forEach { message ->

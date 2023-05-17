@@ -3,10 +3,10 @@ package no.nav.su.se.bakover.domain.avkorting
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.Beløp
+import no.nav.su.se.bakover.common.MånedBeløp
+import no.nav.su.se.bakover.common.Månedsbeløp
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.application.Beløp
-import no.nav.su.se.bakover.common.application.MånedBeløp
-import no.nav.su.se.bakover.common.application.Månedsbeløp
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.tilMåned
 import no.nav.su.se.bakover.domain.beregning.Beregning

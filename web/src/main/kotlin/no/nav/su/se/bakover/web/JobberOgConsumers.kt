@@ -2,12 +2,12 @@ package no.nav.su.se.bakover.web
 
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.common.JmsConfig
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.februar
+import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
+import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.jobs.infrastructure.RunCheckFactory
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai

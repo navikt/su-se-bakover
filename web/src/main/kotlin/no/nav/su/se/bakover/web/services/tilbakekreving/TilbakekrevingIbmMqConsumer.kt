@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.services.tilbakekreving
 
-import no.nav.su.se.bakover.common.CorrelationId
+import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.sikkerLogg
 import org.slf4j.LoggerFactory
 import javax.jms.JMSContext
@@ -27,7 +27,7 @@ internal class TilbakekrevingIbmMqConsumer(
     init {
         consumer.setMessageListener { message ->
             try {
-                CorrelationId.withCorrelationId {
+                withCorrelationId {
                     log.info("Mottok kravgrunnlag fra køen: $queueName. Se sikkerlogg for meldingsinnhold.")
                     message.getBody(String::class.java).let {
                         sikkerLogg.info("Kravgrunnlag lest fra $queueName, innhold: $it")

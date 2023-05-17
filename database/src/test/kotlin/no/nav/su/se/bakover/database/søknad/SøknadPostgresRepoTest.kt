@@ -5,7 +5,7 @@ import io.kotest.matchers.types.shouldBeTypeOf
 import io.kotest.matchers.types.shouldNotBeTypeOf
 import no.nav.su.se.bakover.common.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.application.journal.JournalpostId
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.hentListe
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId

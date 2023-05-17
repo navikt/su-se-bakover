@@ -10,7 +10,6 @@ internal class AzureClient(
     private val thisClientSecret: String,
     private val wellknownUrl: String,
 ) : AzureAd {
-    private val tokenEndpoint = jwkConfig().getString("token_endpoint")
 
     companion object {
         const val AZURE_ON_BEHALF_OF_GRANT_TYPE = "urn:ietf:params:oauth:grant-type:jwt-bearer"
@@ -53,9 +52,33 @@ internal class AzureClient(
         )
     }
 
-    override fun jwkConfig(): JSONObject {
+    /**
+     * IO: Triggering static http call
+     */
+    override val issuer: String by lazy {
+        jwkConfig.getString("issuer")
+    }
+
+    /**
+     * IO: Triggering static http call
+     */
+    override val jwksUri: String by lazy {
+        jwkConfig.getString("jwks_uri")
+    }
+
+    /**
+     * IO: Triggering static http call
+     */
+    private val tokenEndpoint: String by lazy {
+        jwkConfig.getString("token_endpoint")
+    }
+
+    /**
+     * IO: Triggering static http call
+     */
+    private val jwkConfig: JSONObject by lazy {
         val (_, _, result) = wellknownUrl.httpGet().responseString()
-        return result.fold(
+        result.fold(
             { JSONObject(it) },
             { throw RuntimeException("Could not get JWK config from url $wellknownUrl, error:$it") },
         )

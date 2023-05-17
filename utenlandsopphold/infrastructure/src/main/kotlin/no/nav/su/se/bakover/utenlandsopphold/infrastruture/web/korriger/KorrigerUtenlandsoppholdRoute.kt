@@ -5,8 +5,9 @@ import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.put
 import no.nav.su.se.bakover.common.Brukerrolle
-import no.nav.su.se.bakover.common.CorrelationId.Companion.getOrCreateCorrelationIdFromThreadLocal
+import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
@@ -21,7 +22,6 @@ import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.kunneIkkeBekrefte
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.overlappendePerioder
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.utdatertSaksversjon
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.withVersjon
-import no.nav.su.se.bakover.web.features.authorize
 
 fun Route.korrigerUtenlandsoppholdRoute(
     service: KorrigerUtenlandsoppholdService,

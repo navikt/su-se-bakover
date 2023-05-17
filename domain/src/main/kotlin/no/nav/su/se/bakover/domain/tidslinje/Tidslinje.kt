@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.tidslinje
 import arrow.core.Nel
 import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
-import no.nav.su.se.bakover.common.application.CopyArgs
+import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode

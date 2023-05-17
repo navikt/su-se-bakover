@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.utenlandsopphold.application.annuller
 
 import arrow.core.Either
-import no.nav.su.se.bakover.common.audit.application.AuditLogger
+import no.nav.su.se.bakover.common.audit.AuditLogger
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.sak.annullerUtenlandsopphold

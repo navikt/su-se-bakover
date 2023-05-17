@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.utenlandsopphold.domain.korriger
 
 import arrow.core.NonEmptyList
-import no.nav.su.se.bakover.common.application.journal.JournalpostId
+import no.nav.su.se.bakover.common.journal.JournalpostId
 
 sealed interface KunneIkkeKorrigereUtenlandsopphold {
     object OverlappendePeriode : KunneIkkeKorrigereUtenlandsopphold

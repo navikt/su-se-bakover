@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.utenlandsopphold.domain
 
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.application.journal.JournalpostId
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.periode.DatoIntervall
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 

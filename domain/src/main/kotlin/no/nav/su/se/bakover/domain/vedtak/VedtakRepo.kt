@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.vedtak
 
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.application.journal.JournalpostId
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import java.time.LocalDate

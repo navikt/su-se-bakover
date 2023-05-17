@@ -5,11 +5,11 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.AktørId
+import no.nav.su.se.bakover.common.Beløp
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Ident
+import no.nav.su.se.bakover.common.MånedBeløp
 import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.application.Beløp
-import no.nav.su.se.bakover.common.application.MånedBeløp
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mapFourth
 import no.nav.su.se.bakover.common.mapSecond

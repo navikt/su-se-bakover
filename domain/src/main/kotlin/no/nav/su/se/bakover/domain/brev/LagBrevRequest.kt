@@ -4,8 +4,8 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.Månedsbeløp
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.application.Månedsbeløp
 import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.common.norwegianLocale
 import no.nav.su.se.bakover.common.periode.Periode

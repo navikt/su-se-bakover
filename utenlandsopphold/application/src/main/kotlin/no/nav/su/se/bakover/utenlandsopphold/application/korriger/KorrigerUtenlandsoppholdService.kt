@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.utenlandsopphold.application.korriger
 
 import arrow.core.Either
-import no.nav.su.se.bakover.common.application.journal.JournalpostId
-import no.nav.su.se.bakover.common.audit.application.AuditLogger
+import no.nav.su.se.bakover.common.audit.AuditLogger
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakRepo

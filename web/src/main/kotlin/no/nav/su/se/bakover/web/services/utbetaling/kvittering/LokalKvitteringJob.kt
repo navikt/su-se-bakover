@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.services.utbetaling.kvittering
 
 import arrow.core.Either
-import no.nav.su.se.bakover.common.CorrelationId.Companion.withCorrelationId
+import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import kotlin.concurrent.fixedRateTimer

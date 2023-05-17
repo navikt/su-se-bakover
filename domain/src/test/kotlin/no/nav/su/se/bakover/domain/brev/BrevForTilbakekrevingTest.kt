@@ -3,11 +3,11 @@ package no.nav.su.se.bakover.domain.brev
 import arrow.core.Either
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Beløp
 import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.MånedBeløp
+import no.nav.su.se.bakover.common.Månedsbeløp
 import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.application.Beløp
-import no.nav.su.se.bakover.common.application.MånedBeløp
-import no.nav.su.se.bakover.common.application.Månedsbeløp
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.juli

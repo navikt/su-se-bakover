@@ -6,7 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import no.nav.su.se.bakover.common.CorrelationId
+import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationIdSuspend
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.ConsumerRecords
@@ -35,7 +35,7 @@ class KlageinstanshendelseConsumer(
 
             while (this.isActive) {
                 Either.catch {
-                    CorrelationId.withCorrelationIdSuspend {
+                    withCorrelationIdSuspend {
                         val messages = consumer.poll(pollTimeoutDuration)
                         if (!messages.isEmpty) {
                             consume(messages)

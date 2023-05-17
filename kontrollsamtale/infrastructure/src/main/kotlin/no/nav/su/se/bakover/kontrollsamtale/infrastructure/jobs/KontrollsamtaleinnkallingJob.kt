@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs
 
 import arrow.core.Either
-import no.nav.su.se.bakover.common.CorrelationId
-import no.nav.su.se.bakover.common.jobs.infrastructure.RunCheckFactory
-import no.nav.su.se.bakover.common.jobs.infrastructure.shouldRun
+import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
+import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
+import no.nav.su.se.bakover.common.infrastructure.jobs.shouldRun
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
@@ -37,7 +37,7 @@ class KontrollsamtaleinnkallingJob(
                 listOf(runCheckFactory.leaderPod())
                     .shouldRun()
                     .ifTrue {
-                        CorrelationId.withCorrelationId {
+                        withCorrelationId {
                             kontrollsamtaleService.hentPlanlagteKontrollsamtaler().map { kontrollsamtaler ->
                                 kontrollsamtaler.forEach {
                                     // TODO jah: Gjør kallInn til parameterløs og gjør denne logikken i den funksjonen.

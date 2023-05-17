@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs
 
 import arrow.core.Either
-import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.igår
-import no.nav.su.se.bakover.common.jobs.infrastructure.RunCheckFactory
-import no.nav.su.se.bakover.common.jobs.infrastructure.shouldRun
+import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
+import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
+import no.nav.su.se.bakover.common.infrastructure.jobs.shouldRun
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
@@ -35,7 +35,7 @@ class StansYtelseVedManglendeOppmøteKontrollsamtaleJob(
             initialDelay = initialDelay.toMillis(),
         ) {
             Either.catch {
-                CorrelationId.withCorrelationId {
+                withCorrelationId {
                     listOf(
                         runCheckFactory.åpningstidStormaskin(),
                         runCheckFactory.leaderPod(),

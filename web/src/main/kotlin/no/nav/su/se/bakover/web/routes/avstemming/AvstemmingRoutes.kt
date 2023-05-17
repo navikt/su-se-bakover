@@ -9,13 +9,13 @@ import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.mapBoth
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.oppdrag.Fagområde
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
-import no.nav.su.se.bakover.web.features.authorize
 import java.time.Clock
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter

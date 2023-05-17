@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.brev.beregning
 
-import no.nav.su.se.bakover.common.application.MånedBeløp
-import no.nav.su.se.bakover.common.application.sorterPåPeriode
+import no.nav.su.se.bakover.common.MånedBeløp
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.sorterPåPeriode
 import no.nav.su.se.bakover.common.toBrevformat
 
 data class BrevTilbakekrevingInfo(

@@ -6,7 +6,7 @@ import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.kittinunf.fuel.httpGet
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk.CouldNotGetKode
-import no.nav.su.se.bakover.common.CorrelationId.Companion.getOrCreateCorrelationIdFromThreadLocal
+import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.objectMapper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

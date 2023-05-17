@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.tidslinje
 
-import no.nav.su.se.bakover.common.application.CopyArgs
-import no.nav.su.se.bakover.common.application.KopierbarForTidslinje
-import no.nav.su.se.bakover.common.application.OriginaltTidsstempel
+import no.nav.su.se.bakover.common.CopyArgs
+import no.nav.su.se.bakover.common.KopierbarForTidslinje
+import no.nav.su.se.bakover.common.OriginaltTidsstempel
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
 import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder

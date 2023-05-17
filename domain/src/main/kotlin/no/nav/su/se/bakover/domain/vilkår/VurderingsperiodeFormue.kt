@@ -5,8 +5,8 @@ import arrow.core.Nel
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.application.CopyArgs
 import no.nav.su.se.bakover.common.avrund
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder

@@ -6,9 +6,9 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.ddMMyyyyFormatter
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory

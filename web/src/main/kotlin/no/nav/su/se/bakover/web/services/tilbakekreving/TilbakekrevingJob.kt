@@ -2,9 +2,9 @@ package no.nav.su.se.bakover.web.services.tilbakekreving
 
 import arrow.core.Either
 import arrow.core.getOrElse
-import no.nav.su.se.bakover.common.CorrelationId.Companion.withCorrelationId
-import no.nav.su.se.bakover.common.jobs.infrastructure.RunCheckFactory
-import no.nav.su.se.bakover.common.jobs.infrastructure.shouldRun
+import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
+import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
+import no.nav.su.se.bakover.common.infrastructure.jobs.shouldRun
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
@@ -36,7 +36,7 @@ internal class TilbakekrevingJob(
             ).shouldRun().ifTrue {
                 Either.catch {
                     withCorrelationId {
-                        tilbakekrevingService.sendTilbakekrevingsvedtak() { råttKravgrunnlag ->
+                        tilbakekrevingService.sendTilbakekrevingsvedtak { råttKravgrunnlag ->
                             TilbakekrevingsmeldingMapper.toKravgrunnlg(råttKravgrunnlag)
                                 .getOrElse { throw it }
                         }

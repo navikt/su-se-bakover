@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.revurdering.opphør
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.application.CopyArgs
+import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.kronologisk
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
