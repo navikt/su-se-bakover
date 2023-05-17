@@ -190,6 +190,19 @@ internal class DokumentPostgresRepo(
         }
     }
 
+    override fun hentDokumenterForJournalføring(): List<Dokumentdistribusjon> {
+        return dbMetrics.timeQuery("hentDokumenterForJournalføring") {
+            sessionFactory.withSession { session ->
+                """
+                select * from dokument_distribusjon
+                where journalpostId is null
+                order by opprettet asc
+                limit 10
+            """.trimIndent().hentListe(emptyMap(), session) { it.toDokumentdistribusjon(session) }
+            }
+        }
+    }
+
     override fun oppdaterDokumentdistribusjon(dokumentdistribusjon: Dokumentdistribusjon) {
         dbMetrics.timeQuery("oppdaterDokumentdistribusjon") {
             sessionFactory.withSession { session ->
@@ -215,12 +228,6 @@ internal class DokumentPostgresRepo(
                     )
             }
         }
-    }
-
-    override fun lagreSkatteDokument(dokument: Skattedokument, tc: TransactionContext) {
-
-        dokumentSkatt.lagre(dokument,tc)
-
     }
 
     override fun defaultTransactionContext(): TransactionContext {

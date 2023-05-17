@@ -1,17 +1,25 @@
 package no.nav.su.se.bakover.database.skatt
 
+import kotliquery.Row
+import no.nav.su.se.bakover.common.application.journal.JournalpostId
+import no.nav.su.se.bakover.common.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.persistence.Session
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.persistence.hentListe
 import no.nav.su.se.bakover.common.persistence.insert
 import no.nav.su.se.bakover.common.persistence.oppdatering
 import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
 import no.nav.su.se.bakover.domain.skatt.Skattedokument
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 data class DokumentSkattPostgresRepo(
-    val sessionFactory: PostgresSessionFactory,
+    private val dbMetrics: DbMetrics,
+    private val sessionFactory: PostgresSessionFactory,
 ) : DokumentSkattRepo {
+    private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     override fun lagre(dok: Skattedokument) {
         sessionFactory.withSession {
@@ -37,7 +45,8 @@ data class DokumentSkattPostgresRepo(
                 dokument_skatt (id, generertDokument, dokumentjson, sakId, søkersSkatteId, epsSkatteId, vedtakId)
             values
                 (:id, :generertDok, to_jsonb(:dokumentjson::jsonb), :sakId, :sokers, :eps, :vedtakId)
-        """.trimIndent().insert(mapOf(
+        """.trimIndent().insert(
+            mapOf(
                 "id" to dok.id,
                 "generertDok" to dok.generertDokument,
                 "dokumentjson" to dok.dokumentJson,
@@ -48,6 +57,24 @@ data class DokumentSkattPostgresRepo(
             ),
             session,
         )
+    }
+
+    override fun hentDokumenterForJournalføring(): List<Skattedokument.Generert> {
+        val skattedokumenter = dbMetrics.timeQuery("hentSkattDokumenterForJournalføring") {
+            sessionFactory.withSession { session ->
+                """
+                select * from dokument_skatt
+                where journalpostId is null
+                order by opprettet asc
+                limit 10
+            """.trimIndent().hentListe(emptyMap(), session) { it.toSkattedokument() }
+            }
+        }
+        return skattedokumenter.filterIsInstance<Skattedokument.Generert>().also {
+            if (it.size != skattedokumenter.size) {
+                log.error("Antall hentede dokumenter for journalføring er ikke lik antall som skal bli journalført")
+            }
+        }
     }
 
     private fun lagre(dok: Skattedokument.Journalført, session: Session) {
@@ -65,5 +92,34 @@ data class DokumentSkattPostgresRepo(
             ),
             session,
         )
+    }
+
+    private fun Row.toSkattedokument(): Skattedokument {
+        val id = uuid("id")
+        val søkers = uuid("søkersskatteid")
+        val eps = uuidOrNull("epsskatteid")
+        val sakId = uuid("sakid")
+        val vedtakId = uuid("vedtakId")
+        val dokumentJson = string("dokumentjson")
+        val generertDokument = bytes("generertDokument")
+        val journalpostId = stringOrNull("journalpostId")
+
+        val generertSkattedokument = Skattedokument.Generert(
+            id = id,
+            søkersSkatteId = søkers,
+            epsSkatteId = eps,
+            sakid = sakId,
+            vedtakid = vedtakId,
+            generertDokument = generertDokument,
+            dokumentJson = dokumentJson,
+        )
+
+        return when (journalpostId) {
+            null -> generertSkattedokument
+            else -> Skattedokument.Journalført(
+                generert = generertSkattedokument,
+                journalpostid = JournalpostId(journalpostId)
+            )
+        }
     }
 }

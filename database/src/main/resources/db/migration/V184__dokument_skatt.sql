@@ -8,5 +8,5 @@ CREATE TABLE IF NOT EXISTS
     søkersSkatteId   uuid references skatt (id)  not null,
     epsSkatteId      uuid references skatt (id) default null,
     vedtakId         uuid references vedtak (id) not null,
-    journalpostId    uuid                       default null
+    journalpostId    text                       default null
 );

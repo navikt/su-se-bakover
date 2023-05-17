@@ -5,4 +5,5 @@ import no.nav.su.se.bakover.common.persistence.SessionContext
 interface DokumentSkattRepo {
     fun lagre(dok: Skattedokument)
     fun lagre(dok: Skattedokument, txc: SessionContext)
+    fun hentDokumenterForJournalføring(): List<Skattedokument.Generert>
 }

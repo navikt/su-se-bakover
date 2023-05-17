@@ -1,11 +1,15 @@
 package no.nav.su.se.bakover.client.dokarkiv
 
+import no.nav.su.se.bakover.common.AktørId
+import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.Ident
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Behandlingstema
 import no.nav.su.se.bakover.domain.Tema
 import no.nav.su.se.bakover.domain.brev.PdfInnhold
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.person.Person
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
@@ -54,6 +58,7 @@ sealed class Journalpost {
                 Sakstype.ALDER -> "Søknad om supplerende stønad for alder"
                 Sakstype.UFØRE -> "Søknad om supplerende stønad for uføre flyktninger"
             }
+
             fun from(
                 person: Person,
                 saksnummer: Saksnummer,
@@ -173,6 +178,25 @@ sealed class Journalpost {
         override val journalfoerendeEnhet: String = "4815"
 
         companion object {
+            fun from(
+                sakInfo: SakInfo,
+                person: Person,
+                tittel: String,
+                pdf: ByteArray,
+                originalDokumentJson: String
+            ) = Info(
+                person = person,
+                saksnummer = sakInfo.saksnummer,
+                dokumenter = lagDokumenter(
+                    tittel = tittel,
+                    pdf = pdf,
+                    originalJson = originalDokumentJson
+                ),
+                tittel = tittel,
+                sakstype = sakInfo.type
+            )
+
+
             fun from(
                 person: Person,
                 saksnummer: Saksnummer,

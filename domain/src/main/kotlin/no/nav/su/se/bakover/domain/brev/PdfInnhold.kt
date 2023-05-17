@@ -264,7 +264,6 @@ abstract class PdfInnhold {
     }
 
     data class SkattemeldingsPdf private constructor(
-        // TODO: legg in vedtaksid, saksid, saksnummer, behandlingstype?
         val saksnummer: Saksnummer,
         val søknadsbehandlingsId: UUID,
         val vedtaksId: UUID,
