@@ -3,11 +3,18 @@ package no.nav.su.se.bakover.service.dokument
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.dokarkiv.JournalpostFactory
 import no.nav.su.se.bakover.client.dokarkiv.lagJournalpost
+import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.brev.Distribusjonstidspunkt
+import no.nav.su.se.bakover.domain.brev.Distribusjonstype
+import no.nav.su.se.bakover.domain.brev.KunneIkkeBestilleBrevForDokument
+import no.nav.su.se.bakover.domain.brev.KunneIkkeDistribuereBrev
 import no.nav.su.se.bakover.domain.brev.KunneIkkeJournalføreBrev
 import no.nav.su.se.bakover.domain.brev.KunneIkkeJournalføreDokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
@@ -17,6 +24,8 @@ import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
 import no.nav.su.se.bakover.domain.skatt.Skattedokument
+import no.nav.su.se.bakover.service.dokument.DistribueringsResultat.Companion.feil
+import no.nav.su.se.bakover.service.dokument.DistribueringsResultat.Companion.ok
 import no.nav.su.se.bakover.service.dokument.JournalføringsResultat.Companion.feil
 import no.nav.su.se.bakover.service.dokument.JournalføringsResultat.Companion.ok
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
@@ -25,6 +34,7 @@ import org.slf4j.LoggerFactory
 
 class DokumentServiceImpl(
     private val dokArkiv: DokArkiv,
+    private val dokDistFordeling: DokDistFordeling,
     private val sakService: SakService,
     private val personService: PersonService,
     private val dokumentRepo: DokumentRepo,
@@ -53,12 +63,65 @@ class DokumentServiceImpl(
             val ok = this.ok()
             val feil = this.feil()
             if (feil.isEmpty()) {
-                log.info("Journalførte/distribuerte distribusjonsIDene: $ok")
+                log.info("Journalførte: $ok")
             } else {
-                log.error("Kunne ikke journalføre/distribuere distribusjonsIDene: $feil. Disse gikk ok: $ok")
+                log.error("Kunne ikke journalføre: $feil. Disse gikk ok: $ok")
             }
         }
     }
+
+    override fun distribuer() {
+        dokumentRepo.hentDokumenterForDistribusjon().map { dokument ->
+            distribuerDokument(dokument)
+                .map { DistribueringsResultat.Ok(it.id) }
+                .mapLeft { DistribueringsResultat.Feil(dokument.id) }
+        }.ifNotEmpty {
+            val ok = this.ok()
+            val feil = this.feil()
+            if (feil.isEmpty()) {
+                log.info("distribuerte: $ok")
+            } else {
+                log.error("Kunne ikke distribuere: $feil. Disse gikk ok: $ok")
+            }
+        }
+    }
+
+
+    internal fun distribuerDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeBestilleBrevForDokument, Dokumentdistribusjon> {
+        return dokumentdistribusjon.distribuerBrev { jounalpostId ->
+            distribuerBrev(
+                jounalpostId,
+                dokumentdistribusjon.dokument.distribusjonstype,
+                dokumentdistribusjon.dokument.distribusjonstidspunkt,
+            )
+                .mapLeft {
+                    KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev(
+                        journalpostId = jounalpostId,
+                    )
+                }
+        }.mapLeft {
+            when (it) {
+                is KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.AlleredeDistribuertBrev -> return dokumentdistribusjon.right()
+                is KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev -> KunneIkkeBestilleBrevForDokument.FeilVedBestillingAvBrev
+                KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.MåJournalføresFørst -> KunneIkkeBestilleBrevForDokument.MåJournalføresFørst
+            }
+        }.map {
+            dokumentRepo.oppdaterDokumentdistribusjon(it)
+            it
+        }
+    }
+
+    // Internal for testing.
+    internal fun distribuerBrev(
+        journalpostId: JournalpostId,
+        distribusjonstype: Distribusjonstype,
+        distribusjonstidspunkt: Distribusjonstidspunkt,
+    ): Either<KunneIkkeDistribuereBrev, BrevbestillingId> =
+        dokDistFordeling.bestillDistribusjon(journalpostId, distribusjonstype, distribusjonstidspunkt)
+            .mapLeft {
+                log.error("Feil ved bestilling av distribusjon for journalpostId:$journalpostId")
+                KunneIkkeDistribuereBrev
+            }
 
 
     private fun journalførSkattedokument(skattedokument: Skattedokument.Generert): Either<KunneIkkeJournalføreDokument, Skattedokument.Journalført> {
@@ -77,7 +140,13 @@ class DokumentServiceImpl(
             }
     }
 
-    private fun journalførDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeJournalføreDokument, Dokumentdistribusjon> {
+    /**
+     * Henter Person fra PersonService med systembruker.
+     * Ment brukt fra async-operasjoner som ikke er knyttet til en bruker med token.
+     */
+    // TODO: Flytt inn i egen service
+    // Internal for testing.
+    internal fun journalførDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeJournalføreDokument, Dokumentdistribusjon> {
         val sakInfo = sakService.hentSakInfo(dokumentdistribusjon.dokument.metadata.sakId).getOrElse {
             throw IllegalStateException("Fant ikke sak. Her burde vi egentlig sak finnes. sakId ${dokumentdistribusjon.dokument.metadata.sakId}")
         }

@@ -33,22 +33,17 @@ internal class JournalførDokumentJob(
         log.info("Starter skeduleringsjobb '$jobName' med initialDelay $initialDelay og periode $periode. Mitt hostnavn er $hostName.")
 
         fixedRateTimer(
-            name = jobName,
-            daemon = true,
-            period = periode.toMillis(),
-            initialDelay = initialDelay.toMillis(),
+            name = jobName, daemon = true, period = periode.toMillis(), initialDelay = initialDelay.toMillis(),
         ) {
             Either.catch {
-                listOf(runCheckFactory.leaderPod())
-                    .shouldRun()
-                    .ifTrue {
-                        CorrelationId.withCorrelationId {
-                            // Disse er debug siden jobben kjører hvert minutt.
-                            log.debug("Kjører skeduleringsjobb '$jobName'")
-                            dokumentService.journalførDokumenter()
-                            log.debug("Fullførte skeduleringsjobb '$jobName'")
-                        }
+                listOf(runCheckFactory.leaderPod()).shouldRun().ifTrue {
+                    CorrelationId.withCorrelationId {
+                        // Disse er debug siden jobben kjører hvert minutt.
+                        log.debug("Kjører skeduleringsjobb '$jobName'")
+                        dokumentService.journalførDokumenter()
+                        log.debug("Fullførte skeduleringsjobb '$jobName'")
                     }
+                }
             }.mapLeft {
                 log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)
             }

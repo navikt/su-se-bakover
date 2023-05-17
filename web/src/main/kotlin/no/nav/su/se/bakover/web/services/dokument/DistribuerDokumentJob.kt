@@ -4,7 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.jobs.shouldRun
-import no.nav.su.se.bakover.service.brev.DistribuerBrevService
+import no.nav.su.se.bakover.service.dokument.DokumentService
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
 import java.net.InetAddress
@@ -19,33 +19,27 @@ internal class DistribuerDokumentJob(
     private val initialDelay: Duration,
     private val periode: Duration,
     private val runCheckFactory: RunCheckFactory,
-    private val distribuerBrevService: DistribuerBrevService,
+    private val dokumentService: DokumentService,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
-    private val jobName = "Journalfør og bestill brevdistribusjon"
+    private val jobName = "Bestill brevdistribusjon"
 
     fun schedule() {
         // Avventer kall til erLeaderPod i tilfelle den ikke er startet enda.
         log.info("Starter skeduleringsjobb '$jobName' med initialDelay $initialDelay og periode $periode. Mitt hostnavn er $hostName.")
 
         fixedRateTimer(
-            name = jobName,
-            daemon = true,
-            period = periode.toMillis(),
-            initialDelay = initialDelay.toMillis(),
+            name = jobName, daemon = true, period = periode.toMillis(), initialDelay = initialDelay.toMillis(),
         ) {
             Either.catch {
-                listOf(runCheckFactory.leaderPod())
-                    .shouldRun()
-                    .ifTrue {
-                        withCorrelationId {
-                            // Disse er debug siden jobben kjører hvert minutt.
-                            log.debug("Kjører skeduleringsjobb '$jobName'")
-                            distribuerBrevService.journalførOgDistribuerUtgåendeDokumenter()
-                            //TODO: hack inn journalføring av skattedokumenter
-                            log.debug("Fullførte skeduleringsjobb '$jobName'")
-                        }
+                listOf(runCheckFactory.leaderPod()).shouldRun().ifTrue {
+                    withCorrelationId {
+                        // Disse er debug siden jobben kjører hvert minutt.
+                        log.debug("Kjører skeduleringsjobb '$jobName'")
+                        dokumentService.distribuer()
+                        log.debug("Fullførte skeduleringsjobb '$jobName'")
                     }
+                }
             }.mapLeft {
                 log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)
             }
