@@ -165,7 +165,12 @@ class DokumentServiceImpl(
         }
 
         return journalførtDokument
-            .mapLeft { KunneIkkeJournalføreDokument.FeilVedOpprettelseAvJournalpost }
+            .mapLeft {
+                when (it) {
+                    is KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.AlleredeJournalført -> return dokumentdistribusjon.right()
+                    KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring -> KunneIkkeJournalføreDokument.FeilVedOpprettelseAvJournalpost
+                }
+            }
             .onRight {
                 dokumentRepo.oppdaterDokumentdistribusjon(it)
             }

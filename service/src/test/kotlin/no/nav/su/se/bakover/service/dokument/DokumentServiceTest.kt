@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.brev
+package no.nav.su.se.bakover.service.dokument
 
 import arrow.core.left
 import arrow.core.right
@@ -7,9 +7,9 @@ import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.dokdistfordeling.KunneIkkeBestilleDistribusjon
-import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.common.person.AktørId
-import no.nav.su.se.bakover.common.person.Ident
+import no.nav.su.se.bakover.common.AktørId
+import no.nav.su.se.bakover.common.Ident
+import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.Distribusjonstidspunkt
 import no.nav.su.se.bakover.domain.brev.Distribusjonstype
@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
-import no.nav.su.se.bakover.service.dokument.DokumentServiceImpl
+import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.sakinfo
@@ -41,7 +41,7 @@ import java.time.Clock
 import java.time.Year
 import java.util.UUID
 
-internal class DistribuerBrevServiceTest {
+internal class DokumentServiceTest {
 
     val fnr = sakinfo.fnr
     val person = Person(
@@ -69,13 +69,12 @@ internal class DistribuerBrevServiceTest {
             } doReturn BrevbestillingId("en bestillings id").right()
         }
 
-        ServiceOgMocks(
-            dokDistFordeling = dockdistMock,
-        ).dokumentService.distribuerBrev(
-            JournalpostId("journalpostId"),
-            distribusjonstype,
-            distribusjonstidspunkt,
-        ) shouldBe BrevbestillingId("en bestillings id").right()
+        ServiceOgMocks(dokDistFordeling = dockdistMock)
+            .dokumentService.distribuerBrev(
+                JournalpostId("journalpostId"),
+                distribusjonstype,
+                distribusjonstidspunkt,
+            ) shouldBe BrevbestillingId("en bestillings id").right()
 
         verify(dockdistMock).bestillDistribusjon(
             JournalpostId("journalpostId"),
@@ -86,52 +85,30 @@ internal class DistribuerBrevServiceTest {
 
     @Test
     fun `journalfør dokument - finner ikke person`() {
-        val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
-        }
-
+        val personServiceMock =
+            mock<PersonService> { on { hentPersonMedSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left() }
         val sakService = mock<SakService> {
-            on { hentSakInfo(any()) } doReturn SakInfo(
-                sakId = sakId, saksnummer = saksnummer, fnr = fnr, type = Sakstype.UFØRE
-            ).right()
+            on { hentSakInfo(any()) } doReturn SakInfo(sakId, saksnummer, fnr, Sakstype.UFØRE).right()
         }
 
-        val dokumentdistribusjon = dokumentdistribusjon()
-
-        ServiceOgMocks(
-            sakService = sakService,
-            personService = personServiceMock,
-        ).let {
-            it.dokumentService.journalførDokument(dokumentdistribusjon) shouldBe KunneIkkeJournalføreDokument.KunneIkkeFinnePerson.left()
+        ServiceOgMocks(sakService = sakService, personService = personServiceMock).let {
+            it.dokumentService.journalførDokument(dokumentdistribusjon()) shouldBe KunneIkkeJournalføreDokument.KunneIkkeFinnePerson.left()
+            verify(sakService).hentSakInfo(argThat { it shouldBe sakId })
             verify(personServiceMock).hentPersonMedSystembruker(fnr)
-            it.verifyNoMoreInteraction()
         }
     }
 
     @Test
     fun `journalfør dokument - feil ved journalføring`() {
-        val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn person.right()
-        }
-
+        val personServiceMock = mock<PersonService> { on { hentPersonMedSystembruker(any()) } doReturn person.right() }
+        val dokarkivMock = mock<DokArkiv> { on { opprettJournalpost(any()) } doReturn ClientError(500, "kek").left() }
         val sakService = mock<SakService> {
-            on { hentSakInfo(any()) } doReturn SakInfo(
-                sakId = sakId, saksnummer = saksnummer, fnr = fnr, type = Sakstype.UFØRE
-            ).right()
+            on { hentSakInfo(any()) } doReturn SakInfo(sakId, saksnummer, fnr, Sakstype.UFØRE).right()
         }
 
-        val dokarkivMock = mock<DokArkiv> {
-            on { opprettJournalpost(any()) } doReturn ClientError(500, "kek").left()
-        }
-
-        val dokumentdistribusjon = dokumentdistribusjon()
-
-        ServiceOgMocks(
-            sakService = sakService,
-            personService = personServiceMock,
-            dokArkiv = dokarkivMock,
-        ).let {
-            it.dokumentService.journalførDokument(dokumentdistribusjon) shouldBe KunneIkkeJournalføreDokument.FeilVedOpprettelseAvJournalpost.left()
+        ServiceOgMocks(sakService = sakService, personService = personServiceMock, dokArkiv = dokarkivMock).let {
+            it.dokumentService.journalførDokument(dokumentdistribusjon()) shouldBe KunneIkkeJournalføreDokument.FeilVedOpprettelseAvJournalpost.left()
+            verify(sakService).hentSakInfo(argThat { it shouldBe sakId })
             verify(personServiceMock).hentPersonMedSystembruker(fnr)
             verify(dokarkivMock).opprettJournalpost(any())
             it.verifyNoMoreInteraction()
@@ -143,21 +120,16 @@ internal class DistribuerBrevServiceTest {
         val personServiceMock = mock<PersonService> {
             on { hentPersonMedSystembruker(any()) } doReturn person.right()
         }
-
         val sakService = mock<SakService> {
-            on { hentSakInfo(any()) } doReturn SakInfo(
-                sakId = sakId, saksnummer = saksnummer, fnr = fnr, type = Sakstype.UFØRE
-            ).right()
+            on { hentSakInfo(any()) } doReturn SakInfo(sakId, saksnummer, fnr, Sakstype.UFØRE).right()
         }
 
         val dokumentdistribusjon = dokumentdistribusjon()
             .copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(JournalpostId("done")))
 
-        ServiceOgMocks(
-            sakService = sakService,
-            personService = personServiceMock,
-        ).let {
+        ServiceOgMocks(sakService = sakService, personService = personServiceMock).let {
             it.dokumentService.journalførDokument(dokumentdistribusjon) shouldBe dokumentdistribusjon.right()
+            verify(sakService).hentSakInfo(argThat { it shouldBe sakId })
             verify(personServiceMock).hentPersonMedSystembruker(fnr)
             it.verifyNoMoreInteraction()
         }
@@ -165,23 +137,16 @@ internal class DistribuerBrevServiceTest {
 
     @Test
     fun `journalfør dokument - happy`() {
-        val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn person.right()
-        }
-
+        val dokumentRepoMock = mock<DokumentRepo>()
+        val personServiceMock = mock<PersonService> { on { hentPersonMedSystembruker(any()) } doReturn person.right() }
         val dokarkivMock = mock<DokArkiv> {
             on { opprettJournalpost(any()) } doReturn JournalpostId("happy").right()
         }
         val sakService = mock<SakService> {
-            on { hentSakInfo(any()) } doReturn SakInfo(
-                sakId = sakId, saksnummer = saksnummer, fnr = fnr, type = Sakstype.UFØRE
-            ).right()
+            on { hentSakInfo(any()) } doReturn SakInfo(sakId, saksnummer, fnr, Sakstype.UFØRE).right()
         }
 
-        val dokumentRepoMock = mock<DokumentRepo>()
-
         val dokumentdistribusjon = dokumentdistribusjon()
-
         val expected = dokumentdistribusjon
             .copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(JournalpostId("happy")))
 
@@ -192,6 +157,7 @@ internal class DistribuerBrevServiceTest {
             dokumentRepo = dokumentRepoMock,
         ).let {
             it.dokumentService.journalførDokument(dokumentdistribusjon) shouldBe expected.right()
+            verify(sakService).hentSakInfo(argThat { it shouldBe sakId })
             verify(personServiceMock).hentPersonMedSystembruker(fnr)
             verify(dokarkivMock).opprettJournalpost(any())
             verify(dokumentRepoMock).oppdaterDokumentdistribusjon(expected)
