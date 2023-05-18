@@ -7,7 +7,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.dokarkiv.JournalpostFactory
-import no.nav.su.se.bakover.client.dokarkiv.lagJournalpost
+import no.nav.su.se.bakover.client.dokarkiv.JournalpostSkatt.Companion.lagJournalpost
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
@@ -131,7 +131,7 @@ class DokumentServiceImpl(
         val person = personService.hentPersonMedSystembruker(sakInfo.fnr)
             .getOrElse { return KunneIkkeJournalføreDokument.KunneIkkeFinnePerson.left() }
 
-        return journalfør(skattedokument.lagJournalpost(sakInfo, person))
+        return journalfør(skattedokument.lagJournalpost(person, sakInfo))
             .mapLeft { KunneIkkeJournalføreDokument.FeilVedOpprettelseAvJournalpost }
             .map {
                 val tilJournalført = skattedokument.tilJournalført(it)

@@ -9,6 +9,7 @@ interface DokumentService {
 }
 
 
+//Her kunne vi kanskje bare slått sammen
 sealed interface JournalføringsResultat {
     val id: UUID
 

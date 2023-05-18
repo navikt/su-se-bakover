@@ -13,6 +13,9 @@ sealed interface Skattedokument {
     val generertDokument: ByteArray
     val dokumentJson: String
 
+    /**
+     * til bruk for når man skal lage journalpost, da vi ikke har tatt vare på pdfinnholdet
+     */
     val dokumentTittel: String get() = SkattegrunnlagPdfTemplate.tittel()
 
     data class Generert(

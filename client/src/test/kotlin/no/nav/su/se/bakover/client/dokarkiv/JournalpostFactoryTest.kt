@@ -40,7 +40,7 @@ internal class JournalpostFactoryTest {
 
         JournalpostFactory.lagJournalpost(personMock, saksnummer, dokument, Sakstype.UFØRE).let {
             it.shouldBeTypeOf<Journalpost.Vedtakspost>()
-            assert(it, dokument, DokumentKategori.VB)
+            assert(it, dokument)
         }
     }
 
@@ -57,37 +57,20 @@ internal class JournalpostFactoryTest {
 
         JournalpostFactory.lagJournalpost(personMock, saksnummer, dokument, Sakstype.UFØRE).let {
             it.shouldBeTypeOf<Journalpost.Info>()
-            assert(it, dokument, DokumentKategori.IB)
+            assert(it, dokument)
         }
     }
 
-    private fun assert(
-        journalpost: Journalpost,
-        dokument: Dokument,
-        dokumentKategori: DokumentKategori,
-    ) = assertJournalpost(
-        journalpost = journalpost,
-        tittel = dokument.tittel,
-        originalJson = dokument.generertDokumentJson,
-        dokumentKategori = dokumentKategori,
-    )
+    private fun assert(journalpost: Journalpost, dokument: Dokument) =
+        assertJournalpost(journalpost, dokument.tittel, dokument.generertDokumentJson)
 
-    private fun assert(
-        journalpost: Journalpost,
-        pdfInnhold: PdfInnhold,
-        dokumentKategori: DokumentKategori,
-    ) = assertJournalpost(
-        journalpost = journalpost,
-        tittel = pdfInnhold.pdfTemplate.tittel(),
-        originalJson = pdfInnhold.toJson(),
-        dokumentKategori = dokumentKategori,
-    )
+    private fun assert(journalpost: Journalpost, pdfInnhold: PdfInnhold) =
+        assertJournalpost(journalpost, pdfInnhold.pdfTemplate.tittel(), pdfInnhold.toJson())
 
     private fun assertJournalpost(
         journalpost: Journalpost,
         tittel: String,
         originalJson: String,
-        dokumentKategori: DokumentKategori,
     ) {
         journalpost.tittel shouldBe tittel
         journalpost.avsenderMottaker shouldBe AvsenderMottaker(
@@ -104,7 +87,6 @@ internal class JournalpostFactoryTest {
         journalpost.dokumenter shouldBe listOf(
             JournalpostDokument(
                 tittel = tittel,
-                dokumentKategori = dokumentKategori,
                 dokumentvarianter = listOf(
                     DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
                     DokumentVariant.OriginalJson(
