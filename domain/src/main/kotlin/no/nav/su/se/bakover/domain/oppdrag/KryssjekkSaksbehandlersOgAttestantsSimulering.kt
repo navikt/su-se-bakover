@@ -3,10 +3,11 @@ package no.nav.su.se.bakover.domain.oppdrag
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class KryssjekkSaksbehandlersOgAttestantsSimulering(
     private val saksbehandlersSimulering: Simulering,
@@ -52,6 +53,7 @@ private fun logErr(
     saksbehandlersSimulering: Simulering,
     attestantsSimulering: Simulering,
     feil: KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet,
+    log: Logger = LoggerFactory.getLogger("SuUserPlugin.kt"),
 ) {
     log.error("Utbetaling kunne ikke gjennomføres, kontrollsimulering er ulik saksbehandlers simulering: ${feil::class}. Se sikkerlogg for detaljer.")
     sikkerLogg.error(

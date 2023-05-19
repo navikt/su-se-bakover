@@ -6,7 +6,6 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -34,6 +33,8 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -46,6 +47,9 @@ class GjenopptaYtelseServiceImpl(
     private val sakService: SakService,
     private val sessionFactory: SessionFactory,
 ) : GjenopptaYtelseService {
+
+    private val log: Logger = LoggerFactory.getLogger(this::class.java)
+
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
 
     fun addObserver(eventObserver: StatistikkEventObserver) {

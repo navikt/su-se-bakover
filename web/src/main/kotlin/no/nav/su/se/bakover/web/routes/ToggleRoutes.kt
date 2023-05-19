@@ -11,13 +11,17 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.deserialize
 import no.nav.su.se.bakover.common.infrastructure.web.parameter
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.log
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 private const val TOGGLES_PATH = "/toggles"
 
 internal val togglePaths = listOf(TOGGLES_PATH)
 
-internal fun Route.toggleRoutes(toggleService: ToggleClient) {
+internal fun Route.toggleRoutes(
+    toggleService: ToggleClient,
+    log: Logger = LoggerFactory.getLogger("Route.toggleRoutes"),
+) {
     get("$TOGGLES_PATH/{toggleName}") {
         call.parameter("toggleName").fold(
             ifLeft = { call.svar(it) },

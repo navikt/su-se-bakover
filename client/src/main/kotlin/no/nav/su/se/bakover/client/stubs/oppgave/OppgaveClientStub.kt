@@ -2,13 +2,16 @@ package no.nav.su.se.bakover.client.stubs.oppgave
 
 import arrow.core.Either
 import arrow.core.right
-import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 object OppgaveClientStub : OppgaveClient {
+
+    private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     override fun opprettOppgave(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> =
         OppgaveId("stubbedOppgaveId").right().also { log.info("OppgaveClientStub oppretter oppgave: $config") }

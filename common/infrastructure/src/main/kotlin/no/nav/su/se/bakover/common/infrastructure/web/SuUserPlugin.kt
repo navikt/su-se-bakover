@@ -20,7 +20,8 @@ import io.ktor.util.AttributeKey
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.brukerrolle.AzureGroupMapper
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
-import no.nav.su.se.bakover.common.log
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class SuUserContext(val call: ApplicationCall, applicationConfig: ApplicationConfig) {
     val navIdent: String = getNAVidentFromJwt(applicationConfig, call.principal())
@@ -52,9 +53,13 @@ class SuUserRouteSelector :
     override fun toString(): String = "(with user)"
 }
 
-fun Route.withUser(applicationConfig: ApplicationConfig, build: Route.() -> Unit): Route {
+fun Route.withUser(
+    applicationConfig: ApplicationConfig,
+    log: Logger = LoggerFactory.getLogger("Route.withUser"),
+    build: Route.() -> Unit,
+): Route {
     val routeWithUser = createChild(SuUserRouteSelector())
-    routeWithUser.install(brukerinfoPlugin { BrukerinfoPluginConfig(applicationConfig) })
+    routeWithUser.install(brukerinfoPlugin(log) { BrukerinfoPluginConfig(applicationConfig) })
     routeWithUser.build()
     return routeWithUser
 }
@@ -62,6 +67,7 @@ fun Route.withUser(applicationConfig: ApplicationConfig, build: Route.() -> Unit
 data class BrukerinfoPluginConfig(val applicationConfig: ApplicationConfig)
 
 private fun brukerinfoPlugin(
+    log: Logger,
     config: () -> BrukerinfoPluginConfig,
 ): RouteScopedPlugin<BrukerinfoPluginConfig> {
     return createRouteScopedPlugin("SuBrukerPlugin", config) {

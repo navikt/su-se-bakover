@@ -1,12 +1,13 @@
 package no.nav.su.se.bakover.kontrollsamtale.application.opprett
 
-import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrollsamtaleVedNyStønadsperiodeService
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleServiceImpl
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleRepo
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.time.Clock
 
 /**
@@ -19,6 +20,8 @@ class OpprettPlanlagtKontrollsamtaleServiceImpl(
     private val kontrollsamtaleRepo: KontrollsamtaleRepo,
     private val clock: Clock,
 ) : OpprettKontrollsamtaleVedNyStønadsperiodeService {
+
+    private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     override fun opprett(
         vedtak: VedtakInnvilgetSøknadsbehandling,

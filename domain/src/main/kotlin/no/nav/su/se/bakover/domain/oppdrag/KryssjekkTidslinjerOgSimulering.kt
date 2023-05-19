@@ -5,7 +5,6 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.extensions.førsteINesteMåned
-import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -14,9 +13,12 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingslinjePåTidslinje
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 object KryssjekkTidslinjerOgSimulering {
     fun sjekk(
+        log: Logger = LoggerFactory.getLogger(this::class.java),
         underArbeidEndringsperiode: Periode,
         underArbeid: Utbetaling.UtbetalingForSimulering,
         eksisterende: Utbetalinger,

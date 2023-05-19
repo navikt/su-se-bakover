@@ -17,9 +17,10 @@ import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.audit.CefAuditLogger
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
-import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.util.UUID
 
 fun ApplicationCall.sikkerlogg(msg: String) {
@@ -192,7 +193,10 @@ suspend inline fun ApplicationCall.withDokumentId(ifRight: (UUID) -> Unit) {
     )
 }
 
-suspend inline fun <reified T> ApplicationCall.withBody(ifRight: (T) -> Unit) {
+suspend inline fun <reified T> ApplicationCall.withBody(
+    log: Logger = LoggerFactory.getLogger(this::class.java),
+    ifRight: (T) -> Unit,
+) {
     Either.catch { this.receiveTextUTF8() }
         .onLeft {
             log.error("Feil ved transformering av json-body til UTF-8 inn mot web-laget, se sikkerlogg for detaljer.")

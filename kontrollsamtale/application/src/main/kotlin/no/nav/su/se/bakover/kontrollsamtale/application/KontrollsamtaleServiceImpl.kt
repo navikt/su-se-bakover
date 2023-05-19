@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -26,6 +25,8 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeKalleInnTilKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeSetteNyDatoForKontrollsamtale
 import org.jetbrains.kotlin.utils.addToStdlib.ifFalse
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -39,6 +40,8 @@ class KontrollsamtaleServiceImpl(
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
 ) : KontrollsamtaleService {
+
+    private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     override fun kallInn(
         sakId: UUID,

@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.ClientsConfig.SkatteetatenConfig
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
-import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.YearRange
@@ -29,6 +28,8 @@ import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
 import no.nav.su.se.bakover.domain.skatt.Stadie
 import no.nav.su.se.bakover.domain.skatt.toYearRange
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -52,6 +53,8 @@ internal class SkatteClient(
         expireAfterWrite = Duration.ofDays(1),
     ),
 ) : Skatteoppslag {
+
+    private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     private val client = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(10))

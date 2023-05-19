@@ -6,7 +6,6 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
@@ -109,6 +108,8 @@ import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
 
@@ -129,6 +130,8 @@ class RevurderingServiceImpl(
     private val satsFactory: SatsFactory,
     private val ferdigstillVedtakService: FerdigstillVedtakService,
 ) : RevurderingService {
+
+    private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
 

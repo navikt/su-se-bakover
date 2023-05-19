@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.authHeader
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.person.UgyldigFnrException
 import no.nav.su.se.bakover.domain.DatabaseRepos
@@ -41,6 +40,8 @@ import no.nav.su.se.bakover.web.routes.togglePaths
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.services.Tilgangssjekkfeil
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import java.time.Clock
 import java.time.format.DateTimeParseException
@@ -110,7 +111,9 @@ private fun Application.setupKtorCallId() {
     }
 }
 
-private fun Application.setupKtorExceptionHandling() {
+private fun Application.setupKtorExceptionHandling(
+    log: Logger = LoggerFactory.getLogger("Application.setupKtorExceptionHandling"),
+) {
     install(StatusPages) {
         exception<Tilgangssjekkfeil> { call, cause ->
             when (cause.feil) {

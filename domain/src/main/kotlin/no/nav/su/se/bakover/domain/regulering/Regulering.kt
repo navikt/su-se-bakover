@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
@@ -13,6 +12,8 @@ import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
 
@@ -27,6 +28,9 @@ sealed interface Regulering : Reguleringsfelter {
     val erFerdigstilt: Boolean
 
     companion object {
+
+        private val log: Logger = LoggerFactory.getLogger(this::class.java)
+
         /**
          * @param clock Brukes kun dersom [opprettet] ikke sendes inn.
          */

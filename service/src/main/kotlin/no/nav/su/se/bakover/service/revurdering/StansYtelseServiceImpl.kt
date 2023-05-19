@@ -6,7 +6,6 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -40,6 +39,8 @@ import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -52,6 +53,9 @@ class StansYtelseServiceImpl(
     private val clock: Clock,
     private val sessionFactory: SessionFactory,
 ) : StansYtelseService {
+
+    private val log: Logger = LoggerFactory.getLogger(this::class.java)
+
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
 
     fun addObserver(eventObserver: StatistikkEventObserver) {

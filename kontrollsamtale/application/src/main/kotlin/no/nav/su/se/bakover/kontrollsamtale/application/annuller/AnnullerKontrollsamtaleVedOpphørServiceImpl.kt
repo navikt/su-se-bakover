@@ -1,10 +1,11 @@
 package no.nav.su.se.bakover.kontrollsamtale.application.annuller
 
-import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVedOpphørService
 import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleServiceImpl
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleRepo
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.util.UUID
 
 /**
@@ -16,6 +17,9 @@ class AnnullerKontrollsamtaleVedOpphørServiceImpl(
     private val kontrollsamtaleService: KontrollsamtaleServiceImpl,
     private val kontrollsamtaleRepo: KontrollsamtaleRepo,
 ) : AnnullerKontrollsamtaleVedOpphørService {
+
+    private val log: Logger = LoggerFactory.getLogger(this::class.java)
+
     override fun annuller(
         // TODO jah: Bør være en extension-function: Sak.annullerKontrollsamtale(...),
         //  så lenge ikke kontrollsamtaler ligger som data på saken.
