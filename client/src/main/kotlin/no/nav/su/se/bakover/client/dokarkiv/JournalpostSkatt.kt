@@ -14,16 +14,16 @@ data class JournalpostSkatt(
     override val saksnummer: Saksnummer,
     override val sakstype: Sakstype,
     override val tittel: String,
-    override val dokumenter: List<JournalpostDokument>
+    override val dokumenter: List<JournalpostDokument>,
 ) : Journalpost() {
     override val sak: Fagsak = Fagsak(saksnummer.nummer.toString())
     override val journalpostType: JournalPostType = JournalPostType.NOTAT
-    //systemet henter og journalfører, så dette blir kanskje automatisk?
+
+    // systemet henter og journalfører, så dette blir kanskje automatisk?
     override val journalfoerendeEnhet: JournalførendeEnhet = JournalførendeEnhet.AUTOMATISK
     override val bruker: Bruker = Bruker(id = person.ident.fnr.toString())
     override val avsenderMottaker: AvsenderMottaker? = null
     override val kanal: String? = null
-
 
     companion object {
         fun Skattedokument.lagJournalpost(person: Person, sakInfo: SakInfo): JournalpostSkatt = JournalpostSkatt(
@@ -35,8 +35,7 @@ data class JournalpostSkatt(
                 tittel = this.dokumentTittel,
                 pdf = this.generertDokument,
                 originalJson = this.dokumentJson,
-            )
+            ),
         )
     }
-
 }

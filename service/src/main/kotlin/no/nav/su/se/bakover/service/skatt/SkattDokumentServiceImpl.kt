@@ -58,7 +58,7 @@ class SkattDokumentServiceImpl(
             søknadsbehandlingsId = vedtak.behandling.id,
             vedtaksId = vedtak.id,
             sakId = vedtak.sakId,
-            //vi henter bare skattemeldingene samtidig
+            // vi henter bare skattemeldingene samtidig
             hentetDato = hentetSkatt.søkers.hentetTidspunkt.toLocalDate(zoneIdOslo),
             skatt = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagForPdf(
                 søkers = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagMedFnr(

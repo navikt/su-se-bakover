@@ -11,7 +11,6 @@ import java.net.InetAddress
 import java.time.Duration
 import kotlin.concurrent.fixedRateTimer
 
-
 /**
  * Jobb som med jevne mellomrom sjekker om det eksisterer dokumenter med behov for journalføring.
  *  For eksempel
@@ -33,7 +32,10 @@ internal class JournalførDokumentJob(
         log.info("Starter skeduleringsjobb '$jobName' med initialDelay $initialDelay og periode $periode. Mitt hostnavn er $hostName.")
 
         fixedRateTimer(
-            name = jobName, daemon = true, period = periode.toMillis(), initialDelay = initialDelay.toMillis(),
+            name = jobName,
+            daemon = true,
+            period = periode.toMillis(),
+            initialDelay = initialDelay.toMillis(),
         ) {
             Either.catch {
                 listOf(runCheckFactory.leaderPod()).shouldRun().ifTrue {

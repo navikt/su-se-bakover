@@ -70,7 +70,7 @@ fun startJobberOgConsumers(
         clock = clock,
         toggleService = services.toggles,
 
-        )
+    )
     val dokumentService = DokumentServiceImpl(
         sakService = services.sak,
         dokumentRepo = databaseRepos.dokumentRepo,

@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
-import no.nav.su.se.bakover.domain.skatt.Skattedokument
 import java.time.Clock
 import java.util.UUID
 
@@ -198,7 +197,7 @@ internal class DokumentPostgresRepo(
                 where journalpostId is null
                 order by opprettet asc
                 limit 10
-            """.trimIndent().hentListe(emptyMap(), session) { it.toDokumentdistribusjon(session) }
+                """.trimIndent().hentListe(emptyMap(), session) { it.toDokumentdistribusjon(session) }
             }
         }
     }

@@ -167,19 +167,18 @@ sealed class Journalpost {
                 person: Person,
                 tittel: String,
                 pdf: ByteArray,
-                originalDokumentJson: String
+                originalDokumentJson: String,
             ) = Info(
                 person = person,
                 saksnummer = sakInfo.saksnummer,
                 dokumenter = lagDokumenterForJournalpost(
                     tittel = tittel,
                     pdf = pdf,
-                    originalJson = originalDokumentJson
+                    originalJson = originalDokumentJson,
                 ),
                 tittel = tittel,
-                sakstype = sakInfo.type
+                sakstype = sakInfo.type,
             )
-
 
             fun from(
                 person: Person,
@@ -306,10 +305,10 @@ enum class JournalPostType(val type: String) {
     /**
      * dokumenter som holdes i nav (for eksempel samtalereferater)
      */
-    NOTAT("NOTAT")
+    NOTAT("NOTAT"),
 }
 
 enum class JournalførendeEnhet(val enhet: String) {
     ÅLESUND("4815"),
-    AUTOMATISK("9999")
+    AUTOMATISK("9999"),
 }

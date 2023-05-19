@@ -16,8 +16,8 @@ import org.slf4j.LoggerFactory
 
 internal const val dokArkivPath = "/rest/journalpostapi/v1/journalpost"
 
-//https://confluence.adeo.no/display/BOA/opprettJournalpost
-//swagger: https://dokarkiv-q2.nais.preprod.local/swagger-ui.html#/arkiver-og-journalfoer-rest-controller/opprettJournalpostUsingPOST
+// https://confluence.adeo.no/display/BOA/opprettJournalpost
+// swagger: https://dokarkiv-q2.nais.preprod.local/swagger-ui.html#/arkiver-og-journalfoer-rest-controller/opprettJournalpostUsingPOST
 class DokArkivClient(
     private val baseUrl: String,
     private val tokenOppslag: TokenOppslag,

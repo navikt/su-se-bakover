@@ -590,7 +590,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
                 },
 
-                )
+            )
 
             shouldThrow<RuntimeException> {
                 serviceAndMocks.service.iverksett(
@@ -756,7 +756,7 @@ private data class ServiceAndMocks(
     val opprettPlanlagtKontrollsamtaleService: OpprettKontrollsamtaleVedNyStønadsperiodeService = mock {},
     val sessionFactory: SessionFactory = TestSessionFactory(),
     val dokumentRepo: DokumentRepo = mock {},
-    val skattDokumentService: SkattDokumentService = mock {}
+    val skattDokumentService: SkattDokumentService = mock {},
 ) {
     val service = IverksettSøknadsbehandlingServiceImpl(
         sakService = sakService,

@@ -86,7 +86,6 @@ class DokumentServiceImpl(
         }
     }
 
-
     internal fun distribuerDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeBestilleBrevForDokument, Dokumentdistribusjon> {
         return dokumentdistribusjon.distribuerBrev { jounalpostId ->
             distribuerBrev(
@@ -122,7 +121,6 @@ class DokumentServiceImpl(
                 log.error("Feil ved bestilling av distribusjon for journalpostId:$journalpostId")
                 KunneIkkeDistribuereBrev
             }
-
 
     private fun journalførSkattedokument(skattedokument: Skattedokument.Generert): Either<KunneIkkeJournalføreDokument, Skattedokument.Journalført> {
         val sakInfo = sakService.hentSakInfo(skattedokument.sakid).getOrElse {
@@ -176,7 +174,6 @@ class DokumentServiceImpl(
             }
     }
 
-
     private fun journalfør(journalpost: Journalpost): Either<KunneIkkeJournalføreBrev, JournalpostId> {
         return dokArkiv.opprettJournalpost(journalpost)
             .mapLeft {
@@ -184,6 +181,4 @@ class DokumentServiceImpl(
                 KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost
             }
     }
-
-
 }

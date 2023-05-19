@@ -271,7 +271,7 @@ object DatabaseBuilder {
                 DokumentSkattPostgresRepo(dbMetrics, sessionFactory),
                 sessionFactory,
                 dbMetrics,
-                clock
+                clock,
             ),
             nøkkeltallRepo = nøkkeltallRepo,
             sessionFactory = sessionFactory,
@@ -285,7 +285,7 @@ object DatabaseBuilder {
             ),
             hendelseRepo = hendelseRepo,
             utenlandsoppholdRepo = utenlandsoppholdRepo,
-            dokumentSkattRepo = DokumentSkattPostgresRepo(dbMetrics, sessionFactory)
+            dokumentSkattRepo = DokumentSkattPostgresRepo(dbMetrics, sessionFactory),
         )
     }
 }

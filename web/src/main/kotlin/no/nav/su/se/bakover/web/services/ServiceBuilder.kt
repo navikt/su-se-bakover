@@ -247,7 +247,7 @@ object ServiceBuilder {
                 pdfGenerator = clients.pdfGenerator,
                 personOppslag = clients.personOppslag,
                 dokumentSkattRepo = databaseRepos.dokumentSkattRepo,
-            )
+            ),
         ).apply { addObserver(statistikkEventObserver) }
         return Services(
             avstemming = AvstemmingServiceImpl(

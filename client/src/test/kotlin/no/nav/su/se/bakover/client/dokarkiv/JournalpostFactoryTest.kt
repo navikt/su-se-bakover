@@ -81,7 +81,7 @@ internal class JournalpostFactoryTest {
         journalpost.tema shouldBe "SUP"
         journalpost.bruker shouldBe Bruker(id = personMock.ident.fnr.toString())
         journalpost.kanal shouldBe null
-        journalpost.journalfoerendeEnhet shouldBe "4815"
+        journalpost.journalfoerendeEnhet shouldBe JournalførendeEnhet.ÅLESUND
         journalpost.journalpostType shouldBe JournalPostType.UTGAAENDE
         journalpost.sak shouldBe Fagsak(saksnummer.nummer.toString())
         journalpost.dokumenter shouldBe listOf(

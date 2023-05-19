@@ -8,8 +8,7 @@ interface DokumentService {
     fun distribuer()
 }
 
-
-//Her kunne vi kanskje bare slått sammen
+// Her kunne vi kanskje bare slått sammen
 sealed interface JournalføringsResultat {
     val id: UUID
 

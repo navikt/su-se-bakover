@@ -67,7 +67,7 @@ data class DokumentSkattPostgresRepo(
                 where journalpostId is null
                 order by opprettet asc
                 limit 10
-            """.trimIndent().hentListe(emptyMap(), session) { it.toSkattedokument() }
+                """.trimIndent().hentListe(emptyMap(), session) { it.toSkattedokument() }
             }
         }
         return skattedokumenter.filterIsInstance<Skattedokument.Generert>().also {
@@ -118,7 +118,7 @@ data class DokumentSkattPostgresRepo(
             null -> generertSkattedokument
             else -> Skattedokument.Journalført(
                 generert = generertSkattedokument,
-                journalpostid = JournalpostId(journalpostId)
+                journalpostid = JournalpostId(journalpostId),
             )
         }
     }

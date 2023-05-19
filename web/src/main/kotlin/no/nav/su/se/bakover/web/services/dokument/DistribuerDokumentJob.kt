@@ -29,7 +29,10 @@ internal class DistribuerDokumentJob(
         log.info("Starter skeduleringsjobb '$jobName' med initialDelay $initialDelay og periode $periode. Mitt hostnavn er $hostName.")
 
         fixedRateTimer(
-            name = jobName, daemon = true, period = periode.toMillis(), initialDelay = initialDelay.toMillis(),
+            name = jobName,
+            daemon = true,
+            period = periode.toMillis(),
+            initialDelay = initialDelay.toMillis(),
         ) {
             Either.catch {
                 listOf(runCheckFactory.leaderPod()).shouldRun().ifTrue {
