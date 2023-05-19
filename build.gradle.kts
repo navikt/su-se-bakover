@@ -26,7 +26,7 @@ subprojects {
         implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
         implementation("org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion")
         implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlinVersion")
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.0")
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
         implementation(platform("io.arrow-kt:arrow-stack:1.1.5"))
         implementation("io.arrow-kt:arrow-core")
         implementation("io.arrow-kt:arrow-fx-coroutines")
