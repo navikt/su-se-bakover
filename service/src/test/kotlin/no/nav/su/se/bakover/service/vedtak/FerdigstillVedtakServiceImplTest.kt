@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.service.vedtak
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.periode.desember
-import no.nav.su.se.bakover.common.periode.februar
+import no.nav.su.se.bakover.common.tid.periode.desember
+import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.brev.BrevService

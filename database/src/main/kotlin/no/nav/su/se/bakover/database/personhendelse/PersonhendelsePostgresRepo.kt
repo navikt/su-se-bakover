@@ -1,17 +1,17 @@
 package no.nav.su.se.bakover.database.personhendelse
 
 import kotliquery.Row
-import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.persistence.DbMetrics
-import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
-import no.nav.su.se.bakover.common.persistence.hent
-import no.nav.su.se.bakover.common.persistence.hentListe
-import no.nav.su.se.bakover.common.persistence.insert
-import no.nav.su.se.bakover.common.persistence.oppdatering
+import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
+import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
+import no.nav.su.se.bakover.common.infrastructure.persistence.hent
+import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
+import no.nav.su.se.bakover.common.infrastructure.persistence.insert
+import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.toNonEmptyList
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.database.personhendelse.PersonhendelsePostgresRepo.HendelseJson.Companion.toJson
 import no.nav.su.se.bakover.database.personhendelse.PersonhendelsePostgresRepo.MetadataJson.Companion.toJson
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId

@@ -5,10 +5,10 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import kotlinx.coroutines.runBlocking
-import no.nav.su.se.bakover.common.AktørId
-import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
+import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.domain.journalpost.ErTilknyttetSak
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage

@@ -9,7 +9,7 @@ import com.google.cloud.bigquery.JobStatistics
 import com.google.cloud.bigquery.QueryJobConfiguration
 import com.google.cloud.bigquery.TableId
 import com.google.cloud.bigquery.WriteChannelConfiguration
-import no.nav.su.se.bakover.common.toTidspunkt
+import no.nav.su.se.bakover.common.tid.toTidspunkt
 import no.nav.su.se.bakover.database.Postgres
 import no.nav.su.se.bakover.database.VaultPostgres
 import org.slf4j.LoggerFactory

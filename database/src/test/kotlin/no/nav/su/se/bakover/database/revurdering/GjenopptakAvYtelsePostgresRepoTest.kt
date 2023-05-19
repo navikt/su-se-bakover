@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.database.revurdering
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.periode.januar
-import no.nav.su.se.bakover.common.periode.mai
-import no.nav.su.se.bakover.common.periode.mars
-import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.common.tid.periode.mai
+import no.nav.su.se.bakover.common.tid.periode.mars
+import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.test
 
-import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import java.time.LocalDate

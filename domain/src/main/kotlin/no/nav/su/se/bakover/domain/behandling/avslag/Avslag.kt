@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.behandling.avslag
 
-import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence
 
-import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.ident.IdentJson
 import no.nav.su.se.bakover.common.infrastructure.ident.IdentJson.Companion.toIdentJson
 import no.nav.su.se.bakover.common.serialize

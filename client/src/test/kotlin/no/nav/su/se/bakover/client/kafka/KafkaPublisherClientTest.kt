@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.client.kafka
 
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import org.apache.kafka.clients.producer.MockProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.errors.TopicAuthorizationException

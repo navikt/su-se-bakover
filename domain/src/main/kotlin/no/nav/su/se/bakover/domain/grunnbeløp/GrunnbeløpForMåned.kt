@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.grunnbeløp
 
-import no.nav.su.se.bakover.common.avrund
-import no.nav.su.se.bakover.common.isEqualOrBefore
-import no.nav.su.se.bakover.common.periode.Måned
+import no.nav.su.se.bakover.common.extensions.avrund
+import no.nav.su.se.bakover.common.extensions.isEqualOrBefore
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import java.math.BigDecimal
 import java.time.LocalDate
 

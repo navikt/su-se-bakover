@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.domain.beregning.beregning
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.desember
-import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.extensions.desember
+import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.desember
+import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory

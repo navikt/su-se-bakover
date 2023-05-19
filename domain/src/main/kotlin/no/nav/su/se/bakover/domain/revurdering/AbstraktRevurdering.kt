@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.revurdering
 
-import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger

@@ -4,11 +4,11 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.endOfMonth
-import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.startOfMonth
+import no.nav.su.se.bakover.common.extensions.endOfMonth
+import no.nav.su.se.bakover.common.extensions.startOfMonth
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering

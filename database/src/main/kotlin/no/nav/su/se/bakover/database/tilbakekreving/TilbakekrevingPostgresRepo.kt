@@ -3,18 +3,19 @@ package no.nav.su.se.bakover.database.tilbakekreving
 import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
-import no.nav.su.se.bakover.common.persistence.PostgresTransactionContext.Companion.withTransaction
-import no.nav.su.se.bakover.common.persistence.Session
+import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
+import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresTransactionContext.Companion.withTransaction
+import no.nav.su.se.bakover.common.infrastructure.persistence.Session
+import no.nav.su.se.bakover.common.infrastructure.persistence.TransactionalSession
+import no.nav.su.se.bakover.common.infrastructure.persistence.hent
+import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
+import no.nav.su.se.bakover.common.infrastructure.persistence.insert
+import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
+import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
+import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunktOrNull
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.common.persistence.TransactionalSession
-import no.nav.su.se.bakover.common.persistence.hent
-import no.nav.su.se.bakover.common.persistence.hentListe
-import no.nav.su.se.bakover.common.persistence.insert
-import no.nav.su.se.bakover.common.persistence.oppdatering
-import no.nav.su.se.bakover.common.persistence.tidspunkt
-import no.nav.su.se.bakover.common.persistence.tidspunktOrNull
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeTilbakekrev
@@ -168,7 +169,7 @@ internal class TilbakekrevingPostgresRepo(
         val opprettet = tidspunkt("opprettet")
         val revurderingId = uuid("revurderingId")
         val sakId = uuid("sakId")
-        val periode = no.nav.su.se.bakover.common.periode.Periode.create(
+        val periode = Periode.create(
             fraOgMed = localDate("fraOgMed"),
             tilOgMed = localDate("tilOgMed"),
         )

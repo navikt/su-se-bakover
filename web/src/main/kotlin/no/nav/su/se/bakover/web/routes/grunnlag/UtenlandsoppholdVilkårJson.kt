@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
-import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
-import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold

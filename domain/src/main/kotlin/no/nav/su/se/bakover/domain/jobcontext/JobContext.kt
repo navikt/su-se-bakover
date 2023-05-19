@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.jobcontext
 
-import no.nav.su.se.bakover.common.periode.Måned
-import no.nav.su.se.bakover.common.periode.tilMåned
+import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import java.time.LocalDate
 import java.time.YearMonth
 

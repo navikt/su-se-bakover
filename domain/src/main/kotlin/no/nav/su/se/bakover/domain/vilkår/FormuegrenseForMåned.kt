@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.domain.vilkår
 
 import arrow.core.NonEmptyList
-import no.nav.su.se.bakover.common.periode.Måned
-import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.erSammenhengendeSortertOgUtenDuplikater
-import no.nav.su.se.bakover.common.periode.minAndMaxOf
-import no.nav.su.se.bakover.common.roundToDecimals
+import no.nav.su.se.bakover.common.extensions.roundToDecimals
+import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
+import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpForMåned
 import no.nav.su.se.bakover.domain.satser.Faktor
 import java.math.BigDecimal

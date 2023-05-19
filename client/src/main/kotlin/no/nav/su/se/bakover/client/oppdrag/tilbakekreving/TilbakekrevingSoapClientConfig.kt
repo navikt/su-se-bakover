@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.client.oppdrag.tilbakekreving
 
 import no.nav.okonomi.tilbakekrevingservice.TilbakekrevingPortType
 import no.nav.su.se.bakover.client.oppdrag.sts.wrapInStsClient
-import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import org.apache.cxf.jaxws.JaxWsProxyFactoryBean
 import org.apache.cxf.ws.addressing.WSAddressingFeature
 import org.slf4j.LoggerFactory

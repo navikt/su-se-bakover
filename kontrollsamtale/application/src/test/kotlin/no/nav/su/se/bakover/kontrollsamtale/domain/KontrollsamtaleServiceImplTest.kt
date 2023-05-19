@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.kontrollsamtale.domain
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.domain.dokument.Dokument

@@ -2,13 +2,13 @@ package no.nav.su.se.bakover.domain.oppdrag.utbetaling
 
 import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
-import no.nav.su.se.bakover.common.between
-import no.nav.su.se.bakover.common.periode.Måned
-import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.minAndMaxOf
-import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
-import no.nav.su.se.bakover.common.periode.minus
-import no.nav.su.se.bakover.common.toNonEmptyList
+import no.nav.su.se.bakover.common.extensions.between
+import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
+import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.common.tid.periode.minus
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import java.time.LocalDate

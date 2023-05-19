@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonValue
-import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 
 data class Attesteringshistorikk private constructor(
     @JsonValue private val underlying: List<Attestering>,

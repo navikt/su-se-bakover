@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.statistikk.behandling
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
-import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.statistikk.StønadsklassifiseringDto
 import java.time.LocalDate
 import java.util.UUID

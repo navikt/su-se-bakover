@@ -20,7 +20,7 @@ internal data class VedtakSomRevurderesMånedsvisDbJson(
             val dbJson = deserialize<VedtakSomRevurderesMånedsvisDbJson>(json)
             return VedtakSomRevurderesMånedsvis(
                 dbJson.måneder.map {
-                    val måned = no.nav.su.se.bakover.common.periode.Måned.fra(YearMonth.parse(it.måned))
+                    val måned = no.nav.su.se.bakover.common.tid.periode.Måned.fra(YearMonth.parse(it.måned))
                     val vedtakId = UUID.fromString(it.vedtakId)
                     måned to vedtakId
                 }.sortedBy { it.first }.toMap(),

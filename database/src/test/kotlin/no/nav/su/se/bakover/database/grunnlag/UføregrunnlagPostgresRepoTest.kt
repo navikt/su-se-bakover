@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.database.grunnlag
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.april
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.persistence.antall
+import no.nav.su.se.bakover.common.extensions.april
+import no.nav.su.se.bakover.common.extensions.desember
+import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.extensions.mai
+import no.nav.su.se.bakover.common.infrastructure.persistence.antall
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.test.fixedTidspunkt

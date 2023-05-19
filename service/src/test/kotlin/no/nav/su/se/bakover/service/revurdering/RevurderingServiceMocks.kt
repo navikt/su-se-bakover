@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.revurdering
 
+import no.nav.su.se.bakover.common.featuretoggle.ToggleClient
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.common.toggle.domain.ToggleClient
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService

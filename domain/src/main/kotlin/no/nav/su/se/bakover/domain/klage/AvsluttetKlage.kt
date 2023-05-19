@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.left
-import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.util.UUID
 
 /**

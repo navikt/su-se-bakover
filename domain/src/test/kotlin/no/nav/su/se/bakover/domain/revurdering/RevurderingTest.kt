@@ -2,12 +2,12 @@ package no.nav.su.se.bakover.domain.revurdering
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.common.april
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.common.extensions.april
+import no.nav.su.se.bakover.common.extensions.desember
+import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.extensions.mai
+import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak

@@ -5,9 +5,9 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.routing
 import no.nav.su.se.bakover.client.Clients
-import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.audit.CefAuditLogger
-import no.nav.su.se.bakover.common.infrastructure.web.AzureGroupMapper
+import no.nav.su.se.bakover.common.infrastructure.brukerrolle.AzureGroupMapper
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.web.withUser
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.satser.SatsFactory

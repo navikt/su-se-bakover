@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.domain.satser
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.juni
-import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.common.periode.mai
-import no.nav.su.se.bakover.common.scaleTo4
+import no.nav.su.se.bakover.common.extensions.juni
+import no.nav.su.se.bakover.common.extensions.mai
+import no.nav.su.se.bakover.common.extensions.scaleTo4
+import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal

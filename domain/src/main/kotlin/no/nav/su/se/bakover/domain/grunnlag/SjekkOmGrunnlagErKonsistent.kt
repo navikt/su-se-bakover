@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import arrow.core.separateEither
-import no.nav.su.se.bakover.common.periode.inneholder
+import no.nav.su.se.bakover.common.tid.periode.inneholder
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag.Verdier.Companion.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harOverlappende
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder

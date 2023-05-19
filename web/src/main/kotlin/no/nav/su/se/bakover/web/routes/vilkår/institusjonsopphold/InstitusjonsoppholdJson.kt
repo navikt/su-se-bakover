@@ -2,13 +2,13 @@ package no.nav.su.se.bakover.web.routes.vilkår.institusjonsopphold
 
 import arrow.core.Either
 import arrow.core.left
-import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.heleBehandlingsperiodenMåHaVurderinger
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.overlappendeVurderingsperioder
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
-import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
-import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson.Companion.toJson
-import no.nav.su.se.bakover.common.toNonEmptyList
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold
 import no.nav.su.se.bakover.web.routes.vilkår.institusjonsopphold.VurderingInstitusjonsoppholdJson.Companion.toJson

@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.domain.sak
 
 import arrow.core.Either
-import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.dokument.Dokument

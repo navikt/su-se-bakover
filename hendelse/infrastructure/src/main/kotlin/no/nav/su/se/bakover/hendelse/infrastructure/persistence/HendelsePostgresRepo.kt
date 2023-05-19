@@ -2,14 +2,14 @@ package no.nav.su.se.bakover.hendelse.infrastructure.persistence
 
 import arrow.core.NonEmptyList
 import kotliquery.Row
-import no.nav.su.se.bakover.common.persistence.DbMetrics
-import no.nav.su.se.bakover.common.persistence.PostgresSessionContext.Companion.withSession
-import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
+import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
+import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
+import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
+import no.nav.su.se.bakover.common.infrastructure.persistence.hent
+import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
+import no.nav.su.se.bakover.common.infrastructure.persistence.insert
+import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionContext
-import no.nav.su.se.bakover.common.persistence.hent
-import no.nav.su.se.bakover.common.persistence.hentListe
-import no.nav.su.se.bakover.common.persistence.insert
-import no.nav.su.se.bakover.common.persistence.tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.Hendelse
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo

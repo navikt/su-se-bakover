@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.kontrollsamtale.infrastructure.persistence
 
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.database.jobcontext.JobContextDb
 import no.nav.su.se.bakover.domain.jobcontext.NameAndLocalDateId
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleContext

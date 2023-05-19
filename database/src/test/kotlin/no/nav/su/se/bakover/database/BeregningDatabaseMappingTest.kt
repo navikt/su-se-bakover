@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.database
 
+import no.nav.su.se.bakover.common.infrastructure.persistence.insert
+import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.common.persistence.insert
-import no.nav.su.se.bakover.common.persistence.oppdatering
 import no.nav.su.se.bakover.test.beregning
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow

@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.client.stubs.oppdrag
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.right
-import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.common.periode.Måned
+import no.nav.su.se.bakover.common.extensions.idag
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingRequest

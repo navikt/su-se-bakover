@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.stans
 
 import io.kotest.assertions.json.shouldEqualJson
-import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.SharedRegressionTestData

@@ -3,11 +3,11 @@ package no.nav.su.se.bakover.domain.jobcontext
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.right
-import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.avrund
+import no.nav.su.se.bakover.common.extensions.avrund
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument

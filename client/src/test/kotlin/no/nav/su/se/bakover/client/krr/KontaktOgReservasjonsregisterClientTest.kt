@@ -7,8 +7,8 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
-import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.common.person.Fnr
 import org.junit.jupiter.api.Test
 
 class KontaktOgReservasjonsregisterClientTest : WiremockBase {

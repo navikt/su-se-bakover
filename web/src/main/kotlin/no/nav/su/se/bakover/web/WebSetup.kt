@@ -18,11 +18,10 @@ import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
 import io.ktor.server.routing.Route
 import no.nav.su.se.bakover.client.Clients
-import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.CorrelationIdHeader
-import no.nav.su.se.bakover.common.UgyldigFnrException
+import no.nav.su.se.bakover.common.infrastructure.brukerrolle.AzureGroupMapper
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
-import no.nav.su.se.bakover.common.infrastructure.web.AzureGroupMapper
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.authHeader
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
@@ -30,6 +29,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.person.UgyldigFnrException
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.satser.SatsFactory

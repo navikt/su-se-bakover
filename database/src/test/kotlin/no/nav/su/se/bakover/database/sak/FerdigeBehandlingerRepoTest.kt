@@ -2,9 +2,9 @@ package no.nav.su.se.bakover.database.sak
 
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.periode.desember
-import no.nav.su.se.bakover.common.periode.februar
-import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.common.tid.periode.desember
+import no.nav.su.se.bakover.common.tid.periode.februar
+import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.domain.sak.Saksnummer

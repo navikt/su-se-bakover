@@ -17,8 +17,9 @@ import io.ktor.server.routing.RouteSelector
 import io.ktor.server.routing.RouteSelectorEvaluation
 import io.ktor.server.routing.RoutingResolveContext
 import io.ktor.util.AttributeKey
-import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.infrastructure.brukerrolle.AzureGroupMapper
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.log
 
 class SuUserContext(val call: ApplicationCall, applicationConfig: ApplicationConfig) {

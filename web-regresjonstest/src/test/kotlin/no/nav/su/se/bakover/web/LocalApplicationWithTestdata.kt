@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.web
 import ch.qos.logback.classic.ClassicConstants
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 
 fun main() {
     if (ApplicationConfig.isRunningLocally()) {

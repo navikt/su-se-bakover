@@ -1,15 +1,15 @@
 package no.nav.su.se.bakover.database.skatt
 
 import kotliquery.Row
-import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.YearRange
-import no.nav.su.se.bakover.common.persistence.Session
-import no.nav.su.se.bakover.common.persistence.hent
-import no.nav.su.se.bakover.common.persistence.insert
-import no.nav.su.se.bakover.common.persistence.oppdatering
-import no.nav.su.se.bakover.common.persistence.tidspunkt
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.infrastructure.persistence.Session
+import no.nav.su.se.bakover.common.infrastructure.persistence.hent
+import no.nav.su.se.bakover.common.infrastructure.persistence.insert
+import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
+import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
+import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.database.common.YearRangeJson.Companion.toStringifiedYearRangeJson
 import no.nav.su.se.bakover.database.skatt.SkattegrunnlagDbJson.Companion.toDbJson
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt

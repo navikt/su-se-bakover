@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.vedtak
 
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning

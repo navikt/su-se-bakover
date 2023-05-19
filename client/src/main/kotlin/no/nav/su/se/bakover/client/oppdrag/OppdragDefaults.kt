@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.client.oppdrag
 
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.common.extensions.zoneIdOslo
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 

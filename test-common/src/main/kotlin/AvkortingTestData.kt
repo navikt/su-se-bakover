@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.test
 
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.desember
-import no.nav.su.se.bakover.common.periode.juni
-import no.nav.su.se.bakover.common.periode.november
-import no.nav.su.se.bakover.common.periode.oktober
+import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.desember
+import no.nav.su.se.bakover.common.tid.periode.juni
+import no.nav.su.se.bakover.common.tid.periode.november
+import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel

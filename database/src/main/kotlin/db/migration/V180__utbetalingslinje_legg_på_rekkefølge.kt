@@ -9,11 +9,11 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.RekkefølgeGenerator
-import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.common.toNonEmptyList
-import no.nav.su.se.bakover.common.toTidspunkt
+import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.tid.toTidspunkt
 import no.nav.su.se.bakover.common.infrastructure.xml.xmlMapper
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context

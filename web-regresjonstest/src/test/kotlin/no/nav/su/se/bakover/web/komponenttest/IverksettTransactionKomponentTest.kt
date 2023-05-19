@@ -6,10 +6,10 @@ import arrow.core.right
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.endOfMonth
-import no.nav.su.se.bakover.common.fixedClock
-import no.nav.su.se.bakover.common.startOfMonth
+import no.nav.su.se.bakover.common.extensions.endOfMonth
+import no.nav.su.se.bakover.common.extensions.fixedClock
+import no.nav.su.se.bakover.common.extensions.startOfMonth
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering

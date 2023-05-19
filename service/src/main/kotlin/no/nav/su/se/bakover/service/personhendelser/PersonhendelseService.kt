@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.service.personhendelser
 
-import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.periode.Måned
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.PersonService

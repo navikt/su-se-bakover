@@ -12,7 +12,7 @@ import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.application.LoggingTest.Companion.konfigurerLogback
-import no.nav.su.se.bakover.common.Brukerrolle
+import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.test.jwt.asBearerToken
 import no.nav.su.se.bakover.test.jwt.jwtStub
 import no.nav.su.se.bakover.web.SharedRegressionTestData.testSusebakover

@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.web.services
 
 import io.getunleash.Unleash
 import no.nav.su.se.bakover.client.Clients
-import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.common.persistence.DbMetrics
-import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
-import no.nav.su.se.bakover.common.toggle.infrastructure.UnleashToggleClient
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.featuretoggle.UnleashToggleClient
+import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
+import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics

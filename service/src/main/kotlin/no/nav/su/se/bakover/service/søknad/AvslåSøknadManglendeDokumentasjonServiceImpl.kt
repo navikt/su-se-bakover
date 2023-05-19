@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.service.søknad
 
 import arrow.core.Either
 import arrow.core.getOrElse
-import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.sak.SakService

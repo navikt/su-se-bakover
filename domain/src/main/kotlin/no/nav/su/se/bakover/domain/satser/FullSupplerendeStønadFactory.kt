@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.satser
 
-import no.nav.su.se.bakover.common.periode.Måned
-import no.nav.su.se.bakover.common.periode.erSammenhengendeSortertOgUtenDuplikater
+import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpFactory
 import no.nav.su.se.bakover.domain.satser.Knekkpunkt.Companion.compareTo
 import java.math.BigDecimal

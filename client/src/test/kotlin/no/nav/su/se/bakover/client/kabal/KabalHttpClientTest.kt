@@ -12,8 +12,8 @@ import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.argThat
 import no.nav.su.se.bakover.client.sts.TokenOppslag
-import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.auth.AzureAd
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeTilKlageinstans
 import no.nav.su.se.bakover.test.oversendtKlage

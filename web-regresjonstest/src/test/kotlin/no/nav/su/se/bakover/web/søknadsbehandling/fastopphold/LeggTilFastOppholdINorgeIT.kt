@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.web.søknadsbehandling.fastopphold
 
-import no.nav.su.se.bakover.common.Brukerrolle
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.extensions.desember
+import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad

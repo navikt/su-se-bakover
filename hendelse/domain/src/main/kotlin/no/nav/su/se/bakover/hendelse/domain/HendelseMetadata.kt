@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.hendelse.domain
 
-import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.CorrelationId
-import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 
 /**
  * @param correlationId En request-chain i nav har ofte en correlation id. Denne kan komme fra frontend, et eksternt system eller være generert i presentasjonslaget.

@@ -2,12 +2,12 @@ package no.nav.su.se.bakover.domain.grunnbeløp
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.juni
-import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.common.periode.april
-import no.nav.su.se.bakover.common.periode.januar
-import no.nav.su.se.bakover.common.periode.mai
+import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.extensions.juni
+import no.nav.su.se.bakover.common.extensions.mai
+import no.nav.su.se.bakover.common.tid.periode.april
+import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import org.junit.jupiter.api.Test
 

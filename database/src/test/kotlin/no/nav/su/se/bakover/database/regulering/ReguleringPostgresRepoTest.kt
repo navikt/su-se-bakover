@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.database.regulering
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.common.periode.desember
-import no.nav.su.se.bakover.common.periode.mai
-import no.nav.su.se.bakover.common.september
+import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.extensions.mai
+import no.nav.su.se.bakover.common.extensions.september
+import no.nav.su.se.bakover.common.tid.periode.desember
+import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpForMåned
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering

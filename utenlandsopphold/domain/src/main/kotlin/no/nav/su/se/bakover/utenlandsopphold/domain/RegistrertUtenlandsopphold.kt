@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.utenlandsopphold.domain
 
-import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.common.periode.DatoIntervall
+import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 
 // TODO: Mulig å lage en DatoIntervallisert interface for å få tilgang på DatoIntervall sine funksjoner

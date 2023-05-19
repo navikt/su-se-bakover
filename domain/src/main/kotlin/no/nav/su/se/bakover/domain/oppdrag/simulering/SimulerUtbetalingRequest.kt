@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.oppdrag.simulering
 
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 
 sealed interface SimulerUtbetalingRequest {

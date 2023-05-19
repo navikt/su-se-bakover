@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.service.sak
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.AktørId
-import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.common.person.AktørId
+import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest

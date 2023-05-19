@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.database.person
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
-import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.person.PersonRepo
 import no.nav.su.se.bakover.domain.revurdering.Revurdering

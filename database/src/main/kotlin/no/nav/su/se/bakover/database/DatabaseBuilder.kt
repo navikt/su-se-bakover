@@ -2,14 +2,14 @@ package no.nav.su.se.bakover.database
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.RotatingCredentials
-import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.StaticCredentials
-import no.nav.su.se.bakover.common.persistence.DbMetrics
-import no.nav.su.se.bakover.common.persistence.Flyway
-import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
-import no.nav.su.se.bakover.common.persistence.QueryParameterMapper
-import no.nav.su.se.bakover.common.persistence.SessionCounter
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.DatabaseConfig.RotatingCredentials
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.DatabaseConfig.StaticCredentials
+import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
+import no.nav.su.se.bakover.common.infrastructure.persistence.Flyway
+import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
+import no.nav.su.se.bakover.common.infrastructure.persistence.QueryParameterMapper
+import no.nav.su.se.bakover.common.infrastructure.persistence.SessionCounter
 import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
 import no.nav.su.se.bakover.database.dokument.DokumentPostgresRepo

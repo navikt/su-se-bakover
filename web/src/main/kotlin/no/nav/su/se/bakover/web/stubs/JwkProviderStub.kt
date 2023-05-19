@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.web.stubs
 
 import com.auth0.jwk.Jwk
 import com.auth0.jwk.JwkProvider
-import no.nav.su.se.bakover.common.stubs.AuthStubCommonConfig
+import no.nav.su.se.bakover.common.infrastructure.auth.AuthStubCommonConfig
 import java.util.Base64
 
 internal object JwkProviderStub : JwkProvider {

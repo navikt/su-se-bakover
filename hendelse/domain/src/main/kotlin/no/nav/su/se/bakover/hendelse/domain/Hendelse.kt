@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.hendelse.domain
 
-import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.util.UUID
 
 /**

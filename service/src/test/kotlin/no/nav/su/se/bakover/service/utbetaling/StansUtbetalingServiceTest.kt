@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.service.utbetaling
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.fixedClock
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.common.extensions.fixedClock
+import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet

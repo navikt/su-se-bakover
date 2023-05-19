@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.test
 
-import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import java.util.UUID
 

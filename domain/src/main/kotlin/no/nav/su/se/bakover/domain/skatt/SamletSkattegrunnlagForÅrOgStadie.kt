@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.skatt
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import no.nav.su.se.bakover.common.YearRange
+import no.nav.su.se.bakover.common.tid.YearRange
 import java.time.Year
 
 sealed class SamletSkattegrunnlagForÅrOgStadie {

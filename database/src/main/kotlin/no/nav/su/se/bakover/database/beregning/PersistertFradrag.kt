@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.database.beregning
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
-import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForMåned
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForPeriode

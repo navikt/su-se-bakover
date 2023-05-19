@@ -2,9 +2,9 @@ package no.nav.su.se.bakover.client.skatteetaten
 
 import arrow.core.NonEmptyList
 import arrow.core.right
-import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.YearRange
-import no.nav.su.se.bakover.common.toNonEmptyList
+import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅr
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag

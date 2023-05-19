@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.database.søknadsbehandling
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.søknadsbehandling.AldersvurderingJson.Companion.toDBJson
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersinformasjon

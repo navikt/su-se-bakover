@@ -7,10 +7,10 @@ import no.nav.su.se.bakover.client.cache.newCache
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
 import no.nav.su.se.bakover.client.skjerming.Skjerming
-import no.nav.su.se.bakover.common.AktørId
-import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.Ident
-import no.nav.su.se.bakover.common.token.JwtToken
+import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
+import no.nav.su.se.bakover.common.person.AktørId
+import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.person.Ident
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.PersonOppslag

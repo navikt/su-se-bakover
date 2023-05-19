@@ -2,12 +2,12 @@ package no.nav.su.se.bakover.domain.oppdrag.avstemming
 
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.november
-import no.nav.su.se.bakover.common.oktober
-import no.nav.su.se.bakover.common.september
-import no.nav.su.se.bakover.common.startOfDay
-import no.nav.su.se.bakover.common.toTidspunkt
+import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.extensions.november
+import no.nav.su.se.bakover.common.extensions.oktober
+import no.nav.su.se.bakover.common.extensions.september
+import no.nav.su.se.bakover.common.extensions.startOfDay
+import no.nav.su.se.bakover.common.tid.toTidspunkt
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import java.time.Instant

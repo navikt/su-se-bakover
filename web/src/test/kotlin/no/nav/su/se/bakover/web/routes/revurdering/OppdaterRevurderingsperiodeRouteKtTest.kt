@@ -9,11 +9,11 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
-import no.nav.su.se.bakover.common.Brukerrolle
+import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.common.periode.desember
-import no.nav.su.se.bakover.common.periode.mai
-import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.common.tid.periode.desember
+import no.nav.su.se.bakover.common.tid.periode.mai
+import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering

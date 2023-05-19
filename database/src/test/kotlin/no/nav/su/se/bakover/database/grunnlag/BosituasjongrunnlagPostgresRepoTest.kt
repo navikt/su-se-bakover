@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.database.grunnlag
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.persistence.dbMetricsStub

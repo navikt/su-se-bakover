@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.test
 
-import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.brukerrolle.AzureGroups
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.config.AzureConfig
 import no.nav.su.se.bakover.common.suSeBakoverConsumerId
 
 fun applicationConfig() = ApplicationConfig(
@@ -13,11 +15,11 @@ fun applicationConfig() = ApplicationConfig(
         username = "serviceUserTestUsername",
         password = "serviceUserTestPassword",
     ),
-    azure = ApplicationConfig.AzureConfig(
+    azure = AzureConfig(
         clientSecret = "testClientSecret",
         wellKnownUrl = "http://localhost/test/wellKnownUrl",
         clientId = "testClientId",
-        groups = ApplicationConfig.AzureConfig.AzureGroups(
+        groups = AzureGroups(
             attestant = "testAzureGroupAttestant",
             saksbehandler = "testAzureGroupSaksbehandler",
             veileder = "testAzureGroupVeileder",

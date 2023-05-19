@@ -2,14 +2,14 @@ package no.nav.su.se.bakover.domain.satser
 
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
-import no.nav.su.se.bakover.common.erFørsteDagIMåned
-import no.nav.su.se.bakover.common.erSortertOgUtenDuplikater
-import no.nav.su.se.bakover.common.periode.Måned
-import no.nav.su.se.bakover.common.periode.erSammenhengende
-import no.nav.su.se.bakover.common.periode.erSammenhengendeSortertOgUtenDuplikater
-import no.nav.su.se.bakover.common.periode.erSortert
-import no.nav.su.se.bakover.common.periode.harDuplikater
-import no.nav.su.se.bakover.common.toNonEmptyList
+import no.nav.su.se.bakover.common.extensions.erFørsteDagIMåned
+import no.nav.su.se.bakover.common.extensions.erSortertOgUtenDuplikater
+import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.erSammenhengende
+import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
+import no.nav.su.se.bakover.common.tid.periode.erSortert
+import no.nav.su.se.bakover.common.tid.periode.harDuplikater
 import java.time.LocalDate
 
 /**

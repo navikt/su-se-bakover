@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.service.avstemming
 
-import no.nav.su.se.bakover.common.endOfDay
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.startOfDay
-import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.common.extensions.endOfDay
+import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.extensions.startOfDay
+import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import java.time.Clock
 import java.time.LocalDate

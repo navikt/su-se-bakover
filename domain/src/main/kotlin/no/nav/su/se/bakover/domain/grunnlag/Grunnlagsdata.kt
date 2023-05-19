@@ -4,9 +4,9 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.inneholder
+import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.inneholder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.oppdaterBosituasjonsperiode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag

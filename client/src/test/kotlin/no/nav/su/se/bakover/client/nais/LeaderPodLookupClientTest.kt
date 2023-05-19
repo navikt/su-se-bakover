@@ -6,7 +6,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
-import no.nav.su.se.bakover.common.infrastructure.nais.LeaderPodLookupFeil
+import no.nav.su.se.bakover.common.nais.LeaderPodLookupFeil
 import org.junit.jupiter.api.Test
 
 internal class LeaderPodLookupClientTest : WiremockBase {

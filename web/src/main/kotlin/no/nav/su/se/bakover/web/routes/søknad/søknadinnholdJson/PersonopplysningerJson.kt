@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 
-import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 
 data class PersonopplysningerJson(val fnr: String) {

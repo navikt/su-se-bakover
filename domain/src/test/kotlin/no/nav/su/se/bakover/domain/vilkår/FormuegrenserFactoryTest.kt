@@ -1,16 +1,16 @@
 package no.nav.su.se.bakover.domain.vilkår
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.april
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.juni
-import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.common.periode.april
-import no.nav.su.se.bakover.common.periode.februar
-import no.nav.su.se.bakover.common.periode.januar
-import no.nav.su.se.bakover.common.periode.mai
-import no.nav.su.se.bakover.common.periode.mars
-import no.nav.su.se.bakover.common.september
+import no.nav.su.se.bakover.common.extensions.april
+import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.extensions.juni
+import no.nav.su.se.bakover.common.extensions.mai
+import no.nav.su.se.bakover.common.extensions.september
+import no.nav.su.se.bakover.common.tid.periode.april
+import no.nav.su.se.bakover.common.tid.periode.februar
+import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.common.tid.periode.mai
+import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpForMåned
 import no.nav.su.se.bakover.domain.satser.Faktor
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad

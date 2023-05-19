@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.domain.brev
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
-import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.getDistinkteParagrafer
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
@@ -13,6 +13,9 @@ import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevTilbakekrevingInfo
 import no.nav.su.se.bakover.domain.sak.Sakstype
 
+/**
+ * TODO jah: Dette er en ren JsonDto som sendes serialisert til su-pdfgen. Den bør bo under client-modulen eller en tilsvarende infrastruktur-modul.
+ */
 abstract class BrevInnhold {
     fun toJson(): String = objectMapper.writeValueAsString(this)
 

@@ -2,11 +2,11 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldHaveSize
-import no.nav.su.se.bakover.common.april
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.extensions.april
+import no.nav.su.se.bakover.common.extensions.desember
+import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.extensions.mai
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevilkårRequest

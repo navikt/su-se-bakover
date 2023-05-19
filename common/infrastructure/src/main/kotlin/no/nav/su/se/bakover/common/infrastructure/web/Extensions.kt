@@ -13,12 +13,12 @@ import io.ktor.server.request.header
 import io.ktor.server.request.receiveStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.audit.CefAuditLogger
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.log
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
 import java.util.UUID
 
@@ -59,14 +59,7 @@ fun getGroupsFromJWT(applicationConfig: ApplicationConfig, credential: JWTCreden
  */
 private fun getGroupsFromJWT(applicationConfig: ApplicationConfig, payload: Payload): List<String> {
     return if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
-        applicationConfig.azure.groups.let {
-            listOf(
-                it.veileder,
-                it.saksbehandler,
-                it.attestant,
-                it.drift,
-            )
-        }
+        applicationConfig.azure.groups.asList()
     } else {
         payload.getClaim("groups").asList(String::class.java)
     }

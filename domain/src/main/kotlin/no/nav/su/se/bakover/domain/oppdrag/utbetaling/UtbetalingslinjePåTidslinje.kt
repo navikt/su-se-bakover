@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.oppdrag.utbetaling
 
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 
 sealed class UtbetalingslinjePåTidslinje {

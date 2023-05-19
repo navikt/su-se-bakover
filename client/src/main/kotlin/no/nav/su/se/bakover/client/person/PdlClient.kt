@@ -17,13 +17,13 @@ import no.nav.su.se.bakover.client.person.PdlData.Navn
 import no.nav.su.se.bakover.client.person.Variables.Companion.AKTORID
 import no.nav.su.se.bakover.client.person.Variables.Companion.FOLKEREGISTERIDENT
 import no.nav.su.se.bakover.client.sts.TokenOppslag
-import no.nav.su.se.bakover.common.AktørId
-import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.auth.AzureAd
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.person.AktørId
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.common.token.JwtToken
 import no.nav.su.se.bakover.domain.Tema
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.FantIkkePerson

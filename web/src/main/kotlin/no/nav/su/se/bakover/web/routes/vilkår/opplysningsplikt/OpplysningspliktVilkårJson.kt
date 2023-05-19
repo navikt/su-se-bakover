@@ -3,10 +3,10 @@ package no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.sequence
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
-import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson.Companion.toJson
-import no.nav.su.se.bakover.common.toNonEmptyList
+import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageOpplysningspliktVilkår

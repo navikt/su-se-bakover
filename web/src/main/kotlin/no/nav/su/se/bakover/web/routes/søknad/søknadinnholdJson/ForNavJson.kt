@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.ktor.server.application.ApplicationCall
-import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.enumContains
+import no.nav.su.se.bakover.common.extensions.enumContains
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.ForNav
 import java.time.LocalDate

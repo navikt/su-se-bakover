@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering.opphør
 
 import arrow.core.getOrElse
-import no.nav.su.se.bakover.common.startOfMonth
+import no.nav.su.se.bakover.common.extensions.startOfMonth
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Merknad

@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.domain.vilkår
 import arrow.core.Nel
 import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.CopyArgs
-import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
-import no.nav.su.se.bakover.common.toNonEmptyList
+import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 

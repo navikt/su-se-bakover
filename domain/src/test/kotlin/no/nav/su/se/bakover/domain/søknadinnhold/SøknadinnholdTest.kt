@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.søknadinnhold
 
 import arrow.core.left
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Boforhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.EktefellePartnerSamboer
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvSøknadinnhold

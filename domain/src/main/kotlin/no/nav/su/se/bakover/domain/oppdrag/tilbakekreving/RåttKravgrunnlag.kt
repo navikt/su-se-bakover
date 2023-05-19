@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.oppdrag.tilbakekreving
 
-import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 
 @JvmInline
 value class RåttKravgrunnlag private constructor(

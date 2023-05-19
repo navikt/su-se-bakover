@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.domain.jobcontext
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.su.se.bakover.common.februar
-import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.extensions.februar
+import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.test.fixedClockAt
 import org.junit.jupiter.api.Test
 import java.time.Month

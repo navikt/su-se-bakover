@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.dokument
 
-import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.Distribusjonstidspunkt
 import no.nav.su.se.bakover.domain.brev.Distribusjonstype
 import java.util.UUID

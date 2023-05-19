@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.beregning
 
-import no.nav.su.se.bakover.common.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForMåned
 import no.nav.su.se.bakover.domain.satser.FullSupplerendeStønadForMåned
 import no.nav.su.se.bakover.domain.satser.Satskategori

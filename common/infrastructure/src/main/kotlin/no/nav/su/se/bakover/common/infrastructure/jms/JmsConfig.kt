@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.common.infrastructure.jms
 
 import com.ibm.mq.jms.MQConnectionFactory
 import com.ibm.msg.client.wmq.WMQConstants
-import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import javax.jms.JMSContext
 
 /**

@@ -9,8 +9,8 @@ import io.ktor.server.routing.get
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import java.time.Clock

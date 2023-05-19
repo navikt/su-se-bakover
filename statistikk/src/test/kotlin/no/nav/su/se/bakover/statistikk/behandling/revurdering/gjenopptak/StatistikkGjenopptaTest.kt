@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.statistikk.behandling.revurdering.gjenopptak
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
-import no.nav.su.se.bakover.common.GitCommit
-import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent

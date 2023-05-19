@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.søknad
 
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.ddMMyyyy
-import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.common.extensions.ddMMyyyy
+import no.nav.su.se.bakover.common.extensions.zoneIdOslo
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold

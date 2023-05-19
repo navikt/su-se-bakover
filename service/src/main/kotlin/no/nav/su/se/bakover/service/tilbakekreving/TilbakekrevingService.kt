@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.service.tilbakekreving
 
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrevRequest
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest

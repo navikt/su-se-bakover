@@ -16,9 +16,9 @@ import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
-import no.nav.su.se.bakover.common.AktørId
-import no.nav.su.se.bakover.common.Brukerrolle
-import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.person.AktørId
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.PersonOppslag

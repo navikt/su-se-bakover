@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs
 
 import arrow.core.Either
-import no.nav.su.se.bakover.common.igår
+import no.nav.su.se.bakover.common.extensions.igår
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.jobs.shouldRun

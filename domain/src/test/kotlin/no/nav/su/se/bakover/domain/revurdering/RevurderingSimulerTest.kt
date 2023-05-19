@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.domain.revurdering
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.august
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.fixedClock
-import no.nav.su.se.bakover.common.juli
-import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.mars
-import no.nav.su.se.bakover.common.september
+import no.nav.su.se.bakover.common.extensions.august
+import no.nav.su.se.bakover.common.extensions.desember
+import no.nav.su.se.bakover.common.extensions.fixedClock
+import no.nav.su.se.bakover.common.extensions.juli
+import no.nav.su.se.bakover.common.extensions.september
+import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører

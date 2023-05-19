@@ -4,15 +4,16 @@ import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.right
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
-import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.juni
-import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.common.toNonEmptyList
+import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.juni
+import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -593,7 +594,7 @@ data class SimuleringResponseData(
     ) {
         init {
             require(
-                no.nav.su.se.bakover.common.periode.Periode.tryCreate(
+                no.nav.su.se.bakover.common.tid.periode.Periode.tryCreate(
                     LocalDate.parse(periodeFom),
                     LocalDate.parse(periodeTom),
                 ).isRight(),
@@ -810,7 +811,7 @@ data class SimuleringResponseData(
             ) {
                 init {
                     // Validerer måneden
-                    no.nav.su.se.bakover.common.periode.Måned.fra(
+                    Måned.fra(
                         LocalDate.parse(faktiskFom),
                         LocalDate.parse(faktiskTom),
                     )

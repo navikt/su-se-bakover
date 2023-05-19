@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.database
 
 import arrow.core.Either
 import arrow.core.left
+import no.nav.su.se.bakover.common.infrastructure.persistence.QueryParameterMapper
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.common.persistence.QueryParameterMapper
 import no.nav.su.se.bakover.database.beregning.serialiser
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.vedtak.VedtakType

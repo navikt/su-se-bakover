@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.sak
 
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import java.util.UUID
 
 /**

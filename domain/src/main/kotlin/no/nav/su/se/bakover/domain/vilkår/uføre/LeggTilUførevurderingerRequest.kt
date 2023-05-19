@@ -4,8 +4,8 @@ import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.getOrElse
 import arrow.core.left
-import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.toNonEmptyList
+import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import java.time.Clock
 import java.util.UUID

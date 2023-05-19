@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.beregning
 
 import arrow.core.NonEmptyList
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import java.util.UUID
 

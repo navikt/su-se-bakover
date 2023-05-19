@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.toRange
+import no.nav.su.se.bakover.common.tid.toRange
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.grunnlag.StøtterHentingAvEksternGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo

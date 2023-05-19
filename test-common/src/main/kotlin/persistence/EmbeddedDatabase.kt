@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.test.persistence
 
 import io.zonky.test.db.postgres.embedded.DatabasePreparer
 import io.zonky.test.db.postgres.embedded.PreparedDbProvider
-import no.nav.su.se.bakover.common.persistence.Flyway
+import no.nav.su.se.bakover.common.infrastructure.persistence.Flyway
 import no.nav.su.se.bakover.database.Postgres
 import org.jetbrains.annotations.TestOnly
 import org.slf4j.LoggerFactory

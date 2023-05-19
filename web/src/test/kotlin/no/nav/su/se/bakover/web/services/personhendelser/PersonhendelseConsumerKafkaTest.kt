@@ -10,8 +10,9 @@ import no.nav.person.pdl.leesah.doedsfall.Doedsfall
 import no.nav.person.pdl.leesah.kontaktadresse.Kontaktadresse
 import no.nav.person.pdl.leesah.sivilstand.Sivilstand
 import no.nav.person.pdl.leesah.utflytting.UtflyttingFraNorge
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.juni
+import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.extensions.juni
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -37,7 +38,7 @@ private const val PARTITION = 0
 
 internal class PersonhendelseConsumerKafkaTest {
 
-    private val fnr = no.nav.su.se.bakover.common.Fnr.generer()
+    private val fnr = Fnr.generer()
     private val ident = fnr.toString() + "00"
     private val key = "\u0000$ident"
 

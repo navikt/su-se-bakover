@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.domain.satser
 
-import no.nav.su.se.bakover.common.erSortertOgUtenDuplikater
-import no.nav.su.se.bakover.common.periode.Måned
-import no.nav.su.se.bakover.common.periode.erSammenhengendeSortertOgUtenDuplikater
-import no.nav.su.se.bakover.common.toNonEmptyList
+import no.nav.su.se.bakover.common.extensions.erSortertOgUtenDuplikater
+import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
 import no.nav.su.se.bakover.domain.satser.Knekkpunkt.Companion.compareTo
 import java.time.LocalDate
 

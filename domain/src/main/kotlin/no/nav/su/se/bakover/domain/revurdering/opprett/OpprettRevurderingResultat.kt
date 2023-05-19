@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering.opprett
 
-import no.nav.su.se.bakover.common.AktørId
-import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.person.AktørId
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId

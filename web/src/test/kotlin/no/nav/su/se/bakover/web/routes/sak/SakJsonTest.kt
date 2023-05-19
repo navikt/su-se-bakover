@@ -2,17 +2,17 @@ package no.nav.su.se.bakover.web.routes.sak
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.april
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.februar
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.mars
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.extensions.april
+import no.nav.su.se.bakover.common.extensions.desember
+import no.nav.su.se.bakover.common.extensions.februar
+import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.extensions.mars
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad

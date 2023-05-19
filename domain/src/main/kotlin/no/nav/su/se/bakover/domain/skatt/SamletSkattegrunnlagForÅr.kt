@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.skatt
 
-import no.nav.su.se.bakover.common.YearRange
+import no.nav.su.se.bakover.common.tid.YearRange
 import java.time.Year
 
 data class SamletSkattegrunnlagForÅr(

@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.database.db.migration.v180
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.persistence.Flyway
-import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
+import no.nav.su.se.bakover.common.infrastructure.persistence.Flyway
+import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo
 import no.nav.su.se.bakover.test.persistence.dbMetricsStub

@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
-import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.oppdrag.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode

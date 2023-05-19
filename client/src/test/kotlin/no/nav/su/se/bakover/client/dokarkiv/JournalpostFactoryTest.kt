@@ -2,9 +2,9 @@ package no.nav.su.se.bakover.client.dokarkiv
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
-import no.nav.su.se.bakover.common.AktørId
-import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.Ident
+import no.nav.su.se.bakover.common.person.AktørId
+import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.person.Ident
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.person.Person

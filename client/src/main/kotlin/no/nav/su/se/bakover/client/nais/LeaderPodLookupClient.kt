@@ -5,8 +5,8 @@ import arrow.core.left
 import arrow.core.right
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.result.getOrElse
-import no.nav.su.se.bakover.common.infrastructure.nais.LeaderPodLookup
-import no.nav.su.se.bakover.common.infrastructure.nais.LeaderPodLookupFeil
+import no.nav.su.se.bakover.common.nais.LeaderPodLookup
+import no.nav.su.se.bakover.common.nais.LeaderPodLookupFeil
 import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

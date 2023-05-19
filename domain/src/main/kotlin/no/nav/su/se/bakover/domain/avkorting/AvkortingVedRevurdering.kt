@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.avkorting
 
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import java.util.UUID
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract

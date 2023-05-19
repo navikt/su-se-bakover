@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.vilkår
 
-import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.erSortert
-import no.nav.su.se.bakover.common.periode.harDuplikater
+import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.erSortert
+import no.nav.su.se.bakover.common.tid.periode.harDuplikater
 import java.time.LocalDate
 
 /**

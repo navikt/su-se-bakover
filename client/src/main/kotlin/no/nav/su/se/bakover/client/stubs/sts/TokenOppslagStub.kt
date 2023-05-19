@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.client.stubs.sts
 
 import no.nav.su.se.bakover.client.AccessToken
 import no.nav.su.se.bakover.client.sts.TokenOppslag
-import no.nav.su.se.bakover.common.stubs.AuthStubCommonConfig
+import no.nav.su.se.bakover.common.infrastructure.auth.AuthStubCommonConfig
 import org.json.JSONObject
 
 object TokenOppslagStub : TokenOppslag {
