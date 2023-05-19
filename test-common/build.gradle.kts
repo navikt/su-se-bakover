@@ -1,7 +1,7 @@
 // Contains shared test-data, functions and extension funcions to be used across modules
 val ktorVersion: String by project
 dependencies {
-    val kotestVersion = "5.6.1"
+    val kotestVersion = "5.6.2"
 
     implementation(project(":common:domain"))
     implementation(project(":common:infrastructure"))
