@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.regulering
 import arrow.core.left
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.extensions.mai
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre

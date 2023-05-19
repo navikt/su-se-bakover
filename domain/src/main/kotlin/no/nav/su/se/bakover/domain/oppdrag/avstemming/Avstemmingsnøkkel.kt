@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.oppdrag.avstemming
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.toTidspunkt
+import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.toTidspunkt
 import java.time.Instant
 import java.util.concurrent.TimeUnit
 

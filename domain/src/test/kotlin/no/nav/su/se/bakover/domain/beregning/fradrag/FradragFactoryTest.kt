@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.april
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.april
-import no.nav.su.se.bakover.common.periode.februar
-import no.nav.su.se.bakover.common.periode.januar
-import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.common.extensions.april
+import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.april
+import no.nav.su.se.bakover.common.tid.periode.februar
+import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.common.tid.periode.mars
 import org.junit.jupiter.api.Test
 
 internal class FradragFactoryTest {

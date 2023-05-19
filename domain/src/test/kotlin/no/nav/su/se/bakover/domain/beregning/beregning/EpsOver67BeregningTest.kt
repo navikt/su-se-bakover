@@ -3,11 +3,11 @@ package no.nav.su.se.bakover.domain.beregning.beregning
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.april
-import no.nav.su.se.bakover.common.fixedClock
-import no.nav.su.se.bakover.common.juni
-import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.extensions.april
+import no.nav.su.se.bakover.common.extensions.fixedClock
+import no.nav.su.se.bakover.common.extensions.juni
+import no.nav.su.se.bakover.common.extensions.mai
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag

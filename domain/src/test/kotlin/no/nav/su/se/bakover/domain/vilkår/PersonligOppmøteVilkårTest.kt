@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.domain.vilkår
 
 import arrow.core.nonEmptyListOf
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.periode.juli
-import no.nav.su.se.bakover.common.periode.juni
-import no.nav.su.se.bakover.common.periode.mai
-import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.juli
+import no.nav.su.se.bakover.common.tid.periode.juni
+import no.nav.su.se.bakover.common.tid.periode.mai
+import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteÅrsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode

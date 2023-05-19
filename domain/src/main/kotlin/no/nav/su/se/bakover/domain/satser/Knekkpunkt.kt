@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.satser
 
-import no.nav.su.se.bakover.common.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import java.time.LocalDate
 
 /**

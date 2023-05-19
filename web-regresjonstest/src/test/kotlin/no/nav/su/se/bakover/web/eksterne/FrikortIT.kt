@@ -9,9 +9,9 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
-import no.nav.su.se.bakover.common.Brukerrolle
-import no.nav.su.se.bakover.common.periode.februar
-import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.tid.periode.februar
+import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.revurdering.formue.leggTilFormue

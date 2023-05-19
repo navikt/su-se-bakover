@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.statistikk
 import arrow.core.Either
 import com.networknt.schema.ValidationMessage
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
-import no.nav.su.se.bakover.common.GitCommit
+import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver

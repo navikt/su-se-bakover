@@ -5,12 +5,12 @@ import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.toNonEmptyList
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.database.common.YearRangeJson
 import no.nav.su.se.bakover.database.skatt.GrunnlagDbJson.Annet.Companion.toDomain
 import no.nav.su.se.bakover.database.skatt.GrunnlagDbJson.Formue.Companion.toDomain

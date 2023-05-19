@@ -11,7 +11,7 @@ import io.ktor.http.HttpMethod
 import io.ktor.server.application.Application
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.su.se.bakover.client.Clients
-import no.nav.su.se.bakover.common.Brukerrolle
+import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.test.applicationConfig

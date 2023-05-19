@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.brev.beregning
 
-import no.nav.su.se.bakover.common.norwegianLocale
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.extensions.norwegianLocale
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt

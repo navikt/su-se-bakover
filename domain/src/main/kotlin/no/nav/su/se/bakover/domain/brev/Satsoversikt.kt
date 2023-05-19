@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.domain.brev
 
 import arrow.core.getOrElse
-import no.nav.su.se.bakover.common.ddMMyyyy
-import no.nav.su.se.bakover.common.ddMMyyyyFormatter
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.extensions.ddMMyyyy
+import no.nav.su.se.bakover.common.extensions.ddMMyyyyFormatter
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.utledBeregningsstrategi
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow

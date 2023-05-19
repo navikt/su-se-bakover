@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.sak
 
 import arrow.core.NonEmptyList
-import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import java.util.UUID
 

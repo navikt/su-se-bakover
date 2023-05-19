@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.application
 
 import ch.qos.logback.classic.ClassicConstants
-import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.web.startServer
 
 /**

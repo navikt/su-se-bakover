@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.database.klage
 import arrow.core.right
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.types.shouldBeTypeOf
-import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse

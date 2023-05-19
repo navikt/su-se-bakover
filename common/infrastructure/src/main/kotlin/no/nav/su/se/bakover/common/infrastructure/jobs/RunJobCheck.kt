@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.common.infrastructure.jobs
 
-import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.common.infrastructure.nais.LeaderPodLookup
+import no.nav.su.se.bakover.common.extensions.zoneIdOslo
+import no.nav.su.se.bakover.common.featuretoggle.ToggleClient
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.nais.erLeaderPod
-import no.nav.su.se.bakover.common.toggle.domain.ToggleClient
-import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.common.nais.LeaderPodLookup
 import java.net.InetAddress
 import java.time.Clock
 import java.time.LocalTime

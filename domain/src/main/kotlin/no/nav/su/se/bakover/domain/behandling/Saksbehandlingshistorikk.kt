@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.behandling
 
 import arrow.core.NonEmptyList
-import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 
 interface MedSaksbehandlerHistorikk<T : Saksbehandlingshendelse> {
     val søknadsbehandlingsHistorikk: Saksbehandlingshistorikk<T>

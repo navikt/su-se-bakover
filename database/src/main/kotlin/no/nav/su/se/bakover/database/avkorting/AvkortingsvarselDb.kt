@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.database.avkorting
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
-import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.database.simulering.SimuleringDatabaseJson
 import no.nav.su.se.bakover.database.simulering.SimuleringDatabaseJson.Companion.toDatabaseJson
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel

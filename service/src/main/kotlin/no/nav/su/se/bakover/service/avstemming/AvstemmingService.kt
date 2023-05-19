@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.avstemming
 
 import arrow.core.Either
-import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.oppdrag.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import java.time.LocalDate

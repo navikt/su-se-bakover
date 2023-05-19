@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.beregning
 
-import no.nav.su.se.bakover.common.limitedUpwardsTo
-import no.nav.su.se.bakover.common.periode.Måned
-import no.nav.su.se.bakover.common.positiveOrZero
+import no.nav.su.se.bakover.common.extensions.limitedUpwardsTo
+import no.nav.su.se.bakover.common.extensions.positiveOrZero
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.sum
 import kotlin.math.roundToInt

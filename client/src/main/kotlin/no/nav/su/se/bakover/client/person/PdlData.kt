@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.client.person
 
-import no.nav.su.se.bakover.common.AktørId
-import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.person.AktørId
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.person.Telefonnummer
 import java.time.LocalDate
 

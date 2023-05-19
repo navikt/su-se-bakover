@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
-import no.nav.su.se.bakover.common.avrund
-import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
-import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson.Companion.toJson
-import no.nav.su.se.bakover.common.periode.mai
+import no.nav.su.se.bakover.common.extensions.avrund
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering

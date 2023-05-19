@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.domain.brev
 
 import no.nav.su.se.bakover.common.Beløp
-import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.MånedBeløp
-import no.nav.su.se.bakover.common.februar
-import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.extensions.februar
+import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode

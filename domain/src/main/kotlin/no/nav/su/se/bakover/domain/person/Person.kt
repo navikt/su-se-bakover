@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.person
 
-import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.Ident
+import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.person.Ident
 import java.time.LocalDate
 import java.time.Period
 import java.time.Year

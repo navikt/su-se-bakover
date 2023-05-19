@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.database
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.types.shouldBeTypeOf
-import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import org.junit.jupiter.api.Test
 
 internal class PostgresTest {

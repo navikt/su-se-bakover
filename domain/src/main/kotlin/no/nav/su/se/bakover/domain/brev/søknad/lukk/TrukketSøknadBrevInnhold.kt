@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.brev.søknad.lukk
 
-import no.nav.su.se.bakover.common.ddMMyyyy
+import no.nav.su.se.bakover.common.extensions.ddMMyyyy
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.BrevTemplate
 import java.time.LocalDate

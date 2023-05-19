@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.brev.søknad.lukk
 
 import arrow.core.Either
-import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.lagPersonalia

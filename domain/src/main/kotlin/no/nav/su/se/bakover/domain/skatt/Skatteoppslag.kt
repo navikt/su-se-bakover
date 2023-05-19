@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.skatt
 
 import arrow.core.NonEmptyList
-import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.YearRange
+import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.YearRange
 import java.time.Year
 
 interface Skatteoppslag {

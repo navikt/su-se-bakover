@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.søknadsbehandling
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
-import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.skatt.EksternGrunnlagSkattRequest
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandling

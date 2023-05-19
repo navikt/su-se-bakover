@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.web.revurdering
 
-import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.juli
-import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.extensions.desember
+import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.extensions.juli
+import no.nav.su.se.bakover.common.extensions.mai
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer

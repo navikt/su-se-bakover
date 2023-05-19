@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.søknadsbehandling.skatt
 
-import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.fnrUnder67
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.jsonAssertEquals

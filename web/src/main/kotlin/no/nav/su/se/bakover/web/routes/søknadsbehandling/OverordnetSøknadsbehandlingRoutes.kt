@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
 import io.ktor.server.routing.Route
-import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.common.toggle.domain.ToggleClient
+import no.nav.su.se.bakover.common.featuretoggle.ToggleClient
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.iverksett.iverksettSøknadsbehandlingRoute

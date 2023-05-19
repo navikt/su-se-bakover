@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.statistikk.sak
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
-import no.nav.su.se.bakover.common.AktørId
-import no.nav.su.se.bakover.common.GitCommit
+import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
+import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.statistikk.KafkaStatistikkEventObserver
 import no.nav.su.se.bakover.test.argThat

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.vedtak
 
-import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.periode.Måned
+import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.periode.Måned
 
 /**
  * SU-brukere som har innvilget stønad for denne måned.

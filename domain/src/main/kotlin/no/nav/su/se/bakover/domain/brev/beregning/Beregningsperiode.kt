@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.brev.beregning
 
-import no.nav.su.se.bakover.common.ddMMyyyy
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.extensions.ddMMyyyy
+import no.nav.su.se.bakover.common.tid.periode.Periode
 
 data class Beregningsperiode(
     val ytelsePerMåned: Int,

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
 import no.nav.su.se.bakover.common.CopyArgs
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.Periode
 
 /**
  * Et fradrag for en periode lengre enn en måned (i noen tilfeller er perioden bare en måned).

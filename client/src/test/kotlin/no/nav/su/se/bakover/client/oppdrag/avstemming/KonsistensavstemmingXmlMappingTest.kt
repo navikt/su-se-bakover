@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.client.oppdrag.avstemming
 
-import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.startOfDay
+import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.extensions.startOfDay
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.sak.Saksnummer

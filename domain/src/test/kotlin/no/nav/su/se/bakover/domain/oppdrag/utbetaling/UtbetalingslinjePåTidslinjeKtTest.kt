@@ -1,16 +1,16 @@
 package no.nav.su.se.bakover.domain.oppdrag.utbetaling
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.periode.april
-import no.nav.su.se.bakover.common.periode.august
-import no.nav.su.se.bakover.common.periode.desember
-import no.nav.su.se.bakover.common.periode.februar
-import no.nav.su.se.bakover.common.periode.januar
-import no.nav.su.se.bakover.common.periode.juli
-import no.nav.su.se.bakover.common.periode.juni
-import no.nav.su.se.bakover.common.periode.mai
-import no.nav.su.se.bakover.common.periode.mars
-import no.nav.su.se.bakover.common.periode.september
+import no.nav.su.se.bakover.common.tid.periode.april
+import no.nav.su.se.bakover.common.tid.periode.august
+import no.nav.su.se.bakover.common.tid.periode.desember
+import no.nav.su.se.bakover.common.tid.periode.februar
+import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.common.tid.periode.juli
+import no.nav.su.se.bakover.common.tid.periode.juni
+import no.nav.su.se.bakover.common.tid.periode.mai
+import no.nav.su.se.bakover.common.tid.periode.mars
+import no.nav.su.se.bakover.common.tid.periode.september
 import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjePåTidslinjeNy
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test

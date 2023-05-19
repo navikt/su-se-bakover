@@ -6,8 +6,8 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
+import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.PeriodisertInformasjon
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import java.util.UUID
 

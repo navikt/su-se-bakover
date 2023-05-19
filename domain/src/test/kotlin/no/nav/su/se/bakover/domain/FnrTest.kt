@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain
 
-import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.UgyldigFnrException
+import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.person.UgyldigFnrException
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows

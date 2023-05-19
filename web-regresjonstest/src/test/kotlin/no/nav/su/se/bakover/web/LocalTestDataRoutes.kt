@@ -7,12 +7,12 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.endOfMonth
+import no.nav.su.se.bakover.common.extensions.endOfMonth
+import no.nav.su.se.bakover.common.extensions.startOfMonth
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
-import no.nav.su.se.bakover.common.startOfMonth
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.routes.søknad.søknadPath

@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.journalpost
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.common.periode.DatoIntervall
+import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 
 interface JournalpostClient {

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.dokument
 
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert

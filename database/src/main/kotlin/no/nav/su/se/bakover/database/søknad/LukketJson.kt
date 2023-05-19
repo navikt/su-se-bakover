@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.database.søknad
 
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.database.brev.BrevvalgDatabaseJson
 import no.nav.su.se.bakover.database.brev.BrevvalgDatabaseJson.Companion.toJson
 import no.nav.su.se.bakover.domain.brev.Brevvalg

@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.database.simulering
 
 import com.fasterxml.jackson.annotation.JsonAlias
-import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.database.simulering.SimuleringDatabaseJson.Companion.toDatabaseJson

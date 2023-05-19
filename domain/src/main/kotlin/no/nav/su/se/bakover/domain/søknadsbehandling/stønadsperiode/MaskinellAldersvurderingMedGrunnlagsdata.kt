@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode
 
-import no.nav.su.se.bakover.common.startOfMonth
+import no.nav.su.se.bakover.common.extensions.startOfMonth
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.vilkår.uføretrygdMaxAlder
 import java.time.LocalDate

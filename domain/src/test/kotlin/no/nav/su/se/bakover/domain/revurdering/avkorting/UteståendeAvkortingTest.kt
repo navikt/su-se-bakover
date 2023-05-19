@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.domain.revurdering.avkorting
 
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
-import no.nav.su.se.bakover.common.periode.desember
-import no.nav.su.se.bakover.common.periode.februar
-import no.nav.su.se.bakover.common.periode.januar
-import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.common.tid.periode.desember
+import no.nav.su.se.bakover.common.tid.periode.februar
+import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.test.uhåndtertUteståendeAvkorting
 import org.junit.jupiter.api.Test
 

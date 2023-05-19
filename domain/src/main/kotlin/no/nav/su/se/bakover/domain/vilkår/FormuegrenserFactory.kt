@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.domain.vilkår
 
-import no.nav.su.se.bakover.common.endOfMonth
-import no.nav.su.se.bakover.common.periode.Måned
-import no.nav.su.se.bakover.common.periode.erSammenhengendeSortertOgUtenDuplikater
-import no.nav.su.se.bakover.common.startOfMonth
+import no.nav.su.se.bakover.common.extensions.endOfMonth
+import no.nav.su.se.bakover.common.extensions.startOfMonth
+import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpFactory
 import no.nav.su.se.bakover.domain.satser.Knekkpunkt
 import no.nav.su.se.bakover.domain.satser.Knekkpunkt.Companion.compareTo

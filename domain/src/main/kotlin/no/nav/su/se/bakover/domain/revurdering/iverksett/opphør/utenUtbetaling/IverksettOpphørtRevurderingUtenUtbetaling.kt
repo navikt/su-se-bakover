@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.domain.revurdering.iverksett.opphør.utenUtbetaling
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
-import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.avkorting.oppdaterUteståendeAvkortingVedIverksettelse

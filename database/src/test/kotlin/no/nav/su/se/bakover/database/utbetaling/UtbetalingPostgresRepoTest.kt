@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.database.utbetaling
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre

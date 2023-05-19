@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.test
 
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.startOfDay
+import no.nav.su.se.bakover.common.extensions.startOfDay
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate

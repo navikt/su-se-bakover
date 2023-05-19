@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.database.common
 
-import no.nav.su.se.bakover.common.YearRange
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.tid.YearRange
 import java.time.Year
 
 data class YearRangeJson(val fra: Int, val til: Int) {

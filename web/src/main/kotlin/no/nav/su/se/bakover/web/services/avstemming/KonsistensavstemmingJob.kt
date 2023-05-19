@@ -2,11 +2,11 @@ package no.nav.su.se.bakover.web.services.avstemming
 
 import arrow.core.Either
 import arrow.core.firstOrNone
-import no.nav.su.se.bakover.common.idag
+import no.nav.su.se.bakover.common.extensions.idag
+import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.jobs.shouldRun
-import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.oppdrag.Fagområde
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue

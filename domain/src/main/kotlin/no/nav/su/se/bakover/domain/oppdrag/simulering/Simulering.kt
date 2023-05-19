@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.domain.oppdrag.simulering
 
 import com.fasterxml.jackson.annotation.JsonAlias
-import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.MånedBeløp
 import no.nav.su.se.bakover.common.Månedsbeløp
-import no.nav.su.se.bakover.common.periode.Måned
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import java.time.LocalDate
 

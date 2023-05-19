@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.web.services.avstemming
 
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
-import no.nav.su.se.bakover.common.infrastructure.nais.LeaderPodLookupFeil
+import no.nav.su.se.bakover.common.nais.LeaderPodLookupFeil
 import no.nav.su.se.bakover.domain.oppdrag.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.test.fixedClock

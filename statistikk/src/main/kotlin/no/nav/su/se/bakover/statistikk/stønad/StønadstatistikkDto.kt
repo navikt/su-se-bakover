@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.statistikk.stønad
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.statistikk.StønadsklassifiseringDto
 import java.time.LocalDate
 import java.util.UUID

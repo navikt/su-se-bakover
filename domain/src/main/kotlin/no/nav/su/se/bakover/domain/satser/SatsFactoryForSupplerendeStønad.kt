@@ -2,14 +2,14 @@ package no.nav.su.se.bakover.domain.satser
 
 import arrow.core.Nel
 import arrow.core.nonEmptyListOf
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.erSortertOgUtenDuplikater
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.common.periode.Måned
-import no.nav.su.se.bakover.common.periode.januar
-import no.nav.su.se.bakover.common.september
-import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.common.extensions.erSortertOgUtenDuplikater
+import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.extensions.mai
+import no.nav.su.se.bakover.common.extensions.september
+import no.nav.su.se.bakover.common.extensions.zoneIdOslo
+import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpFactory
 import no.nav.su.se.bakover.domain.grunnbeløp.Grunnbeløpsendring
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory

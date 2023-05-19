@@ -2,11 +2,11 @@ package no.nav.su.se.bakover.database.utbetaling
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.types.shouldBeInstanceOf
-import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.extensions.idag
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest

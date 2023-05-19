@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.revurdering.attestering
 
-import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import java.util.UUID
 
 data class SendTilAttesteringRequest(

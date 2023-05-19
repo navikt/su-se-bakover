@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.web.routes.skatt
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
+import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
-import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
 import no.nav.su.se.bakover.domain.skatt.Stadie
 import no.nav.su.se.bakover.web.routes.skatt.SkattegrunnlagForÅrJson.Companion.toJson

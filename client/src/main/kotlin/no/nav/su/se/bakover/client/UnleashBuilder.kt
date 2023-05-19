@@ -5,7 +5,7 @@ import io.getunleash.FakeUnleash
 import io.getunleash.Unleash
 import io.getunleash.strategy.Strategy
 import io.getunleash.util.UnleashConfig
-import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import org.slf4j.LoggerFactory
 
 object UnleashBuilder {

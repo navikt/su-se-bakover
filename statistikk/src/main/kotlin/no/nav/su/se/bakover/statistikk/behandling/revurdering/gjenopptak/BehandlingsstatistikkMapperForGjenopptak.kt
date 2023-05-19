@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.statistikk.behandling.revurdering.gjenopptak
 
-import no.nav.su.se.bakover.common.GitCommit
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.common.extensions.zoneIdOslo
+import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.statistikk.behandling.BehandlingResultat

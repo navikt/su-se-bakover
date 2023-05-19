@@ -5,11 +5,11 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Månedsbeløp
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.ddMMyyyy
-import no.nav.su.se.bakover.common.norwegianLocale
-import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.toBrevformat
+import no.nav.su.se.bakover.common.extensions.ddMMyyyy
+import no.nav.su.se.bakover.common.extensions.norwegianLocale
+import no.nav.su.se.bakover.common.extensions.toBrevformat
+import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn.Companion.getDistinkteParagrafer
@@ -28,6 +28,9 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.UUID
 
+/**
+ * TODO jah: Denne klassen har referanse til BrevInnhold som er en ren JsonDto (som bør bo under infrastructure). Denne bør splittes opp, hvor deler bør bo i service.
+ */
 interface LagBrevRequest {
     val person: Person
     val brevInnhold: BrevInnhold

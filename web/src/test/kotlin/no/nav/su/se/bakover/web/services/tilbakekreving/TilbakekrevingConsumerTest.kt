@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.web.services.tilbakekreving
 
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.juli
-import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.common.extensions.juli
+import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
