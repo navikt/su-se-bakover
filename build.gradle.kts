@@ -208,7 +208,8 @@ configure(listOf(project(":client"))) {
 configure(
     listOf(
         project(":application"),
-        project(":common"),
+        project(":common:domain"),
+        project(":common:infrastructure"),
         project(":domain"),
         project(":test-common"),
         project(":service"),
