@@ -19,7 +19,7 @@ subprojects {
     }
     val junitJupiterVersion = "5.9.3"
     val kotestVersion = "5.6.1"
-    val jacksonVersion = "2.15.0"
+    val jacksonVersion = "2.15.1"
     val kotlinVersion: String by this
     val confluentVersion = "7.3.1"
     dependencies {
