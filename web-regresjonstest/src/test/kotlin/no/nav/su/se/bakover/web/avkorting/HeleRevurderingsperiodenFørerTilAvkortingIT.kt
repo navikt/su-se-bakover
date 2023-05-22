@@ -6,6 +6,7 @@ import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.extensions.desember
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørAvkorting
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClockAt
@@ -88,6 +89,7 @@ internal class HeleRevurderingsperiodenFørerTilAvkortingIT {
                         it.utbetalinger.size shouldBe 1
                         it.vedtakListe.size shouldBe 2
                         it.vedtakListe[1] shouldBe beOfType<VedtakOpphørAvkorting>()
+                        it.uteståendeAvkorting shouldBe beOfType<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes>()
                     }
                 }
             }

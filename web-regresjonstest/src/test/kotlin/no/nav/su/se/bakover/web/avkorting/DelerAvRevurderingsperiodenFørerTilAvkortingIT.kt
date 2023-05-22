@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.extensions.juli
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.juli
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClockAt
@@ -94,6 +95,7 @@ internal class DelerAvRevurderingsperiodenFørerTilAvkortingIT {
                         it.utbetalinger[1].utbetalingslinjer[0].periode shouldBe juli(2021)..desember(2021)
                         it.vedtakListe.size shouldBe 2
                         it.vedtakListe[1] shouldBe beOfType<VedtakOpphørMedUtbetaling>()
+                        it.uteståendeAvkorting shouldBe beOfType<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes>()
                     }
                 }
             }

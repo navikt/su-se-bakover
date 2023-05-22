@@ -17,8 +17,10 @@ import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.UtbetalingJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
+import no.nav.su.se.bakover.web.routes.toJson
 import no.nav.su.se.bakover.web.routes.vedtak.VedtakJson
 import no.nav.su.se.bakover.web.routes.vedtak.VedtakPåTidslinjeJson
 import no.nav.su.se.bakover.web.routes.vedtak.toJson
@@ -40,6 +42,7 @@ internal data class SakJson(
     val vedtakPåTidslinje: List<VedtakPåTidslinjeJson>,
     val utenlandsopphold: RegistrerteUtenlandsoppholdJson,
     val versjon: Long,
+    val uteståendeAvkorting: SimuleringJson?,
 ) {
     companion object {
         internal fun Sak.toJson(clock: Clock, satsFactory: SatsFactory) = SakJson(
@@ -74,6 +77,7 @@ internal data class SakJson(
             vedtakPåTidslinje = this.vedtakstidslinje()?.toJson() ?: emptyList(),
             utenlandsopphold = this.utenlandsopphold.toJson(),
             versjon = this.versjon.value,
+            uteståendeAvkorting = this.uteståendeAvkorting.toJson(),
         )
     }
 }

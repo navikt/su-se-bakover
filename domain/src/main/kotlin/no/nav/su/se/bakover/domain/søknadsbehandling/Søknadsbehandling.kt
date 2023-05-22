@@ -240,7 +240,7 @@ sealed class Søknadsbehandling :
         saksbehandler: NavIdentBruker.Saksbehandler,
         vilkår: UtenlandsoppholdVilkår.Vurdert,
         clock: Clock,
-    ) = valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold>(vilkår).map {
+    ) = valider(vilkår).map {
         copyInternal(
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
             avkorting = avkorting,

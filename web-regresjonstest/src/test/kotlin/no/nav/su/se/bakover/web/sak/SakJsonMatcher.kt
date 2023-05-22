@@ -41,7 +41,8 @@ fun assertSakJson(
         "sakstype": $expectedSakstype,
         "vedtakPåTidslinje": $expectedVedtakPåTidslinje,
         "utenlandsopphold": $expectedUtenlandsopphold,
-        "versjon": $expectedVersjon
+        "versjon": $expectedVersjon,
+        "uteståendeAvkorting": null
     }
     """.trimIndent()
     jsonAssertEquals(
