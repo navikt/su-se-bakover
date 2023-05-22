@@ -60,7 +60,7 @@ data class IverksattInnvilgetSøknadsbehandlingResponse(
                     )
                 }
             lagreVedtak(vedtak, tx)
-            // TODO: finn ut hvor vi skal lage skattedokumentet
+            genererOgLagreSkattedokument(vedtak, tx)
 
             // Så fremt denne ikke kaster ønsker vi å gå igjennom med iverksettingen.
             opprettPlanlagtKontrollsamtale(vedtak, tx)
