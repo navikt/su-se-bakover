@@ -90,12 +90,8 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
         vedtakListe = this.vedtakListe + vedtak,
         søknadsbehandlinger = this.søknadsbehandlinger.filterNot { iverksattBehandling.id == it.id } + iverksattBehandling,
         utbetalinger = this.utbetalinger + simulertUtbetaling,
-        uteståendeAvkorting = when (iverksattBehandling.avkorting) {
-            is AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående -> Avkortingsvarsel.Ingen
-            is AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående,
-            is AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
-            -> uteståendeAvkorting
-        },
+        /** Ved iverksett innvilgelse: Dersom det finnes en utestående avkorting må denne avkortes i sin helhet. */
+        uteståendeAvkorting = Avkortingsvarsel.Ingen,
     )
     return IverksattInnvilgetSøknadsbehandlingResponse(
         sak = oppdatertSak,
@@ -163,7 +159,7 @@ private fun Sak.validerAvkorting(
     }
     // TODO jah: Mulig å flytte den biten som kun angår behandlingen inn i [SøknadsbehandlingTilAttestering.Innvilget.tilIverksatt], mens det saksnære bør ligge her (som f.eks. at tilstander og IDer er like)
     return when (val a = søknadsbehandling.avkorting) {
-        is AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående -> {
+        is AvkortingVedSøknadsbehandling.SkalAvkortes -> {
             val avkortingsvarselPåBehandling = a.avkortingsvarsel
             if (uteståendeAvkortingPåSak == null) {
                 throw IllegalStateException("Prøver å iverksette søknadsbehandling ${søknadsbehandling.id} med utestående avkorting uten at det finnes noe å avkorte på saken for avkortingsvarsel ${avkortingsvarselPåBehandling.id}")
@@ -178,15 +174,11 @@ private fun Sak.validerAvkorting(
             }
         }
 
-        is AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående -> {
+        is AvkortingVedSøknadsbehandling.IngenAvkorting -> {
             if (uteståendeAvkortingPåSak != null) {
                 throw IllegalStateException("Prøver å iverksette søknadsbehandling ${søknadsbehandling.id} uten å håndtere utestående avkorting for sak $id")
             }
             Unit.right()
-        }
-
-        is AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere -> {
-            throw IllegalStateException("Søknadsbehandling ${søknadsbehandling.id} i tilstand ${søknadsbehandling::class} skulle hatt håndtert eventuell avkorting.")
         }
     }
 }

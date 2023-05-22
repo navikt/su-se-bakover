@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
@@ -1232,7 +1231,6 @@ class TestDataHelper(
             søknad = søknad,
             oppgaveId = søknad.oppgaveId,
             fnr = sak.fnr,
-            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
             sakstype = sak.type,
             saksbehandler = saksbehandler,
         ).let { nySøknadsbehandling ->

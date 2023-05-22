@@ -330,7 +330,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             grunnlagsdata = innvilgetBehandlingTilAttestering.grunnlagsdata,
             vilkårsvurderinger = innvilgetBehandlingTilAttestering.vilkårsvurderinger,
             eksterneGrunnlag = innvilgetBehandlingTilAttestering.eksterneGrunnlag,
-            avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
+            avkorting = AvkortingVedSøknadsbehandling.IngenAvkorting,
             sakstype = innvilgetBehandlingTilAttestering.sakstype,
             søknadsbehandlingsHistorikk = innvilgetBehandlingTilAttestering.søknadsbehandlingsHistorikk,
         )
@@ -424,7 +424,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             grunnlagsdata = innvilgetBehandlingTilAttestering.grunnlagsdata,
             vilkårsvurderinger = innvilgetBehandlingTilAttestering.vilkårsvurderinger,
             eksterneGrunnlag = innvilgetBehandlingTilAttestering.eksterneGrunnlag,
-            avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
+            avkorting = AvkortingVedSøknadsbehandling.IngenAvkorting,
             sakstype = innvilgetBehandlingTilAttestering.sakstype,
             søknadsbehandlingsHistorikk = innvilgetBehandlingTilAttestering.søknadsbehandlingsHistorikk,
         )

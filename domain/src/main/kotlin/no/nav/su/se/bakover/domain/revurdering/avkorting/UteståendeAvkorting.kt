@@ -103,15 +103,15 @@ sealed interface KanIkkeRevurderePgaAvkorting {
 fun Sak.unngåRevurderingAvPeriodeDetErPågåendeAvkortingFor(
     revurderingsperiode: Periode,
 ): Either<KanIkkeRevurderePgaAvkorting.PågåendeAvkortingForPeriode, Unit> {
-    val pågåendeAvkorting: List<Pair<VedtakInnvilgetSøknadsbehandling, AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående>> =
+    val pågåendeAvkorting: List<Pair<VedtakInnvilgetSøknadsbehandling, AvkortingVedSøknadsbehandling.Avkortet>> =
         vedtakstidslinje()
-            .let { it ?: throw IllegalStateException("Kunne ikke konstruere vedtakstidslinje for saksnummer $saksnummer. feilet med $it") }
+            .let { it ?: throw IllegalStateException("Kunne ikke konstruere vedtakstidslinje for saksnummer $saksnummer siden vi ikke har vedtak.") }
             .asSequence()
             .map { it.originaltVedtak }
             .filterIsInstance<VedtakInnvilgetSøknadsbehandling>()
             .map { it to it.behandling.avkorting }
-            .filter { (_, avkorting) -> avkorting is AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående }
-            .filterIsInstance<Pair<VedtakInnvilgetSøknadsbehandling, AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående>>()
+            .filter { (_, avkorting) -> avkorting is AvkortingVedSøknadsbehandling.Avkortet }
+            .filterIsInstance<Pair<VedtakInnvilgetSøknadsbehandling, AvkortingVedSøknadsbehandling.Avkortet>>()
             .toList()
 
     return if (pågåendeAvkorting.isEmpty()) {

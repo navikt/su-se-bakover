@@ -109,12 +109,13 @@ internal class EnsligBeregningTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-        ).also { (_, søknadsbehandling) ->
+        ).also { (sak, søknadsbehandling) ->
             søknadsbehandling.beregn(
                 begrunnelse = "blabla",
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(LocalDate.now(1.juni(2021).fixedClock())),
                 nySaksbehandler = saksbehandler,
+                uteståendeAvkortingPåSak = sak.uteståendeAvkortingSkalAvkortes,
             ).getOrFail().also {
                 it.beregning.getSumYtelse() shouldBe 138992
                 it.beregning.getSumFradrag() shouldBe 60000

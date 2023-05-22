@@ -208,6 +208,7 @@ fun søknadsbehandlingBeregnetInnvilget(
             clock = clock,
             satsFactory = satsFactoryTestPåDato(),
             nySaksbehandler = saksbehandler,
+            uteståendeAvkortingPåSak = sak.uteståendeAvkortingSkalAvkortes,
         ).getOrFail() as BeregnetSøknadsbehandling.Innvilget
         Pair(
             sak.copy(
@@ -259,6 +260,7 @@ fun søknadsbehandlingBeregnetAvslag(
             clock = clock,
             satsFactory = satsFactoryTestPåDato(),
             nySaksbehandler = saksbehandler,
+            uteståendeAvkortingPåSak = sak.uteståendeAvkortingSkalAvkortes,
         ).getOrFail() as BeregnetSøknadsbehandling.Avslag
         Pair(
             sak.copy(
@@ -1168,6 +1170,7 @@ fun beregnetSøknadsbehandling(
             clock = clock,
             satsFactory = satsFactoryTestPåDato(vilkårsvurdert.opprettet.toLocalDate(zoneIdOslo)),
             nySaksbehandler = saksbehandler,
+            uteståendeAvkortingPåSak = sak.uteståendeAvkortingSkalAvkortes,
         ).getOrFail().let { beregnet ->
             sak.copy(søknadsbehandlinger = sak.søknadsbehandlinger.filterNot { it.id == vilkårsvurdert.id } + beregnet) to beregnet
         }

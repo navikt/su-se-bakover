@@ -89,6 +89,7 @@ internal class StatusovergangTest {
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
             nySaksbehandler = saksbehandler,
+            uteståendeAvkortingPåSak = null,
         ).getOrFail() as BeregnetSøknadsbehandling.Innvilget
 
     private val beregnetAvslag: BeregnetSøknadsbehandling.Avslag =
@@ -101,6 +102,7 @@ internal class StatusovergangTest {
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
             nySaksbehandler = saksbehandler,
+            uteståendeAvkortingPåSak = null,
         ).getOrFail() as BeregnetSøknadsbehandling.Avslag
 
     private val simulert: SimulertSøknadsbehandling =
@@ -600,6 +602,7 @@ internal class StatusovergangTest {
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
                 nySaksbehandler = saksbehandler,
+                uteståendeAvkortingPåSak = null,
             ).getOrFail() shouldBe beregnetInnvilget
         }
 
@@ -610,6 +613,7 @@ internal class StatusovergangTest {
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
                 nySaksbehandler = saksbehandler,
+                uteståendeAvkortingPåSak = null,
             ).getOrFail() shouldBe beregnetInnvilget.copy(
                 søknadsbehandlingsHistorikk = beregnetInnvilget.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
                     nonEmptyListOf(
@@ -626,6 +630,7 @@ internal class StatusovergangTest {
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
                 nySaksbehandler = saksbehandler,
+                uteståendeAvkortingPåSak = null,
             ).getOrFail() shouldBe beregnetAvslag.copy(
                 søknadsbehandlingsHistorikk = beregnetAvslag.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
                     nonEmptyListOf(
@@ -642,6 +647,7 @@ internal class StatusovergangTest {
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
                 nySaksbehandler = saksbehandler,
+                uteståendeAvkortingPåSak = null,
             ).getOrFail() shouldBe beregnetInnvilget.copy(
                 søknadsbehandlingsHistorikk = simulert.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
                     nonEmptyListOf(
@@ -658,6 +664,7 @@ internal class StatusovergangTest {
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
                 nySaksbehandler = saksbehandler,
+                uteståendeAvkortingPåSak = null,
             ).getOrFail() shouldBe beregnetAvslag
                 .medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
                 .copy(
@@ -677,6 +684,7 @@ internal class StatusovergangTest {
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
                 nySaksbehandler = saksbehandler,
+                uteståendeAvkortingPåSak = null,
             ).getOrFail() shouldBe beregnetInnvilget
                 .medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev)
                 .copy(
@@ -710,6 +718,7 @@ internal class StatusovergangTest {
                     clock = fixedClock,
                     satsFactory = satsFactoryTestPåDato(),
                     nySaksbehandler = saksbehandler,
+                    uteståendeAvkortingPåSak = null,
                 ) shouldBe KunneIkkeBeregne.UgyldigTilstand(it::class).left()
             }
         }
@@ -1007,7 +1016,6 @@ internal class StatusovergangTest {
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                     clock = fixedClock,
                     saksbehandler = saksbehandler,
-                    avkorting = it.avkorting,
                 ).isRight() shouldBe true
             }
         }
@@ -1028,7 +1036,6 @@ internal class StatusovergangTest {
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                     clock = fixedClock,
                     saksbehandler = saksbehandler,
-                    avkorting = it.avkorting,
                 ).isLeft() shouldBe true
             }
         }

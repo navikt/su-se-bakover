@@ -33,20 +33,18 @@ data class LukketSøknadsbehandling private constructor(
     override val fnr = underliggendeSøknadsbehandling.fnr
 
     // Så vi kan initialiseres uten at periode er satt (typisk ved ny søknadsbehandling)
-    override val periode by lazy { underliggendeSøknadsbehandling.periode }
+    override val periode get() = underliggendeSøknadsbehandling.periode
+
+    /**
+     * Avkorting er ikke relevant for en lukket søknadsbehandling.
+     */
     override val avkorting: AvkortingVedSøknadsbehandling =
         when (val avkorting = underliggendeSøknadsbehandling.avkorting) {
-            is AvkortingVedSøknadsbehandling.Håndtert -> {
-                avkorting.kanIkke()
-            }
-
-            is AvkortingVedSøknadsbehandling.Iverksatt -> {
-                throw IllegalStateException("Kan ikke lukke iverksatt")
-            }
-
-            is AvkortingVedSøknadsbehandling.Uhåndtert -> {
-                avkorting.kanIkke()
-            }
+            is AvkortingVedSøknadsbehandling.Avkortet -> throw IllegalStateException("AvkortingVedSøknadsbehandling.Vurdert.Ferdigvurdert.Avkortet skal ikke kunne eksistere i en LukketSøknadsbehandling for søknadsbehandlingsid ${this.id}.")
+            is AvkortingVedSøknadsbehandling.IkkeVurdert,
+            is AvkortingVedSøknadsbehandling.IngenAvkorting,
+            is AvkortingVedSøknadsbehandling.SkalAvkortes,
+            -> AvkortingVedSøknadsbehandling.IngenAvkorting
         }
     override val sakstype: Sakstype = underliggendeSøknadsbehandling.sakstype
 
@@ -96,7 +94,6 @@ data class LukketSøknadsbehandling private constructor(
     override fun copyInternal(
         stønadsperiode: Stønadsperiode,
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-        avkorting: AvkortingVedSøknadsbehandling,
         søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
         aldersvurdering: Aldersvurdering,
     ) = throw UnsupportedOperationException("Kan ikke kalle copyInternal på en lukket søknadsbehandling.")
@@ -115,7 +112,7 @@ data class LukketSøknadsbehandling private constructor(
 
         /**
          * Prøver lukke søknadsbehandlingen og tilhørende søknad.
-         * Den underliggende søknadsbehandlingen kan ikke være av typen [LukketSøknadsbehandling], [Søknadsbehandling.Iverksatt] eller [SøknadsbehandlingTilAttestering]
+         * Den underliggende søknadsbehandlingen kan ikke være av typen [LukketSøknadsbehandling], [IverksattSøknadsbehandling] eller [SøknadsbehandlingTilAttestering]
          * @throws IllegalStateException Dersom den underliggende søknaden ikke er av typen [Søknad.Journalført.MedOppgave.IkkeLukket]
          */
         fun tryCreate(

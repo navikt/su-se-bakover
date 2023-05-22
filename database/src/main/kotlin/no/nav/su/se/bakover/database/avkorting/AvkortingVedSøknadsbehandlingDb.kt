@@ -3,147 +3,122 @@ package no.nav.su.se.bakover.database.avkorting
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
+import no.nav.su.se.bakover.common.deserializeNullable
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 
-internal fun AvkortingVedSøknadsbehandling.toDb(): AvkortingVedSøknadsbehandlingDb {
+internal fun AvkortingVedSøknadsbehandling.toDbJson(): String? {
     return when (this) {
-        is AvkortingVedSøknadsbehandling.Håndtert -> {
-            toDb()
-        }
-        is AvkortingVedSøknadsbehandling.Iverksatt -> {
-            toDb()
-        }
-        is AvkortingVedSøknadsbehandling.Uhåndtert -> {
-            toDb()
-        }
-    }
+        is AvkortingVedSøknadsbehandling.Avkortet -> AvkortingVedSøknadsbehandlingDb.Avkortet(
+            avkortingsvarsel = avkortingsvarsel.toDb(),
+        )
+
+        is AvkortingVedSøknadsbehandling.IngenAvkorting -> null
+        is AvkortingVedSøknadsbehandling.SkalAvkortes -> AvkortingVedSøknadsbehandlingDb.SkalAvkortes(
+            avkortingsvarsel = avkortingsvarsel.toDb(),
+        )
+        is AvkortingVedSøknadsbehandling.IkkeVurdert -> null
+    }?.let { serialize(it) }
+}
+
+internal fun fromAvkortingDbJson(dbJson: String?): AvkortingVedSøknadsbehandling? {
+    return deserializeNullable<AvkortingVedSøknadsbehandlingDb>(dbJson)?.toDomain()
 }
 
 internal fun AvkortingVedSøknadsbehandlingDb.toDomain(): AvkortingVedSøknadsbehandling {
     return when (this) {
-        is AvkortingVedSøknadsbehandlingDb.Håndtert -> {
-            toDomain()
-        }
-        is AvkortingVedSøknadsbehandlingDb.Iverksatt -> {
-            toDomain()
-        }
-        is AvkortingVedSøknadsbehandlingDb.Uhåndtert -> {
-            toDomain()
-        }
+        is AvkortingVedSøknadsbehandlingDb.Håndtert -> toDomain()
+        is AvkortingVedSøknadsbehandlingDb.Iverksatt -> toDomain()
+        is AvkortingVedSøknadsbehandlingDb.Uhåndtert -> AvkortingVedSøknadsbehandling.IkkeVurdert
+        is AvkortingVedSøknadsbehandlingDb.Avkortet -> AvkortingVedSøknadsbehandling.Avkortet(
+            avkortingsvarsel = avkortingsvarsel.toDomain(),
+        )
+        is AvkortingVedSøknadsbehandlingDb.SkalAvkortes -> AvkortingVedSøknadsbehandling.SkalAvkortes(
+            avkortingsvarsel = avkortingsvarsel.toDomain(),
+        )
     }
 }
 
-internal fun AvkortingVedSøknadsbehandlingDb.Håndtert.toDomain(): AvkortingVedSøknadsbehandling.Håndtert {
+internal fun AvkortingVedSøknadsbehandlingDb.Håndtert.toDomain(): AvkortingVedSøknadsbehandling.Vurdert {
     return when (this) {
         is AvkortingVedSøknadsbehandlingDb.Håndtert.AvkortUtestående -> {
-            AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(
+            AvkortingVedSøknadsbehandling.SkalAvkortes(
                 avkortingsvarsel = avkortingsvarsel.toDomain(),
             )
         }
+
         is AvkortingVedSøknadsbehandlingDb.Håndtert.IngenUtestående -> {
-            AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
+            AvkortingVedSøknadsbehandling.IngenAvkorting
         }
+
         is AvkortingVedSøknadsbehandlingDb.Håndtert.KanIkkeHåndtere -> {
-            AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere(
-                håndtert = håndtert.toDomain(),
-            )
+            // I disse tilfellene vil søknadsbehandlingen være lukket.
+            AvkortingVedSøknadsbehandling.IngenAvkorting
         }
     }
 }
 
-internal fun AvkortingVedSøknadsbehandlingDb.Iverksatt.toDomain(): AvkortingVedSøknadsbehandling.Iverksatt {
+internal fun AvkortingVedSøknadsbehandlingDb.Iverksatt.toDomain(): AvkortingVedSøknadsbehandling.Vurdert {
     return when (this) {
         is AvkortingVedSøknadsbehandlingDb.Iverksatt.AvkortUtestående -> {
-            AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående(
+            AvkortingVedSøknadsbehandling.Avkortet(
                 avkortingsvarsel = avkortingsvarsel.toDomain(),
             )
         }
+
         is AvkortingVedSøknadsbehandlingDb.Iverksatt.IngenUtestående -> {
-            AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående
+            AvkortingVedSøknadsbehandling.IngenAvkorting
         }
+
         is AvkortingVedSøknadsbehandlingDb.Iverksatt.KanIkkeHåndtere -> {
-            AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
-                håndtert = håndtert.toDomain(),
-            )
+            throw IllegalStateException("Avventer migrering av AvkortingVedSøknadsbehandlingDb.Iverksatt.KanIkkeHåndtere - skal ikke være i bruk.")
         }
     }
 }
 
-internal fun AvkortingVedSøknadsbehandlingDb.Uhåndtert.toDomain(): AvkortingVedSøknadsbehandling.Uhåndtert {
-    return when (this) {
-        is AvkortingVedSøknadsbehandlingDb.Uhåndtert.IngenUtestående -> {
-            AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
-        }
-        is AvkortingVedSøknadsbehandlingDb.Uhåndtert.UteståendeAvkorting -> {
-            AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-                avkortingsvarsel = avkortingsvarsel.toDomain(),
-            )
-        }
-        is AvkortingVedSøknadsbehandlingDb.Uhåndtert.KanIkkeHåndtere -> {
-            AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere(
-                uhåndtert = uhåndtert.toDomain(),
-            )
-        }
-    }
-}
-
-internal fun AvkortingVedSøknadsbehandling.Uhåndtert.toDb(): AvkortingVedSøknadsbehandlingDb.Uhåndtert {
-    return when (this) {
-        is AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående -> {
-            AvkortingVedSøknadsbehandlingDb.Uhåndtert.IngenUtestående
-        }
-        is AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting -> {
-            AvkortingVedSøknadsbehandlingDb.Uhåndtert.UteståendeAvkorting(
-                avkortingsvarsel = avkortingsvarsel.toDb(),
-            )
-        }
-        is AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere -> {
-            AvkortingVedSøknadsbehandlingDb.Uhåndtert.KanIkkeHåndtere(
-                uhåndtert = uhåndtert.toDb(),
-            )
-        }
-    }
-}
-
-internal fun AvkortingVedSøknadsbehandling.Håndtert.toDb(): AvkortingVedSøknadsbehandlingDb.Håndtert {
-    return when (this) {
-        is AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående -> {
-            AvkortingVedSøknadsbehandlingDb.Håndtert.AvkortUtestående(
-                avkortingsvarsel = avkortingsvarsel.toDb(),
-            )
-        }
-        is AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående -> {
-            AvkortingVedSøknadsbehandlingDb.Håndtert.IngenUtestående
-        }
-        is AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere -> {
-            AvkortingVedSøknadsbehandlingDb.Håndtert.KanIkkeHåndtere(
-                håndtert = håndtert.toDb(),
-            )
-        }
-    }
-}
-
-internal fun AvkortingVedSøknadsbehandling.Iverksatt.toDb(): AvkortingVedSøknadsbehandlingDb.Iverksatt {
-    return when (this) {
-        is AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående -> {
-            AvkortingVedSøknadsbehandlingDb.Iverksatt.AvkortUtestående(
-                avkortingsvarsel = avkortingsvarsel.toDb(),
-            )
-        }
-        is AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående -> {
-            AvkortingVedSøknadsbehandlingDb.Iverksatt.IngenUtestående
-        }
-        is AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere -> {
-            AvkortingVedSøknadsbehandlingDb.Iverksatt.KanIkkeHåndtere(
-                håndtert = håndtert.toDb(),
-            )
-        }
-    }
-}
-
+/**
+ * Typene til Søknadsbehandling styrer hva slags type avkorting skal være, så vi sitter igjen med null, skal avkortes og avkortet.
+ * En kunne argumentert for at Avkortet og SkalAvkortes har de samme dataene, men ønsker ikke endre på [AvkortingsvarselDb].
+ *
+ * TODO jah: Vurder om vi skal la nye/gamle typer leve om hverandre, eller om vi skal migrere de gamle. Dette kan gjøres senere.
+ * TODO jah: På sikt, fjern alt annet enn AVKORTET og SKAL_AVKORTES.
+ */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 internal sealed class AvkortingVedSøknadsbehandlingDb {
 
+    @JsonTypeName("AVKORTET")
+    data class Avkortet(
+        val avkortingsvarsel: AvkortingsvarselDb.Avkortet,
+    ) : AvkortingVedSøknadsbehandlingDb()
+
+    @JsonTypeName("SKAL_AVKORTES")
+    data class SkalAvkortes(
+        val avkortingsvarsel: AvkortingsvarselDb.SkalAvkortes,
+    ) : AvkortingVedSøknadsbehandlingDb()
+
+    /**
+     * TODO jah: Fjern og/eller migrer vekk fra denne.
+     *
+     * Legger ved en oversikt over legacy kombinasjoner mellom status og avkorting->>'@type' fra produksjon+preprod 2023-05-24
+     * Det er verdt å merke at søknadsbehandlinger som er lukket vil få @type *_KAN_IKKE
+     * status=OPPRETTET,                 legacy avkortingstype=UHÅNDTERT_KAN_IKKE,            ny avkortingstype=IkkeVurdert (ignorerer avkorting)
+     * status=VILKÅRSVURDERT_AVSLAG,     legacy avkortingstype=UHÅNDTERT_KAN_IKKE,            ny avkortingstype=IkkeVurdert (ignorerer avkorting)
+     * status=VILKÅRSVURDERT_INNVILGET,  legacy avkortingstype=UHÅNDTERT_KAN_IKKE,            ny avkortingstype=IkkeVurdert (ignorerer avkorting)
+     * status=VILKÅRSVURDERT_INNVILGET,  legacy avkortingstype=UHÅNDTERT_INGEN_UTESTÅENDE,    ny avkortingstype=IkkeVurdert (ignorerer avkorting)
+     * status=SIMULERT,                  legacy avkortingstype=HÅNDTERT_KAN_IKKE,             ny avkortingstype=IngenAvkorting (vil være lukket)
+     * status=TIL_ATTESTERING_INNVILGET, legacy avkortingstype=HÅNDTERT_INGEN_UTESTÅENDE,     ny avkortingstype=IngenAvkorting
+     * status=TIL_ATTESTERING_AVSLAG,    legacy avkortingstype=HÅNDTERT_KAN_IKKE,             ny avkortingstype=IngenAvkorting (ignorerer avkorting)
+     * status=IVERKSATT_INNVILGET,       legacy avkortingstype=IVERKSATT_AVKORTET_UTESTÅENDE, ny avkortingstype=Avkortet
+     * status=IVERKSATT_AVSLAG,          legacy avkortingstype=IVERKSATT_KAN_IKKE,            ny avkortingstype=IngenAvkorting (ignorerer avkorting)
+     * status=IVERKSATT_INNVILGET,       legacy avkortingstype=IVERKSATT_INGEN_UTESTÅENDE,    ny avkortingstype=IngenAvkorting
+     *
+     * Unike kombinasjoner fra preprod som ikke finnes i prod:
+     * status=VILKÅRSVURDERT_INNVILGET,  legacy avkortingstype=UHÅNDTERT_UTESTÅENDE,          ny avkortingstype=IkkeVurdert (ignorerer avkorting)
+     * status=BEREGNET_INNVILGET,        legacy avkortingstype=HÅNDTERT_KAN_IKKE,             ny avkortingstype=IngenAvkorting (vil være lukket)
+     * status=BEREGNET_INNVILGET,        legacy avkortingstype=HÅNDTERT_INGEN_UTESTÅENDE,     ny avkortingstype=IngenAvkorting
+     * status=SIMULERT,                  legacy avkortingstype=HÅNDTERT_INGEN_UTESTÅENDE,     ny avkortingstype=IngenAvkorting
+     * status=UNDERKJENT_INNVILGET,      legacy avkortingstype=HÅNDTERT_INGEN_UTESTÅENDE,     ny avkortingstype=IngenAvkorting
+     * */
     @JsonSubTypes(
         JsonSubTypes.Type(Uhåndtert.IngenUtestående::class),
         JsonSubTypes.Type(Uhåndtert.UteståendeAvkorting::class),
@@ -168,6 +143,7 @@ internal sealed class AvkortingVedSøknadsbehandlingDb {
         }
     }
 
+    /** TODO jah: Fjern og/eller migrer vekk fra denne. */
     @JsonSubTypes(
         JsonSubTypes.Type(Håndtert.IngenUtestående::class),
         JsonSubTypes.Type(Håndtert.AvkortUtestående::class),
@@ -193,6 +169,7 @@ internal sealed class AvkortingVedSøknadsbehandlingDb {
         }
     }
 
+    /** TODO jah: Fjern og/eller migrer vekk fra denne. */
     @JsonSubTypes(
         JsonSubTypes.Type(Iverksatt.IngenUtestående::class),
         JsonSubTypes.Type(Iverksatt.AvkortUtestående::class),

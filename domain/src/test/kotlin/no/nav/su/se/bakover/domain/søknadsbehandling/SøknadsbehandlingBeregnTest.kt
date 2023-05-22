@@ -7,7 +7,6 @@ import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.extensions.startOfMonth
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -38,6 +37,7 @@ internal class SøknadsbehandlingBeregnTest {
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
                 nySaksbehandler = saksbehandler,
+                uteståendeAvkortingPåSak = null,
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 1
                 etterBeregning.beregning.getSumFradrag() shouldBe 0.0
@@ -75,6 +75,7 @@ internal class SøknadsbehandlingBeregnTest {
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
                 nySaksbehandler = saksbehandler,
+                uteståendeAvkortingPåSak = null,
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 1
                 etterBeregning.beregning.getSumFradrag() shouldBe 0
@@ -111,6 +112,7 @@ internal class SøknadsbehandlingBeregnTest {
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
                 nySaksbehandler = saksbehandler,
+                uteståendeAvkortingPåSak = null,
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 2
                 etterBeregning.beregning.getSumFradrag() shouldBe førBeregning.periode.getAntallMåneder() * 15000
@@ -133,32 +135,29 @@ internal class SøknadsbehandlingBeregnTest {
             stønadsperiode = stønadsperiode2021,
             clock = clock,
         ).let { (_, førBeregning) ->
-            førBeregning.copy(
-                avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-                    Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                        id = UUID.randomUUID(),
-                        sakId = førBeregning.id,
-                        revurderingId = UUID.randomUUID(),
-                        opprettet = førBeregning.opprettet,
-                        simulering = simuleringOpphørt(
-                            clock = clock,
-                            opphørsperiode = Periode.create(
-                                fraOgMed = LocalDate.now(nåtidForSimuleringStub).startOfMonth()
-                                    .minusMonths(antallMånederMedFeilutbetaling),
-                                tilOgMed = stønadsperiode2021.periode.tilOgMed,
-                            ),
-                            eksisterendeUtbetalinger = eksisterendeUtbetalinger,
-                            fnr = førBeregning.fnr,
-                            sakId = førBeregning.sakId,
-                            saksnummer = førBeregning.saksnummer,
-                        ),
-                    ).skalAvkortes(),
-                ),
-            ).beregn(
+            førBeregning.beregn(
                 begrunnelse = "kakota",
                 clock = clock,
                 satsFactory = satsFactoryTestPåDato(),
                 nySaksbehandler = saksbehandler,
+                uteståendeAvkortingPåSak = Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                    id = UUID.randomUUID(),
+                    sakId = førBeregning.id,
+                    revurderingId = UUID.randomUUID(),
+                    opprettet = førBeregning.opprettet,
+                    simulering = simuleringOpphørt(
+                        clock = clock,
+                        opphørsperiode = Periode.create(
+                            fraOgMed = LocalDate.now(nåtidForSimuleringStub).startOfMonth()
+                                .minusMonths(antallMånederMedFeilutbetaling),
+                            tilOgMed = stønadsperiode2021.periode.tilOgMed,
+                        ),
+                        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+                        fnr = førBeregning.fnr,
+                        sakId = førBeregning.sakId,
+                        saksnummer = førBeregning.saksnummer,
+                    ),
+                ).skalAvkortes(),
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 4
                 etterBeregning.beregning.getFradrag()
@@ -201,32 +200,29 @@ internal class SøknadsbehandlingBeregnTest {
                 ),
                 saksbehandler = saksbehandler,
                 clock = clock,
-            ).getOrFail().copy(
-                avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-                    Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                        id = UUID.randomUUID(),
-                        sakId = vilkårsvurdert.id,
-                        revurderingId = UUID.randomUUID(),
-                        opprettet = vilkårsvurdert.opprettet,
-                        simulering = simuleringOpphørt(
-                            opphørsperiode = Periode.create(
-                                fraOgMed = LocalDate.now(nåtidForSimuleringStub).startOfMonth()
-                                    .minusMonths(antallMånederMedFeilutbetaling),
-                                tilOgMed = stønadsperiode2021.periode.tilOgMed,
-                            ),
-                            eksisterendeUtbetalinger = eksisterendeUtbetalinger,
-                            fnr = vilkårsvurdert.fnr,
-                            sakId = vilkårsvurdert.sakId,
-                            saksnummer = vilkårsvurdert.saksnummer,
-                            clock = clock,
-                        ),
-                    ).skalAvkortes(),
-                ),
-            ).beregn(
+            ).getOrFail().beregn(
                 begrunnelse = "kakota",
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
                 nySaksbehandler = saksbehandler,
+                uteståendeAvkortingPåSak = Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                    id = UUID.randomUUID(),
+                    sakId = vilkårsvurdert.id,
+                    revurderingId = UUID.randomUUID(),
+                    opprettet = vilkårsvurdert.opprettet,
+                    simulering = simuleringOpphørt(
+                        opphørsperiode = Periode.create(
+                            fraOgMed = LocalDate.now(nåtidForSimuleringStub).startOfMonth()
+                                .minusMonths(antallMånederMedFeilutbetaling),
+                            tilOgMed = stønadsperiode2021.periode.tilOgMed,
+                        ),
+                        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+                        fnr = vilkårsvurdert.fnr,
+                        sakId = vilkårsvurdert.sakId,
+                        saksnummer = vilkårsvurdert.saksnummer,
+                        clock = clock,
+                    ),
+                ).skalAvkortes(),
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 4
                 etterBeregning.beregning.getFradrag()

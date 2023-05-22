@@ -2,10 +2,7 @@ package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.juni
-import no.nav.su.se.bakover.common.tid.periode.november
-import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
@@ -22,7 +19,7 @@ import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
-fun uhåndtertUteståendeAvkorting(
+fun avkortingVedRevurderingUhåndtertUtestående(
     vararg perioder: Periode = listOf(juni(2021)).toTypedArray(),
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
@@ -33,27 +30,65 @@ fun uhåndtertUteståendeAvkorting(
     ),
 ): AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting {
     return AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(
-        Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-            Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                id = id,
-                sakId = sakId,
-                revurderingId = revurderingId,
-                opprettet = opprettet,
-                simulering = simulering,
-            ),
+        avkortingsvarselSkalAvkortes(
+            perioder = perioder,
+            id = id,
+            sakId = sakId,
+            revurderingId = revurderingId,
+            opprettet = opprettet,
+            simulering = simulering,
         ),
     )
 }
 
-fun avkortingsvarselUtenlandsopphold(
+fun avkortingsvarselSkalAvkortes(
+    vararg perioder: Periode = listOf(juni(2021)).toTypedArray(),
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     sakId: UUID = UUID.randomUUID(),
     revurderingId: UUID = UUID.randomUUID(),
     simulering: Simulering = simuleringFeilutbetaling(
-        oktober(2020),
-        november(2020),
-        desember(2020),
+        perioder = perioder,
+    ),
+) = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
+    avkortingsvarselUtenlandsoppholdOpprettet(
+        id = id,
+        sakId = sakId,
+        revurderingId = revurderingId,
+        opprettet = opprettet,
+        simulering = simulering,
+    ),
+)
+
+fun avkortingsvarselAvkortet(
+    vararg perioder: Periode = listOf(juni(2021)).toTypedArray(),
+    id: UUID = UUID.randomUUID(),
+    opprettet: Tidspunkt = fixedTidspunkt,
+    sakId: UUID = UUID.randomUUID(),
+    revurderingId: UUID = UUID.randomUUID(),
+    simulering: Simulering = simuleringFeilutbetaling(
+        perioder = perioder,
+    ),
+    søknadsbehandlingId: UUID = UUID.randomUUID(),
+) = Avkortingsvarsel.Utenlandsopphold.Avkortet(
+    avkortingsvarselSkalAvkortes(
+        id = id,
+        sakId = sakId,
+        revurderingId = revurderingId,
+        opprettet = opprettet,
+        simulering = simulering,
+    ),
+    behandlingId = søknadsbehandlingId,
+)
+
+fun avkortingsvarselUtenlandsoppholdOpprettet(
+    vararg perioder: Periode = listOf(juni(2021)).toTypedArray(),
+    id: UUID = UUID.randomUUID(),
+    opprettet: Tidspunkt = fixedTidspunkt,
+    sakId: UUID = UUID.randomUUID(),
+    revurderingId: UUID = UUID.randomUUID(),
+    simulering: Simulering = simuleringFeilutbetaling(
+        perioder = perioder,
     ),
 ) = Avkortingsvarsel.Utenlandsopphold.Opprettet(
     id = id,

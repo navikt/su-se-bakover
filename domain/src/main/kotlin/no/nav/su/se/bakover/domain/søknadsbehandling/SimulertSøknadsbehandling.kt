@@ -48,7 +48,7 @@ data class SimulertSøknadsbehandling(
     override val eksterneGrunnlag: EksterneGrunnlag,
     override val attesteringer: Attesteringshistorikk,
     override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
-    override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
+    override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting,
     override val sakstype: Sakstype,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
 ) : Søknadsbehandling(), Søknadsbehandling.KanOppdaterePeriodeGrunnlagVilkår {
@@ -71,7 +71,6 @@ data class SimulertSøknadsbehandling(
     override fun copyInternal(
         stønadsperiode: Stønadsperiode,
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-        avkorting: AvkortingVedSøknadsbehandling,
         søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
         aldersvurdering: Aldersvurdering,
     ): SimulertSøknadsbehandling {

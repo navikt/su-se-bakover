@@ -54,7 +54,6 @@ fun Sak.opprettNySøknadsbehandling(
         søknad = søknad,
         oppgaveId = søknad.oppgaveId,
         fnr = søknad.fnr,
-        avkorting = this.hentUteståendeAvkortingForSøknadsbehandling().fold({ it }, { it }).kanIkke(),
         sakstype = søknad.type,
         saksbehandler = saksbehandler,
     ).let { nySøknadsbehandling ->

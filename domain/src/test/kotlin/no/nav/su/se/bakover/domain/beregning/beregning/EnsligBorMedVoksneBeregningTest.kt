@@ -131,12 +131,13 @@ internal class EnsligBorMedVoksneBeregningTest {
                     periode = stønadsperiode2021.periode,
                 ),
             ),
-        ).also { (_, vilkårsvurdert) ->
+        ).also { (sak, vilkårsvurdert) ->
             vilkårsvurdert.beregn(
                 begrunnelse = null,
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(LocalDate.now(1.juni(2021).fixedClock())),
                 nySaksbehandler = saksbehandler,
+                uteståendeAvkortingPåSak = sak.uteståendeAvkortingSkalAvkortes,
             ).getOrFail().also {
                 it.beregning.getSumYtelse() shouldBe 124072
                 it.beregning.getSumFradrag() shouldBe 60000

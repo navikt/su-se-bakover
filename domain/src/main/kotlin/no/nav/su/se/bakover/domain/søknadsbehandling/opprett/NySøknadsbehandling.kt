@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.søknadsbehandling.opprett
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.StøtterHentingAvEksternGrunnlag
@@ -25,7 +24,6 @@ data class NySøknadsbehandling(
     val søknad: Søknad.Journalført.MedOppgave,
     val oppgaveId: OppgaveId,
     val fnr: Fnr,
-    val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
     val sakstype: Sakstype,
     val saksbehandler: NavIdentBruker.Saksbehandler,
 ) {
@@ -65,7 +63,6 @@ data class NySøknadsbehandling(
             eksterneGrunnlag = StøtterHentingAvEksternGrunnlag.ikkeHentet(),
             attesteringer = Attesteringshistorikk.empty(),
             søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
-            avkorting = avkorting,
             sakstype = sakstype,
             saksbehandler = saksbehandler,
         )
