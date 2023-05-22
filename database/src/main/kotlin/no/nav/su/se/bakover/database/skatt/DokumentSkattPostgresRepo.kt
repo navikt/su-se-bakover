@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.persistence.PostgresSessionContext.Companion.
 import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.persistence.Session
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.persistence.hent
 import no.nav.su.se.bakover.common.persistence.hentListe
 import no.nav.su.se.bakover.common.persistence.insert
 import no.nav.su.se.bakover.common.persistence.oppdatering
@@ -14,12 +15,20 @@ import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
 import no.nav.su.se.bakover.domain.skatt.Skattedokument
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.util.UUID
 
 data class DokumentSkattPostgresRepo(
     private val dbMetrics: DbMetrics,
     private val sessionFactory: PostgresSessionFactory,
 ) : DokumentSkattRepo {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
+    override fun hent(id: UUID): Skattedokument? {
+        return sessionFactory.withSession {
+            """
+            select * from dokument_skatt where id=:id
+            """.trimIndent().hent(mapOf("id" to id), it) { it.toSkattedokument() }
+        }
+    }
 
     override fun lagre(dok: Skattedokument) {
         sessionFactory.withSession {
@@ -65,7 +74,7 @@ data class DokumentSkattPostgresRepo(
                 """
                 select * from dokument_skatt
                 where journalpostId is null
-                order by opprettet asc
+                order by id asc
                 limit 10
                 """.trimIndent().hentListe(emptyMap(), session) { it.toSkattedokument() }
             }

@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.routes.skatt
 
-import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.common.YearRangeJson
 import no.nav.su.se.bakover.database.common.YearRangeJson.Companion.toYearRangeJson
@@ -10,7 +9,7 @@ import no.nav.su.se.bakover.web.routes.skatt.StadieJson.Companion.toJson
 internal data class SkattegrunnlagJSON(
     val fnr: String,
     val hentetTidspunkt: String,
-    val årsgrunnlag: NonEmptyList<StadieJson>,
+    val årsgrunnlag: List<StadieJson>,
     val saksbehandler: String,
     val årSpurtFor: YearRangeJson,
 ) {

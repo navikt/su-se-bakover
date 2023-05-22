@@ -20,13 +20,13 @@ import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakRepo
-import no.nav.su.se.bakover.domain.skatt.EksternGrunnlagSkattRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.test.attesteringIverksatt
+import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
 import no.nav.su.se.bakover.test.enUkeEtterFixedClock
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
@@ -536,7 +536,11 @@ internal class SøknadsbehandlingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.søknadsbehandlingRepo
-            val behandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertInnvilget().second
+            val behandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertInnvilget(
+                eksterneGrunnlag = eksternGrunnlagHentet().copy(
+                    skatt = EksterneGrunnlagSkatt.IkkeHentet,
+                ),
+            ).second
 
             repo.hent(behandling.id).let {
                 it shouldNotBe null
@@ -544,21 +548,21 @@ internal class SøknadsbehandlingPostgresRepoTest {
             }
 
             val behandlingMedSkatt = behandling.leggTilSkatt(
-                EksternGrunnlagSkattRequest(nySkattegrunnlag(), null),
+                EksterneGrunnlagSkatt.Hentet(nySkattegrunnlag(), null),
             ).getOrFail().also { medSkatt ->
                 repo.lagre(medSkatt)
                 repo.hent(medSkatt.id) shouldBe medSkatt
             }
 
             val oppdatertMedEps = behandlingMedSkatt.leggTilSkatt(
-                EksternGrunnlagSkattRequest(nySkattegrunnlag(), nySkattegrunnlag()),
+                EksterneGrunnlagSkatt.Hentet(nySkattegrunnlag(), nySkattegrunnlag()),
             ).getOrFail().also { medEps ->
                 repo.lagre(medEps)
                 repo.hent(medEps.id) shouldBe medEps
             }
 
             oppdatertMedEps.leggTilSkatt(
-                EksternGrunnlagSkattRequest(nySkattegrunnlag(), null),
+                EksterneGrunnlagSkatt.Hentet(nySkattegrunnlag(), null),
             ).getOrFail().also { utenEps ->
                 repo.lagre(utenEps)
                 repo.hent(utenEps.id) shouldBe utenEps
@@ -572,7 +576,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.søknadsbehandlingRepo
             val medEps = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklartMedSkatt(
-                EksternGrunnlagSkattRequest(nySkattegrunnlag(), nySkattegrunnlag()),
+                EksterneGrunnlagSkatt.Hentet(nySkattegrunnlag(), nySkattegrunnlag()),
             )
             val skattRepo = SkattPostgresRepo
             val medEpsSøkersId = (medEps.eksterneGrunnlag.skatt as EksterneGrunnlagSkatt.Hentet).søkers.id

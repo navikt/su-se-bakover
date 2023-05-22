@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
+import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
@@ -38,6 +39,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.simulering.simulerGjenopptak
 import no.nav.su.se.bakover.test.simulering.simulerStans
@@ -61,6 +63,7 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
         periode = stønadsperiode.periode,
         bosituasjon = grunnlagsdata.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }.toNonEmptyList(),
     ),
+    eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     clock: Clock = tikkendeFixedClock(),
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(
         clock = clock,
@@ -80,6 +83,7 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
         stønadsperiode = stønadsperiode,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
+        eksterneGrunnlag = eksterneGrunnlag,
         clock = clock,
         sakOgSøknad = sakOgSøknad,
     ).let { (sak, _, vedtak) ->
