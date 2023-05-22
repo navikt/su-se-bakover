@@ -259,13 +259,6 @@ data class Fagsak(
     val sakstype: String = "FAGSAK",
 )
 
-/**
- * brevkode??
- * Kode som sier noe om dokumentets innhold og oppbygning. Brevkode bør settes for alle journalposttyper, og brukes blant annet for statistikk.
- * For inngående dokumenter kan brevkoden for eksempel være en NAV-skjemaID f.eks. "NAV 14-05.09" eller en SED-id.
- * For utgående dokumenter og notater er det systemet som produserer dokumentet som bestemmer hva brevkoden skal være. Om fagsystemet har "malkoder" kan man gjerne bruke disse som brevkode.
- * vet vi egentlig noe om dette?
- */
 data class JournalpostDokument(
     val tittel: String,
     val dokumentvarianter: List<DokumentVariant>,
