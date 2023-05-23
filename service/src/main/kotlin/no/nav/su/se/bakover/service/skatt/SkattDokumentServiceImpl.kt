@@ -58,7 +58,7 @@ class SkattDokumentServiceImpl(
             søknadsbehandlingsId = vedtak.behandling.id,
             vedtaksId = vedtak.id,
             sakId = vedtak.sakId,
-            // vi henter bare skattemeldingene samtidig
+            // vi henter skattemeldingene samtidig
             hentetDato = hentetSkatt.søkers.hentetTidspunkt.toLocalDate(zoneIdOslo),
             skatt = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagForPdf(
                 søkers = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagMedFnr(
@@ -72,7 +72,11 @@ class SkattDokumentServiceImpl(
                     )
                 },
             ),
-            hentPerson = { fnr -> personOppslag.person(fnr).getOrElse { TODO() } },
+            hentPerson = { fnr ->
+                personOppslag.person(fnr).getOrElse {
+                    throw IllegalStateException("Feil ved henting av person. Denne var hentet for ikke så lenge siden. SkattDokumentServiceImpl.kt")
+                }
+            },
         ).let {
             Skattedokument.Generert(
                 id = UUID.randomUUID(),
@@ -80,7 +84,9 @@ class SkattDokumentServiceImpl(
                 epsSkatteId = hentetSkatt.eps?.id,
                 sakid = vedtak.sakId,
                 vedtakid = vedtak.id,
-                generertDokument = pdfGenerator.genererPdf(it).getOrElse { TODO() },
+                generertDokument = pdfGenerator.genererPdf(it).getOrElse {
+                    return KunneIkkeGenerereSkattedokument.FeilVedGenereringAvDokument.left()
+                },
                 dokumentJson = it.toJson(),
             ).right()
         }
