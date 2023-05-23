@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
 import no.nav.su.se.bakover.database.stønadsperiode.SendPåminnelseNyStønadsperiodeJobPostgresRepo
-import no.nav.su.se.bakover.domain.brev.PdfTemplate
+import no.nav.su.se.bakover.domain.brev.PdfTemplateMedDokumentNavn
 import no.nav.su.se.bakover.domain.jobcontext.NameAndYearMonthId
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.sak.Saksnummer
@@ -99,13 +99,13 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
             )
 
             appComponents.databaseRepos.dokumentRepo.hentForSak(sakIdOgSaksnummer1.first).none {
-                it.tittel.contains(PdfTemplate.PåminnelseNyStønadsperiode.tittel())
+                it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel())
             }
             appComponents.databaseRepos.dokumentRepo.hentForSak(sakIdOgSaksnummer2.first).single {
-                it.tittel.contains(PdfTemplate.PåminnelseNyStønadsperiode.tittel())
+                it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel())
             }
             appComponents.databaseRepos.dokumentRepo.hentForSak(sakIdOgSaksnummer3.first).none {
-                it.tittel.contains(PdfTemplate.PåminnelseNyStønadsperiode.tittel())
+                it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel())
             }
 
             val sakIdOgSaksnummer4 = opprettInnvilgetSøknadsbehandling(
@@ -145,16 +145,16 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
             )
 
             appComponents.databaseRepos.dokumentRepo.hentForSak(sakIdOgSaksnummer1.first).none {
-                it.tittel.contains(PdfTemplate.PåminnelseNyStønadsperiode.tittel())
+                it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel())
             }
             appComponents.databaseRepos.dokumentRepo.hentForSak(sakIdOgSaksnummer2.first).single {
-                it.tittel.contains(PdfTemplate.PåminnelseNyStønadsperiode.tittel())
+                it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel())
             }
             appComponents.databaseRepos.dokumentRepo.hentForSak(sakIdOgSaksnummer3.first).none {
-                it.tittel.contains(PdfTemplate.PåminnelseNyStønadsperiode.tittel())
+                it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel())
             }
             appComponents.databaseRepos.dokumentRepo.hentForSak(sakIdOgSaksnummer4.first).single {
-                it.tittel.contains(PdfTemplate.PåminnelseNyStønadsperiode.tittel())
+                it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel())
             }
         }
     }

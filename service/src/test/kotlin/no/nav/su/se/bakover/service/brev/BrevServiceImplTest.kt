@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.PdfInnhold
-import no.nav.su.se.bakover.domain.brev.PdfTemplate
+import no.nav.su.se.bakover.domain.brev.PdfTemplateMedDokumentNavn
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
@@ -206,7 +206,7 @@ internal class BrevServiceImplTest {
     }
 
     object DummyPdfInnhold : PdfInnhold() {
-        override val pdfTemplate: PdfTemplate = PdfTemplate.AvslagsVedtak
+        override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.AvslagsVedtak
     }
 
     private data class ServiceOgMocks(

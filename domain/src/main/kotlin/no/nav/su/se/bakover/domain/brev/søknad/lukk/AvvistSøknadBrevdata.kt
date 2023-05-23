@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.brev.søknad.lukk
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import no.nav.su.se.bakover.domain.brev.PdfInnhold
-import no.nav.su.se.bakover.domain.brev.PdfTemplate
+import no.nav.su.se.bakover.domain.brev.PdfTemplateMedDokumentNavn
 
 data class AvvistSøknadVedtakPdfInnhold(
     val personalia: Personalia,
@@ -10,7 +10,7 @@ data class AvvistSøknadVedtakPdfInnhold(
     val fritekst: String?,
 ) : PdfInnhold() {
 
-    override val pdfTemplate = PdfTemplate.AvvistSøknadVedtak
+    override val pdfTemplate = PdfTemplateMedDokumentNavn.AvvistSøknadVedtak
 }
 
 data class AvvistSøknadFritekstPdfInnhold(
@@ -19,7 +19,7 @@ data class AvvistSøknadFritekstPdfInnhold(
     val fritekst: String,
 ) : PdfInnhold() {
 
-    override val pdfTemplate = PdfTemplate.AvvistSøknadFritekst
+    override val pdfTemplate = PdfTemplateMedDokumentNavn.AvvistSøknadFritekst
 
     @Suppress("unused")
     @JsonInclude
