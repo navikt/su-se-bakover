@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.skatt
 
-import no.nav.su.se.bakover.common.application.journal.JournalpostId
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.brev.SkattegrunnlagPdfTemplate
 import java.util.UUID
 

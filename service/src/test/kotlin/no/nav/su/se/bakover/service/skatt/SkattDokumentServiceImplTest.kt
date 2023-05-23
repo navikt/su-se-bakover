@@ -5,7 +5,7 @@ import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
-import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.brev.PdfInnhold
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.person.PersonOppslag
@@ -60,9 +60,7 @@ internal class SkattDokumentServiceImplTest {
                     hentetDato = fixedLocalDate,
                     skatt = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagForPdf(
                         søkers = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagMedFnr(
-                            fnr = Fnr(
-                                fnr = person.ident.fnr.toString(),
-                            ),
+                            fnr = person.ident.fnr,
                             årsgrunlag = nonEmptyListOf(nySamletSkattegrunnlagForÅrOgStadieOppgjør()),
                         ),
                         eps = null,
