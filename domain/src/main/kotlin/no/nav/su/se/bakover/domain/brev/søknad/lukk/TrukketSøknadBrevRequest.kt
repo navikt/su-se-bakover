@@ -20,7 +20,7 @@ data class TrukketSøknadBrevRequest(
     override val dagensDato: LocalDate,
     override val saksnummer: Saksnummer,
 ) : LagBrevRequest {
-    override val brevInnhold = TrukketSøknadBrevInnhold(
+    override val pdfInnhold = TrukketSøknadPdfInnhold(
         personalia = lagPersonalia(),
         datoSøknadOpprettet = søknadOpprettet.toLocalDate(zoneIdOslo),
         trukketDato = trukketDato,

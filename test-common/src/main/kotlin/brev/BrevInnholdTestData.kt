@@ -1,15 +1,15 @@
 package no.nav.su.se.bakover.test.brev
 
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.brev.BrevInnhold
+import no.nav.su.se.bakover.domain.brev.PdfInnhold
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
 import no.nav.su.se.bakover.domain.brev.beregning.Fradrag
 import no.nav.su.se.bakover.domain.sak.Sakstype
 
-fun brevInnholdInnvilgetVedtak(): BrevInnhold = BrevInnhold.InnvilgetVedtak(
-    personalia = BrevInnhold.Personalia(
+fun pdfInnholdInnvilgetVedtak(): PdfInnhold = PdfInnhold.InnvilgetVedtak(
+    personalia = PdfInnhold.Personalia(
         dato = "01.01.2020",
         fødselsnummer = Fnr("12345678901"),
         fornavn = "Tore",

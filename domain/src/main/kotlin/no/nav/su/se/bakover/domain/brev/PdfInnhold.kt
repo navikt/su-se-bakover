@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.domain.sak.Sakstype
 /**
  * TODO jah: Dette er en ren JsonDto som sendes serialisert til su-pdfgen. Den bør bo under client-modulen eller en tilsvarende infrastruktur-modul.
  */
-abstract class BrevInnhold {
+abstract class PdfInnhold {
     fun toJson(): String = objectMapper.writeValueAsString(this)
 
     @get:JsonIgnore
@@ -30,7 +30,7 @@ abstract class BrevInnhold {
     @JsonProperty
     fun erAldersbrev(): Boolean = this.sakstype == Sakstype.ALDER
 
-    data class AvslagsBrevInnhold(
+    data class AvslagsPdfInnhold(
         val personalia: Personalia,
         val avslagsgrunner: List<Avslagsgrunn>,
         val harEktefelle: Boolean,
@@ -43,7 +43,7 @@ abstract class BrevInnhold {
         val formueVerdier: FormueForBrev?,
         val satsoversikt: Satsoversikt?,
         override val sakstype: Sakstype,
-    ) : BrevInnhold() {
+    ) : PdfInnhold() {
         @Suppress("unused")
         @JsonInclude
         val harFlereAvslagsgrunner: Boolean = avslagsgrunner.size > 1
@@ -67,7 +67,7 @@ abstract class BrevInnhold {
         val fritekst: String,
         val satsoversikt: Satsoversikt,
         override val sakstype: Sakstype,
-    ) : BrevInnhold() {
+    ) : PdfInnhold() {
         override val brevTemplate: BrevTemplate = BrevTemplate.InnvilgetVedtak
 
         @Suppress("unused")
@@ -93,7 +93,7 @@ abstract class BrevInnhold {
         val opphørsperiode: BrevPeriode,
         val avkortingsBeløp: Int?,
         val satsoversikt: Satsoversikt,
-    ) : BrevInnhold() {
+    ) : PdfInnhold() {
         override val brevTemplate: BrevTemplate = BrevTemplate.Opphør.Opphørsvedtak
 
         @Suppress("unused")
@@ -122,7 +122,7 @@ abstract class BrevInnhold {
         val harEktefelle: Boolean,
         val forventetInntektStørreEnn0: Boolean,
         val satsoversikt: Satsoversikt,
-    ) : BrevInnhold() {
+    ) : PdfInnhold() {
         override val brevTemplate = BrevTemplate.Revurdering.Inntekt
 
         @Suppress("unused")
@@ -146,7 +146,7 @@ abstract class BrevInnhold {
         val periodeStart: String,
         val periodeSlutt: String,
         val satsoversikt: Satsoversikt,
-    ) : BrevInnhold() {
+    ) : PdfInnhold() {
         override val brevTemplate = BrevTemplate.Revurdering.MedTilbakekreving
 
         @Suppress("unused")
@@ -162,7 +162,7 @@ abstract class BrevInnhold {
         val personalia: Personalia,
         val saksbehandlerNavn: String,
         val fritekst: String,
-    ) : BrevInnhold() {
+    ) : PdfInnhold() {
         override val brevTemplate = BrevTemplate.Forhåndsvarsel
     }
 
@@ -175,7 +175,7 @@ abstract class BrevInnhold {
         val periodeStart: String,
         val periodeSlutt: String,
         val dato: String,
-    ) : BrevInnhold() {
+    ) : PdfInnhold() {
         override val brevTemplate = BrevTemplate.ForhåndsvarselTilbakekreving
     }
 
@@ -187,13 +187,13 @@ abstract class BrevInnhold {
         val personalia: Personalia,
         val saksbehandlerNavn: String,
         val fritekst: String?,
-    ) : BrevInnhold() {
+    ) : PdfInnhold() {
         override val brevTemplate = BrevTemplate.Revurdering.AvsluttRevurdering
     }
 
     data class InnkallingTilKontrollsamtale(
         val personalia: Personalia,
-    ) : BrevInnhold() {
+    ) : PdfInnhold() {
         override val brevTemplate = BrevTemplate.InnkallingTilKontrollsamtale
     }
 
@@ -201,11 +201,11 @@ abstract class BrevInnhold {
         val personalia: Personalia,
         val utløpsdato: String,
         val halvtGrunnbeløp: Int,
-    ) : BrevInnhold() {
+    ) : PdfInnhold() {
         override val brevTemplate = BrevTemplate.PåminnelseNyStønadsperiode
     }
 
-    sealed class Klage : BrevInnhold() {
+    sealed class Klage : PdfInnhold() {
 
         data class Oppretthold(
             val personalia: Personalia,
@@ -233,7 +233,7 @@ abstract class BrevInnhold {
         val saksbehandlerNavn: String,
         val tittel: String,
         val fritekst: String,
-    ) : BrevInnhold() {
+    ) : PdfInnhold() {
         override val brevTemplate: BrevTemplate = BrevTemplate.Fritekst(tittel)
     }
 }

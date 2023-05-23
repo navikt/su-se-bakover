@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.client.dokarkiv
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Behandlingstema
 import no.nav.su.se.bakover.domain.Tema
-import no.nav.su.se.bakover.domain.brev.BrevInnhold
+import no.nav.su.se.bakover.domain.brev.PdfInnhold
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Saksnummer
@@ -107,18 +107,18 @@ sealed class Journalpost {
             fun from(
                 person: Person,
                 saksnummer: Saksnummer,
-                brevInnhold: BrevInnhold,
+                pdfInnhold: PdfInnhold,
                 pdf: ByteArray,
                 sakstype: Sakstype,
             ) = Vedtakspost(
                 person = person,
                 saksnummer = saksnummer,
                 dokumenter = lagDokumenter(
-                    tittel = brevInnhold.brevTemplate.tittel(),
+                    tittel = pdfInnhold.brevTemplate.tittel(),
                     pdf = pdf,
-                    originalJson = brevInnhold.toJson(),
+                    originalJson = pdfInnhold.toJson(),
                 ),
-                tittel = brevInnhold.brevTemplate.tittel(),
+                tittel = pdfInnhold.brevTemplate.tittel(),
                 sakstype = sakstype,
             )
 
@@ -176,18 +176,18 @@ sealed class Journalpost {
             fun from(
                 person: Person,
                 saksnummer: Saksnummer,
-                brevInnhold: BrevInnhold,
+                pdfInnhold: PdfInnhold,
                 pdf: ByteArray,
                 sakstype: Sakstype,
             ) = Info(
                 person = person,
                 saksnummer = saksnummer,
                 dokumenter = lagDokumenter(
-                    tittel = brevInnhold.brevTemplate.tittel(),
+                    tittel = pdfInnhold.brevTemplate.tittel(),
                     pdf = pdf,
-                    originalJson = brevInnhold.toJson(),
+                    originalJson = pdfInnhold.toJson(),
                 ),
-                tittel = brevInnhold.brevTemplate.tittel(),
+                tittel = pdfInnhold.brevTemplate.tittel(),
                 sakstype = sakstype,
             )
 

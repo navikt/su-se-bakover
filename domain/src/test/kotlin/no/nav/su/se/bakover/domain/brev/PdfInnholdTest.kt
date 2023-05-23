@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
 import no.nav.su.se.bakover.domain.brev.beregning.Fradrag
 import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
-import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevInnhold
+import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadPdfInnhold
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fnr
@@ -23,8 +23,8 @@ import org.skyscreamer.jsonassert.JSONAssert
 import java.time.LocalDate
 import kotlin.text.Typography.nbsp
 
-internal class BrevInnholdTest {
-    private val personalia = BrevInnhold.Personalia(
+internal class PdfInnholdTest {
+    private val personalia = PdfInnhold.Personalia(
         dato = "01.01.2020",
         fødselsnummer = Fnr("12345678901"),
         fornavn = "Tore",
@@ -32,7 +32,7 @@ internal class BrevInnholdTest {
         saksnummer = 2021,
     )
 
-    private val trukketSøknad = TrukketSøknadBrevInnhold(
+    private val trukketSøknad = TrukketSøknadPdfInnhold(
         personalia,
         1.januar(2020),
         1.februar(2020),
@@ -57,7 +57,7 @@ internal class BrevInnholdTest {
 
     @Test
     fun `jsonformat for innvilget vedtak stemmer overens med det som forventes av pdfgenerator`() {
-        val innvilgetVedtak = BrevInnhold.InnvilgetVedtak(
+        val innvilgetVedtak = PdfInnhold.InnvilgetVedtak(
             personalia = personalia,
             fradato = "01.01.2020",
             tildato = "01.01.2020",
@@ -183,7 +183,7 @@ internal class BrevInnholdTest {
 
     @Test
     fun `jsonformat for opphørsvedtak stemmer overens med det som forventes av pdfgenerator`() {
-        val opphørsvedtak = BrevInnhold.Opphørsvedtak(
+        val opphørsvedtak = PdfInnhold.Opphørsvedtak(
             personalia = personalia,
             opphørsgrunner = listOf(Opphørsgrunn.FOR_HØY_INNTEKT),
             avslagsparagrafer = listOf(1),
@@ -306,7 +306,7 @@ internal class BrevInnholdTest {
             }
         """.trimIndent()
 
-        JSONAssert.assertEquals(expected, objectMapper.writeValueAsString(forhåndsvarsel.brevInnhold), true)
+        JSONAssert.assertEquals(expected, objectMapper.writeValueAsString(forhåndsvarsel.pdfInnhold), true)
     }
 
     @Test
@@ -341,6 +341,6 @@ internal class BrevInnholdTest {
             }
         """.trimIndent()
 
-        JSONAssert.assertEquals(expected, objectMapper.writeValueAsString(forhåndsvarsel.brevInnhold), true)
+        JSONAssert.assertEquals(expected, objectMapper.writeValueAsString(forhåndsvarsel.pdfInnhold), true)
     }
 }

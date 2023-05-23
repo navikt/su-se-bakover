@@ -11,11 +11,11 @@ import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.BrevTemplate
 import no.nav.su.se.bakover.domain.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.brev.PdfInnhold
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
@@ -61,14 +61,14 @@ internal class BrevServiceImplTest {
         val pdf = "".toByteArray()
 
         val pdfGeneratorMock = mock<PdfGenerator> {
-            on { genererPdf(any<BrevInnhold>()) } doReturn pdf.right()
+            on { genererPdf(any<PdfInnhold>()) } doReturn pdf.right()
         }
 
         ServiceOgMocks(
             pdfGenerator = pdfGeneratorMock,
         ).brevService.lagBrev(DummyRequest) shouldBe pdf.right()
 
-        verify(pdfGeneratorMock).genererPdf(DummyBrevInnhold)
+        verify(pdfGeneratorMock).genererPdf(DummyPdfInnhold)
 
         verifyNoMoreInteractions(pdfGeneratorMock)
     }
@@ -76,13 +76,13 @@ internal class BrevServiceImplTest {
     @Test
     fun `lager ikke brev når pdf-generator kall failer`() {
         val pdfGeneratorMock = mock<PdfGenerator> {
-            on { genererPdf(DummyBrevInnhold) } doReturn KunneIkkeGenererePdf.left()
+            on { genererPdf(DummyPdfInnhold) } doReturn KunneIkkeGenererePdf.left()
         }
 
         ServiceOgMocks(
             pdfGenerator = pdfGeneratorMock,
         ).brevService.lagBrev(DummyRequest) shouldBe KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
-        verify(pdfGeneratorMock).genererPdf(DummyBrevInnhold)
+        verify(pdfGeneratorMock).genererPdf(DummyPdfInnhold)
         verifyNoMoreInteractions(pdfGeneratorMock)
     }
 
@@ -185,7 +185,7 @@ internal class BrevServiceImplTest {
 
     object DummyRequest : LagBrevRequest {
         override val person: Person = BrevServiceImplTest.person
-        override val brevInnhold: BrevInnhold = DummyBrevInnhold
+        override val pdfInnhold: PdfInnhold = DummyPdfInnhold
         override val saksnummer: Saksnummer = Saksnummer(2021)
         override fun tilDokument(
             clock: Clock,
@@ -205,7 +205,7 @@ internal class BrevServiceImplTest {
         override val dagensDato = fixedLocalDate
     }
 
-    object DummyBrevInnhold : BrevInnhold() {
+    object DummyPdfInnhold : PdfInnhold() {
         override val brevTemplate: BrevTemplate = BrevTemplate.AvslagsVedtak
     }
 

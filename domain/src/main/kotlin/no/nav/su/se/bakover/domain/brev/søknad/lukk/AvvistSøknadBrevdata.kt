@@ -1,23 +1,23 @@
 package no.nav.su.se.bakover.domain.brev.søknad.lukk
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.BrevTemplate
+import no.nav.su.se.bakover.domain.brev.PdfInnhold
 
-data class AvvistSøknadVedtakBrevInnhold(
+data class AvvistSøknadVedtakPdfInnhold(
     val personalia: Personalia,
     val saksbehandlerNavn: String,
     val fritekst: String?,
-) : BrevInnhold() {
+) : PdfInnhold() {
 
     override val brevTemplate = BrevTemplate.AvvistSøknadVedtak
 }
 
-data class AvvistSøknadFritekstBrevInnhold(
+data class AvvistSøknadFritekstPdfInnhold(
     val personalia: Personalia,
     val saksbehandlerNavn: String,
     val fritekst: String,
-) : BrevInnhold() {
+) : PdfInnhold() {
 
     override val brevTemplate = BrevTemplate.AvvistSøknadFritekst
 

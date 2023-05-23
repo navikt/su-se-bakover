@@ -5,8 +5,8 @@ import no.nav.su.se.bakover.common.extensions.ddMMyyyy
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
-import no.nav.su.se.bakover.domain.brev.BrevInnhold.Personalia
 import no.nav.su.se.bakover.domain.brev.Brevvalg
+import no.nav.su.se.bakover.domain.brev.PdfInnhold.Personalia
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.Person.Navn
 import no.nav.su.se.bakover.domain.sak.Saksnummer
@@ -43,7 +43,7 @@ internal class AvvistSøknadBrevRequestTest {
             saksbehandlerNavn = "saksbehandler",
             dagensDato = fixedLocalDate,
             saksnummer = Saksnummer(2021),
-        ).brevInnhold shouldBe AvvistSøknadVedtakBrevInnhold(
+        ).pdfInnhold shouldBe AvvistSøknadVedtakPdfInnhold(
             expectedPersonalia,
             "saksbehandler",
             null,
@@ -58,7 +58,7 @@ internal class AvvistSøknadBrevRequestTest {
             saksbehandlerNavn = "saksbehandler",
             dagensDato = fixedLocalDate,
             saksnummer = Saksnummer(2021),
-        ).brevInnhold shouldBe AvvistSøknadFritekstBrevInnhold(
+        ).pdfInnhold shouldBe AvvistSøknadFritekstPdfInnhold(
             personalia = expectedPersonalia,
             saksbehandlerNavn = "saksbehandler",
             fritekst = "jeg er fritekst",

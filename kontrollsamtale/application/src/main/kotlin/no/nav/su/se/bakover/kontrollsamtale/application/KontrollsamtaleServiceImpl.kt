@@ -172,9 +172,9 @@ class KontrollsamtaleServiceImpl(
         return brevService.lagBrev(brevRequest).map {
             Dokument.UtenMetadata.Informasjon.Viktig(
                 opprettet = Tidspunkt.now(clock),
-                tittel = brevRequest.brevInnhold.brevTemplate.tittel(),
+                tittel = brevRequest.pdfInnhold.brevTemplate.tittel(),
                 generertDokument = it,
-                generertDokumentJson = brevRequest.brevInnhold.toJson(),
+                generertDokumentJson = brevRequest.pdfInnhold.toJson(),
             ).leggTilMetadata(
                 metadata = Dokument.Metadata(sakId = sakId),
             )

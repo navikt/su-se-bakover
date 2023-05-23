@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.common.CorrelationIdHeader
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.domain.brev.BrevInnhold
+import no.nav.su.se.bakover.domain.brev.PdfInnhold
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -24,8 +24,8 @@ internal class PdfClient(private val baseUrl: String) : PdfGenerator {
         return genererPdf(objectMapper.writeValueAsString(søknadPdfInnhold), SOKNAD_TEMPLATE)
     }
 
-    override fun genererPdf(brevInnhold: BrevInnhold): Either<KunneIkkeGenererePdf, ByteArray> {
-        return genererPdf(brevInnhold.toJson(), brevInnhold.brevTemplate.template())
+    override fun genererPdf(pdfInnhold: PdfInnhold): Either<KunneIkkeGenererePdf, ByteArray> {
+        return genererPdf(pdfInnhold.toJson(), pdfInnhold.brevTemplate.template())
             .mapLeft { KunneIkkeGenererePdf }
     }
 

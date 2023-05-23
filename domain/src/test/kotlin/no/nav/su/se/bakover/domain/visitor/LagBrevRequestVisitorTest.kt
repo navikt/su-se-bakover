@@ -1222,9 +1222,9 @@ internal class LagBrevRequestVisitorTest {
         brevRequest: LagBrevRequest,
     ) {
         (dokument is T) shouldBe true
-        dokument.tittel shouldBe brevRequest.brevInnhold.brevTemplate.tittel()
+        dokument.tittel shouldBe brevRequest.pdfInnhold.brevTemplate.tittel()
         dokument.generertDokument shouldBe generertPdf
-        dokument.generertDokumentJson shouldBe brevRequest.brevInnhold.toJson()
+        dokument.generertDokumentJson shouldBe brevRequest.pdfInnhold.toJson()
     }
 
     private val person = Person(

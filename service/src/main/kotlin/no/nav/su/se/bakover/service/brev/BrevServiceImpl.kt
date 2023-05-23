@@ -5,12 +5,12 @@ import arrow.core.flatMap
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrevRequest
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.brev.PdfInnhold
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
@@ -38,7 +38,7 @@ class BrevServiceImpl(
 ) : BrevService {
 
     override fun lagBrev(request: LagBrevRequest): Either<KunneIkkeLageBrev, ByteArray> {
-        return lagPdf(request.brevInnhold)
+        return lagPdf(request.pdfInnhold)
     }
 
     override fun lagDokument(request: LagBrevRequest): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
@@ -71,8 +71,8 @@ class BrevServiceImpl(
         }
     }
 
-    private fun lagPdf(brevInnhold: BrevInnhold): Either<KunneIkkeLageBrev, ByteArray> {
-        return pdfGenerator.genererPdf(brevInnhold).mapLeft { KunneIkkeLageBrev.KunneIkkeGenererePDF }.map { it }
+    private fun lagPdf(pdfInnhold: PdfInnhold): Either<KunneIkkeLageBrev, ByteArray> {
+        return pdfGenerator.genererPdf(pdfInnhold).mapLeft { KunneIkkeLageBrev.KunneIkkeGenererePDF }.map { it }
     }
 
     override fun lagDokument(visitable: Visitable<LagBrevRequestVisitor>): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {

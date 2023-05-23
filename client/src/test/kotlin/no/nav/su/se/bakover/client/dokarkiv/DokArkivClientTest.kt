@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
-import no.nav.su.se.bakover.test.brev.brevInnholdInnvilgetVedtak
+import no.nav.su.se.bakover.test.brev.pdfInnholdInnvilgetVedtak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
@@ -40,7 +40,7 @@ internal class DokArkivClientTest : WiremockBase {
         søknadInnhold = søknadInnhold,
         clock = fixedClock,
     )
-    private val vedtakInnhold = brevInnholdInnvilgetVedtak()
+    private val vedtakInnhold = pdfInnholdInnvilgetVedtak()
 
     private val pdf = PdfGeneratorStub.genererPdf(søknadPdfInnhold).getOrFail()
     private val fnr = søknadInnhold.personopplysninger.fnr
@@ -228,7 +228,7 @@ internal class DokArkivClientTest : WiremockBase {
             Journalpost.Vedtakspost.from(
                 person = person,
                 saksnummer = Saksnummer(saksnummer),
-                brevInnhold = brevInnholdInnvilgetVedtak(),
+                pdfInnhold = pdfInnholdInnvilgetVedtak(),
                 pdf = pdf,
                 sakstype = Sakstype.UFØRE,
             ),

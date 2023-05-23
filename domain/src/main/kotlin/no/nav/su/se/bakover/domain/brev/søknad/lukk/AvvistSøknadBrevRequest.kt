@@ -19,14 +19,14 @@ data class AvvistSøknadBrevRequest(
     override val dagensDato: LocalDate,
     override val saksnummer: Saksnummer,
 ) : LagBrevRequest {
-    override val brevInnhold = when (brevvalg) {
-        is Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst -> AvvistSøknadFritekstBrevInnhold(
+    override val pdfInnhold = when (brevvalg) {
+        is Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst -> AvvistSøknadFritekstPdfInnhold(
             personalia = lagPersonalia(),
             saksbehandlerNavn = saksbehandlerNavn,
             fritekst = brevvalg.fritekst,
         )
 
-        is Brevvalg.SaksbehandlersValg.SkalSendeBrev.VedtaksbrevUtenFritekst -> AvvistSøknadVedtakBrevInnhold(
+        is Brevvalg.SaksbehandlersValg.SkalSendeBrev.VedtaksbrevUtenFritekst -> AvvistSøknadVedtakPdfInnhold(
             personalia = lagPersonalia(),
             saksbehandlerNavn = saksbehandlerNavn,
             fritekst = null,

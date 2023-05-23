@@ -5,7 +5,7 @@ import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
-import no.nav.su.se.bakover.domain.brev.BrevInnhold
+import no.nav.su.se.bakover.domain.brev.PdfInnhold
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Saksnummer
@@ -74,12 +74,12 @@ internal class JournalpostFactoryTest {
 
     private fun assert(
         journalpost: Journalpost,
-        brevInnhold: BrevInnhold,
+        pdfInnhold: PdfInnhold,
         dokumentKategori: DokumentKategori,
     ) = assertJournalpost(
         journalpost = journalpost,
-        tittel = brevInnhold.brevTemplate.tittel(),
-        originalJson = brevInnhold.toJson(),
+        tittel = pdfInnhold.brevTemplate.tittel(),
+        originalJson = pdfInnhold.toJson(),
         dokumentKategori = dokumentKategori,
     )
 

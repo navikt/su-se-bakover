@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.domain.sak.Sakstype
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
-class AvslagsBrevInnholdTest {
-    private val personalia = BrevInnhold.Personalia(
+class AvslagsPdfInnholdTest {
+    private val personalia = PdfInnhold.Personalia(
         dato = "01.01.2020",
         fødselsnummer = Fnr("12345678901"),
         fornavn = "Tore",
@@ -18,7 +18,7 @@ class AvslagsBrevInnholdTest {
         saksnummer = 2021,
     )
 
-    private val avslagsvedtak = BrevInnhold.AvslagsBrevInnhold(
+    private val avslagsvedtak = PdfInnhold.AvslagsPdfInnhold(
         personalia = personalia,
         avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING),
         harEktefelle = false,

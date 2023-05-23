@@ -33,7 +33,7 @@ import java.util.UUID
  */
 interface LagBrevRequest {
     val person: Person
-    val brevInnhold: BrevInnhold
+    val pdfInnhold: PdfInnhold
     val dagensDato: LocalDate
     val saksnummer: Saksnummer
 
@@ -47,9 +47,9 @@ interface LagBrevRequest {
         genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>,
     ): Either<KunneIkkeGenererePdf, Triple<String, ByteArray, String>> {
         return Triple(
-            first = brevInnhold.brevTemplate.tittel(),
+            first = pdfInnhold.brevTemplate.tittel(),
             second = genererPdf(this).getOrElse { return KunneIkkeGenererePdf.left() },
-            third = brevInnhold.toJson(),
+            third = pdfInnhold.toJson(),
         ).right()
     }
 
@@ -70,7 +70,7 @@ interface LagBrevRequest {
         private val satsoversikt: Satsoversikt,
         private val sakstype: Sakstype,
     ) : LagBrevRequest {
-        override val brevInnhold = BrevInnhold.InnvilgetVedtak(
+        override val pdfInnhold = PdfInnhold.InnvilgetVedtak(
             personalia = lagPersonalia(),
             fradato = beregning.periode.fraOgMed.formatMonthYear(),
             tildato = beregning.periode.tilOgMed.formatMonthYear(),
@@ -112,7 +112,7 @@ interface LagBrevRequest {
         private val satsoversikt: Satsoversikt?,
         private val sakstype: Sakstype,
     ) : LagBrevRequest {
-        override val brevInnhold = BrevInnhold.AvslagsBrevInnhold(
+        override val pdfInnhold = PdfInnhold.AvslagsPdfInnhold(
             personalia = lagPersonalia(),
             avslagsgrunner = avslag.avslagsgrunner,
             harEktefelle = avslag.harEktefelle,
@@ -175,7 +175,7 @@ interface LagBrevRequest {
         private val satsoversikt: Satsoversikt,
         private val halvtGrunnbeløp: Int,
     ) : LagBrevRequest, Opphør {
-        override val brevInnhold = BrevInnhold.Opphørsvedtak(
+        override val pdfInnhold = PdfInnhold.Opphørsvedtak(
             personalia = lagPersonalia(),
             opphørsgrunner = opphørsgrunner,
             avslagsparagrafer = opphørsgrunner.getDistinkteParagrafer(),
@@ -221,7 +221,7 @@ interface LagBrevRequest {
         override val dagensDato: LocalDate,
         override val saksnummer: Saksnummer,
     ) : LagBrevRequest {
-        override val brevInnhold = BrevInnhold.Forhåndsvarsel(
+        override val pdfInnhold = PdfInnhold.Forhåndsvarsel(
             personalia = lagPersonalia(),
             saksbehandlerNavn = saksbehandlerNavn,
             fritekst = fritekst,
@@ -252,7 +252,7 @@ interface LagBrevRequest {
         private val bruttoTilbakekreving: Int,
         private val tilbakekreving: Tilbakekreving,
     ) : LagBrevRequest {
-        override val brevInnhold = BrevInnhold.ForhåndsvarselTilbakekreving(
+        override val pdfInnhold = PdfInnhold.ForhåndsvarselTilbakekreving(
             personalia = lagPersonalia(),
             saksbehandlerNavn = saksbehandlerNavn,
             fritekst = fritekst,
@@ -290,7 +290,7 @@ interface LagBrevRequest {
         override val dagensDato: LocalDate,
         override val saksnummer: Saksnummer,
     ) : LagBrevRequest {
-        override val brevInnhold: BrevInnhold = BrevInnhold.AvsluttRevurdering(
+        override val pdfInnhold: PdfInnhold = PdfInnhold.AvsluttRevurdering(
             personalia = lagPersonalia(),
             saksbehandlerNavn = saksbehandlerNavn,
             fritekst = fritekst,
@@ -336,7 +336,7 @@ interface LagBrevRequest {
         override val saksnummer: Saksnummer,
         private val satsoversikt: Satsoversikt,
     ) : LagBrevRequest, Revurdering {
-        override val brevInnhold = BrevInnhold.RevurderingAvInntekt(
+        override val pdfInnhold = PdfInnhold.RevurderingAvInntekt(
             personalia = lagPersonalia(),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
@@ -368,7 +368,7 @@ interface LagBrevRequest {
         private val tilbakekreving: Tilbakekreving,
         private val satsoversikt: Satsoversikt,
     ) : LagBrevRequest, Revurdering by ordinærtRevurderingBrev {
-        override val brevInnhold: BrevInnhold = BrevInnhold.RevurderingMedTilbakekrevingAvPenger(
+        override val pdfInnhold: PdfInnhold = PdfInnhold.RevurderingMedTilbakekrevingAvPenger(
             personalia = lagPersonalia(),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
@@ -407,7 +407,7 @@ interface LagBrevRequest {
         override val dagensDato: LocalDate,
         override val saksnummer: Saksnummer,
     ) : LagBrevRequest {
-        override val brevInnhold = BrevInnhold.InnkallingTilKontrollsamtale(
+        override val pdfInnhold = PdfInnhold.InnkallingTilKontrollsamtale(
             personalia = lagPersonalia(),
         )
 
@@ -437,7 +437,7 @@ interface LagBrevRequest {
             val vedtaksbrevDato: LocalDate,
             override val saksnummer: Saksnummer,
         ) : Klage() {
-            override val brevInnhold: BrevInnhold = BrevInnhold.Klage.Oppretthold(
+            override val pdfInnhold: PdfInnhold = PdfInnhold.Klage.Oppretthold(
                 personalia = lagPersonalia(),
                 saksbehandlerNavn = saksbehandlerNavn,
                 fritekst = fritekst,
@@ -469,7 +469,7 @@ interface LagBrevRequest {
             val fritekst: String,
             override val saksnummer: Saksnummer,
         ) : Klage() {
-            override val brevInnhold: BrevInnhold = BrevInnhold.Klage.Avvist(
+            override val pdfInnhold: PdfInnhold = PdfInnhold.Klage.Avvist(
                 personalia = lagPersonalia(),
                 saksbehandlerNavn = saksbehandlerNavn,
                 fritekst = fritekst,
@@ -500,7 +500,7 @@ interface LagBrevRequest {
         val utløpsdato: LocalDate,
         val halvtGrunnbeløp: Int,
     ) : LagBrevRequest {
-        override val brevInnhold = BrevInnhold.PåminnelseNyStønadsperiode(
+        override val pdfInnhold = PdfInnhold.PåminnelseNyStønadsperiode(
             personalia = lagPersonalia(),
             utløpsdato = utløpsdato.ddMMyyyy(),
             halvtGrunnbeløp = halvtGrunnbeløp,
@@ -530,7 +530,7 @@ interface LagBrevRequest {
         val brevTittel: String,
         val fritekst: String,
     ) : LagBrevRequest {
-        override val brevInnhold: BrevInnhold = BrevInnhold.Fritekst(
+        override val pdfInnhold: PdfInnhold = PdfInnhold.Fritekst(
             personalia = lagPersonalia(),
             saksbehandlerNavn = saksbehandlerNavn,
             tittel = brevTittel,
@@ -556,7 +556,7 @@ interface LagBrevRequest {
 }
 
 fun LagBrevRequest.lagPersonalia() = this.person.let {
-    BrevInnhold.Personalia(
+    PdfInnhold.Personalia(
         dato = dagensDato.ddMMyyyy(),
         fødselsnummer = it.ident.fnr,
         fornavn = it.navn.fornavn,

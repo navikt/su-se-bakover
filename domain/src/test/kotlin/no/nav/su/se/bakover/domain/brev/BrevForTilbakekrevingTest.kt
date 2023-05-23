@@ -289,7 +289,7 @@ class BrevForTilbakekrevingTest {
                         visitor.brevRequest.getOrFail()
                     },
                 )
-                bruttobrev.brevInnhold.shouldBeType<BrevInnhold.RevurderingMedTilbakekrevingAvPenger>()
+                bruttobrev.pdfInnhold.shouldBeType<PdfInnhold.RevurderingMedTilbakekrevingAvPenger>()
                     .also { innhold ->
                         innhold.tilbakekreving.sumOf { BigDecimal(it.beløp.trimWhitespace()).intValueExact() } shouldBe 6 * 5000 // jan-juni * 5000
                     }
@@ -300,7 +300,7 @@ class BrevForTilbakekrevingTest {
                         Månedsbeløp(it)
                     },
                 )
-                nettobrev.brevInnhold.shouldBeType<BrevInnhold.RevurderingMedTilbakekrevingAvPenger>().also {
+                nettobrev.pdfInnhold.shouldBeType<PdfInnhold.RevurderingMedTilbakekrevingAvPenger>().also {
                     it.tilbakekreving.sumOf { BigDecimal(it.beløp.trimWhitespace()).intValueExact() } shouldBe 6 * 3456 // jan-juni * 3456
                 }
             }
