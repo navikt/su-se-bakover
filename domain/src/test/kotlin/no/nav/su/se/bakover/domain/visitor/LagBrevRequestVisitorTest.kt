@@ -1222,7 +1222,7 @@ internal class LagBrevRequestVisitorTest {
         brevRequest: LagBrevRequest,
     ) {
         (dokument is T) shouldBe true
-        dokument.tittel shouldBe brevRequest.pdfInnhold.brevTemplate.tittel()
+        dokument.tittel shouldBe brevRequest.pdfInnhold.pdfTemplate.tittel()
         dokument.generertDokument shouldBe generertPdf
         dokument.generertDokumentJson shouldBe brevRequest.pdfInnhold.toJson()
     }

@@ -114,11 +114,11 @@ sealed class Journalpost {
                 person = person,
                 saksnummer = saksnummer,
                 dokumenter = lagDokumenter(
-                    tittel = pdfInnhold.brevTemplate.tittel(),
+                    tittel = pdfInnhold.pdfTemplate.tittel(),
                     pdf = pdf,
                     originalJson = pdfInnhold.toJson(),
                 ),
-                tittel = pdfInnhold.brevTemplate.tittel(),
+                tittel = pdfInnhold.pdfTemplate.tittel(),
                 sakstype = sakstype,
             )
 
@@ -183,11 +183,11 @@ sealed class Journalpost {
                 person = person,
                 saksnummer = saksnummer,
                 dokumenter = lagDokumenter(
-                    tittel = pdfInnhold.brevTemplate.tittel(),
+                    tittel = pdfInnhold.pdfTemplate.tittel(),
                     pdf = pdf,
                     originalJson = pdfInnhold.toJson(),
                 ),
-                tittel = pdfInnhold.brevTemplate.tittel(),
+                tittel = pdfInnhold.pdfTemplate.tittel(),
                 sakstype = sakstype,
             )
 

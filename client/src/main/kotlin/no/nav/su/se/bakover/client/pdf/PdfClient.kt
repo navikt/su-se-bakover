@@ -25,7 +25,7 @@ internal class PdfClient(private val baseUrl: String) : PdfGenerator {
     }
 
     override fun genererPdf(pdfInnhold: PdfInnhold): Either<KunneIkkeGenererePdf, ByteArray> {
-        return genererPdf(pdfInnhold.toJson(), pdfInnhold.brevTemplate.template())
+        return genererPdf(pdfInnhold.toJson(), pdfInnhold.pdfTemplate.template())
             .mapLeft { KunneIkkeGenererePdf }
     }
 

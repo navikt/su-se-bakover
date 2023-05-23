@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.brev.søknad.lukk
 
 import no.nav.su.se.bakover.common.extensions.ddMMyyyy
-import no.nav.su.se.bakover.domain.brev.BrevTemplate
 import no.nav.su.se.bakover.domain.brev.PdfInnhold
+import no.nav.su.se.bakover.domain.brev.PdfTemplate
 import java.time.LocalDate
 
 data class TrukketSøknadPdfInnhold private constructor(
@@ -11,7 +11,7 @@ data class TrukketSøknadPdfInnhold private constructor(
     val trukketDato: String,
     val saksbehandlerNavn: String,
 ) : PdfInnhold() {
-    override val brevTemplate: BrevTemplate = BrevTemplate.TrukketSøknad
+    override val pdfTemplate: PdfTemplate = PdfTemplate.TrukketSøknad
 
     constructor(
         personalia: Personalia,

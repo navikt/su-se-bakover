@@ -78,7 +78,7 @@ internal class JournalpostFactoryTest {
         dokumentKategori: DokumentKategori,
     ) = assertJournalpost(
         journalpost = journalpost,
-        tittel = pdfInnhold.brevTemplate.tittel(),
+        tittel = pdfInnhold.pdfTemplate.tittel(),
         originalJson = pdfInnhold.toJson(),
         dokumentKategori = dokumentKategori,
     )

@@ -20,7 +20,7 @@ abstract class PdfInnhold {
     fun toJson(): String = objectMapper.writeValueAsString(this)
 
     @get:JsonIgnore
-    abstract val brevTemplate: BrevTemplate
+    abstract val pdfTemplate: PdfTemplate
     // TODO CHM 05.05.2021: Se på å samle mer av det som er felles for brevinnholdene, f.eks. personalia
 
     // TODO ØH 21.06.2022: Denne bør være abstract på sikt, og settes for alle brev eksplisitt
@@ -52,7 +52,7 @@ abstract class PdfInnhold {
         @JsonInclude
         val avslagsparagrafer: List<Int> = avslagsgrunner.getDistinkteParagrafer()
 
-        override val brevTemplate: BrevTemplate = BrevTemplate.AvslagsVedtak
+        override val pdfTemplate: PdfTemplate = PdfTemplate.AvslagsVedtak
     }
 
     data class InnvilgetVedtak(
@@ -68,7 +68,7 @@ abstract class PdfInnhold {
         val satsoversikt: Satsoversikt,
         override val sakstype: Sakstype,
     ) : PdfInnhold() {
-        override val brevTemplate: BrevTemplate = BrevTemplate.InnvilgetVedtak
+        override val pdfTemplate: PdfTemplate = PdfTemplate.InnvilgetVedtak
 
         @Suppress("unused")
         @JsonInclude
@@ -94,7 +94,7 @@ abstract class PdfInnhold {
         val avkortingsBeløp: Int?,
         val satsoversikt: Satsoversikt,
     ) : PdfInnhold() {
-        override val brevTemplate: BrevTemplate = BrevTemplate.Opphør.Opphørsvedtak
+        override val pdfTemplate: PdfTemplate = PdfTemplate.Opphør.Opphørsvedtak
 
         @Suppress("unused")
         @JsonInclude
@@ -123,7 +123,7 @@ abstract class PdfInnhold {
         val forventetInntektStørreEnn0: Boolean,
         val satsoversikt: Satsoversikt,
     ) : PdfInnhold() {
-        override val brevTemplate = BrevTemplate.Revurdering.Inntekt
+        override val pdfTemplate = PdfTemplate.Revurdering.Inntekt
 
         @Suppress("unused")
         @JsonInclude
@@ -147,7 +147,7 @@ abstract class PdfInnhold {
         val periodeSlutt: String,
         val satsoversikt: Satsoversikt,
     ) : PdfInnhold() {
-        override val brevTemplate = BrevTemplate.Revurdering.MedTilbakekreving
+        override val pdfTemplate = PdfTemplate.Revurdering.MedTilbakekreving
 
         @Suppress("unused")
         @JsonInclude
@@ -163,7 +163,7 @@ abstract class PdfInnhold {
         val saksbehandlerNavn: String,
         val fritekst: String,
     ) : PdfInnhold() {
-        override val brevTemplate = BrevTemplate.Forhåndsvarsel
+        override val pdfTemplate = PdfTemplate.Forhåndsvarsel
     }
 
     data class ForhåndsvarselTilbakekreving(
@@ -176,7 +176,7 @@ abstract class PdfInnhold {
         val periodeSlutt: String,
         val dato: String,
     ) : PdfInnhold() {
-        override val brevTemplate = BrevTemplate.ForhåndsvarselTilbakekreving
+        override val pdfTemplate = PdfTemplate.ForhåndsvarselTilbakekreving
     }
 
     /**
@@ -188,13 +188,13 @@ abstract class PdfInnhold {
         val saksbehandlerNavn: String,
         val fritekst: String?,
     ) : PdfInnhold() {
-        override val brevTemplate = BrevTemplate.Revurdering.AvsluttRevurdering
+        override val pdfTemplate = PdfTemplate.Revurdering.AvsluttRevurdering
     }
 
     data class InnkallingTilKontrollsamtale(
         val personalia: Personalia,
     ) : PdfInnhold() {
-        override val brevTemplate = BrevTemplate.InnkallingTilKontrollsamtale
+        override val pdfTemplate = PdfTemplate.InnkallingTilKontrollsamtale
     }
 
     data class PåminnelseNyStønadsperiode(
@@ -202,7 +202,7 @@ abstract class PdfInnhold {
         val utløpsdato: String,
         val halvtGrunnbeløp: Int,
     ) : PdfInnhold() {
-        override val brevTemplate = BrevTemplate.PåminnelseNyStønadsperiode
+        override val pdfTemplate = PdfTemplate.PåminnelseNyStønadsperiode
     }
 
     sealed class Klage : PdfInnhold() {
@@ -215,7 +215,7 @@ abstract class PdfInnhold {
             val vedtakDato: String,
             val saksnummer: Long,
         ) : Klage() {
-            override val brevTemplate = BrevTemplate.Klage.Oppretthold
+            override val pdfTemplate = PdfTemplate.Klage.Oppretthold
         }
 
         data class Avvist(
@@ -224,7 +224,7 @@ abstract class PdfInnhold {
             val fritekst: String,
             val saksnummer: Long,
         ) : Klage() {
-            override val brevTemplate = BrevTemplate.Klage.Avvist
+            override val pdfTemplate = PdfTemplate.Klage.Avvist
         }
     }
 
@@ -234,7 +234,7 @@ abstract class PdfInnhold {
         val tittel: String,
         val fritekst: String,
     ) : PdfInnhold() {
-        override val brevTemplate: BrevTemplate = BrevTemplate.Fritekst(tittel)
+        override val pdfTemplate: PdfTemplate = PdfTemplate.Fritekst(tittel)
     }
 }
 

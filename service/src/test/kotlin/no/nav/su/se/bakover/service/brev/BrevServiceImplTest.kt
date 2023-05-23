@@ -11,11 +11,11 @@ import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.brev.BrevTemplate
 import no.nav.su.se.bakover.domain.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.PdfInnhold
+import no.nav.su.se.bakover.domain.brev.PdfTemplate
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
@@ -206,7 +206,7 @@ internal class BrevServiceImplTest {
     }
 
     object DummyPdfInnhold : PdfInnhold() {
-        override val brevTemplate: BrevTemplate = BrevTemplate.AvslagsVedtak
+        override val pdfTemplate: PdfTemplate = PdfTemplate.AvslagsVedtak
     }
 
     private data class ServiceOgMocks(

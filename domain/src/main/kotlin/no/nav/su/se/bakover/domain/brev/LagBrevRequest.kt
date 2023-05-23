@@ -47,7 +47,7 @@ interface LagBrevRequest {
         genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>,
     ): Either<KunneIkkeGenererePdf, Triple<String, ByteArray, String>> {
         return Triple(
-            first = pdfInnhold.brevTemplate.tittel(),
+            first = pdfInnhold.pdfTemplate.tittel(),
             second = genererPdf(this).getOrElse { return KunneIkkeGenererePdf.left() },
             third = pdfInnhold.toJson(),
         ).right()

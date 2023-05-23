@@ -17,8 +17,8 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.brev.BrevService
-import no.nav.su.se.bakover.domain.brev.BrevTemplate
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.brev.PdfTemplate
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.jobcontext.NameAndYearMonthId
@@ -96,7 +96,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                     Dokument.UtenMetadata.Informasjon.Viktig(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(desemberClock),
-                        tittel = BrevTemplate.PåminnelseNyStønadsperiode.tittel(),
+                        tittel = PdfTemplate.PåminnelseNyStønadsperiode.tittel(),
                         generertDokument = "pdf".toByteArray(),
                         generertDokumentJson = "{}",
                     ).right(),
@@ -151,7 +151,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
 
             verify(serviceAndMocks.brevService).lagreDokument(
                 dokument = argThat {
-                    it.tittel shouldBe BrevTemplate.PåminnelseNyStønadsperiode.tittel()
+                    it.tittel shouldBe PdfTemplate.PåminnelseNyStønadsperiode.tittel()
                     it.metadata shouldBe Dokument.Metadata(
                         sakId = sak1.id,
                     )
@@ -197,7 +197,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                     Dokument.UtenMetadata.Informasjon.Viktig(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(desemberClock),
-                        tittel = BrevTemplate.PåminnelseNyStønadsperiode.tittel(),
+                        tittel = PdfTemplate.PåminnelseNyStønadsperiode.tittel(),
                         generertDokument = "pdf".toByteArray(),
                         generertDokumentJson = "{}",
                     ).right(),
@@ -322,7 +322,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                     Dokument.UtenMetadata.Informasjon.Viktig(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(juliClock),
-                        tittel = BrevTemplate.PåminnelseNyStønadsperiode.tittel(),
+                        tittel = PdfTemplate.PåminnelseNyStønadsperiode.tittel(),
                         generertDokument = "pdf".toByteArray(),
                         generertDokumentJson = "{}",
                     ).right(),
