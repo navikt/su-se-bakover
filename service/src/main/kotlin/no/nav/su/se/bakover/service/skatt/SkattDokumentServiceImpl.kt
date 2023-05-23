@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.brev.PdfInnhold
+import no.nav.su.se.bakover.domain.dokument.PdfA
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
@@ -86,7 +87,7 @@ class SkattDokumentServiceImpl(
                 vedtakid = vedtak.id,
                 generertDokument = pdfGenerator.genererPdf(it).getOrElse {
                     return KunneIkkeGenerereSkattedokument.FeilVedGenereringAvDokument.left()
-                },
+                }.let { PdfA(it) },
                 dokumentJson = it.toJson(),
             ).right()
         }

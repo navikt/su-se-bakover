@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.test.skatt
 
 import no.nav.su.se.bakover.common.journal.JournalpostId
+import no.nav.su.se.bakover.domain.dokument.PdfA
 import no.nav.su.se.bakover.domain.skatt.Skattedokument
 import java.util.UUID
 
@@ -10,7 +11,7 @@ fun nySkattedokumentGenerert(
     epsSkatteId: UUID? = UUID.randomUUID(),
     sakId: UUID = UUID.randomUUID(),
     vedtakId: UUID = UUID.randomUUID(),
-    generertDokument: ByteArray = "jeg er en pdf".toByteArray(),
+    generertDokument: PdfA = PdfA("jeg er en pdf".toByteArray()),
     dokumentJson: String = """{"key": "value"}""",
 ): Skattedokument.Generert = Skattedokument.Generert(
     id = id,
@@ -28,7 +29,7 @@ fun nySkattedokumentJournalført(
     epsSkatteId: UUID = UUID.randomUUID(),
     sakId: UUID = UUID.randomUUID(),
     vedtakId: UUID = UUID.randomUUID(),
-    generertDokument: ByteArray = "jeg er en pdf".toByteArray(),
+    generertDokument: PdfA = PdfA("jeg er en pdf".toByteArray()),
     dokumentJson: String = """{"key": "value"}""",
     journalpostId: JournalpostId = JournalpostId("123"),
 ): Skattedokument.Journalført = Skattedokument.Journalført(

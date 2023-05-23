@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.domain.dokument.PdfA
 import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
 import no.nav.su.se.bakover.domain.skatt.Skattedokument
 import org.slf4j.Logger
@@ -57,7 +58,7 @@ data class DokumentSkattPostgresRepo(
         """.trimIndent().insert(
             mapOf(
                 "id" to dok.id,
-                "generertDok" to dok.generertDokument,
+                "generertDok" to dok.generertDokument.getContent(),
                 "dokumentjson" to dok.dokumentJson,
                 "sakId" to dok.sakid,
                 "sokers" to dok.søkersSkatteId,
@@ -119,7 +120,7 @@ data class DokumentSkattPostgresRepo(
             epsSkatteId = eps,
             sakid = sakId,
             vedtakid = vedtakId,
-            generertDokument = generertDokument,
+            generertDokument = PdfA(generertDokument),
             dokumentJson = dokumentJson,
         )
 

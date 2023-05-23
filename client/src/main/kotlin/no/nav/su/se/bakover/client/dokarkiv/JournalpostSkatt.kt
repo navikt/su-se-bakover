@@ -33,7 +33,7 @@ data class JournalpostSkatt(
             tittel = this.dokumentTittel,
             dokumenter = lagDokumenterForJournalpost(
                 tittel = this.dokumentTittel,
-                pdf = this.generertDokument,
+                pdf = this.generertDokument.getContent(),
                 originalJson = this.dokumentJson,
             ),
         )

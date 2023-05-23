@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.dokument.PdfA
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -1534,7 +1535,7 @@ class TestDataHelper(
 
     fun persisterSkattedokumentGenerert(
         id: UUID = UUID.randomUUID(),
-        generertDokument: ByteArray = "jeg er en pdf".toByteArray(),
+        generertDokument: PdfA = PdfA("jeg er en pdf".toByteArray()),
         dokumentJson: String = """{"key": "value"}""",
     ): Skattedokument.Generert {
         return persisterSøknadsbehandlingIverksatt().let {
