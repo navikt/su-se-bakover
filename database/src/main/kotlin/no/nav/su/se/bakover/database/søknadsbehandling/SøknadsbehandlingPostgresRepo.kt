@@ -469,7 +469,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 )
             }
 
-            else -> { /*noop*/
+            else -> {
+                /*noop*/
             }
         }
     }

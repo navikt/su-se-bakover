@@ -59,8 +59,8 @@ object OppgavebeskrivelseMapper {
 
     private fun KlageinstansUtfall.LukkBeskrivelse() = when (this) {
         /*
-        * Informasjonsoppgaver som må lukkes manuelt.
-        * */
+         * Informasjonsoppgaver som må lukkes manuelt.
+         * */
         KlageinstansUtfall.STADFESTELSE,
         KlageinstansUtfall.TRUKKET,
         KlageinstansUtfall.AVVIST,

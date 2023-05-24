@@ -16,12 +16,14 @@ data class UtenlandsResponseJsonData(
 fun utenlandsoppholdResponseJson(
     antallDagerTotal: Long = 157,
     elements: List<UtenlandsResponseJsonData> = emptyList(),
-) = /* language=JSON */ """
+): String {
+    // language=JSON
+    return """
 {
   "utenlandsopphold":[
     ${
-    elements.joinToString {
-        """
+        elements.joinToString {
+            """
     {
       "periode":{
         "fraOgMed":"${it.fraOgMed}",
@@ -38,10 +40,11 @@ fun utenlandsoppholdResponseJson(
       "antallDager":${it.antallDagerForPeriode},
       "erAnnullert":${it.erAnnullert}
     }
-        """.trimIndent()
+            """.trimIndent()
+        }
     }
-}
   ],
   "antallDager":$antallDagerTotal
 }
-""".trimIndent()
+    """.trimIndent()
+}
