@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.jobs.shouldRun
 import no.nav.su.se.bakover.service.dokument.DokumentService
+import no.nav.su.se.bakover.service.journalføring.JournalføringService
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
 import java.net.InetAddress
@@ -13,7 +14,7 @@ import kotlin.concurrent.fixedRateTimer
 
 /**
  * Jobb som med jevne mellomrom sjekker om det eksisterer dokumenter med behov for journalføring.
- *  For eksempel
+ *  eksempel dokumenter
  *  [no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon],
  *  [no.nav.su.se.bakover.domain.skatt.Skattedokument]
  */
@@ -21,7 +22,7 @@ internal class JournalførDokumentJob(
     private val initialDelay: Duration,
     private val periode: Duration,
     private val runCheckFactory: RunCheckFactory,
-    private val dokumentService: DokumentService,
+    private val journalføringService: JournalføringService
 ) {
     private val jobName = "Journalfør dokumenter"
     private val hostName = InetAddress.getLocalHost().hostName
@@ -41,7 +42,7 @@ internal class JournalførDokumentJob(
                 listOf(runCheckFactory.leaderPod()).shouldRun().ifTrue {
                     withCorrelationId {
                         log.debug("Kjører skeduleringsjobb '$jobName'")
-                        dokumentService.journalførDokumenter()
+                        journalføringService.journalfør()
                         log.debug("Fullførte skeduleringsjobb '$jobName'")
                     }
                 }

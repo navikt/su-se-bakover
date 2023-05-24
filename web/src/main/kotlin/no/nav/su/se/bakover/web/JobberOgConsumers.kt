@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs.KontrollsamtaleinnkallingJob
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs.StansYtelseVedManglendeOppmøteKontrollsamtaleJob
 import no.nav.su.se.bakover.service.dokument.DokumentServiceImpl
+import no.nav.su.se.bakover.service.journalføring.JournalføringServiceImpl
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.web.services.SendPåminnelseNyStønadsperiodeJob
 import no.nav.su.se.bakover.web.services.Services
@@ -72,12 +73,8 @@ fun startJobberOgConsumers(
 
     )
     val dokumentService = DokumentServiceImpl(
-        sakService = services.sak,
-        dokumentRepo = databaseRepos.dokumentRepo,
-        dokumentSkattRepo = databaseRepos.dokumentSkattRepo,
         dokDistFordeling = clients.dokDistFordeling,
-        personService = services.person,
-        dokArkiv = clients.dokArkiv,
+        dokumentRepo = databaseRepos.dokumentRepo,
     )
 
     if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {

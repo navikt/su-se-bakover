@@ -8,7 +8,6 @@ import org.slf4j.Logger
 import java.util.UUID
 
 interface DokumentService {
-    fun journalførDokumenter()
     fun distribuer()
 }
 

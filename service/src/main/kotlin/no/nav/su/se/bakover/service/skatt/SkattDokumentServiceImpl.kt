@@ -98,10 +98,6 @@ class SkattDokumentServiceImpl(
         }
     }
 
-    override fun lagre(skattedokument: Skattedokument) {
-        dokumentSkattRepo.lagre(skattedokument)
-    }
-
     override fun lagre(skattedokument: Skattedokument, txc: TransactionContext) {
         dokumentSkattRepo.lagre(skattedokument, txc)
     }

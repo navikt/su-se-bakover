@@ -287,12 +287,8 @@ internal class DokumentServiceTest {
         val sakInfo: SakInfo = sakinfo,
     ) {
         val dokumentService = DokumentServiceImpl(
-            sakService = sakService,
-            dokumentRepo = dokumentRepo,
-            dokumentSkattRepo = dokumentSkattRepo,
             dokDistFordeling = dokDistFordeling,
-            personService = personService,
-            dokArkiv = dokArkiv,
+            dokumentRepo = dokumentRepo,
         )
 
         fun verifyNoMoreInteraction() {
