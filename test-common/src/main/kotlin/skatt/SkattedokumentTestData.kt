@@ -34,13 +34,13 @@ fun nySkattedokumentJournalført(
     journalpostId: JournalpostId = JournalpostId("123"),
 ): Skattedokument.Journalført = Skattedokument.Journalført(
     generert = nySkattedokumentGenerert(
-        id,
-        søkersSkatteId,
-        epsSkatteId,
-        sakId,
-        vedtakId,
-        generertDokument,
-        dokumentJson,
+        id = id,
+        søkersSkatteId = søkersSkatteId,
+        epsSkatteId = epsSkatteId,
+        sakId = sakId,
+        vedtakId = vedtakId,
+        generertDokument = generertDokument,
+        dokumentJson = dokumentJson,
     ),
     journalpostid = journalpostId,
 )

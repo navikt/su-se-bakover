@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.database.skatt.DokumentSkattPostgresRepo
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
@@ -24,11 +23,12 @@ import java.time.Clock
 import java.util.UUID
 
 internal class DokumentPostgresRepo(
-    private val dokumentSkatt: DokumentSkattPostgresRepo,
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
     private val clock: Clock,
 ) : DokumentRepo {
+
+    private val henterDokumenterLimit = 10
 
     private val joinDokumentOgDistribusjonQuery =
         "select d.*, dd.journalpostid, dd.brevbestillingid from dokument d left join dokument_distribusjon dd on dd.dokumentid = d.id where d.duplikatAv is null"
@@ -167,6 +167,9 @@ internal class DokumentPostgresRepo(
         }
     }
 
+    /**
+     * Henter max antall dokumenter basert på [henterDokumenterLimit]
+     */
     override fun hentDokumenterForDistribusjon(): List<Dokumentdistribusjon> {
         return dbMetrics.timeQuery("hentDokumenterForDistribusjon") {
             sessionFactory.withSession { session ->
@@ -174,15 +177,18 @@ internal class DokumentPostgresRepo(
                 select * from dokument_distribusjon
                 where brevbestillingId is null
                 order by opprettet asc
-                limit 10
+                limit :limit
                 """.trimIndent()
-                    .hentListe(emptyMap(), session) {
+                    .hentListe(mapOf("limit" to henterDokumenterLimit), session) {
                         it.toDokumentdistribusjon(session)
                     }
             }
         }
     }
 
+    /**
+     * Henter max antall dokumenter basert på [henterDokumenterLimit]
+     */
     override fun hentDokumenterForJournalføring(): List<Dokumentdistribusjon> {
         return dbMetrics.timeQuery("hentDokumenterForJournalføring") {
             sessionFactory.withSession { session ->
@@ -190,8 +196,8 @@ internal class DokumentPostgresRepo(
                 select * from dokument_distribusjon
                 where journalpostId is null
                 order by opprettet asc
-                limit 10
-                """.trimIndent().hentListe(emptyMap(), session) { it.toDokumentdistribusjon(session) }
+                limit :limit
+                """.trimIndent().hentListe(mapOf("limit" to henterDokumenterLimit), session) { it.toDokumentdistribusjon(session) }
             }
         }
     }

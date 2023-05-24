@@ -259,20 +259,12 @@ object DatabaseBuilder {
                 utenlandsoppholdRepo = utenlandsoppholdRepo,
                 hendelseRepo = hendelseRepo,
             ),
-            person = PersonPostgresRepo(
-                sessionFactory = sessionFactory,
-                dbMetrics = dbMetrics,
-            ),
+            person = PersonPostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics),
             søknadsbehandling = søknadsbehandlingRepo,
             revurderingRepo = revurderingRepo,
             vedtakRepo = vedtakRepo,
             personhendelseRepo = personhendelseRepo,
-            dokumentRepo = DokumentPostgresRepo(
-                DokumentSkattPostgresRepo(dbMetrics, sessionFactory),
-                sessionFactory,
-                dbMetrics,
-                clock,
-            ),
+            dokumentRepo = DokumentPostgresRepo(sessionFactory, dbMetrics, clock),
             nøkkeltallRepo = nøkkeltallRepo,
             sessionFactory = sessionFactory,
             klageRepo = klageRepo,
@@ -285,7 +277,7 @@ object DatabaseBuilder {
             ),
             hendelseRepo = hendelseRepo,
             utenlandsoppholdRepo = utenlandsoppholdRepo,
-            dokumentSkattRepo = DokumentSkattPostgresRepo(dbMetrics, sessionFactory),
+            dokumentSkattRepo = DokumentSkattPostgresRepo(dbMetrics, sessionFactory, clock),
         )
     }
 }

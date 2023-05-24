@@ -13,6 +13,7 @@ sealed interface Skattedokument {
     val vedtakid: UUID
     val generertDokument: PdfA
     val dokumentJson: String
+    val journalpostid: JournalpostId?
 
     /**
      * til bruk for når man skal lage journalpost, da vi ikke har tatt vare på pdfinnholdet
@@ -28,11 +29,12 @@ sealed interface Skattedokument {
         override val generertDokument: PdfA,
         override val dokumentJson: String,
     ) : Skattedokument {
+        override val journalpostid: JournalpostId? = null
         fun tilJournalført(journalpostId: JournalpostId): Journalført = Journalført(this, journalpostId)
     }
 
     data class Journalført(
         val generert: Generert,
-        val journalpostid: JournalpostId,
+        override val journalpostid: JournalpostId,
     ) : Skattedokument by generert
 }

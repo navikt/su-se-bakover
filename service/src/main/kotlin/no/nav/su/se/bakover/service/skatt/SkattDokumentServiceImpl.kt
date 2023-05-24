@@ -6,7 +6,6 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
-import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.brev.PdfInnhold
 import no.nav.su.se.bakover.domain.dokument.PdfA
@@ -16,20 +15,25 @@ import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
 import no.nav.su.se.bakover.domain.skatt.Skattedokument
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeGenerereSkattedokument
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
+import java.time.Clock
 import java.util.UUID
 
 class SkattDokumentServiceImpl(
     private val pdfGenerator: PdfGenerator,
     private val personOppslag: PersonOppslag,
     private val dokumentSkattRepo: DokumentSkattRepo,
+    private val clock: Clock,
 ) : SkattDokumentService {
 
-    override fun genererMedContext(
+    /**
+     * Dette er for det tilfellet man har lyst å genere skattedokumentet i en transaction ved for eksempel iverksettelse
+     */
+    override fun genererOgLagre(
         vedtak: Stønadsvedtak,
         txc: TransactionContext,
     ): Either<KunneIkkeGenerereSkattedokument, Skattedokument> = generer(vedtak).onRight { lagre(it, txc) }
 
-    override fun genererUtenContext(vedtak: Stønadsvedtak): Either<KunneIkkeGenerereSkattedokument, Skattedokument> =
+    override fun genererOgLagre(vedtak: Stønadsvedtak): Either<KunneIkkeGenerereSkattedokument, Skattedokument> =
         generer(vedtak).onRight { lagre(it) }
 
     private fun generer(vedtak: Stønadsvedtak): Either<KunneIkkeGenerereSkattedokument, Skattedokument> {
@@ -58,9 +62,8 @@ class SkattDokumentServiceImpl(
             saksnummer = vedtak.saksnummer,
             søknadsbehandlingsId = vedtak.behandling.id,
             vedtaksId = vedtak.id,
-            sakId = vedtak.sakId,
             // vi henter skattemeldingene samtidig
-            hentetDato = hentetSkatt.søkers.hentetTidspunkt.toLocalDate(zoneIdOslo),
+            hentet = hentetSkatt.søkers.hentetTidspunkt,
             skatt = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagForPdf(
                 søkers = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagMedFnr(
                     fnr = hentetSkatt.søkers.fnr,
@@ -73,22 +76,23 @@ class SkattDokumentServiceImpl(
                     )
                 },
             ),
-            hentPerson = { fnr ->
+            hentNavn = { fnr ->
                 personOppslag.person(fnr).getOrElse {
                     throw IllegalStateException("Feil ved henting av person. Denne var hentet for ikke så lenge siden. SkattDokumentServiceImpl.kt")
-                }
+                }.navn
             },
-        ).let {
+            clock = clock,
+        ).let { skattemeldingsPdf ->
             Skattedokument.Generert(
                 id = UUID.randomUUID(),
                 søkersSkatteId = hentetSkatt.søkers.id,
                 epsSkatteId = hentetSkatt.eps?.id,
                 sakid = vedtak.sakId,
                 vedtakid = vedtak.id,
-                generertDokument = pdfGenerator.genererPdf(it).getOrElse {
+                generertDokument = pdfGenerator.genererPdf(skattemeldingsPdf).getOrElse {
                     return KunneIkkeGenerereSkattedokument.FeilVedGenereringAvDokument.left()
                 }.let { PdfA(it) },
-                dokumentJson = it.toJson(),
+                dokumentJson = skattemeldingsPdf.toJson(),
             ).right()
         }
     }

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.getDistinkteParagrafer
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
@@ -16,7 +17,7 @@ import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
-import java.time.LocalDate
+import java.time.Clock
 import java.util.UUID
 
 /**
@@ -251,12 +252,12 @@ abstract class PdfInnhold {
         companion object {
             fun lagSkattePdfData(
                 fnr: Fnr,
-                hentPerson: (Fnr) -> Person,
+                hentNavn: (Fnr) -> Person.Navn,
                 årsgrunnlag: NonEmptyList<SamletSkattegrunnlagForÅrOgStadie>,
             ): SkattPdfData {
                 return SkattPdfData(
                     fnr = fnr,
-                    navn = hentPerson(fnr).navn,
+                    navn = hentNavn(fnr),
                     årsgrunnlag = årsgrunnlag,
                 )
             }
@@ -265,16 +266,20 @@ abstract class PdfInnhold {
 
     data class SkattemeldingsPdf private constructor(
         val saksnummer: Saksnummer,
+        // TODO: Denne må vi ta inn når vi begynner med revurdering
+        val behandlingstype: BehandlingstypeForSkattemelding = BehandlingstypeForSkattemelding.Søknadsbehandling,
         val søknadsbehandlingsId: UUID,
         val vedtaksId: UUID,
-        val sakId: UUID,
-        // TODO: kanskje ha med en behandlingstype som er riktig for type + behandling
-        // val behandlingstype: Behandlingssammendrag.Behandlingstype
-        val hentetDato: LocalDate,
+        val hentet: Tidspunkt,
+        val opprettet: Tidspunkt,
         private val søkers: SkattPdfData,
         private val eps: SkattPdfData?,
     ) : PdfInnhold() {
         override val pdfTemplate: PdfTemplateMedDokumentNavn = SkattegrunnlagPdfTemplate
+
+        enum class BehandlingstypeForSkattemelding {
+            Søknadsbehandling,
+        }
 
         data class ÅrsgrunnlagMedFnr(
             val fnr: Fnr,
@@ -291,26 +296,26 @@ abstract class PdfInnhold {
                 saksnummer: Saksnummer,
                 søknadsbehandlingsId: UUID,
                 vedtaksId: UUID,
-                sakId: UUID,
-                hentetDato: LocalDate,
+                hentet: Tidspunkt,
                 skatt: ÅrsgrunnlagForPdf,
-                hentPerson: (Fnr) -> Person,
+                hentNavn: (Fnr) -> Person.Navn,
+                clock: Clock,
             ): SkattemeldingsPdf {
                 return SkattemeldingsPdf(
                     saksnummer = saksnummer,
                     søknadsbehandlingsId = søknadsbehandlingsId,
                     vedtaksId = vedtaksId,
-                    sakId = sakId,
-                    hentetDato = hentetDato,
+                    hentet = hentet,
+                    opprettet = Tidspunkt.now(clock),
                     søkers = SkattPdfData.lagSkattePdfData(
                         fnr = skatt.søkers.fnr,
-                        hentPerson = hentPerson,
+                        hentNavn = hentNavn,
                         årsgrunnlag = skatt.søkers.årsgrunlag,
                     ),
                     eps = skatt.eps?.let {
                         SkattPdfData.lagSkattePdfData(
                             fnr = skatt.eps.fnr,
-                            hentPerson = hentPerson,
+                            hentNavn = hentNavn,
                             årsgrunnlag = skatt.eps.årsgrunlag,
                         )
                     },

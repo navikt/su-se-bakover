@@ -14,7 +14,8 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.bosituasjonEpsUnder67
 import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
-import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.skatt.nySamletSkattegrunnlagForÅrOgStadieOppgjør
@@ -45,9 +46,10 @@ internal class SkattDokumentServiceImplTest {
             pdfGenerator = pdfGeneratorMock,
             personOppslag = personMock,
             dokumentSkattRepo = dokumentSkatt,
+            clock = fixedClock,
         )
 
-        val dokument = service.genererUtenContext(vedtak)
+        val dokument = service.genererOgLagre(vedtak)
         dokument.shouldBeRight()
         verify(personMock).person(argThat { it shouldBe vedtak.fnr })
         verify(pdfGeneratorMock).genererPdf(
@@ -56,8 +58,7 @@ internal class SkattDokumentServiceImplTest {
                     saksnummer = vedtak.saksnummer,
                     søknadsbehandlingsId = vedtak.behandling.id,
                     vedtaksId = vedtak.id,
-                    sakId = vedtak.sakId,
-                    hentetDato = fixedLocalDate,
+                    hentet = fixedTidspunkt,
                     skatt = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagForPdf(
                         søkers = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagMedFnr(
                             fnr = person.ident.fnr,
@@ -65,8 +66,8 @@ internal class SkattDokumentServiceImplTest {
                         ),
                         eps = null,
                     ),
-                    hentPerson = { _ -> person },
-
+                    hentNavn = { _ -> person.navn },
+                    clock = fixedClock,
                 )
             },
         )
@@ -97,9 +98,10 @@ internal class SkattDokumentServiceImplTest {
             pdfGenerator = pdfGeneratorMock,
             personOppslag = personMock,
             dokumentSkattRepo = dokumentSkatt,
+            clock = fixedClock,
         )
         val tx = TestSessionFactory.transactionContext
-        val dokument = service.genererMedContext(vedtak, tx)
+        val dokument = service.genererOgLagre(vedtak, tx)
         dokument.shouldBeRight()
 
         val captor = argumentCaptor<Fnr>()
@@ -113,8 +115,7 @@ internal class SkattDokumentServiceImplTest {
                     saksnummer = vedtak.saksnummer,
                     søknadsbehandlingsId = vedtak.behandling.id,
                     vedtaksId = vedtak.id,
-                    sakId = vedtak.sakId,
-                    hentetDato = fixedLocalDate,
+                    hentet = fixedTidspunkt,
                     skatt = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagForPdf(
                         søkers = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagMedFnr(
                             fnr = person.ident.fnr,
@@ -125,7 +126,8 @@ internal class SkattDokumentServiceImplTest {
                             årsgrunlag = nonEmptyListOf(nySamletSkattegrunnlagForÅrOgStadieOppgjør()),
                         ),
                     ),
-                    hentPerson = { _ -> person },
+                    hentNavn = { _ -> person.navn },
+                    clock = fixedClock,
                 )
             },
         )

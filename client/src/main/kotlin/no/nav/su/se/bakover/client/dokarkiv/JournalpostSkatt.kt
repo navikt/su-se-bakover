@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.dokarkiv
 
+import no.nav.su.se.bakover.client.dokarkiv.JournalpostDokument.Companion.lagDokumenterForJournalpost
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
@@ -18,8 +19,6 @@ data class JournalpostSkatt(
 ) : Journalpost() {
     override val sak: Fagsak = Fagsak(saksnummer.nummer.toString())
     override val journalpostType: JournalPostType = JournalPostType.NOTAT
-
-    // systemet henter og journalfører, så dette blir kanskje automatisk?
     override val journalfoerendeEnhet: JournalførendeEnhet = JournalførendeEnhet.AUTOMATISK
     override val bruker: Bruker = Bruker(id = person.ident.fnr.toString())
     override val avsenderMottaker: AvsenderMottaker? = null

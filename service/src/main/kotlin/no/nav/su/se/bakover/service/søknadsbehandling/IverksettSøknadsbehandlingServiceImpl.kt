@@ -68,6 +68,6 @@ class IverksettSøknadsbehandlingServiceImpl(
             opprettPlanlagtKontrollsamtale = opprettPlanlagtKontrollsamtaleService::opprett,
             lagreDokument = brevService::lagreDokument,
             lukkOppgave = ferdigstillVedtakService::lukkOppgaveMedBruker,
-        ) { vedtak, tx -> skattDokumentService.genererMedContext(vedtak, tx) }
+        ) { vedtak, tx -> skattDokumentService.genererOgLagre(vedtak, tx) }
     }
 }

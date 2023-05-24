@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS
     dokument_skatt
 (
     id               uuid                        not null primary key,
+    opprettet        timestamp with time zone    not null,
     generertDokument bytea                       not null,
     dokumentJson     jsonb                       not null,
     sakId            uuid references sak (id)    not null,

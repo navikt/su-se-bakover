@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.dokarkiv
 
+import no.nav.su.se.bakover.client.dokarkiv.JournalpostDokument.Companion.lagDokumenterForJournalpost
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Behandlingstema
 import no.nav.su.se.bakover.domain.Tema
@@ -66,26 +67,12 @@ sealed class Journalpost {
             ): Søknadspost = Søknadspost(
                 person = person,
                 saksnummer = saksnummer,
-                dokumenter = lagDokumenter(
+                dokumenter = lagDokumenterForJournalpost(
                     pdf = pdf,
                     søknadInnhold = søknadInnhold,
                 ),
                 sakstype = søknadInnhold.type(),
             )
-
-            private fun lagDokumenter(pdf: ByteArray, søknadInnhold: SøknadInnhold): List<JournalpostDokument> =
-                listOf(
-                    JournalpostDokument(
-                        tittel = lagTittel(søknadInnhold.type()),
-                        dokumentvarianter = listOf(
-                            DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
-                            DokumentVariant.OriginalJson(
-                                fysiskDokument = Base64.getEncoder()
-                                    .encodeToString(objectMapper.writeValueAsString(søknadInnhold).toByteArray()),
-                            ),
-                        ),
-                    ),
-                )
         }
     }
 
@@ -218,17 +205,6 @@ sealed class Journalpost {
     }
 }
 
-internal fun lagDokumenterForJournalpost(tittel: String, pdf: ByteArray, originalJson: String): List<JournalpostDokument> =
-    listOf(
-        JournalpostDokument(
-            tittel = tittel,
-            dokumentvarianter = listOf(
-                DokumentVariant.ArkivPDF(Base64.getEncoder().encodeToString(pdf)),
-                DokumentVariant.OriginalJson(Base64.getEncoder().encodeToString(originalJson.toByteArray())),
-            ),
-        ),
-    )
-
 internal data class JournalpostRequest(
     val tittel: String,
     val journalpostType: JournalPostType,
@@ -262,7 +238,38 @@ data class Fagsak(
 data class JournalpostDokument(
     val tittel: String,
     val dokumentvarianter: List<DokumentVariant>,
-)
+) {
+    companion object {
+        internal fun lagDokumenterForJournalpost(pdf: ByteArray, søknadInnhold: SøknadInnhold): List<JournalpostDokument> =
+            listOf(
+                JournalpostDokument(
+                    tittel = Journalpost.Søknadspost.lagTittel(søknadInnhold.type()),
+                    dokumentvarianter = listOf(
+                        DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
+                        DokumentVariant.OriginalJson(
+                            fysiskDokument = Base64.getEncoder()
+                                .encodeToString(objectMapper.writeValueAsString(søknadInnhold).toByteArray()),
+                        ),
+                    ),
+                ),
+            )
+
+        internal fun lagDokumenterForJournalpost(
+            tittel: String,
+            pdf: ByteArray,
+            originalJson: String,
+        ): List<JournalpostDokument> =
+            listOf(
+                JournalpostDokument(
+                    tittel = tittel,
+                    dokumentvarianter = listOf(
+                        DokumentVariant.ArkivPDF(Base64.getEncoder().encodeToString(pdf)),
+                        DokumentVariant.OriginalJson(Base64.getEncoder().encodeToString(originalJson.toByteArray())),
+                    ),
+                ),
+            )
+    }
+}
 
 sealed class DokumentVariant {
     abstract val filtype: String

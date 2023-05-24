@@ -247,6 +247,7 @@ object ServiceBuilder {
                 pdfGenerator = clients.pdfGenerator,
                 personOppslag = clients.personOppslag,
                 dokumentSkattRepo = databaseRepos.dokumentSkattRepo,
+                clock = clock,
             ),
         ).apply { addObserver(statistikkEventObserver) }
         return Services(
