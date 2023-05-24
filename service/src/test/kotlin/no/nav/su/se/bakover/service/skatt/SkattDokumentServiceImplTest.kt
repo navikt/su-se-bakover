@@ -33,7 +33,7 @@ import org.mockito.kotlin.verifyNoMoreInteractions
 internal class SkattDokumentServiceImplTest {
 
     @Test
-    fun `lager skattemeldingspdf (uten context)`() {
+    fun `lager skattemeldingspdf`() {
         val vedtak = iverksattSøknadsbehandling().third
         val person = person()
         val personMock = mock<PersonOppslag> { on { this.person(any()) } doReturn person.right() }
@@ -48,8 +48,9 @@ internal class SkattDokumentServiceImplTest {
             dokumentSkattRepo = dokumentSkatt,
             clock = fixedClock,
         )
+        val tx = TestSessionFactory.transactionContext
+        val dokument = service.genererOgLagre(vedtak, tx)
 
-        val dokument = service.genererOgLagre(vedtak)
         dokument.shouldBeRight()
         verify(personMock).person(argThat { it shouldBe vedtak.fnr })
         verify(pdfGeneratorMock).genererPdf(
@@ -71,12 +72,12 @@ internal class SkattDokumentServiceImplTest {
                 )
             },
         )
-        verify(dokumentSkatt).lagre(argThat { it shouldBe dokument.value })
+        verify(dokumentSkatt).lagre(argThat { it shouldBe dokument.value }, argThat { it shouldBe tx })
         verifyNoMoreInteractions(personMock, pdfGeneratorMock, dokumentSkatt)
     }
 
     @Test
-    fun `lager skattemelding med eps (med context)`() {
+    fun `lager skattemelding med eps`() {
         val person = person()
         val bosituasjon = bosituasjonEpsUnder67()
         val eps = person(fnr = bosituasjon.fnr)

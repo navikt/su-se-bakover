@@ -37,7 +37,6 @@ internal class DistribuerDokumentJob(
             Either.catch {
                 listOf(runCheckFactory.leaderPod()).shouldRun().ifTrue {
                     withCorrelationId {
-                        // Disse er debug siden jobben kjører hvert minutt.
                         log.debug("Kjører skeduleringsjobb '$jobName'")
                         dokumentService.distribuer()
                         log.debug("Fullførte skeduleringsjobb '$jobName'")

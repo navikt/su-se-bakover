@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.dokument
+package no.nav.su.se.bakover.common.domain
 
 class PdfA(private val content: ByteArray) {
 

@@ -28,8 +28,6 @@ internal class DokumentPostgresRepo(
     private val clock: Clock,
 ) : DokumentRepo {
 
-    private val henterDokumenterLimit = 10
-
     private val joinDokumentOgDistribusjonQuery =
         "select d.*, dd.journalpostid, dd.brevbestillingid from dokument d left join dokument_distribusjon dd on dd.dokumentid = d.id where d.duplikatAv is null"
 
@@ -168,9 +166,9 @@ internal class DokumentPostgresRepo(
     }
 
     /**
-     * Henter max antall dokumenter basert på [henterDokumenterLimit]
+     * Henter max antall dokumenter basert på [antallSomSkalHentes]
      */
-    override fun hentDokumenterForDistribusjon(): List<Dokumentdistribusjon> {
+    override fun hentDokumenterForDistribusjon(antallSomSkalHentes: Int): List<Dokumentdistribusjon> {
         return dbMetrics.timeQuery("hentDokumenterForDistribusjon") {
             sessionFactory.withSession { session ->
                 """
@@ -179,7 +177,7 @@ internal class DokumentPostgresRepo(
                 order by opprettet asc
                 limit :limit
                 """.trimIndent()
-                    .hentListe(mapOf("limit" to henterDokumenterLimit), session) {
+                    .hentListe(mapOf("limit" to antallSomSkalHentes), session) {
                         it.toDokumentdistribusjon(session)
                     }
             }
@@ -187,9 +185,9 @@ internal class DokumentPostgresRepo(
     }
 
     /**
-     * Henter max antall dokumenter basert på [henterDokumenterLimit]
+     * Henter max antall dokumenter basert på [antallSomSkalHentes]
      */
-    override fun hentDokumenterForJournalføring(): List<Dokumentdistribusjon> {
+    override fun hentDokumenterForJournalføring(antallSomSkalHentes: Int): List<Dokumentdistribusjon> {
         return dbMetrics.timeQuery("hentDokumenterForJournalføring") {
             sessionFactory.withSession { session ->
                 """
@@ -197,7 +195,7 @@ internal class DokumentPostgresRepo(
                 where journalpostId is null
                 order by opprettet asc
                 limit :limit
-                """.trimIndent().hentListe(mapOf("limit" to henterDokumenterLimit), session) { it.toDokumentdistribusjon(session) }
+                """.trimIndent().hentListe(mapOf("limit" to antallSomSkalHentes), session) { it.toDokumentdistribusjon(session) }
             }
         }
     }

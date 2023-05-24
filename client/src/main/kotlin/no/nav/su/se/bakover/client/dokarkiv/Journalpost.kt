@@ -240,19 +240,14 @@ data class JournalpostDokument(
     val dokumentvarianter: List<DokumentVariant>,
 ) {
     companion object {
-        internal fun lagDokumenterForJournalpost(pdf: ByteArray, søknadInnhold: SøknadInnhold): List<JournalpostDokument> =
-            listOf(
-                JournalpostDokument(
-                    tittel = Journalpost.Søknadspost.lagTittel(søknadInnhold.type()),
-                    dokumentvarianter = listOf(
-                        DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
-                        DokumentVariant.OriginalJson(
-                            fysiskDokument = Base64.getEncoder()
-                                .encodeToString(objectMapper.writeValueAsString(søknadInnhold).toByteArray()),
-                        ),
-                    ),
-                ),
-            )
+        internal fun lagDokumenterForJournalpost(
+            pdf: ByteArray,
+            søknadInnhold: SøknadInnhold,
+        ): List<JournalpostDokument> = lagDokumenterForJournalpost(
+            tittel = Journalpost.Søknadspost.lagTittel(søknadInnhold.type()),
+            pdf = pdf,
+            originalJson = objectMapper.writeValueAsString(søknadInnhold),
+        )
 
         internal fun lagDokumenterForJournalpost(
             tittel: String,

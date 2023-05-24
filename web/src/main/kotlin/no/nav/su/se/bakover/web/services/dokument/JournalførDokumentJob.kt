@@ -40,7 +40,6 @@ internal class JournalførDokumentJob(
             Either.catch {
                 listOf(runCheckFactory.leaderPod()).shouldRun().ifTrue {
                     withCorrelationId {
-                        // Disse er debug siden jobben kjører hvert minutt.
                         log.debug("Kjører skeduleringsjobb '$jobName'")
                         dokumentService.journalførDokumenter()
                         log.debug("Fullførte skeduleringsjobb '$jobName'")

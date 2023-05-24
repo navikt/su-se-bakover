@@ -5,10 +5,10 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.brev.PdfInnhold
-import no.nav.su.se.bakover.domain.dokument.PdfA
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
@@ -25,16 +25,10 @@ class SkattDokumentServiceImpl(
     private val clock: Clock,
 ) : SkattDokumentService {
 
-    /**
-     * Dette er for det tilfellet man har lyst å genere skattedokumentet i en transaction ved for eksempel iverksettelse
-     */
     override fun genererOgLagre(
         vedtak: Stønadsvedtak,
         txc: TransactionContext,
     ): Either<KunneIkkeGenerereSkattedokument, Skattedokument> = generer(vedtak).onRight { lagre(it, txc) }
-
-    override fun genererOgLagre(vedtak: Stønadsvedtak): Either<KunneIkkeGenerereSkattedokument, Skattedokument> =
-        generer(vedtak).onRight { lagre(it) }
 
     private fun generer(vedtak: Stønadsvedtak): Either<KunneIkkeGenerereSkattedokument, Skattedokument> {
         val hentetSkatt = when (vedtak.behandling.eksterneGrunnlag.skatt) {
@@ -49,7 +43,7 @@ class SkattDokumentServiceImpl(
             }
         }.toNonEmptyList()
 
-        val epeSamletSkattegrunnlag = hentetSkatt.eps?.let {
+        val epsSamletSkattegrunnlag = hentetSkatt.eps?.let {
             it.årsgrunnlag.mapNotNull {
                 when (it.oppslag) {
                     is Either.Left -> null
@@ -72,7 +66,7 @@ class SkattDokumentServiceImpl(
                 eps = hentetSkatt.eps?.let {
                     PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagMedFnr(
                         fnr = it.fnr,
-                        årsgrunlag = epeSamletSkattegrunnlag!!,
+                        årsgrunlag = epsSamletSkattegrunnlag!!,
                     )
                 },
             ),

@@ -108,14 +108,14 @@ fun startJobberOgConsumers(
 
         JournalførDokumentJob(
             initialDelay = initialDelay.next(),
-            periode = Duration.of(15, ChronoUnit.MINUTES),
+            periode = Duration.of(5, ChronoUnit.MINUTES),
             runCheckFactory = runCheckFactory,
             dokumentService = dokumentService,
         )
 
         DistribuerDokumentJob(
             initialDelay = initialDelay.next(),
-            periode = Duration.of(15, ChronoUnit.MINUTES),
+            periode = Duration.of(5, ChronoUnit.MINUTES),
             runCheckFactory = runCheckFactory,
             dokumentService = dokumentService,
         ).schedule()
