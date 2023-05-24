@@ -1,11 +1,13 @@
 package no.nav.su.se.bakover.client.dokarkiv
 
+import no.nav.su.se.bakover.client.dokarkiv.JournalpostDokument.Companion.lagDokumenterForJournalpost
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Behandlingstema
 import no.nav.su.se.bakover.domain.Tema
 import no.nav.su.se.bakover.domain.brev.PdfInnhold
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.person.Person
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
@@ -14,14 +16,16 @@ import java.util.Base64
 sealed class Journalpost {
     val tema: String = Tema.SUPPLERENDE_STØNAD.value
     abstract val sakstype: Sakstype
-    abstract val journalfoerendeEnhet: String
+    abstract val journalfoerendeEnhet: JournalførendeEnhet
     abstract val tittel: String
     abstract val journalpostType: JournalPostType
     abstract val kanal: String?
-    abstract val avsenderMottaker: AvsenderMottaker
+    abstract val avsenderMottaker: AvsenderMottaker?
     abstract val bruker: Bruker
     abstract val sak: Fagsak
     abstract val dokumenter: List<JournalpostDokument>
+    abstract val person: Person
+    abstract val saksnummer: Saksnummer
 
     val behandlingstema: String
         get() = when (sakstype) {
@@ -33,8 +37,8 @@ sealed class Journalpost {
         """${person.navn.etternavn}, ${person.navn.fornavn} ${person.navn.mellomnavn ?: ""}""".trimEnd()
 
     data class Søknadspost private constructor(
-        val person: Person,
-        val saksnummer: Saksnummer,
+        override val person: Person,
+        override val saksnummer: Saksnummer,
         override val sakstype: Sakstype,
         override val dokumenter: List<JournalpostDokument>,
     ) : Journalpost() {
@@ -47,13 +51,14 @@ sealed class Journalpost {
         override val sak: Fagsak = Fagsak(saksnummer.nummer.toString())
         override val journalpostType: JournalPostType = JournalPostType.INNGAAENDE
         override val kanal: String = "INNSENDT_NAV_ANSATT"
-        override val journalfoerendeEnhet: String = "9999"
+        override val journalfoerendeEnhet: JournalførendeEnhet = JournalførendeEnhet.AUTOMATISK
 
         companion object {
             fun lagTittel(sakstype: Sakstype) = when (sakstype) {
                 Sakstype.ALDER -> "Søknad om supplerende stønad for alder"
                 Sakstype.UFØRE -> "Søknad om supplerende stønad for uføre flyktninger"
             }
+
             fun from(
                 person: Person,
                 saksnummer: Saksnummer,
@@ -62,33 +67,18 @@ sealed class Journalpost {
             ): Søknadspost = Søknadspost(
                 person = person,
                 saksnummer = saksnummer,
-                dokumenter = lagDokumenter(
+                dokumenter = lagDokumenterForJournalpost(
                     pdf = pdf,
                     søknadInnhold = søknadInnhold,
                 ),
                 sakstype = søknadInnhold.type(),
             )
-
-            private fun lagDokumenter(pdf: ByteArray, søknadInnhold: SøknadInnhold): List<JournalpostDokument> =
-                listOf(
-                    JournalpostDokument(
-                        tittel = lagTittel(søknadInnhold.type()),
-                        dokumentKategori = DokumentKategori.SOK,
-                        dokumentvarianter = listOf(
-                            DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
-                            DokumentVariant.OriginalJson(
-                                fysiskDokument = Base64.getEncoder()
-                                    .encodeToString(objectMapper.writeValueAsString(søknadInnhold).toByteArray()),
-                            ),
-                        ),
-                    ),
-                )
         }
     }
 
     data class Vedtakspost private constructor(
-        val person: Person,
-        val saksnummer: Saksnummer,
+        override val person: Person,
+        override val saksnummer: Saksnummer,
         override val dokumenter: List<JournalpostDokument>,
         override val tittel: String,
         override val sakstype: Sakstype,
@@ -101,7 +91,7 @@ sealed class Journalpost {
         override val bruker: Bruker = Bruker(id = person.ident.fnr.toString())
         override val journalpostType: JournalPostType = JournalPostType.UTGAAENDE
         override val kanal: String? = null
-        override val journalfoerendeEnhet: String = "4815"
+        override val journalfoerendeEnhet: JournalførendeEnhet = JournalførendeEnhet.ÅLESUND
 
         companion object {
             fun from(
@@ -113,7 +103,7 @@ sealed class Journalpost {
             ) = Vedtakspost(
                 person = person,
                 saksnummer = saksnummer,
-                dokumenter = lagDokumenter(
+                dokumenter = lagDokumenterForJournalpost(
                     tittel = pdfInnhold.pdfTemplate.tittel(),
                     pdf = pdf,
                     originalJson = pdfInnhold.toJson(),
@@ -130,7 +120,7 @@ sealed class Journalpost {
             ) = Vedtakspost(
                 person = person,
                 saksnummer = saksnummer,
-                dokumenter = lagDokumenter(
+                dokumenter = lagDokumenterForJournalpost(
                     tittel = dokument.tittel,
                     pdf = dokument.generertDokument,
                     originalJson = dokument.generertDokumentJson,
@@ -138,26 +128,12 @@ sealed class Journalpost {
                 tittel = dokument.tittel,
                 sakstype = sakstype,
             )
-
-            private fun lagDokumenter(tittel: String, pdf: ByteArray, originalJson: String): List<JournalpostDokument> =
-                listOf(
-                    JournalpostDokument(
-                        tittel = tittel,
-                        dokumentKategori = DokumentKategori.VB,
-                        dokumentvarianter = listOf(
-                            DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
-                            DokumentVariant.OriginalJson(
-                                fysiskDokument = Base64.getEncoder().encodeToString(originalJson.toByteArray()),
-                            ),
-                        ),
-                    ),
-                )
         }
     }
 
     data class Info private constructor(
-        val person: Person,
-        val saksnummer: Saksnummer,
+        override val person: Person,
+        override val saksnummer: Saksnummer,
         override val dokumenter: List<JournalpostDokument>,
         override val tittel: String,
         override val sakstype: Sakstype,
@@ -170,9 +146,27 @@ sealed class Journalpost {
         override val bruker: Bruker = Bruker(id = person.ident.fnr.toString())
         override val journalpostType: JournalPostType = JournalPostType.UTGAAENDE
         override val kanal: String? = null
-        override val journalfoerendeEnhet: String = "4815"
+        override val journalfoerendeEnhet: JournalførendeEnhet = JournalførendeEnhet.ÅLESUND
 
         companion object {
+            fun from(
+                sakInfo: SakInfo,
+                person: Person,
+                tittel: String,
+                pdf: ByteArray,
+                originalDokumentJson: String,
+            ) = Info(
+                person = person,
+                saksnummer = sakInfo.saksnummer,
+                dokumenter = lagDokumenterForJournalpost(
+                    tittel = tittel,
+                    pdf = pdf,
+                    originalJson = originalDokumentJson,
+                ),
+                tittel = tittel,
+                sakstype = sakInfo.type,
+            )
+
             fun from(
                 person: Person,
                 saksnummer: Saksnummer,
@@ -182,7 +176,7 @@ sealed class Journalpost {
             ) = Info(
                 person = person,
                 saksnummer = saksnummer,
-                dokumenter = lagDokumenter(
+                dokumenter = lagDokumenterForJournalpost(
                     tittel = pdfInnhold.pdfTemplate.tittel(),
                     pdf = pdf,
                     originalJson = pdfInnhold.toJson(),
@@ -199,7 +193,7 @@ sealed class Journalpost {
             ) = Info(
                 person = person,
                 saksnummer = saksnummer,
-                dokumenter = lagDokumenter(
+                dokumenter = lagDokumenterForJournalpost(
                     tittel = dokument.tittel,
                     pdf = dokument.generertDokument,
                     originalJson = dokument.generertDokumentJson,
@@ -207,20 +201,6 @@ sealed class Journalpost {
                 tittel = dokument.tittel,
                 sakstype = sakstype,
             )
-
-            private fun lagDokumenter(tittel: String, pdf: ByteArray, originalJson: String): List<JournalpostDokument> =
-                listOf(
-                    JournalpostDokument(
-                        tittel = tittel,
-                        dokumentKategori = DokumentKategori.IB,
-                        dokumentvarianter = listOf(
-                            DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
-                            DokumentVariant.OriginalJson(
-                                fysiskDokument = Base64.getEncoder().encodeToString(originalJson.toByteArray()),
-                            ),
-                        ),
-                    ),
-                )
         }
     }
 }
@@ -232,7 +212,7 @@ internal data class JournalpostRequest(
     val kanal: String?,
     val behandlingstema: String,
     val journalfoerendeEnhet: String,
-    val avsenderMottaker: AvsenderMottaker,
+    val avsenderMottaker: AvsenderMottaker?,
     val bruker: Bruker,
     val sak: Fagsak,
     val dokumenter: List<JournalpostDokument>,
@@ -257,10 +237,39 @@ data class Fagsak(
 
 data class JournalpostDokument(
     val tittel: String,
-    val dokumentKategori: DokumentKategori,
-    val brevkode: String = "XX.YY-ZZ",
     val dokumentvarianter: List<DokumentVariant>,
-)
+) {
+    companion object {
+        internal fun lagDokumenterForJournalpost(pdf: ByteArray, søknadInnhold: SøknadInnhold): List<JournalpostDokument> =
+            listOf(
+                JournalpostDokument(
+                    tittel = Journalpost.Søknadspost.lagTittel(søknadInnhold.type()),
+                    dokumentvarianter = listOf(
+                        DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
+                        DokumentVariant.OriginalJson(
+                            fysiskDokument = Base64.getEncoder()
+                                .encodeToString(objectMapper.writeValueAsString(søknadInnhold).toByteArray()),
+                        ),
+                    ),
+                ),
+            )
+
+        internal fun lagDokumenterForJournalpost(
+            tittel: String,
+            pdf: ByteArray,
+            originalJson: String,
+        ): List<JournalpostDokument> =
+            listOf(
+                JournalpostDokument(
+                    tittel = tittel,
+                    dokumentvarianter = listOf(
+                        DokumentVariant.ArkivPDF(Base64.getEncoder().encodeToString(pdf)),
+                        DokumentVariant.OriginalJson(Base64.getEncoder().encodeToString(originalJson.toByteArray())),
+                    ),
+                ),
+            )
+    }
+}
 
 sealed class DokumentVariant {
     abstract val filtype: String
@@ -283,12 +292,23 @@ sealed class DokumentVariant {
 }
 
 enum class JournalPostType(val type: String) {
+    /**
+     * dokumenter som kommer inn til nav (for eksempel søknad)
+     */
     INNGAAENDE("INNGAAENDE"),
+
+    /**
+     * dokumenter som går ut av nav (for eksempel vedtaksbrev)
+     */
     UTGAAENDE("UTGAAENDE"),
+
+    /**
+     * dokumenter som holdes i nav (for eksempel samtalereferater)
+     */
+    NOTAT("NOTAT"),
 }
 
-enum class DokumentKategori(val type: String) {
-    SOK("SOK"),
-    VB("VB"),
-    IB("IB"),
+enum class JournalførendeEnhet(val enhet: String) {
+    ÅLESUND("4815"),
+    AUTOMATISK("9999"),
 }

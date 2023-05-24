@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
+import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harEPS
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigEpsOrNull
@@ -31,7 +32,6 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.domain.skatt.EksternGrunnlagSkattRequest
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -678,7 +678,7 @@ class SøknadsbehandlingServiceImpl(
             ?: throw IllegalStateException("Fant ikke behandling $behandlingId")
 
         return søknadsbehandling.leggTilSkatt(
-            EksternGrunnlagSkattRequest(
+            EksterneGrunnlagSkatt.Hentet(
                 søkers = søknadsbehandling.hentSkattegrunnlagForSøker(
                     saksbehandler,
                     skatteService::hentSamletSkattegrunnlagForÅr,

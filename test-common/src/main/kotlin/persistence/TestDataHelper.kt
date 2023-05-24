@@ -23,6 +23,9 @@ import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.dokument.PdfA
+import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
@@ -63,7 +66,7 @@ import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
-import no.nav.su.se.bakover.domain.skatt.EksternGrunnlagSkattRequest
+import no.nav.su.se.bakover.domain.skatt.Skattedokument
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
@@ -94,6 +97,7 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandling
+import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
 import no.nav.su.se.bakover.test.epsFnr
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
@@ -118,6 +122,7 @@ import no.nav.su.se.bakover.test.simulering.simulering
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.simulertSøknadsbehandling
+import no.nav.su.se.bakover.test.skatt.nySkattedokumentGenerert
 import no.nav.su.se.bakover.test.skatt.nySkattegrunnlag
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.journalpostIdSøknad
@@ -898,14 +903,16 @@ class TestDataHelper(
 
     fun persisterSøknadsbehandlingVilkårsvurdertInnvilget(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
+        eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     ): Pair<Sak, VilkårsvurdertSøknadsbehandling.Innvilget> {
         return persisterSøknadsbehandlingVilkårsvurdert(sakOgSøknad) { (sak, søknad) ->
             vilkårsvurdertSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
                 clock = clock,
+                eksterneGrunnlag = eksterneGrunnlag,
             )
-        }.let { (sak, revurdering) ->
-            sak to revurdering as VilkårsvurdertSøknadsbehandling.Innvilget
+        }.let { (sak, søknadsbehandling) ->
+            sak to søknadsbehandling as VilkårsvurdertSøknadsbehandling.Innvilget
         }
     }
 
@@ -1247,7 +1254,7 @@ class TestDataHelper(
     }
 
     fun persisterSøknadsbehandlingVilkårsvurdertUavklartMedSkatt(
-        skatt: EksternGrunnlagSkattRequest = EksternGrunnlagSkattRequest(søkers = nySkattegrunnlag(), eps = null),
+        skatt: EksterneGrunnlagSkatt = EksterneGrunnlagSkatt.Hentet(søkers = nySkattegrunnlag(), eps = null),
     ): VilkårsvurdertSøknadsbehandling.Uavklart {
         return persisterSøknadsbehandlingVilkårsvurdertUavklart().second.leggTilSkatt(skatt).getOrFail().also {
             søknadsbehandlingRepo.lagre(it)
@@ -1524,6 +1531,30 @@ class TestDataHelper(
         )
 
         return Pair(id, klageId)
+    }
+
+    fun persisterSkattedokumentGenerert(
+        id: UUID = UUID.randomUUID(),
+        generertDokument: PdfA = PdfA("jeg er en pdf".toByteArray()),
+        dokumentJson: String = """{"key": "value"}""",
+    ): Skattedokument.Generert {
+        return persisterSøknadsbehandlingIverksatt().let {
+            nySkattedokumentGenerert(
+                id = id,
+                søkersSkatteId = (it.second.eksterneGrunnlag.skatt as EksterneGrunnlagSkatt.Hentet).søkers.id,
+                epsSkatteId = (it.second.eksterneGrunnlag.skatt as? EksterneGrunnlagSkatt.Hentet)?.eps?.id,
+                sakId = it.first.id,
+                vedtakId = it.third.id,
+                generertDokument = generertDokument,
+                dokumentJson = dokumentJson,
+            ).also { databaseRepos.dokumentSkattRepo.lagre(it) }
+        }
+    }
+
+    fun persisterSkattedokumentJournalført(): Skattedokument.Journalført {
+        return persisterSkattedokumentGenerert().tilJournalført(JournalpostId("journalpostId")).also {
+            databaseRepos.dokumentSkattRepo.lagre(it)
+        }
     }
 
     companion object {

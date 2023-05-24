@@ -79,8 +79,6 @@ internal class DokArkivClientTest : WiremockBase {
                       "dokumenter": [
                         {
                           "tittel": "Søknad om supplerende stønad for uføre flyktninger",
-                          "dokumentKategori": "SOK",
-                          "brevkode": "XX.YY-ZZ",
                           "dokumentvarianter": [
                             {
                               "filtype": "PDFA",
@@ -127,8 +125,6 @@ internal class DokArkivClientTest : WiremockBase {
                       "dokumenter": [
                         {
                           "tittel": "Vedtaksbrev for søknad om supplerende stønad",
-                          "dokumentKategori": "VB",
-                          "brevkode": "XX.YY-ZZ",
                           "dokumentvarianter": [
                             {
                               "filtype": "PDFA",
@@ -138,8 +134,8 @@ internal class DokArkivClientTest : WiremockBase {
                             {
                               "filtype": "JSON",
                               "fysiskDokument": "${
-            Base64.getEncoder()
-                .encodeToString(objectMapper.writeValueAsString(vedtakInnhold).toByteArray())}",
+            Base64.getEncoder().encodeToString(objectMapper.writeValueAsString(vedtakInnhold).toByteArray())
+        }",
                               "variantformat": "ORIGINAL"
                             }
                           ]
@@ -232,7 +228,7 @@ internal class DokArkivClientTest : WiremockBase {
                 pdf = pdf,
                 sakstype = Sakstype.UFØRE,
             ),
-        ) shouldBe(
+        ) shouldBe (
             JournalpostId("1").right()
             )
     }

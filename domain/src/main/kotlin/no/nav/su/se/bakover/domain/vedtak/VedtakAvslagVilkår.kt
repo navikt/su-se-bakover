@@ -23,6 +23,7 @@ data class VedtakAvslagVilkår private constructor(
 ) : Avslagsvedtak {
 
     override val utbetalingId = null
+
     init {
         behandling.grunnlagsdataOgVilkårsvurderinger.krevMinstEttAvslag()
         require(dokumenttilstand != Dokumenttilstand.SKAL_IKKE_GENERERE)

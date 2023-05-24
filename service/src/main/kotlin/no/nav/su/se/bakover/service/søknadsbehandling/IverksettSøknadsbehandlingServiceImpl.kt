@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrolls
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.iverksettSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.service.skatt.SkattDokumentService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import java.time.Clock
@@ -30,6 +31,7 @@ class IverksettSøknadsbehandlingServiceImpl(
     private val opprettPlanlagtKontrollsamtaleService: OpprettKontrollsamtaleVedNyStønadsperiodeService,
     private val ferdigstillVedtakService: FerdigstillVedtakService,
     private val brevService: BrevService,
+    private val skattDokumentService: SkattDokumentService,
 ) : IverksettSøknadsbehandlingService {
 
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
@@ -58,14 +60,14 @@ class IverksettSøknadsbehandlingServiceImpl(
         iverksattSøknadsbehandlingResponse: IverksattSøknadsbehandlingResponse<*>,
     ) {
         iverksattSøknadsbehandlingResponse.ferdigstillIverksettelseITransaksjon(
+            klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
             sessionFactory = sessionFactory,
             lagreSøknadsbehandling = søknadsbehandlingRepo::lagre,
             lagreVedtak = vedtakRepo::lagreITransaksjon,
             statistikkObservers = observers,
+            opprettPlanlagtKontrollsamtale = opprettPlanlagtKontrollsamtaleService::opprett,
             lagreDokument = brevService::lagreDokument,
             lukkOppgave = ferdigstillVedtakService::lukkOppgaveMedBruker,
-            klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
-            opprettPlanlagtKontrollsamtale = opprettPlanlagtKontrollsamtaleService::opprett,
-        )
+        ) { vedtak, tx -> skattDokumentService.genererOgLagre(vedtak, tx) }
     }
 }

@@ -19,6 +19,7 @@ object JournalpostFactory {
             dokument = dokument,
             sakstype = sakstype,
         )
+
         is Dokument.MedMetadata.Vedtak,
         -> Journalpost.Vedtakspost.from(
             person = person,

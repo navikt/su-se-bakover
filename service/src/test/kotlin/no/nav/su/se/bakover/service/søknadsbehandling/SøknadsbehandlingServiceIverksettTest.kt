@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.brev.BrevService
+import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -44,6 +45,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
+import no.nav.su.se.bakover.service.skatt.SkattDokumentService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -753,17 +755,20 @@ private data class ServiceAndMocks(
     },
     val opprettPlanlagtKontrollsamtaleService: OpprettKontrollsamtaleVedNyStønadsperiodeService = mock {},
     val sessionFactory: SessionFactory = TestSessionFactory(),
+    val dokumentRepo: DokumentRepo = mock {},
+    val skattDokumentService: SkattDokumentService = mock {},
 ) {
     val service = IverksettSøknadsbehandlingServiceImpl(
-        søknadsbehandlingRepo = søknadsbehandlingRepo,
-        utbetalingService = utbetalingService,
-        brevService = brevService,
-        clock = clock,
         sakService = sakService,
+        clock = clock,
+        utbetalingService = utbetalingService,
         sessionFactory = sessionFactory,
+        søknadsbehandlingRepo = søknadsbehandlingRepo,
         vedtakRepo = vedtakRepo,
         opprettPlanlagtKontrollsamtaleService = opprettPlanlagtKontrollsamtaleService,
         ferdigstillVedtakService = ferdigstillVedtakService,
+        brevService = brevService,
+        skattDokumentService = skattDokumentService,
     ).apply { addObserver(observer) }
 
     fun allMocks(): Array<Any> {

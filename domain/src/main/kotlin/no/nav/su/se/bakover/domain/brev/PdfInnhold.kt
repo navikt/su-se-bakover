@@ -1,17 +1,24 @@
 package no.nav.su.se.bakover.domain.brev
 
+import arrow.core.NonEmptyList
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.getDistinkteParagrafer
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevTilbakekrevingInfo
+import no.nav.su.se.bakover.domain.person.Person
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
+import java.time.Clock
+import java.util.UUID
 
 /**
  * TODO jah: Dette er en ren JsonDto som sendes serialisert til su-pdfgen. Den bør bo under client-modulen eller en tilsvarende infrastruktur-modul.
@@ -235,6 +242,86 @@ abstract class PdfInnhold {
         val fritekst: String,
     ) : PdfInnhold() {
         override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.Fritekst(tittel)
+    }
+
+    private data class SkattPdfData private constructor(
+        val fnr: Fnr,
+        val navn: Person.Navn,
+        val årsgrunnlag: NonEmptyList<SamletSkattegrunnlagForÅrOgStadie>,
+    ) {
+        companion object {
+            fun lagSkattePdfData(
+                fnr: Fnr,
+                hentNavn: (Fnr) -> Person.Navn,
+                årsgrunnlag: NonEmptyList<SamletSkattegrunnlagForÅrOgStadie>,
+            ): SkattPdfData {
+                return SkattPdfData(
+                    fnr = fnr,
+                    navn = hentNavn(fnr),
+                    årsgrunnlag = årsgrunnlag,
+                )
+            }
+        }
+    }
+
+    data class SkattemeldingsPdf private constructor(
+        val saksnummer: Saksnummer,
+        // TODO: Denne må vi ta inn når vi begynner med revurdering
+        val behandlingstype: BehandlingstypeForSkattemelding = BehandlingstypeForSkattemelding.Søknadsbehandling,
+        val søknadsbehandlingsId: UUID,
+        val vedtaksId: UUID,
+        val hentet: Tidspunkt,
+        val opprettet: Tidspunkt,
+        private val søkers: SkattPdfData,
+        private val eps: SkattPdfData?,
+    ) : PdfInnhold() {
+        override val pdfTemplate: PdfTemplateMedDokumentNavn = SkattegrunnlagPdfTemplate
+
+        enum class BehandlingstypeForSkattemelding {
+            Søknadsbehandling,
+        }
+
+        data class ÅrsgrunnlagMedFnr(
+            val fnr: Fnr,
+            val årsgrunlag: NonEmptyList<SamletSkattegrunnlagForÅrOgStadie>,
+        )
+
+        data class ÅrsgrunnlagForPdf(
+            val søkers: ÅrsgrunnlagMedFnr,
+            val eps: ÅrsgrunnlagMedFnr?,
+        )
+
+        companion object {
+            fun lagSkattemeldingsPdf(
+                saksnummer: Saksnummer,
+                søknadsbehandlingsId: UUID,
+                vedtaksId: UUID,
+                hentet: Tidspunkt,
+                skatt: ÅrsgrunnlagForPdf,
+                hentNavn: (Fnr) -> Person.Navn,
+                clock: Clock,
+            ): SkattemeldingsPdf {
+                return SkattemeldingsPdf(
+                    saksnummer = saksnummer,
+                    søknadsbehandlingsId = søknadsbehandlingsId,
+                    vedtaksId = vedtaksId,
+                    hentet = hentet,
+                    opprettet = Tidspunkt.now(clock),
+                    søkers = SkattPdfData.lagSkattePdfData(
+                        fnr = skatt.søkers.fnr,
+                        hentNavn = hentNavn,
+                        årsgrunnlag = skatt.søkers.årsgrunlag,
+                    ),
+                    eps = skatt.eps?.let {
+                        SkattPdfData.lagSkattePdfData(
+                            fnr = skatt.eps.fnr,
+                            hentNavn = hentNavn,
+                            årsgrunnlag = skatt.eps.årsgrunlag,
+                        )
+                    },
+                )
+            }
+        }
     }
 }
 

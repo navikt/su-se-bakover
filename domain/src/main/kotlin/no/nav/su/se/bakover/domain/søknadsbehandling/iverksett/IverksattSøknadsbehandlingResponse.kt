@@ -26,8 +26,9 @@ interface IverksattSøknadsbehandlingResponse<T : IverksattSøknadsbehandling> {
         lagreSøknadsbehandling: (T, TransactionContext) -> Unit,
         lagreVedtak: (Vedtak, TransactionContext) -> Unit,
         statistikkObservers: List<StatistikkEventObserver>,
+        opprettPlanlagtKontrollsamtale: (VedtakInnvilgetSøknadsbehandling, TransactionContext) -> Unit,
         lagreDokument: (Dokument.MedMetadata, TransactionContext) -> Unit,
         lukkOppgave: (IverksattSøknadsbehandling.Avslag) -> Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit>,
-        opprettPlanlagtKontrollsamtale: (VedtakInnvilgetSøknadsbehandling, TransactionContext) -> Unit,
+        genererOgLagreSkattedokument: (Stønadsvedtak, TransactionContext) -> Unit,
     )
 }

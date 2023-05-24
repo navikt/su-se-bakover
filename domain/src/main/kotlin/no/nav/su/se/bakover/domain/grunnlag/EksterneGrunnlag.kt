@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.grunnlag
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 
 sealed interface EksterneGrunnlag {
-    fun leggTilSkatt(skatt: EksterneGrunnlagSkatt.Hentet): EksterneGrunnlag
+    fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): EksterneGrunnlag
     fun fjernEps(): EksterneGrunnlag
 
     val skatt: EksterneGrunnlagSkatt
@@ -13,7 +13,7 @@ data class StøtterHentingAvEksternGrunnlag(
     override val skatt: EksterneGrunnlagSkatt,
 ) : EksterneGrunnlag {
 
-    override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt.Hentet): EksterneGrunnlag = this.copy(skatt = skatt)
+    override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): EksterneGrunnlag = this.copy(skatt = skatt)
     override fun fjernEps(): EksterneGrunnlag = this.copy(skatt = skatt.fjernEps())
 
     companion object {
@@ -40,7 +40,7 @@ sealed interface EksterneGrunnlagSkatt {
 }
 
 object StøtterIkkeHentingAvEksternGrunnlag : EksterneGrunnlag {
-    override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt.Hentet): EksterneGrunnlag {
+    override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): EksterneGrunnlag {
         throw UnsupportedOperationException("Støtter ikke henting av eksterne grunnlagsdata")
     }
 

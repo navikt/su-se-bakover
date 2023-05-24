@@ -101,6 +101,7 @@ private fun generateExpectedSkattegrunnlag(expectedFnr: String): String {
           "hentetTidspunkt":"2021-01-01T01:02:03.456789Z",
           "årsgrunnlag":[
              {
+                "type": "Grunnlag",
                 "grunnlag":{
                    "oppgjørsdato":null,
                    "formue":[

@@ -17,7 +17,5 @@ interface VedtakRepo {
     fun lagreITransaksjon(vedtak: Vedtak, tx: TransactionContext)
     fun hentForUtbetaling(utbetalingId: UUID30): VedtakSomKanRevurderes?
     fun hentJournalpostId(vedtakId: UUID): JournalpostId?
-    fun hentSøknadsbehandlingsvedtakFraOgMed(
-        fraOgMed: LocalDate,
-    ): List<UUID>
+    fun hentSøknadsbehandlingsvedtakFraOgMed(fraOgMed: LocalDate): List<UUID>
 }

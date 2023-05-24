@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -66,6 +67,7 @@ import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
+import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
@@ -561,6 +563,7 @@ fun søknadsbehandlingIverksattInnvilget(
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
         stønadsperiode.periode,
     ),
+    eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     clock: Clock = fixedClock,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     sakstype: Sakstype = Sakstype.UFØRE,
@@ -581,6 +584,7 @@ fun søknadsbehandlingIverksattInnvilget(
         customGrunnlag = grunnlagsdata.let {
             listOf(it.bosituasjon, it.fradragsgrunnlag).flatten()
         },
+        eksterneGrunnlag = eksterneGrunnlag,
         saksbehandler = saksbehandler,
         clock = clock,
     ).let {
@@ -818,6 +822,7 @@ fun underkjentSøknadsbehandling(
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
+    eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     fritekstTilBrev: String = "",
 ): Pair<Sak, UnderkjentSøknadsbehandling> {
     return tilAttesteringSøknadsbehandling(
@@ -826,6 +831,7 @@ fun underkjentSøknadsbehandling(
         sakOgSøknad = sakOgSøknad,
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
+        eksterneGrunnlag = eksterneGrunnlag,
         fritekstTilBrev = fritekstTilBrev,
     ).let { (sak, tilAttestering) ->
         val underkjent = tilAttestering.tilUnderkjent(attestering = attesteringUnderkjent(clock))
@@ -870,6 +876,7 @@ fun iverksattSøknadsbehandling(
     ),
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
+    eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     attestering: Attestering.Iverksatt = attesteringIverksatt(clock),
     fritekstTilBrev: String = "",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
@@ -881,6 +888,7 @@ fun iverksattSøknadsbehandling(
         sakOgSøknad = sakOgSøknad,
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
+        eksterneGrunnlag = eksterneGrunnlag,
         fritekstTilBrev = fritekstTilBrev,
         saksbehandler = saksbehandler,
     ).let { (sak, tilAttestering) ->
@@ -970,6 +978,7 @@ fun tilAttesteringSøknadsbehandling(
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
+    eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     fritekstTilBrev: String = "",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
 ): Pair<Sak, SøknadsbehandlingTilAttestering> {
@@ -979,6 +988,7 @@ fun tilAttesteringSøknadsbehandling(
         sakOgSøknad = sakOgSøknad,
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
+        eksterneGrunnlag = eksterneGrunnlag,
         saksbehandler = saksbehandler,
     ).let { (sak, vilkårsvurdert) ->
         val tilAttestering = when (vilkårsvurdert) {
@@ -999,6 +1009,7 @@ fun tilAttesteringSøknadsbehandling(
                     customGrunnlag = customGrunnlag,
                     customVilkår = customVilkår,
                     saksbehandler = saksbehandler,
+                    eksterneGrunnlag = eksterneGrunnlag,
                 ).let { (_, beregnet) ->
                     when (beregnet) {
                         // beregnet avslag går til attestering
@@ -1019,6 +1030,7 @@ fun tilAttesteringSøknadsbehandling(
                                 customGrunnlag = customGrunnlag,
                                 customVilkår = customVilkår,
                                 saksbehandler = saksbehandler,
+                                eksterneGrunnlag = eksterneGrunnlag,
                             ).let { (_, simulert) ->
                                 simulert.tilAttestering(
                                     saksbehandler = saksbehandler,
@@ -1067,6 +1079,7 @@ fun simulertSøknadsbehandling(
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
+    eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
 ): Pair<Sak, SimulertSøknadsbehandling> {
@@ -1076,6 +1089,7 @@ fun simulertSøknadsbehandling(
         sakOgSøknad = sakOgSøknad,
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
+        eksterneGrunnlag = eksterneGrunnlag,
         saksbehandler = saksbehandler,
     ).let { (sak, beregnet) ->
         beregnet.simuler(
@@ -1137,6 +1151,7 @@ fun beregnetSøknadsbehandling(
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
+    eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
 ): Pair<Sak, BeregnetSøknadsbehandling> {
     return vilkårsvurdertSøknadsbehandling(
@@ -1145,6 +1160,7 @@ fun beregnetSøknadsbehandling(
         sakOgSøknad = sakOgSøknad,
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
+        eksterneGrunnlag = eksterneGrunnlag,
         saksbehandler = saksbehandler,
     ).let { (sak, vilkårsvurdert) ->
         vilkårsvurdert.beregn(
@@ -1194,6 +1210,7 @@ fun vilkårsvurdertSøknadsbehandling(
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
+    eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
 ): Pair<Sak, VilkårsvurdertSøknadsbehandling> {
     customVilkår.ifNotEmpty {
@@ -1267,12 +1284,17 @@ fun vilkårsvurdertSøknadsbehandling(
                     .getOrFail()
                     .oppdaterBosituasjon(
                         saksbehandler = saksbehandler,
-                        bosituasjon = customGrunnlag.customOrDefault { grunnlagsdata.bosituasjonSomFullstendig() }.single(),
+                        bosituasjon = customGrunnlag.customOrDefault { grunnlagsdata.bosituasjonSomFullstendig() }
+                            .single(),
                         hendelse = Søknadsbehandlingshendelse(
                             tidspunkt = Tidspunkt.now(clock),
                             saksbehandler = saksbehandler,
                             handling = SøknadsbehandlingsHandling.TattStillingTilEPS,
                         ),
+                    )
+                    .getOrFail()
+                    .leggTilSkatt(
+                        skatt = eksterneGrunnlag.skatt,
                     )
                     .getOrFail()
                     .let {
@@ -1339,12 +1361,17 @@ fun vilkårsvurdertSøknadsbehandling(
                     .getOrFail()
                     .oppdaterBosituasjon(
                         saksbehandler = saksbehandler,
-                        bosituasjon = customGrunnlag.customOrDefault { grunnlagsdata.bosituasjonSomFullstendig() }.single(),
+                        bosituasjon = customGrunnlag.customOrDefault { grunnlagsdata.bosituasjonSomFullstendig() }
+                            .single(),
                         hendelse = Søknadsbehandlingshendelse(
                             tidspunkt = Tidspunkt.now(clock),
                             saksbehandler = saksbehandler,
                             handling = SøknadsbehandlingsHandling.TattStillingTilEPS,
                         ),
+                    )
+                    .getOrFail()
+                    .leggTilSkatt(
+                        skatt = eksterneGrunnlag.skatt,
                     )
                     .getOrFail()
                     .let {

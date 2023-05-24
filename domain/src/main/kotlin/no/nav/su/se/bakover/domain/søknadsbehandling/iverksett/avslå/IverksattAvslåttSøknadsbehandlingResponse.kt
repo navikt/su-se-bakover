@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandlin
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
+import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import org.slf4j.LoggerFactory
@@ -41,10 +42,11 @@ data class IverksattAvslåttSøknadsbehandlingResponse(
         lagreSøknadsbehandling: (IverksattSøknadsbehandling.Avslag, TransactionContext) -> Unit,
         lagreVedtak: (Vedtak, TransactionContext) -> Unit,
         statistikkObservers: List<StatistikkEventObserver>,
-        lagreDokument: (Dokument.MedMetadata, TransactionContext) -> Unit,
-        lukkOppgave: (IverksattSøknadsbehandling.Avslag) -> Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit>,
         // Denne er kun brukt ved innvilgelse, men må være med i interfacet for slippe å ha denne domenelogikken i servicelaget. På sikt bør denne gjøres asynkront.
         opprettPlanlagtKontrollsamtale: (VedtakInnvilgetSøknadsbehandling, TransactionContext) -> Unit,
+        lagreDokument: (Dokument.MedMetadata, TransactionContext) -> Unit,
+        lukkOppgave: (IverksattSøknadsbehandling.Avslag) -> Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit>,
+        genererOgLagreSkattedokument: (Stønadsvedtak, TransactionContext) -> Unit,
     ) {
         sessionFactory.withTransactionContext { tx ->
             /**
@@ -56,6 +58,7 @@ data class IverksattAvslåttSøknadsbehandlingResponse(
             lagreSøknadsbehandling(søknadsbehandling, tx)
             lagreVedtak(vedtak, tx)
             lagreDokument(dokument, tx)
+            genererOgLagreSkattedokument(vedtak, tx)
         }
         log.info("Iverksatt avslag for søknadsbehandling: ${søknadsbehandling.id}, vedtak: ${vedtak.id}")
         statistikkObservers.notify(statistikkhendelse)

@@ -13,6 +13,7 @@ interface DokumentRepo {
     fun hentForKlage(id: UUID): List<Dokument.MedMetadata>
 
     fun hentDokumentdistribusjon(id: UUID): Dokumentdistribusjon?
+    fun hentDokumenterForJournalføring(): List<Dokumentdistribusjon>
     fun hentDokumenterForDistribusjon(): List<Dokumentdistribusjon>
     fun oppdaterDokumentdistribusjon(dokumentdistribusjon: Dokumentdistribusjon)
 

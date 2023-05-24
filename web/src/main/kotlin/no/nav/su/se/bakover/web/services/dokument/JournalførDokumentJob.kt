@@ -12,17 +12,20 @@ import java.time.Duration
 import kotlin.concurrent.fixedRateTimer
 
 /**
- * Jobb som med jevne mellomrom sjekker om det eksisterer dokumenter med behov for  bestilling av brev.
- * Se for eksempel [no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon],
+ * Jobb som med jevne mellomrom sjekker om det eksisterer dokumenter med behov for journalføring.
+ *  For eksempel
+ *  [no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon],
+ *  [no.nav.su.se.bakover.domain.skatt.Skattedokument]
  */
-internal class DistribuerDokumentJob(
+internal class JournalførDokumentJob(
     private val initialDelay: Duration,
     private val periode: Duration,
     private val runCheckFactory: RunCheckFactory,
     private val dokumentService: DokumentService,
 ) {
+    private val jobName = "Journalfør dokumenter"
+    private val hostName = InetAddress.getLocalHost().hostName
     private val log = LoggerFactory.getLogger(this::class.java)
-    private val jobName = "Bestill brevdistribusjon"
 
     fun schedule() {
         // Avventer kall til erLeaderPod i tilfelle den ikke er startet enda.
@@ -39,7 +42,7 @@ internal class DistribuerDokumentJob(
                     withCorrelationId {
                         // Disse er debug siden jobben kjører hvert minutt.
                         log.debug("Kjører skeduleringsjobb '$jobName'")
-                        dokumentService.distribuer()
+                        dokumentService.journalførDokumenter()
                         log.debug("Fullførte skeduleringsjobb '$jobName'")
                     }
                 }
@@ -48,6 +51,4 @@ internal class DistribuerDokumentJob(
             }
         }
     }
-
-    private val hostName = InetAddress.getLocalHost().hostName
 }

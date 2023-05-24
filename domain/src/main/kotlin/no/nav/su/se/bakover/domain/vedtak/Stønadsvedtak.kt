@@ -49,3 +49,12 @@ sealed interface Stønadsvedtak : Vedtak, Visitable<VedtakVisitor> {
      */
     fun harIdentifisertBehovForFremtidigAvkorting(): Boolean
 }
+
+sealed interface KunneIkkeGenerereSkattedokument {
+    object FeilVedHentingAvPerson : KunneIkkeGenerereSkattedokument
+    object FeilVedGenereringAvDokument : KunneIkkeGenerereSkattedokument
+
+    object SkattegrunnlagErIkkeHentetForÅGenereDokument : KunneIkkeGenerereSkattedokument
+
+    object Feil : KunneIkkeGenerereSkattedokument
+}
