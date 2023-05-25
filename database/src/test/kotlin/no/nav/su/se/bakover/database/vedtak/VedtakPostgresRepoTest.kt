@@ -1,19 +1,25 @@
 package no.nav.su.se.bakover.database.vedtak
 
+import arrow.core.getOrElse
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.desember
 import no.nav.su.se.bakover.common.extensions.februar
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.mars
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakIverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtaksammendrag
 import no.nav.su.se.bakover.domain.vedtak.Vedtakstype
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
@@ -22,7 +28,9 @@ import no.nav.su.se.bakover.test.persistence.withSession
 import no.nav.su.se.bakover.test.plus
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
 import java.time.temporal.ChronoUnit
+import java.util.UUID
 
 internal class VedtakPostgresRepoTest {
 
@@ -235,6 +243,38 @@ internal class VedtakPostgresRepoTest {
                         andre.id,
                     )
                 }
+            }
+        }
+
+        @Test
+        fun `henter journalpost id`() {
+            withMigratedDb { dataSource ->
+                val testDataHelper = TestDataHelper(dataSource)
+                val dokumentRepo = testDataHelper.databaseRepos.dokumentRepo
+
+                val (sak, vedtak, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
+
+                val original = Dokument.MedMetadata.Vedtak(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    tittel = "tittel",
+                    generertDokument = "".toByteArray(),
+                    generertDokumentJson = """{"some": "json"}""",
+                    metadata = Dokument.Metadata(
+                        sakId = sak.id,
+                        vedtakId = vedtak.id,
+                    ),
+                )
+                dokumentRepo.lagre(original, testDataHelper.sessionFactory.newTransactionContext())
+                val journalført = dokumentRepo.hentDokumenterForJournalføring().first()
+                dokumentRepo.oppdaterDokumentdistribusjon(
+                    journalført.journalfør { JournalpostId("jp").right() }.getOrElse {
+                        fail { "Skulle fått journalført" }
+                    }.distribuerBrev { BrevbestillingId("brev").right() }.getOrElse {
+                        fail { "Skulle fått bestilt brev" }
+                    },
+                )
+                testDataHelper.vedtakRepo.hentJournalpostId(vedtak.id) shouldBe JournalpostId("jp")
             }
         }
     }
