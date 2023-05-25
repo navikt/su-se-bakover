@@ -181,10 +181,14 @@ class DokumentServiceImpl(
         journalpostId: JournalpostId,
         distribusjonstype: Distribusjonstype,
         distribusjonstidspunkt: Distribusjonstidspunkt,
-    ): Either<KunneIkkeDistribuereBrev, BrevbestillingId> =
-        dokDistFordeling.bestillDistribusjon(journalpostId, distribusjonstype, distribusjonstidspunkt)
+    ): Either<KunneIkkeDistribuereBrev, BrevbestillingId> {
+        return dokDistFordeling.bestillDistribusjon(journalpostId, distribusjonstype, distribusjonstidspunkt)
             .mapLeft {
-                log.error("Feil ved bestilling av distribusjon for journalpostId:$journalpostId")
+                log.error(
+                    "Feil ved bestilling av distribusjon for journalpostId: $journalpostId, distribusjonstype: $distribusjonstype, distribusjonstidspunkt: $distribusjonstidspunkt. Feilen var: $it",
+                    RuntimeException("Genererer en stacktrace for enklere debugging."),
+                )
                 KunneIkkeDistribuereBrev
             }
+    }
 }
