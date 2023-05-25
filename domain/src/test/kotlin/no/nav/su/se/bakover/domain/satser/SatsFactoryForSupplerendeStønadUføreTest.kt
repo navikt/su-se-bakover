@@ -245,6 +245,66 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
         }
 
         @Test
+        fun `ordinær - mai 2023`() {
+            satsFactoryTestPåDato(påDato = 26.mai(2023)).ordinærUføre(mai(2023)).let {
+                it shouldBe FullSupplerendeStønadForMåned.Uføre(
+                    måned = mai(2023),
+                    satskategori = Satskategori.ORDINÆR,
+                    grunnbeløp = GrunnbeløpForMåned(
+                        måned = mai(2023),
+                        grunnbeløpPerÅr = 118620,
+                        ikrafttredelse = 26.mai(2023),
+                        virkningstidspunkt = 1.mai(2023),
+                    ),
+                    minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                        faktor = Faktor(2.28),
+                        satsKategori = Satskategori.ORDINÆR,
+                        ikrafttredelse = 1.januar(2015),
+                        virkningstidspunkt = 1.januar(2015),
+                        måned = mai(2023),
+                    ),
+                    toProsentAvHøyForMåned = BigDecimal("490.2960"), // 2.48 * G2023-5 * 0.02 / 12
+                )
+                it.satsPerÅr shouldBe BigDecimal("270453.60") // 2.28 * G2023-5
+                it.satsForMåned shouldBe BigDecimal("22537.80") // 2.28 * G2023-5 / 12
+                it.satsForMånedAvrundet shouldBe 22538
+                it.satsForMånedAsDouble shouldBe 22537.8
+                it.ikrafttredelse shouldBe 26.mai(2023)
+                it.toProsentAvHøyForMånedAsDouble shouldBe 490.296
+            }
+        }
+
+        @Test
+        fun `høy - mai 2023`() {
+            satsFactoryTestPåDato(påDato = 1.juni(2023)).høyUføre(mai(2023)).let {
+                it shouldBe FullSupplerendeStønadForMåned.Uføre(
+                    måned = mai(2023),
+                    satskategori = Satskategori.HØY,
+                    grunnbeløp = GrunnbeløpForMåned(
+                        måned = mai(2023),
+                        grunnbeløpPerÅr = 118620,
+                        ikrafttredelse = 26.mai(2023),
+                        virkningstidspunkt = 1.mai(2023),
+                    ),
+                    minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                        faktor = Faktor(2.48),
+                        satsKategori = Satskategori.HØY,
+                        ikrafttredelse = 1.januar(2015),
+                        virkningstidspunkt = 1.januar(2015),
+                        måned = mai(2023),
+                    ),
+                    toProsentAvHøyForMåned = BigDecimal("490.2960"), // 2.48 * G2023-5 * 0.02 / 12
+                )
+                it.satsPerÅr shouldBe BigDecimal("294177.60") // 2.48 * G2023-5
+                it.satsForMåned.scaleTo4() shouldBe BigDecimal("24514.8000") // 2.48 * G2023-5 / 12
+                it.satsForMånedAvrundet shouldBe 24515
+                it.satsForMånedAsDouble shouldBe 24514.8
+                it.ikrafttredelse shouldBe 26.mai(2023)
+                it.toProsentAvHøyForMånedAsDouble shouldBe 490.296
+            }
+        }
+
+        @Test
         fun `finn siste g-endringsdato for 2021-04-30`() {
             val expectedIkrafttredelse = 4.september(2020)
             satsFactoryTestPåDato(påDato = fixedLocalDate).høyUføre(april(2021)).let {
