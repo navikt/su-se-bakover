@@ -45,13 +45,25 @@ class DokumentServiceImpl(
         val dokumenterResultat = dokumenterSomMåJournalføres.map { dokumentdistribusjon ->
             journalførDokument(dokumentdistribusjon)
                 .map { DokumentResultatSet.Ok(dokumentdistribusjon.id) }
-                .mapLeft { DokumentResultatSet.Feil(dokumentdistribusjon.id) }
+                .mapLeft {
+                    log.error(
+                        "Kunne ikke journalføre dokument  ${dokumentdistribusjon.dokument.id}: $it",
+                        RuntimeException("Genererer en stacktrace for enklere debugging."),
+                    )
+                    DokumentResultatSet.Feil(dokumentdistribusjon.id)
+                }
         }
 
         val skatteDokumenterResultat = skatteDokumenterSomMåJournalføres.map { skattedokument ->
             journalførSkattedokument(skattedokument)
                 .map { DokumentResultatSet.Ok(it.id) }
-                .mapLeft { DokumentResultatSet.Feil(skattedokument.id) }
+                .mapLeft {
+                    log.error(
+                        "Kunne ikke journalføre skattedokument ${skattedokument.id}: $it",
+                        RuntimeException("Genererer en stacktrace for enklere debugging."),
+                    )
+                    DokumentResultatSet.Feil(skattedokument.id)
+                }
         }
 
         (dokumenterResultat + skatteDokumenterResultat).logResultat(log)
