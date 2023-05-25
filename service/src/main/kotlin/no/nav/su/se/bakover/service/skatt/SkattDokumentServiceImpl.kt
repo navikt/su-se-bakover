@@ -41,7 +41,7 @@ class SkattDokumentServiceImpl(
                 is Either.Left -> null
                 is Either.Right -> it
             }
-        }.toNonEmptyList()
+        }
 
         val epsSamletSkattegrunnlag = hentetSkatt.eps?.let {
             it.årsgrunnlag.mapNotNull {
@@ -50,7 +50,11 @@ class SkattDokumentServiceImpl(
                     is Either.Right -> it
                 }
             }
-        }?.toNonEmptyList()
+        }
+
+        if (søkersSamletSkattegrunnlag.isEmpty() && epsSamletSkattegrunnlag.isNullOrEmpty()) {
+            return KunneIkkeGenerereSkattedokument.IngenÅrsgrunnlag.left()
+        }
 
         return PdfInnhold.SkattemeldingsPdf.lagSkattemeldingsPdf(
             saksnummer = vedtak.saksnummer,
@@ -59,14 +63,16 @@ class SkattDokumentServiceImpl(
             // vi henter skattemeldingene samtidig
             hentet = hentetSkatt.søkers.hentetTidspunkt,
             skatt = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagForPdf(
-                søkers = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagMedFnr(
+                søkers = if (søkersSamletSkattegrunnlag.isEmpty()) {
+                    null
+                } else PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagMedFnr(
                     fnr = hentetSkatt.søkers.fnr,
-                    årsgrunlag = søkersSamletSkattegrunnlag,
+                    årsgrunlag = søkersSamletSkattegrunnlag.toNonEmptyList(),
                 ),
                 eps = hentetSkatt.eps?.let {
                     PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagMedFnr(
                         fnr = it.fnr,
-                        årsgrunlag = epsSamletSkattegrunnlag!!,
+                        årsgrunlag = epsSamletSkattegrunnlag!!.toNonEmptyList(),
                     )
                 },
             ),

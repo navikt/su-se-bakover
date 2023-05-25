@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.skatt
 
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
@@ -20,6 +21,7 @@ import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.skatt.nySamletSkattegrunnlagForÅrOgStadieOppgjør
 import no.nav.su.se.bakover.test.skatt.nySkattegrunnlag
+import no.nav.su.se.bakover.test.skatt.nySkattegrunnlagMedFeilIÅrsgrunnlag
 import no.nav.su.se.bakover.test.vilkår.formuevilkårMedEps0Innvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -82,7 +84,6 @@ internal class SkattDokumentServiceImplTest {
         val bosituasjon = bosituasjonEpsUnder67()
         val eps = person(fnr = bosituasjon.fnr)
         val vedtak = iverksattSøknadsbehandling(
-
             customVilkår = listOf(formuevilkårMedEps0Innvilget(bosituasjon = nonEmptyListOf(bosituasjon))),
             customGrunnlag = listOf(bosituasjon),
             eksterneGrunnlag = eksternGrunnlagHentet().copy(
@@ -134,5 +135,85 @@ internal class SkattDokumentServiceImplTest {
         )
         verify(dokumentSkatt).lagre(argThat { it shouldBe dokument.value }, argThat { it shouldBe tx })
         verifyNoMoreInteractions(personMock, pdfGeneratorMock, dokumentSkatt)
+    }
+
+    @Test
+    fun `lager skattegrunnlag dersom minst 1 av oppslagene er ok`() {
+        val person = person()
+        val bosituasjon = bosituasjonEpsUnder67()
+        val eps = person(fnr = bosituasjon.fnr)
+        val vedtak = iverksattSøknadsbehandling(
+            customVilkår = listOf(formuevilkårMedEps0Innvilget(bosituasjon = nonEmptyListOf(bosituasjon))),
+            customGrunnlag = listOf(bosituasjon),
+            eksterneGrunnlag = eksternGrunnlagHentet().copy(
+                skatt = EksterneGrunnlagSkatt.Hentet(nySkattegrunnlagMedFeilIÅrsgrunnlag(), nySkattegrunnlag(fnr = bosituasjon.fnr)),
+            ),
+        ).third
+        val personMock = mock<PersonOppslag> { on { this.person(any()) } doReturn person.right() }
+        val pdfGeneratorMock = mock<PdfGenerator> {
+            on { genererPdf(any<PdfInnhold>()) } doReturn "".toByteArray().right()
+        }
+        val dokumentSkatt = mock<DokumentSkattRepo> {}
+
+        val service = SkattDokumentServiceImpl(
+            pdfGenerator = pdfGeneratorMock,
+            personOppslag = personMock,
+            dokumentSkattRepo = dokumentSkatt,
+            clock = fixedClock,
+        )
+        val tx = TestSessionFactory.transactionContext
+        val dokument = service.genererOgLagre(vedtak, tx)
+        dokument.shouldBeRight()
+
+        verify(personMock, times(1)).person(argThat { it shouldBe eps.ident.fnr })
+        verify(pdfGeneratorMock).genererPdf(
+            argThat<PdfInnhold> {
+                it shouldBe PdfInnhold.SkattemeldingsPdf.lagSkattemeldingsPdf(
+                    saksnummer = vedtak.saksnummer,
+                    søknadsbehandlingsId = vedtak.behandling.id,
+                    vedtaksId = vedtak.id,
+                    hentet = fixedTidspunkt,
+                    skatt = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagForPdf(
+                        søkers = null,
+                        eps = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagMedFnr(
+                            fnr = bosituasjon.fnr,
+                            årsgrunlag = nonEmptyListOf(nySamletSkattegrunnlagForÅrOgStadieOppgjør()),
+                        ),
+                    ),
+                    hentNavn = { _ -> person.navn },
+                    clock = fixedClock,
+                )
+            },
+        )
+        verify(dokumentSkatt).lagre(argThat { it shouldBe dokument.value }, argThat { it shouldBe tx })
+        verifyNoMoreInteractions(personMock, pdfGeneratorMock, dokumentSkatt)
+    }
+
+    @Test
+    fun `lager ikke skattegrunnlag dersom alle oppslagene er left `() {
+        val vedtak = iverksattSøknadsbehandling(
+            eksterneGrunnlag = eksternGrunnlagHentet().copy(
+                skatt = EksterneGrunnlagSkatt.Hentet(
+                    nySkattegrunnlagMedFeilIÅrsgrunnlag(),
+                    nySkattegrunnlagMedFeilIÅrsgrunnlag(),
+                ),
+            ),
+        ).third
+        val person = person()
+        val personMock = mock<PersonOppslag> { on { this.person(any()) } doReturn person.right() }
+        val pdfGeneratorMock = mock<PdfGenerator> {
+            on { genererPdf(any<PdfInnhold>()) } doReturn "".toByteArray().right()
+        }
+        val dokumentSkatt = mock<DokumentSkattRepo> {}
+
+        val service = SkattDokumentServiceImpl(
+            pdfGenerator = pdfGeneratorMock,
+            personOppslag = personMock,
+            dokumentSkattRepo = dokumentSkatt,
+            clock = fixedClock,
+        )
+        val tx = TestSessionFactory.transactionContext
+        val dokument = service.genererOgLagre(vedtak, tx)
+        dokument.shouldBeLeft()
     }
 }

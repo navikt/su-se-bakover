@@ -272,7 +272,7 @@ abstract class PdfInnhold {
         val vedtaksId: UUID,
         val hentet: Tidspunkt,
         val opprettet: Tidspunkt,
-        private val søkers: SkattPdfData,
+        private val søkers: SkattPdfData?,
         private val eps: SkattPdfData?,
     ) : PdfInnhold() {
         override val pdfTemplate: PdfTemplateMedDokumentNavn = SkattegrunnlagPdfTemplate
@@ -287,7 +287,7 @@ abstract class PdfInnhold {
         )
 
         data class ÅrsgrunnlagForPdf(
-            val søkers: ÅrsgrunnlagMedFnr,
+            val søkers: ÅrsgrunnlagMedFnr?,
             val eps: ÅrsgrunnlagMedFnr?,
         )
 
@@ -307,11 +307,13 @@ abstract class PdfInnhold {
                     vedtaksId = vedtaksId,
                     hentet = hentet,
                     opprettet = Tidspunkt.now(clock),
-                    søkers = SkattPdfData.lagSkattePdfData(
-                        fnr = skatt.søkers.fnr,
-                        hentNavn = hentNavn,
-                        årsgrunnlag = skatt.søkers.årsgrunlag,
-                    ),
+                    søkers = skatt.søkers?.let {
+                        SkattPdfData.lagSkattePdfData(
+                            fnr = it.fnr,
+                            hentNavn = hentNavn,
+                            årsgrunnlag = it.årsgrunlag,
+                        )
+                    },
                     eps = skatt.eps?.let {
                         SkattPdfData.lagSkattePdfData(
                             fnr = skatt.eps.fnr,

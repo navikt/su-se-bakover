@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.test.skatt
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
+import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -37,9 +38,36 @@ fun nySkattegrunnlag(
     årSpurtFor = årSpurtFor,
 )
 
+fun nySkattegrunnlagMedFeilIÅrsgrunnlag(
+    id: UUID = UUID.randomUUID(),
+    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
+    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    årsgrunnlag: NonEmptyList<SamletSkattegrunnlagForÅrOgStadie> = nonEmptyListOf(
+        nySamletSkattegrunnlagForÅrOgStadieOppgjørMedFeilIÅrsgrunnlag(),
+    ),
+    clock: Clock = fixedClock,
+    hentetTidspunkt: Tidspunkt = Tidspunkt.now(clock),
+    årSpurtFor: YearRange = årsgrunnlag.toYearRange(),
+) = Skattegrunnlag(
+    id = id,
+    fnr = fnr,
+    hentetTidspunkt = hentetTidspunkt,
+    saksbehandler = saksbehandler,
+    årsgrunnlag = årsgrunnlag,
+    årSpurtFor = årSpurtFor,
+)
+
 fun nySamletSkattegrunnlagForÅrOgStadieOppgjør(
     inntektsÅr: Year = Year.of(2021),
     oppslag: Either<KunneIkkeHenteSkattemelding, Skattegrunnlag.SkattegrunnlagForÅr> = nySkattegrunnlagForÅr().right(),
+): SamletSkattegrunnlagForÅrOgStadie.Oppgjør = SamletSkattegrunnlagForÅrOgStadie.Oppgjør(
+    oppslag = oppslag,
+    inntektsår = inntektsÅr,
+)
+
+fun nySamletSkattegrunnlagForÅrOgStadieOppgjørMedFeilIÅrsgrunnlag(
+    inntektsÅr: Year = Year.of(2021),
+    oppslag: Either<KunneIkkeHenteSkattemelding, Skattegrunnlag.SkattegrunnlagForÅr> = KunneIkkeHenteSkattemelding.FinnesIkke.left(),
 ): SamletSkattegrunnlagForÅrOgStadie.Oppgjør = SamletSkattegrunnlagForÅrOgStadie.Oppgjør(
     oppslag = oppslag,
     inntektsår = inntektsÅr,
