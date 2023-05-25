@@ -244,7 +244,7 @@ abstract class PdfInnhold {
         override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.Fritekst(tittel)
     }
 
-    private data class SkattPdfData private constructor(
+    data class SkattPdfData private constructor(
         val fnr: Fnr,
         val navn: Person.Navn,
         val årsgrunnlag: NonEmptyList<SamletSkattegrunnlagForÅrOgStadie>,
@@ -272,8 +272,8 @@ abstract class PdfInnhold {
         val vedtaksId: UUID,
         val hentet: Tidspunkt,
         val opprettet: Tidspunkt,
-        private val søkers: SkattPdfData?,
-        private val eps: SkattPdfData?,
+        val søkers: SkattPdfData?,
+        val eps: SkattPdfData?,
     ) : PdfInnhold() {
         override val pdfTemplate: PdfTemplateMedDokumentNavn = SkattegrunnlagPdfTemplate
 
