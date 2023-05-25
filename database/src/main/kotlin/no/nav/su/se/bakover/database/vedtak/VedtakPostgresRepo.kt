@@ -215,11 +215,11 @@ internal class VedtakPostgresRepo(
             sessionFactory.withSession { session ->
                 """
                 select
-                  journalpostid
-                from dokument
+                  dd.journalpostid
+                from dokument d
                 inner join dokument_distribusjon dd
-                  on dokument.id = dd.dokumentid
-                where vedtakid = :vedtakId and d.duplikatAv is null
+                  on d.id = dd.dokumentid
+                where d.vedtakid = :vedtakId and d.duplikatAv is null
                 """.trimIndent().hent(mapOf("vedtakId" to vedtakId), session) {
                     JournalpostId(it.string("journalpostid"))
                 }
