@@ -86,7 +86,7 @@ fun startJobberOgConsumers(
             var initialDelay: Duration = Duration.ofMinutes(5)
             fun next(): Duration {
                 return initialDelay.also {
-                    initialDelay.plus(Duration.ofSeconds(30))
+                    initialDelay = initialDelay.plus(Duration.ofSeconds(30))
                 }
             }
         }
@@ -111,7 +111,7 @@ fun startJobberOgConsumers(
             periode = Duration.of(5, ChronoUnit.MINUTES),
             runCheckFactory = runCheckFactory,
             dokumentService = dokumentService,
-        )
+        ).schedule()
 
         DistribuerDokumentJob(
             initialDelay = initialDelay.next(),
