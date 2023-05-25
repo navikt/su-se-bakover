@@ -135,7 +135,13 @@ class DokumentServiceImpl(
         dokumentRepo.hentDokumenterForDistribusjon().map { dokument ->
             distribuerDokument(dokument)
                 .map { DokumentResultatSet.Ok(it.id) }
-                .mapLeft { DokumentResultatSet.Feil(dokument.id) }
+                .mapLeft {
+                    log.error(
+                        "Kunne ikke distribuere brev med dokumentid ${dokument.id} og journalpostid ${dokument.journalføringOgBrevdistribusjon.journalpostId()}: $it",
+                        RuntimeException("Genererer en stacktrace for enklere debugging."),
+                    )
+                    DokumentResultatSet.Feil(dokument.id)
+                }
         }.logResultat("Distribuering", log)
     }
 
