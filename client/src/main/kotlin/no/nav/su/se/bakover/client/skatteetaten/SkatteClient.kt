@@ -4,16 +4,13 @@ import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.flatMap
 import arrow.core.left
-import com.github.benmanes.caffeine.cache.Cache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import no.nav.su.se.bakover.client.cache.newCache
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.auth.AzureAd
-import no.nav.su.se.bakover.common.extensions.erI
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.ClientsConfig.SkatteetatenConfig
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
@@ -27,7 +24,6 @@ import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
 import no.nav.su.se.bakover.domain.skatt.Stadie
-import no.nav.su.se.bakover.domain.skatt.toYearRange
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.net.URI
@@ -48,12 +44,7 @@ internal class SkatteClient(
     private val skatteetatenConfig: SkatteetatenConfig,
     private val hentBrukerToken: () -> JwtToken.BrukerToken = { JwtToken.BrukerToken.fraMdc() },
     private val azureAd: AzureAd,
-    private val fnrOgListeAvSkattegrunnlagCache: Cache<Fnr, List<SamletSkattegrunnlagForÅr>> = newCache(
-        cacheName = "fnrTilSkattegrunnlag",
-        expireAfterWrite = Duration.ofDays(1),
-    ),
 ) : Skatteoppslag {
-
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     private val client = HttpClient.newBuilder()
@@ -64,33 +55,12 @@ internal class SkatteClient(
     override fun hentSamletSkattegrunnlag(
         fnr: Fnr,
         år: Year,
-    ): SamletSkattegrunnlagForÅr = hentSkatteMeldingFraCacheForÅrEllerSøkOpp(fnr, år.toRange()).single()
+    ): SamletSkattegrunnlagForÅr = hentForÅrsperiode(fnr, år.toRange()).single()
 
     override fun hentSamletSkattegrunnlagForÅrsperiode(
         fnr: Fnr,
         yearRange: YearRange,
-    ): NonEmptyList<SamletSkattegrunnlagForÅr> = hentSkatteMeldingFraCacheForÅrEllerSøkOpp(fnr, yearRange)
-
-    private fun hentSkatteMeldingFraCacheForÅrEllerSøkOpp(
-        fnr: Fnr,
-        yearRange: YearRange,
-    ): NonEmptyList<SamletSkattegrunnlagForÅr> {
-        return fnrOgListeAvSkattegrunnlagCache.getIfPresent(fnr)?.let { skatteListe ->
-            if (skatteListe.toYearRange().inneholder(yearRange)) {
-                skatteListe.filter { it.år erI yearRange }.toNonEmptyList()
-            } else {
-                hentSkattemeldingForÅrsperiodeOgLeggInnICache(fnr, yearRange)
-            }
-        } ?: hentSkattemeldingForÅrsperiodeOgLeggInnICache(fnr, yearRange)
-    }
-
-    private fun hentSkattemeldingForÅrsperiodeOgLeggInnICache(
-        fnr: Fnr,
-        yearRange: YearRange,
-    ): NonEmptyList<SamletSkattegrunnlagForÅr> =
-        hentForÅrsperiode(fnr, yearRange).also {
-            fnrOgListeAvSkattegrunnlagCache.put(fnr, it)
-        }
+    ): NonEmptyList<SamletSkattegrunnlagForÅr> = hentForÅrsperiode(fnr, yearRange)
 
     private fun hentForÅrsperiode(fnr: Fnr, yearRange: YearRange): NonEmptyList<SamletSkattegrunnlagForÅr> {
         val correlationId = getOrCreateCorrelationIdFromThreadLocal()
