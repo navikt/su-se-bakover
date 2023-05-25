@@ -38,8 +38,6 @@ sealed class VilkårsvurdertSøknadsbehandling :
     Søknadsbehandling(),
     Søknadsbehandling.KanOppdaterePeriodeGrunnlagVilkår {
 
-    abstract override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert
-
     override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> {
         return copyInternal(
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilSkatt(skatt).let {
@@ -62,7 +60,6 @@ sealed class VilkårsvurdertSøknadsbehandling :
             grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             attesteringer: Attesteringshistorikk,
             saksbehandlingsHistorikk: Søknadsbehandlingshistorikk,
-            avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
             sakstype: Sakstype,
             saksbehandler: NavIdentBruker.Saksbehandler,
         ): VilkårsvurdertSøknadsbehandling {
@@ -113,7 +110,6 @@ sealed class VilkårsvurdertSøknadsbehandling :
                         eksterneGrunnlag = eksterneGrunnlag,
                         attesteringer = attesteringer,
                         søknadsbehandlingsHistorikk = saksbehandlingsHistorikk,
-                        avkorting = avkorting.kanIkke(),
                         sakstype = sakstype,
                         saksbehandler = saksbehandler,
                     )
@@ -135,7 +131,6 @@ sealed class VilkårsvurdertSøknadsbehandling :
                         eksterneGrunnlag = eksterneGrunnlag,
                         attesteringer = attesteringer,
                         søknadsbehandlingsHistorikk = saksbehandlingsHistorikk,
-                        avkorting = avkorting.uhåndtert(),
                         sakstype = sakstype,
                         saksbehandler = saksbehandler,
                     )
@@ -157,7 +152,6 @@ sealed class VilkårsvurdertSøknadsbehandling :
                         eksterneGrunnlag = eksterneGrunnlag,
                         attesteringer = attesteringer,
                         søknadsbehandlingsHistorikk = saksbehandlingsHistorikk,
-                        avkorting = avkorting.kanIkke(),
                         sakstype = sakstype,
                         saksbehandler = saksbehandler,
                     )
@@ -181,7 +175,6 @@ sealed class VilkårsvurdertSøknadsbehandling :
         override val eksterneGrunnlag: EksterneGrunnlag,
         override val attesteringer: Attesteringshistorikk,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
-        override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
     ) : VilkårsvurdertSøknadsbehandling(), KanBeregnes {
@@ -191,6 +184,8 @@ sealed class VilkårsvurdertSøknadsbehandling :
         override val beregning = null
         override val simulering: Simulering? = null
 
+        /** Avkorting vurderes ikke før vi må; beregningsteget. */
+        override val avkorting = AvkortingVedSøknadsbehandling.IkkeVurdert
         init {
             kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
             // TODO jah: Enable denne når det ikke finnes proddata med ufullstendig i denne tilstanden:
@@ -208,7 +203,6 @@ sealed class VilkårsvurdertSøknadsbehandling :
         override fun copyInternal(
             stønadsperiode: Stønadsperiode,
             grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-            avkorting: AvkortingVedSøknadsbehandling,
             søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
             aldersvurdering: Aldersvurdering,
         ): VilkårsvurdertSøknadsbehandling {
@@ -237,13 +231,15 @@ sealed class VilkårsvurdertSøknadsbehandling :
         override val eksterneGrunnlag: EksterneGrunnlag,
         override val attesteringer: Attesteringshistorikk,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
-        override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
     ) : VilkårsvurdertSøknadsbehandling(), ErAvslag {
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
         override val beregning = null
         override val simulering: Simulering? = null
+
+        /** Tar ikke */
+        override val avkorting = AvkortingVedSøknadsbehandling.IngenAvkorting
 
         override fun skalSendeVedtaksbrev(): Boolean {
             return true
@@ -252,7 +248,6 @@ sealed class VilkårsvurdertSøknadsbehandling :
         override fun copyInternal(
             stønadsperiode: Stønadsperiode,
             grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-            avkorting: AvkortingVedSøknadsbehandling,
             søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
             aldersvurdering: Aldersvurdering,
         ): Avslag {
@@ -301,7 +296,6 @@ sealed class VilkårsvurdertSøknadsbehandling :
                 eksterneGrunnlag = eksterneGrunnlag,
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = this.søknadsbehandlingsHistorikk,
-                avkorting = avkorting.håndter().kanIkke(),
                 sakstype = sakstype,
             ).right()
         }
@@ -336,7 +330,6 @@ sealed class VilkårsvurdertSøknadsbehandling :
                         handling = SøknadsbehandlingsHandling.SendtTilAttestering,
                     ),
                 ),
-                avkorting = avkorting.håndter().kanIkke(),
                 sakstype = sakstype,
             ).right()
         }
@@ -364,13 +357,14 @@ sealed class VilkårsvurdertSøknadsbehandling :
         override val eksterneGrunnlag: EksterneGrunnlag,
         override val attesteringer: Attesteringshistorikk,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
-        override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
+
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
     ) : VilkårsvurdertSøknadsbehandling() {
         override val stønadsperiode: Stønadsperiode? = aldersvurdering?.stønadsperiode
         override val beregning = null
         override val simulering: Simulering? = null
+        override val avkorting = AvkortingVedSøknadsbehandling.IkkeVurdert
 
         override fun skalSendeVedtaksbrev(): Boolean {
             return true
@@ -379,7 +373,6 @@ sealed class VilkårsvurdertSøknadsbehandling :
         override fun copyInternal(
             stønadsperiode: Stønadsperiode,
             grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-            avkorting: AvkortingVedSøknadsbehandling,
             søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
             aldersvurdering: Aldersvurdering,
         ): Uavklart {

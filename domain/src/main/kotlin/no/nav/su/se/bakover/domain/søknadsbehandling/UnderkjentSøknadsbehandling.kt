@@ -48,7 +48,7 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling(), Søknadsbehand
     abstract override val saksbehandler: NavIdentBruker.Saksbehandler
     abstract override val attesteringer: Attesteringshistorikk
     abstract override val aldersvurdering: Aldersvurdering
-    abstract override val avkorting: AvkortingVedSøknadsbehandling.Håndtert
+    abstract override val avkorting: AvkortingVedSøknadsbehandling.Vurdert
 
     abstract fun nyOppgaveId(nyOppgaveId: OppgaveId): UnderkjentSøknadsbehandling
 
@@ -81,7 +81,7 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling(), Søknadsbehand
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
         override val eksterneGrunnlag: EksterneGrunnlag,
-        override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
+        override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting,
         override val sakstype: Sakstype,
     ) : UnderkjentSøknadsbehandling() {
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
@@ -99,7 +99,6 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling(), Søknadsbehand
         override fun copyInternal(
             stønadsperiode: Stønadsperiode,
             grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-            avkorting: AvkortingVedSøknadsbehandling,
             søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
             aldersvurdering: Aldersvurdering,
         ): Innvilget {
@@ -214,6 +213,9 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling(), Søknadsbehand
     }
 
     sealed class Avslag : UnderkjentSøknadsbehandling(), ErAvslag {
+
+        override val avkorting = AvkortingVedSøknadsbehandling.IngenAvkorting
+
         data class MedBeregning(
             override val id: UUID,
             override val opprettet: Tidspunkt,
@@ -231,7 +233,6 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling(), Søknadsbehand
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val eksterneGrunnlag: EksterneGrunnlag,
-            override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
             override val sakstype: Sakstype,
         ) : Avslag() {
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
@@ -255,7 +256,6 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling(), Søknadsbehand
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-                avkorting: AvkortingVedSøknadsbehandling,
                 søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
                 aldersvurdering: Aldersvurdering,
             ): MedBeregning {
@@ -306,7 +306,6 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling(), Søknadsbehand
                             handling = SøknadsbehandlingsHandling.SendtTilAttestering,
                         ),
                     ),
-                    avkorting = avkorting,
                     sakstype = sakstype,
                 ).right()
             }
@@ -335,7 +334,6 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling(), Søknadsbehand
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val eksterneGrunnlag: EksterneGrunnlag,
-            override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
             override val sakstype: Sakstype,
         ) : Avslag() {
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
@@ -345,7 +343,6 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling(), Søknadsbehand
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-                avkorting: AvkortingVedSøknadsbehandling,
                 søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
                 aldersvurdering: Aldersvurdering,
             ): UtenBeregning {
@@ -405,7 +402,6 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling(), Søknadsbehand
                             handling = SøknadsbehandlingsHandling.SendtTilAttestering,
                         ),
                     ),
-                    avkorting = avkorting,
                     sakstype = sakstype,
                 ).right()
             }

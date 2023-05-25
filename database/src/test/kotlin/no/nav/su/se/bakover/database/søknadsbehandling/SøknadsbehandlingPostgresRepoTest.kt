@@ -186,6 +186,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     clock = fixedClock,
                     satsFactory = satsFactoryTestPåDato(),
                     nySaksbehandler = saksbehandler,
+                    uteståendeAvkortingPåSak = sak.uteståendeAvkortingSkalAvkortes,
                 ).getOrFail()
                 .also {
                     repo.lagre(it)
@@ -454,22 +455,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 sakRepo = testDataHelper.sakRepo,
             )
 
-            iverksattAvslagUtenBeregning.avkorting.shouldBeInstanceOf<AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere>()
-                .also {
-                    it.håndtert.shouldBeInstanceOf<AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående>().also {
-                        it shouldBe AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(
-                            Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-                                objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                                    id = it.avkortingsvarsel.id,
-                                    sakId = sakOppdatertMedSøknad.id,
-                                    revurderingId = revurderingSomFørteTilAvkorting.id,
-                                    opprettet = it.avkortingsvarsel.opprettet,
-                                    simulering = it.avkortingsvarsel.simulering,
-                                ),
-                            ),
-                        )
-                    }
-                }
+            iverksattAvslagUtenBeregning.avkorting shouldBe AvkortingVedSøknadsbehandling.IngenAvkorting
         }
     }
 
@@ -498,6 +484,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 revurderingId = revurderingSomFørteTilAvkorting.id,
                 sakRepo = testDataHelper.sakRepo,
             )
+            val uteståendeAvkorting = sak.uteståendeAvkorting as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes
 
             val (sakOppdatertMedSøknad, iverksattSøknadsbehandlingVedtak, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
                 sakOgSøknad = Pair(sak, testDataHelper.persisterJournalførtSøknadMedOppgave(sakId = sak.id).second),
@@ -513,21 +500,20 @@ internal class SøknadsbehandlingPostgresRepoTest {
             testDataHelper.sakRepo.hentSak(sak.id) shouldBe sakOppdatertMedSøknad
             sakOppdatertMedSøknad.uteståendeAvkorting.shouldBeInstanceOf<Avkortingsvarsel.Ingen>()
 
-            iverksattSøknadsbehandlingVedtak.behandling.avkorting.shouldBeInstanceOf<AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående>()
-                .also {
-                    it.avkortingsvarsel shouldBe Avkortingsvarsel.Utenlandsopphold.Avkortet(
-                        Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-                            objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                                id = it.avkortingsvarsel.id,
-                                sakId = sakOppdatertMedSøknad.id,
-                                revurderingId = revurderingSomFørteTilAvkorting.id,
-                                opprettet = it.avkortingsvarsel.opprettet,
-                                simulering = it.avkortingsvarsel.simulering,
-                            ),
+            iverksattSøknadsbehandlingVedtak.behandling.avkorting shouldBe AvkortingVedSøknadsbehandling.Avkortet(
+                Avkortingsvarsel.Utenlandsopphold.Avkortet(
+                    Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
+                        objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                            id = uteståendeAvkorting.id,
+                            sakId = sakOppdatertMedSøknad.id,
+                            revurderingId = revurderingSomFørteTilAvkorting.id,
+                            opprettet = uteståendeAvkorting.opprettet,
+                            simulering = uteståendeAvkorting.simulering,
                         ),
-                        behandlingId = iverksattSøknadsbehandlingVedtak.behandling.id,
-                    )
-                }
+                    ),
+                    behandlingId = iverksattSøknadsbehandlingVedtak.behandling.id,
+                ),
+            )
         }
     }
 

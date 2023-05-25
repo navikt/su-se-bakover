@@ -42,12 +42,11 @@ sealed class IverksattSøknadsbehandling : Søknadsbehandling() {
     abstract override val saksbehandler: NavIdentBruker.Saksbehandler
     abstract override val attesteringer: Attesteringshistorikk
     abstract override val aldersvurdering: Aldersvurdering
-    abstract override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt
+    abstract override val avkorting: AvkortingVedSøknadsbehandling.Vurdert
 
     override fun copyInternal(
         stønadsperiode: Stønadsperiode,
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-        avkorting: AvkortingVedSøknadsbehandling,
         søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
         aldersvurdering: Aldersvurdering,
     ) = throw UnsupportedOperationException("Kan ikke kalle copyInternal på en iverksatt søknadsbehandling.")
@@ -73,7 +72,7 @@ sealed class IverksattSøknadsbehandling : Søknadsbehandling() {
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
         override val eksterneGrunnlag: EksterneGrunnlag,
-        override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt,
+        override val avkorting: AvkortingVedSøknadsbehandling.Ferdig,
         override val sakstype: Sakstype,
     ) : IverksattSøknadsbehandling() {
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
@@ -95,6 +94,10 @@ sealed class IverksattSøknadsbehandling : Søknadsbehandling() {
     }
 
     sealed class Avslag : IverksattSøknadsbehandling(), ErAvslag {
+
+        /** Ingenting og avkorte ved avslag. */
+        override val avkorting = AvkortingVedSøknadsbehandling.IngenAvkorting
+
         data class MedBeregning(
             override val id: UUID,
             override val opprettet: Tidspunkt,
@@ -112,7 +115,6 @@ sealed class IverksattSøknadsbehandling : Søknadsbehandling() {
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val eksterneGrunnlag: EksterneGrunnlag,
-            override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
             override val sakstype: Sakstype,
         ) : Avslag() {
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
@@ -163,7 +165,6 @@ sealed class IverksattSøknadsbehandling : Søknadsbehandling() {
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val eksterneGrunnlag: EksterneGrunnlag,
-            override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
             override val sakstype: Sakstype,
         ) : Avslag() {
             override val periode: Periode = aldersvurdering.stønadsperiode.periode

@@ -78,7 +78,6 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             vilkårsvurderinger = behandling.vilkårsvurderinger,
             eksterneGrunnlag = behandling.eksterneGrunnlag,
             attesteringer = behandling.attesteringer,
-            avkorting = behandling.avkorting,
             sakstype = behandling.sakstype,
             saksbehandler = behandling.saksbehandler,
             søknadsbehandlingsHistorikk = behandling.søknadsbehandlingsHistorikk.leggTilNyHendelse(

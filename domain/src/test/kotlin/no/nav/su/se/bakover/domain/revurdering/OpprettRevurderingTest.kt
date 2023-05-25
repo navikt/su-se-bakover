@@ -128,7 +128,7 @@ internal class OpprettRevurderingTest {
             clock = clock,
         ).let { it.first to it.third }
             .shouldBeType<Pair<Sak, VedtakInnvilgetSøknadsbehandling>>().also {
-                it.second.behandling.avkorting.shouldBeType<AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående>()
+                it.second.behandling.avkorting.shouldBeType<AvkortingVedSøknadsbehandling.Avkortet>()
                     .also {
                         it.avkortingsvarsel.periode() shouldBe mai(2021)..september(2021)
                     }

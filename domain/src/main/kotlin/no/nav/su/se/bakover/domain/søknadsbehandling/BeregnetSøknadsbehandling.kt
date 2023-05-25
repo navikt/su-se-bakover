@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling.IngenAvkorting
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
@@ -41,7 +42,7 @@ sealed class BeregnetSøknadsbehandling : Søknadsbehandling(), Søknadsbehandli
     abstract override val beregning: Beregning
     abstract override val stønadsperiode: Stønadsperiode
     abstract override val aldersvurdering: Aldersvurdering
-    abstract override val avkorting: AvkortingVedSøknadsbehandling.Håndtert
+    abstract override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting
     abstract override val saksbehandler: NavIdentBruker.Saksbehandler
 
     override fun simuler(
@@ -121,7 +122,7 @@ sealed class BeregnetSøknadsbehandling : Søknadsbehandling(), Søknadsbehandli
         override val eksterneGrunnlag: EksterneGrunnlag,
         override val attesteringer: Attesteringshistorikk,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
-        override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
+        override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting,
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
     ) : BeregnetSøknadsbehandling() {
@@ -146,7 +147,6 @@ sealed class BeregnetSøknadsbehandling : Søknadsbehandling(), Søknadsbehandli
         override fun copyInternal(
             stønadsperiode: Stønadsperiode,
             grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-            avkorting: AvkortingVedSøknadsbehandling,
             søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
             aldersvurdering: Aldersvurdering,
         ): Innvilget {
@@ -176,13 +176,19 @@ sealed class BeregnetSøknadsbehandling : Søknadsbehandling(), Søknadsbehandli
         override val eksterneGrunnlag: EksterneGrunnlag,
         override val attesteringer: Attesteringshistorikk,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
-        override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
     ) : BeregnetSøknadsbehandling(), ErAvslag {
+
         override val periode: Periode = aldersvurdering.stønadsperiode.periode
+
         override val simulering: Simulering? = null
+
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
+
+        /** Ingenting og avkorte ved avslag. */
+        override val avkorting = IngenAvkorting
+
         private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
             when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
                 is AvslagGrunnetBeregning.Ja -> listOf(vurdering.grunn.toAvslagsgrunn())
@@ -201,7 +207,6 @@ sealed class BeregnetSøknadsbehandling : Søknadsbehandling(), Søknadsbehandli
         override fun copyInternal(
             stønadsperiode: Stønadsperiode,
             grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-            avkorting: AvkortingVedSøknadsbehandling,
             søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
             aldersvurdering: Aldersvurdering,
         ): Avslag {
@@ -249,7 +254,6 @@ sealed class BeregnetSøknadsbehandling : Søknadsbehandling(), Søknadsbehandli
                         handling = SøknadsbehandlingsHandling.SendtTilAttestering,
                     ),
                 ),
-                avkorting = avkorting.kanIkke(),
                 sakstype = sakstype,
             ).right()
         }

@@ -79,7 +79,6 @@ private fun Sak.internalOppdater(
         formuegrenserFactory = formuegrenserFactory,
         clock = clock,
         saksbehandler = saksbehandler,
-        avkorting = this.hentUteståendeAvkortingForSøknadsbehandling().fold({ it }, { it }).kanIkke(),
     ).getOrElse {
         return when (it) {
             is no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> {

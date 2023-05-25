@@ -1,164 +1,59 @@
 package no.nav.su.se.bakover.domain.avkorting
 
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling.IkkeVurdert
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling.Vurdert
 import java.util.UUID
 
 /**
- * Representerer tilstander for håndtering av et [Avkortingsvarsel] i kontekst av en søknadsbehandling.
- * Tilstandene sier noe om hvordan den aktuelle søknadsbehandlingen forholder seg til det aktuelle varselet.
+ * Representerer tilstander for håndtering av et [Avkortingsvarsel] i et søknadsbehandlingsløp.
+ *
+ * Vil være i tilstanden [IkkeVurdert] frem til vi har beregnet, deretter vil den være i tilstanden [Vurdert].
+ * Merk at siden vi støtter paralelle behandlinger, kan
  */
-sealed class AvkortingVedSøknadsbehandling {
-
-    abstract fun uhåndtert(): Uhåndtert
+sealed interface AvkortingVedSøknadsbehandling {
 
     /**
-     * Tilstand før vi har foretatt oss noe for å håndtere en eventuell utestående avkorting - hvis relevant.
+     * Vi tar ikke stilling til om Søknadsbehandlingen skal avkortes før beregningsteget.
+     * Dette kan ikke være siste tilstand.
      */
-    sealed class Uhåndtert : AvkortingVedSøknadsbehandling() {
+    object IkkeVurdert : AvkortingVedSøknadsbehandling {
+        override fun toString() = this::class.simpleName!!
+    }
 
-        abstract fun håndter(): Håndtert
-        abstract override fun uhåndtert(): Uhåndtert
-        abstract fun kanIkke(): KanIkkeHåndtere
+    sealed interface Vurdert : AvkortingVedSøknadsbehandling
+    sealed interface Ferdig : Vurdert
 
-        /**
-         * Vi har identifisert et [Avkortingsvarsel.Utenlandsopphold.SkalAvkortes] som må tas hensyn til.
-         */
-        data class UteståendeAvkorting(
-            val avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
-        ) : Uhåndtert() {
-            override fun håndter(): Håndtert.AvkortUtestående {
-                return Håndtert.AvkortUtestående(avkortingsvarsel)
-            }
-
-            override fun uhåndtert(): Uhåndtert {
-                return this
-            }
-
-            override fun kanIkke(): KanIkkeHåndtere {
-                return KanIkkeHåndtere(this)
-            }
-        }
-
-        /**
-         * Det er ikke behov for håndtering av noen utestående avkortinger
-         */
-        object IngenUtestående : Uhåndtert() {
-            override fun håndter(): Håndtert.IngenUtestående {
-                return Håndtert.IngenUtestående
-            }
-
-            override fun uhåndtert(): Uhåndtert {
-                return this
-            }
-
-            override fun kanIkke(): KanIkkeHåndtere {
-                return KanIkkeHåndtere(this)
-            }
-        }
-
-        /**
-         * Utestående avkortinger kan ikke håndteres, dette kan f.eks skyldes at søknadsbehandlingen avsluttes.
-         */
-        data class KanIkkeHåndtere(
-            val uhåndtert: Uhåndtert,
-        ) : Uhåndtert() {
-            override fun håndter(): Håndtert.KanIkkeHåndtere {
-                return Håndtert.KanIkkeHåndtere(uhåndtert.håndter())
-            }
-
-            override fun uhåndtert(): Uhåndtert {
-                return uhåndtert.uhåndtert()
-            }
-
-            override fun kanIkke(): KanIkkeHåndtere {
-                return this
-            }
+    /**
+     * Søknadsbehandlingen avkorter varselet i sin helhet.
+     * Se beregningens fradrag for detaljer.
+     * Dette er en underveistilstand.
+     */
+    data class SkalAvkortes(
+        val avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
+    ) : Vurdert, KlarTilIverksetting {
+        fun avkort(søknadsbehandlingId: UUID): Avkortet {
+            return Avkortet(avkortingsvarsel.avkortet(søknadsbehandlingId))
         }
     }
 
     /**
-     * Midlertidig tilstander hvor håndteringen av et [Avkortingsvarsel.Utenlandsopphold.SkalAvkortes] er ferdig.
+     * Ingen avkortingsvarsler som trengs håndteres.
+     * Det kan enten bety at det ikke finnes et avkortingsvarsel, eller at det er et avslag.
      */
-    sealed class Håndtert : AvkortingVedSøknadsbehandling() {
-
-        abstract override fun uhåndtert(): Uhåndtert
-        abstract fun iverksett(behandlingId: UUID): Iverksatt
-        abstract fun kanIkke(): KanIkkeHåndtere
-
-        data class AvkortUtestående(
-            val avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
-        ) : Håndtert() {
-            override fun uhåndtert(): Uhåndtert {
-                return Uhåndtert.UteståendeAvkorting(avkortingsvarsel)
-            }
-
-            override fun iverksett(behandlingId: UUID): Iverksatt.AvkortUtestående {
-                return Iverksatt.AvkortUtestående(avkortingsvarsel.avkortet(behandlingId))
-            }
-
-            override fun kanIkke(): KanIkkeHåndtere {
-                return KanIkkeHåndtere(this)
-            }
-        }
-
-        object IngenUtestående : Håndtert() {
-            override fun uhåndtert(): Uhåndtert {
-                return Uhåndtert.IngenUtestående
-            }
-
-            override fun iverksett(behandlingId: UUID): Iverksatt.IngenUtestående {
-                return Iverksatt.IngenUtestående
-            }
-
-            override fun kanIkke(): KanIkkeHåndtere {
-                return KanIkkeHåndtere(this)
-            }
-        }
-
-        data class KanIkkeHåndtere(
-            val håndtert: Håndtert,
-        ) : Håndtert() {
-            override fun uhåndtert(): Uhåndtert {
-                return håndtert.uhåndtert()
-            }
-
-            override fun iverksett(behandlingId: UUID): Iverksatt.KanIkkeHåndtere {
-                return Iverksatt.KanIkkeHåndtere(håndtert)
-            }
-
-            override fun kanIkke(): KanIkkeHåndtere {
-                return KanIkkeHåndtere(håndtert)
-            }
-        }
+    object IngenAvkorting : Ferdig, KlarTilIverksetting {
+        override fun toString() = this::class.simpleName!!
     }
 
-    sealed class Iverksatt : AvkortingVedSøknadsbehandling() {
+    /**
+     * Gjelder kun ved iverksatt innvilget.
+     */
+    data class Avkortet(
+        val avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.Avkortet,
+    ) : Ferdig
 
-        override fun uhåndtert(): Uhåndtert {
-            throw IllegalStateException("Kan ikke gå tilbake til uhåndtert etter iverksettelse!")
-        }
-
-        /**
-         * Represnterer at søknadsbehandlingen har klart å gjennomføre avkorting av et utestående varsel.
-         * Som et ledd i denne prosessen oppdateres også status for [avkortingsvarsel].
-         *
-         * @see Håndtert.AvkortUtestående.iverksett
-         * @see Avkortingsvarsel.Utenlandsopphold.Avkortet
-         */
-        data class AvkortUtestående(
-            val avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.Avkortet,
-        ) : Iverksatt()
-
-        /**
-         * Det fantes ingen utestående avkortinger søknadsbehandlingen måtte ta hensyn til.
-         */
-        object IngenUtestående : Iverksatt()
-
-        /**
-         * Søknadsbehandlingen er ikke i stand til å håndtere avkorting. Kan f.eks skyldes at søknadsbehandlingen selv er i en
-         * tilstand som er for "tidlig" til at avkortingen er tatt hensyn til og/eller at den er avsluttet.
-         */
-        data class KanIkkeHåndtere(
-            val håndtert: Håndtert,
-        ) : Iverksatt()
-    }
+    /**
+     * Så vi slipper exceptions ved iverksettelse.
+     * En tilstand som vil gjelde fra vi er beregnet (innvilgelsessporet).
+     * */
+    sealed interface KlarTilIverksetting : Vurdert
 }

@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsplan
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
@@ -150,7 +151,6 @@ sealed class Søknadsbehandling :
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilFradragsgrunnlag(
                 fradragsgrunnlag,
             ),
-            avkorting = avkorting,
             søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.leggTilNyHendelse(
                 Søknadsbehandlingshendelse(
                     tidspunkt = Tidspunkt.now(clock),
@@ -168,7 +168,6 @@ sealed class Søknadsbehandling :
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilFradragsgrunnlag(
                 fradragsgrunnlag,
             ),
-            avkorting = avkorting,
             søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk,
         ).vilkårsvurder(saksbehandler) as VilkårsvurdertSøknadsbehandling.Innvilget // TODO cast
     }
@@ -206,7 +205,6 @@ sealed class Søknadsbehandling :
         return grunnlagsdataOgVilkårsvurderinger.oppdaterBosituasjon(listOf(bosituasjon)).let {
             copyInternal(
                 grunnlagsdataOgVilkårsvurderinger = it,
-                avkorting = avkorting,
                 søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.leggTilNyHendelse(hendelse),
             ).vilkårsvurder(saksbehandler)
         }
@@ -218,7 +216,6 @@ sealed class Søknadsbehandling :
     protected abstract fun copyInternal(
         stønadsperiode: Stønadsperiode = this.stønadsperiode!!,
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling = this.grunnlagsdataOgVilkårsvurderinger,
-        avkorting: AvkortingVedSøknadsbehandling = this.avkorting,
         søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk,
         aldersvurdering: Aldersvurdering = this.aldersvurdering!!,
     ): Søknadsbehandling
@@ -243,7 +240,6 @@ sealed class Søknadsbehandling :
     ) = valider(vilkår).map {
         copyInternal(
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-            avkorting = avkorting,
             søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.leggTilNyHendelse(
                 Søknadsbehandlingshendelse(
                     tidspunkt = Tidspunkt.now(clock),
@@ -254,28 +250,30 @@ sealed class Søknadsbehandling :
         ).vilkårsvurder(saksbehandler)
     }
 
-    fun vilkårsvurder(saksbehandler: NavIdentBruker.Saksbehandler): VilkårsvurdertSøknadsbehandling = opprett(
-        id = id,
-        opprettet = opprettet,
-        sakId = sakId,
-        saksnummer = saksnummer,
-        søknad = søknad,
-        oppgaveId = oppgaveId,
-        fnr = fnr,
-        fritekstTilBrev = fritekstTilBrev,
-        aldersvurdering = aldersvurdering!!,
-        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-        attesteringer = attesteringer,
-        saksbehandlingsHistorikk = søknadsbehandlingsHistorikk,
-        avkorting = avkorting.uhåndtert(),
-        sakstype = sakstype,
-        saksbehandler = saksbehandler,
-    )
-
-    interface KanOppdaterePeriodeGrunnlagVilkår
-    interface KanBeregnes : KanOppdaterePeriodeGrunnlagVilkår {
-        val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert
+    fun vilkårsvurder(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): VilkårsvurdertSøknadsbehandling {
+        return opprett(
+            id = id,
+            opprettet = opprettet,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            søknad = søknad,
+            oppgaveId = oppgaveId,
+            fnr = fnr,
+            fritekstTilBrev = fritekstTilBrev,
+            aldersvurdering = aldersvurdering!!,
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+            attesteringer = attesteringer,
+            saksbehandlingsHistorikk = søknadsbehandlingsHistorikk,
+            sakstype = sakstype,
+            saksbehandler = saksbehandler,
+        )
     }
+
+    // TODO jah: Flytt disse ut til egne filer og la de eie sine egne funksjoner som vilkårsvurder og beregn.
+    interface KanOppdaterePeriodeGrunnlagVilkår
+    interface KanBeregnes : KanOppdaterePeriodeGrunnlagVilkår
 
     fun leggTilFormuegrunnlag(
         request: LeggTilFormuevilkårRequest,
@@ -304,7 +302,6 @@ sealed class Søknadsbehandling :
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår>(vilkår).map {
             copyInternal(
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuevilkår(vilkår),
-                avkorting = avkorting,
                 søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.leggTilNyHendelse(
                     request.handling(request.tidspunkt),
                 ),
@@ -316,7 +313,6 @@ sealed class Søknadsbehandling :
         aldersvurdering: Aldersvurdering.SkalIkkeVurderes,
         formuegrenserFactory: FormuegrenserFactory,
         clock: Clock,
-        avkorting: AvkortingVedSøknadsbehandling,
     ): VilkårsvurdertSøknadsbehandling {
         return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
             stønadsperiode = aldersvurdering.stønadsperiode,
@@ -327,10 +323,9 @@ sealed class Søknadsbehandling :
         }.let {
             copyInternal(
                 stønadsperiode = aldersvurdering.stønadsperiode,
-                aldersvurdering = aldersvurdering,
                 grunnlagsdataOgVilkårsvurderinger = it,
-                avkorting = avkorting,
                 søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk,
+                aldersvurdering = aldersvurdering,
             ).vilkårsvurder(saksbehandler)
         }
     }
@@ -339,14 +334,12 @@ sealed class Søknadsbehandling :
         oppdatertStønadsperiode: Stønadsperiode,
         formuegrenserFactory: FormuegrenserFactory,
         clock: Clock,
-        avkorting: AvkortingVedSøknadsbehandling,
     ): Either<KunneIkkeOppdatereStønadsperiode, VilkårsvurdertSøknadsbehandling> =
         if (this is KanOppdaterePeriodeGrunnlagVilkår) {
             oppdaterStønadsperiodeInternal(
                 oppdatertStønadsperiode = oppdatertStønadsperiode,
                 formuegrenserFactory = formuegrenserFactory,
                 clock = clock,
-                avkorting = avkorting,
             )
         } else {
             KunneIkkeOppdatereStønadsperiode.UgyldigTilstand(this::class).left()
@@ -356,7 +349,6 @@ sealed class Søknadsbehandling :
         oppdatertStønadsperiode: Stønadsperiode,
         formuegrenserFactory: FormuegrenserFactory,
         clock: Clock,
-        avkorting: AvkortingVedSøknadsbehandling,
     ): Either<KunneIkkeOppdatereStønadsperiode, VilkårsvurdertSøknadsbehandling> {
         return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
             stønadsperiode = oppdatertStønadsperiode,
@@ -368,7 +360,6 @@ sealed class Søknadsbehandling :
             copyInternal(
                 stønadsperiode = oppdatertStønadsperiode,
                 grunnlagsdataOgVilkårsvurderinger = it,
-                avkorting = avkorting,
                 søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk,
             ).vilkårsvurder(saksbehandler)
         }
@@ -379,7 +370,6 @@ sealed class Søknadsbehandling :
         aldersvurdering: Aldersvurdering.Vurdert,
         formuegrenserFactory: FormuegrenserFactory,
         clock: Clock,
-        avkorting: AvkortingVedSøknadsbehandling,
     ): Either<KunneIkkeOppdatereStønadsperiode, VilkårsvurdertSøknadsbehandling> =
         if (this is KanOppdaterePeriodeGrunnlagVilkår) {
             oppdaterStønadsperiodeInternalForSaksbehandler(
@@ -387,7 +377,6 @@ sealed class Søknadsbehandling :
                 aldersvurdering = aldersvurdering,
                 formuegrenserFactory = formuegrenserFactory,
                 clock = clock,
-                avkorting = avkorting,
             )
         } else {
             KunneIkkeOppdatereStønadsperiode.UgyldigTilstand(this::class).left()
@@ -398,7 +387,6 @@ sealed class Søknadsbehandling :
         aldersvurdering: Aldersvurdering.Vurdert,
         formuegrenserFactory: FormuegrenserFactory,
         clock: Clock,
-        avkorting: AvkortingVedSøknadsbehandling,
     ): Either<KunneIkkeOppdatereStønadsperiode, VilkårsvurdertSøknadsbehandling> {
         return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
             stønadsperiode = aldersvurdering.stønadsperiode,
@@ -409,9 +397,7 @@ sealed class Søknadsbehandling :
         }.map {
             copyInternal(
                 stønadsperiode = aldersvurdering.stønadsperiode,
-                aldersvurdering = aldersvurdering,
                 grunnlagsdataOgVilkårsvurderinger = it,
-                avkorting = avkorting,
                 søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.leggTilNyHendelse(
                     Søknadsbehandlingshendelse(
                         tidspunkt = Tidspunkt.now(clock),
@@ -419,6 +405,7 @@ sealed class Søknadsbehandling :
                         handling = SøknadsbehandlingsHandling.OppdatertStønadsperiode,
                     ),
                 ),
+                aldersvurdering = aldersvurdering,
             ).vilkårsvurder(saksbehandler)
         }
     }
@@ -446,7 +433,6 @@ sealed class Søknadsbehandling :
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt>(vilkår).map {
             copyInternal(
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-                avkorting = avkorting,
                 søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk,
             ).vilkårsvurder(saksbehandler)
         }
@@ -479,7 +465,6 @@ sealed class Søknadsbehandling :
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt>(vilkår).map {
             copyInternal(
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-                avkorting = avkorting,
                 søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.leggTilNyHendelse(
                     Søknadsbehandlingshendelse(
                         tidspunkt = Tidspunkt.now(clock),
@@ -509,7 +494,6 @@ sealed class Søknadsbehandling :
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår>(vilkår).map {
             copyInternal(
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-                avkorting = avkorting,
                 søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk,
             ).vilkårsvurder(saksbehandler)
         }
@@ -538,7 +522,6 @@ sealed class Søknadsbehandling :
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPersonligOppmøteVilkår>(vilkår).map {
             copyInternal(
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-                avkorting = avkorting,
                 søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.leggTilNyHendelse(
                     Søknadsbehandlingshendelse(
                         tidspunkt = Tidspunkt.now(clock),
@@ -574,7 +557,6 @@ sealed class Søknadsbehandling :
     ) = valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold>(lovligOppholdVilkår).map {
         copyInternal(
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(lovligOppholdVilkår),
-            avkorting = avkorting,
             søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.leggTilNyHendelse(
                 Søknadsbehandlingshendelse(
                     tidspunkt = Tidspunkt.now(clock),
@@ -590,13 +572,13 @@ sealed class Søknadsbehandling :
         begrunnelse: String?,
         clock: Clock,
         satsFactory: SatsFactory,
+        uteståendeAvkortingPåSak: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes?,
     ): Either<KunneIkkeBeregne, BeregnetSøknadsbehandling> {
         return when (this) {
             is KanOppdaterePeriodeGrunnlagVilkår -> {
                 when (val vilkårsvurdert = vilkårsvurder(nySaksbehandler)) {
                     is KanBeregnes -> {
-                        beregnInternal(
-                            søknadsbehandling = vilkårsvurdert,
+                        vilkårsvurdert.beregnInternal(
                             begrunnelse = begrunnelse,
                             clock = clock,
                             beregningStrategyFactory = BeregningStrategyFactory(
@@ -604,6 +586,7 @@ sealed class Søknadsbehandling :
                                 satsFactory = satsFactory,
                             ),
                             nySaksbehandler = nySaksbehandler,
+                            uteståendeAvkortingPåSak = uteståendeAvkortingPåSak,
                         )
                     }
 
@@ -634,7 +617,6 @@ sealed class Søknadsbehandling :
         return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
             copyInternal(
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-                avkorting = avkorting,
                 søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.leggTilNyHendelse(
                     Søknadsbehandlingshendelse(
                         tidspunkt = Tidspunkt.now(clock),
@@ -721,7 +703,6 @@ sealed class Søknadsbehandling :
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår>(vilkår).map {
             copyInternal(
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-                avkorting = avkorting,
                 søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.leggTilNyHendelse(
                     Søknadsbehandlingshendelse(
                         tidspunkt = Tidspunkt.now(clock),
@@ -754,7 +735,6 @@ sealed class Søknadsbehandling :
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår>(vilkår).map {
             copyInternal(
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-                avkorting = avkorting,
                 søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk,
             ).vilkårsvurder(saksbehandler)
         }
@@ -782,7 +762,6 @@ sealed class Søknadsbehandling :
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFlyktningVilkår, VilkårsvurdertSøknadsbehandling> {
         return copyInternal(
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-            avkorting = avkorting,
             søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.leggTilNyHendelse(
                 Søknadsbehandlingshendelse(
                     tidspunkt = Tidspunkt.now(clock),
@@ -815,7 +794,6 @@ sealed class Søknadsbehandling :
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFastOppholdINorgeVilkår, VilkårsvurdertSøknadsbehandling> {
         return copyInternal(
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-            avkorting = avkorting,
             søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.leggTilNyHendelse(
                 Søknadsbehandlingshendelse(
                     tidspunkt = Tidspunkt.now(clock),
@@ -868,34 +846,30 @@ sealed class Søknadsbehandling :
         return KunneIkkeSimulereBehandling.UgyldigTilstand(this::class).left()
     }
 
-    private fun beregnInternal(
+    internal fun beregnInternal(
         nySaksbehandler: NavIdentBruker.Saksbehandler,
-        søknadsbehandling: KanBeregnes,
         begrunnelse: String?,
         clock: Clock,
         beregningStrategyFactory: BeregningStrategyFactory,
+        uteståendeAvkortingPåSak: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes?,
     ): Either<KunneIkkeBeregne, BeregnetSøknadsbehandling> {
-        return when (val avkort = søknadsbehandling.avkorting) {
-            is AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående -> {
+        return when (uteståendeAvkortingPåSak) {
+            null -> {
                 beregnUtenAvkorting(
                     begrunnelse = begrunnelse,
                     beregningStrategyFactory = beregningStrategyFactory,
                 ).getOrElse { return it.left() }
             }
 
-            is AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere -> {
-                throw IllegalStateException("${avkort::class} skal aldri kunne oppstå ved beregning. Modellen er dog nødt å støtte dette tilfellet pga at alle tilstander av avslutt/lukking må støttes.")
-            }
-
-            is AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting -> {
+            else -> {
                 beregnMedAvkorting(
-                    avkorting = avkort,
+                    avkortingsvarsel = uteståendeAvkortingPåSak,
                     begrunnelse = begrunnelse,
                     clock = clock,
                     beregningStrategyFactory = beregningStrategyFactory,
                 ).getOrElse { return it.left() }
             }
-        }.let { (behandling, beregning) ->
+        }.let { (behandling, beregning, avkorting) ->
             val nySøknadsbehandlingshistorikk = behandling.søknadsbehandlingsHistorikk.leggTilNyHendelse(
                 saksbehandlingsHendelse = Søknadsbehandlingshendelse(
                     tidspunkt = Tidspunkt.now(clock),
@@ -920,7 +894,6 @@ sealed class Søknadsbehandling :
                     eksterneGrunnlag = behandling.eksterneGrunnlag,
                     attesteringer = behandling.attesteringer,
                     søknadsbehandlingsHistorikk = nySøknadsbehandlingshistorikk,
-                    avkorting = behandling.avkorting.håndter().kanIkke(),
                     sakstype = behandling.sakstype,
                     saksbehandler = nySaksbehandler,
                 )
@@ -942,7 +915,7 @@ sealed class Søknadsbehandling :
                         eksterneGrunnlag = behandling.eksterneGrunnlag,
                         attesteringer = behandling.attesteringer,
                         søknadsbehandlingsHistorikk = nySøknadsbehandlingshistorikk,
-                        avkorting = behandling.avkorting.håndter(),
+                        avkorting = avkorting,
                         sakstype = behandling.sakstype,
                         saksbehandler = nySaksbehandler,
                     )
@@ -958,16 +931,20 @@ sealed class Søknadsbehandling :
     private fun beregnUtenAvkorting(
         begrunnelse: String?,
         beregningStrategyFactory: BeregningStrategyFactory,
-    ): Either<KunneIkkeBeregne, Pair<VilkårsvurdertSøknadsbehandling, Beregning>> {
+    ): Either<KunneIkkeBeregne, Triple<VilkårsvurdertSøknadsbehandling, Beregning, AvkortingVedSøknadsbehandling.IngenAvkorting>> {
         return leggTilFradragsgrunnlagForBeregning(
             fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold },
         ).getOrElse {
             return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left()
         }.let {
-            it to gjørBeregning(
-                søknadsbehandling = it,
-                begrunnelse = begrunnelse,
-                beregningStrategyFactory = beregningStrategyFactory,
+            Triple(
+                it,
+                gjørBeregning(
+                    søknadsbehandling = it,
+                    begrunnelse = begrunnelse,
+                    beregningStrategyFactory = beregningStrategyFactory,
+                ),
+                AvkortingVedSøknadsbehandling.IngenAvkorting,
             )
         }.right()
     }
@@ -984,17 +961,17 @@ sealed class Søknadsbehandling :
      * Restbeløpet etter andre fradrag er faktorert inn av [beregnUtenAvkorting] er maksimalt beløp som kan avkortes.
      */
     private fun beregnMedAvkorting(
-        avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting,
+        avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
         begrunnelse: String?,
         clock: Clock,
         beregningStrategyFactory: BeregningStrategyFactory,
-    ): Either<KunneIkkeBeregne, Pair<VilkårsvurdertSøknadsbehandling, Beregning>> {
+    ): Either<KunneIkkeBeregne, Triple<VilkårsvurdertSøknadsbehandling, Beregning, AvkortingVedSøknadsbehandling.SkalAvkortes>> {
         return beregnUtenAvkorting(
             begrunnelse,
             beregningStrategyFactory,
         ).map { (utenAvkorting, beregningUtenAvkorting) ->
             val fradragForAvkorting = Avkortingsplan(
-                feilutbetaltBeløp = avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum(),
+                feilutbetaltBeløp = avkortingsvarsel.hentUtbetalteBeløp().sum(),
                 beregning = beregningUtenAvkorting,
                 clock = clock,
             ).lagFradrag().getOrElse {
@@ -1009,10 +986,14 @@ sealed class Søknadsbehandling :
                 fradragsgrunnlag = utenAvkorting.grunnlagsdata.fradragsgrunnlag + fradragForAvkorting,
             ).getOrElse { return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left() }
 
-            medAvkorting to gjørBeregning(
-                søknadsbehandling = medAvkorting,
-                begrunnelse = begrunnelse,
-                beregningStrategyFactory = beregningStrategyFactory,
+            Triple(
+                medAvkorting,
+                gjørBeregning(
+                    søknadsbehandling = medAvkorting,
+                    begrunnelse = begrunnelse,
+                    beregningStrategyFactory = beregningStrategyFactory,
+                ),
+                AvkortingVedSøknadsbehandling.SkalAvkortes(avkortingsvarsel),
             )
         }
     }

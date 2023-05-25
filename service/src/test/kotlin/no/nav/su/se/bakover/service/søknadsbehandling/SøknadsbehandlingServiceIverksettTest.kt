@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.brev.BrevService
@@ -257,9 +256,6 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 grunnlagsdata = avslagTilAttestering.grunnlagsdata,
                 vilkårsvurderinger = avslagTilAttestering.vilkårsvurderinger,
                 eksterneGrunnlag = avslagTilAttestering.eksterneGrunnlag,
-                avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
-                    håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
-                ),
                 sakstype = avslagTilAttestering.sakstype,
                 søknadsbehandlingsHistorikk = nySøknadsbehandlingshistorikkSendtTilAttesteringAvslåttBeregning(
                     saksbehandler = avslagTilAttestering.saksbehandler,

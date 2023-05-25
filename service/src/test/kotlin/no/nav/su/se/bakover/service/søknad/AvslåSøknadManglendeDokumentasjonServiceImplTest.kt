@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
@@ -149,9 +148,6 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     ).getOrFail(),
                 ),
                 eksterneGrunnlag = uavklart.eksterneGrunnlag,
-                avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
-                    håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
-                ),
                 sakstype = sak.type,
                 søknadsbehandlingsHistorikk = Søknadsbehandlingshistorikk.createFromExisting(
                     listOf(
@@ -295,9 +291,6 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     ).getOrFail(),
                 ),
                 eksterneGrunnlag = vilkårsvurdertInnvilget.eksterneGrunnlag,
-                avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
-                    håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
-                ),
                 sakstype = sak.type,
                 søknadsbehandlingsHistorikk = vilkårsvurdertInnvilget.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
                     nonEmptyListOf(

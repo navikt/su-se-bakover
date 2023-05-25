@@ -20,10 +20,9 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.serializeNullable
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.database.avkorting.AvkortingVedSøknadsbehandlingDb
 import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
-import no.nav.su.se.bakover.database.avkorting.toDb
-import no.nav.su.se.bakover.database.avkorting.toDomain
+import no.nav.su.se.bakover.database.avkorting.fromAvkortingDbJson
+import no.nav.su.se.bakover.database.avkorting.toDbJson
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
 import no.nav.su.se.bakover.database.eksternGrunnlag.EksternGrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.eksternGrunnlag.IdReferanser
@@ -76,7 +75,7 @@ internal data class BaseSøknadsbehandlingDb(
     val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
     val eksterneGrunnlag: EksterneGrunnlag,
     val attesteringer: Attesteringshistorikk,
-    val avkorting: AvkortingVedSøknadsbehandling,
+    val avkorting: AvkortingVedSøknadsbehandling?,
     val sakstype: Sakstype,
     val status: SøknadsbehandlingStatusDB,
     val saksbehandler: String,
@@ -136,7 +135,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre.ikkeVurdert(),
                 eksterneGrunnlag = StøtterHentingAvEksternGrunnlag.ikkeHentet(),
                 attesteringer = Attesteringshistorikk.empty(),
-                avkorting = this.avkorting,
+                avkorting = null,
                 sakstype = this.sakstype,
                 status = SøknadsbehandlingStatusDB.OPPRETTET,
                 saksbehandler = saksbehandler.navIdent,
@@ -408,7 +407,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 "stonadsperiode" to serializeNullable(søknadsbehandling.base.stønadsperiode),
                 "oppgaveId" to søknadsbehandling.base.oppgaveId.toString(),
                 "attestering" to søknadsbehandling.base.attesteringer.serialize(),
-                "avkorting" to serialize(søknadsbehandling.base.avkorting.toDb()),
+                "avkorting" to søknadsbehandling.base.avkorting?.toDbJson(),
                 "fritekstTilBrev" to søknadsbehandling.base.fritekstTilBrev,
                 "saksbehandler" to søknadsbehandling.base.saksbehandler,
                 "beregning" to søknadsbehandling.beregning,
@@ -461,17 +460,11 @@ internal class SøknadsbehandlingPostgresRepo(
             tx = tx,
         )
 
-        when (val avkort = søknadsbehandling.base.avkorting) {
-            is AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående -> {
-                avkortingsvarselRepo.lagre(
-                    avkortingsvarsel = avkort.avkortingsvarsel,
-                    tx = tx,
-                )
-            }
-
-            else -> {
-                /*noop*/
-            }
+        if (søknadsbehandling.base.avkorting is AvkortingVedSøknadsbehandling.Avkortet) {
+            avkortingsvarselRepo.lagre(
+                avkortingsvarsel = søknadsbehandling.base.avkorting.avkortingsvarsel,
+                tx = tx,
+            )
         }
     }
 
@@ -567,7 +560,7 @@ internal class SøknadsbehandlingPostgresRepo(
             eksterneGrunnlag = eksterneGrunnlag,
         )
 
-        val avkorting = deserializeNullable<AvkortingVedSøknadsbehandlingDb>(stringOrNull("avkorting"))?.toDomain()
+        val avkorting = { fromAvkortingDbJson(stringOrNull("avkorting")) ?: AvkortingVedSøknadsbehandling.IngenAvkorting }
 
         val søknadsbehandling = when (status) {
             SøknadsbehandlingStatusDB.OPPRETTET -> VilkårsvurdertSøknadsbehandling.Uavklart(
@@ -585,7 +578,6 @@ internal class SøknadsbehandlingPostgresRepo(
                 eksterneGrunnlag = eksterneGrunnlag,
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
-                avkorting = avkorting as AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
             )
@@ -605,7 +597,6 @@ internal class SøknadsbehandlingPostgresRepo(
                 eksterneGrunnlag = eksterneGrunnlag,
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
-                avkorting = avkorting as AvkortingVedSøknadsbehandling.Uhåndtert,
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
             )
@@ -625,7 +616,6 @@ internal class SøknadsbehandlingPostgresRepo(
                 eksterneGrunnlag = eksterneGrunnlag,
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
-                avkorting = avkorting as AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
             )
@@ -646,7 +636,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 eksterneGrunnlag = eksterneGrunnlag,
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
-                avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert,
+                avkorting = avkorting() as AvkortingVedSøknadsbehandling.KlarTilIverksetting,
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
             )
@@ -667,7 +657,6 @@ internal class SøknadsbehandlingPostgresRepo(
                 eksterneGrunnlag = eksterneGrunnlag,
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
-                avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
             )
@@ -689,7 +678,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 eksterneGrunnlag = eksterneGrunnlag,
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
-                avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert,
+                avkorting = avkorting() as AvkortingVedSøknadsbehandling.KlarTilIverksetting,
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
             )
@@ -712,7 +701,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 eksterneGrunnlag = eksterneGrunnlag,
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
-                avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert,
+                avkorting = avkorting() as AvkortingVedSøknadsbehandling.KlarTilIverksetting,
                 sakstype = sakstype,
             )
 
@@ -733,7 +722,6 @@ internal class SøknadsbehandlingPostgresRepo(
                     attesteringer = attesteringer,
                     eksterneGrunnlag = eksterneGrunnlag,
                     søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
-                    avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
                     sakstype = sakstype,
                 )
 
@@ -754,7 +742,6 @@ internal class SøknadsbehandlingPostgresRepo(
                     eksterneGrunnlag = eksterneGrunnlag,
                     attesteringer = attesteringer,
                     søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
-                    avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
                     sakstype = sakstype,
                 )
             }
@@ -777,7 +764,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 eksterneGrunnlag = eksterneGrunnlag,
-                avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert,
+                avkorting = avkorting() as AvkortingVedSøknadsbehandling.KlarTilIverksetting,
                 sakstype = sakstype,
             )
 
@@ -798,7 +785,6 @@ internal class SøknadsbehandlingPostgresRepo(
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     eksterneGrunnlag = eksterneGrunnlag,
-                    avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
                     sakstype = sakstype,
                 )
 
@@ -819,7 +805,6 @@ internal class SøknadsbehandlingPostgresRepo(
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     eksterneGrunnlag = eksterneGrunnlag,
-                    avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
                     sakstype = sakstype,
                 )
             }
@@ -843,7 +828,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     eksterneGrunnlag = eksterneGrunnlag,
-                    avkorting = avkorting as AvkortingVedSøknadsbehandling.Iverksatt,
+                    avkorting = avkorting() as AvkortingVedSøknadsbehandling.Ferdig,
                     sakstype = sakstype,
                 )
             }
@@ -866,7 +851,6 @@ internal class SøknadsbehandlingPostgresRepo(
                         grunnlagsdata = grunnlagsdata,
                         vilkårsvurderinger = vilkårsvurderinger,
                         eksterneGrunnlag = eksterneGrunnlag,
-                        avkorting = avkorting as AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
                         sakstype = sakstype,
                     )
 
@@ -887,7 +871,6 @@ internal class SøknadsbehandlingPostgresRepo(
                         grunnlagsdata = grunnlagsdata,
                         vilkårsvurderinger = vilkårsvurderinger,
                         eksterneGrunnlag = eksterneGrunnlag,
-                        avkorting = avkorting as AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
                         sakstype = sakstype,
                     )
                 }

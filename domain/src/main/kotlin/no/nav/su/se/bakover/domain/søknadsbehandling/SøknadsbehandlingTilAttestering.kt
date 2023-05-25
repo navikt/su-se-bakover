@@ -36,7 +36,7 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling() {
     abstract fun tilUnderkjent(attestering: Attestering): UnderkjentSøknadsbehandling
     abstract override val aldersvurdering: Aldersvurdering
     abstract override val attesteringer: Attesteringshistorikk
-    abstract override val avkorting: AvkortingVedSøknadsbehandling.Håndtert
+    abstract override val avkorting: AvkortingVedSøknadsbehandling.Vurdert
 
     override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> =
         KunneIkkeLeggeTilSkattegrunnlag.UgyldigTilstand.left()
@@ -59,14 +59,14 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling() {
         override val eksterneGrunnlag: EksterneGrunnlag,
         override val attesteringer: Attesteringshistorikk,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
-        override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
         override val sakstype: Sakstype,
+        override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting,
     ) : SøknadsbehandlingTilAttestering() {
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
+
         override fun copyInternal(
             stønadsperiode: Stønadsperiode,
             grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-            avkorting: AvkortingVedSøknadsbehandling,
             søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
             aldersvurdering: Aldersvurdering,
         ): SøknadsbehandlingTilAttestering {
@@ -141,14 +141,21 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling() {
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 eksterneGrunnlag = eksterneGrunnlag,
-                avkorting = avkorting.iverksett(id),
+                avkorting = when (avkorting) {
+                    is AvkortingVedSøknadsbehandling.IngenAvkorting -> avkorting
+                    is AvkortingVedSøknadsbehandling.SkalAvkortes -> avkorting.avkort(id)
+                },
                 sakstype = sakstype,
             )
         }
     }
 
     sealed class Avslag : SøknadsbehandlingTilAttestering(), ErAvslag {
+
         abstract override val aldersvurdering: Aldersvurdering
+
+        /** Ingenting og avkorte ved avslag. */
+        override val avkorting = AvkortingVedSøknadsbehandling.IngenAvkorting
 
         fun iverksett(attestering: Attestering.Iverksatt): IverksattSøknadsbehandling.Avslag {
             return when (this) {
@@ -173,7 +180,6 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling() {
             override val eksterneGrunnlag: EksterneGrunnlag,
             override val attesteringer: Attesteringshistorikk,
             override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
-            override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
             override val sakstype: Sakstype,
         ) : Avslag() {
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
@@ -223,7 +229,6 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling() {
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     eksterneGrunnlag = eksterneGrunnlag,
-                    avkorting = avkorting,
                     sakstype = sakstype,
                 )
             }
@@ -231,7 +236,6 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling() {
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-                avkorting: AvkortingVedSøknadsbehandling,
                 søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
                 aldersvurdering: Aldersvurdering,
             ): UtenBeregning {
@@ -263,7 +267,6 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling() {
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     eksterneGrunnlag = eksterneGrunnlag,
-                    avkorting = avkorting.iverksett(id),
                     sakstype = sakstype,
                 )
             }
@@ -286,7 +289,6 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling() {
             override val eksterneGrunnlag: EksterneGrunnlag,
             override val attesteringer: Attesteringshistorikk,
             override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
-            override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
             override val sakstype: Sakstype,
         ) : Avslag() {
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
@@ -341,7 +343,6 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling() {
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     eksterneGrunnlag = eksterneGrunnlag,
-                    avkorting = avkorting,
                     sakstype = sakstype,
                 )
             }
@@ -349,7 +350,6 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling() {
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-                avkorting: AvkortingVedSøknadsbehandling,
                 søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
                 aldersvurdering: Aldersvurdering,
             ): MedBeregning {
@@ -382,7 +382,6 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling() {
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     eksterneGrunnlag = eksterneGrunnlag,
-                    avkorting = avkorting.iverksett(id),
                     sakstype = sakstype,
                 )
             }

@@ -158,14 +158,17 @@ class SøknadsbehandlingServiceImpl(
     }
 
     override fun beregn(request: BeregnRequest): Either<KunneIkkeBeregne, BeregnetSøknadsbehandling> {
-        val søknadsbehandling =
-            søknadsbehandlingRepo.hent(request.behandlingId) ?: return KunneIkkeBeregne.FantIkkeBehandling.left()
+        val sak: Sak = sakService.hentSakForSøknadsbehandling(request.behandlingId)
+
+        val søknadsbehandling: Søknadsbehandling = sak.hentSøknadsbehandling(request.behandlingId)
+            .getOrElse { return KunneIkkeBeregne.FantIkkeBehandling.left() }
 
         return søknadsbehandling.beregn(
             nySaksbehandler = request.saksbehandler,
             begrunnelse = request.begrunnelse,
             clock = clock,
             satsFactory = satsFactory,
+            uteståendeAvkortingPåSak = sak.uteståendeAvkortingSkalAvkortes,
         ).mapLeft { feil ->
             when (feil) {
                 no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeBeregne.AvkortingErUfullstendig -> {

@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
-import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -22,6 +21,7 @@ import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.november
 import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.common.tid.periode.september
+import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
@@ -47,7 +47,6 @@ import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandling
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -62,29 +61,26 @@ class SøknadsbehandlingServiceBeregningTest {
 
     @Test
     fun `oppretter beregning`() {
-        val vilkårsvurdert = søknadsbehandlingVilkårsvurdertInnvilget().let { (_, vilkårsvurdert) ->
-            vilkårsvurdert.leggTilFradragsgrunnlagFraSaksbehandler(
-                fradragsgrunnlag = listOf(
-                    Grunnlag.Fradragsgrunnlag.create(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        fradrag = FradragFactory.nyFradragsperiode(
-                            fradragstype = Fradragstype.Arbeidsinntekt,
-                            månedsbeløp = 12000.0,
-                            periode = vilkårsvurdert.periode,
-                            utenlandskInntekt = null,
-                            tilhører = FradragTilhører.BRUKER,
-                        ),
+        val (sak, vilkårsvurdert) = vilkårsvurdertSøknadsbehandling(
+            customGrunnlag = nonEmptyListOf(
+                Grunnlag.Fradragsgrunnlag.create(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    fradrag = FradragFactory.nyFradragsperiode(
+                        fradragstype = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = 12000.0,
+                        periode = år(2021),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
                     ),
                 ),
-                saksbehandler = saksbehandler,
-                clock = fixedClock,
-            ).getOrFail()
-        }
+            ),
+        )
 
         SøknadsbehandlingServiceAndMocks(
-            søknadsbehandlingRepo = mock {
-                on { hent(any()) } doReturn vilkårsvurdert
+            søknadsbehandlingRepo = mock(),
+            sakService = mock {
+                on { hentSakForSøknadsbehandling(any()) } doReturn sak
             },
         ).let {
             val beregnet = it.søknadsbehandlingService.beregn(
@@ -115,29 +111,9 @@ class SøknadsbehandlingServiceBeregningTest {
                 beregning.getBegrunnelse() shouldBe "koko"
             }
 
-            verify(it.søknadsbehandlingRepo).hent(vilkårsvurdert.id)
+            verify(it.sakService).hentSakForSøknadsbehandling(vilkårsvurdert.id)
             verify(it.søknadsbehandlingRepo).defaultTransactionContext()
             verify(it.søknadsbehandlingRepo).lagre(eq(beregnet), anyOrNull())
-            it.verifyNoMoreInteractions()
-        }
-    }
-
-    @Test
-    fun `kan ikke hente behandling`() {
-        SøknadsbehandlingServiceAndMocks(
-            søknadsbehandlingRepo = mock {
-                on { hent(any()) } doReturn null
-            },
-        ).let {
-            it.søknadsbehandlingService.beregn(
-                SøknadsbehandlingService.BeregnRequest(
-                    behandlingId = UUID.randomUUID(),
-                    begrunnelse = null,
-                    saksbehandler = saksbehandler,
-                ),
-            ) shouldBe SøknadsbehandlingService.KunneIkkeBeregne.FantIkkeBehandling.left()
-
-            verify(it.søknadsbehandlingRepo).hent(any())
             it.verifyNoMoreInteractions()
         }
     }
@@ -168,11 +144,12 @@ class SøknadsbehandlingServiceBeregningTest {
         )
 
         SøknadsbehandlingServiceAndMocks(
-            søknadsbehandlingRepo = mock {
-                on { hent(any()) } doReturn vilkårsvurdert
+            søknadsbehandlingRepo = mock(),
+            sakService = mock {
+                on { hentSakForSøknadsbehandling(any()) } doReturn sak
             },
         ).let {
-            vilkårsvurdert.avkorting shouldBe beOfType<AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting>()
+            vilkårsvurdert.avkorting shouldBe beOfType<AvkortingVedSøknadsbehandling.IkkeVurdert>()
 
             val beregnet = it.søknadsbehandlingService.beregn(
                 request = SøknadsbehandlingService.BeregnRequest(
@@ -183,7 +160,7 @@ class SøknadsbehandlingServiceBeregningTest {
             ).getOrFail()
 
             beregnet shouldBe beOfType<BeregnetSøknadsbehandling.Innvilget>()
-            beregnet.avkorting.shouldBeType<AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående>().also {
+            beregnet.avkorting.shouldBeType<AvkortingVedSøknadsbehandling.SkalAvkortes>().also {
                 Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
                     objekt = sak.uteståendeAvkorting.shouldBeType<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes>()
                         .let {
@@ -203,7 +180,7 @@ class SøknadsbehandlingServiceBeregningTest {
             beregnet.beregning.getFradrag()
                 .any { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold } shouldBe true
 
-            verify(it.søknadsbehandlingRepo).hent(vilkårsvurdert.id)
+            verify(it.sakService).hentSakForSøknadsbehandling(vilkårsvurdert.id)
             verify(it.søknadsbehandlingRepo).defaultTransactionContext()
             verify(it.søknadsbehandlingRepo).lagre(eq(beregnet), anyOrNull())
             it.verifyNoMoreInteractions()
@@ -241,11 +218,12 @@ class SøknadsbehandlingServiceBeregningTest {
         )
 
         SøknadsbehandlingServiceAndMocks(
-            søknadsbehandlingRepo = mock {
-                on { hent(any()) } doReturn vilkårsvurdert
+            søknadsbehandlingRepo = mock(),
+            sakService = mock {
+                on { hentSakForSøknadsbehandling(any()) } doReturn sak
             },
         ).let { serviceAndMocks ->
-            vilkårsvurdert.avkorting shouldBe beOfType<AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting>()
+            vilkårsvurdert.avkorting shouldBe beOfType<AvkortingVedSøknadsbehandling.IkkeVurdert>()
 
             val beregnet = serviceAndMocks.søknadsbehandlingService.beregn(
                 request = SøknadsbehandlingService.BeregnRequest(
@@ -256,28 +234,13 @@ class SøknadsbehandlingServiceBeregningTest {
             ).getOrFail()
 
             beregnet shouldBe beOfType<BeregnetSøknadsbehandling.Avslag>()
-            beregnet.avkorting shouldBe AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere(
-                håndtert = AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(
-                    Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-                        objekt = sak.uteståendeAvkorting.shouldBeType<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes>()
-                            .let {
-                                Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                                    id = it.id,
-                                    sakId = sak.id,
-                                    revurderingId = sakMedUteståendeAvkorting.third.behandling.id,
-                                    simulering = it.simulering,
-                                    opprettet = it.opprettet,
-                                )
-                            },
-                    ),
-                ),
-            )
+            beregnet.avkorting shouldBe AvkortingVedSøknadsbehandling.IngenAvkorting
             beregnet.grunnlagsdata shouldNotBe vilkårsvurdert.grunnlagsdata
             beregnet.grunnlagsdata.fradragsgrunnlag
                 .any { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold } shouldBe true
             beregnet.beregning.getFradrag()
                 .any { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold } shouldBe true
-            verify(serviceAndMocks.søknadsbehandlingRepo).hent(vilkårsvurdert.id)
+            verify(serviceAndMocks.sakService).hentSakForSøknadsbehandling(vilkårsvurdert.id)
             verify(serviceAndMocks.søknadsbehandlingRepo).defaultTransactionContext()
             verify(serviceAndMocks.søknadsbehandlingRepo).lagre(eq(beregnet), anyOrNull())
             serviceAndMocks.verifyNoMoreInteractions()
@@ -289,49 +252,49 @@ class SøknadsbehandlingServiceBeregningTest {
         val janAprilIEU = 24000
         val maiDesIEU = 48000
 
-        SøknadsbehandlingServiceAndMocks(
-            søknadsbehandlingRepo = mock {
-                on { hent(any()) } doReturn søknadsbehandlingVilkårsvurdertInnvilget().let { (_, innvilget) ->
-                    innvilget.leggTilUførevilkår(
-                        uførhet = UføreVilkår.Vurdert.create(
-                            vurderingsperioder = nonEmptyListOf(
-                                VurderingsperiodeUføre.create(
-                                    id = UUID.randomUUID(),
-                                    opprettet = fixedTidspunkt,
-                                    vurdering = Vurdering.Innvilget,
-                                    grunnlag = Grunnlag.Uføregrunnlag(
-                                        id = UUID.randomUUID(),
-                                        opprettet = fixedTidspunkt,
-                                        periode = Periode.create(1.januar(2021), 30.april(2021)),
-                                        uføregrad = Uføregrad.parse(50),
-                                        forventetInntekt = janAprilIEU,
-                                    ),
-                                    periode = Periode.create(1.januar(2021), 30.april(2021)),
-                                ),
-                                VurderingsperiodeUføre.create(
-                                    id = UUID.randomUUID(),
-                                    opprettet = fixedTidspunkt,
-                                    vurdering = Vurdering.Innvilget,
-                                    grunnlag = Grunnlag.Uføregrunnlag(
-                                        id = UUID.randomUUID(),
-                                        opprettet = fixedTidspunkt,
-                                        periode = Periode.create(1.mai(2021), 31.desember(2021)),
-                                        uføregrad = Uføregrad.parse(50),
-                                        forventetInntekt = maiDesIEU,
-                                    ),
-                                    periode = Periode.create(1.mai(2021), 31.desember(2021)),
-                                ),
+        val (sak, søknadsbehandling) = vilkårsvurdertSøknadsbehandling(
+            customVilkår = listOf(
+                UføreVilkår.Vurdert.create(
+                    vurderingsperioder = nonEmptyListOf(
+                        VurderingsperiodeUføre.create(
+                            id = UUID.randomUUID(),
+                            opprettet = fixedTidspunkt,
+                            vurdering = Vurdering.Innvilget,
+                            grunnlag = Grunnlag.Uføregrunnlag(
+                                id = UUID.randomUUID(),
+                                opprettet = fixedTidspunkt,
+                                periode = Periode.create(1.januar(2021), 30.april(2021)),
+                                uføregrad = Uføregrad.parse(50),
+                                forventetInntekt = janAprilIEU,
                             ),
+                            periode = Periode.create(1.januar(2021), 30.april(2021)),
                         ),
-                        saksbehandler = saksbehandler,
-                        clock = fixedClock,
-                    ).getOrFail()
-                }
+                        VurderingsperiodeUføre.create(
+                            id = UUID.randomUUID(),
+                            opprettet = fixedTidspunkt,
+                            vurdering = Vurdering.Innvilget,
+                            grunnlag = Grunnlag.Uføregrunnlag(
+                                id = UUID.randomUUID(),
+                                opprettet = fixedTidspunkt,
+                                periode = Periode.create(1.mai(2021), 31.desember(2021)),
+                                uføregrad = Uføregrad.parse(50),
+                                forventetInntekt = maiDesIEU,
+                            ),
+                            periode = Periode.create(1.mai(2021), 31.desember(2021)),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        SøknadsbehandlingServiceAndMocks(
+            søknadsbehandlingRepo = mock(),
+            sakService = mock {
+                on { hentSakForSøknadsbehandling(any()) } doReturn sak
             },
         ).let {
             it.søknadsbehandlingService.beregn(
                 request = SøknadsbehandlingService.BeregnRequest(
-                    behandlingId = UUID.randomUUID(),
+                    behandlingId = søknadsbehandling.id,
                     begrunnelse = "god",
                     saksbehandler = saksbehandler,
                 ),

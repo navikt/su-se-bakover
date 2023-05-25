@@ -7,7 +7,6 @@ import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.StøtterHentingAvEksternGrunnlag
@@ -202,7 +201,6 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                 vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
                 eksterneGrunnlag = StøtterHentingAvEksternGrunnlag.ikkeHentet(),
                 attesteringer = Attesteringshistorikk.empty(),
-                avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
                 sakstype = sak.type,
                 saksbehandler = saksbehandler,
                 søknadsbehandlingsHistorikk = Søknadsbehandlingshistorikk.nyHistorikk(
@@ -226,7 +224,6 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                     søknad = søknad,
                     oppgaveId = søknad.oppgaveId,
                     fnr = søknad.fnr,
-                    avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
                     sakstype = sak.type,
                     saksbehandler = saksbehandler,
                 )
@@ -249,7 +246,6 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                         vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
                         eksterneGrunnlag = StøtterHentingAvEksternGrunnlag.ikkeHentet(),
                         attesteringer = Attesteringshistorikk.empty(),
-                        avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
                         sakstype = sak.type,
                         saksbehandler = saksbehandler,
                         søknadsbehandlingsHistorikk = Søknadsbehandlingshistorikk.nyHistorikk(

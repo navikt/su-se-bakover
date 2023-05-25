@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
@@ -106,7 +105,6 @@ private fun avslå(
         .leggTilStønadsperiodeOgAldersvurderingHvisNull(
             clock = clock,
             satsFactory = satsFactory,
-            avkorting = sak.hentUteståendeAvkortingForSøknadsbehandling().fold({ it }, { it }).kanIkke(),
         )
         .avslåPgaManglendeDokumentasjon(request.saksbehandler, clock)
         .tilAttestering(fritekstTilBrev = request.fritekstTilBrev).let { søknadsbehandlingTilAttestering ->
@@ -131,7 +129,6 @@ private fun avslå(
 private fun Søknadsbehandling.leggTilStønadsperiodeOgAldersvurderingHvisNull(
     clock: Clock,
     satsFactory: SatsFactory,
-    avkorting: AvkortingVedSøknadsbehandling,
 ): Søknadsbehandling {
     if (stønadsperiode != null) return this
 
@@ -146,7 +143,6 @@ private fun Søknadsbehandling.leggTilStønadsperiodeOgAldersvurderingHvisNull(
         ),
         formuegrenserFactory = satsFactory.formuegrenserFactory,
         clock = clock,
-        avkorting = avkorting,
     )
 }
 

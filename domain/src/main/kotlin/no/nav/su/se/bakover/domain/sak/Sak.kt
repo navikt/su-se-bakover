@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode.UgyldigPeriode.FraOgMedDa
 import no.nav.su.se.bakover.common.tid.periode.Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden
 import no.nav.su.se.bakover.common.tid.periode.Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -84,6 +83,9 @@ data class Sak(
     init {
         require(uteståendeAvkorting is Avkortingsvarsel.Ingen || uteståendeAvkorting is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes)
     }
+
+    val uteståendeAvkortingSkalAvkortes: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes? =
+        uteståendeAvkorting as? Avkortingsvarsel.Utenlandsopphold.SkalAvkortes
 
     fun info(): SakInfo {
         return SakInfo(
@@ -237,7 +239,8 @@ data class Sak(
      * Henter minste antall sammenhengende perioder hvor vedtakene ikke er av typen opphør.
      */
     fun hentIkkeOpphørtePerioder(): List<Periode> =
-        vedtakstidslinje()?.filterNot { it.erOpphør() }?.map { it.periode }?.minsteAntallSammenhengendePerioder() ?: emptyList()
+        vedtakstidslinje()?.filterNot { it.erOpphør() }?.map { it.periode }?.minsteAntallSammenhengendePerioder()
+            ?: emptyList()
 
     fun vedtakstidslinje(
         fraOgMed: Måned,
@@ -311,30 +314,6 @@ data class Sak(
 
     fun harÅpenGjenopptaksbehandling(): Boolean = revurderinger
         .filterIsInstance<GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse>().isNotEmpty()
-
-    fun hentUteståendeAvkortingForSøknadsbehandling(): Either<AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående, AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting> {
-        return when (uteståendeAvkorting) {
-            Avkortingsvarsel.Ingen -> {
-                AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.left()
-            }
-
-            is Avkortingsvarsel.Utenlandsopphold.Annullert -> {
-                AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.left()
-            }
-
-            is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
-                AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.left()
-            }
-
-            is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
-                AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.left()
-            }
-
-            is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
-                AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(uteståendeAvkorting).right()
-            }
-        }
-    }
 
     fun hentSøknadsbehandlingForSøknad(søknadId: UUID): Either<FantIkkeSøknadsbehandlingForSøknad, Søknadsbehandling> {
         return søknadsbehandlinger.singleOrNull { it.søknad.id == søknadId }?.right()
