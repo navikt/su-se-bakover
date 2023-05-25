@@ -79,6 +79,7 @@ internal class DokArkivClientTest : WiremockBase {
                       "dokumenter": [
                         {
                           "tittel": "Søknad om supplerende stønad for uføre flyktninger",
+                          "brevkode": "XX.YY-ZZ",
                           "dokumentvarianter": [
                             {
                               "filtype": "PDFA",
@@ -125,6 +126,7 @@ internal class DokArkivClientTest : WiremockBase {
                       "dokumenter": [
                         {
                           "tittel": "Vedtaksbrev for søknad om supplerende stønad",
+                          "brevkode": "XX.YY-ZZ",
                           "dokumentvarianter": [
                             {
                               "filtype": "PDFA",

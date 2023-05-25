@@ -237,6 +237,7 @@ data class Fagsak(
 
 data class JournalpostDokument(
     val tittel: String,
+    val brevkode: String = "XX.YY-ZZ",
     val dokumentvarianter: List<DokumentVariant>,
 ) {
     companion object {
