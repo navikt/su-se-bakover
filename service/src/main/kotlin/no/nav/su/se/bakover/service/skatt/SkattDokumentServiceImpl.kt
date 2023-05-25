@@ -69,12 +69,13 @@ class SkattDokumentServiceImpl(
                     fnr = hentetSkatt.søkers.fnr,
                     årsgrunlag = søkersSamletSkattegrunnlag.toNonEmptyList(),
                 ),
-                eps = hentetSkatt.eps?.let {
+                eps = if (hentetSkatt.eps == null || epsSamletSkattegrunnlag.isNullOrEmpty()) {
+                    null
+                } else
                     PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagMedFnr(
-                        fnr = it.fnr,
-                        årsgrunlag = epsSamletSkattegrunnlag!!.toNonEmptyList(),
-                    )
-                },
+                        fnr = hentetSkatt.eps!!.fnr,
+                        årsgrunlag = epsSamletSkattegrunnlag.toNonEmptyList(),
+                    ),
             ),
             hentNavn = { fnr ->
                 personOppslag.person(fnr).getOrElse {

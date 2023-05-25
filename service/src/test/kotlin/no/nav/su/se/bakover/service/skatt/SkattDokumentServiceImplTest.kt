@@ -138,7 +138,7 @@ internal class SkattDokumentServiceImplTest {
     }
 
     @Test
-    fun `lager skattegrunnlag dersom minst 1 av oppslagene er ok`() {
+    fun `lager skattegrunnlag dersom søker har skattegrunnlag men ikke eps`() {
         val person = person()
         val bosituasjon = bosituasjonEpsUnder67()
         val eps = person(fnr = bosituasjon.fnr)
@@ -146,7 +146,65 @@ internal class SkattDokumentServiceImplTest {
             customVilkår = listOf(formuevilkårMedEps0Innvilget(bosituasjon = nonEmptyListOf(bosituasjon))),
             customGrunnlag = listOf(bosituasjon),
             eksterneGrunnlag = eksternGrunnlagHentet().copy(
-                skatt = EksterneGrunnlagSkatt.Hentet(nySkattegrunnlagMedFeilIÅrsgrunnlag(), nySkattegrunnlag(fnr = bosituasjon.fnr)),
+                skatt = EksterneGrunnlagSkatt.Hentet(
+                    nySkattegrunnlag(),
+                    nySkattegrunnlagMedFeilIÅrsgrunnlag(fnr = eps.ident.fnr),
+                ),
+            ),
+        ).third
+        val personMock = mock<PersonOppslag> { on { this.person(any()) } doReturn person.right() }
+        val pdfGeneratorMock = mock<PdfGenerator> {
+            on { genererPdf(any<PdfInnhold>()) } doReturn "".toByteArray().right()
+        }
+        val dokumentSkatt = mock<DokumentSkattRepo> {}
+
+        val service = SkattDokumentServiceImpl(
+            pdfGenerator = pdfGeneratorMock,
+            personOppslag = personMock,
+            dokumentSkattRepo = dokumentSkatt,
+            clock = fixedClock,
+        )
+        val tx = TestSessionFactory.transactionContext
+        val dokument = service.genererOgLagre(vedtak, tx)
+        dokument.shouldBeRight()
+
+        verify(personMock, times(1)).person(argThat { it shouldBe person.ident.fnr })
+        verify(pdfGeneratorMock).genererPdf(
+            argThat<PdfInnhold> {
+                it shouldBe PdfInnhold.SkattemeldingsPdf.lagSkattemeldingsPdf(
+                    saksnummer = vedtak.saksnummer,
+                    søknadsbehandlingsId = vedtak.behandling.id,
+                    vedtaksId = vedtak.id,
+                    hentet = fixedTidspunkt,
+                    skatt = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagForPdf(
+                        søkers = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagMedFnr(
+                            fnr = person.ident.fnr,
+                            årsgrunlag = nonEmptyListOf(nySamletSkattegrunnlagForÅrOgStadieOppgjør()),
+                        ),
+                        eps = null,
+                    ),
+                    hentNavn = { _ -> person.navn },
+                    clock = fixedClock,
+                )
+            },
+        )
+        verify(dokumentSkatt).lagre(argThat { it shouldBe dokument.value }, argThat { it shouldBe tx })
+        verifyNoMoreInteractions(personMock, pdfGeneratorMock, dokumentSkatt)
+    }
+
+    @Test
+    fun `lager skattegrunnlag dersom søker ikke har skattemelding, men eps har`() {
+        val person = person()
+        val bosituasjon = bosituasjonEpsUnder67()
+        val eps = person(fnr = bosituasjon.fnr)
+        val vedtak = iverksattSøknadsbehandling(
+            customVilkår = listOf(formuevilkårMedEps0Innvilget(bosituasjon = nonEmptyListOf(bosituasjon))),
+            customGrunnlag = listOf(bosituasjon),
+            eksterneGrunnlag = eksternGrunnlagHentet().copy(
+                skatt = EksterneGrunnlagSkatt.Hentet(
+                    nySkattegrunnlagMedFeilIÅrsgrunnlag(),
+                    nySkattegrunnlag(fnr = bosituasjon.fnr),
+                ),
             ),
         ).third
         val personMock = mock<PersonOppslag> { on { this.person(any()) } doReturn person.right() }
