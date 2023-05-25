@@ -67,14 +67,14 @@ class SkattDokumentServiceImpl(
                     null
                 } else PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagMedFnr(
                     fnr = hentetSkatt.søkers.fnr,
-                    årsgrunlag = søkersSamletSkattegrunnlag.toNonEmptyList(),
+                    årsgrunnlag = søkersSamletSkattegrunnlag.toNonEmptyList(),
                 ),
                 eps = if (hentetSkatt.eps == null || epsSamletSkattegrunnlag.isNullOrEmpty()) {
                     null
                 } else
                     PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagMedFnr(
                         fnr = hentetSkatt.eps!!.fnr,
-                        årsgrunlag = epsSamletSkattegrunnlag.toNonEmptyList(),
+                        årsgrunnlag = epsSamletSkattegrunnlag.toNonEmptyList(),
                     ),
             ),
             hentNavn = { fnr ->

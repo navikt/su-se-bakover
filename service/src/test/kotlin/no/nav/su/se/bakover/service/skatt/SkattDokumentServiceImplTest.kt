@@ -65,7 +65,7 @@ internal class SkattDokumentServiceImplTest {
                     skatt = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagForPdf(
                         søkers = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagMedFnr(
                             fnr = person.ident.fnr,
-                            årsgrunlag = nonEmptyListOf(nySamletSkattegrunnlagForÅrOgStadieOppgjør()),
+                            årsgrunnlag = nonEmptyListOf(nySamletSkattegrunnlagForÅrOgStadieOppgjør()),
                         ),
                         eps = null,
                     ),
@@ -121,11 +121,11 @@ internal class SkattDokumentServiceImplTest {
                     skatt = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagForPdf(
                         søkers = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagMedFnr(
                             fnr = person.ident.fnr,
-                            årsgrunlag = nonEmptyListOf(nySamletSkattegrunnlagForÅrOgStadieOppgjør()),
+                            årsgrunnlag = nonEmptyListOf(nySamletSkattegrunnlagForÅrOgStadieOppgjør()),
                         ),
                         eps = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagMedFnr(
                             fnr = bosituasjon.fnr,
-                            årsgrunlag = nonEmptyListOf(nySamletSkattegrunnlagForÅrOgStadieOppgjør()),
+                            årsgrunnlag = nonEmptyListOf(nySamletSkattegrunnlagForÅrOgStadieOppgjør()),
                         ),
                     ),
                     hentNavn = { _ -> person.navn },
@@ -179,7 +179,7 @@ internal class SkattDokumentServiceImplTest {
                     skatt = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagForPdf(
                         søkers = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagMedFnr(
                             fnr = person.ident.fnr,
-                            årsgrunlag = nonEmptyListOf(nySamletSkattegrunnlagForÅrOgStadieOppgjør()),
+                            årsgrunnlag = nonEmptyListOf(nySamletSkattegrunnlagForÅrOgStadieOppgjør()),
                         ),
                         eps = null,
                     ),
@@ -235,7 +235,7 @@ internal class SkattDokumentServiceImplTest {
                         søkers = null,
                         eps = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagMedFnr(
                             fnr = bosituasjon.fnr,
-                            årsgrunlag = nonEmptyListOf(nySamletSkattegrunnlagForÅrOgStadieOppgjør()),
+                            årsgrunnlag = nonEmptyListOf(nySamletSkattegrunnlagForÅrOgStadieOppgjør()),
                         ),
                     ),
                     hentNavn = { _ -> person.navn },

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.brev
 
+import arrow.core.Either
 import arrow.core.NonEmptyList
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
@@ -17,6 +18,7 @@ import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
+import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import java.time.Clock
 import java.util.UUID
 
@@ -244,22 +246,19 @@ abstract class PdfInnhold {
         override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.Fritekst(tittel)
     }
 
-    data class SkattPdfData private constructor(
+    data class SkattPdfData(
         val fnr: Fnr,
         val navn: Person.Navn,
-        val årsgrunnlag: NonEmptyList<SamletSkattegrunnlagForÅrOgStadie>,
+        val årsgrunnlag: NonEmptyList<ÅrsgrunnlagPdfJson>,
     ) {
-        companion object {
-            fun lagSkattePdfData(
-                fnr: Fnr,
-                hentNavn: (Fnr) -> Person.Navn,
-                årsgrunnlag: NonEmptyList<SamletSkattegrunnlagForÅrOgStadie>,
-            ): SkattPdfData {
-                return SkattPdfData(
-                    fnr = fnr,
-                    navn = hentNavn(fnr),
-                    årsgrunnlag = årsgrunnlag,
-                )
+        data class ÅrsgrunnlagPdfJson(
+            val år: Int,
+            val stadie: ÅrsgrunnlagStadie,
+            val data: Skattegrunnlag.SkattegrunnlagForÅr,
+        ) {
+            enum class ÅrsgrunnlagStadie {
+                Oppgjør,
+                Utkast,
             }
         }
     }
@@ -283,7 +282,7 @@ abstract class PdfInnhold {
 
         data class ÅrsgrunnlagMedFnr(
             val fnr: Fnr,
-            val årsgrunlag: NonEmptyList<SamletSkattegrunnlagForÅrOgStadie>,
+            val årsgrunnlag: NonEmptyList<SamletSkattegrunnlagForÅrOgStadie>,
         )
 
         data class ÅrsgrunnlagForPdf(
@@ -308,17 +307,37 @@ abstract class PdfInnhold {
                     hentet = hentet,
                     opprettet = Tidspunkt.now(clock),
                     søkers = skatt.søkers?.let {
-                        SkattPdfData.lagSkattePdfData(
+                        SkattPdfData(
                             fnr = it.fnr,
-                            hentNavn = hentNavn,
-                            årsgrunnlag = it.årsgrunlag,
+                            navn = hentNavn(it.fnr),
+                            årsgrunnlag = it.årsgrunnlag.map {
+                                SkattPdfData.ÅrsgrunnlagPdfJson(
+                                    år = it.inntektsår.value,
+                                    stadie = when (it) {
+                                        is SamletSkattegrunnlagForÅrOgStadie.Oppgjør -> SkattPdfData.ÅrsgrunnlagPdfJson.ÅrsgrunnlagStadie.Oppgjør
+                                        is SamletSkattegrunnlagForÅrOgStadie.Utkast -> SkattPdfData.ÅrsgrunnlagPdfJson.ÅrsgrunnlagStadie.Utkast
+                                    },
+                                    data = (it.oppslag as? Either.Right<Skattegrunnlag.SkattegrunnlagForÅr>)?.value
+                                        ?: throw IllegalStateException("Forventet at vi skulle ha skattegrunnlag på dette tidspunktet, men var ${it.oppslag} for vedtak $vedtaksId"),
+                                )
+                            },
                         )
                     },
                     eps = skatt.eps?.let {
-                        SkattPdfData.lagSkattePdfData(
-                            fnr = skatt.eps.fnr,
-                            hentNavn = hentNavn,
-                            årsgrunnlag = skatt.eps.årsgrunlag,
+                        SkattPdfData(
+                            fnr = it.fnr,
+                            navn = hentNavn(it.fnr),
+                            årsgrunnlag = it.årsgrunnlag.map {
+                                SkattPdfData.ÅrsgrunnlagPdfJson(
+                                    år = it.inntektsår.value,
+                                    stadie = when (it) {
+                                        is SamletSkattegrunnlagForÅrOgStadie.Oppgjør -> SkattPdfData.ÅrsgrunnlagPdfJson.ÅrsgrunnlagStadie.Oppgjør
+                                        is SamletSkattegrunnlagForÅrOgStadie.Utkast -> SkattPdfData.ÅrsgrunnlagPdfJson.ÅrsgrunnlagStadie.Utkast
+                                    },
+                                    data = (it.oppslag as? Either.Right<Skattegrunnlag.SkattegrunnlagForÅr>)?.value
+                                        ?: throw IllegalStateException("Forventet at vi skulle ha skattegrunnlag på dette tidspunktet, men var ${it.oppslag} for vedtak $vedtaksId"),
+                                )
+                            },
                         )
                     },
                 )
