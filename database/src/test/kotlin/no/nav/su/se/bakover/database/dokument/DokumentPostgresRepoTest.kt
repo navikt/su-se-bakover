@@ -82,7 +82,7 @@ internal class DokumentPostgresRepoTest {
             )
             dokumentRepo.lagre(original, testDataHelper.sessionFactory.newTransactionContext())
 
-            val dokumentdistribusjon = dokumentRepo.hentDokumenterForDistribusjon().first()
+            val dokumentdistribusjon = dokumentRepo.hentDokumenterForJournalføring().first()
 
             dokumentdistribusjon.dokument.id shouldBe original.id
             dokumentdistribusjon.journalføringOgBrevdistribusjon shouldBe JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
@@ -136,7 +136,7 @@ internal class DokumentPostgresRepoTest {
             hentetDokumentUtenStatus.metadata.journalpostId shouldBe null
             hentetDokumentUtenStatus.metadata.brevbestillingId shouldBe null
 
-            val journalført = dokumentRepo.hentDokumenterForDistribusjon().first()
+            val journalført = dokumentRepo.hentDokumenterForJournalføring().first()
             dokumentRepo.oppdaterDokumentdistribusjon(
                 journalført.journalfør { JournalpostId("jp").right() }.getOrElse {
                     fail { "Skulle fått journalført" }

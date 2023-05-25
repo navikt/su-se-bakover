@@ -66,7 +66,7 @@ class DokumentServiceImpl(
                 }
         }
 
-        (dokumenterResultat + skatteDokumenterResultat).logResultat(log)
+        (dokumenterResultat + skatteDokumenterResultat).logResultat("Journalføring", log)
     }
 
     /**
@@ -136,7 +136,7 @@ class DokumentServiceImpl(
             distribuerDokument(dokument)
                 .map { DokumentResultatSet.Ok(it.id) }
                 .mapLeft { DokumentResultatSet.Feil(dokument.id) }
-        }.logResultat(log)
+        }.logResultat("Distribuering", log)
     }
 
     /**

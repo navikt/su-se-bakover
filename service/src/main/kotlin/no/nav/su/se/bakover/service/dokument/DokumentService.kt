@@ -24,13 +24,18 @@ sealed interface DokumentResultatSet {
     companion object {
         fun List<Either<Feil, Ok>>.ok() = this.filterIsInstance<Either.Right<Ok>>().map { it.value.id }
         fun List<Either<Feil, Ok>>.feil() = this.filterIsInstance<Either.Left<Feil>>().map { it.value.id }
-        fun List<Either<Feil, Ok>>.logResultat(log: Logger) = this.ifNotEmpty {
-            val ok = this.ok()
-            val feil = this.feil()
-            if (feil.isEmpty()) {
-                log.info("Journalførte/distribuerte: $ok")
-            } else {
-                log.error("Kunne ikke journalføre/distribuere: $feil. Disse gikk ok: $ok")
+        fun List<Either<Feil, Ok>>.logResultat(
+            logContext: String,
+            log: Logger,
+        ) {
+            this.ifNotEmpty {
+                val ok = this.ok()
+                val feil = this.feil()
+                if (feil.isEmpty()) {
+                    log.info("$logContext gikk OK: $ok")
+                } else {
+                    log.error("$logContext feilet: $feil. Disse gikk OK: $ok")
+                }
             }
         }
     }

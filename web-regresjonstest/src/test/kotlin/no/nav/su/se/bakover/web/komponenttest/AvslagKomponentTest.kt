@@ -49,10 +49,10 @@ class AvslagKomponentTest {
                         dokument.tittel shouldBe "Avslag supplerende stønad"
                         dokument.metadata.vedtakId shouldBe avslagsvedtak.id
 
-                        appComponents.databaseRepos.dokumentRepo.hentDokumenterForDistribusjon()
-                            .let { distribusjon ->
-                                distribusjon shouldHaveSize 1
-                                distribusjon.first().dokument.shouldBeEqualToIgnoringFields(
+                        appComponents.databaseRepos.dokumentRepo.hentDokumenterForJournalføring()
+                            .let { skalJournalføres ->
+                                skalJournalføres shouldHaveSize 1
+                                skalJournalføres.first().dokument.shouldBeEqualToIgnoringFields(
                                     dokument,
                                     Dokument::generertDokument,
                                 )

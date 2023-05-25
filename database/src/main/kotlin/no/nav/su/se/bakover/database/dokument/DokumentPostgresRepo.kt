@@ -173,7 +173,7 @@ internal class DokumentPostgresRepo(
             sessionFactory.withSession { session ->
                 """
                 select * from dokument_distribusjon
-                where brevbestillingId is null
+                where brevbestillingId is null and journalpostId is not null
                 order by opprettet asc
                 limit :limit
                 """.trimIndent()
