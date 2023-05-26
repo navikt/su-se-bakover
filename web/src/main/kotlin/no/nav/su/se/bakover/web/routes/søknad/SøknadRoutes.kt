@@ -203,7 +203,7 @@ internal fun Route.søknadRoutes(
                             fritekstTilBrev = body.fritekst,
                         ),
                     ).mapLeft {
-                        it.tilResultat()
+                        call.svar(it.tilResultat())
                     }.map {
                         call.audit(it.first, AuditLogEvent.Action.ACCESS, søknadId)
                         call.respondBytes(it.second, ContentType.Application.Pdf)
