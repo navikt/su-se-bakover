@@ -39,6 +39,7 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedValideringAvBof
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.ForNav
 import no.nav.su.se.bakover.domain.søknadsbehandling.ValideringsfeilAttestering
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
@@ -202,7 +203,7 @@ internal fun Route.søknadRoutes(
                             fritekstTilBrev = body.fritekst,
                         ),
                     ).mapLeft {
-                        call.svar(Feilresponser.feilVedGenereringAvDokument)
+                        it.tilResultat()
                     }.map {
                         call.audit(it.first, AuditLogEvent.Action.ACCESS, søknadId)
                         call.respondBytes(it.second, ContentType.Application.Pdf)
