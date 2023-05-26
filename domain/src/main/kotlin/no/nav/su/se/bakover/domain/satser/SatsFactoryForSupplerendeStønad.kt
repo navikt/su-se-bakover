@@ -45,6 +45,7 @@ val grunnbeløpsendringer = nonEmptyListOf(
     Grunnbeløpsendring(1.mai(2020), 4.september(2020), 101351),
     Grunnbeløpsendring(1.mai(2021), 21.mai(2021), 106399),
     Grunnbeløpsendring(1.mai(2022), 20.mai(2022), 111477),
+    Grunnbeløpsendring(1.mai(2023), 26.mai(2023), 118620),
 )
 
 class SatsFactoryForSupplerendeStønad(
@@ -83,6 +84,8 @@ class SatsFactoryForSupplerendeStønad(
 
         // https://lovdata.no/forskrift/2022-05-20-881/§5   kunngjort 20.05.2022 kl. 15.15
         GarantipensjonFactory.Garantipensjonsendring(1.mai(2022), 20.mai(2022), 193862),
+
+        GarantipensjonFactory.Garantipensjonsendring(1.mai(2023), 26.mai(2023), 210418),
     ),
     /** Se kommentarer på garantipensjon lav for lovreferanser. */
     private val garantipensjonsendringerHøy: Nel<GarantipensjonFactory.Garantipensjonsendring> = nonEmptyListOf(
@@ -94,6 +97,7 @@ class SatsFactoryForSupplerendeStønad(
         GarantipensjonFactory.Garantipensjonsendring(1.mai(2020), 4.september(2020), 192125),
         GarantipensjonFactory.Garantipensjonsendring(1.mai(2021), 21.mai(2021), 202425),
         GarantipensjonFactory.Garantipensjonsendring(1.mai(2022), 20.mai(2022), 209571),
+        GarantipensjonFactory.Garantipensjonsendring(1.mai(2023), 26.mai(2023), 227468),
     ),
     private val minsteÅrligYtelseForUføretrygdedeOrdinær: Nel<MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring> = nonEmptyListOf(
         // https://lovdata.no/dokument/LTI/lov/2011-12-16-59 kunngjort 16.12.2011 kl. 15.40. Trådde i kraft 2015-01-01: https://lovdata.no/dokument/LTI/forskrift/2014-06-20-797 (kunngjort 23.06.2014 kl. 16.00)
