@@ -4,7 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.jobs.shouldRun
-import no.nav.su.se.bakover.service.dokument.DokumentService
+import no.nav.su.se.bakover.service.dokument.DistribuerDokumentService
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
 import java.net.InetAddress
@@ -19,7 +19,7 @@ internal class DistribuerDokumentJob(
     private val initialDelay: Duration,
     private val periode: Duration,
     private val runCheckFactory: RunCheckFactory,
-    private val dokumentService: DokumentService,
+    private val distribueringService: DistribuerDokumentService,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val jobName = "Bestill brevdistribusjon"
@@ -38,7 +38,7 @@ internal class DistribuerDokumentJob(
                 listOf(runCheckFactory.leaderPod()).shouldRun().ifTrue {
                     withCorrelationId {
                         log.debug("Kjører skeduleringsjobb '$jobName'")
-                        dokumentService.distribuer()
+                        distribueringService.distribuer()
                         log.debug("Fullførte skeduleringsjobb '$jobName'")
                     }
                 }

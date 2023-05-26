@@ -4,7 +4,6 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.jobs.shouldRun
-import no.nav.su.se.bakover.service.dokument.DokumentService
 import no.nav.su.se.bakover.service.journalføring.JournalføringService
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
@@ -22,7 +21,7 @@ internal class JournalførDokumentJob(
     private val initialDelay: Duration,
     private val periode: Duration,
     private val runCheckFactory: RunCheckFactory,
-    private val journalføringService: JournalføringService
+    private val journalføringService: JournalføringService,
 ) {
     private val jobName = "Journalfør dokumenter"
     private val hostName = InetAddress.getLocalHost().hostName

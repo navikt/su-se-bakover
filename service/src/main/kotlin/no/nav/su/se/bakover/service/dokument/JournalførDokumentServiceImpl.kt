@@ -81,5 +81,4 @@ class JournalførDokumentServiceImpl(
                 KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost
             }
     }
-
 }

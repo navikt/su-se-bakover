@@ -1,13 +1,11 @@
 package no.nav.su.se.bakover.service.dokument
 
 import arrow.core.Either
-import no.nav.su.se.bakover.service.dokument.DokumentResultatSet.Companion.feil
-import no.nav.su.se.bakover.service.dokument.DokumentResultatSet.Companion.ok
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.slf4j.Logger
 import java.util.UUID
 
-interface DokumentService {
+interface DistribuerDokumentService {
     fun distribuer()
 }
 

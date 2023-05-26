@@ -16,11 +16,11 @@ import no.nav.su.se.bakover.service.dokument.DokumentResultatSet.Companion.logRe
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-class DokumentServiceImpl(
+class DistribuerDokumentServiceImpl(
     private val dokDistFordeling: DokDistFordeling,
     private val dokumentRepo: DokumentRepo,
-) : DokumentService {
-    val log: Logger = LoggerFactory.getLogger(this::class.java)
+) : DistribuerDokumentService {
+    private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     override fun distribuer() {
         dokumentRepo.hentDokumenterForDistribusjon().map { dokument ->

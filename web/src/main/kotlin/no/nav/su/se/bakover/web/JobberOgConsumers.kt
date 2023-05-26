@@ -20,9 +20,11 @@ import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs.KontrollsamtaleinnkallingJob
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs.StansYtelseVedManglendeOppmøteKontrollsamtaleJob
-import no.nav.su.se.bakover.service.dokument.DokumentServiceImpl
-import no.nav.su.se.bakover.service.journalføring.JournalføringServiceImpl
+import no.nav.su.se.bakover.service.dokument.DistribuerDokumentServiceImpl
+import no.nav.su.se.bakover.service.dokument.JournalførDokumentServiceImpl
+import no.nav.su.se.bakover.service.journalføring.JournalføringService
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
+import no.nav.su.se.bakover.service.skatt.JournalførSkattDokumentServiceImpl
 import no.nav.su.se.bakover.web.services.SendPåminnelseNyStønadsperiodeJob
 import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.services.avstemming.GrensesnittsavstemingJob
@@ -72,9 +74,22 @@ fun startJobberOgConsumers(
         toggleService = services.toggles,
 
     )
-    val dokumentService = DokumentServiceImpl(
+    val distribuerDokumentService = DistribuerDokumentServiceImpl(
         dokDistFordeling = clients.dokDistFordeling,
         dokumentRepo = databaseRepos.dokumentRepo,
+    )
+    val journalførDokumentService = JournalførDokumentServiceImpl(
+        dokArkiv = clients.dokArkiv,
+        dokumentRepo = databaseRepos.dokumentRepo,
+        sakService = services.sak,
+        personService = services.person,
+    )
+
+    val journalførDokumentSkattService = JournalførSkattDokumentServiceImpl(
+        dokArkiv = clients.dokArkiv,
+        dokumentSkattRepo = databaseRepos.dokumentSkattRepo,
+        sakService = services.sak,
+        personService = services.person,
     )
 
     if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
@@ -107,14 +122,17 @@ fun startJobberOgConsumers(
             initialDelay = initialDelay.next(),
             periode = Duration.of(5, ChronoUnit.MINUTES),
             runCheckFactory = runCheckFactory,
-            dokumentService = dokumentService,
+            journalføringService = JournalføringService(
+                journalførDokumentService = journalførDokumentService,
+                journalførSkattDokumentService = journalførDokumentSkattService,
+            ),
         ).schedule()
 
         DistribuerDokumentJob(
             initialDelay = initialDelay.next(),
             periode = Duration.of(5, ChronoUnit.MINUTES),
             runCheckFactory = runCheckFactory,
-            dokumentService = dokumentService,
+            distribueringService = distribuerDokumentService,
         ).schedule()
 
         GrensesnittsavstemingJob(
@@ -235,14 +253,17 @@ fun startJobberOgConsumers(
             initialDelay = initialDelay.next(),
             periode = Duration.ofSeconds(10),
             runCheckFactory = runCheckFactory,
-            dokumentService = dokumentService,
+            journalføringService = JournalføringService(
+                journalførDokumentService = journalførDokumentService,
+                journalførSkattDokumentService = journalførDokumentSkattService,
+            ),
         ).schedule()
 
         DistribuerDokumentJob(
             initialDelay = initialDelay.next(),
             periode = Duration.ofSeconds(10),
             runCheckFactory = runCheckFactory,
-            dokumentService = dokumentService,
+            distribueringService = distribuerDokumentService,
         ).schedule()
 
         GrensesnittsavstemingJob(
