@@ -44,18 +44,26 @@ data class MinsteÅrligYtelseForUføretrygdedeFactory(
             knekkpunkt: Knekkpunkt,
             tidligsteTilgjengeligeMåned: Måned,
         ): MinsteÅrligYtelseForUføretrygdedeFactory {
-            val ikrafttredelseMessage: () -> String = {
-                "Ikrafttredelse for minste årlig ytelse for uføretrygdede må være i stigende rekkefølge og uten duplikater, men var: ${ordinær.map { it.virkningstidspunkt }}"
+            ordinær.map { it.ikrafttredelse }.let {
+                require(it.erSortertOgUtenDuplikater()) {
+                    "Minste årlig ytelse for uføretrygdede (ordinær): Ikrafttredelse må være i stigende rekkefølge og uten duplikater, men var: $it"
+                }
             }
-            require(ordinær.map { it.ikrafttredelse }.erSortertOgUtenDuplikater(), ikrafttredelseMessage)
-            require(høy.map { it.ikrafttredelse }.erSortertOgUtenDuplikater(), ikrafttredelseMessage)
-
-            val virkningstidspunktMessage: () -> String = {
-                "Virkningstidspunkt for minste årlig ytelse for uføretrygdede må være i stigende rekkefølge og uten duplikater, men var: ${ordinær.map { it.virkningstidspunkt }}"
+            høy.map { it.ikrafttredelse }.let {
+                require(it.erSortertOgUtenDuplikater()) {
+                    "Minste årlig ytelse for uføretrygdede (høy): Ikrafttredelse må være i stigende rekkefølge og uten duplikater, men var: $it"
+                }
             }
-            require(ordinær.map { it.virkningstidspunkt }.erSortertOgUtenDuplikater(), virkningstidspunktMessage)
-            require(høy.map { it.virkningstidspunkt }.erSortertOgUtenDuplikater(), virkningstidspunktMessage)
-
+            ordinær.map { it.virkningstidspunkt }.let {
+                require(it.erSortertOgUtenDuplikater()) {
+                    "Minste årlig ytelse for uføretrygdede (ordinær): Virkningstidspunkt må være i stigende rekkefølge og uten duplikater, men var: $it"
+                }
+            }
+            høy.map { it.virkningstidspunkt }.let {
+                require(it.erSortertOgUtenDuplikater()) {
+                    "Minste årlig ytelse for uføretrygdede (høy): Virkningstidspunkt må være i stigende rekkefølge og uten duplikater, men var: $it"
+                }
+            }
             return MinsteÅrligYtelseForUføretrygdedeFactory(
                 ordinær = ordinær.periodiserIftVirkningstidspunkt(
                     knekkpunkt,
