@@ -34,11 +34,15 @@ class GrunnbeløpFactory(
     private val sisteMånedMedEndring = månedTilGrunnbeløp.keys.last()
 
     init {
-        require(grunnbeløpsendringer.map { it.ikrafttredelse }.erSortertOgUtenDuplikater()) {
-            "Ikrafttredelse for minste årlig ytelse for uføretrygdede må være i stigende rekkefølge og uten duplikater, men var: ${grunnbeløpsendringer.map { it.ikrafttredelse }}"
+        grunnbeløpsendringer.map { it.ikrafttredelse }.let {
+            require(it.erSortertOgUtenDuplikater()) {
+                "Grunnbeløp: Ikrafttredelse må være i stigende rekkefølge og uten duplikater, men var: $it}"
+            }
         }
-        require(grunnbeløpsendringer.map { it.virkningstidspunkt }.erSortertOgUtenDuplikater()) {
-            "Virkningstidspunkt for minste årlig ytelse for uføretrygdede må være i stigende rekkefølge og uten duplikater, men var: ${grunnbeløpsendringer.map { it.virkningstidspunkt }}"
+        grunnbeløpsendringer.map { it.virkningstidspunkt }.let {
+            require(it.erSortertOgUtenDuplikater()) {
+                "Grunnbeløp: Virkningstidspunkt må være i stigende rekkefølge og uten duplikater, men var: $it}"
+            }
         }
         require(månedTilGrunnbeløp.values.all { it.ikrafttredelse <= knekkpunkt })
         require(månedTilGrunnbeløp.isNotEmpty())
