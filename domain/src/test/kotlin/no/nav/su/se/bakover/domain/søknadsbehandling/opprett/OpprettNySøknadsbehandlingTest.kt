@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.søknadsbehandling.opprett
 import arrow.core.left
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.extensions.mai
+import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.innvilgetSøknadsbehandlingMedÅpenRegulering
@@ -60,7 +60,7 @@ internal class OpprettNySøknadsbehandlingTest {
     @Test
     fun `Kan opprette søknadsbehandling dersom det finnes en åpen regulering `() {
         val (sak, søknad) = nySøknadPåEksisterendeSak(
-            eksisterendeSak = innvilgetSøknadsbehandlingMedÅpenRegulering(1.mai(2021)).first,
+            eksisterendeSak = innvilgetSøknadsbehandlingMedÅpenRegulering(mai(2021)).first,
         )
         sak.opprettNySøknadsbehandling(
             søknad.id,

@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePeriode
 import no.nav.su.se.bakover.domain.Sak
 import org.slf4j.LoggerFactory
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 
 private val log = LoggerFactory.getLogger("opprettEllerOppdaterRegulering")
@@ -20,30 +19,29 @@ private val log = LoggerFactory.getLogger("opprettEllerOppdaterRegulering")
  * @return Dersom Either.Left: Disse skal det ikke lages noen regulering for. Denne funksjonen har logget.
  */
 fun Sak.opprettEllerOppdaterRegulering(
-    // TODO jah: Bytt til YearMonth (Da slipper vi en unødvendig left)
-    startDato: LocalDate,
+    fraOgMedMåned: Måned,
     clock: Clock,
 ): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering, OpprettetRegulering> {
-    val (reguleringsId, opprettet, _startDato) = reguleringer.filterIsInstance<OpprettetRegulering>()
+    val (reguleringsId, opprettet, _fraOgMedMåned) = reguleringer.filterIsInstance<OpprettetRegulering>()
         .let { r ->
             when (r.size) {
-                0 -> Triple(UUID.randomUUID(), Tidspunkt.now(clock), startDato)
+                0 -> Triple(UUID.randomUUID(), Tidspunkt.now(clock), fraOgMedMåned)
 
-                1 -> Triple(r.first().id, r.first().opprettet, minOf(startDato, r.first().periode.fraOgMed))
+                1 -> Triple(r.first().id, r.first().opprettet, minOf(fraOgMedMåned, Måned.fra(r.first().periode.fraOgMed)))
 
                 else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
             }
         }
 
     val periode = vedtakstidslinje(
-        fraOgMed = Måned.fra(_startDato),
+        fraOgMed = _fraOgMedMåned,
     ).let { tidslinje ->
         (tidslinje ?: emptyList())
             .filterNot { it.erOpphør() }
             .map { vedtakUtenOpphør -> vedtakUtenOpphør.periode }
             .minsteAntallSammenhengendePerioder()
             .ifEmpty {
-                log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere fra og med $_startDato")
+                log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere fra og med $_fraOgMedMåned")
                 return Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
             }
     }.also {

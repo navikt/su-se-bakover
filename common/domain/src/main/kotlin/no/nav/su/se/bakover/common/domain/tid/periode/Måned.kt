@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.common.tid.periode
 
+import arrow.core.Either
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.su.se.bakover.common.extensions.erFørsteDagIMåned
 import no.nav.su.se.bakover.common.extensions.erSisteDagIMåned
@@ -72,6 +73,12 @@ data class Måned private constructor(
                 "tilOgMed: $tilOgMed må være den siste i måneden for å mappes til en måned."
             }
             return factory.fra(fraOgMed, tilOgMed)
+        }
+
+        fun parse(value: String): Måned? {
+            return Either.catch {
+                factory.fra(YearMonth.parse(value))
+            }.getOrNull()
         }
 
         private class CacheingFactory(

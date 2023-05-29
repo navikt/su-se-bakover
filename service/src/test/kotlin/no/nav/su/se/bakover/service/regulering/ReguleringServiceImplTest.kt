@@ -11,12 +11,14 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.extensions.august
 import no.nav.su.se.bakover.common.extensions.desember
-import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.juni
 import no.nav.su.se.bakover.common.extensions.mai
 import no.nav.su.se.bakover.common.extensions.september
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.august
+import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
@@ -99,7 +101,7 @@ internal class ReguleringServiceImplTest {
             clock = clock,
         )
 
-        reguleringService.startAutomatiskRegulering(1.mai(2021)).size shouldBe 1
+        reguleringService.startAutomatiskRegulering(mai(2021)).size shouldBe 1
     }
 
     @Nested
@@ -128,13 +130,13 @@ internal class ReguleringServiceImplTest {
             val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
             val reguleringService = lagReguleringServiceImpl(sak)
 
-            val regulering = reguleringService.startAutomatiskRegulering(1.mai(2021)).first().getOrFail()
+            val regulering = reguleringService.startAutomatiskRegulering(mai(2021)).first().getOrFail()
             regulering.reguleringstype shouldBe Reguleringstype.AUTOMATISK
         }
 
         @Test
         fun `OffentligPensjon gir manuell`() {
-            reguleringService.startAutomatiskRegulering(1.mai(2021)).single()
+            reguleringService.startAutomatiskRegulering(mai(2021)).single()
                 .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL(
                 setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt),
             )
@@ -142,7 +144,7 @@ internal class ReguleringServiceImplTest {
 
         @Test
         fun `NAVytelserTilLivsopphold gir manuell`() {
-            reguleringService.startAutomatiskRegulering(1.mai(2021)).single()
+            reguleringService.startAutomatiskRegulering(mai(2021)).single()
                 .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL(
                 setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt),
             )
@@ -153,7 +155,7 @@ internal class ReguleringServiceImplTest {
             val stansAvYtelse = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().first
             val reguleringService = lagReguleringServiceImpl(stansAvYtelse)
 
-            reguleringService.startAutomatiskRegulering(1.mai(2021)).single()
+            reguleringService.startAutomatiskRegulering(mai(2021)).single()
                 .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL(
                 setOf(ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset),
             )
@@ -171,7 +173,7 @@ internal class ReguleringServiceImplTest {
 
             val reguleringService = lagReguleringServiceImpl(sak = revurdertSak, clock = clock)
 
-            reguleringService.startAutomatiskRegulering(1.mai(2021))
+            reguleringService.startAutomatiskRegulering(mai(2021))
                 .first() shouldBe KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode)
                 .left()
         }
@@ -192,7 +194,7 @@ internal class ReguleringServiceImplTest {
 
             val reguleringService = lagReguleringServiceImpl(revurdertSak)
 
-            val regulering = reguleringService.startAutomatiskRegulering(1.mai(2021)).first().getOrFail()
+            val regulering = reguleringService.startAutomatiskRegulering(mai(2021)).first().getOrFail()
             regulering.reguleringstype shouldBe Reguleringstype.AUTOMATISK
             regulering.periode shouldBe Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.august(2021))
         }
@@ -228,7 +230,7 @@ internal class ReguleringServiceImplTest {
             ).first
             val reguleringService = lagReguleringServiceImpl(sak)
 
-            val regulering = reguleringService.startAutomatiskRegulering(1.mai(2021)).first().getOrFail()
+            val regulering = reguleringService.startAutomatiskRegulering(mai(2021)).first().getOrFail()
             regulering.reguleringstype shouldBe Reguleringstype.AUTOMATISK
             regulering.periode shouldBe Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.desember(2021))
         }
@@ -264,7 +266,7 @@ internal class ReguleringServiceImplTest {
             ).first
             val reguleringService = lagReguleringServiceImpl(sak)
 
-            reguleringService.startAutomatiskRegulering(1.mai(2021))
+            reguleringService.startAutomatiskRegulering(mai(2021))
                 .first() shouldBe KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(feil = Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig)
                 .left()
         }
@@ -282,7 +284,7 @@ internal class ReguleringServiceImplTest {
         @Test
         fun `manuell behandling happy case`() {
             val (sak, regulering) = innvilgetSøknadsbehandlingMedÅpenRegulering(
-                regulerFraOgMed = 1.mai(2021),
+                regulerFraOgMed = mai(2021),
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(
                     periode = stønadsperiode2021.periode,
                     fradragsgrunnlag = listOf(
@@ -327,7 +329,7 @@ internal class ReguleringServiceImplTest {
         fun `manuell behandling av stans skal ikke være lov`() {
             val tikkendeKlokke = TikkendeKlokke(fixedClock)
             val (sak, regulering) = stansetSøknadsbehandlingMedÅpenRegulering(
-                regulerFraOgMed = 1.mai(2021),
+                regulerFraOgMed = mai(2021),
                 clock = tikkendeKlokke,
             )
 
@@ -349,7 +351,7 @@ internal class ReguleringServiceImplTest {
 
             val reguleringService = lagReguleringServiceImpl(revurdertSak, lagFeilutbetaling = true)
 
-            reguleringService.startAutomatiskRegulering(1.mai(2021)) shouldBe listOf(
+            reguleringService.startAutomatiskRegulering(mai(2021)) shouldBe listOf(
                 KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(
                     KunneIkkeFerdigstilleOgIverksette.KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling,
                 ).left(),
@@ -365,7 +367,7 @@ internal class ReguleringServiceImplTest {
             val sak = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(år(2021))).first
             val reguleringService = lagReguleringServiceImpl(sak)
 
-            reguleringService.startAutomatiskRegulering(1.mai(2023)).let {
+            reguleringService.startAutomatiskRegulering(mai(2023)).let {
                 it.size shouldBe 1
                 it.first() shouldBe KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(feil = Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode)
                     .left()
@@ -377,7 +379,7 @@ internal class ReguleringServiceImplTest {
             val sak = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(år(2021))).first
             val reguleringService = lagReguleringServiceImpl(sak)
 
-            val regulering = reguleringService.startAutomatiskRegulering(1.mai(2021)).first().getOrFail()
+            val regulering = reguleringService.startAutomatiskRegulering(mai(2021)).first().getOrFail()
             regulering.periode.fraOgMed shouldBe 1.mai(2021)
         }
 
@@ -391,14 +393,14 @@ internal class ReguleringServiceImplTest {
             ).first
             val reguleringService = lagReguleringServiceImpl(sak)
 
-            val regulering = reguleringService.startAutomatiskRegulering(1.mai(2021)).first().getOrFail()
+            val regulering = reguleringService.startAutomatiskRegulering(mai(2021)).first().getOrFail()
             regulering.periode.fraOgMed shouldBe 1.juni(2021)
         }
 
         @Test
         fun `oppdaterer reguleringen hvis det finnes en åpen regulering allerede og reguleringsperioden er større`() {
             val sakOgVedtak = innvilgetSøknadsbehandlingMedÅpenRegulering(
-                regulerFraOgMed = 1.august(2021),
+                regulerFraOgMed = august(2021),
                 /* Manuell regulering */
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(
                     fradragsgrunnlag = listOf(
@@ -418,7 +420,7 @@ internal class ReguleringServiceImplTest {
             val (sak, regulering) = sakOgVedtak
 
             val reguleringService = lagReguleringServiceImpl(sak)
-            reguleringService.startAutomatiskRegulering(1.mai(2021)).first().getOrFail().let {
+            reguleringService.startAutomatiskRegulering(mai(2021)).first().getOrFail().let {
                 it.shouldBeInstanceOf<OpprettetRegulering>()
                 shouldBeEqualToComparingFields(
                     regulering,
@@ -443,7 +445,7 @@ internal class ReguleringServiceImplTest {
         @Test
         fun `oppdaterer ikke reguleringen hvis det finnes en åpen regulering men reguleringsperioden er mindre`() {
             val sakOgVedtak = innvilgetSøknadsbehandlingMedÅpenRegulering(
-                regulerFraOgMed = 1.januar(2021),
+                regulerFraOgMed = januar(2021),
                 /* Manuell regulering */
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(
                     fradragsgrunnlag = listOf(
@@ -463,7 +465,7 @@ internal class ReguleringServiceImplTest {
             val (sak, regulering) = sakOgVedtak
 
             val reguleringService = lagReguleringServiceImpl(sak)
-            reguleringService.startAutomatiskRegulering(1.mai(2021)).first().getOrFail().let {
+            reguleringService.startAutomatiskRegulering(mai(2021)).first().getOrFail().let {
                 it.shouldBeInstanceOf<OpprettetRegulering>()
                 it.shouldBeEqualToComparingFields(
                     regulering,
@@ -493,7 +495,7 @@ internal class ReguleringServiceImplTest {
         val eventObserverMock: StatistikkEventObserver = mock()
         lagReguleringServiceImpl(sak).apply {
             addObserver(eventObserverMock)
-        }.startAutomatiskRegulering(1.mai(2021))
+        }.startAutomatiskRegulering(mai(2021))
 
         verify(eventObserverMock).handle(argThat { it.shouldBeTypeOf<StatistikkEvent.Stønadsvedtak>() })
     }
@@ -520,7 +522,7 @@ internal class ReguleringServiceImplTest {
             tilbakekrevingService = tilbakekrevingMock,
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
-        ).startAutomatiskRegulering(1.mai(2022))
+        ).startAutomatiskRegulering(mai(2022))
 
         verifyNoInteractions(reguleringMock)
         verifyNoInteractions(utbetalingMock)

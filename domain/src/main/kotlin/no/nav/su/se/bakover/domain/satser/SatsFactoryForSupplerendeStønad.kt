@@ -48,6 +48,47 @@ val grunnbeløpsendringer = nonEmptyListOf(
     Grunnbeløpsendring(1.mai(2023), 26.mai(2023), 118620),
 )
 
+val garantipensjonsendringerOrdinær = nonEmptyListOf(
+    // https://lovdata.no/forskrift/2015-11-20-1335/§1  kunngjort 23.11.2015 kl. 12.30
+    GarantipensjonFactory.Garantipensjonsendring(1.januar(2016), 1.januar(2016), 162566),
+
+    // https://lovdata.no/forskrift/2016-05-27-530/§5   kunngjort 30.05.2016 kl. 15.20
+    GarantipensjonFactory.Garantipensjonsendring(1.mai(2016), 1.mai(2016), 166274),
+
+    // https://lovdata.no/forskrift/2017-06-02-679/§5   kunngjort 02.06.2017 kl. 15.00
+    GarantipensjonFactory.Garantipensjonsendring(1.mai(2017), 1.mai(2017), 167196),
+
+    // https://lovdata.no/forskrift/2018-06-01-786/§5   kunngjort 01.06.2018 kl. 14.30
+    GarantipensjonFactory.Garantipensjonsendring(1.mai(2018), 1.mai(2018), 172002),
+
+    // https://lovdata.no/forskrift/2019-05-24-670/§5   kunngjort 24.05.2019 kl. 14.20
+    GarantipensjonFactory.Garantipensjonsendring(1.mai(2019), 1.mai(2019), 176099),
+
+    //  https://lovdata.no/forskrift/2020-09-04-1719/§5 kunngjort 04.09.2020 kl. 15.35
+    GarantipensjonFactory.Garantipensjonsendring(1.mai(2020), 4.september(2020), 177724),
+
+    // https://lovdata.no/forskrift/2021-05-21-1568/§5  kunngjort 21.05.2021 kl. 16.15
+    GarantipensjonFactory.Garantipensjonsendring(1.mai(2021), 21.mai(2021), 187252),
+
+    // https://lovdata.no/forskrift/2022-05-20-881/§5   kunngjort 20.05.2022 kl. 15.15
+    GarantipensjonFactory.Garantipensjonsendring(1.mai(2022), 20.mai(2022), 193862),
+
+    // https://lovdata.no/LTI/forskrift/2023-05-26-738/§5 kunngjort 26.05.2023 kl. 15.10
+    GarantipensjonFactory.Garantipensjonsendring(1.mai(2023), 26.mai(2023), 210418),
+)
+
+val garantipensjonsendringerHøy = nonEmptyListOf(
+    GarantipensjonFactory.Garantipensjonsendring(1.januar(2016), 1.januar(2016), 175739),
+    GarantipensjonFactory.Garantipensjonsendring(1.mai(2016), 1.mai(2016), 179748),
+    GarantipensjonFactory.Garantipensjonsendring(1.mai(2017), 1.mai(2017), 180744),
+    GarantipensjonFactory.Garantipensjonsendring(1.mai(2018), 1.mai(2018), 185939),
+    GarantipensjonFactory.Garantipensjonsendring(1.mai(2019), 1.mai(2019), 190368),
+    GarantipensjonFactory.Garantipensjonsendring(1.mai(2020), 4.september(2020), 192125),
+    GarantipensjonFactory.Garantipensjonsendring(1.mai(2021), 21.mai(2021), 202425),
+    GarantipensjonFactory.Garantipensjonsendring(1.mai(2022), 20.mai(2022), 209571),
+    GarantipensjonFactory.Garantipensjonsendring(1.mai(2023), 26.mai(2023), 227468),
+)
+
 class SatsFactoryForSupplerendeStønad(
     // TODO(satsfactory_alder) jah: I lov om supplerende stønad ble satsen for alder endret fra minste pensjonsnivå til garantipensjon fra og med 2021-01-01.
     //  Vi må legge inn minste pensjonsnivå og ta høyde for det før vi skal revurdere tilbake til før 2021-01-01.
@@ -60,45 +101,9 @@ class SatsFactoryForSupplerendeStønad(
      * Garantipensjon ble innført som konsept 2016-01-01: https://lovdata.no/forskrift/2015-11-20-1335/§1.
      * Satsene endres ofte sammen med grunnbeløpet.
      */
-    private val garantipensjonsendringerOrdinær: Nel<GarantipensjonFactory.Garantipensjonsendring> = nonEmptyListOf(
-        // https://lovdata.no/forskrift/2015-11-20-1335/§1  kunngjort 23.11.2015 kl. 12.30
-        GarantipensjonFactory.Garantipensjonsendring(1.januar(2016), 1.januar(2016), 162566),
-
-        // https://lovdata.no/forskrift/2016-05-27-530/§5   kunngjort 30.05.2016 kl. 15.20
-        GarantipensjonFactory.Garantipensjonsendring(1.mai(2016), 1.mai(2016), 166274),
-
-        // https://lovdata.no/forskrift/2017-06-02-679/§5   kunngjort 02.06.2017 kl. 15.00
-        GarantipensjonFactory.Garantipensjonsendring(1.mai(2017), 1.mai(2017), 167196),
-
-        // https://lovdata.no/forskrift/2018-06-01-786/§5   kunngjort 01.06.2018 kl. 14.30
-        GarantipensjonFactory.Garantipensjonsendring(1.mai(2018), 1.mai(2018), 172002),
-
-        // https://lovdata.no/forskrift/2019-05-24-670/§5   kunngjort 24.05.2019 kl. 14.20
-        GarantipensjonFactory.Garantipensjonsendring(1.mai(2019), 1.mai(2019), 176099),
-
-        //  https://lovdata.no/forskrift/2020-09-04-1719/§5 kunngjort 04.09.2020 kl. 15.35
-        GarantipensjonFactory.Garantipensjonsendring(1.mai(2020), 4.september(2020), 177724),
-
-        // https://lovdata.no/forskrift/2021-05-21-1568/§5  kunngjort 21.05.2021 kl. 16.15
-        GarantipensjonFactory.Garantipensjonsendring(1.mai(2021), 21.mai(2021), 187252),
-
-        // https://lovdata.no/forskrift/2022-05-20-881/§5   kunngjort 20.05.2022 kl. 15.15
-        GarantipensjonFactory.Garantipensjonsendring(1.mai(2022), 20.mai(2022), 193862),
-
-        GarantipensjonFactory.Garantipensjonsendring(1.mai(2023), 26.mai(2023), 210418),
-    ),
+    private val garantipensjonsendringerOrdinær: Nel<GarantipensjonFactory.Garantipensjonsendring> = no.nav.su.se.bakover.domain.satser.garantipensjonsendringerOrdinær,
     /** Se kommentarer på garantipensjon lav for lovreferanser. */
-    private val garantipensjonsendringerHøy: Nel<GarantipensjonFactory.Garantipensjonsendring> = nonEmptyListOf(
-        GarantipensjonFactory.Garantipensjonsendring(1.januar(2016), 1.januar(2016), 175739),
-        GarantipensjonFactory.Garantipensjonsendring(1.mai(2016), 1.mai(2016), 179748),
-        GarantipensjonFactory.Garantipensjonsendring(1.mai(2017), 1.mai(2017), 180744),
-        GarantipensjonFactory.Garantipensjonsendring(1.mai(2018), 1.mai(2018), 185939),
-        GarantipensjonFactory.Garantipensjonsendring(1.mai(2019), 1.mai(2019), 190368),
-        GarantipensjonFactory.Garantipensjonsendring(1.mai(2020), 4.september(2020), 192125),
-        GarantipensjonFactory.Garantipensjonsendring(1.mai(2021), 21.mai(2021), 202425),
-        GarantipensjonFactory.Garantipensjonsendring(1.mai(2022), 20.mai(2022), 209571),
-        GarantipensjonFactory.Garantipensjonsendring(1.mai(2023), 26.mai(2023), 227468),
-    ),
+    private val garantipensjonsendringerHøy: Nel<GarantipensjonFactory.Garantipensjonsendring> = no.nav.su.se.bakover.domain.satser.garantipensjonsendringerHøy,
     private val minsteÅrligYtelseForUføretrygdedeOrdinær: Nel<MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring> = nonEmptyListOf(
         // https://lovdata.no/dokument/LTI/lov/2011-12-16-59 kunngjort 16.12.2011 kl. 15.40. Trådde i kraft 2015-01-01: https://lovdata.no/dokument/LTI/forskrift/2014-06-20-797 (kunngjort 23.06.2014 kl. 16.00)
         MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring(

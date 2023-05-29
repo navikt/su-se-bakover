@@ -73,6 +73,7 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
+import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -1048,15 +1049,16 @@ open class AccessCheckProxy(
                 ) = kastKanKunKallesFraAnnenService()
             },
             reguleringService = object : ReguleringService {
-                override fun startAutomatiskRegulering(startDato: LocalDate): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
-                    return services.reguleringService.startAutomatiskRegulering(startDato)
+                override fun startAutomatiskRegulering(
+                    fraOgMedMåned: Måned,
+                ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
+                    return services.reguleringService.startAutomatiskRegulering(fraOgMedMåned)
                 }
 
                 override fun startAutomatiskReguleringForInnsyn(
-                    startDato: LocalDate,
-                    gVerdi: Int,
+                    command: StartAutomatiskReguleringForInnsynCommand,
                 ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
-                    return services.reguleringService.startAutomatiskReguleringForInnsyn(startDato, gVerdi)
+                    return services.reguleringService.startAutomatiskReguleringForInnsyn(command)
                 }
 
                 override fun avslutt(reguleringId: UUID): Either<KunneIkkeAvslutte, AvsluttetRegulering> {

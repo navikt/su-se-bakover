@@ -4,6 +4,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -19,7 +20,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadspe
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.simulering.simulering
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 
 fun opprettetRegulering(
@@ -87,7 +87,7 @@ fun iverksattAutomatiskRegulering(
     .tilIverksatt()
 
 fun innvilgetSøknadsbehandlingMedÅpenRegulering(
-    regulerFraOgMed: LocalDate,
+    regulerFraOgMed: Måned,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
@@ -115,7 +115,7 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
 }
 
 fun stansetSøknadsbehandlingMedÅpenRegulering(
-    regulerFraOgMed: LocalDate,
+    regulerFraOgMed: Måned,
     clock: Clock = fixedClock,
 ): Pair<Sak, OpprettetRegulering> {
     val sakOgVedtak = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
@@ -123,7 +123,7 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
     )
     val sak = sakOgVedtak.first
     val regulering = sak.opprettEllerOppdaterRegulering(
-        startDato = regulerFraOgMed,
+        fraOgMedMåned = regulerFraOgMed,
         clock = clock,
     ).getOrFail()
 
