@@ -8,9 +8,9 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.grunnbeløp.Grunnbeløpsendring
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.beregn.blirBeregningEndret
 import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
@@ -37,8 +38,6 @@ import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
-import no.nav.su.se.bakover.domain.satser.grunnbeløpsendringer
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
@@ -48,7 +47,6 @@ import no.nav.su.se.bakover.service.vedtak.VedtakService
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.slf4j.LoggerFactory
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 
 class ReguleringServiceImpl(
@@ -71,21 +69,18 @@ class ReguleringServiceImpl(
     fun getObservers(): List<StatistikkEventObserver> = observers.toList()
 
     override fun startAutomatiskRegulering(
-        startDato: LocalDate,
+        fraOgMedMåned: Måned,
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
-        return start(startDato, true, satsFactory)
+        return start(fraOgMedMåned, true, satsFactory)
     }
 
     override fun startAutomatiskReguleringForInnsyn(
-        startDato: LocalDate,
-        gVerdi: Int,
+        command: StartAutomatiskReguleringForInnsynCommand,
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
         return start(
-            startDato,
-            false,
-            SatsFactoryForSupplerendeStønad(
-                grunnbeløpsendringer = grunnbeløpsendringer + Grunnbeløpsendring(startDato, startDato, gVerdi),
-            ).gjeldende(startDato),
+            fraOgMedMåned = command.fraOgMedMåned,
+            isLiveRun = false,
+            satsFactory = command.satsFactory,
         )
     }
 
@@ -94,7 +89,7 @@ class ReguleringServiceImpl(
      * Dette kan ta lang tid, så denne bør ikke kjøres synkront.
      */
     private fun start(
-        startDato: LocalDate,
+        fraOgMedMåned: Måned,
         isLiveRun: Boolean,
         satsFactory: SatsFactory,
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
@@ -115,7 +110,7 @@ class ReguleringServiceImpl(
             }
 
             val regulering = sak.opprettEllerOppdaterRegulering(
-                startDato = startDato,
+                fraOgMedMåned = fraOgMedMåned,
                 clock = clock,
             ).getOrElse { feil ->
                 // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
@@ -212,8 +207,9 @@ class ReguleringServiceImpl(
         if (regulering.erFerdigstilt) return KunneIkkeRegulereManuelt.AlleredeFerdigstilt.left()
 
         val sak = sakRepo.hentSak(sakId = regulering.sakId) ?: return KunneIkkeRegulereManuelt.FantIkkeSak.left()
+        val fraOgMed = regulering.periode.fraOgMed
         val gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-            fraOgMed = regulering.periode.fraOgMed,
+            fraOgMed = fraOgMed,
             clock = clock,
         )
             .getOrElse { throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it") }
@@ -230,7 +226,7 @@ class ReguleringServiceImpl(
             return KunneIkkeRegulereManuelt.AvventerKravgrunnlag.left()
         }
 
-        return sak.opprettEllerOppdaterRegulering(regulering.periode.fraOgMed, clock).mapLeft {
+        return sak.opprettEllerOppdaterRegulering(Måned.fra(fraOgMed), clock).mapLeft {
             throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it")
         }.map { opprettetRegulering ->
             return opprettetRegulering

@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigMåned
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
@@ -26,11 +27,13 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withReguleringId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
+import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragRequestJson
 import java.time.Clock
@@ -43,12 +46,17 @@ internal fun Route.reguler(
 ) {
     post("$reguleringPath/automatisk") {
         authorize(Brukerrolle.Drift) {
-            data class Request(val startDato: LocalDate)
-            call.withBody<Request> {
-                CoroutineScope(Dispatchers.IO).launch {
-                    reguleringService.startAutomatiskRegulering(it.startDato)
+            data class Body(val fraOgMedMåned: String)
+            call.withBody<Body> { body ->
+                when (val m = Måned.parse(body.fraOgMedMåned)) {
+                    null -> call.svar(ugyldigMåned)
+                    else -> {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            reguleringService.startAutomatiskRegulering(m)
+                        }
+                        call.svar(Resultat.okJson())
+                    }
                 }
-                call.svar(Resultat.okJson())
             }
         }
     }
@@ -140,6 +148,7 @@ internal fun Route.reguler(
                                         "Fant ikke regulering",
                                         "fant_ikke_regulering",
                                     )
+
                                     KunneIkkeAvslutte.UgyldigTilstand -> HttpStatusCode.BadRequest.errorJson(
                                         "Ugyldig tilstand på reguleringen",
                                         "regulering_ugyldig_tilstand",
@@ -158,12 +167,52 @@ internal fun Route.reguler(
 
     post("$reguleringPath/automatisk/dry") {
         authorize(Brukerrolle.Drift) {
-            data class Request(val startDato: LocalDate, val verdi: Int)
-            call.withBody<Request> {
-                CoroutineScope(Dispatchers.IO).launch {
-                    reguleringService.startAutomatiskReguleringForInnsyn(it.startDato, it.verdi)
+            /**
+             * @param fraOgMedMåned Måned i formatet yyyy-MM
+             * @param virkningstidspunkt Dato i formatet yyyy-MM-dd, hvis null settes den til fraOgMedMåned
+             * @param ikrafttredelse Dato i formatet yyyy-MM-dd, hvis null settes den til virkningstidspunkt
+             * @param grunnbeløp Hvis null, bruker vi bare eksisterende verdier
+             * @param garantipensjonOrdinær Hvis null, bruker vi bare eksisterende verdier
+             * @param garantipensjonHøy Hvis null, bruker vi bare eksisterende verdier
+             */
+            data class Body(
+                val fraOgMedMåned: String,
+                val virkningstidspunkt: String?,
+                val ikrafttredelse: String?,
+                val grunnbeløp: Int? = null,
+                val garantipensjonOrdinær: Int? = null,
+                val garantipensjonHøy: Int? = null,
+            ) {
+                fun toCommand(): Either<Resultat, StartAutomatiskReguleringForInnsynCommand> {
+                    val parsedFraOgMedMåned = Måned.parse(fraOgMedMåned) ?: return ugyldigMåned.left()
+                    val parsedVirkningstidspunkt =
+                        virkningstidspunkt?.let { LocalDate.parse(it) ?: return Feilresponser.ugyldigDato.left() }
+                    val parsedIkrafttredelse =
+                        ikrafttredelse?.let { LocalDate.parse(it) ?: return Feilresponser.ugyldigDato.left() }
+                    return StartAutomatiskReguleringForInnsynCommand(
+                        fraOgMedMåned = parsedFraOgMedMåned,
+                        virkningstidspunkt = parsedVirkningstidspunkt ?: parsedFraOgMedMåned.fraOgMed,
+                        ikrafttredelse = parsedIkrafttredelse ?: parsedFraOgMedMåned.fraOgMed,
+                        grunnbeløp = grunnbeløp,
+                        garantipensjonOrdinær = garantipensjonOrdinær,
+                        garantipensjonHøy = garantipensjonHøy,
+                    ).right()
                 }
-                call.svar(Resultat.okJson())
+            }
+            call.withBody<Body> { body ->
+                call.svar(
+                    body.toCommand().fold(
+                        { it },
+                        {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                reguleringService.startAutomatiskReguleringForInnsyn(
+                                    command = it,
+                                )
+                            }
+                            Resultat.okJson()
+                        },
+                    ),
+                )
             }
         }
     }

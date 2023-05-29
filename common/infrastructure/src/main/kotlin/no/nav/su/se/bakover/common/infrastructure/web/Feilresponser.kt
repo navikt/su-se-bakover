@@ -251,6 +251,16 @@ object Feilresponser {
         "skal_ikke_sendes_brev",
     )
 
+    val ugyldigMåned = BadRequest.errorJson(
+        "Ugyldig måned",
+        "ugyldig_måned",
+    )
+
+    val ugyldigDato = BadRequest.errorJson(
+        "Ugyldig dato",
+        "ugyldig_dato",
+    )
+
     val ukjentFeil = InternalServerError.errorJson(
         "Ukjent feil",
         "ukjent_feil",

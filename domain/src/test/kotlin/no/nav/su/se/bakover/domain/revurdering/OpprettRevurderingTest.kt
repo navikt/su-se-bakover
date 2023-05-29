@@ -5,7 +5,6 @@ import arrow.core.nonEmptyListOf
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.su.se.bakover.common.extensions.mai
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
@@ -82,7 +81,7 @@ internal class OpprettRevurderingTest {
 
     @Test
     fun `kan opprette revurdering dersom det finnes en åpen regulering`() {
-        val sakMedÅpenRegulering = innvilgetSøknadsbehandlingMedÅpenRegulering(1.mai(2021)).first
+        val sakMedÅpenRegulering = innvilgetSøknadsbehandlingMedÅpenRegulering(mai(2021)).first
         sakMedÅpenRegulering.opprettRevurdering(
             command = OpprettRevurderingCommand(
                 saksbehandler = saksbehandler,

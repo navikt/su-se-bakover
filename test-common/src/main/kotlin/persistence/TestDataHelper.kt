@@ -8,7 +8,6 @@ import kotliquery.using
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.domain.PdfA
-import no.nav.su.se.bakover.common.extensions.mai
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
@@ -18,7 +17,9 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.sessionOf
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
 import no.nav.su.se.bakover.domain.Sak
@@ -422,11 +423,11 @@ class TestDataHelper(
     }
 
     fun persisterReguleringOpprettet(
-        startDato: LocalDate = 1.mai(2021),
+        fraOgMedMåned: Måned = mai(2021),
     ): Pair<Sak, OpprettetRegulering> {
         return persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().first.let { sak ->
             sak.opprettEllerOppdaterRegulering(
-                startDato = startDato,
+                fraOgMedMåned = fraOgMedMåned,
                 clock = clock,
             ).getOrFail().let {
                 databaseRepos.reguleringRepo.lagre(it)
@@ -438,10 +439,10 @@ class TestDataHelper(
     }
 
     fun persisterReguleringIverksatt(
-        startDato: LocalDate = 1.mai(2021),
+        fraOgMedMåned: Måned = mai(2021),
     ): Pair<Sak, IverksattRegulering> {
         return persisterReguleringOpprettet(
-            startDato = startDato,
+            fraOgMedMåned = fraOgMedMåned,
         ).let { (sak, regulering) ->
             regulering.beregn(
                 satsFactory = satsFactoryTestPåDato(påDato = LocalDate.now(clock)),
