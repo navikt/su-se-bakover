@@ -1057,7 +1057,7 @@ open class AccessCheckProxy(
 
                 override fun startAutomatiskReguleringForInnsyn(
                     command: StartAutomatiskReguleringForInnsynCommand,
-                ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
+                ) {
                     return services.reguleringService.startAutomatiskReguleringForInnsyn(command)
                 }
 

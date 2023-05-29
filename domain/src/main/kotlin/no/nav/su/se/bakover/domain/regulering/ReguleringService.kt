@@ -31,13 +31,18 @@ sealed class BeregnOgSimulerFeilet {
     object KunneIkkeSimulere : BeregnOgSimulerFeilet()
 }
 
-sealed class KunneIkkeOppretteRegulering {
-    object FantIkkeSak : KunneIkkeOppretteRegulering()
-    object FørerIkkeTilEnEndring : KunneIkkeOppretteRegulering()
-    data class KunneIkkeHenteEllerOppretteRegulering(val feil: Sak.KunneIkkeOppretteEllerOppdatereRegulering) :
-        KunneIkkeOppretteRegulering()
+sealed interface KunneIkkeOppretteRegulering {
+    object FantIkkeSak : KunneIkkeOppretteRegulering
+    object FørerIkkeTilEnEndring : KunneIkkeOppretteRegulering
+    data class KunneIkkeHenteEllerOppretteRegulering(
+        val feil: Sak.KunneIkkeOppretteEllerOppdatereRegulering,
+    ) : KunneIkkeOppretteRegulering
 
-    data class KunneIkkeRegulereAutomatisk(val feil: KunneIkkeFerdigstilleOgIverksette) : KunneIkkeOppretteRegulering()
+    data class KunneIkkeRegulereAutomatisk(
+        val feil: KunneIkkeFerdigstilleOgIverksette,
+    ) : KunneIkkeOppretteRegulering
+
+    object UkjentFeil : KunneIkkeOppretteRegulering
 }
 
 sealed class KunneIkkeAvslutte {
@@ -50,7 +55,7 @@ interface ReguleringService {
 
     fun startAutomatiskReguleringForInnsyn(
         command: StartAutomatiskReguleringForInnsynCommand,
-    ): List<Either<KunneIkkeOppretteRegulering, Regulering>>
+    )
 
     fun avslutt(reguleringId: UUID): Either<KunneIkkeAvslutte, AvsluttetRegulering>
     fun hentStatus(): List<Pair<Regulering, List<ReguleringMerknad>>>

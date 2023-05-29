@@ -71,17 +71,29 @@ class ReguleringServiceImpl(
     override fun startAutomatiskRegulering(
         fraOgMedMåned: Måned,
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
-        return start(fraOgMedMåned, true, satsFactory)
+        return Either.catch { start(fraOgMedMåned, true, satsFactory) }
+            .mapLeft {
+                log.error("Ukjent feil skjedde ved automatisk regulering for fraOgMedMåned: $fraOgMedMåned", it)
+                KunneIkkeOppretteRegulering.UkjentFeil
+            }
+            .fold(
+                ifLeft = { listOf(it.left()) },
+                ifRight = { it },
+            )
     }
 
     override fun startAutomatiskReguleringForInnsyn(
         command: StartAutomatiskReguleringForInnsynCommand,
-    ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
-        return start(
-            fraOgMedMåned = command.fraOgMedMåned,
-            isLiveRun = false,
-            satsFactory = command.satsFactory,
-        )
+    ) {
+        Either.catch {
+            start(
+                fraOgMedMåned = command.fraOgMedMåned,
+                isLiveRun = false,
+                satsFactory = command.satsFactory,
+            )
+        }.onLeft {
+            log.error("Ukjent feil skjedde ved automatisk regulering for innsyn for kommando: $command", it)
+        }
     }
 
     /**

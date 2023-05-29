@@ -23,6 +23,7 @@ data class StartAutomatiskReguleringForInnsynCommand(
     val garantipensjonOrdinær: Int? = null,
     val garantipensjonHøy: Int? = null,
 ) {
+
     val satsFactory: SatsFactory by lazy {
         SatsFactoryForSupplerendeStønad(
             grunnbeløpsendringer = if (this.grunnbeløp == null) {
