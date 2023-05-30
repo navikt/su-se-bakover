@@ -920,7 +920,7 @@ open class AccessCheckProxy(
 
                 override fun lagreITransaksjon(
                     vedtak: Vedtak,
-                    sessionContext: TransactionContext,
+                    tx: TransactionContext,
                 ) = kastKanKunKallesFraAnnenService()
 
                 override fun hentForVedtakId(vedtakId: UUID) = kastKanKunKallesFraAnnenService()

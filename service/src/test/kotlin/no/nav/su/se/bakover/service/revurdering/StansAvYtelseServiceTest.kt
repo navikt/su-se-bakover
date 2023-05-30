@@ -306,7 +306,7 @@ internal class StansAvYtelseServiceTest {
         )
         verify(serviceAndMocks.vedtakService).lagreITransaksjon(
             vedtak = argThat { it.shouldBeType<VedtakStansAvYtelse>() },
-            sessionContext = argThat { TestSessionFactory.transactionContext },
+            tx = argThat { TestSessionFactory.transactionContext },
         )
 
         verify(callback).invoke(any())

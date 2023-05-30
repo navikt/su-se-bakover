@@ -413,7 +413,7 @@ class KlageServiceImpl(
         try {
             sessionFactory.withTransactionContext {
                 klageRepo.lagre(avvistKlage, it)
-                vedtakService.lagre(vedtak)
+                vedtakService.lagreITransaksjon(vedtak, it)
                 brevService.lagreDokument(dokument, it)
             }
         } catch (_: Exception) {

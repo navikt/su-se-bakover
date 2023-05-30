@@ -5,9 +5,10 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserializeListNullable
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
-import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
+import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
+import no.nav.su.se.bakover.common.infrastructure.persistence.TransactionalSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
@@ -171,7 +172,7 @@ internal class VedtakPostgresRepo(
 
     override fun lagreITransaksjon(vedtak: Vedtak, tx: TransactionContext) {
         return dbMetrics.timeQuery("lagreVedtak") {
-            tx.withSession { tx ->
+            tx.withTransaction { tx ->
                 when (vedtak) {
                     // TODO jah: Erstatt med én felles insert-function
                     is VedtakEndringIYtelse -> lagreInternt(vedtak, tx)
@@ -517,7 +518,8 @@ internal class VedtakPostgresRepo(
         }
     }
 
-    private fun lagreInternt(vedtak: VedtakSomKanRevurderes, session: Session) {
+    /** @param tx Persisterer både 'vedtak' og 'behandling_vedtak', så vi krever en transaksjon her. */
+    private fun lagreInternt(vedtak: VedtakSomKanRevurderes, tx: TransactionalSession) {
         """
                 INSERT INTO vedtak(
                     id,
@@ -567,12 +569,13 @@ internal class VedtakPostgresRepo(
                         is VedtakInnvilgetRegulering -> VedtakType.REGULERING
                     },
                 ),
-                session,
+                tx,
             )
-        lagreKlagevedtaksknytningTilBehandling(vedtak, session)
+        lagreKlagevedtaksknytningTilBehandling(vedtak, tx)
     }
 
-    private fun lagreInternt(vedtak: Avslagsvedtak, session: Session) {
+    /** @param tx Persisterer både 'vedtak' og 'behandling_vedtak', så vi krever en transaksjon her. */
+    private fun lagreInternt(vedtak: Avslagsvedtak, tx: TransactionalSession) {
         """
                 insert into vedtak(
                     id,
@@ -615,12 +618,13 @@ internal class VedtakPostgresRepo(
                     "vedtaktype" to VedtakType.AVSLAG,
                     "avslagsgrunner" to vedtak.avslagsgrunner.serialize(),
                 ),
-                session,
+                tx,
             )
-        lagreKlagevedtaksknytningTilSøknadsbehandling(vedtak, session)
+        lagreKlagevedtaksknytningTilSøknadsbehandling(vedtak, tx)
     }
 
-    private fun lagreInternt(vedtak: Klagevedtak.Avvist, session: Session) {
+    /** @param tx Persisterer både 'vedtak' og 'behandling_vedtak', så vi krever en transaksjon her. */
+    private fun lagreInternt(vedtak: Klagevedtak.Avvist, tx: TransactionalSession) {
         """
                 INSERT INTO vedtak(
                     id,
@@ -656,9 +660,9 @@ internal class VedtakPostgresRepo(
                 "attestant" to vedtak.attestant,
                 "vedtaktype" to VedtakType.AVVIST_KLAGE,
             ),
-            session,
+            tx,
         )
-        lagreKlagevedtaksknytningTilKlage(vedtak, session)
+        lagreKlagevedtaksknytningTilKlage(vedtak, tx)
     }
 }
 

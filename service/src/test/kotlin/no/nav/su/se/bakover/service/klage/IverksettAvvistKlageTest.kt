@@ -287,8 +287,8 @@ internal class IverksettAvvistKlageTest {
             },
         )
         var expectedVedtak: Klagevedtak.Avvist? = null
-        verify(mocks.vedtakServiceMock).lagre(
-            argThat {
+        verify(mocks.vedtakServiceMock).lagreITransaksjon(
+            vedtak = argThat {
                 expectedVedtak = Klagevedtak.Avvist(
                     id = it.id,
                     opprettet = fixedTidspunkt,
@@ -299,6 +299,7 @@ internal class IverksettAvvistKlageTest {
                 )
                 it shouldBe expectedVedtak!!
             },
+            tx = argThat { it shouldBe TestSessionFactory.transactionContext },
         )
         verify(mocks.brevServiceMock).lagreDokument(
             argThat {

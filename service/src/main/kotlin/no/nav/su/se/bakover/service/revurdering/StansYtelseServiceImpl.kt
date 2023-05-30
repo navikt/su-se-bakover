@@ -290,7 +290,7 @@ class StansYtelseServiceImpl(
                 )
                 vedtakService.lagreITransaksjon(
                     vedtak = vedtak,
-                    sessionContext = transactionContext,
+                    tx = transactionContext,
                 )
 
                 IverksettStansAvYtelseITransaksjonResponse(

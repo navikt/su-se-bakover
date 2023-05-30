@@ -19,8 +19,8 @@ class VedtakServiceImpl(
         return vedtakRepo.lagre(vedtak)
     }
 
-    override fun lagreITransaksjon(vedtak: Vedtak, sessionContext: TransactionContext) {
-        return vedtakRepo.lagreITransaksjon(vedtak, sessionContext)
+    override fun lagreITransaksjon(vedtak: Vedtak, tx: TransactionContext) {
+        return vedtakRepo.lagreITransaksjon(vedtak, tx)
     }
 
     override fun hentForVedtakId(vedtakId: UUID): Vedtak? {
