@@ -50,7 +50,7 @@ sealed class LiveRun : ReguleringRunType {
             utbetaling: Utbetaling.SimulertUtbetaling,
             clock: Clock,
         ) {
-            sessionFactory.withTransactionContext { tx ->
+            val vedtak: VedtakInnvilgetRegulering = sessionFactory.withTransactionContext { tx ->
                 val nyUtbetaling = klargjørUtbetaling(
                     utbetaling,
                     tx,
@@ -73,8 +73,10 @@ sealed class LiveRun : ReguleringRunType {
                 nyUtbetaling.sendUtbetaling()
                     .getOrElse { throw RuntimeException(it.toString()) }
 
-                notifyObservers(vedtak)
+                vedtak
             }
+            // Vi ønsker ikke sende statistikken som en del av transaksjonen, siden vi ikke ønsker å rulle tilbake dersom den feiler (best effort).
+            notifyObservers(vedtak)
         }
     }
 }
