@@ -8,8 +8,13 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.brev.PdfInnhold
+import no.nav.su.se.bakover.domain.brev.skatt.SkattemeldingsPdf
+import no.nav.su.se.bakover.domain.brev.skatt.ÅrsgrunnlagForPdf
+import no.nav.su.se.bakover.domain.brev.skatt.ÅrsgrunnlagMedFnr
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
+import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.PersonOppslag
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
@@ -24,6 +29,7 @@ import no.nav.su.se.bakover.test.skatt.nySkattegrunnlag
 import no.nav.su.se.bakover.test.skatt.nySkattegrunnlagMedFeilIÅrsgrunnlag
 import no.nav.su.se.bakover.test.vilkår.formuevilkårMedEps0Innvilget
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
@@ -31,6 +37,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
+import java.util.UUID
 
 internal class SkattDokumentServiceImplTest {
 
@@ -57,13 +64,13 @@ internal class SkattDokumentServiceImplTest {
         verify(personMock).person(argThat { it shouldBe vedtak.fnr })
         verify(pdfGeneratorMock).genererPdf(
             argThat<PdfInnhold> {
-                it shouldBe PdfInnhold.SkattemeldingsPdf.lagSkattemeldingsPdf(
+                it shouldBe SkattemeldingsPdf.lagSkattemeldingsPdf(
                     saksnummer = vedtak.saksnummer,
                     søknadsbehandlingsId = vedtak.behandling.id,
                     vedtaksId = vedtak.id,
                     hentet = fixedTidspunkt,
-                    skatt = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagForPdf(
-                        søkers = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagMedFnr(
+                    skatt = ÅrsgrunnlagForPdf(
+                        søkers = ÅrsgrunnlagMedFnr(
                             fnr = person.ident.fnr,
                             årsgrunnlag = nonEmptyListOf(nySamletSkattegrunnlagForÅrOgStadieOppgjør()),
                         ),
@@ -113,17 +120,17 @@ internal class SkattDokumentServiceImplTest {
         captor.lastValue shouldBe eps.ident.fnr
         verify(pdfGeneratorMock).genererPdf(
             argThat<PdfInnhold> {
-                it shouldBe PdfInnhold.SkattemeldingsPdf.lagSkattemeldingsPdf(
+                it shouldBe SkattemeldingsPdf.lagSkattemeldingsPdf(
                     saksnummer = vedtak.saksnummer,
                     søknadsbehandlingsId = vedtak.behandling.id,
                     vedtaksId = vedtak.id,
                     hentet = fixedTidspunkt,
-                    skatt = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagForPdf(
-                        søkers = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagMedFnr(
+                    skatt = ÅrsgrunnlagForPdf(
+                        søkers = ÅrsgrunnlagMedFnr(
                             fnr = person.ident.fnr,
                             årsgrunnlag = nonEmptyListOf(nySamletSkattegrunnlagForÅrOgStadieOppgjør()),
                         ),
-                        eps = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagMedFnr(
+                        eps = ÅrsgrunnlagMedFnr(
                             fnr = bosituasjon.fnr,
                             årsgrunnlag = nonEmptyListOf(nySamletSkattegrunnlagForÅrOgStadieOppgjør()),
                         ),
@@ -171,13 +178,13 @@ internal class SkattDokumentServiceImplTest {
         verify(personMock, times(1)).person(argThat { it shouldBe person.ident.fnr })
         verify(pdfGeneratorMock).genererPdf(
             argThat<PdfInnhold> {
-                it shouldBe PdfInnhold.SkattemeldingsPdf.lagSkattemeldingsPdf(
+                it shouldBe SkattemeldingsPdf.lagSkattemeldingsPdf(
                     saksnummer = vedtak.saksnummer,
                     søknadsbehandlingsId = vedtak.behandling.id,
                     vedtaksId = vedtak.id,
                     hentet = fixedTidspunkt,
-                    skatt = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagForPdf(
-                        søkers = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagMedFnr(
+                    skatt = ÅrsgrunnlagForPdf(
+                        søkers = ÅrsgrunnlagMedFnr(
                             fnr = person.ident.fnr,
                             årsgrunnlag = nonEmptyListOf(nySamletSkattegrunnlagForÅrOgStadieOppgjør()),
                         ),
@@ -226,14 +233,14 @@ internal class SkattDokumentServiceImplTest {
         verify(personMock, times(1)).person(argThat { it shouldBe eps.ident.fnr })
         verify(pdfGeneratorMock).genererPdf(
             argThat<PdfInnhold> {
-                it shouldBe PdfInnhold.SkattemeldingsPdf.lagSkattemeldingsPdf(
+                it shouldBe SkattemeldingsPdf.lagSkattemeldingsPdf(
                     saksnummer = vedtak.saksnummer,
                     søknadsbehandlingsId = vedtak.behandling.id,
                     vedtaksId = vedtak.id,
                     hentet = fixedTidspunkt,
-                    skatt = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagForPdf(
+                    skatt = ÅrsgrunnlagForPdf(
                         søkers = null,
-                        eps = PdfInnhold.SkattemeldingsPdf.ÅrsgrunnlagMedFnr(
+                        eps = ÅrsgrunnlagMedFnr(
                             fnr = bosituasjon.fnr,
                             årsgrunnlag = nonEmptyListOf(nySamletSkattegrunnlagForÅrOgStadieOppgjør()),
                         ),
@@ -273,5 +280,20 @@ internal class SkattDokumentServiceImplTest {
         val tx = TestSessionFactory.transactionContext
         val dokument = service.genererOgLagre(vedtak, tx)
         dokument.shouldBeLeft()
+    }
+
+    @Test
+    fun `må supplere enten søkers eller eps sin skattegrunnlag (eller begge)`() {
+        assertThrows<IllegalArgumentException> {
+            SkattemeldingsPdf.lagSkattemeldingsPdf(
+                saksnummer = Saksnummer(2021),
+                søknadsbehandlingsId = UUID.randomUUID(),
+                vedtaksId = UUID.randomUUID(),
+                hentet = fixedTidspunkt,
+                skatt = ÅrsgrunnlagForPdf(søkers = null, eps = null),
+                hentNavn = { _ -> Person.Navn("Denne testen", "skal", "Feile") },
+                clock = fixedClock,
+            )
+        }
     }
 }
