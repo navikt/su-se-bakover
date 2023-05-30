@@ -30,6 +30,7 @@ internal class DokumentSkattPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val generert = testDataHelper.persisterSkattedokumentGenerert()
+            testDataHelper.persisterSkattedokumentJournalført()
             testDataHelper.databaseRepos.dokumentSkattRepo.hentDokumenterForJournalføring().let {
                 it.size shouldBe 1
                 it.first() shouldBe generert

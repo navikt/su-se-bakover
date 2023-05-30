@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
+import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -46,11 +47,11 @@ data class DokumentSkattPostgresRepo(
     private fun lagre(dok: Skattedokument, session: Session) {
         """
             insert into
-                dokument_skatt (id, opprettet, generertDokument, dokumentjson, sakId, søkersSkatteId, epsSkatteId, vedtakId, journalpostId)
+                dokument_skatt (id, opprettet, generertDokument, dokumentjson, sakId, søkersSkatteId, epsSkatteId, vedtakId, journalpostId, skattedataHentet)
             values
-                (:id, :opprettet, :generertDok, to_jsonb(:dokumentjson::jsonb), :sakId, :sokers, :eps, :vedtakId, :journalpostId)
+                (:id, :opprettet, :generertDok, to_jsonb(:dokumentjson::jsonb), :sakId, :sokers, :eps, :vedtakId, :journalpostId, :skattedataHentet)
             on conflict (id) do update set
-                opprettet=:opprettet, generertDokument=:generertDok, dokumentjson=to_jsonb(:dokumentjson::jsonb), sakId=:sakId, søkersSkatteId=:sokers, epsSkatteId=:eps, vedtakId=:vedtakId, journalpostId=:journalpostId
+                opprettet=:opprettet, generertDokument=:generertDok, dokumentjson=to_jsonb(:dokumentjson::jsonb), sakId=:sakId, søkersSkatteId=:sokers, epsSkatteId=:eps, vedtakId=:vedtakId, journalpostId=:journalpostId, skattedataHentet=:skattedataHentet
         """.trimIndent().insert(
             mapOf(
                 "id" to dok.id,
@@ -62,6 +63,7 @@ data class DokumentSkattPostgresRepo(
                 "eps" to dok.epsSkatteId,
                 "vedtakId" to dok.vedtakid,
                 "journalpostId" to dok.journalpostid,
+                "skattedataHentet" to dok.skattedataHentet,
             ),
             session,
         )
@@ -98,6 +100,7 @@ data class DokumentSkattPostgresRepo(
         val dokumentJson = string("dokumentjson")
         val generertDokument = bytes("generertDokument")
         val journalpostId = stringOrNull("journalpostId")
+        val skattedataHentet = tidspunkt("skattedataHentet")
 
         val generertSkattedokument = Skattedokument.Generert(
             id = id,
@@ -107,6 +110,7 @@ data class DokumentSkattPostgresRepo(
             vedtakid = vedtakId,
             generertDokument = PdfA(generertDokument),
             dokumentJson = dokumentJson,
+            skattedataHentet = skattedataHentet,
         )
 
         return when (journalpostId) {

@@ -94,6 +94,7 @@ class SkattDokumentServiceImpl(
                     return KunneIkkeGenerereSkattedokument.FeilVedGenereringAvDokument.left()
                 }.let { PdfA(it) },
                 dokumentJson = skattemeldingsPdf.toJson(),
+                skattedataHentet = hentetSkatt.søkers.hentetTidspunkt,
             ).right()
         }
     }

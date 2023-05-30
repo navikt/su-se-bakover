@@ -2,7 +2,9 @@ package no.nav.su.se.bakover.test.skatt
 
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.journal.JournalpostId
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.skatt.Skattedokument
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import java.util.UUID
 
 fun nySkattedokumentGenerert(
@@ -13,6 +15,7 @@ fun nySkattedokumentGenerert(
     vedtakId: UUID = UUID.randomUUID(),
     generertDokument: PdfA = PdfA("jeg er en pdf".toByteArray()),
     dokumentJson: String = """{"key": "value"}""",
+    skattedataHentet: Tidspunkt = fixedTidspunkt,
 ): Skattedokument.Generert = Skattedokument.Generert(
     id = id,
     søkersSkatteId = søkersSkatteId,
@@ -21,6 +24,7 @@ fun nySkattedokumentGenerert(
     vedtakid = vedtakId,
     generertDokument = generertDokument,
     dokumentJson = dokumentJson,
+    skattedataHentet = skattedataHentet,
 )
 
 fun nySkattedokumentJournalført(
@@ -32,6 +36,7 @@ fun nySkattedokumentJournalført(
     generertDokument: PdfA = PdfA("jeg er en pdf".toByteArray()),
     dokumentJson: String = """{"key": "value"}""",
     journalpostId: JournalpostId = JournalpostId("123"),
+    skattedataHentet: Tidspunkt = fixedTidspunkt,
 ): Skattedokument.Journalført = Skattedokument.Journalført(
     generert = nySkattedokumentGenerert(
         id = id,
@@ -41,6 +46,7 @@ fun nySkattedokumentJournalført(
         vedtakId = vedtakId,
         generertDokument = generertDokument,
         dokumentJson = dokumentJson,
+        skattedataHentet = skattedataHentet,
     ),
     journalpostid = journalpostId,
 )
