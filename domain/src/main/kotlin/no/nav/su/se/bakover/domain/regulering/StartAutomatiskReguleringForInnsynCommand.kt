@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.regulering
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.grunnbeløp.Grunnbeløpsendring
 import no.nav.su.se.bakover.domain.satser.GarantipensjonFactory
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.satser.garantipensjonsendringerHøy
 import no.nav.su.se.bakover.domain.satser.garantipensjonsendringerOrdinær
@@ -24,7 +23,7 @@ data class StartAutomatiskReguleringForInnsynCommand(
     val garantipensjonHøy: Int? = null,
 ) {
 
-    val satsFactory: SatsFactory by lazy {
+    val satsFactory: SatsFactoryForSupplerendeStønad by lazy {
         SatsFactoryForSupplerendeStønad(
             grunnbeløpsendringer = if (this.grunnbeløp == null) {
                 grunnbeløpsendringer
@@ -53,6 +52,6 @@ data class StartAutomatiskReguleringForInnsynCommand(
                     verdi = this.garantipensjonHøy,
                 )
             },
-        ).gjeldende(this.fraOgMedMåned.fraOgMed)
+        )
     }
 }

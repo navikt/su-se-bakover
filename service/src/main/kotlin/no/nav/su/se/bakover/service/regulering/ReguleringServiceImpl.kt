@@ -47,6 +47,7 @@ import no.nav.su.se.bakover.service.vedtak.VedtakService
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.slf4j.LoggerFactory
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 
 class ReguleringServiceImpl(
@@ -89,7 +90,7 @@ class ReguleringServiceImpl(
             start(
                 fraOgMedMåned = command.fraOgMedMåned,
                 isLiveRun = false,
-                satsFactory = command.satsFactory,
+                satsFactory = command.satsFactory.gjeldende(LocalDate.now(clock)),
             )
         }.onLeft {
             log.error("Ukjent feil skjedde ved automatisk regulering for innsyn for kommando: $command", it)
