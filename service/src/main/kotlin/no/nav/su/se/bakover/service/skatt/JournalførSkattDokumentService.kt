@@ -34,8 +34,14 @@ class JournalførSkattDokumentService(
         skatteDokumenterSomMåJournalføres.map { skattedokument ->
             journalførSkattedokument(skattedokument)
                 .map { JournalføringOgDistribueringsResultat.Ok(it.id) }
-                .mapLeft { JournalføringOgDistribueringsResultat.Feil(skattedokument.id) }
-        }.logResultat(log)
+                .mapLeft {
+                    log.error(
+                        "Kunne ikke journalføre skattedokument ${skattedokument.id}: $it",
+                        RuntimeException("Genererer en stacktrace for enklere debugging."),
+                    )
+                    JournalføringOgDistribueringsResultat.Feil(skattedokument.id)
+                }
+        }.logResultat("Journalføring skatt", log)
     }
 
     private fun journalførSkattedokument(skattedokument: Skattedokument.Generert): Either<KunneIkkeJournalføreDokument, Skattedokument.Journalført> {

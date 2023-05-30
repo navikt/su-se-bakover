@@ -37,8 +37,14 @@ class JournalførDokumentService(
         dokumenterSomMåJournalføres.map { dokumentdistribusjon ->
             journalførDokument(dokumentdistribusjon)
                 .map { JournalføringOgDistribueringsResultat.Ok(dokumentdistribusjon.id) }
-                .mapLeft { JournalføringOgDistribueringsResultat.Feil(dokumentdistribusjon.id) }
-        }.logResultat(log)
+                .mapLeft {
+                    log.error(
+                        "Kunne ikke journalføre dokument ${dokumentdistribusjon.id}: $it",
+                        RuntimeException("Genererer en stacktrace for enklere debugging."),
+                    )
+                    JournalføringOgDistribueringsResultat.Feil(dokumentdistribusjon.id)
+                }
+        }.logResultat("Journalfør dokument", log)
     }
 
     /**

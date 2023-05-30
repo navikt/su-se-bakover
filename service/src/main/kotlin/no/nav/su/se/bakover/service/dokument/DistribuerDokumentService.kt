@@ -30,8 +30,14 @@ class DistribuerDokumentService(
         dokumentRepo.hentDokumenterForDistribusjon().map { dokument ->
             distribuerDokument(dokument)
                 .map { JournalføringOgDistribueringsResultat.Ok(it.id) }
-                .mapLeft { JournalføringOgDistribueringsResultat.Feil(dokument.id) }
-        }.logResultat(log)
+                .mapLeft {
+                    log.error(
+                        "Kunne ikke journalføre dokument ${dokument.id}: $it",
+                        RuntimeException("Genererer en stacktrace for enklere debugging."),
+                    )
+                    JournalføringOgDistribueringsResultat.Feil(dokument.id)
+                }
+        }.logResultat("Distribuer dokument", log)
     }
 
     /**
