@@ -17,8 +17,8 @@ import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
 import no.nav.su.se.bakover.domain.skatt.Skattedokument
-import no.nav.su.se.bakover.service.dokument.JournalførDokumentServiceImpl
-import no.nav.su.se.bakover.service.skatt.JournalførSkattDokumentServiceImpl
+import no.nav.su.se.bakover.service.dokument.JournalførDokumentService
+import no.nav.su.se.bakover.service.skatt.JournalførSkattDokumentService
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.sakinfo
@@ -104,13 +104,13 @@ class JournalføringServiceTest {
         val sakInfo: SakInfo = sakinfo,
     ) {
         val journalføringService = JournalføringService(
-            journalførDokumentService = JournalførDokumentServiceImpl(
+            journalførDokumentService = JournalførDokumentService(
                 dokArkiv = dokArkiv,
                 dokumentRepo = dokumentRepo,
                 sakService = sakService,
                 personService = personService,
             ),
-            journalførSkattDokumentService = JournalførSkattDokumentServiceImpl(
+            journalførSkattDokumentService = JournalførSkattDokumentService(
                 dokArkiv = dokArkiv,
                 sakService = sakService,
                 personService = personService,

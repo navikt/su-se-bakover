@@ -159,7 +159,7 @@ internal class DistribuerDokumentServiceTest {
         val dokDistFordeling: DokDistFordeling = mock(),
         val dokumentRepo: DokumentRepo = mock(),
     ) {
-        val dokumentService = DistribuerDokumentServiceImpl(
+        val dokumentService = DistribuerDokumentService(
             dokDistFordeling = dokDistFordeling,
             dokumentRepo = dokumentRepo,
         )

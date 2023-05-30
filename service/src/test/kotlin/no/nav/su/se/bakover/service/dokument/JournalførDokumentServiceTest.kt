@@ -112,7 +112,7 @@ class JournalførDokumentServiceTest {
         val sakService: SakService = mock(),
         val personService: PersonService = mock(),
     ) {
-        val journalførDokumentService = JournalførDokumentServiceImpl(
+        val journalførDokumentService = JournalførDokumentService(
             dokumentRepo = dokumentRepo,
             dokArkiv = dokArkiv,
             sakService = sakService,

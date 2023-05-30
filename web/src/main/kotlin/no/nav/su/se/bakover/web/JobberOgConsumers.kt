@@ -20,11 +20,11 @@ import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs.KontrollsamtaleinnkallingJob
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs.StansYtelseVedManglendeOppmøteKontrollsamtaleJob
-import no.nav.su.se.bakover.service.dokument.DistribuerDokumentServiceImpl
-import no.nav.su.se.bakover.service.dokument.JournalførDokumentServiceImpl
+import no.nav.su.se.bakover.service.dokument.DistribuerDokumentService
+import no.nav.su.se.bakover.service.dokument.JournalførDokumentService
 import no.nav.su.se.bakover.service.journalføring.JournalføringService
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
-import no.nav.su.se.bakover.service.skatt.JournalførSkattDokumentServiceImpl
+import no.nav.su.se.bakover.service.skatt.JournalførSkattDokumentService
 import no.nav.su.se.bakover.web.services.SendPåminnelseNyStønadsperiodeJob
 import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.services.avstemming.GrensesnittsavstemingJob
@@ -74,18 +74,18 @@ fun startJobberOgConsumers(
         toggleService = services.toggles,
 
     )
-    val distribuerDokumentService = DistribuerDokumentServiceImpl(
+    val distribuerDokumentService = DistribuerDokumentService(
         dokDistFordeling = clients.dokDistFordeling,
         dokumentRepo = databaseRepos.dokumentRepo,
     )
-    val journalførDokumentService = JournalførDokumentServiceImpl(
+    val journalførDokumentService = JournalførDokumentService(
         dokArkiv = clients.dokArkiv,
         dokumentRepo = databaseRepos.dokumentRepo,
         sakService = services.sak,
         personService = services.person,
     )
 
-    val journalførDokumentSkattService = JournalførSkattDokumentServiceImpl(
+    val journalførDokumentSkattService = JournalførSkattDokumentService(
         dokArkiv = clients.dokArkiv,
         dokumentSkattRepo = databaseRepos.dokumentSkattRepo,
         sakService = services.sak,
