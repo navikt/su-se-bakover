@@ -15,6 +15,8 @@ import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpForMåned
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
+import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.satser.Faktor
 import no.nav.su.se.bakover.domain.satser.FullSupplerendeStønadForMåned
 import no.nav.su.se.bakover.domain.satser.MinsteÅrligYtelseForUføretrygdedeForMåned
@@ -36,6 +38,9 @@ internal class ReguleringPostgresRepoTest {
 
             val (_, regulering) = testDataHelper.persisterReguleringOpprettet()
             testDataHelper.persisterReguleringIverksatt()
+            regulering.copy(
+                reguleringstype = Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt)),
+            ).also { repo.lagre(it) }
 
             val hentRegulering = repo.hentReguleringerSomIkkeErIverksatt()
 
