@@ -30,14 +30,20 @@ object KryssjekkTidslinjerOgSimulering {
         )
         val simulertUtbetaling = simuler(underArbeid, periode)
             .getOrElse {
-                log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke simulere: $it")
+                log.error(
+                    "Feil ved kryssjekk av tidslinje og simulering, kunne ikke simulere: $it",
+                    RuntimeException("Genererer en stacktrace for enklere debugging."),
+                )
                 return KryssjekkAvTidslinjeOgSimuleringFeilet.KunneIkkeSimulere(it).left()
             }
 
         val tidslinjeEksisterendeOgUnderArbeid = (eksisterende + underArbeid)
             .tidslinje()
             .getOrElse {
-                log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke generere tidslinjer: $it")
+                log.error(
+                    "Feil ved kryssjekk av tidslinje og simulering, kunne ikke generere tidslinjer: $it",
+                    RuntimeException("Genererer en stacktrace for enklere debugging."),
+                )
                 return KryssjekkAvTidslinjeOgSimuleringFeilet.KunneIkkeGenerereTidslinje.left()
             }
 
@@ -45,7 +51,10 @@ object KryssjekkTidslinjerOgSimulering {
             tidslinjeEksisterendeOgUnderArbeid = tidslinjeEksisterendeOgUnderArbeid,
             simulering = simulertUtbetaling.simulering,
         ).getOrElse {
-            log.error("Feil (${it.map { it::class.simpleName }}) ved kryssjekk av tidslinje og simulering. Se sikkerlogg for detaljer")
+            log.error(
+                "Feil (${it.map { it::class.simpleName }}) ved kryssjekk av tidslinje og simulering. Se sikkerlogg for detaljer",
+                RuntimeException("Genererer en stacktrace for enklere debugging."),
+            )
             sikkerLogg.error("Feil: $it ved kryssjekk av tidslinje: $tidslinjeEksisterendeOgUnderArbeid og simulering: ${simulertUtbetaling.simulering}")
             return KryssjekkAvTidslinjeOgSimuleringFeilet.KryssjekkFeilet(it.first()).left()
         }
@@ -58,11 +67,17 @@ object KryssjekkTidslinjerOgSimulering {
             val tidslinjeUnderArbeid = underArbeid.tidslinje()
 
             val tidslinjeEksisterende = eksisterende.tidslinje().getOrElse {
-                log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke generere tidslinjer: $it")
+                log.error(
+                    "Feil ved kryssjekk av tidslinje og simulering, kunne ikke generere tidslinjer: $it",
+                    RuntimeException("Genererer en stacktrace for enklere debugging."),
+                )
                 return KryssjekkAvTidslinjeOgSimuleringFeilet.KunneIkkeGenerereTidslinje.left()
             }
             if (!tidslinjeUnderArbeid.ekvivalentMedInnenforPeriode(tidslinjeEksisterende, rekonstruertPeriode)) {
-                log.error("Feil ved kryssjekk av tidslinje og simulering. Tidslinje for ny utbetaling er ulik eksisterende. Se sikkerlogg for detaljer")
+                log.error(
+                    "Feil ved kryssjekk av tidslinje og simulering. Tidslinje for ny utbetaling er ulik eksisterende. Se sikkerlogg for detaljer",
+                    RuntimeException("Genererer en stacktrace for enklere debugging."),
+                )
                 sikkerLogg.error("Feil ved kryssjekk av tidslinje: Tidslinje for ny utbetaling:$tidslinjeUnderArbeid er ulik eksisterende:$tidslinjeEksisterende for rekonstruert periode:$rekonstruertPeriode")
                 return KryssjekkAvTidslinjeOgSimuleringFeilet.RekonstruertUtbetalingsperiodeErUlikOpprinnelig.left()
             }

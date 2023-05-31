@@ -33,7 +33,9 @@ class KryssjekkSaksbehandlersOgAttestantsSimulering(
             return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikFeilutbetaling.left()
         }
 
-        if (saksbehandlersSimulering.hentTotalUtbetaling().måneder() != attestantsSimulering.simulering.hentTotalUtbetaling().måneder()) {
+        if (saksbehandlersSimulering.hentTotalUtbetaling()
+                .måneder() != attestantsSimulering.simulering.hentTotalUtbetaling().måneder()
+        ) {
             return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikPeriode.left()
         }
 
@@ -55,7 +57,10 @@ private fun logErr(
     feil: KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet,
     log: Logger = LoggerFactory.getLogger("SuUserPlugin.kt"),
 ) {
-    log.error("Utbetaling kunne ikke gjennomføres, kontrollsimulering er ulik saksbehandlers simulering: ${feil::class}. Se sikkerlogg for detaljer.")
+    log.error(
+        "Utbetaling kunne ikke gjennomføres, kontrollsimulering er ulik saksbehandlers simulering: ${feil::class}. Se sikkerlogg for detaljer.",
+        RuntimeException("Genererer en stacktrace for enklere debugging."),
+    )
     sikkerLogg.error(
         "Utbetaling kunne ikke gjennomføres, kontrollsimulering: {}, er ulik saksbehandlers simulering: {}",
         objectMapper.writeValueAsString(attestantsSimulering),
