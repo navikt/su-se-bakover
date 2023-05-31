@@ -1,26 +1,17 @@
 package no.nav.su.se.bakover.domain.brev
 
-import arrow.core.Either
-import arrow.core.NonEmptyList
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.getDistinkteParagrafer
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevTilbakekrevingInfo
-import no.nav.su.se.bakover.domain.person.Person
-import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
-import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
-import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
-import java.time.Clock
-import java.util.UUID
 
 /**
  * TODO jah: Dette er en ren JsonDto som sendes serialisert til su-pdfgen. Den bør bo under client-modulen eller en tilsvarende infrastruktur-modul.
@@ -244,105 +235,6 @@ abstract class PdfInnhold {
         val fritekst: String,
     ) : PdfInnhold() {
         override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.Fritekst(tittel)
-    }
-
-    data class SkattPdfData(
-        val fnr: Fnr,
-        val navn: Person.Navn,
-        val årsgrunnlag: NonEmptyList<ÅrsgrunnlagPdfJson>,
-    ) {
-        data class ÅrsgrunnlagPdfJson(
-            val år: Int,
-            val stadie: ÅrsgrunnlagStadie,
-            val data: Skattegrunnlag.SkattegrunnlagForÅr,
-        ) {
-            enum class ÅrsgrunnlagStadie {
-                Oppgjør,
-                Utkast,
-            }
-        }
-    }
-
-    data class SkattemeldingsPdf private constructor(
-        val saksnummer: Saksnummer,
-        // TODO: Denne må vi ta inn når vi begynner med revurdering
-        val behandlingstype: BehandlingstypeForSkattemelding = BehandlingstypeForSkattemelding.Søknadsbehandling,
-        val søknadsbehandlingsId: UUID,
-        val vedtaksId: UUID,
-        val hentet: Tidspunkt,
-        val opprettet: Tidspunkt,
-        val søkers: SkattPdfData?,
-        val eps: SkattPdfData?,
-    ) : PdfInnhold() {
-        override val pdfTemplate: PdfTemplateMedDokumentNavn = SkattegrunnlagPdfTemplate
-
-        enum class BehandlingstypeForSkattemelding {
-            Søknadsbehandling,
-        }
-
-        data class ÅrsgrunnlagMedFnr(
-            val fnr: Fnr,
-            val årsgrunnlag: NonEmptyList<SamletSkattegrunnlagForÅrOgStadie>,
-        )
-
-        data class ÅrsgrunnlagForPdf(
-            val søkers: ÅrsgrunnlagMedFnr?,
-            val eps: ÅrsgrunnlagMedFnr?,
-        )
-
-        companion object {
-            fun lagSkattemeldingsPdf(
-                saksnummer: Saksnummer,
-                søknadsbehandlingsId: UUID,
-                vedtaksId: UUID,
-                hentet: Tidspunkt,
-                skatt: ÅrsgrunnlagForPdf,
-                hentNavn: (Fnr) -> Person.Navn,
-                clock: Clock,
-            ): SkattemeldingsPdf {
-                return SkattemeldingsPdf(
-                    saksnummer = saksnummer,
-                    søknadsbehandlingsId = søknadsbehandlingsId,
-                    vedtaksId = vedtaksId,
-                    hentet = hentet,
-                    opprettet = Tidspunkt.now(clock),
-                    søkers = skatt.søkers?.let {
-                        SkattPdfData(
-                            fnr = it.fnr,
-                            navn = hentNavn(it.fnr),
-                            årsgrunnlag = it.årsgrunnlag.map {
-                                SkattPdfData.ÅrsgrunnlagPdfJson(
-                                    år = it.inntektsår.value,
-                                    stadie = when (it) {
-                                        is SamletSkattegrunnlagForÅrOgStadie.Oppgjør -> SkattPdfData.ÅrsgrunnlagPdfJson.ÅrsgrunnlagStadie.Oppgjør
-                                        is SamletSkattegrunnlagForÅrOgStadie.Utkast -> SkattPdfData.ÅrsgrunnlagPdfJson.ÅrsgrunnlagStadie.Utkast
-                                    },
-                                    data = (it.oppslag as? Either.Right<Skattegrunnlag.SkattegrunnlagForÅr>)?.value
-                                        ?: throw IllegalStateException("Forventet at vi skulle ha skattegrunnlag på dette tidspunktet, men var ${it.oppslag} for vedtak $vedtaksId"),
-                                )
-                            },
-                        )
-                    },
-                    eps = skatt.eps?.let {
-                        SkattPdfData(
-                            fnr = it.fnr,
-                            navn = hentNavn(it.fnr),
-                            årsgrunnlag = it.årsgrunnlag.map {
-                                SkattPdfData.ÅrsgrunnlagPdfJson(
-                                    år = it.inntektsår.value,
-                                    stadie = when (it) {
-                                        is SamletSkattegrunnlagForÅrOgStadie.Oppgjør -> SkattPdfData.ÅrsgrunnlagPdfJson.ÅrsgrunnlagStadie.Oppgjør
-                                        is SamletSkattegrunnlagForÅrOgStadie.Utkast -> SkattPdfData.ÅrsgrunnlagPdfJson.ÅrsgrunnlagStadie.Utkast
-                                    },
-                                    data = (it.oppslag as? Either.Right<Skattegrunnlag.SkattegrunnlagForÅr>)?.value
-                                        ?: throw IllegalStateException("Forventet at vi skulle ha skattegrunnlag på dette tidspunktet, men var ${it.oppslag} for vedtak $vedtaksId"),
-                                )
-                            },
-                        )
-                    },
-                )
-            }
-        }
     }
 }
 
