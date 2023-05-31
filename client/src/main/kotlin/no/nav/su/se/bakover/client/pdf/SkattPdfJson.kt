@@ -1,17 +1,17 @@
-package no.nav.su.se.bakover.domain.brev.skatt
+package no.nav.su.se.bakover.client.pdf
 
 import arrow.core.NonEmptyList
 import arrow.core.getOrElse
+import no.nav.su.se.bakover.client.pdf.SkattegrunnlagPdfJson.Annet.Companion.tilPdfJson
+import no.nav.su.se.bakover.client.pdf.SkattegrunnlagPdfJson.Formue.Companion.tilPdfJson
+import no.nav.su.se.bakover.client.pdf.SkattegrunnlagPdfJson.Formuesfradrag.Companion.tilPdfJson
+import no.nav.su.se.bakover.client.pdf.SkattegrunnlagPdfJson.Inntekt.Companion.tilPdfJson
+import no.nav.su.se.bakover.client.pdf.SkattegrunnlagPdfJson.Inntektsfradrag.Companion.tilPdfJson
+import no.nav.su.se.bakover.client.pdf.SkattegrunnlagPdfJson.ManglerKategori.Companion.tilPdfJson
+import no.nav.su.se.bakover.client.pdf.SkattegrunnlagPdfJson.OppjusteringAvEierinntekter.Companion.tilPdfJson
+import no.nav.su.se.bakover.client.pdf.SkattegrunnlagPdfJson.VerdsettingsrabattSomGirGjeldsreduksjon.Companion.tilPdfJson
+import no.nav.su.se.bakover.client.pdf.SpesifiseringPdfJson.KjøretøyJson.Companion.tilPdfJson
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.brev.skatt.SkattegrunnlagPdfJson.Annet.Companion.tilPdfJson
-import no.nav.su.se.bakover.domain.brev.skatt.SkattegrunnlagPdfJson.Formue.Companion.tilPdfJson
-import no.nav.su.se.bakover.domain.brev.skatt.SkattegrunnlagPdfJson.Formuesfradrag.Companion.tilPdfJson
-import no.nav.su.se.bakover.domain.brev.skatt.SkattegrunnlagPdfJson.Inntekt.Companion.tilPdfJson
-import no.nav.su.se.bakover.domain.brev.skatt.SkattegrunnlagPdfJson.Inntektsfradrag.Companion.tilPdfJson
-import no.nav.su.se.bakover.domain.brev.skatt.SkattegrunnlagPdfJson.ManglerKategori.Companion.tilPdfJson
-import no.nav.su.se.bakover.domain.brev.skatt.SkattegrunnlagPdfJson.OppjusteringAvEierinntekter.Companion.tilPdfJson
-import no.nav.su.se.bakover.domain.brev.skatt.SkattegrunnlagPdfJson.VerdsettingsrabattSomGirGjeldsreduksjon.Companion.tilPdfJson
-import no.nav.su.se.bakover.domain.brev.skatt.SpesifiseringPdfJson.KjøretøyJson.Companion.tilPdfJson
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag

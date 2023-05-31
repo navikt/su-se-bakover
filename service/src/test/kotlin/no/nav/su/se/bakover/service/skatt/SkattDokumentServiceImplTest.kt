@@ -6,11 +6,11 @@ import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
+import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdf
+import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagForPdf
+import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagMedFnr
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.brev.PdfInnhold
-import no.nav.su.se.bakover.domain.brev.skatt.SkattemeldingsPdf
-import no.nav.su.se.bakover.domain.brev.skatt.ÅrsgrunnlagForPdf
-import no.nav.su.se.bakover.domain.brev.skatt.ÅrsgrunnlagMedFnr
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.PersonOppslag
@@ -64,7 +64,7 @@ internal class SkattDokumentServiceImplTest {
         verify(personMock).person(argThat { it shouldBe vedtak.fnr })
         verify(pdfGeneratorMock).genererPdf(
             argThat<PdfInnhold> {
-                it shouldBe SkattemeldingsPdf.lagSkattemeldingsPdf(
+                it shouldBe SkattegrunnlagsPdf.lagSkattemeldingsPdf(
                     saksnummer = vedtak.saksnummer,
                     søknadsbehandlingsId = vedtak.behandling.id,
                     vedtaksId = vedtak.id,
@@ -120,7 +120,7 @@ internal class SkattDokumentServiceImplTest {
         captor.lastValue shouldBe eps.ident.fnr
         verify(pdfGeneratorMock).genererPdf(
             argThat<PdfInnhold> {
-                it shouldBe SkattemeldingsPdf.lagSkattemeldingsPdf(
+                it shouldBe SkattegrunnlagsPdf.lagSkattemeldingsPdf(
                     saksnummer = vedtak.saksnummer,
                     søknadsbehandlingsId = vedtak.behandling.id,
                     vedtaksId = vedtak.id,
@@ -178,7 +178,7 @@ internal class SkattDokumentServiceImplTest {
         verify(personMock, times(1)).person(argThat { it shouldBe person.ident.fnr })
         verify(pdfGeneratorMock).genererPdf(
             argThat<PdfInnhold> {
-                it shouldBe SkattemeldingsPdf.lagSkattemeldingsPdf(
+                it shouldBe SkattegrunnlagsPdf.lagSkattemeldingsPdf(
                     saksnummer = vedtak.saksnummer,
                     søknadsbehandlingsId = vedtak.behandling.id,
                     vedtaksId = vedtak.id,
@@ -233,7 +233,7 @@ internal class SkattDokumentServiceImplTest {
         verify(personMock, times(1)).person(argThat { it shouldBe eps.ident.fnr })
         verify(pdfGeneratorMock).genererPdf(
             argThat<PdfInnhold> {
-                it shouldBe SkattemeldingsPdf.lagSkattemeldingsPdf(
+                it shouldBe SkattegrunnlagsPdf.lagSkattemeldingsPdf(
                     saksnummer = vedtak.saksnummer,
                     søknadsbehandlingsId = vedtak.behandling.id,
                     vedtaksId = vedtak.id,
@@ -285,7 +285,7 @@ internal class SkattDokumentServiceImplTest {
     @Test
     fun `må supplere enten søkers eller eps sin skattegrunnlag (eller begge)`() {
         assertThrows<IllegalArgumentException> {
-            SkattemeldingsPdf.lagSkattemeldingsPdf(
+            SkattegrunnlagsPdf.lagSkattemeldingsPdf(
                 saksnummer = Saksnummer(2021),
                 søknadsbehandlingsId = UUID.randomUUID(),
                 vedtaksId = UUID.randomUUID(),

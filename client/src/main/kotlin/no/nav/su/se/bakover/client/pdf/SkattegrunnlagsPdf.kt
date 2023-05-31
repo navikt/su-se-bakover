@@ -1,23 +1,23 @@
-package no.nav.su.se.bakover.domain.brev.skatt
+package no.nav.su.se.bakover.client.pdf
 
 import arrow.core.NonEmptyList
+import no.nav.su.se.bakover.client.pdf.SkattPdfData.ÅrsgrunnlagPdfJson.Companion.tilPdfJson
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.PdfInnhold
 import no.nav.su.se.bakover.domain.brev.PdfTemplateMedDokumentNavn
 import no.nav.su.se.bakover.domain.brev.SkattegrunnlagPdfTemplate
-import no.nav.su.se.bakover.domain.brev.skatt.SkattPdfData.ÅrsgrunnlagPdfJson.Companion.tilPdfJson
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
 import java.time.Clock
 import java.util.UUID
 
-data class SkattemeldingsPdf private constructor(
+data class SkattegrunnlagsPdf private constructor(
     val saksnummer: Saksnummer,
     // TODO: Denne må vi ta inn når vi begynner med revurdering
     val behandlingstype: BehandlingstypeForSkattemelding = BehandlingstypeForSkattemelding.Søknadsbehandling,
-    val søknadsbehandlingsId: UUID,
+    val behandlingsId: UUID,
     val vedtaksId: UUID,
     val hentet: Tidspunkt,
     val opprettet: Tidspunkt,
@@ -35,10 +35,10 @@ data class SkattemeldingsPdf private constructor(
             skatt: ÅrsgrunnlagForPdf,
             hentNavn: (Fnr) -> Person.Navn,
             clock: Clock,
-        ): SkattemeldingsPdf {
-            return SkattemeldingsPdf(
+        ): SkattegrunnlagsPdf {
+            return SkattegrunnlagsPdf(
                 saksnummer = saksnummer,
-                søknadsbehandlingsId = søknadsbehandlingsId,
+                behandlingsId = søknadsbehandlingsId,
                 vedtaksId = vedtaksId,
                 hentet = hentet,
                 opprettet = Tidspunkt.now(clock),

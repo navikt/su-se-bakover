@@ -1,7 +1,7 @@
-package no.nav.su.se.bakover.domain.brev.skatt
+package no.nav.su.se.bakover.client.pdf
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.brev.skatt.SkattPdfData.ÅrsgrunnlagPdfJson.Companion.tilPdfJson
+import no.nav.su.se.bakover.client.pdf.SkattPdfData.ÅrsgrunnlagPdfJson.Companion.tilPdfJson
 import no.nav.su.se.bakover.test.skatt.nySamletSkattegrunnlagForÅrOgStadieOppgjør
 import no.nav.su.se.bakover.test.skatt.nySamletSkattegrunnlagForÅrOgStadieOppgjørMedFeilIÅrsgrunnlag
 import org.junit.jupiter.api.Test

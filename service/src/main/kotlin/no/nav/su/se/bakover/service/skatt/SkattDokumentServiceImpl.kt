@@ -5,12 +5,12 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
+import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdf
+import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagForPdf
+import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagMedFnr
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.brev.skatt.SkattemeldingsPdf
-import no.nav.su.se.bakover.domain.brev.skatt.ÅrsgrunnlagForPdf
-import no.nav.su.se.bakover.domain.brev.skatt.ÅrsgrunnlagMedFnr
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
@@ -58,7 +58,7 @@ class SkattDokumentServiceImpl(
             return KunneIkkeGenerereSkattedokument.IngenÅrsgrunnlag.left()
         }
 
-        return SkattemeldingsPdf.lagSkattemeldingsPdf(
+        return SkattegrunnlagsPdf.lagSkattemeldingsPdf(
             saksnummer = vedtak.saksnummer,
             søknadsbehandlingsId = vedtak.behandling.id,
             vedtaksId = vedtak.id,
