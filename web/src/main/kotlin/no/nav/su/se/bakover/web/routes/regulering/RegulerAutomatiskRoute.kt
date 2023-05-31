@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withReguleringId
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -66,6 +67,8 @@ internal fun Route.reguler(
             data class Body(val fradrag: List<FradragRequestJson>, val uføre: List<UføregrunnlagJson>)
             call.withReguleringId { id ->
                 call.withBody<Body> { body ->
+
+                    sikkerLogg.debug("Verdier som ble sendt inn for manuell regulering: {}", body)
                     reguleringService.regulerManuelt(
                         reguleringId = id,
                         uføregrunnlag = body.uføre.toDomain(clock).getOrElse { return@authorize call.svar(it) },
