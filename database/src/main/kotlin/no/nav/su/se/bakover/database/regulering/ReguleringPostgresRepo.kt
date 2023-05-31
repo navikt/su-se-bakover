@@ -34,7 +34,9 @@ import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
+import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.Saksnummer
@@ -54,15 +56,35 @@ internal class ReguleringPostgresRepo(
         }
     }
 
-    override fun hentReguleringerSomIkkeErIverksatt(): List<OpprettetRegulering> =
+    override fun hentReguleringerSomIkkeErIverksatt(): List<ReguleringSomKreverManuellBehandling> =
         dbMetrics.timeQuery("hentReguleringerSomIkkeErIverksatt") {
             sessionFactory.withSession { session ->
-                """ select * from regulering r left join sak s on r.sakid = s.id
-                    where reguleringstatus = :reguleringstatus
+                """
+                select
+                  s.saksnummer,
+                  s.fnr,
+                  r.id,
+                  case when exists (
+                    select 1
+                    from grunnlag_fradrag g
+                    where g.behandlingid = r.id
+                      and g.fradragstype = 'Fosterhjemsgodtgjørelse'
+                  ) then true else false end as har_fosterhjemsgodtgjørelse
+                from regulering r
+                join sak s on r.sakid = s.id
+                where r.reguleringstatus = 'OPPRETTET' and r.reguleringtype = 'MANUELL'
                 """.trimIndent().hentListe(
-                    mapOf("reguleringstatus" to ReguleringStatus.OPPRETTET.toString()),
+                    emptyMap(),
                     session,
-                ) { it.toRegulering(session) as OpprettetRegulering }
+                ) {
+                    val harFosterhjemsgodtgjørelse = it.boolean("har_fosterhjemsgodtgjørelse")
+                    ReguleringSomKreverManuellBehandling(
+                        saksnummer = Saksnummer(it.long("saksnummer")),
+                        fnr = Fnr(it.string("fnr")),
+                        reguleringId = it.uuid("id"),
+                        merknader = if (harFosterhjemsgodtgjørelse) listOf(ReguleringMerknad.Fosterhjemsgodtgjørelse) else emptyList(),
+                    )
+                }
             }
         }
 

@@ -99,7 +99,7 @@ internal fun Application.setupKtorRoutes(
                     nøkkeltallRoutes(accessProtectedServices.nøkkeltallService)
                     stønadsmottakereRoute(accessProtectedServices.vedtakService, clock)
                     kontrollsamtaleRoutes(accessProtectedServices.kontrollsamtaleSetup.kontrollsamtaleService)
-                    reguleringRoutes(accessProtectedServices.reguleringService, satsFactoryIDag, clock)
+                    reguleringRoutes(accessProtectedServices.reguleringService, clock)
                     opplysningspliktRoutes(
                         søknadsbehandlingService = accessProtectedServices.søknadsbehandling.søknadsbehandlingService,
                         revurderingService = accessProtectedServices.revurdering,

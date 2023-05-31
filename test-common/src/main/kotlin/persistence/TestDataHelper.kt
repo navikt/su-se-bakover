@@ -424,8 +424,18 @@ class TestDataHelper(
 
     fun persisterReguleringOpprettet(
         fraOgMedMåned: Måned = mai(2021),
+        sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
+        søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> = { (sak, søknad) ->
+            iverksattSøknadsbehandlingUføre(
+                clock = clock,
+                sakOgSøknad = sak to søknad,
+            )
+        },
     ): Pair<Sak, OpprettetRegulering> {
-        return persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().first.let { sak ->
+        return persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
+            sakOgSøknad = sakOgSøknad,
+            søknadsbehandling = søknadsbehandling,
+        ).first.let { sak ->
             sak.opprettEllerOppdaterRegulering(
                 fraOgMedMåned = fraOgMedMåned,
                 clock = clock,

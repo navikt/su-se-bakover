@@ -10,16 +10,13 @@ import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 
 internal fun Route.reguleringOversiktRoutes(
     reguleringService: ReguleringService,
-    satsFactory: SatsFactory,
 ) {
     get("$reguleringPath/status") {
         authorize(Brukerrolle.Saksbehandler) {
-            val json = reguleringService.hentStatus().map { it.toJson(satsFactory) }
-            call.svar(Resultat.json(HttpStatusCode.OK, serialize(json)))
+            call.svar(Resultat.json(HttpStatusCode.OK, reguleringService.hentStatus().toJson()))
         }
     }
 

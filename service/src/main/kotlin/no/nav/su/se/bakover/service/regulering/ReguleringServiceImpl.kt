@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
@@ -24,9 +23,9 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.LiveRun
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
-import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
+import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.beregn.blirBeregningEndret
@@ -356,16 +355,8 @@ class ReguleringServiceImpl(
         }
     }
 
-    override fun hentStatus(): List<Pair<Regulering, List<ReguleringMerknad>>> {
-        val reguleringer = reguleringRepo.hentReguleringerSomIkkeErIverksatt()
-
-        return reguleringer.map {
-            val tilhørendeMerknader = listOfNotNull(
-                if (it.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag.any { it.fradragstype == Fradragstype.Fosterhjemsgodtgjørelse }) ReguleringMerknad.Fosterhjemsgodtgjørelse else null,
-            )
-
-            Pair(it, tilhørendeMerknader)
-        }
+    override fun hentStatus(): List<ReguleringSomKreverManuellBehandling> {
+        return reguleringRepo.hentReguleringerSomIkkeErIverksatt()
     }
 
     override fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer> {

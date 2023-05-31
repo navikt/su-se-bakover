@@ -58,7 +58,7 @@ interface ReguleringService {
     )
 
     fun avslutt(reguleringId: UUID): Either<KunneIkkeAvslutte, AvsluttetRegulering>
-    fun hentStatus(): List<Pair<Regulering, List<ReguleringMerknad>>>
+    fun hentStatus(): List<ReguleringSomKreverManuellBehandling>
     fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer>
     fun regulerManuelt(
         reguleringId: UUID,

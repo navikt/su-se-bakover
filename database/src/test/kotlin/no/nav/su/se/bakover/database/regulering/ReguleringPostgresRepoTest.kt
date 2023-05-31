@@ -4,16 +4,24 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.mai
 import no.nav.su.se.bakover.common.extensions.september
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.mai
+import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpForMåned
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
+import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
+import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.satser.Faktor
 import no.nav.su.se.bakover.domain.satser.FullSupplerendeStønadForMåned
 import no.nav.su.se.bakover.domain.satser.MinsteÅrligYtelseForUføretrygdedeForMåned
 import no.nav.su.se.bakover.domain.satser.Satskategori
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import org.junit.jupiter.api.Test
@@ -21,7 +29,7 @@ import java.math.BigDecimal
 
 internal class ReguleringPostgresRepoTest {
     @Test
-    fun `hent reguleringer som ikke er iverksatt`() {
+    fun `hent reguleringer som ikke er iverksatt uten merknad`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.reguleringRepo
@@ -32,7 +40,51 @@ internal class ReguleringPostgresRepoTest {
             val hentRegulering = repo.hentReguleringerSomIkkeErIverksatt()
 
             hentRegulering.size shouldBe 1
-            hentRegulering.first() shouldBe regulering
+            hentRegulering.first() shouldBe ReguleringSomKreverManuellBehandling(
+                saksnummer = regulering.saksnummer,
+                fnr = regulering.fnr,
+                reguleringId = regulering.id,
+                merknader = listOf(),
+            )
+        }
+    }
+
+    @Test
+    fun `hent reguleringer som ikke er iverksatt med merknad`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.reguleringRepo
+
+            val (_, regulering) = testDataHelper.persisterReguleringOpprettet(
+                søknadsbehandling = { (sak, søknad) ->
+                    iverksattSøknadsbehandlingUføre(
+                        clock = testDataHelper.clock,
+                        sakOgSøknad = sak to søknad,
+                        customGrunnlag = listOf(
+                            lagFradragsgrunnlag(
+                                opprettet = Tidspunkt.now(testDataHelper.clock),
+                                type = Fradragstype.Fosterhjemsgodtgjørelse,
+                                månedsbeløp = 1000.0,
+                                periode = år(2021),
+                                utenlandskInntekt = null,
+                                tilhører = FradragTilhører.BRUKER,
+
+                            ),
+                        ),
+                    )
+                },
+            )
+            testDataHelper.persisterReguleringIverksatt()
+
+            val hentRegulering = repo.hentReguleringerSomIkkeErIverksatt()
+
+            hentRegulering.size shouldBe 1
+            hentRegulering.first() shouldBe ReguleringSomKreverManuellBehandling(
+                saksnummer = regulering.saksnummer,
+                fnr = regulering.fnr,
+                reguleringId = regulering.id,
+                merknader = listOf(ReguleringMerknad.Fosterhjemsgodtgjørelse),
+            )
         }
     }
 

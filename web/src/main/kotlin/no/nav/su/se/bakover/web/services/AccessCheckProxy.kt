@@ -71,8 +71,8 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.Regulering
-import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
+import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -1065,7 +1065,7 @@ open class AccessCheckProxy(
                     return services.reguleringService.avslutt(reguleringId)
                 }
 
-                override fun hentStatus(): List<Pair<Regulering, List<ReguleringMerknad>>> {
+                override fun hentStatus(): List<ReguleringSomKreverManuellBehandling> {
                     return services.reguleringService.hentStatus()
                 }
 
