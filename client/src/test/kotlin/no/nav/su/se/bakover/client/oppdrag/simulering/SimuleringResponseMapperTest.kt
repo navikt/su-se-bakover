@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Beløp
@@ -14,6 +15,7 @@ import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.august
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
@@ -25,10 +27,13 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringsOppsummering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertMåned
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.simulering.SimuleringResponseData.Companion.simuleringXml
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningResponse
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import java.math.BigDecimal
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse as GrensesnittResponse
 
 internal class SimuleringResponseMapperTest {
@@ -1295,7 +1300,7 @@ internal class SimuleringResponseMapperTest {
             )
             it.hentFeilutbetalteBeløp() shouldBe Månedsbeløp(emptyList())
             it.kontooppstilling() shouldBe mapOf(
-                januar(2022).tilPeriode() to Kontooppstilling(
+                januar(2022) to Kontooppstilling(
                     debetYtelse = Kontobeløp.Debet(8989),
                     kreditYtelse = Kontobeløp.Kredit(8989),
                     debetFeilkonto = Kontobeløp.Debet(0),
@@ -1333,6 +1338,176 @@ internal class SimuleringResponseMapperTest {
                 ),
             )
         }
+    }
+
+    @Test
+    @Disabled("TODO jah: finn en algoritme som ikke brekker kryssjekk")
+    fun `Tilbakeføring utligner hverandre`() {
+        val rawXml = """
+                <SimulerBeregningResponse>
+                    <simulering>
+                        <gjelderId>12345678901</gjelderId>
+                        <gjelderNavn>Fiskus Fiske</gjelderNavn>
+                        <datoBeregnet>2023-06-01</datoBeregnet>
+                        <kodeFaggruppe>INNT</kodeFaggruppe>
+                        <belop>2480.00</belop>
+                        <beregningsPeriode>
+                            <periodeFom>2023-05-01</periodeFom>
+                            <periodeTom>2023-05-31</periodeTom>
+                            <beregningStoppnivaa>
+                                <kodeFagomraade>SUUFORE</kodeFagomraade>
+                                <stoppNivaaId>1</stoppNivaaId>
+                                <behandlendeEnhet>8020</behandlendeEnhet>
+                                <oppdragsId>123123</oppdragsId>
+                                <fagsystemId>2021</fagsystemId>
+                                <kid></kid>
+                                <utbetalesTilId>12345678901</utbetalesTilId>
+                                <utbetalesTilNavn>Fiskus Fiske</utbetalesTilNavn>
+                                <bilagsType>U</bilagsType>
+                                <forfall>2023-06-01</forfall>
+                                <feilkonto>false</feilkonto>
+                                <beregningStoppnivaaDetaljer>
+                                    <faktiskFom>2023-05-01</faktiskFom>
+                                    <faktiskTom>2023-05-31</faktiskTom>
+                                    <kontoStreng>0510000</kontoStreng>
+                                    <behandlingskode>0</behandlingskode>
+                                    <belop>2480.00</belop>
+                                    <trekkVedtakId>0</trekkVedtakId>
+                                    <stonadId></stonadId>
+                                    <korrigering></korrigering>
+                                    <tilbakeforing>false</tilbakeforing>
+                                    <linjeId>0</linjeId>
+                                    <sats>100.00</sats>
+                                    <typeSats>SALP</typeSats>
+                                    <antallSats>0.00</antallSats>
+                                    <saksbehId>Saksbehandlersen</saksbehId>
+                                    <uforeGrad>0</uforeGrad>
+                                    <kravhaverId></kravhaverId>
+                                    <delytelseId></delytelseId>
+                                    <bostedsenhet>8020</bostedsenhet>
+                                    <skykldnerId></skykldnerId>
+                                    <klassekode>FSKTSKAT</klassekode>
+                                    <klasseKodeBeskrivelse>Forskuddskatt</klasseKodeBeskrivelse>
+                                    <typeKlasse>SKAT</typeKlasse>
+                                    <typeKlasseBeskrivelse>Klassetype for skatt</typeKlasseBeskrivelse>
+                                    <refunderesOrgNr></refunderesOrgNr>
+                                </beregningStoppnivaaDetaljer>
+                                <beregningStoppnivaaDetaljer>
+                                    <faktiskFom>2023-05-01</faktiskFom>
+                                    <faktiskTom>2023-05-31</faktiskTom>
+                                    <kontoStreng>0510000</kontoStreng>
+                                    <behandlingskode>0</behandlingskode>
+                                    <belop>-2480.00</belop>
+                                    <trekkVedtakId>12341234</trekkVedtakId>
+                                    <stonadId></stonadId>
+                                    <korrigering></korrigering>
+                                    <tilbakeforing>false</tilbakeforing>
+                                    <linjeId>0</linjeId>
+                                    <sats>100.00</sats>
+                                    <typeSats>SALP</typeSats>
+                                    <antallSats>0.00</antallSats>
+                                    <saksbehId>Saksbehandlersen</saksbehId>
+                                    <uforeGrad>0</uforeGrad>
+                                    <kravhaverId></kravhaverId>
+                                    <delytelseId></delytelseId>
+                                    <bostedsenhet>8020</bostedsenhet>
+                                    <skykldnerId></skykldnerId>
+                                    <klassekode>FSKTSKAT</klassekode>
+                                    <klasseKodeBeskrivelse>Forskuddskatt</klasseKodeBeskrivelse>
+                                    <typeKlasse>SKAT</typeKlasse>
+                                    <typeKlasseBeskrivelse>Klassetype for skatt</typeKlasseBeskrivelse>
+                                    <refunderesOrgNr></refunderesOrgNr>
+                                </beregningStoppnivaaDetaljer>
+                                <beregningStoppnivaaDetaljer>
+                                    <faktiskFom>2023-05-01</faktiskFom>
+                                    <faktiskTom>2023-05-31</faktiskTom>
+                                    <kontoStreng>4952000</kontoStreng>
+                                    <behandlingskode>2</behandlingskode>
+                                    <belop>2480.00</belop>
+                                    <trekkVedtakId>0</trekkVedtakId>
+                                    <stonadId></stonadId>
+                                    <korrigering></korrigering>
+                                    <tilbakeforing>false</tilbakeforing>
+                                    <linjeId>8</linjeId>
+                                    <sats>2480.00</sats>
+                                    <typeSats>MND</typeSats>
+                                    <antallSats>1.00</antallSats>
+                                    <saksbehId>SU</saksbehId>
+                                    <uforeGrad>100</uforeGrad>
+                                    <kravhaverId></kravhaverId>
+                                    <delytelseId>3e6300be-47f7-4be5-b69b-ab36a5</delytelseId>
+                                    <bostedsenhet>8020</bostedsenhet>
+                                    <skykldnerId></skykldnerId>
+                                    <klassekode>SUUFORE</klassekode>
+                                    <klasseKodeBeskrivelse>Supplerende stønad Uføre</klasseKodeBeskrivelse>
+                                    <typeKlasse>YTEL</typeKlasse>
+                                    <typeKlasseBeskrivelse>Klassetype for ytelseskonti</typeKlasseBeskrivelse>
+                                    <refunderesOrgNr></refunderesOrgNr>
+                                </beregningStoppnivaaDetaljer>
+                                <beregningStoppnivaaDetaljer>
+                                    <faktiskFom>2023-05-01</faktiskFom>
+                                    <faktiskTom>2023-05-31</faktiskTom>
+                                    <kontoStreng>4952000</kontoStreng>
+                                    <behandlingskode>2</behandlingskode>
+                                    <belop>2174.00</belop>
+                                    <trekkVedtakId>0</trekkVedtakId>
+                                    <stonadId></stonadId>
+                                    <korrigering></korrigering>
+                                    <tilbakeforing>true</tilbakeforing>
+                                    <linjeId>5</linjeId>
+                                    <sats>2174.00</sats>
+                                    <typeSats>MND</typeSats>
+                                    <antallSats>0.00</antallSats>
+                                    <saksbehId>Saksbehandlersen</saksbehId>
+                                    <uforeGrad>100</uforeGrad>
+                                    <kravhaverId></kravhaverId>
+                                    <delytelseId></delytelseId>
+                                    <bostedsenhet>8020</bostedsenhet>
+                                    <skykldnerId></skykldnerId>
+                                    <klassekode>SUUFORE</klassekode>
+                                    <klasseKodeBeskrivelse>Supplerende stønad Uføre</klasseKodeBeskrivelse>
+                                    <typeKlasse>YTEL</typeKlasse>
+                                    <typeKlasseBeskrivelse>Klassetype for ytelseskonti</typeKlasseBeskrivelse>
+                                    <refunderesOrgNr></refunderesOrgNr>
+                                </beregningStoppnivaaDetaljer>
+                                <beregningStoppnivaaDetaljer>
+                                    <faktiskFom>2023-05-01</faktiskFom>
+                                    <faktiskTom>2023-05-31</faktiskTom>
+                                    <kontoStreng>4952000</kontoStreng>
+                                    <behandlingskode>2</behandlingskode>
+                                    <belop>-2174.00</belop>
+                                    <trekkVedtakId>0</trekkVedtakId>
+                                    <stonadId></stonadId>
+                                    <korrigering></korrigering>
+                                    <tilbakeforing>true</tilbakeforing>
+                                    <linjeId>7</linjeId>
+                                    <sats>2174.00</sats>
+                                    <typeSats>MND</typeSats>
+                                    <antallSats>0.00</antallSats>
+                                    <saksbehId>Saksbehandlersen</saksbehId>
+                                    <uforeGrad>100</uforeGrad>
+                                    <kravhaverId></kravhaverId>
+                                    <delytelseId></delytelseId>
+                                    <bostedsenhet>8020</bostedsenhet>
+                                    <skykldnerId></skykldnerId>
+                                    <klassekode>SUUFORE</klassekode>
+                                    <klasseKodeBeskrivelse>Supplerende stønad Uføre</klasseKodeBeskrivelse>
+                                    <typeKlasse>YTEL</typeKlasse>
+                                    <typeKlasseBeskrivelse>Klassetype for ytelseskonti</typeKlasseBeskrivelse>
+                                    <refunderesOrgNr></refunderesOrgNr>
+                                </beregningStoppnivaaDetaljer>
+                            </beregningStoppnivaa>
+                        </beregningsPeriode>
+                    </simulering>
+                </SimulerBeregningResponse>
+            """
+        val response = xmlMapper.readValue<SimulerBeregningResponse>(rawXml)
+
+        response.simulering.belop shouldBe BigDecimal("2480.00")
+
+        val simulering = SimuleringResponseMapper(rawXml, response, fixedClock, Saksnummer(2021)).simulering
+
+        simulering.hentTotalUtbetaling() shouldBe Månedsbeløp(listOf(MånedBeløp(mai(2023), Beløp(2480))))
     }
 
     private val jsonMedReduksjonAvFeilkonto = """
