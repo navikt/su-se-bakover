@@ -52,8 +52,9 @@ internal class SimuleringResponseMapper private constructor(
     )
 }
 
-private fun SimulerBeregningRequest.SimuleringsPeriode.toPeriode() =
-    Periode.create(LocalDate.parse(datoSimulerFom), LocalDate.parse(datoSimulerTom))
+private fun SimulerBeregningRequest.SimuleringsPeriode.toPeriode(): Periode {
+    return Periode.create(LocalDate.parse(datoSimulerFom), LocalDate.parse(datoSimulerTom))
+}
 
 private fun SimulerBeregningResponse.toSimulering(
     saksnummer: Saksnummer,
@@ -80,16 +81,34 @@ private fun BeregningsPeriode.toSimulertPeriode(
                 val fagsystemId = utbetaling.fagsystemId.trim()
                 (fagsystemId == saksnummer.toString()).also {
                     if (!it) {
-                        log.debug("Simuleringen filtrerte vekk uønsket fagsystemid for saksnummer $saksnummer. fagsystemId=$fagsystemId. Se sikkerlogg for mer informasjon.")
-                        sikkerLogg.debug("Simuleringen filtrerte vekk uønsket fagsystemid for saksnummer $saksnummer. fagsystemId=$fagsystemId. rawResponse: $rawResponse")
+                        log.debug(
+                            "Simuleringen filtrerte vekk uønsket fagsystemid for saksnummer {}. fagsystemId={}. Se sikkerlogg for mer informasjon.",
+                            saksnummer,
+                            fagsystemId,
+                        )
+                        sikkerLogg.debug(
+                            "Simuleringen filtrerte vekk uønsket fagsystemid for saksnummer {}. fagsystemId={}. rawResponse: {}",
+                            saksnummer,
+                            fagsystemId,
+                            rawResponse,
+                        )
                     }
                 }
             }.filter { utbetaling ->
                 val kodeFagomraade = utbetaling.kodeFagomraade.trim()
                 (Fagområde.valuesAsStrings().contains(kodeFagomraade)).also {
                     if (!it) {
-                        log.debug("Simuleringen filtrerte vekk uønsket kodeFagomraade for saksnummer $saksnummer. kodeFagomraade=$kodeFagomraade. Se sikkerlogg for mer informasjon.")
-                        sikkerLogg.debug("Simuleringen filtrerte vekk uønsket kodeFagomraade for saksnummer $saksnummer. kodeFagomraade=$kodeFagomraade. rawResponse: $rawResponse")
+                        log.debug(
+                            "Simuleringen filtrerte vekk uønsket kodeFagomraade for saksnummer {}. kodeFagomraade={}. Se sikkerlogg for mer informasjon.",
+                            saksnummer,
+                            kodeFagomraade,
+                        )
+                        sikkerLogg.debug(
+                            "Simuleringen filtrerte vekk uønsket kodeFagomraade for saksnummer {}. kodeFagomraade={}. rawResponse: {}",
+                            saksnummer,
+                            kodeFagomraade,
+                            rawResponse,
+                        )
                     }
                 }
             }.map {

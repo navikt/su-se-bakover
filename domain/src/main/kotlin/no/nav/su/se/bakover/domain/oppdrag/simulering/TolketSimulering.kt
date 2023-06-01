@@ -21,17 +21,10 @@ internal data class TolketSimulering(
     }.toNonEmptyList()
 
     private fun hentMånederMedUtbetalinger(): List<TolketMånedMedUtbetalinger> {
-        return tolketMåneder.mapNotNull {
-            when (it) {
-                is TolketMånedMedUtbetalinger -> it
-                is TolketMånedUtenUtbetalinger -> null
-            }
-        }
+        return tolketMåneder.filterIsInstance<TolketMånedMedUtbetalinger>()
     }
 
-    val periode = tolketMåneder.map {
-        it.måned
-    }.minAndMaxOf()
+    val periode = tolketMåneder.map { it.måned }.minAndMaxOf()
 
     val månederMedSimuleringsresultat = hentMånederMedUtbetalinger().map { it.måned }
 
@@ -51,20 +44,15 @@ internal data class TolketSimulering(
         return tolketMåneder.all { it is TolketMånedUtenUtbetalinger }
     }
 
+    fun kontooppstillingForMåned(måned: Måned): Kontooppstilling? {
+        return tolketMåneder.singleOrNull { it.måned == måned }?.kontooppstilling()
+    }
+
     fun kontooppstilling(): Map<Periode, Kontooppstilling> {
         return if (erAlleMånederUtenUtbetaling()) {
-            mapOf(
-                periode to Kontooppstilling(
-                    debetYtelse = Kontobeløp.Debet(0),
-                    kreditYtelse = Kontobeløp.Kredit(0),
-                    debetFeilkonto = Kontobeløp.Debet(0),
-                    kreditFeilkonto = Kontobeløp.Kredit(0),
-                    debetMotpostFeilkonto = Kontobeløp.Debet(0),
-                    kreditMotpostFeilkonto = Kontobeløp.Kredit(0),
-                ),
-            )
+            mapOf(periode to Kontooppstilling.EMPTY)
         } else {
-            hentMånederMedUtbetalinger().associate { it.kontooppstilling() }
+            hentMånederMedUtbetalinger().associate { it.måned to it.kontooppstilling() }
         }
     }
 
@@ -154,21 +142,21 @@ internal data class TolketSimulering(
 internal sealed interface TolketMåned {
     val måned: Måned
     val utbetaling: TolketUtbetaling?
+    fun kontooppstilling(): Kontooppstilling
 }
 
 internal data class TolketMånedUtenUtbetalinger(
     override val måned: Måned,
 ) : TolketMåned {
     override val utbetaling: TolketUtbetaling? = null
+    override fun kontooppstilling(): Kontooppstilling = Kontooppstilling.EMPTY
 }
 
 internal data class TolketMånedMedUtbetalinger(
     override val måned: Måned,
     override val utbetaling: TolketUtbetaling,
 ) : TolketMåned {
-    fun kontooppstilling(): Pair<Måned, Kontooppstilling> {
-        return måned to utbetaling.kontoppstilling
-    }
+    override fun kontooppstilling(): Kontooppstilling = utbetaling.kontoppstilling
 
     fun harFeilutbetalinger() = hentFeilutbetalteBeløp().sum() > 0
     fun hentUtbetaltBeløp(): MånedBeløp {
@@ -254,6 +242,7 @@ internal data class TolketUtbetaling(
         return Kontobeløp.Kredit(ytelse.filter { it.erKredit() }.sumOf { it.sum() })
     }
 
+    @Suppress("unused")
     private fun hentUtbetalingSomSimuleres(): Kontobeløp.Debet {
         return Kontobeløp.Debet(ytelse.filter { it.erUtbetalingSomSimuleres && it.erDebet() }.sumOf { it.sum() })
     }
@@ -277,9 +266,14 @@ internal data class TolketUtbetaling(
 
 sealed class TolketDetalj {
     abstract val beløp: Kontobeløp
+    abstract val tilbakeføring: Boolean
+
     fun erDebet() = beløp is Kontobeløp.Debet
     fun erKredit() = beløp is Kontobeløp.Kredit
     fun sum() = beløp.sum()
+
+    @Suppress("unused")
+    fun erYtelse() = this is Ytelse
 
     companion object {
         private fun SimulertDetaljer.erUtbetalingSomSimuleres(): Boolean {
@@ -296,22 +290,26 @@ sealed class TolketDetalj {
             log: Logger = LoggerFactory.getLogger(this::class.java),
         ) = when {
             simulertDetaljer.erFeilkonto() -> {
-                Feilkonto(beløp = Kontobeløp(simulertDetaljer.belop))
+                Feilkonto(beløp = Kontobeløp(simulertDetaljer.belop), tilbakeføring = simulertDetaljer.tilbakeforing)
             }
 
             simulertDetaljer.erYtelse() -> {
                 Ytelse(
                     beløp = Kontobeløp(simulertDetaljer.belop),
                     erUtbetalingSomSimuleres = simulertDetaljer.erUtbetalingSomSimuleres(),
+                    tilbakeføring = simulertDetaljer.tilbakeforing,
                 )
             }
 
             simulertDetaljer.erMotpostFeilkonto() -> {
-                MotpostFeilkonto(beløp = Kontobeløp(simulertDetaljer.belop))
+                MotpostFeilkonto(
+                    beløp = Kontobeløp(simulertDetaljer.belop),
+                    tilbakeføring = simulertDetaljer.tilbakeforing,
+                )
             }
 
             simulertDetaljer.erSkatt() -> {
-                Skatt(beløp = Kontobeløp(simulertDetaljer.belop))
+                Skatt(beløp = Kontobeløp(simulertDetaljer.belop), tilbakeføring = simulertDetaljer.tilbakeforing)
             }
 
             else -> {
@@ -329,18 +327,22 @@ sealed class TolketDetalj {
 
     data class Feilkonto(
         override val beløp: Kontobeløp,
+        override val tilbakeføring: Boolean,
     ) : TolketDetalj()
 
     data class Ytelse(
         override val beløp: Kontobeløp,
+        override val tilbakeføring: Boolean,
         val erUtbetalingSomSimuleres: Boolean,
     ) : TolketDetalj()
 
     data class MotpostFeilkonto(
         override val beløp: Kontobeløp,
+        override val tilbakeføring: Boolean,
     ) : TolketDetalj()
 
     data class Skatt(
         override val beløp: Kontobeløp,
+        override val tilbakeføring: Boolean,
     ) : TolketDetalj()
 }

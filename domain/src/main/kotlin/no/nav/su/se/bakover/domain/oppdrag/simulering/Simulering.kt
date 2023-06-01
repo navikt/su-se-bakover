@@ -157,10 +157,7 @@ data class SimulertMåned(
              * I Teorien kan det være flere utbetalnger per periode, f.eks hvis bruker mottar andre ytelser.
              * Vi bryr oss kun om SU og forventer derfor bare 1.
              */
-            TolketMånedMedUtbetalinger(
-                måned = måned,
-                utbetaling = utbetaling.tolk(),
-            )
+            TolketMånedMedUtbetalinger(måned = måned, utbetaling = utbetaling.tolk())
         }
     }
 }
