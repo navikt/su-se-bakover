@@ -302,7 +302,7 @@ sealed class BeregnetRevurdering : Revurdering() {
 
                             if (simuleringMedNyOpphørsdato?.simulering?.harFeilutbetalinger() == true) {
                                 sikkerLogg.error(
-                                    "Simulering: ${serialize(simuleringMedNyOpphørsdato.simulering)}",
+                                    "Simulering: ${serialize(simuleringMedNyOpphørsdato.simulering, true)}",
                                 )
                                 throw IllegalStateException("Simulering med justert opphørsdato for utbetalinger pga avkorting utenlandsopphold inneholder feilutbetaling, se sikkerlogg for detaljer")
                             }

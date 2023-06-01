@@ -63,8 +63,8 @@ private fun logErr(
     )
     sikkerLogg.error(
         "Utbetaling kunne ikke gjennomføres, kontrollsimulering: {}, er ulik saksbehandlers simulering: {}",
-        serialize(attestantsSimulering),
-        serialize(saksbehandlersSimulering),
+        serialize(attestantsSimulering, true),
+        serialize(saksbehandlersSimulering, true),
     )
 }
 

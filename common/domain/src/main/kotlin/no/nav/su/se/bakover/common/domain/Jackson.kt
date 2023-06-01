@@ -26,16 +26,22 @@ internal val privateObjectMapper: ObjectMapper = JsonMapper.builder()
     .enable(DeserializationFeature.FAIL_ON_NUMBERS_FOR_ENUMS)
     .build()
 
-inline fun <reified K, reified V> ObjectMapper.readMap(value: String): Map<K, V> = readValue(
-    value,
-    typeFactory.constructMapType(
-        HashMap::class.java,
-        K::class.java,
-        V::class.java,
-    ),
-)
+inline fun <reified K, reified V> ObjectMapper.readMap(value: String): Map<K, V> {
+    return readValue<Map<K, V>>(
+        value,
+        typeFactory.constructMapType(
+            HashMap::class.java,
+            K::class.java,
+            V::class.java,
+        ),
+    ).onEach { throwIfContainsDomainObjects(it.key, it.value) }
+}
 
-fun serialize(value: Any): String {
+/**
+ * @param acceptDomainObjects If true, will throw if you try to serialize certain domain objects. In time it should throw if the package contains 'domain'.
+ */
+fun serialize(value: Any, acceptDomainObjects: Boolean = false): String {
+    if (!acceptDomainObjects) throwIfContainsDomainObjects(value)
     return privateObjectMapper.writeValueAsString(value)
 }
 
@@ -44,17 +50,20 @@ fun serializeNullable(value: Any?): String? {
 }
 
 inline fun <reified T> List<T>.serialize(): String {
+    this.forEach { throwIfContainsDomainObjects(it) }
     val listType = privateObjectMapper.typeFactory.constructCollectionLikeType(List::class.java, T::class.java)
     return privateObjectMapper.writerFor(listType).writeValueAsString(this)
 }
 
 inline fun <reified T> String.deserializeList(): List<T> {
     val listType = privateObjectMapper.typeFactory.constructCollectionLikeType(List::class.java, T::class.java)
-    return privateObjectMapper.readerFor(listType).readValue(this)
+    return privateObjectMapper.readerFor(listType).readValue<List<T>?>(this).onEach { throwIfContainsDomainObjects(it) }
 }
 
 inline fun <reified T> deserialize(value: String): T {
-    return privateObjectMapper.readValue(value)
+    return privateObjectMapper.readValue<T>(value).also {
+        throwIfContainsDomainObjects(it)
+    }
 }
 
 inline fun <reified T> deserializeNullable(value: String?): T? {
@@ -89,4 +98,15 @@ fun jsonNode(value: String): com.fasterxml.jackson.databind.JsonNode {
 
 fun jacksonConverter(): JacksonConverter {
     return JacksonConverter(privateObjectMapper)
+}
+
+fun throwIfContainsDomainObjects(vararg types: Any?) {
+    types.forEach { type ->
+        if (type == null) return
+        val exclusionList = listOf("Simulering")
+        val currentType: String = type::class.java.simpleName
+        if (exclusionList.contains(currentType)) {
+            throw IllegalStateException("Don't serialize/deserialize domain types: $currentType")
+        }
+    }
 }

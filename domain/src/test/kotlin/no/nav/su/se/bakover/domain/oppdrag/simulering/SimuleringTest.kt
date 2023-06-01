@@ -1,9 +1,11 @@
 package no.nav.su.se.bakover.domain.oppdrag.simulering
 
+import io.kotest.assertions.throwables.shouldThrowWithMessage
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Beløp
 import no.nav.su.se.bakover.common.MånedBeløp
 import no.nav.su.se.bakover.common.Månedsbeløp
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.extensions.april
 import no.nav.su.se.bakover.common.extensions.desember
 import no.nav.su.se.bakover.common.extensions.februar
@@ -11,6 +13,7 @@ import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.juni
 import no.nav.su.se.bakover.common.extensions.mars
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
@@ -18,6 +21,7 @@ import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.simulering.simuleringNy
 import org.junit.jupiter.api.Test
 
 internal class SimuleringTest {
@@ -600,5 +604,35 @@ internal class SimuleringTest {
                     it.hentUtbetalteBeløp() shouldBe Månedsbeløp(emptyList())
                 }
             }
+    }
+
+    @Test
+    fun `Skal ikke kunne serialisere Simulering`() {
+        shouldThrowWithMessage<IllegalStateException>("Don't serialize/deserialize domain types: Simulering") {
+            serialize(simuleringNy())
+        }
+    }
+
+    @Test
+    fun `Skal ikke kunne deserialisere Simulering`() {
+        shouldThrowWithMessage<IllegalStateException>("Don't serialize/deserialize domain types: Simulering") {
+            deserialize<Simulering>(
+                """
+                {
+                    "gjelderId": "12345678901",
+                    "gjelderNavn": "John Doe",
+                    "datoBeregnet": "2023-06-01",
+                    "nettoBeløp": 5000,
+                    "periodeList": [{
+                      "fraOgMed": "2023-06-01",
+                      "tilOgMed": "2023-06-30",
+                      "utbealing": null
+                    }],
+                    "rawResponse": ""
+                }
+
+                """.trimIndent(),
+            )
+        }
     }
 }
