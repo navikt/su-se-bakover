@@ -27,9 +27,9 @@ sealed class Vilkårsvurderinger {
 
     protected fun kastHvisPerioderErUlike() {
         // Merk at hvert enkelt [Vilkår] passer på sine egne data (som f.eks. at periodene er sorterte og uten duplikater)
-        vilkår.map { it.perioder }.zipWithNext { a, b ->
+        vilkår.map { Pair(it.vilkår, it.perioder) }.zipWithNext { a, b ->
             // Vilkår med tomme perioder har ikke blitt vurdert enda.
-            if (a.isNotEmpty() && b.isNotEmpty()) {
+            if (a.second.isNotEmpty() && b.second.isNotEmpty()) {
                 require(a == b) {
                     "Periodene til Vilkårsvurderinger er ulike. $a vs $b."
                 }
