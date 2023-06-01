@@ -2,14 +2,13 @@ package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.left
 import arrow.core.right
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -79,7 +78,7 @@ internal class IverksettRevurderingRouteKtTest {
                 listOf(Brukerrolle.Attestant),
             ).apply {
                 status shouldBe HttpStatusCode.OK
-                val actualResponse = objectMapper.readValue<IverksattRevurderingJson>(bodyAsText())
+                val actualResponse = deserialize<IverksattRevurderingJson>(bodyAsText())
                 actualResponse.id shouldBe iverksattRevurdering.id.toString()
                 actualResponse.status shouldBe RevurderingsStatus.IVERKSATT_INNVILGET
             }

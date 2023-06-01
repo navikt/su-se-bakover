@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
-import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -160,7 +159,7 @@ internal fun Route.sakRoutes(
                             )
                         }
                 }.map {
-                    Resultat.json(OK, objectMapper.writeValueAsString(it))
+                    Resultat.json(OK, serialize(it))
                 }
                 .merge()
                 .let {

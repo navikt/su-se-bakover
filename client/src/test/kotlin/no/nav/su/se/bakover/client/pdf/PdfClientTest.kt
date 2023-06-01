@@ -7,7 +7,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Saksnummer
@@ -28,7 +28,7 @@ internal class PdfClientTest : WiremockBase {
         søknadInnhold = søknadinnholdUføre(),
         clock = fixedClock,
     )
-    private val søknadPdfInnholdJson = objectMapper.writeValueAsString(søknadPdfInnhold)
+    private val søknadPdfInnholdJson = serialize(søknadPdfInnhold)
 
     @Test
     fun `should generate pdf successfully`() {

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.client.dokarkiv
 
 import no.nav.su.se.bakover.client.dokarkiv.JournalpostDokument.Companion.lagDokumenterForJournalpost
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Behandlingstema
 import no.nav.su.se.bakover.domain.Tema
 import no.nav.su.se.bakover.domain.brev.PdfInnhold
@@ -247,7 +247,7 @@ data class JournalpostDokument(
         ): List<JournalpostDokument> = lagDokumenterForJournalpost(
             tittel = Journalpost.Søknadspost.lagTittel(søknadInnhold.type()),
             pdf = pdf,
-            originalJson = objectMapper.writeValueAsString(søknadInnhold),
+            originalJson = serialize(søknadInnhold),
         )
 
         internal fun lagDokumenterForJournalpost(

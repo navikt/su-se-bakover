@@ -5,16 +5,16 @@ import arrow.core.flatMap
 import arrow.core.flatten
 import arrow.core.left
 import arrow.core.right
-import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.su.se.bakover.client.PATCH
 import no.nav.su.se.bakover.client.isSuccess
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.CorrelationIdHeader
 import no.nav.su.se.bakover.common.auth.AzureAd
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Tema
@@ -151,7 +151,7 @@ internal class OppgaveHttpClient(
                 .header("Content-Type", "application/json")
                 .POST(
                     HttpRequest.BodyPublishers.ofString(
-                        objectMapper.writeValueAsString(
+                        serialize(
                             OppgaveRequest(
                                 journalpostId = config.journalpostId?.toString(),
                                 saksreferanse = config.saksreferanse,
@@ -173,7 +173,7 @@ internal class OppgaveHttpClient(
             client.send(request, HttpResponse.BodyHandlers.ofString()).let {
                 val body = it.body()
                 if (it.isSuccess()) {
-                    val oppgaveId = objectMapper.readValue(body, OppgaveResponse::class.java).getOppgaveId().right()
+                    val oppgaveId = deserialize<OppgaveResponse>(body).getOppgaveId().right()
                     log.info("Lagret oppgave med id $oppgaveId i oppgavesystemet for sak ${config.saksreferanse}. status=${it.statusCode()} se sikkerlogg for detaljer")
                     sikkerLogg.info("Lagret oppgave i oppgave. status=${it.statusCode()} body=$body")
 
@@ -222,7 +222,7 @@ internal class OppgaveHttpClient(
 
             client.send(request, HttpResponse.BodyHandlers.ofString()).let {
                 if (it.isSuccess()) {
-                    val oppgave = objectMapper.readValue<OppgaveResponse>(it.body())
+                    val oppgave = deserialize<OppgaveResponse>(it.body())
                     oppgave.right()
                 } else {
                     log.error(
@@ -296,7 +296,7 @@ internal class OppgaveHttpClient(
                 .header("Content-Type", "application/json")
                 .PATCH(
                     HttpRequest.BodyPublishers.ofString(
-                        objectMapper.writeValueAsString(
+                        serialize(
                             EndreOppgaveRequest(
                                 id = oppgave.id,
                                 versjon = oppgave.versjon,
@@ -317,7 +317,7 @@ internal class OppgaveHttpClient(
                         "Endret oppgave ${oppgave.id} for sak ${oppgave.saksreferanse} med versjon ${oppgave.versjon} sin status til FERDIGSTILT"
                     log.info("$loggmelding. Response-json finnes i sikkerlogg.")
                     sikkerLogg.info("$loggmelding. Response-json: $it")
-                    objectMapper.readValue(it.body(), OppdatertOppgaveResponse::class.java).right()
+                    deserialize<OppdatertOppgaveResponse>(it.body()).right()
                 } else {
                     log.error(
                         "Kunne ikke endre oppgave ${oppgave.id} for saksreferanse ${oppgave.saksreferanse} med status=${it.statusCode()} og body=${it.body()}",

@@ -4,8 +4,8 @@ import no.nav.su.se.bakover.common.Beløp
 import no.nav.su.se.bakover.common.MånedBeløp
 import no.nav.su.se.bakover.common.extensions.februar
 import no.nav.su.se.bakover.common.extensions.januar
-import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
@@ -41,7 +41,7 @@ internal class PdfInnholdTest {
 
     @Test
     fun `jsonformat for personalia stemmer overens med det som forventes av pdfgenerator`() {
-        val actualJson = objectMapper.writeValueAsString(personalia)
+        val actualJson = serialize(personalia)
         //language=json
         val expectedJson = """
             {
@@ -97,7 +97,7 @@ internal class PdfInnholdTest {
             sakstype = Sakstype.UFØRE,
         )
 
-        val actualJson = objectMapper.writeValueAsString(innvilgetVedtak)
+        val actualJson = serialize(innvilgetVedtak)
         //language=json
         val expectedJson =
             """
@@ -161,7 +161,7 @@ internal class PdfInnholdTest {
 
     @Test
     fun `jsonformat for trukket søknad stemmer overens med det som forventes av pdfgenerator`() {
-        val actualJson = objectMapper.writeValueAsString(trukketSøknad)
+        val actualJson = serialize(trukketSøknad)
         //language=json
         val expectedJson = """
             {
@@ -278,7 +278,7 @@ internal class PdfInnholdTest {
             }
         """.trimIndent()
 
-        JSONAssert.assertEquals(expectedJson, objectMapper.writeValueAsString(opphørsvedtak), true)
+        JSONAssert.assertEquals(expectedJson, serialize(opphørsvedtak), true)
     }
 
     @Test
@@ -306,7 +306,7 @@ internal class PdfInnholdTest {
             }
         """.trimIndent()
 
-        JSONAssert.assertEquals(expected, objectMapper.writeValueAsString(forhåndsvarsel.pdfInnhold), true)
+        JSONAssert.assertEquals(expected, serialize(forhåndsvarsel.pdfInnhold), true)
     }
 
     @Test
@@ -341,6 +341,6 @@ internal class PdfInnholdTest {
             }
         """.trimIndent()
 
-        JSONAssert.assertEquals(expected, objectMapper.writeValueAsString(forhåndsvarsel.pdfInnhold), true)
+        JSONAssert.assertEquals(expected, serialize(forhåndsvarsel.pdfInnhold), true)
     }
 }

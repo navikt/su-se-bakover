@@ -3,10 +3,10 @@ package no.nav.su.se.bakover.common.domain.periode
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.extensions.april
 import no.nav.su.se.bakover.common.extensions.august
 import no.nav.su.se.bakover.common.extensions.desember
@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.common.extensions.mars
 import no.nav.su.se.bakover.common.extensions.november
 import no.nav.su.se.bakover.common.extensions.oktober
 import no.nav.su.se.bakover.common.extensions.september
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.august
@@ -506,7 +506,7 @@ internal class PeriodeTest {
             }
         """.trimIndent()
 
-        val serialized = objectMapper.writeValueAsString(år(2021))
+        val serialized = serialize(år(2021))
 
         JSONAssert.assertEquals(expectedJson, serialized, true)
     }
@@ -520,7 +520,7 @@ internal class PeriodeTest {
             }
         """.trimIndent()
 
-        val deserialized = objectMapper.readValue<Periode>(serialized)
+        val deserialized = deserialize<Periode>(serialized)
 
         deserialized shouldBe år(2021)
     }

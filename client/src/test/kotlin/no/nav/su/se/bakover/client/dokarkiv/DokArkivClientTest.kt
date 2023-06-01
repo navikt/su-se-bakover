@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Saksnummer
@@ -90,7 +90,7 @@ internal class DokArkivClientTest : WiremockBase {
                               "filtype": "JSON",
                               "fysiskDokument": "${
             Base64.getEncoder()
-                .encodeToString(objectMapper.writeValueAsString(søknadInnhold).toByteArray())
+                .encodeToString(serialize(søknadInnhold).toByteArray())
         }",
                               "variantformat": "ORIGINAL"
                             }
@@ -136,7 +136,7 @@ internal class DokArkivClientTest : WiremockBase {
                             {
                               "filtype": "JSON",
                               "fysiskDokument": "${
-            Base64.getEncoder().encodeToString(objectMapper.writeValueAsString(vedtakInnhold).toByteArray())
+            Base64.getEncoder().encodeToString(serialize(vedtakInnhold).toByteArray())
         }",
                               "variantformat": "ORIGINAL"
                             }

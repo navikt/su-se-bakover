@@ -18,11 +18,12 @@ import no.nav.su.se.bakover.client.person.Variables.Companion.AKTORID
 import no.nav.su.se.bakover.client.person.Variables.Companion.FOLKEREGISTERIDENT
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.auth.AzureAd
+import no.nav.su.se.bakover.common.deserializeParameterizedType
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
-import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Tema
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -157,7 +158,7 @@ internal class PdlClient(
             .header("Tema", Tema.SUPPLERENDE_STØNAD.value)
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
-            .body(objectMapper.writeValueAsString(pdlRequest))
+            .body(serialize(pdlRequest))
             .responseString()
         return håndterPdlSvar(result, response)
     }
@@ -173,18 +174,18 @@ internal class PdlClient(
             .header("Tema", Tema.SUPPLERENDE_STØNAD.value)
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
-            .body(objectMapper.writeValueAsString(pdlRequest))
+            .body(serialize(pdlRequest))
             .responseString()
         return håndterPdlSvar(result, response)
     }
 
-    private inline fun <reified T> håndterPdlSvar(
+    private inline fun <reified Inner> håndterPdlSvar(
         result: Result<String, FuelError>,
         response: Response,
-    ): Either<KunneIkkeHentePerson, T> {
+    ): Either<KunneIkkeHentePerson, Inner> {
         return result.fold(
             {
-                val pdlResponse: PdlResponse<T> = objectMapper.readValue(it, specializedType(T::class.java))
+                val pdlResponse: PdlResponse<Inner> = deserializeParameterizedType<PdlResponse<Inner>, Inner>(it)
                 if (pdlResponse.hasErrors()) {
                     håndterPdlFeil(pdlResponse).left()
                 } else {
@@ -221,9 +222,6 @@ internal class PdlClient(
         }
         throw IllegalStateException("Implementation error - we didn't cover all the PDL error states.")
     }
-
-    private fun specializedType(clazz: Class<*>) =
-        objectMapper.typeFactory.constructParametricType(PdlResponse::class.java, clazz)
 }
 
 internal data class PdlResponse<T>(

@@ -5,11 +5,11 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Beløp
 import no.nav.su.se.bakover.common.MånedBeløp
 import no.nav.su.se.bakover.common.Månedsbeløp
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.extensions.april
 import no.nav.su.se.bakover.common.extensions.februar
 import no.nav.su.se.bakover.common.extensions.mars
 import no.nav.su.se.bakover.common.infrastructure.xml.xmlMapper
-import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.august
 import no.nav.su.se.bakover.common.tid.periode.februar
@@ -827,9 +827,8 @@ internal class SimuleringResponseMapperTest {
     fun `mapping med åpen feilkonto`() {
         // TODO jah: Ved reduksjon/annulering av en allerede feilkonto, vil fortegnene på FEIL/MOTP være snudd. I tillegg ser det ikke ut som tilbakeforing kun er i bruk ved reduksjon og ikke annullering?
         val rawResponse = jsonMedÅpenFeilkonto
-        val responseMedÅpenFeilkonto = objectMapper.readValue(
+        val responseMedÅpenFeilkonto = deserialize<SimulerBeregningResponse>(
             rawResponse,
-            SimulerBeregningResponse::class.java,
         )
 
         SimuleringResponseMapper(
@@ -1041,9 +1040,8 @@ internal class SimuleringResponseMapperTest {
     fun `mapping med åpen feilkonto annullering og etterbetaling`() {
         // TODO jah: Ved reduksjon/annulering av en allerede feilkonto, vil fortegnene på FEIL/MOTP være snudd. I tillegg ser det ikke ut som tilbakeforing kun er i bruk ved reduksjon og ikke annullering?
         val rawResponse = jsonMedÅpenFeilkontoOgEtterbetaling
-        val responseMedÅpenFeilkonto = objectMapper.readValue(
+        val responseMedÅpenFeilkonto = deserialize<SimulerBeregningResponse>(
             rawResponse,
-            SimulerBeregningResponse::class.java,
         )
 
         SimuleringResponseMapper(
@@ -1280,9 +1278,8 @@ internal class SimuleringResponseMapperTest {
     fun `mapping med reduksjon av åpen feilkonto og ikke trimmet verdier`() {
         // TODO jah: Ved reduksjon/annulering av en allerede feilkonto, vil fortegnene på FEIL/MOTP være snudd. I tillegg ser det ikke ut som tilbakeforing kun er i bruk ved reduksjon og ikke annullering?
         val rawResponse = jsonMedReduksjonAvFeilkonto
-        val responseMedÅpenFeilkonto = objectMapper.readValue(
+        val responseMedÅpenFeilkonto = deserialize<SimulerBeregningResponse>(
             rawResponse,
-            SimulerBeregningResponse::class.java,
         )
 
         SimuleringResponseMapper(

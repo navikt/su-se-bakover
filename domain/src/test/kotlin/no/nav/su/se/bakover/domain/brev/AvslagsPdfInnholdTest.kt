@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.brev
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.getDistinkteParagrafer
 import no.nav.su.se.bakover.domain.sak.Sakstype
@@ -45,7 +45,7 @@ class AvslagsPdfInnholdTest {
 
     @Test
     fun `jsonformat for avslagsvedtak stemmer overens med det som forventes av pdfgenerator`() {
-        val actualJson = objectMapper.writeValueAsString(avslagsvedtak)
+        val actualJson = serialize(avslagsvedtak)
         //language=json
         val expectedJson = """
             {
@@ -135,7 +135,7 @@ class AvslagsPdfInnholdTest {
             ),
         )
 
-        val actualJson = objectMapper.writeValueAsString(annetVedtak)
+        val actualJson = serialize(annetVedtak)
         //language=json
         val expectedJson = """
             {
@@ -213,7 +213,7 @@ class AvslagsPdfInnholdTest {
             ),
         )
 
-        val actualJson = objectMapper.writeValueAsString(annetVedtak)
+        val actualJson = serialize(annetVedtak)
         //language=json
         val expectedJson = """
             {

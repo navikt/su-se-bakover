@@ -4,14 +4,13 @@ import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.right
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.kittinunf.fuel.core.Request
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpGet
 import no.nav.su.se.bakover.client.fromResult
 import no.nav.su.se.bakover.common.auth.AzureAd
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
@@ -87,7 +86,7 @@ internal class MicrosoftGraphApiClient(
             }
             .flatMap { res ->
                 Either.catch {
-                    objectMapper.readValue<T>(res)
+                    deserialize<T>(res)
                 }.mapLeft {
                     log.error("Deserialisering av respons fra Microsoft Graph API feilet: $it, request-parametre: ${req.parameters}, response-string: $res")
                     KunneIkkeHenteNavnForNavIdent.DeserialiseringAvResponsFeilet

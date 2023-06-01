@@ -7,7 +7,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -302,7 +302,7 @@ sealed class BeregnetRevurdering : Revurdering() {
 
                             if (simuleringMedNyOpphørsdato?.simulering?.harFeilutbetalinger() == true) {
                                 sikkerLogg.error(
-                                    "Simulering: ${objectMapper.writeValueAsString(simuleringMedNyOpphørsdato.simulering)}",
+                                    "Simulering: ${serialize(simuleringMedNyOpphørsdato.simulering)}",
                                 )
                                 throw IllegalStateException("Simulering med justert opphørsdato for utbetalinger pga avkorting utenlandsopphold inneholder feilutbetaling, se sikkerlogg for detaljer")
                             }

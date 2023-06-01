@@ -3,11 +3,10 @@ package no.nav.su.se.bakover.client.kodeverk
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.kittinunf.fuel.httpGet
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk.CouldNotGetKode
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
-import no.nav.su.se.bakover.common.objectMapper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -38,7 +37,7 @@ class KodeverkHttpClient(val baseUrl: String, private val consumerId: String) : 
 
         return result.fold(
             { json ->
-                objectMapper.readValue<KodeverkResponse>(json).betydninger.getOrDefault(value, emptyList())
+                deserialize<KodeverkResponse>(json).betydninger.getOrDefault(value, emptyList())
                     .map { it.beskrivelser.nb.tekst }.firstOrNull().right()
             },
             {

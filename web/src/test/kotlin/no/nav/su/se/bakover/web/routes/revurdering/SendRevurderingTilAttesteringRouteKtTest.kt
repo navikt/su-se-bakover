@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.left
 import arrow.core.right
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -10,7 +9,7 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.attestering.KunneIkkeSendeRevurderingTilAttestering
@@ -77,7 +76,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                 setBody("""{ "fritekstTilBrev": "Friteksten" }""")
             }.apply {
                 status shouldBe HttpStatusCode.OK
-                val actualResponse = objectMapper.readValue<TilAttesteringJson>(bodyAsText())
+                val actualResponse = deserialize<TilAttesteringJson>(bodyAsText())
                 actualResponse.id shouldBe revurderingTilAttestering.id.toString()
                 actualResponse.status shouldBe RevurderingsStatus.TIL_ATTESTERING_INNVILGET
             }

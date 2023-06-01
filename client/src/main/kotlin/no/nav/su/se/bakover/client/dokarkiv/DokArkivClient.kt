@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.CorrelationIdHeader
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.serialize
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 
@@ -34,7 +34,7 @@ class DokArkivClient(
             .header("Accept", "application/json")
             .header(CorrelationIdHeader, getOrCreateCorrelationIdFromThreadLocal())
             .body(
-                objectMapper.writeValueAsString(
+                serialize(
                     JournalpostRequest(
                         tittel = dokumentInnhold.tittel,
                         journalpostType = dokumentInnhold.journalpostType,

@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.extensions.april
 import no.nav.su.se.bakover.common.extensions.august
 import no.nav.su.se.bakover.common.extensions.juni
 import no.nav.su.se.bakover.common.extensions.mai
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
@@ -404,7 +404,7 @@ internal class LagBrevinnholdForBeregningTest {
           }
         """.trimIndent()
 
-        JSONAssert.assertEquals(expectedJson, objectMapper.writeValueAsString(beregning), true)
+        JSONAssert.assertEquals(expectedJson, serialize(beregning), true)
     }
 
     @Test

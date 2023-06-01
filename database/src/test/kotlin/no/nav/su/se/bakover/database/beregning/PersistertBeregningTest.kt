@@ -4,7 +4,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.extensions.fixedClock
 import no.nav.su.se.bakover.common.extensions.mai
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.mai
@@ -126,7 +126,7 @@ internal class PersistertBeregningTest {
         val beregning = createBeregning(strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE))
 
         JSONAssert.assertNotEquals(
-            objectMapper.writeValueAsString(beregning),
+            serialize(beregning),
             beregning.serialiser(),
             true,
         )

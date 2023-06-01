@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeTilKlageinstans
@@ -58,7 +58,7 @@ class KabalHttpClient(
         journalpostIdForVedtak: JournalpostId,
     ): Either<KunneIkkeOversendeTilKlageinstans, Unit> {
         val token = hentToken().getOrElse { return it.left() }
-        val requestBody = objectMapper.writeValueAsString(
+        val requestBody = serialize(
             KabalRequestMapper.map(
                 klage = klage,
                 journalpostIdForVedtak = journalpostIdForVedtak,

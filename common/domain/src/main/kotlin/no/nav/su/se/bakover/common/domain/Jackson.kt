@@ -8,11 +8,15 @@ import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.ktor.serialization.jackson.JacksonConverter
 
 /**
  * TODO jah: Denne bør ligger under common:infrastructure, men brukes blant annet av BrevInnhold, som ligger i domain. Dette krever en gradvis refaktorering.
+ * Ikke bruk denne direkte. Bruk heller [serialize], [serializeNullable], [deserialize], [deserializeList] osv.
+ * Den må være public for at inline/reified skal fungere.
  */
-val objectMapper: ObjectMapper = JsonMapper.builder()
+@PublishedApi
+internal val privateObjectMapper: ObjectMapper = JsonMapper.builder()
     .addModule(JavaTimeModule())
     .addModule(KotlinModule.Builder().build())
     .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
@@ -32,7 +36,7 @@ inline fun <reified K, reified V> ObjectMapper.readMap(value: String): Map<K, V>
 )
 
 fun serialize(value: Any): String {
-    return objectMapper.writeValueAsString(value)
+    return privateObjectMapper.writeValueAsString(value)
 }
 
 fun serializeNullable(value: Any?): String? {
@@ -40,17 +44,17 @@ fun serializeNullable(value: Any?): String? {
 }
 
 inline fun <reified T> List<T>.serialize(): String {
-    val listType = objectMapper.typeFactory.constructCollectionLikeType(List::class.java, T::class.java)
-    return objectMapper.writerFor(listType).writeValueAsString(this)
+    val listType = privateObjectMapper.typeFactory.constructCollectionLikeType(List::class.java, T::class.java)
+    return privateObjectMapper.writerFor(listType).writeValueAsString(this)
 }
 
 inline fun <reified T> String.deserializeList(): List<T> {
-    val listType = objectMapper.typeFactory.constructCollectionLikeType(List::class.java, T::class.java)
-    return objectMapper.readerFor(listType).readValue(this)
+    val listType = privateObjectMapper.typeFactory.constructCollectionLikeType(List::class.java, T::class.java)
+    return privateObjectMapper.readerFor(listType).readValue(this)
 }
 
 inline fun <reified T> deserialize(value: String): T {
-    return objectMapper.readValue(value)
+    return privateObjectMapper.readValue(value)
 }
 
 inline fun <reified T> deserializeNullable(value: String?): T? {
@@ -58,7 +62,7 @@ inline fun <reified T> deserializeNullable(value: String?): T? {
 }
 
 inline fun <reified K, reified V> deserializeMap(value: String): Map<K, V> {
-    return objectMapper.readMap(value)
+    return privateObjectMapper.readMap(value)
 }
 
 inline fun <reified K, reified V> deserializeMapNullable(value: String?): Map<K, V>? {
@@ -72,4 +76,17 @@ inline fun <reified T> deserializeList(value: String): List<T> {
 
 inline fun <reified T> deserializeListNullable(value: String?): List<T>? {
     return value?.let { deserializeList(it) }
+}
+
+inline fun <reified Outer, reified Inner> deserializeParameterizedType(json: String): Outer {
+    val type = privateObjectMapper.typeFactory.constructParametricType(Outer::class.java, Inner::class.java)
+    return privateObjectMapper.readValue(json, type)
+}
+
+fun jsonNode(value: String): com.fasterxml.jackson.databind.JsonNode {
+    return privateObjectMapper.readTree(value)
+}
+
+fun jacksonConverter(): JacksonConverter {
+    return JacksonConverter(privateObjectMapper)
 }

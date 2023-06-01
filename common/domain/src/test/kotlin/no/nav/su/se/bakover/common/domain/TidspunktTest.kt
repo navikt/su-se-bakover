@@ -7,12 +7,13 @@ import io.kotest.matchers.ints.shouldBeBetween
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldNotBeSameInstanceAs
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.extensions.endOfDay
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.extensions.oktober
 import no.nav.su.se.bakover.common.extensions.startOfDay
 import no.nav.su.se.bakover.common.extensions.zoneIdOslo
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.toTidspunkt
 import org.junit.jupiter.api.Test
@@ -89,14 +90,14 @@ internal class TidspunktTest {
     @Test
     fun `should serialize as instant`() {
         val start = 1.oktober(2020).endOfDay()
-        val serialized = objectMapper.writeValueAsString(start)
+        val serialized = serialize(start)
         serialized shouldBe "\"2020-10-01T21:59:59.999999Z\"" // Denne serialiseres til json-streng istedenfor objekt
-        val deserialized = objectMapper.readValue(serialized, Tidspunkt::class.java)
+        val deserialized = deserialize<Tidspunkt>(serialized)
         deserialized shouldBe start
 
-        val objSerialized = objectMapper.writeValueAsString(NestedSerialization(start))
+        val objSerialized = serialize(NestedSerialization(start))
         objSerialized shouldBe """{"tidspunkt":"2020-10-01T21:59:59.999999Z","other":"other values"}"""
-        val objDeserialized = objectMapper.readValue(objSerialized, NestedSerialization::class.java)
+        val objDeserialized = deserialize<NestedSerialization>(objSerialized)
         objDeserialized shouldBe NestedSerialization(start, "other values")
     }
 

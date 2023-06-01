@@ -7,7 +7,7 @@ import com.networknt.schema.JsonSchema
 import com.networknt.schema.JsonSchemaFactory
 import com.networknt.schema.SpecVersion
 import com.networknt.schema.ValidationMessage
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.jsonNode
 
 /**
  * Generell skjemavaliderer.
@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.common.objectMapper
 internal object SchemaValidator {
 
     fun validate(json: String, schema: JsonSchema): Either<Set<ValidationMessage>, String> {
-        val validated: Set<ValidationMessage> = schema.validate(objectMapper.readTree(json))
+        val validated: Set<ValidationMessage> = schema.validate(jsonNode(json))
         return if (validated.isEmpty()) json.right() else validated.left()
     }
 
@@ -25,6 +25,6 @@ internal object SchemaValidator {
     }
 
     private fun String.toJsonSchema(): JsonSchema {
-        return JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7).getSchema(objectMapper.readTree(this))
+        return JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7).getSchema(jsonNode(this))
     }
 }

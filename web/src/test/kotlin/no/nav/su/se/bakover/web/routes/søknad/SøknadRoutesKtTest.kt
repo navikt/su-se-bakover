@@ -13,7 +13,7 @@ import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.extensions.januar
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.søknad.nySakMedLukketSøknad
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
@@ -46,7 +46,7 @@ internal class SøknadRoutesKtTest {
             ) {
                 header(ContentType, Json.toString())
                 setBody(
-                    objectMapper.writeValueAsString(
+                    serialize(
                         LukketJson.TrukketJson(
                             datoSøkerTrakkSøknad = 1.januar(2020),
                             type = LukketJson.LukketType.TRUKKET,
@@ -70,7 +70,7 @@ internal class SøknadRoutesKtTest {
             ) {
                 header(ContentType, Json.toString())
                 setBody(
-                    objectMapper.writeValueAsString(
+                    serialize(
                         LukketJson.AvvistJson(
                             type = LukketJson.LukketType.AVVIST,
                             brevConfig = LukketJson.AvvistJson.BrevConfigJson(
@@ -128,7 +128,7 @@ internal class SøknadRoutesKtTest {
                 roller = listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
-                    objectMapper.writeValueAsString(
+                    serialize(
                         LukketJson.TrukketJson(
                             datoSøkerTrakkSøknad = 1.januar(2020),
                             type = LukketJson.LukketType.TRUKKET,

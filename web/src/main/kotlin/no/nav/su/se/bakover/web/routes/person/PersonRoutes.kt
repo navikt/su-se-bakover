@@ -12,8 +12,8 @@ import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
-import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.FantIkkePerson
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.IkkeTilgangTilPerson
@@ -54,7 +54,7 @@ internal fun Route.personRoutes(
                             },
                             {
                                 call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
-                                Resultat.json(HttpStatusCode.OK, objectMapper.writeValueAsString(it.toJson(clock)))
+                                Resultat.json(HttpStatusCode.OK, serialize(it.toJson(clock)))
                             },
                         ),
                     )

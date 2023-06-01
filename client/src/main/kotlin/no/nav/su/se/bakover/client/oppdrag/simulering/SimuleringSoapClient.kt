@@ -7,7 +7,7 @@ import arrow.core.right
 import com.ctc.wstx.exc.WstxEOFException
 import io.getunleash.Unleash
 import no.nav.su.se.bakover.common.infrastructure.xml.xmlMapper
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -41,8 +41,8 @@ internal class SimuleringSoapClient(
                 unleash.isEnabled("supstonad.logg.simulering").ifTrue {
                     sikkerLogg.debug(
                         """
-                            Request: ${objectMapper.writeValueAsString(simulerRequest)},
-                            Response: ${objectMapper.writeValueAsString(it)}
+                            Request: ${serialize(simulerRequest)},
+                            Response: ${serialize(it)}
                         """.trimIndent(),
                     )
                 }
@@ -95,7 +95,7 @@ internal class SimuleringSoapClient(
         }
     }
 
-    private fun SimulerBeregningRequest.print() = objectMapper.writeValueAsString(this)
+    private fun SimulerBeregningRequest.print() = serialize(this)
 
     private fun unknownTechnicalExceptionResponse(exception: Throwable) = SimuleringFeilet.TekniskFeil.left().also {
         log.error("Ukjent teknisk feil ved simulering", exception)

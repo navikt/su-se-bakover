@@ -3,13 +3,12 @@ package no.nav.su.se.bakover.client.krr
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpGet
 import no.nav.su.se.bakover.common.auth.AzureAd
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
-import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.person.Fnr
 import org.slf4j.LoggerFactory
 
@@ -34,7 +33,7 @@ class KontaktOgReservasjonsregisterClient(
 
         return result.fold(
             { json ->
-                objectMapper.readValue<HentKontaktinformasjonRepsonse>(json).toKontaktinformasjon()
+                deserialize<HentKontaktinformasjonRepsonse>(json).toKontaktinformasjon()
             },
             {
                 val errorMessage = "Feil ved henting av digital kontaktinformasjon. Status=${response.statusCode} Body=${String(response.data)}"

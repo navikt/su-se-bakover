@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.database.avkorting
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.assertions.throwables.shouldThrowWithMessage
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.test.avkorting.avkortingVedSøknadsbehandlingAvkortet
 import no.nav.su.se.bakover.test.avkorting.avkortingVedSøknadsbehandlingSkalAvkortes
@@ -109,7 +109,7 @@ internal class AvkortingVedSøknadsbehandlingDbKtTest {
 
             @Test
             fun HÅNDTERT_KAN_IKKE() {
-                objectMapper.readValue<AvkortingVedSøknadsbehandlingDb.Håndtert.KanIkkeHåndtere>(
+                deserialize<AvkortingVedSøknadsbehandlingDb.Håndtert.KanIkkeHåndtere>(
                     """
                         {
                             "@type":"HÅNDTERT_KAN_IKKE",
@@ -122,7 +122,7 @@ internal class AvkortingVedSøknadsbehandlingDbKtTest {
             @Test
             fun IVERKSATT_KAN_IKKE() {
                 shouldThrowWithMessage<IllegalStateException>("Avventer migrering av AvkortingVedSøknadsbehandlingDb.Iverksatt.KanIkkeHåndtere - skal ikke være i bruk.") {
-                    objectMapper.readValue<AvkortingVedSøknadsbehandlingDb.Iverksatt.KanIkkeHåndtere>(
+                    deserialize<AvkortingVedSøknadsbehandlingDb.Iverksatt.KanIkkeHåndtere>(
                         """
                         {
                             "@type":"IVERKSATT_KAN_IKKE",
@@ -141,7 +141,7 @@ internal class AvkortingVedSøknadsbehandlingDbKtTest {
                         """
                         {
                             "@type":"UHÅNDTERT_UTESTÅENDE",
-                            "avkortingsvarsel":${objectMapper.writeValueAsString(avkortingsvarselSkalAvkortes().toDb())}
+                            "avkortingsvarsel":${serialize(avkortingsvarselSkalAvkortes().toDb())}
                         }
                         """.trimIndent(),
                     ) shouldBe AvkortingVedSøknadsbehandling.IkkeVurdert
@@ -154,7 +154,7 @@ internal class AvkortingVedSøknadsbehandlingDbKtTest {
                         """
                         {
                             "@type":"HÅNDTERT_AVKORTET_UTESTÅENDE",
-                            "avkortingsvarsel":${objectMapper.writeValueAsString(avkortingsvarselSkalAvkortes.toDb())}
+                            "avkortingsvarsel":${serialize(avkortingsvarselSkalAvkortes.toDb())}
                         }
                         """.trimIndent(),
                     ) shouldBe AvkortingVedSøknadsbehandling.SkalAvkortes(
@@ -169,7 +169,7 @@ internal class AvkortingVedSøknadsbehandlingDbKtTest {
                         """
                         {
                             "@type":"IVERKSATT_AVKORTET_UTESTÅENDE",
-                            "avkortingsvarsel":${objectMapper.writeValueAsString(avkortingsvarselAvkortet.toDb())}
+                            "avkortingsvarsel":${serialize(avkortingsvarselAvkortet.toDb())}
                         }
                         """.trimIndent(),
                     ) shouldBe AvkortingVedSøknadsbehandling.Avkortet(avkortingsvarselAvkortet)

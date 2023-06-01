@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.database.grunnlag
 
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.grunnlag.Pensjonsopplysninger
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -10,7 +10,7 @@ internal class PensjonsgrunnlagPostgresRepoTest {
     @Test
     fun `jsonformat for grunnlag`() {
         JSONAssert.assertEquals(
-            objectMapper.writeValueAsString(
+            serialize(
                 Pensjonsopplysninger(
                     søktPensjonFolketrygd = Pensjonsopplysninger.SøktPensjonFolketrygd(svar = Pensjonsopplysninger.SøktPensjonFolketrygd.Svar.HarIkkeSøktPensjonFraFolketrygden),
                     søktAndreNorskePensjoner = Pensjonsopplysninger.SøktAndreNorskePensjoner(svar = Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar.IkkeAktuelt),

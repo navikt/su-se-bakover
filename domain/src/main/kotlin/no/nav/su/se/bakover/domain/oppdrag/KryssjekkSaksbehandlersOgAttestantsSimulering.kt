@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.oppdrag
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.slf4j.Logger
@@ -63,8 +63,8 @@ private fun logErr(
     )
     sikkerLogg.error(
         "Utbetaling kunne ikke gjennomføres, kontrollsimulering: {}, er ulik saksbehandlers simulering: {}",
-        objectMapper.writeValueAsString(attestantsSimulering),
-        objectMapper.writeValueAsString(saksbehandlersSimulering),
+        serialize(attestantsSimulering),
+        serialize(saksbehandlersSimulering),
     )
 }
 

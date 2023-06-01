@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.left
 import arrow.core.right
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -10,8 +9,9 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -143,9 +143,9 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 setBody(validBody)
             }.apply {
                 status shouldBe HttpStatusCode.Created
-                val actualResponse = objectMapper.readValue<Map<String, Any>>(bodyAsText())
+                val actualResponse = deserialize<Map<String, Any>>(bodyAsText())
                 val revurdering =
-                    objectMapper.readValue<SimulertRevurderingJson>(objectMapper.writeValueAsString(actualResponse["revurdering"]))
+                    deserialize<SimulertRevurderingJson>(serialize(actualResponse["revurdering"]!!))
                 verify(revurderingServiceMock).beregnOgSimuler(
                     argThat { it shouldBe simulertRevurdering.id },
                     argThat { it shouldBe NavIdentBruker.Saksbehandler("Z990Lokal") },

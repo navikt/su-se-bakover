@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.common.infrastructure.persistence.antall
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
@@ -112,7 +112,7 @@ internal class AvstemmingPostgresRepoTest {
                         "sakId" to vedtak.behandling.sakId,
                         "fnr" to vedtak.behandling.fnr,
                         "behandler" to "Z123",
-                        "avstemmingsnokkel" to objectMapper.writeValueAsString(
+                        "avstemmingsnokkel" to serialize(
                             Avstemmingsnøkkel(
                                 9.oktober(2021).startOfDay(),
                             ),

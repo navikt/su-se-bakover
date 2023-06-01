@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.client.journalpost
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.benmanes.caffeine.cache.Cache
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
@@ -11,10 +10,11 @@ import no.nav.su.se.bakover.client.cache.newCache
 import no.nav.su.se.bakover.client.isSuccess
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.auth.AzureAd
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
@@ -174,14 +174,14 @@ internal class JournalpostHttpClient(
                 .header("Authorization", "Bearer $token")
                 .header("Content-Type", "application/json")
                 .header("Nav-Consumer-Id", "su-se-bakover")
-                .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(request)))
+                .POST(HttpRequest.BodyPublishers.ofString(serialize(request)))
                 .build()
                 .let { httpRequest ->
                     client.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString()).await()
                         .let { httpResponse ->
                             if (httpResponse.isSuccess()) {
                                 // GraphQL returnerer 200 for det meste
-                                objectMapper.readValue<Response>(httpResponse.body()).let { response ->
+                                deserialize<Response>(httpResponse.body()).let { response ->
                                     if (response.hasErrors()) {
                                         return response.mapGraphQLHttpFeil(request)
                                             .also { log.warn("Feil: $it ved kall mot: $graphQLUrl") }

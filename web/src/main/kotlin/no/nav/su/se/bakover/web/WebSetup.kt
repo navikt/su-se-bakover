@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.web
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
-import io.ktor.serialization.jackson.JacksonConverter
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
@@ -27,7 +26,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.authHeader
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.jacksonConverter
 import no.nav.su.se.bakover.common.person.UgyldigFnrException
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -66,7 +65,7 @@ internal fun Application.setupKtor(
     val azureGroupMapper = AzureGroupMapper(applicationConfig.azure.groups)
 
     install(ContentNegotiation) {
-        register(ContentType.Application.Json, JacksonConverter(objectMapper))
+        register(ContentType.Application.Json, jacksonConverter())
     }
 
     setupKtorCallId()
