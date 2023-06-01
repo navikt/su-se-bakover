@@ -36,7 +36,10 @@ internal object UtbetalingInternalRepo {
             session,
         ) { it.toUtbetaling(session) }
 
-    fun hentOversendteUtbetalinger(sakId: UUID, session: Session): Utbetalinger {
+    fun hentOversendteUtbetalinger(
+        sakId: UUID,
+        session: Session,
+    ): Utbetalinger {
         return "select u.*, s.saksnummer, s.type as sakstype from utbetaling u join sak s on s.id = u.sakId where s.id = :id order by u.opprettet".hentListe(
             mapOf(
                 "id" to sakId,

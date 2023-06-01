@@ -31,7 +31,6 @@ import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.simulering.SimuleringResponseData.Companion.simuleringXml
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningResponse
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse as GrensesnittResponse
@@ -1341,7 +1340,6 @@ internal class SimuleringResponseMapperTest {
     }
 
     @Test
-    @Disabled("TODO jah: finn en algoritme som ikke brekker kryssjekk")
     fun `Tilbakeføring utligner hverandre`() {
         val rawXml = """
                 <SimulerBeregningResponse>
