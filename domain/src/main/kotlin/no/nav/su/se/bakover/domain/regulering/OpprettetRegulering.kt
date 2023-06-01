@@ -7,6 +7,7 @@ import arrow.core.left
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -77,8 +78,16 @@ data class OpprettetRegulering(
             ),
         )
 
-    fun leggTilUføre(uføregrunnlag: List<Grunnlag.Uføregrunnlag>, clock: Clock): OpprettetRegulering =
-        this.copy(
+    fun leggTilUføre(uføregrunnlag: List<Grunnlag.Uføregrunnlag>, clock: Clock): OpprettetRegulering {
+        sikkerLogg.debug(
+            "Skal legge til {} for regulering {}. Vilkår & grunnlag som er på behandling NÅ: {}, {}",
+            uføregrunnlag,
+            this.id,
+            grunnlagsdata,
+            vilkårsvurderinger,
+        )
+
+        return this.copy(
             grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger.leggTil(
@@ -95,6 +104,7 @@ data class OpprettetRegulering(
                 ),
             ),
         )
+    }
 
     fun leggTilSaksbehandler(saksbehandler: NavIdentBruker.Saksbehandler): OpprettetRegulering =
         this.copy(
