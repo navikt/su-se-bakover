@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertMåned
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.toYtelsekode
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
@@ -33,6 +33,7 @@ class SimuleringStub(
     override fun simulerUtbetaling(request: SimulerUtbetalingRequest): Either<SimuleringFeilet, Simulering> {
         return simulerUtbetalinger(request).right()
     }
+
     private fun simulerUtbetalinger(request: SimulerUtbetalingRequest): Simulering {
         val utbetaling = request.utbetaling
         val simuleringsperiode = request.simuleringsperiode
@@ -342,13 +343,13 @@ class SimuleringStub(
                     måned to null
                 }
             }
-            .mapNotNull { (periode, simulertUtbetaling) ->
+            .mapNotNull { (måned, simulertUtbetaling) ->
                 if (simulertUtbetaling == null) {
+                    // TODO jah: Dette kan føre til at vi får hull, men samtidig brekker det andre ting hvis vi ikke gjør det.
                     null
                 } else {
-                    SimulertPeriode(
-                        fraOgMed = periode.fraOgMed,
-                        tilOgMed = periode.tilOgMed,
+                    SimulertMåned(
+                        måned = måned,
                         utbetaling = simulertUtbetaling,
                     )
                 }
@@ -360,14 +361,8 @@ class SimuleringStub(
                     gjelderNavn = "MYGG LUR",
                     datoBeregnet = idag(clock),
                     nettoBeløp = 0,
-                    periodeList = it.ifEmpty {
-                        listOf(
-                            SimulertPeriode(
-                                fraOgMed = simuleringsperiode.fraOgMed,
-                                tilOgMed = simuleringsperiode.tilOgMed,
-                                utbetaling = null,
-                            ),
-                        )
+                    måneder = it.ifEmpty {
+                        SimulertMåned.create(simuleringsperiode)
                     },
                     rawResponse = "SimuleringStub forholder seg ikke til XML, men oppretter domenetypene direkte",
                 ).let { simulering ->
@@ -414,32 +409,34 @@ private fun createTidligereUtbetalt(fraOgMed: LocalDate, tilOgMed: LocalDate, be
         klasseType = KlasseType.YTEL,
     )
 
-private fun createFeilutbetaling(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int, sakstype: Sakstype) = SimulertDetaljer(
-    faktiskFraOgMed = fraOgMed,
-    faktiskTilOgMed = tilOgMed,
-    konto = "4952000",
-    belop = abs(beløp),
-    tilbakeforing = false,
-    sats = 0,
-    typeSats = "",
-    antallSats = 0,
-    uforegrad = 0,
-    klassekode = KlasseKode.KL_KODE_FEIL_INNT,
-    klassekodeBeskrivelse = "Feilutbetaling $sakstype",
-    klasseType = KlasseType.FEIL,
-)
+private fun createFeilutbetaling(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int, sakstype: Sakstype) =
+    SimulertDetaljer(
+        faktiskFraOgMed = fraOgMed,
+        faktiskTilOgMed = tilOgMed,
+        konto = "4952000",
+        belop = abs(beløp),
+        tilbakeforing = false,
+        sats = 0,
+        typeSats = "",
+        antallSats = 0,
+        uforegrad = 0,
+        klassekode = KlasseKode.KL_KODE_FEIL_INNT,
+        klassekodeBeskrivelse = "Feilutbetaling $sakstype",
+        klasseType = KlasseType.FEIL,
+    )
 
-private fun createMotpostFeilkonto(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int, sakstype: Sakstype) = SimulertDetaljer(
-    faktiskFraOgMed = fraOgMed,
-    faktiskTilOgMed = tilOgMed,
-    konto = "4952000",
-    belop = -abs(beløp),
-    tilbakeforing = false,
-    sats = 0,
-    typeSats = "",
-    antallSats = 0,
-    uforegrad = 0,
-    klassekode = KlasseKode.TBMOTOBS,
-    klassekodeBeskrivelse = "Motpost feilkonto $sakstype",
-    klasseType = KlasseType.MOTP,
-)
+private fun createMotpostFeilkonto(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int, sakstype: Sakstype) =
+    SimulertDetaljer(
+        faktiskFraOgMed = fraOgMed,
+        faktiskTilOgMed = tilOgMed,
+        konto = "4952000",
+        belop = -abs(beløp),
+        tilbakeforing = false,
+        sats = 0,
+        typeSats = "",
+        antallSats = 0,
+        uforegrad = 0,
+        klassekode = KlasseKode.TBMOTOBS,
+        klassekodeBeskrivelse = "Motpost feilkonto $sakstype",
+        klasseType = KlasseType.MOTP,
+    )

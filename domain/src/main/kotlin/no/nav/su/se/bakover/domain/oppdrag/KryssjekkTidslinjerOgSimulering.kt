@@ -99,13 +99,13 @@ sealed class KryssjekkFeil(val prioritet: Int) : Comparable<KryssjekkFeil> {
     data class StansMedFeilutbetaling(val måned: Måned) : KryssjekkFeil(prioritet = 1)
     data class GjenopptakMedFeilutbetaling(val måned: Måned) : KryssjekkFeil(prioritet = 1)
     data class KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
-        val periode: Måned,
+        val måned: Måned,
         val simulertType: String,
         val tidslinjeType: String,
     ) : KryssjekkFeil(prioritet = 2)
 
     data class SimulertBeløpOgTidslinjeBeløpErForskjellig(
-        val periode: Måned,
+        val måned: Måned,
         val simulertBeløp: Int,
         val tidslinjeBeløp: Int,
     ) : KryssjekkFeil(prioritet = 2)
@@ -134,7 +134,7 @@ private fun sjekkTidslinjeMotSimulering(
                 ) {
                     feil.add(
                         KryssjekkFeil.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
-                            periode = it,
+                            måned = it,
                             simulertType = "IngenUtbetaling",
                             tidslinjeType = utbetaling::class.toString(),
                         ),
@@ -159,7 +159,7 @@ private fun sjekkTidslinjeMotSimulering(
 
         simulering.hentTotalUtbetaling().forEach { månedsbeløp ->
             kryssjekkBeløp(
-                tolketPeriode = månedsbeløp.periode,
+                måned = månedsbeløp.periode,
                 simulertUtbetaling = månedsbeløp.beløp.sum(),
                 beløpPåTidslinje = tidslinjeEksisterendeOgUnderArbeid.gjeldendeForDato(månedsbeløp.periode.fraOgMed)!!.beløp,
             ).getOrElse { feil.add(it) }
@@ -172,13 +172,13 @@ private fun sjekkTidslinjeMotSimulering(
 }
 
 private fun kryssjekkBeløp(
-    tolketPeriode: Måned,
+    måned: Måned,
     simulertUtbetaling: Int,
     beløpPåTidslinje: Int,
 ): Either<KryssjekkFeil.SimulertBeløpOgTidslinjeBeløpErForskjellig, Unit> {
     return if (simulertUtbetaling != beløpPåTidslinje) {
         KryssjekkFeil.SimulertBeløpOgTidslinjeBeløpErForskjellig(
-            periode = tolketPeriode,
+            måned = måned,
             simulertBeløp = simulertUtbetaling,
             tidslinjeBeløp = beløpPåTidslinje,
         ).left()

@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.extensions.november
 import no.nav.su.se.bakover.common.extensions.oktober
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
@@ -21,7 +22,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertMåned
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.attestant
@@ -352,13 +353,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 gjelderNavn = "navn",
                 datoBeregnet = opprettet.toLocalDate(ZoneOffset.UTC),
                 nettoBeløp = 0,
-                periodeList = listOf(
-                    SimulertPeriode(
-                        fraOgMed = utbetalingslinjer.minOf { it.periode.fraOgMed },
-                        tilOgMed = utbetalingslinjer.maxOf { it.periode.tilOgMed },
-                        utbetaling = null,
-                    ),
-                ),
+                måneder = SimulertMåned.create(utbetalingslinjer.map { it.periode }.minAndMaxOf().måneder()),
                 rawResponse = "UtbetalingsstrategiGjenopptaTest baserer ikke denne på rå XML.",
             ),
         ).toOversendtUtbetaling(

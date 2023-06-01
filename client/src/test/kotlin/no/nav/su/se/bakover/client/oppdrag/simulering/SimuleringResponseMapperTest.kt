@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.PeriodeOppsummering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringsOppsummering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertMåned
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.simulering.SimuleringResponseData.Companion.simuleringXml
@@ -72,10 +72,9 @@ internal class SimuleringResponseMapperTest {
             gjelderNavn = navn,
             datoBeregnet = 14.april(2021),
             nettoBeløp = 10390,
-            periodeList = listOf(
-                SimulertPeriode(
-                    fraOgMed = 1.april(2021),
-                    tilOgMed = 30.april(2021),
+            måneder = listOf(
+                SimulertMåned(
+                    måned = april(2021),
                     utbetaling = SimulertUtbetaling(
                         fagSystemId = fagsystemId,
                         utbetalesTilId = fnr,
@@ -167,10 +166,9 @@ internal class SimuleringResponseMapperTest {
             gjelderNavn = navn,
             datoBeregnet = 14.april(2021),
             nettoBeløp = 10390,
-            periodeList = listOf(
-                SimulertPeriode(
-                    fraOgMed = 1.april(2021),
-                    tilOgMed = 30.april(2021),
+            måneder = listOf(
+                SimulertMåned(
+                    måned = april(2021),
                     utbetaling =
                     SimulertUtbetaling(
                         fagSystemId = fagsystemId,
@@ -259,10 +257,9 @@ internal class SimuleringResponseMapperTest {
             gjelderNavn = navn,
             datoBeregnet = 14.april(2021),
             nettoBeløp = 5000,
-            periodeList = listOf(
-                SimulertPeriode(
-                    fraOgMed = 1.februar(2021),
-                    tilOgMed = 28.februar(2021),
+            måneder = listOf(
+                SimulertMåned(
+                    måned = februar(2021),
                     utbetaling = SimulertUtbetaling(
                         fagSystemId = fagsystemId,
                         utbetalesTilId = fnr,
@@ -343,9 +340,8 @@ internal class SimuleringResponseMapperTest {
                         ),
                     ),
                 ),
-                SimulertPeriode(
-                    fraOgMed = 1.mars(2021),
-                    tilOgMed = 31.mars(2021),
+                SimulertMåned(
+                    måned = mars(2021),
                     utbetaling =
                     SimulertUtbetaling(
                         fagSystemId = fagsystemId,
@@ -505,10 +501,9 @@ internal class SimuleringResponseMapperTest {
             gjelderNavn = navn,
             datoBeregnet = 14.april(2021),
             nettoBeløp = 19611,
-            periodeList = listOf(
-                SimulertPeriode(
-                    fraOgMed = 1.februar(2021),
-                    tilOgMed = 28.februar(2021),
+            måneder = listOf(
+                SimulertMåned(
+                    måned = februar(2021),
                     utbetaling = SimulertUtbetaling(
                         fagSystemId = fagsystemId,
                         utbetalesTilId = fnr,
@@ -547,9 +542,8 @@ internal class SimuleringResponseMapperTest {
                         ),
                     ),
                 ),
-                SimulertPeriode(
-                    fraOgMed = 1.mars(2021),
-                    tilOgMed = 31.mars(2021),
+                SimulertMåned(
+                    måned = mars(2021),
                     utbetaling =
                     SimulertUtbetaling(
                         fagSystemId = fagsystemId,
@@ -703,10 +697,9 @@ internal class SimuleringResponseMapperTest {
             gjelderNavn = navn,
             datoBeregnet = 14.april(2021),
             nettoBeløp = 10390,
-            periodeList = listOf(
-                SimulertPeriode(
-                    fraOgMed = 1.april(2021),
-                    tilOgMed = 30.april(2021),
+            måneder = listOf(
+                SimulertMåned(
+                    måned = april(2021),
                     utbetaling =
                     SimulertUtbetaling(
                         fagSystemId = fagsystemId,
@@ -796,7 +789,7 @@ internal class SimuleringResponseMapperTest {
             responseMedFremtidigUtbetaling,
             fixedClock,
             saksnummer,
-        ).simulering.periodeList.map { it.utbetaling!!.fagSystemId } shouldBe listOf(fagsystemId)
+        ).simulering.måneder.map { it.utbetaling!!.fagSystemId } shouldBe listOf(fagsystemId)
     }
 
     @Test
@@ -820,7 +813,7 @@ internal class SimuleringResponseMapperTest {
             responseMedFremtidigUtbetaling,
             fixedClock,
             saksnummer, // Vi tar ikke vare på kodeFagomraade (da domenet vårt ikke forholder seg til andre fagområder)
-        ).simulering.periodeList.map { it.utbetaling!! }.size.shouldBe(1)
+        ).simulering.måneder.map { it.utbetaling!! }.size.shouldBe(1)
     }
 
     @Test

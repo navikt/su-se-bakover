@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertMåned
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -191,13 +191,7 @@ private val simulering = Simulering(
     gjelderNavn = "",
     datoBeregnet = idag(fixedClock),
     nettoBeløp = 0,
-    periodeList = listOf(
-        SimulertPeriode(
-            fraOgMed = år(2021).fraOgMed,
-            tilOgMed = år(2021).tilOgMed,
-            utbetaling = null,
-        ),
-    ),
+    måneder = SimulertMåned.create(år(2021)),
     rawResponse = "GrensesnittavstemmingDataBuilderTest baserer seg ikke på rå XML.",
 )
 

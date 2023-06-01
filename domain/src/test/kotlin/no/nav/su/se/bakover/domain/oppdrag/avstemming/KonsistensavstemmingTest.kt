@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.ForrigeUtbetalingslinjeKoblendeListe
@@ -29,7 +30,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertMåned
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.fixedClock
@@ -1072,13 +1073,7 @@ internal class KonsistensavstemmingTest {
                 gjelderNavn = "navn",
                 datoBeregnet = idag(fixedClock),
                 nettoBeløp = 0,
-                periodeList = listOf(
-                    SimulertPeriode(
-                        fraOgMed = utbetalingsLinjer.minOf { it.periode.fraOgMed },
-                        tilOgMed = utbetalingsLinjer.maxOf { it.periode.tilOgMed },
-                        utbetaling = null,
-                    ),
-                ),
+                måneder = SimulertMåned.create(utbetalingsLinjer.map { it.periode }.minAndMaxOf()),
                 rawResponse = "KonsistensavstemmingTest baserer ikke denne på rå XML.",
             ),
         ).toOversendtUtbetaling(

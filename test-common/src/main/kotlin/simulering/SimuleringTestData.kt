@@ -29,7 +29,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriod
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertMåned
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
@@ -438,77 +438,75 @@ fun Simulering.settFiktivNetto(): Simulering {
 
 fun simulering(
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
-    perioder: List<Periode> = år(2021).måneder(),
-    simulertePerioder: List<SimulertPeriode> = perioder.map { simulertPeriode(it) },
+    måneder: List<Måned> = år(2021).måneder(),
+    simulertePerioder: List<SimulertMåned> = måneder.map { simulertMåned(it) },
 ): Simulering {
     return Simulering(
         gjelderId = fnr,
         gjelderNavn = "navn",
         datoBeregnet = fixedLocalDate,
         nettoBeløp = 0,
-        periodeList = simulertePerioder,
+        måneder = simulertePerioder,
         rawResponse = "SimuleringTestData baserer seg ikke på rå XML.",
     ).settFiktivNetto()
 }
 
 fun simuleringFeilutbetaling(
     vararg perioder: Periode = listOf(juni(2021)).toTypedArray(),
-    simulertePerioder: List<SimulertPeriode> = perioder.map { it.måneder() }.flatten()
-        .map { simulertPeriodeFeilutbetaling(it) },
+    simulertePerioder: List<SimulertMåned> = perioder.map { it.måneder() }.flatten()
+        .map { simulertMånedFeilutbetaling(it) },
 ): Simulering {
     return Simulering(
         gjelderId = fnr,
         gjelderNavn = "navn",
         datoBeregnet = fixedLocalDate,
         nettoBeløp = 0,
-        periodeList = simulertePerioder,
+        måneder = simulertePerioder,
         rawResponse = "SimuleringTestData baserer seg ikke på rå XML.",
     ).settFiktivNetto()
 }
 
-fun simulertPeriode(
-    periode: Periode,
-    simulerteUtbetalinger: SimulertUtbetaling? = simulertUtbetaling(periode),
-): SimulertPeriode = SimulertPeriode(
-    fraOgMed = periode.fraOgMed,
-    tilOgMed = periode.tilOgMed,
+fun simulertMåned(
+    måned: Måned,
+    simulerteUtbetalinger: SimulertUtbetaling? = simulertUtbetaling(måned),
+): SimulertMåned = SimulertMåned(
+    måned = måned,
     utbetaling = simulerteUtbetalinger,
 )
 
-fun simulertPeriodeFeilutbetaling(
-    periode: Periode,
+fun simulertMånedFeilutbetaling(
+    måned: Måned,
     simulerteUtbetalinger: SimulertUtbetaling? = simulertUtbetaling(
-        periode = periode,
+        måned = måned,
         simulertDetaljer = listOf(
-            simulertDetaljFeilutbetaling(periode, 15000),
-            simulertDetaljTilbakeføring(periode, 15000),
-            simulertDetaljOrdinær(periode, 7000),
+            simulertDetaljFeilutbetaling(måned, 15000),
+            simulertDetaljTilbakeføring(måned, 15000),
+            simulertDetaljOrdinær(måned, 7000),
         ),
     ),
-): SimulertPeriode = SimulertPeriode(
-    fraOgMed = periode.fraOgMed,
-    tilOgMed = periode.tilOgMed,
+): SimulertMåned = SimulertMåned(
+    måned = måned,
     utbetaling = simulerteUtbetalinger,
 )
 
 fun simulertUtbetaling(
-    periode: Periode,
-    simulertDetaljer: List<SimulertDetaljer> = listOf(simulertDetaljOrdinær(periode, 15000)),
+    måned: Måned,
+    simulertDetaljer: List<SimulertDetaljer> = listOf(simulertDetaljOrdinær(måned, 15000)),
 ): SimulertUtbetaling = SimulertUtbetaling(
     fagSystemId = "",
     utbetalesTilId = fnr,
     utbetalesTilNavn = "",
-    forfall = periode.fraOgMed.plusDays(5),
+    forfall = måned.fraOgMed.plusDays(5),
     feilkonto = false,
     detaljer = simulertDetaljer,
 )
 
 fun simulertDetaljOrdinær(
-    periode: Periode,
+    måned: Måned,
     beløp: Int,
 ): SimulertDetaljer = SimulertDetaljer(
-    faktiskFraOgMed = periode.fraOgMed,
-    faktiskTilOgMed = periode.tilOgMed,
+    faktiskFraOgMed = måned.fraOgMed,
+    faktiskTilOgMed = måned.tilOgMed,
     konto = "",
     belop = beløp,
     tilbakeforing = false,
@@ -522,11 +520,11 @@ fun simulertDetaljOrdinær(
 )
 
 fun simulertDetaljFeilutbetaling(
-    periode: Periode,
+    måned: Måned,
     beløp: Int,
 ): SimulertDetaljer = SimulertDetaljer(
-    faktiskFraOgMed = periode.fraOgMed,
-    faktiskTilOgMed = periode.tilOgMed,
+    faktiskFraOgMed = måned.fraOgMed,
+    faktiskTilOgMed = måned.tilOgMed,
     konto = "",
     belop = beløp,
     tilbakeforing = false,
@@ -540,11 +538,11 @@ fun simulertDetaljFeilutbetaling(
 )
 
 fun simulertDetaljTidligereUtbetalt(
-    periode: Periode,
+    måned: Måned,
     beløp: Int,
 ): SimulertDetaljer = SimulertDetaljer(
-    faktiskFraOgMed = periode.fraOgMed,
-    faktiskTilOgMed = periode.tilOgMed,
+    faktiskFraOgMed = måned.fraOgMed,
+    faktiskTilOgMed = måned.tilOgMed,
     konto = "",
     belop = beløp,
     tilbakeforing = false,
@@ -558,11 +556,11 @@ fun simulertDetaljTidligereUtbetalt(
 )
 
 fun simulertDetaljTilbakeføring(
-    periode: Periode,
+    måned: Måned,
     beløp: Int,
 ): SimulertDetaljer = SimulertDetaljer(
-    faktiskFraOgMed = periode.fraOgMed,
-    faktiskTilOgMed = periode.tilOgMed,
+    faktiskFraOgMed = måned.fraOgMed,
+    faktiskTilOgMed = måned.tilOgMed,
     konto = "",
     belop = -beløp,
     tilbakeforing = true,

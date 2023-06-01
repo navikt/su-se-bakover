@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import no.nav.su.se.bakover.database.simulering.SimuleringDatabaseJson.Companion.toDatabaseJson
 import no.nav.su.se.bakover.database.simulering.SimuleringDatabaseJson.Periode.Companion.toDatabaseJson
 import no.nav.su.se.bakover.database.simulering.SimuleringDatabaseJson.Periode.Utbetaling.Companion.toDatabaseJson
@@ -13,7 +14,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertMåned
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import java.time.LocalDate
 
@@ -53,7 +54,7 @@ internal data class SimuleringDatabaseJson(
             gjelderNavn = gjelderNavn,
             datoBeregnet = LocalDate.parse(datoBeregnet),
             nettoBeløp = nettoBeløp,
-            periodeList = periodeList.map { it.toDomain() },
+            måneder = periodeList.flatMap { it.toDomain() },
             rawResponse = rawResponse,
         )
     }
@@ -65,7 +66,7 @@ internal data class SimuleringDatabaseJson(
                 gjelderNavn = this.gjelderNavn,
                 datoBeregnet = this.datoBeregnet.toString(),
                 nettoBeløp = this.nettoBeløp,
-                periodeList = this.periodeList.map { it.toDatabaseJson() },
+                periodeList = this.måneder.map { it.toDatabaseJson() },
                 rawResponse = this.rawResponse,
             )
         }
@@ -78,30 +79,44 @@ internal data class SimuleringDatabaseJson(
         val tilOgMed: String,
         val utbetaling: List<Utbetaling>,
     ) {
-        fun toDomain(): SimulertPeriode {
-            return SimulertPeriode(
-                fraOgMed = LocalDate.parse(fraOgMed),
-                tilOgMed = LocalDate.parse(tilOgMed),
-                utbetaling = utbetaling.map { it.toDomain() }.let {
-                    when {
-                        it.isEmpty() -> null
-                        it.size == 1 -> it.first()
-                        else -> {
-                            val saksnummer = it.first().fagSystemId
-                            throw IllegalStateException("Simulering inneholder flere utbetalinger for samme sak $saksnummer. Se sikkerlogg for flere detaljer og feilmelding.").also {
-                                sikkerLogg.error("Simulering inneholder flere utbetalinger for samme sak $saksnummer. Se vanlig logg for stacktrace. json-periode: $this")
-                            }
+        fun toDomain(): List<SimulertMåned> {
+            val nullableUtbetaling = utbetaling.map { it.toDomain() }.let {
+                when {
+                    it.isEmpty() -> null
+                    it.size == 1 -> it.first()
+                    else -> {
+                        val saksnummer = it.first().fagSystemId
+                        throw IllegalStateException("Simulering inneholder flere utbetalinger for samme sak $saksnummer. Se sikkerlogg for flere detaljer og feilmelding.").also {
+                            sikkerLogg.error("Simulering inneholder flere utbetalinger for samme sak $saksnummer. Se vanlig logg for stacktrace. json-periode: $this")
                         }
                     }
-                },
+                }
+            }
+            // Vi har fram til juni 2023 slått samme hele simuleringsperioden til et Periode-objekt. Etter dette vil vi lagre en liste med måneder (en periode er maks en måned)
+            val periode = no.nav.su.se.bakover.common.tid.periode.Periode.create(
+                LocalDate.parse(fraOgMed),
+                LocalDate.parse(tilOgMed),
             )
+            return if (periode.getAntallMåneder() == 1) {
+                listOf(
+                    SimulertMåned(
+                        måned = periode.tilMåned(),
+                        utbetaling = nullableUtbetaling,
+                    ),
+                )
+            } else {
+                check(nullableUtbetaling == null) {
+                    "En utbetaling går på tvers av flere måneder. Dette skal ikke skje."
+                }
+                SimulertMåned.create(periode)
+            }
         }
 
         companion object {
-            fun SimulertPeriode.toDatabaseJson(): Periode {
+            fun SimulertMåned.toDatabaseJson(): Periode {
                 return Periode(
-                    fraOgMed = this.fraOgMed.toString(),
-                    tilOgMed = this.tilOgMed.toString(),
+                    fraOgMed = this.måned.fraOgMed.toString(),
+                    tilOgMed = this.måned.tilOgMed.toString(),
                     utbetaling = this.utbetaling?.let { listOf(it.toDatabaseJson()) } ?: emptyList(),
                 )
             }

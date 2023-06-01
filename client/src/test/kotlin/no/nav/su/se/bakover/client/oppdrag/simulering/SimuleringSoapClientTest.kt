@@ -7,18 +7,18 @@ import io.getunleash.FakeUnleash
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.desember
 import no.nav.su.se.bakover.common.extensions.januar
-import no.nav.su.se.bakover.common.extensions.oktober
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.xml.xmlMapper
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.desember
+import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertMåned
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.fixedClock
@@ -103,13 +103,7 @@ internal class SimuleringSoapClientTest {
             gjelderNavn = nyUtbetaling.fnr.toString(),
             nettoBeløp = 0,
             datoBeregnet = fixedLocalDate,
-            periodeList = listOf(
-                SimulertPeriode(
-                    fraOgMed = 1.januar(2018),
-                    tilOgMed = 31.desember(2020),
-                    utbetaling = null,
-                ),
-            ),
+            måneder = SimulertMåned.create(januar(2018)..desember(2020)),
             rawResponse = "Tom respons fra oppdrag.",
         ).right()
     }
@@ -244,13 +238,7 @@ internal class SimuleringSoapClientTest {
             gjelderNavn = nyUtbetaling.fnr.toString(),
             nettoBeløp = 0,
             datoBeregnet = fixedLocalDate,
-            periodeList = listOf(
-                SimulertPeriode(
-                    fraOgMed = 1.oktober(2020),
-                    tilOgMed = 31.desember(2020),
-                    utbetaling = null,
-                ),
-            ),
+            måneder = SimulertMåned.create(oktober(2020)..desember(2020)),
             rawResponse = "Tom respons fra oppdrag.",
         ).right()
     }

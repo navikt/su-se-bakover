@@ -1,12 +1,13 @@
 package no.nav.su.se.bakover.domain.oppdrag.simulering
 
+import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.Beløp
 import no.nav.su.se.bakover.common.MånedBeløp
 import no.nav.su.se.bakover.common.Månedsbeløp
+import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
-import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.lang.Integer.max
@@ -15,27 +16,24 @@ import java.time.LocalDate
 internal data class TolketSimulering(
     private val simulering: Simulering,
 ) {
-    private val tolketPerioder = simulering.periodeList.map { it.tolk() }.also {
+    private val tolketMåneder: NonEmptyList<TolketMåned> = simulering.måneder.map { it.tolk() }.also {
         require(it.isNotEmpty()) { "Skal alltid være minst 1 periode" }
-    }
+    }.toNonEmptyList()
 
-    private fun hentPerioderMedUtbetaling(): List<TolketPeriodeMedUtbetalinger> {
-        return tolketPerioder.mapNotNull {
+    private fun hentMånederMedUtbetalinger(): List<TolketMånedMedUtbetalinger> {
+        return tolketMåneder.mapNotNull {
             when (it) {
-                is TolketPeriodeMedUtbetalinger -> it
-                is TolketPeriodeUtenUtbetalinger -> null
+                is TolketMånedMedUtbetalinger -> it
+                is TolketMånedUtenUtbetalinger -> null
             }
         }
     }
 
-    val periode = tolketPerioder.map {
-        when (it) {
-            is TolketPeriodeMedUtbetalinger -> it.måned
-            is TolketPeriodeUtenUtbetalinger -> it.periode
-        }
+    val periode = tolketMåneder.map {
+        it.måned
     }.minAndMaxOf()
 
-    val månederMedSimuleringsresultat = hentPerioderMedUtbetaling().map { it.måned }
+    val månederMedSimuleringsresultat = hentMånederMedUtbetalinger().map { it.måned }
 
     fun harFeilutbetalinger() = hentFeilutbetalteBeløp().sum() > 0
 
@@ -50,8 +48,9 @@ internal data class TolketSimulering(
      * OBS - i motsetning til perioder med utbetalinger vil denne perioden kunne være lenger enn 1 mnd.
      */
     fun erAlleMånederUtenUtbetaling(): Boolean {
-        return tolketPerioder.all { it is TolketPeriodeUtenUtbetalinger }
+        return tolketMåneder.all { it is TolketMånedUtenUtbetalinger }
     }
+
     fun kontooppstilling(): Map<Periode, Kontooppstilling> {
         return if (erAlleMånederUtenUtbetaling()) {
             mapOf(
@@ -65,7 +64,7 @@ internal data class TolketSimulering(
                 ),
             )
         } else {
-            hentPerioderMedUtbetaling().associate { it.kontooppstilling() }
+            hentMånederMedUtbetalinger().associate { it.kontooppstilling() }
         }
     }
 
@@ -74,7 +73,7 @@ internal data class TolketSimulering(
             Månedsbeløp(emptyList())
         } else {
             return Månedsbeløp(
-                hentPerioderMedUtbetaling()
+                hentMånederMedUtbetalinger()
                     .map { it.hentUtbetaltBeløp() }
                     .filter { it.sum() > 0 },
             )
@@ -86,7 +85,7 @@ internal data class TolketSimulering(
             Månedsbeløp(emptyList())
         } else {
             Månedsbeløp(
-                hentPerioderMedUtbetaling()
+                hentMånederMedUtbetalinger()
                     .map { it.hentFeilutbetalteBeløp() }
                     .filter { it.sum() > 0 },
             )
@@ -98,7 +97,7 @@ internal data class TolketSimulering(
             Månedsbeløp(emptyList())
         } else {
             Månedsbeløp(
-                hentPerioderMedUtbetaling()
+                hentMånederMedUtbetalinger()
                     .map { it.hentTilUtbetaling() }
                     .filter { it.sum() > 0 },
             )
@@ -110,7 +109,7 @@ internal data class TolketSimulering(
             Månedsbeløp(emptyList())
         } else {
             Månedsbeløp(
-                hentPerioderMedUtbetaling()
+                hentMånederMedUtbetalinger()
                     .map { it.hentTotalUtbetaling() }
                     .filter { it.sum() > 0 },
             )
@@ -147,48 +146,59 @@ internal data class TolketSimulering(
                 ),
             )
         } else {
-            hentPerioderMedUtbetaling().map { it.oppsummering() }
+            hentMånederMedUtbetalinger().map { it.oppsummering() }
         }
     }
 }
-internal sealed interface TolketPeriode
 
-internal data class TolketPeriodeUtenUtbetalinger(
-    val periode: Periode,
-) : TolketPeriode
-internal data class TolketPeriodeMedUtbetalinger(
-    val måned: Måned,
-    val utbetaling: TolketUtbetaling,
-) : TolketPeriode {
+internal sealed interface TolketMåned {
+    val måned: Måned
+    val utbetaling: TolketUtbetaling?
+}
+
+internal data class TolketMånedUtenUtbetalinger(
+    override val måned: Måned,
+) : TolketMåned {
+    override val utbetaling: TolketUtbetaling? = null
+}
+
+internal data class TolketMånedMedUtbetalinger(
+    override val måned: Måned,
+    override val utbetaling: TolketUtbetaling,
+) : TolketMåned {
     fun kontooppstilling(): Pair<Måned, Kontooppstilling> {
-        return måned.tilMåned() to utbetaling.kontoppstilling
+        return måned to utbetaling.kontoppstilling
     }
+
     fun harFeilutbetalinger() = hentFeilutbetalteBeløp().sum() > 0
     fun hentUtbetaltBeløp(): MånedBeløp {
-        return MånedBeløp(måned.tilMåned(), Beløp(utbetaling.kontoppstilling.kreditYtelse.sum()))
+        return MånedBeløp(måned, Beløp(utbetaling.kontoppstilling.kreditYtelse.sum()))
     }
 
     fun hentFeilutbetalteBeløp(): MånedBeløp {
-        return MånedBeløp(måned.tilMåned(), Beløp(utbetaling.kontoppstilling.debetFeilkonto.sum()))
+        return MånedBeløp(måned, Beløp(utbetaling.kontoppstilling.debetFeilkonto.sum()))
     }
 
     fun hentReduksjonFeilkonto(): MånedBeløp {
-        return MånedBeløp(måned.tilMåned(), Beløp(utbetaling.kontoppstilling.kreditFeilkonto.sum()))
+        return MånedBeløp(måned, Beløp(utbetaling.kontoppstilling.kreditFeilkonto.sum()))
     }
 
     fun hentTilUtbetaling(): MånedBeløp {
-        return MånedBeløp(måned.tilMåned(), Beløp(max(utbetaling.kontoppstilling.sumUtbetaling.sum(), 0)))
+        return MånedBeløp(måned, Beløp(max(utbetaling.kontoppstilling.sumUtbetaling.sum(), 0)))
     }
 
     fun hentTotalUtbetaling(): MånedBeløp {
-        return MånedBeløp(måned.tilMåned(), Beløp(utbetaling.kontoppstilling.debetYtelse.sum() - utbetaling.kontoppstilling.debetFeilkonto.sum()))
+        return MånedBeløp(
+            måned,
+            Beløp(utbetaling.kontoppstilling.debetYtelse.sum() - utbetaling.kontoppstilling.debetFeilkonto.sum()),
+        )
     }
 
     fun hentEtterbetaling(): MånedBeløp {
         return if (måned.erForfalt()) {
             hentTilUtbetaling()
         } else {
-            MånedBeløp(måned.tilMåned(), Beløp.zero())
+            MånedBeløp(måned, Beløp.zero())
         }
     }
 
@@ -196,7 +206,7 @@ internal data class TolketPeriodeMedUtbetalinger(
         return if (!måned.erForfalt()) {
             hentTilUtbetaling()
         } else {
-            MånedBeløp(måned.tilMåned(), Beløp.zero())
+            MånedBeløp(måned, Beløp.zero())
         }
     }
 
@@ -223,7 +233,8 @@ internal data class TolketUtbetaling(
     val forfall: LocalDate,
 ) {
     private val feilkonto: List<TolketDetalj.Feilkonto> = detaljer.filterIsInstance<TolketDetalj.Feilkonto>()
-    private val motpostFeilkonto: List<TolketDetalj.MotpostFeilkonto> = detaljer.filterIsInstance<TolketDetalj.MotpostFeilkonto>()
+    private val motpostFeilkonto: List<TolketDetalj.MotpostFeilkonto> =
+        detaljer.filterIsInstance<TolketDetalj.MotpostFeilkonto>()
     private val ytelse: List<TolketDetalj.Ytelse> = detaljer.filterIsInstance<TolketDetalj.Ytelse>()
 
     val kontoppstilling = Kontooppstilling(
@@ -279,6 +290,7 @@ sealed class TolketDetalj {
                 antallSats == 1 &&
                 !tilbakeforing
         }
+
         fun from(
             simulertDetaljer: SimulertDetaljer,
             log: Logger = LoggerFactory.getLogger(this::class.java),
@@ -286,15 +298,22 @@ sealed class TolketDetalj {
             simulertDetaljer.erFeilkonto() -> {
                 Feilkonto(beløp = Kontobeløp(simulertDetaljer.belop))
             }
+
             simulertDetaljer.erYtelse() -> {
-                Ytelse(beløp = Kontobeløp(simulertDetaljer.belop), erUtbetalingSomSimuleres = simulertDetaljer.erUtbetalingSomSimuleres())
+                Ytelse(
+                    beløp = Kontobeløp(simulertDetaljer.belop),
+                    erUtbetalingSomSimuleres = simulertDetaljer.erUtbetalingSomSimuleres(),
+                )
             }
+
             simulertDetaljer.erMotpostFeilkonto() -> {
                 MotpostFeilkonto(beløp = Kontobeløp(simulertDetaljer.belop))
             }
+
             simulertDetaljer.erSkatt() -> {
                 Skatt(beløp = Kontobeløp(simulertDetaljer.belop))
             }
+
             else -> {
                 log.error("Ukjent detalj: $simulertDetaljer")
                 null

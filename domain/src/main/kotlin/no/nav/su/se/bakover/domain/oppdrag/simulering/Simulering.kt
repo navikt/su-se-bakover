@@ -1,11 +1,13 @@
 package no.nav.su.se.bakover.domain.oppdrag.simulering
 
+import arrow.core.NonEmptyList
 import com.fasterxml.jackson.annotation.JsonAlias
 import no.nav.su.se.bakover.common.MånedBeløp
 import no.nav.su.se.bakover.common.Månedsbeløp
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import java.time.LocalDate
 
@@ -18,10 +20,15 @@ data class Simulering(
     val gjelderNavn: String,
     val datoBeregnet: LocalDate,
     val nettoBeløp: Int,
-    val periodeList: List<SimulertPeriode>,
+    val måneder: List<SimulertMåned>,
     val rawResponse: String,
 ) {
     private val tolkning = TolketSimulering(this)
+
+    init {
+        check(måneder.isNotEmpty()) { "En simulering må inneholde minst en måned" }
+        // TODO jah: Skulle gjerne sjekket at månedene var i rekkefølge, men SimuleringStub/avkortingstestene liker ikke dette.
+    }
 
     fun harFeilutbetalinger(): Boolean {
         return tolkning.harFeilutbetalinger()
@@ -99,6 +106,7 @@ data class Simulering(
     fun kontooppstilling(): Map<Periode, Kontooppstilling> {
         return tolkning.kontooppstilling()
     }
+
     fun oppsummering(): SimuleringsOppsummering {
         return SimuleringsOppsummering(
             totalOppsummering = tolkning.totalOppsummering(),
@@ -123,23 +131,34 @@ data class PeriodeOppsummering(
     val sumReduksjonFeilkonto: Int,
 )
 
-data class SimulertPeriode(
-    @JsonAlias("fraOgMed", "fom")
-    val fraOgMed: LocalDate,
-    @JsonAlias("tilOgMed", "tom")
-    val tilOgMed: LocalDate,
+data class SimulertMåned(
+    val måned: Måned,
     val utbetaling: SimulertUtbetaling?,
 ) {
-    internal fun tolk(): TolketPeriode {
+    /** Ikke alle måneder vi simulerer har simuleringsdata. Typisk hvis måneden aldri har vært utbetalt og/eller ikke skal utbetales. Typisk ved hull i stønadsperiode og/eller opphør. */
+    constructor(måned: Måned) : this(måned, null)
+
+    companion object {
+        fun create(periode: Periode): List<SimulertMåned> {
+            return periode.måneder().map { SimulertMåned(it) }
+        }
+
+        fun create(måneder: NonEmptyList<Måned>): List<SimulertMåned> {
+            require(måneder.erSammenhengendeSortertOgUtenDuplikater())
+            return måneder.map { SimulertMåned(it) }
+        }
+    }
+
+    internal fun tolk(): TolketMåned {
         return if (utbetaling == null) {
-            TolketPeriodeUtenUtbetalinger(periode = Periode.create(fraOgMed, tilOgMed))
+            TolketMånedUtenUtbetalinger(måned = måned)
         } else {
             /**
              * I Teorien kan det være flere utbetalnger per periode, f.eks hvis bruker mottar andre ytelser.
              * Vi bryr oss kun om SU og forventer derfor bare 1.
              */
-            TolketPeriodeMedUtbetalinger(
-                måned = Måned.fra(fraOgMed, tilOgMed),
+            TolketMånedMedUtbetalinger(
+                måned = måned,
                 utbetaling = utbetaling.tolk(),
             )
         }
@@ -216,6 +235,7 @@ enum class KlasseKode {
         fun skalIkkeFiltreres(): List<String> {
             return setOf(SUUFORE, KL_KODE_FEIL_INNT, SUALDER, KL_KODE_FEIL, TBMOTOBS).map { it.name }
         }
+
         fun contains(value: String): Boolean {
             return values().map { it.name }.contains(value)
         }
@@ -227,6 +247,7 @@ fun Sakstype.toYtelsekode(): KlasseKode {
         Sakstype.ALDER -> {
             KlasseKode.SUALDER
         }
+
         Sakstype.UFØRE -> {
             KlasseKode.SUUFORE
         }
@@ -238,6 +259,7 @@ fun Sakstype.toFeilkode(): KlasseKode {
         Sakstype.ALDER -> {
             KlasseKode.KL_KODE_FEIL
         }
+
         Sakstype.UFØRE -> {
             KlasseKode.KL_KODE_FEIL_INNT
         }

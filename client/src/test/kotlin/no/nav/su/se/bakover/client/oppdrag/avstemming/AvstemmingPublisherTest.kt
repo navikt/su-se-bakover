@@ -27,7 +27,7 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertMåned
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.fixedClock
@@ -164,13 +164,7 @@ class AvstemmingPublisherTest {
                     gjelderNavn = "",
                     datoBeregnet = idag(fixedClock),
                     nettoBeløp = 5000,
-                    periodeList = listOf(
-                        SimulertPeriode(
-                            fraOgMed = januar(2021).fraOgMed,
-                            tilOgMed = januar(2021).tilOgMed,
-                            utbetaling = null,
-                        ),
-                    ),
+                    måneder = listOf(SimulertMåned(måned = januar(2021))),
                     rawResponse = "AvstemmingPublisherTest baserer seg ikke på rå XML",
                 ),
             ).toOversendtUtbetaling(

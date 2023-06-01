@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.oppdrag.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -9,7 +10,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertMåned
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.system.os.entiteter.beregningskjema.BeregningStoppnivaa
@@ -63,7 +64,7 @@ private fun SimulerBeregningResponse.toSimulering(
         gjelderNavn = simulering.gjelderNavn.trim(),
         datoBeregnet = LocalDate.parse(simulering.datoBeregnet),
         nettoBeløp = simulering.belop.toInt(),
-        periodeList = simulering.beregningsPeriode.map { it.toSimulertPeriode(saksnummer, rawResponse) },
+        måneder = simulering.beregningsPeriode.map { it.toSimulertPeriode(saksnummer, rawResponse) },
         rawResponse = rawResponse,
     )
 }
@@ -71,10 +72,9 @@ private fun SimulerBeregningResponse.toSimulering(
 private fun BeregningsPeriode.toSimulertPeriode(
     saksnummer: Saksnummer,
     rawResponse: String,
-): SimulertPeriode {
-    return SimulertPeriode(
-        fraOgMed = LocalDate.parse(periodeFom),
-        tilOgMed = LocalDate.parse(periodeTom),
+): SimulertMåned {
+    return SimulertMåned(
+        måned = Måned.Companion.fra(LocalDate.parse(periodeFom), LocalDate.parse(periodeTom)),
         utbetaling = beregningStoppnivaa
             .filter { utbetaling ->
                 val fagsystemId = utbetaling.fagsystemId.trim()
@@ -163,13 +163,7 @@ private fun Utbetaling.mapTomResponsFraOppdrag(
         gjelderNavn = fnr.toString(), // Usually returned by response, which in this case is empty.
         datoBeregnet = LocalDate.now(clock),
         nettoBeløp = 0,
-        periodeList = listOf(
-            SimulertPeriode(
-                fraOgMed = simuleringsperiode.fraOgMed,
-                tilOgMed = simuleringsperiode.tilOgMed,
-                utbetaling = null,
-            ),
-        ),
+        måneder = SimulertMåned.create(simuleringsperiode),
         rawResponse = "Tom respons fra oppdrag.",
     )
 }

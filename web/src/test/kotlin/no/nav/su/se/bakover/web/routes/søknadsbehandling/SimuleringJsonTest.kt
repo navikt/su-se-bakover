@@ -63,7 +63,7 @@ internal class SimuleringJsonTest {
     """.trimIndent()
 
     private val simulering = simulering(
-        perioder = listOf(
+        måneder = listOf(
             januar(2020),
             februar(2020),
         ),

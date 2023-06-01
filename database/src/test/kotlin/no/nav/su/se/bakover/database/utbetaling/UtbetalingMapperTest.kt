@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertMåned
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.fixedClock
@@ -43,13 +43,7 @@ internal class UtbetalingMapperTest {
                 gjelderNavn = "navn",
                 datoBeregnet = idag(fixedClock),
                 nettoBeløp = 0,
-                periodeList = listOf(
-                    SimulertPeriode(
-                        fraOgMed = januar(2021).fraOgMed,
-                        tilOgMed = januar(2021).tilOgMed,
-                        utbetaling = null,
-                    ),
-                ),
+                måneder = listOf(SimulertMåned(januar(2021))),
                 rawResponse = "UtbetalingMapperTest baserer ikke denne på rå XML.",
             ),
             utbetalingsrequest = Utbetalingsrequest(
@@ -79,13 +73,7 @@ internal class UtbetalingMapperTest {
                 gjelderNavn = "navn",
                 datoBeregnet = idag(fixedClock),
                 nettoBeløp = 0,
-                periodeList = listOf(
-                    SimulertPeriode(
-                        fraOgMed = januar(2021).fraOgMed,
-                        tilOgMed = januar(2021).tilOgMed,
-                        utbetaling = null,
-                    ),
-                ),
+                måneder = listOf(SimulertMåned(januar(2021))),
                 rawResponse = "UtbetalingsstrategiGjenopptaTest baserer ikke denne på rå XML.",
             ),
             utbetalingsrequest = Utbetalingsrequest(

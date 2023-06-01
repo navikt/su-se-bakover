@@ -16,6 +16,7 @@ internal data class PersistertMånedsberegning(
     val sats: Satskategori,
     val satsbeløp: Double,
     val fradrag: List<PersistertFradrag>,
+    // Siden denne serialiseres/deserialiseres kan man ikke rename periode uten migrering eller annotasjoner.
     val periode: MånedJson,
     val fribeløpForEps: Double,
     val merknader: List<PersistertMerknad.Beregning> = emptyList(),

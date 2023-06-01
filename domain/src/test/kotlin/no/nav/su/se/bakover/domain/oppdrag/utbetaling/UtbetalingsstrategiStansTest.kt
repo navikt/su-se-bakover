@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.common.tid.periode.august
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.tid.periode.november
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -33,7 +34,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertMåned
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClockAt
@@ -435,13 +436,7 @@ internal class UtbetalingsstrategiStansTest {
                 gjelderNavn = "navn",
                 datoBeregnet = idag(clock),
                 nettoBeløp = 0,
-                periodeList = listOf(
-                    SimulertPeriode(
-                        fraOgMed = utbetalingslinjer.minOf { it.periode.fraOgMed },
-                        tilOgMed = utbetalingslinjer.maxOf { it.periode.tilOgMed },
-                        utbetaling = null,
-                    ),
-                ),
+                måneder = SimulertMåned.create(utbetalingslinjer.map { it.periode }.minAndMaxOf().måneder()),
                 rawResponse = "UtbetalingsstrategiStansTest baserer ikke denne på rå XML.",
             ),
         ).toOversendtUtbetaling(
