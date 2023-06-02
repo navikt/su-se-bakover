@@ -3,6 +3,16 @@
 ## Applikasjon for saksbehandling av supplerende stønad
 
 ### Lokalt oppsett
+sjekkliste:
+    1. ha riktig gradle versjon (kan finnes i `build.gradle.kts` - let etter `gradleVersion =`)
+    2. ha riktig java versjon (kan finnes i `build.gradle.kts` - let etter `jvmTarget =`)
+    3. La prosjektet ditt bruke riktig java versjon (høyreklikk prosjektnavn -> `Open module settings` og set riktig java versjon)
+        - Du kan laste ned java versjon ved bruk av SDKman
+    4. Ikke ha database porten i bruk av noe annet (hvis du for eksempel lastet ned postgresql via homebrew og startet den)
+
+#### Starte applikasjon lokalt
+Kan startes lokalt fra web/src/main/kotlin/.../Application.kt sin `fun main(...)`. Krever at `start-dev.sh` skriptet
+i [su-se-fremover](https://github.com/navikt/su-se-framover#kj%C3%B8re-lokalt) kjører
 
 #### Database (Postgres)
 Lokal database startes med `docker compose up`
@@ -29,10 +39,6 @@ Import
 Dersom man får feilen `running bootstrap script ... 2022-08-30 16:10:20.342 CEST [53606] FATAL:  could not create shared memory segment: Cannot allocate memory` kan man øke shared memory:
  * `sudo sysctl kern.sysv.shmmax=104857600` eller en annen ønsket verdi
  * `sudo sysctl kern.sysv.shmall=2560` eller en annen ønsket verdi
-
-#### Starte applikasjon lokalt
-Kan startes lokalt fra web/src/main/kotlin/.../Application.kt sin `fun main(...)`. Krever at `start-dev.sh` skriptet
-i [su-se-fremover](https://github.com/navikt/su-se-framover#kj%C3%B8re-lokalt) kjører
 
 #### Autentisering
 su-se-framover tar seg av autentisering (backend for frontend (BFF)) og kaller su-se-bakover med on-behalf-of tokens (per bruker).
