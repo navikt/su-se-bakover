@@ -20,7 +20,7 @@ dependencies {
         exclude(group = "org.eclipse.jetty") // conflicts with WireMock
         exclude(group = "org.eclipse.jetty.http2") // conflicts with WireMock
     }
-    implementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
+    implementation("org.mockito.kotlin:mockito-kotlin:5.0.0")
 }
 
 task<JavaExec>("nySøknad") {
