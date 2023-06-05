@@ -41,7 +41,7 @@ Backup
 
 Import
 1. For å legge inn dataen i basen kan du kjøre følgende `pg_restore -h remote_host -p remote_port -U brukernavn -d database_name filnavn.dump`
-   - eksempel for lokalt `pg_restore -c --if-exists -h localhost -p 5432 -U user -d database_name filnavn.dump`
+   - eksempel for lokalt `pg_restore -c --if-exists -h localhost -p 5432 -U user -d supstonad-db-local filnavn.dump`
       - password er `pwd`
       - Terminal vil kanskje gi deg en del 'errors' pga roller etc. Disse kan du se bort ifra
       - Hvis du samtidig inspecter filen (f.eks nano) vil du kanskje se en del encoding issues. Disse var heller ikke et problem ved import
