@@ -4,11 +4,11 @@
 
 ### Lokalt oppsett
 sjekkliste:
-    1. ha riktig gradle versjon (kan finnes i `build.gradle.kts` - let etter `gradleVersion =`)
-    2. ha riktig java versjon (kan finnes i `build.gradle.kts` - let etter `jvmTarget =`)
-    3. La prosjektet ditt bruke riktig java versjon (høyreklikk prosjektnavn -> `Open module settings` og set riktig java versjon)
-        - Du kan laste ned java versjon ved bruk av SDKman
-    4. Ikke ha database porten i bruk av noe annet (hvis du for eksempel lastet ned postgresql via homebrew og startet den)
+1. ha riktig gradle versjon (kan finnes i `build.gradle.kts` - let etter `gradleVersion =`)
+2. ha riktig java versjon (kan finnes i `build.gradle.kts` - let etter `jvmTarget =`)
+3. La prosjektet ditt bruke riktig java versjon (høyreklikk prosjektnavn -> `Open module settings` og set riktig java versjon)
+    - Du kan laste ned java versjon ved bruk av SDKman
+4. Ikke ha database porten i bruk av noe annet (hvis du for eksempel lastet ned postgresql via homebrew og startet den)
 
 #### Starte applikasjon lokalt
 Kan startes lokalt fra web/src/main/kotlin/.../Application.kt sin `fun main(...)`. Krever at `start-dev.sh` skriptet
@@ -18,6 +18,17 @@ i [su-se-fremover](https://github.com/navikt/su-se-framover#kj%C3%B8re-lokalt) k
 Lokal database startes med `docker compose up`
 
 Hvis man ønsker å resette hele databasen og starte fra scratch er det enkleste å slette volumet ved å kjøre `./resetdb.sh`
+
+### Hvordan kunne koble til Test/prod baser fra lokal maskin
+1. `sudo nano /etc/hosts`
+2. Legg inn følgende:
+    ```
+    # NAV POSTGRES PREPROD URL
+    10.183.160.87 b27dbvl009.preprod.local
+    # NAV POSTGRES PROD URL
+    10.53.20.112 A01DBVL011.adeo.no
+    ```
+3. lagre
 
 #### Backup og import av database
 For backup av testmiljøets database, må du hente brukernavn og password (admin - se Koble til database i preprod/prod) fra vault.
