@@ -458,7 +458,7 @@ internal class GjenopptakAvYtelseServiceTest {
             )
             verify(callback).invoke(any())
 
-            val eventCaptor = argumentCaptor<StatistikkEvent.Behandling.Gjenoppta.Iverksatt>()
+            val eventCaptor = argumentCaptor<StatistikkEvent>()
             verify(observerMock, times(2)).handle(eventCaptor.capture())
             val statistikkEvent = eventCaptor.allValues[0]
             statistikkEvent.shouldBeType<StatistikkEvent.Behandling.Gjenoppta.Iverksatt>().also {

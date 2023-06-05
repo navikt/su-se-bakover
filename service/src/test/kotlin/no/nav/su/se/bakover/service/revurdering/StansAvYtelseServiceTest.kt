@@ -310,7 +310,7 @@ internal class StansAvYtelseServiceTest {
         )
 
         verify(callback).invoke(any())
-        val eventCaptor = argumentCaptor<StatistikkEvent.Behandling.Stans.Iverksatt>()
+        val eventCaptor = argumentCaptor<StatistikkEvent>()
         verify(serviceAndMocks.observer, times(2)).handle(eventCaptor.capture())
         val iverksatt = eventCaptor.allValues[0]
         iverksatt.shouldBeType<StatistikkEvent.Behandling.Stans.Iverksatt>().also {
