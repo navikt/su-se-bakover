@@ -44,10 +44,6 @@ internal data class TolketSimulering(
         return tolketMåneder.all { it is TolketMånedUtenUtbetalinger }
     }
 
-    fun kontooppstillingForMåned(måned: Måned): Kontooppstilling? {
-        return tolketMåneder.singleOrNull { it.måned == måned }?.kontooppstilling()
-    }
-
     fun kontooppstilling(): Map<Periode, Kontooppstilling> {
         return if (erAlleMånederUtenUtbetaling()) {
             mapOf(periode to Kontooppstilling.EMPTY)
@@ -93,15 +89,25 @@ internal data class TolketSimulering(
     }
 
     fun hentTotalUtbetaling(): Månedsbeløp {
-        return if (erAlleMånederUtenUtbetaling()) {
-            Månedsbeløp(emptyList())
-        } else {
-            Månedsbeløp(
-                hentMånederMedUtbetalinger()
-                    .map { it.hentTotalUtbetaling() }
-                    .filter { it.sum() > 0 },
-            )
-        }
+        if (erAlleMånederUtenUtbetaling()) return Månedsbeløp(emptyList())
+
+        return Månedsbeløp(
+            tolketMåneder.mapNotNull { tolketMåned ->
+                val tolketUtbetaling = (tolketMåned as TolketMånedMedUtbetalinger).utbetaling
+                tolketUtbetaling.ytelse.filter { it.erUtbetalingSomSimuleres }.let {
+                    when (it.size) {
+                        0 -> null
+                        1 -> it.first().beløp.beløp
+                        else -> throw IllegalStateException("Fant flere YTEL uten tilbakeføring som var større enn 0, hadde typeSats MND, antallSats 1 og sats er lik beløp. Det skal ikke være tilfelle.")
+                    }
+                }?.let {
+                    MånedBeløp(
+                        periode = tolketMåned.måned,
+                        beløp = Beløp(it),
+                    )
+                }
+            },
+        )
     }
 
     fun totalOppsummering(): PeriodeOppsummering {
@@ -167,7 +173,7 @@ internal data class TolketMånedMedUtbetalinger(
         return MånedBeløp(måned, Beløp(utbetaling.kontoppstilling.debetFeilkonto.sum()))
     }
 
-    fun hentReduksjonFeilkonto(): MånedBeløp {
+    private fun hentReduksjonFeilkonto(): MånedBeløp {
         return MånedBeløp(måned, Beløp(utbetaling.kontoppstilling.kreditFeilkonto.sum()))
     }
 
@@ -175,14 +181,14 @@ internal data class TolketMånedMedUtbetalinger(
         return MånedBeløp(måned, Beløp(max(utbetaling.kontoppstilling.sumUtbetaling.sum(), 0)))
     }
 
-    fun hentTotalUtbetaling(): MånedBeløp {
+    private fun hentTotalUtbetaling(): MånedBeløp {
         return MånedBeløp(
             måned,
             Beløp(utbetaling.kontoppstilling.debetYtelse.sum() - utbetaling.kontoppstilling.debetFeilkonto.sum()),
         )
     }
 
-    fun hentEtterbetaling(): MånedBeløp {
+    private fun hentEtterbetaling(): MånedBeløp {
         return if (måned.erForfalt()) {
             hentTilUtbetaling()
         } else {
@@ -190,7 +196,7 @@ internal data class TolketMånedMedUtbetalinger(
         }
     }
 
-    fun hentFramtidigUtbetaling(): MånedBeløp {
+    private fun hentFramtidigUtbetaling(): MånedBeløp {
         return if (!måned.erForfalt()) {
             hentTilUtbetaling()
         } else {
@@ -223,7 +229,7 @@ internal data class TolketUtbetaling(
     private val feilkonto: List<TolketDetalj.Feilkonto> = detaljer.filterIsInstance<TolketDetalj.Feilkonto>()
     private val motpostFeilkonto: List<TolketDetalj.MotpostFeilkonto> =
         detaljer.filterIsInstance<TolketDetalj.MotpostFeilkonto>()
-    private val ytelse: List<TolketDetalj.Ytelse> = detaljer.filterIsInstance<TolketDetalj.Ytelse>()
+    val ytelse: List<TolketDetalj.Ytelse> = detaljer.filterIsInstance<TolketDetalj.Ytelse>()
 
     val kontoppstilling = Kontooppstilling(
         debetYtelse = hentDebetYtelse(),

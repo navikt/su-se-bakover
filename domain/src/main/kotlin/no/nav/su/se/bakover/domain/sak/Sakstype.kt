@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.domain.sak
 enum class Sakstype(val value: String) {
     ALDER("alder"), UFØRE("uføre");
 
+    override fun toString() = value
+
     companion object {
         fun from(value: String): Sakstype = when (value) {
             UFØRE.value -> UFØRE
