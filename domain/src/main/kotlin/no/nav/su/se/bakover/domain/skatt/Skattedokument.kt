@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.skatt
 
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.journal.JournalpostId
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.SkattegrunnlagPdfTemplate
 import java.util.UUID
 
@@ -14,6 +15,7 @@ sealed interface Skattedokument {
     val generertDokument: PdfA
     val dokumentJson: String
     val journalpostid: JournalpostId?
+    val skattedataHentet: Tidspunkt
 
     /**
      * til bruk for når man skal lage journalpost, da vi ikke har tatt vare på pdfinnholdet
@@ -28,6 +30,7 @@ sealed interface Skattedokument {
         override val vedtakid: UUID,
         override val generertDokument: PdfA,
         override val dokumentJson: String,
+        override val skattedataHentet: Tidspunkt,
     ) : Skattedokument {
         override val journalpostid: JournalpostId? = null
         fun tilJournalført(journalpostId: JournalpostId): Journalført = Journalført(this, journalpostId)

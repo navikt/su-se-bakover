@@ -1,11 +1,13 @@
 package no.nav.su.se.bakover.client.dokarkiv
 
 import no.nav.su.se.bakover.client.dokarkiv.JournalpostDokument.Companion.lagDokumenterForJournalpost
+import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.skatt.Skattedokument
+import java.time.LocalDate
 
 /**
  * kan brukes som mal for 'Notat' poster i Joark.
@@ -16,6 +18,7 @@ data class JournalpostSkatt(
     override val sakstype: Sakstype,
     override val tittel: String,
     override val dokumenter: List<JournalpostDokument>,
+    override val datoDokument: LocalDate,
 ) : Journalpost() {
     override val sak: Fagsak = Fagsak(saksnummer.nummer.toString())
     override val journalpostType: JournalPostType = JournalPostType.NOTAT
@@ -35,6 +38,7 @@ data class JournalpostSkatt(
                 pdf = this.generertDokument.getContent(),
                 originalJson = this.dokumentJson,
             ),
+            datoDokument = this.skattedataHentet.toLocalDate(zoneIdOslo),
         )
     }
 }

@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
+import java.time.LocalDate
 import java.util.Base64
 
 sealed class Journalpost {
@@ -26,6 +27,7 @@ sealed class Journalpost {
     abstract val dokumenter: List<JournalpostDokument>
     abstract val person: Person
     abstract val saksnummer: Saksnummer
+    abstract val datoDokument: LocalDate?
 
     val behandlingstema: String
         get() = when (sakstype) {
@@ -52,6 +54,7 @@ sealed class Journalpost {
         override val journalpostType: JournalPostType = JournalPostType.INNGAAENDE
         override val kanal: String = "INNSENDT_NAV_ANSATT"
         override val journalfoerendeEnhet: JournalførendeEnhet = JournalførendeEnhet.AUTOMATISK
+        override val datoDokument: LocalDate? get() = null
 
         companion object {
             fun lagTittel(sakstype: Sakstype) = when (sakstype) {
@@ -92,6 +95,7 @@ sealed class Journalpost {
         override val journalpostType: JournalPostType = JournalPostType.UTGAAENDE
         override val kanal: String? = null
         override val journalfoerendeEnhet: JournalførendeEnhet = JournalførendeEnhet.ÅLESUND
+        override val datoDokument: LocalDate? get() = null
 
         companion object {
             fun from(
@@ -147,6 +151,7 @@ sealed class Journalpost {
         override val journalpostType: JournalPostType = JournalPostType.UTGAAENDE
         override val kanal: String? = null
         override val journalfoerendeEnhet: JournalførendeEnhet = JournalførendeEnhet.ÅLESUND
+        override val datoDokument: LocalDate? get() = null
 
         companion object {
             fun from(

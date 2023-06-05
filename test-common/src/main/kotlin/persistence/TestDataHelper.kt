@@ -100,6 +100,7 @@ import no.nav.su.se.bakover.test.beregnetSøknadsbehandling
 import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
 import no.nav.su.se.bakover.test.epsFnr
 import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.generer
@@ -1546,6 +1547,7 @@ class TestDataHelper(
         id: UUID = UUID.randomUUID(),
         generertDokument: PdfA = PdfA("jeg er en pdf".toByteArray()),
         dokumentJson: String = """{"key": "value"}""",
+        skattedataHentet: Tidspunkt = fixedTidspunkt,
     ): Skattedokument.Generert {
         return persisterSøknadsbehandlingIverksatt().let {
             nySkattedokumentGenerert(
@@ -1556,6 +1558,7 @@ class TestDataHelper(
                 vedtakId = it.third.id,
                 generertDokument = generertDokument,
                 dokumentJson = dokumentJson,
+                skattedataHentet = skattedataHentet,
             ).also { databaseRepos.dokumentSkattRepo.lagre(it) }
         }
     }
