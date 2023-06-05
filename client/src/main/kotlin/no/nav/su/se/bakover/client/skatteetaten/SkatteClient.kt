@@ -35,7 +35,7 @@ import java.time.Year
 
 /**
  * https://sigrun-ske.dev.adeo.no/swagger-ui/index.html#/
- * https://skatteetaten.github.io/datasamarbeid-api-dokumentasjon/data_spesifisertsummertskattegrunnlag.html
+ * https://skatteetaten.github.io/api-dokumentasjon/api/spesifisertsummertskattegrunnlag
  * https://skatteetaten.github.io/datasamarbeid-api-dokumentasjon/data_summertskattegrunnlag2021
  * https://github.com/navikt/sigrun/pull/50
  *

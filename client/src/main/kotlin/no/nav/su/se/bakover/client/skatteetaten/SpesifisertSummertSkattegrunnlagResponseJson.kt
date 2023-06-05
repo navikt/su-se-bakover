@@ -48,7 +48,7 @@ internal data class SpesifisertSummertSkattegrunnlagResponseJson(
 
         fun toDomain(år: Year, stadie: Stadie): Skattegrunnlag.Grunnlag {
             val spesifisering = spesifisering?.toDomain().also {
-                if (!kategori.contains("formue")) {
+                if (!kategori.contains("formue") && !it.isNullOrEmpty()) {
                     log.error("Mottok spesifisering av kjøretøy som ikke er tilknyttet formue. år: $år, stadie: $stadie, kategori: $kategori")
                 }
             } ?: emptyList()
