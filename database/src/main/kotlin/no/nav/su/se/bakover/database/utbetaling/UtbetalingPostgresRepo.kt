@@ -52,9 +52,12 @@ internal class UtbetalingPostgresRepo(
         }
     }
 
-    override fun hentOversendteUtbetalinger(sakId: UUID): Utbetalinger {
+    override fun hentOversendteUtbetalinger(
+        sakId: UUID,
+        disableSessionCounter: Boolean,
+    ): Utbetalinger {
         return dbMetrics.timeQuery("hentUtbetalingerForSakId") {
-            sessionFactory.withSession { session -> UtbetalingInternalRepo.hentOversendteUtbetalinger(sakId, session) }
+            sessionFactory.withSession(disableSessionCounter = disableSessionCounter) { session -> UtbetalingInternalRepo.hentOversendteUtbetalinger(sakId, session) }
         }.let { Utbetalinger(it) }
     }
 

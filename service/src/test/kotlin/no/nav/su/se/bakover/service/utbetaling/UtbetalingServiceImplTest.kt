@@ -101,7 +101,7 @@ internal class UtbetalingServiceImplTest {
 
             UtbetalingServiceAndMocks(
                 utbetalingRepo = mock {
-                    on { hentOversendteUtbetalinger(any()) } doReturn sak.utbetalinger
+                    on { hentOversendteUtbetalinger(any(), any()) } doReturn sak.utbetalinger
                 },
             ).also {
                 it.service.hentGjeldendeUtbetaling(
