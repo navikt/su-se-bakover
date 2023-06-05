@@ -32,9 +32,12 @@ class PostgresSessionFactory(
     }
 
     /** Lager en ny context og starter sesjonen - lukkes automatisk  */
-    fun <T> withSession(action: (Session) -> T): T {
+    fun <T> withSession(
+        disableSessionCounter: Boolean = false,
+        action: (Session) -> T,
+    ): T {
         return newSessionContext().let { context ->
-            context.withSession {
+            context.withSession(disableSessionCounter = disableSessionCounter) {
                 action(it)
             }
         }
@@ -51,7 +54,9 @@ class PostgresSessionFactory(
     }
 
     /** Lager en ny context og starter sesjonen - lukkes automatisk  */
-    override fun <T> withTransactionContext(action: (TransactionContext) -> T): T {
+    override fun <T> withTransactionContext(
+        action: (TransactionContext) -> T,
+    ): T {
         return newTransactionContext().let { context ->
             context.withTransaction {
                 action(context)

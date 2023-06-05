@@ -72,7 +72,7 @@ private data class UtbetalingRepoMock(
         TODO("Not yet implemented")
     }
 
-    override fun hentOversendteUtbetalinger(sakId: UUID): Utbetalinger {
+    override fun hentOversendteUtbetalinger(sakId: UUID, disableSessionCounter: Boolean): Utbetalinger {
         return eksisterendeUtbetalinger
     }
 
@@ -620,7 +620,7 @@ data class SimuleringResponseData(
                 klassekode: String = "SUUFORE",
                 typeKlasse: String = "YTEL",
             ) {
-                require(belop >= 0)
+                require(belop > 0)
 
                 detaljer += Detalj(
                     faktiskFom = periodeFom,

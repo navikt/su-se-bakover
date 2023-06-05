@@ -30,10 +30,14 @@ class PostgresTransactionContext(
          * Første kall lager en ny transaksjonell sesjon og lukkes automatisk sammen med funksjonsblokka..
          * Påfølgende kall gjenbruker samme transaksjon.
          *
-         * * @throws IllegalStateException dersom den transaksjonelle sesjonen er lukket.
+         * @param disableSessionCounter Lagt til for at SimuleringStub ikke skal trigge 'Sessions per thread over threshold'. Kan fjernes dersom man finner en bedre løsning.
+         * @throws IllegalStateException dersom den transaksjonelle sesjonen er lukket.
          */
         // Dette er en extension function og ikke en funksjon i interfacet siden vi ikke ønsker en referanse til Session, som er infrastrukturspesifikt, i domenelaget.
-        fun <T> TransactionContext.withTransaction(action: (TransactionalSession) -> T): T {
+        fun <T> TransactionContext.withTransaction(
+            disableSessionCounter: Boolean = false,
+            action: (TransactionalSession) -> T,
+        ): T {
             this as PostgresTransactionContext
             return if (transactionalSession == null) {
                 // Vi ønsker kun at den ytterste blokka lukker sesjonen (using)
@@ -46,8 +50,12 @@ class PostgresTransactionContext(
                 ) { session ->
                     session.transaction { transactionalSession ->
                         this.transactionalSession = transactionalSession
-                        sessionCounter.withCountSessions {
+                        if (disableSessionCounter) {
                             action(transactionalSession)
+                        } else {
+                            sessionCounter.withCountSessions {
+                                action(transactionalSession)
+                            }
                         }
                     }
                 }
