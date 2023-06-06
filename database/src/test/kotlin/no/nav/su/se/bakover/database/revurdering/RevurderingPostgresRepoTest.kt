@@ -262,7 +262,7 @@ internal class RevurderingPostgresRepoTest {
                                 bestemtAv = BrevvalgRevurdering.BestemtAv.Systembruker,
                             ),
 
-                        ).getOrFail(),
+                        ),
                     )
                     helper.revurderingRepo.hent(it.id)!!.brevvalgRevurdering shouldBe BrevvalgRevurdering.Valgt.SendBrev(
                         fritekst = "fri tekset",
@@ -276,7 +276,7 @@ internal class RevurderingPostgresRepoTest {
                                 begrunnelse = "vil ikke",
                                 bestemtAv = BrevvalgRevurdering.BestemtAv.Behandler("kjella"),
                             ),
-                        ).getOrFail(),
+                        ),
                     )
                     helper.revurderingRepo.hent(it.id)!!.brevvalgRevurdering shouldBe BrevvalgRevurdering.Valgt.IkkeSendBrev(
                         begrunnelse = "vil ikke",

@@ -15,7 +15,7 @@ data class LeggTilBrevvalgRequest(
         IKKE_SEND,
     }
 
-    fun toDomain(): BrevvalgRevurdering {
+    fun toDomain(): BrevvalgRevurdering.Valgt {
         return when (valg) {
             Valg.SEND -> {
                 BrevvalgRevurdering.Valgt.SendBrev(

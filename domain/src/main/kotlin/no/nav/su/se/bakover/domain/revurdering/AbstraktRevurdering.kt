@@ -28,7 +28,7 @@ sealed interface AbstraktRevurdering : Behandling {
      * En oppdatering gjøres i en operasjon og kan endre perioden, årsaken, hva som revurderes, begrunnelsen.
      * Basert på det den endrer vil den hente ny relevant data fra saken og populere felter som grunnlag, vilkår og avkorting.
      */
-    abstract val oppdatert: Tidspunkt
+    val oppdatert: Tidspunkt
 
     override val sakId get() = sakinfo.sakId
     override val saksnummer get() = sakinfo.saksnummer

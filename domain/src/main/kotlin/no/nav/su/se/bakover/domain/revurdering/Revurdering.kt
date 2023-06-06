@@ -6,9 +6,11 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.ident.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -19,15 +21,16 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.revurdering.beregning.BeregnRevurderingStrategyDecider
 import no.nav.su.se.bakover.domain.revurdering.beregning.KunneIkkeBeregneRevurdering
-import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOmBeregningGirOpphørVedRevurdering
@@ -38,6 +41,8 @@ import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.visitors.RevurderingVisitor
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
+import no.nav.su.se.bakover.domain.sak.SakInfo
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
@@ -61,11 +66,15 @@ import java.time.Clock
 import java.util.UUID
 import kotlin.reflect.KClass
 
+/**
+ * TODO jah: Konvertere til sealed interface på sikt. Må flytte protected funksjoner til egne interfacer, one by one.
+ */
 sealed class Revurdering :
     AbstraktRevurdering,
     BehandlingMedOppgave,
     BehandlingMedAttestering,
     Visitable<RevurderingVisitor> {
+
     abstract val saksbehandler: Saksbehandler
     abstract val revurderingsårsak: Revurderingsårsak
     abstract val informasjonSomRevurderes: InformasjonSomRevurderes
@@ -73,6 +82,21 @@ sealed class Revurdering :
     abstract val erOpphørt: Boolean
     abstract override val beregning: Beregning?
     abstract override val simulering: Simulering?
+    abstract override val oppgaveId: OppgaveId
+    abstract override val attesteringer: Attesteringshistorikk
+    abstract override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis
+    abstract override val sakinfo: SakInfo
+    abstract override val oppdatert: Tidspunkt
+    abstract override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
+
+    override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering get() = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+        grunnlagsdata = grunnlagsdata,
+        vilkårsvurderinger = vilkårsvurderinger,
+    )
+    override val sakId: UUID get() = sakinfo.sakId
+    override val saksnummer: Saksnummer get() = sakinfo.saksnummer
+    override val fnr: Fnr get() = sakinfo.fnr
+    override val sakstype: Sakstype get() = sakinfo.type
 
     /**
      * Har saksbehandler vurdert saken dithen at penger skal tilbakekreves?
@@ -691,23 +715,4 @@ sealed class Revurdering :
     }
 
     abstract override fun skalSendeVedtaksbrev(): Boolean
-
-    fun leggTilBrevvalg(brevvalgRevurdering: BrevvalgRevurdering): Either<KunneIkkeLeggeTilBrevvalg, Revurdering> {
-        return when (brevvalgRevurdering) {
-            BrevvalgRevurdering.IkkeValgt -> KunneIkkeLeggeTilBrevvalg.UgyldigBrevvalg.left()
-            is BrevvalgRevurdering.Valgt.IkkeSendBrev -> this.leggTilBrevvalgInternal(brevvalgRevurdering)
-            is BrevvalgRevurdering.Valgt.SendBrev -> this.leggTilBrevvalgInternal(brevvalgRevurdering)
-        }
-    }
-
-    protected open fun Revurdering.leggTilBrevvalgInternal(brevvalgRevurdering: BrevvalgRevurdering.Valgt): Either<KunneIkkeLeggeTilBrevvalg, Revurdering> {
-        return KunneIkkeLeggeTilBrevvalg.UgyldigTilstand(this::class).left()
-    }
-
-    sealed interface KunneIkkeLeggeTilBrevvalg {
-        object UgyldigBrevvalg : KunneIkkeLeggeTilBrevvalg
-        data class UgyldigTilstand(
-            val tilstand: KClass<out Revurdering>,
-        ) : KunneIkkeLeggeTilBrevvalg
-    }
 }

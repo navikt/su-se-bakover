@@ -44,7 +44,7 @@ import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
-sealed class UnderkjentRevurdering : Revurdering() {
+sealed class UnderkjentRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
     abstract override val beregning: Beregning
     abstract override val attesteringer: Attesteringshistorikk
     abstract override val grunnlagsdata: Grunnlagsdata
@@ -57,6 +57,8 @@ sealed class UnderkjentRevurdering : Revurdering() {
     abstract override fun accept(visitor: RevurderingVisitor)
 
     override fun erÅpen() = true
+
+    abstract override fun leggTilBrevvalg(brevvalgRevurdering: BrevvalgRevurdering.Valgt): UnderkjentRevurdering
 
     override fun skalTilbakekreve() = tilbakekrevingsbehandling.skalTilbakekreve().isRight()
 
@@ -225,16 +227,16 @@ sealed class UnderkjentRevurdering : Revurdering() {
             ).right()
         }
 
-        override fun Revurdering.leggTilBrevvalgInternal(
+        override fun leggTilBrevvalg(
             brevvalgRevurdering: BrevvalgRevurdering.Valgt,
-        ): Either<KunneIkkeLeggeTilBrevvalg, Innvilget> {
+        ): Innvilget {
             return copy(
                 brevvalgRevurdering = brevvalgRevurdering,
                 saksbehandler = when (val bestemtAv = brevvalgRevurdering.bestemtAv) {
                     is BrevvalgRevurdering.BestemtAv.Behandler -> NavIdentBruker.Saksbehandler(bestemtAv.ident)
                     BrevvalgRevurdering.BestemtAv.Systembruker -> saksbehandler
                 },
-            ).right()
+            )
         }
     }
 
@@ -345,16 +347,16 @@ sealed class UnderkjentRevurdering : Revurdering() {
             }
         }
 
-        override fun Revurdering.leggTilBrevvalgInternal(
+        override fun leggTilBrevvalg(
             brevvalgRevurdering: BrevvalgRevurdering.Valgt,
-        ): Either<KunneIkkeLeggeTilBrevvalg, Opphørt> {
+        ): Opphørt {
             return copy(
                 brevvalgRevurdering = brevvalgRevurdering,
                 saksbehandler = when (val bestemtAv = brevvalgRevurdering.bestemtAv) {
                     is BrevvalgRevurdering.BestemtAv.Behandler -> NavIdentBruker.Saksbehandler(bestemtAv.ident)
                     BrevvalgRevurdering.BestemtAv.Systembruker -> saksbehandler
                 },
-            ).right()
+            )
         }
     }
 }

@@ -35,6 +35,8 @@ import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
+import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilVedtaksbrevvalg
+import no.nav.su.se.bakover.domain.revurdering.LeggTilVedtaksbrevvalg
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -49,7 +51,6 @@ import no.nav.su.se.bakover.domain.revurdering.beregning.VurderOmBeløpsendringE
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForAvsluttingAvRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForRevurdering
-import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLeggeTilBrevvalg
 import no.nav.su.se.bakover.domain.revurdering.brev.LeggTilBrevvalgRequest
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.iverksettRevurdering
@@ -465,6 +466,7 @@ class RevurderingServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeBeregneOgSimulereRevurdering, RevurderingOgFeilmeldingerResponse> {
         val sak = sakService.hentSakForRevurdering(revurderingId)
+
         val originalRevurdering = sak.revurderinger.single { it.id == revurderingId } as Revurdering
 
         return when (originalRevurdering) {
@@ -892,16 +894,15 @@ class RevurderingServiceImpl(
         }
     }
 
-    override fun leggTilBrevvalg(request: LeggTilBrevvalgRequest): Either<KunneIkkeLeggeTilBrevvalg, Revurdering> {
-        return hent(request.revurderingId)
-            .mapLeft { KunneIkkeLeggeTilBrevvalg.FantIkkeRevurdering }
-            .flatMap {
-                it.leggTilBrevvalg(request.toDomain())
-                    .mapLeft { feil -> KunneIkkeLeggeTilBrevvalg.Feil(feil) }
-                    .map { medBrevvalg ->
-                        revurderingRepo.lagre(medBrevvalg)
-                        medBrevvalg
-                    }
+    override fun leggTilBrevvalg(request: LeggTilBrevvalgRequest): Either<KunneIkkeLeggeTilVedtaksbrevvalg, Revurdering> {
+        return hentEllerKast(request.revurderingId)
+            .let {
+                it as? LeggTilVedtaksbrevvalg
+                    ?: return KunneIkkeLeggeTilVedtaksbrevvalg.UgyldigTilstand(it::class).left()
+            }
+            .let {
+                it.leggTilBrevvalg(request.toDomain()).right()
+                    .onRight { revurderingRepo.lagre(it) }
             }
     }
 
@@ -1154,6 +1155,10 @@ class RevurderingServiceImpl(
         }
 
         return Pair(person, saksbehandlerNavn).right()
+    }
+
+    private fun hentEllerKast(id: UUID): Revurdering {
+        return hent(id).getOrElse { throw IllegalArgumentException("Fant ikke revurdering med id $id") }
     }
 
     private fun hent(id: UUID): Either<KunneIkkeHenteRevurdering, Revurdering> {

@@ -184,7 +184,7 @@ fun vedtakRevurderingIverksattInnvilget(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
-    brevvalg: BrevvalgRevurdering = sendBrev(),
+    brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
     skalTilbakekreve: Boolean = true,
 ): Pair<Sak, VedtakInnvilgetRevurdering> {
     return iverksattRevurdering(

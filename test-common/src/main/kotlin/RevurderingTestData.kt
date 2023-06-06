@@ -258,7 +258,7 @@ fun simulertRevurdering(
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
-    brevvalg: BrevvalgRevurdering = sendBrev(),
+    brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
     skalTilbakekreve: Boolean = true,
 ): Pair<Sak, SimulertRevurdering> {
     return beregnetRevurdering(
@@ -309,7 +309,7 @@ fun simulertRevurdering(
                 ).getOrFail()
                 oppdaterTilbakekrevingsbehandling(simulert)
             }
-        }.leggTilBrevvalg(brevvalg).getOrFail() as SimulertRevurdering
+        }.leggTilBrevvalg(brevvalg)
 
         sak.copy(
             revurderinger = sak.revurderinger.filterNot { it.id == simulert.id } + simulert,
@@ -334,7 +334,7 @@ fun revurderingTilAttestering(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
-    brevvalg: BrevvalgRevurdering = sendBrev(),
+    brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
     skalTilbakekreve: Boolean = true,
 ): Pair<Sak, RevurderingTilAttestering> {
     return simulertRevurdering(
@@ -466,7 +466,7 @@ fun iverksattRevurdering(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
-    brevvalg: BrevvalgRevurdering = sendBrev(),
+    brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
     skalTilbakekreve: Boolean = true,
     kvittering: Kvittering? = kvittering(clock = clock),
 ): Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling, Revurderingsvedtak> {
@@ -567,7 +567,7 @@ fun vedtakRevurdering(
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
-    brevvalg: BrevvalgRevurdering = sendBrev(),
+    brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
 ): Pair<Sak, VedtakSomKanRevurderes> {
     return iverksattRevurdering(
         clock = clock,
