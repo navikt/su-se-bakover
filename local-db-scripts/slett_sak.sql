@@ -36,7 +36,9 @@ with
     gr_personlig_oppmøte as (delete from grunnlag_personlig_oppmøte where behandlingid in ((select id from behandlingz) union (select id from revurderingz) union (select id from reguleringz)) returning id, behandlingid),
     vv_fastopphold as (delete from vilkårsvurdering_fastopphold where behandlingid in ((select id from behandlingz) union (select id from revurderingz) union (select id from reguleringz)) returning id, behandlingid),
     vv_institusjonsopphold as (delete from vilkårsvurdering_institusjonsopphold where behandlingid in ((select id from behandlingz) union (select id from revurderingz) union (select id from reguleringz)) returning id, behandlingid),
-    vv_personlig_oppmøte as (delete from vilkårsvurdering_personlig_oppmøte where behandlingid in ((select id from behandlingz) union (select id from revurderingz) union (select id from reguleringz)) returning id, behandlingid)
+    vv_personlig_oppmøte as (delete from vilkårsvurdering_personlig_oppmøte where behandlingid in ((select id from behandlingz) union (select id from revurderingz) union (select id from reguleringz)) returning id, behandlingid),
+    dokument_skatt as (delete from dokument_skatt where sakid in (select id from sakz) returning sakid),
+    skatt as (delete from skatt where sakid in (select id from sakz) returning sakid)
 select sakz.id
 from sakz
          left join søknadz on sakz.id = søknadz.sakid
@@ -76,4 +78,6 @@ from sakz
          left join vv_fastopphold on behandlingz.id = vv_fastopphold.behandlingid
          left join vv_institusjonsopphold on behandlingz.id = vv_institusjonsopphold.behandlingid
          left join vv_personlig_oppmøte on behandlingz.id = vv_personlig_oppmøte.behandlingid
+         left join dokument_skatt on sakz.id = dokument_skatt.sakid
+         left join skatt on sakz.id = skatt.sakid
 ;
