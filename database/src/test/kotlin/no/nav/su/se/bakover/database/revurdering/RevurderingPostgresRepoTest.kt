@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.revurderingUnderkjent
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.sendBrev
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulertRevurdering
@@ -41,13 +42,12 @@ internal class RevurderingPostgresRepoTest {
                 val (sak, _, vedtak) = tdh.persisterSøknadsbehandlingIverksatt()
                 simulertRevurdering(
                     sakOgVedtakSomKanRevurderes = sak to vedtak as VedtakInnvilgetSøknadsbehandling,
-                    saksbehandler = Saksbehandler("Saksbehandleren"),
                     clock = tdh.clock,
                 ).also { (_, revurdering) ->
                     revurdering.shouldBeType<SimulertRevurdering.Innvilget>().also { simulert ->
                         tdh.revurderingRepo.lagre(simulert)
                         tdh.revurderingRepo.hent(simulert.id)!!.shouldBeType<SimulertRevurdering.Innvilget>().also {
-                            it.saksbehandler shouldBe Saksbehandler("Saksbehandleren")
+                            it.saksbehandler shouldBe saksbehandler
                             it.oppgaveId shouldBe oppgaveIdRevurdering
                         }
 
@@ -261,6 +261,7 @@ internal class RevurderingPostgresRepoTest {
                                 begrunnelse = "beggy",
                                 bestemtAv = BrevvalgRevurdering.BestemtAv.Systembruker,
                             ),
+
                         ).getOrFail(),
                     )
                     helper.revurderingRepo.hent(it.id)!!.brevvalgRevurdering shouldBe BrevvalgRevurdering.Valgt.SendBrev(

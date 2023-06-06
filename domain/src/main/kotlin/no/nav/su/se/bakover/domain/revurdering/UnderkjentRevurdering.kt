@@ -225,8 +225,16 @@ sealed class UnderkjentRevurdering : Revurdering() {
             ).right()
         }
 
-        override fun Revurdering.leggTilBrevvalgInternal(brevvalgRevurdering: BrevvalgRevurdering.Valgt): Either<KunneIkkeLeggeTilBrevvalg, Innvilget> {
-            return copy(brevvalgRevurdering = brevvalgRevurdering).right()
+        override fun Revurdering.leggTilBrevvalgInternal(
+            brevvalgRevurdering: BrevvalgRevurdering.Valgt,
+        ): Either<KunneIkkeLeggeTilBrevvalg, Innvilget> {
+            return copy(
+                brevvalgRevurdering = brevvalgRevurdering,
+                saksbehandler = when (val bestemtAv = brevvalgRevurdering.bestemtAv) {
+                    is BrevvalgRevurdering.BestemtAv.Behandler -> NavIdentBruker.Saksbehandler(bestemtAv.ident)
+                    BrevvalgRevurdering.BestemtAv.Systembruker -> saksbehandler
+                },
+            ).right()
         }
     }
 
@@ -337,8 +345,16 @@ sealed class UnderkjentRevurdering : Revurdering() {
             }
         }
 
-        override fun Revurdering.leggTilBrevvalgInternal(brevvalgRevurdering: BrevvalgRevurdering.Valgt): Either<KunneIkkeLeggeTilBrevvalg, Opphørt> {
-            return copy(brevvalgRevurdering = brevvalgRevurdering).right()
+        override fun Revurdering.leggTilBrevvalgInternal(
+            brevvalgRevurdering: BrevvalgRevurdering.Valgt,
+        ): Either<KunneIkkeLeggeTilBrevvalg, Opphørt> {
+            return copy(
+                brevvalgRevurdering = brevvalgRevurdering,
+                saksbehandler = when (val bestemtAv = brevvalgRevurdering.bestemtAv) {
+                    is BrevvalgRevurdering.BestemtAv.Behandler -> NavIdentBruker.Saksbehandler(bestemtAv.ident)
+                    BrevvalgRevurdering.BestemtAv.Systembruker -> saksbehandler
+                },
+            ).right()
         }
     }
 }

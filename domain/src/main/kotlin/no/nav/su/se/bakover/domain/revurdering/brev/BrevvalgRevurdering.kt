@@ -6,7 +6,6 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.suSeBakoverConsumerId
 
 sealed interface BrevvalgRevurdering {
-
     fun skalSendeBrev(): Either<Unit, Valgt.SendBrev> {
         return when (this) {
             IkkeValgt -> Unit.left()
@@ -16,15 +15,18 @@ sealed interface BrevvalgRevurdering {
     }
 
     sealed interface Valgt : BrevvalgRevurdering {
+        val bestemtAv: BestemtAv
+        val begrunnelse: String?
+
         data class SendBrev(
             val fritekst: String?,
-            val begrunnelse: String?,
-            val bestemtAv: BestemtAv,
+            override val begrunnelse: String?,
+            override val bestemtAv: BestemtAv,
         ) : Valgt
 
         data class IkkeSendBrev(
-            val begrunnelse: String?,
-            val bestemtAv: BestemtAv,
+            override val begrunnelse: String?,
+            override val bestemtAv: BestemtAv,
         ) : Valgt
     }
 
