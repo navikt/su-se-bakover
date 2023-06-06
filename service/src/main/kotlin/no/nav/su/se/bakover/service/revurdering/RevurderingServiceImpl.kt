@@ -699,6 +699,7 @@ class RevurderingServiceImpl(
 
     override fun lagBrevutkastForForhåndsvarsling(
         revurderingId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler,
         fritekst: String,
     ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
         return hent(revurderingId).mapLeft {
@@ -707,7 +708,7 @@ class RevurderingServiceImpl(
 
             hentPersonOgSaksbehandlerNavn(
                 fnr = revurdering.fnr,
-                saksbehandler = revurdering.saksbehandler,
+                saksbehandler = saksbehandler,
             ).mapLeft {
                 when (it) {
                     KunneIkkeHentePersonEllerSaksbehandlerNavn.FantIkkePerson -> {

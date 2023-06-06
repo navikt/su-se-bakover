@@ -730,10 +730,11 @@ open class AccessCheckProxy(
 
                 override fun lagBrevutkastForForhåndsvarsling(
                     revurderingId: UUID,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
                     fritekst: String,
                 ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
                     assertHarTilgangTilRevurdering(revurderingId)
-                    return services.revurdering.lagBrevutkastForForhåndsvarsling(revurderingId, fritekst)
+                    return services.revurdering.lagBrevutkastForForhåndsvarsling(revurderingId, saksbehandler, fritekst)
                 }
 
                 override fun sendTilAttestering(

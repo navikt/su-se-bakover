@@ -80,6 +80,7 @@ interface RevurderingService {
 
     fun lagBrevutkastForForhåndsvarsling(
         revurderingId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler,
         fritekst: String,
     ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray>
 

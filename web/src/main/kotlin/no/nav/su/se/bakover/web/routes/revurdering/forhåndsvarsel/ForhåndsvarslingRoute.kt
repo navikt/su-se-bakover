@@ -60,7 +60,7 @@ internal fun Route.forhåndsvarslingRoute(
                             fantIkkeRevurdering,
                         )
 
-                    revurderingService.lagBrevutkastForForhåndsvarsling(revurderingId, body.fritekst).fold(
+                    revurderingService.lagBrevutkastForForhåndsvarsling(revurderingId, call.suUserContext.saksbehandler, body.fritekst).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
                             call.sikkerlogg("Laget brevutkast for forhåndsvarsel for revurdering med id $revurderingId")
