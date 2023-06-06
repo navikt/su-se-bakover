@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.opphør.kontrollsimuler
 import no.nav.su.se.bakover.domain.revurdering.iverksett.verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg
+import no.nav.su.se.bakover.domain.sak.oppdaterRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
@@ -71,12 +72,12 @@ internal fun Sak.iverksettOpphørtRevurderingUtenUtbetaling(
                     ),
                 )
             IverksettOpphørtRevurderingUtenUtbetalingResponse(
-                sak = copy(
-                    revurderinger = revurderinger.filterNot { it.id == revurdering.id } + iverksattRevurdering,
-                    vedtakListe = vedtakListe.filterNot { it.id == vedtak.id } + vedtak,
-                ).oppdaterUteståendeAvkortingVedIverksettelse(
-                    behandletAvkorting = vedtak.behandling.avkorting,
-                ),
+                sak = oppdaterRevurdering(iverksattRevurdering)
+                    .copy(
+                        vedtakListe = vedtakListe.filterNot { it.id == vedtak.id } + vedtak,
+                    ).oppdaterUteståendeAvkortingVedIverksettelse(
+                        behandletAvkorting = vedtak.behandling.avkorting,
+                    ),
                 vedtak = vedtak,
                 dokument = dokument,
             )

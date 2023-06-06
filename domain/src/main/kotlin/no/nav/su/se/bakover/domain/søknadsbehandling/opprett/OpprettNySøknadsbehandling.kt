@@ -7,6 +7,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.sak.nySøknadsbehandling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
@@ -59,9 +60,7 @@ fun Sak.opprettNySøknadsbehandling(
     ).let { nySøknadsbehandling ->
         val søknadsbehandling = nySøknadsbehandling.toSøknadsbehandling(this.saksnummer)
         Tuple4(
-            this.copy(
-                søknadsbehandlinger = this.søknadsbehandlinger + søknadsbehandling,
-            ),
+            this.nySøknadsbehandling(søknadsbehandling),
             nySøknadsbehandling,
             søknadsbehandling,
             StatistikkEvent.Behandling.Søknad.Opprettet(søknadsbehandling, saksbehandler),

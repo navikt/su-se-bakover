@@ -105,10 +105,7 @@ internal class OpprettKlageTest {
     @Test
     fun `finnes allerede en åpen klage`() {
         val sakId = UUID.randomUUID()
-        val sak = nySakMedjournalførtSøknadOgOppgave(
-            sakId = sakId,
-            klager = listOf(opprettetKlage(sakId = sakId).second),
-        ).first
+        val (sak, _) = opprettetKlage()
 
         val mocks = KlageServiceMocks(
             sakRepoMock = mock {

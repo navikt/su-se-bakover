@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
@@ -174,10 +175,10 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 dokumenttilstand = Dokumenttilstand.GENERERT,
             )
 
-            val expectedSak = sak.copy(
-                søknadsbehandlinger = listOf(expectedSøknadsbehandling),
-                vedtakListe = listOf(expectedVedtak),
-            )
+            val expectedSak = sak.oppdaterSøknadsbehandling(expectedSøknadsbehandling)
+                .copy(
+                    vedtakListe = listOf(expectedVedtak),
+                )
 
             actualSak shouldBe expectedSak
 
@@ -313,10 +314,10 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 dokumenttilstand = Dokumenttilstand.GENERERT,
             )
 
-            val expectedSak = sak.copy(
-                søknadsbehandlinger = listOf(expectedSøknadsbehandling),
-                vedtakListe = listOf(expectedVedtak),
-            )
+            val expectedSak = sak.oppdaterSøknadsbehandling(expectedSøknadsbehandling)
+                .copy(
+                    vedtakListe = listOf(expectedVedtak),
+                )
 
             verify(serviceAndMocks.sakService).hentSakForSøknad(argThat { it shouldBe vilkårsvurdertInnvilget.søknad.id })
 

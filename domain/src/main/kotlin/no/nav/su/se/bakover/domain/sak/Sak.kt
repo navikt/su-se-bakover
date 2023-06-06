@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode.UgyldigPeriode.FraOgMedDa
 import no.nav.su.se.bakover.common.tid.periode.Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden
 import no.nav.su.se.bakover.common.tid.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.behandling.Behandlinger
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
@@ -39,6 +40,7 @@ import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
@@ -68,13 +70,10 @@ data class Sak(
     val opprettet: Tidspunkt,
     val fnr: Fnr,
     val søknader: List<Søknad> = emptyList(),
-    val søknadsbehandlinger: List<Søknadsbehandling> = emptyList(),
+    val behandlinger: Behandlinger = Behandlinger.empty(),
     // TODO jah: Bytt til [Utbetaling.Oversendt]
     val utbetalinger: Utbetalinger,
-    val revurderinger: List<AbstraktRevurdering> = emptyList(),
     val vedtakListe: List<Vedtak> = emptyList(),
-    val klager: List<Klage> = emptyList(),
-    val reguleringer: List<Regulering> = emptyList(),
     val type: Sakstype,
     val uteståendeAvkorting: Avkortingsvarsel = Avkortingsvarsel.Ingen,
     val utenlandsopphold: RegistrerteUtenlandsopphold = RegistrerteUtenlandsopphold.empty(id),
@@ -83,6 +82,11 @@ data class Sak(
     init {
         require(uteståendeAvkorting is Avkortingsvarsel.Ingen || uteståendeAvkorting is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes)
     }
+
+    val søknadsbehandlinger: List<Søknadsbehandling> = behandlinger.søknadsbehandlinger
+    val revurderinger: List<AbstraktRevurdering> = behandlinger.revurderinger
+    val reguleringer: List<Regulering> = behandlinger.reguleringer
+    val klager: List<Klage> = behandlinger.klager
 
     val uteståendeAvkortingSkalAvkortes: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes? =
         uteståendeAvkorting as? Avkortingsvarsel.Utenlandsopphold.SkalAvkortes
@@ -422,12 +426,11 @@ data class Sak(
                     throw IllegalArgumentException("Kunne ikke lukke søknad ${lukkSøknadCommand.søknadId} og søknadsbehandling. Underliggende feil: $it")
                 }.let { lukketSøknadsbehandling ->
                     Tuple4(
-                        this.copy(
-                            søknader = this.søknader.filterNot { it.id == søknadId }
-                                .plus(lukketSøknadsbehandling.søknad),
-                            søknadsbehandlinger = this.søknadsbehandlinger.filterNot { it.id == lukketSøknadsbehandling.id }
-                                .plus(lukketSøknadsbehandling),
-                        ),
+                        this.oppdaterSøknadsbehandling(lukketSøknadsbehandling)
+                            .copy(
+                                søknader = this.søknader.filterNot { it.id == søknadId }
+                                    .plus(lukketSøknadsbehandling.søknad),
+                            ),
                         lukketSøknadsbehandling.søknad,
                         lukketSøknadsbehandling,
                         StatistikkEvent.Behandling.Søknad.Lukket(lukketSøknadsbehandling, saksbehandler),

@@ -44,7 +44,6 @@ internal class SakJsonTest {
         opprettet = fixedTidspunkt,
         fnr = Fnr("12345678910"),
         utbetalinger = Utbetalinger(),
-        klager = emptyList(),
         type = Sakstype.UFØRE,
         uteståendeAvkorting = Avkortingsvarsel.Ingen,
         versjon = Hendelsesversjon(1),

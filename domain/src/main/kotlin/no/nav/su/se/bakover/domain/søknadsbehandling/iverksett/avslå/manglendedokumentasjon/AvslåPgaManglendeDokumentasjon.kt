@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
@@ -113,9 +114,7 @@ private fun avslå(
                 return KunneIkkeAvslåSøknad.HarValideringsfeil(it).left()
             }.let { søknadsbehandlingTilAttesteringUtenFeil ->
                 Pair(
-                    sak.copy(
-                        søknadsbehandlinger = sak.søknadsbehandlinger.filterNot { it.id == søknadsbehandlingTilAttesteringUtenFeil.id } + søknadsbehandlingTilAttesteringUtenFeil,
-                    ),
+                    sak.oppdaterSøknadsbehandling(søknadsbehandlingTilAttesteringUtenFeil),
                     søknadsbehandlingTilAttesteringUtenFeil,
                 ).right()
             }

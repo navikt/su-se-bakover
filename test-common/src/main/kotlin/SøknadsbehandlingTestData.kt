@@ -3,9 +3,10 @@ package no.nav.su.se.bakover.test
 import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.flatten
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
+import no.nav.su.se.bakover.common.extensions.mapFirst
+import no.nav.su.se.bakover.common.extensions.mapSecond
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -30,6 +31,7 @@ import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
+import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
@@ -134,9 +136,7 @@ fun søknadsbehandlingVilkårsvurdertInnvilget(
         ).vilkårsvurder(saksbehandler).let { vilkårsvurdert ->
             vilkårsvurdert.shouldBeType<VilkårsvurdertSøknadsbehandling.Innvilget>().let {
                 Pair(
-                    sak.copy(
-                        søknadsbehandlinger = nonEmptyListOf(it),
-                    ),
+                    sak.oppdaterSøknadsbehandling(it),
                     it,
                 )
             }
@@ -172,9 +172,7 @@ fun søknadsbehandlingVilkårsvurdertAvslag(
         ).vilkårsvurder(saksbehandler).let { vilkårsvurdert ->
             vilkårsvurdert.shouldBeType<VilkårsvurdertSøknadsbehandling.Avslag>().let {
                 Pair(
-                    sak.copy(
-                        søknadsbehandlinger = nonEmptyListOf(it),
-                    ),
+                    sak.oppdaterSøknadsbehandling(it),
                     it,
                 )
             }
@@ -211,9 +209,7 @@ fun søknadsbehandlingBeregnetInnvilget(
             uteståendeAvkortingPåSak = sak.uteståendeAvkortingSkalAvkortes,
         ).getOrFail() as BeregnetSøknadsbehandling.Innvilget
         Pair(
-            sak.copy(
-                søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
-            ),
+            sak.oppdaterSøknadsbehandling(oppdatertSøknadsbehandling),
             oppdatertSøknadsbehandling,
         )
     }
@@ -263,9 +259,7 @@ fun søknadsbehandlingBeregnetAvslag(
             uteståendeAvkortingPåSak = sak.uteståendeAvkortingSkalAvkortes,
         ).getOrFail() as BeregnetSøknadsbehandling.Avslag
         Pair(
-            sak.copy(
-                søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
-            ),
+            sak.oppdaterSøknadsbehandling(oppdatertSøknadsbehandling),
             oppdatertSøknadsbehandling,
         )
     }
@@ -323,7 +317,7 @@ fun søknadsbehandlingSimulert(
         }.getOrFail()
             .let { simulert ->
                 Pair(
-                    sak.copy(søknadsbehandlinger = sak.søknadsbehandlinger + simulert),
+                    sak.oppdaterSøknadsbehandling(simulert),
                     simulert,
                 )
             }
@@ -359,9 +353,7 @@ fun søknadsbehandlingTilAttesteringInnvilget(
             clock = clock,
         ).getOrFail()
         Pair(
-            sak.copy(
-                søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
-            ),
+            sak.oppdaterSøknadsbehandling(oppdatertSøknadsbehandling),
             oppdatertSøknadsbehandling,
         )
     }
@@ -404,9 +396,7 @@ fun søknadsbehandlingTilAttesteringAvslagMedBeregning(
             clock = clock,
         ).getOrFail()
         Pair(
-            sak.copy(
-                søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
-            ),
+            sak.oppdaterSøknadsbehandling(oppdatertSøknadsbehandling),
             oppdatertSøknadsbehandling,
         )
     }
@@ -439,9 +429,7 @@ fun søknadsbehandlingTilAttesteringAvslagUtenBeregning(
             clock = clock,
         ).getOrFail()
         Pair(
-            sak.copy(
-                søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
-            ),
+            sak.oppdaterSøknadsbehandling(oppdatertSøknadsbehandling),
             oppdatertSøknadsbehandling,
         )
     }
@@ -474,9 +462,7 @@ fun søknadsbehandlingUnderkjentInnvilget(
             attestering = attestering,
         )
         Pair(
-            sak.copy(
-                søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
-            ),
+            sak.oppdaterSøknadsbehandling(oppdatertSøknadsbehandling),
             oppdatertSøknadsbehandling,
         )
     }
@@ -507,9 +493,7 @@ fun søknadsbehandlingUnderkjentAvslagUtenBeregning(
             attestering = attestering,
         )
         Pair(
-            sak.copy(
-                søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
-            ),
+            sak.oppdaterSøknadsbehandling(oppdatertSøknadsbehandling),
             oppdatertSøknadsbehandling,
         )
     }
@@ -550,9 +534,7 @@ fun søknadsbehandlingUnderkjentAvslagMedBeregning(
             attestering = attestering,
         )
         Pair(
-            sak.copy(
-                søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
-            ),
+            sak.oppdaterSøknadsbehandling(oppdatertSøknadsbehandling),
             oppdatertSøknadsbehandling,
         )
     }
@@ -837,7 +819,7 @@ fun underkjentSøknadsbehandling(
         fritekstTilBrev = fritekstTilBrev,
     ).let { (sak, tilAttestering) ->
         val underkjent = tilAttestering.tilUnderkjent(attestering = attesteringUnderkjent(clock))
-        sak.copy(søknadsbehandlinger = sak.søknadsbehandlinger.filterNot { it.id == tilAttestering.id } + underkjent) to underkjent
+        sak.oppdaterSøknadsbehandling(underkjent) to underkjent
     }
 }
 
@@ -993,14 +975,16 @@ fun tilAttesteringSøknadsbehandling(
         eksterneGrunnlag = eksterneGrunnlag,
         saksbehandler = saksbehandler,
     ).let { (sak, vilkårsvurdert) ->
-        val tilAttestering = when (vilkårsvurdert) {
+        when (vilkårsvurdert) {
             // avslag for vilkår går rett til attestering
             is VilkårsvurdertSøknadsbehandling.Avslag -> {
                 vilkårsvurdert.tilAttesteringForSaksbehandler(
                     saksbehandler = saksbehandler,
                     fritekstTilBrev = fritekstTilBrev,
                     clock = clock,
-                ).getOrFail()
+                ).getOrFail().let {
+                    sak.oppdaterSøknadsbehandling(it) to it
+                }
             }
 
             is VilkårsvurdertSøknadsbehandling.Innvilget -> {
@@ -1012,7 +996,7 @@ fun tilAttesteringSøknadsbehandling(
                     customVilkår = customVilkår,
                     saksbehandler = saksbehandler,
                     eksterneGrunnlag = eksterneGrunnlag,
-                ).let { (_, beregnet) ->
+                ).let { (sak, beregnet) ->
                     when (beregnet) {
                         // beregnet avslag går til attestering
                         is BeregnetSøknadsbehandling.Avslag -> {
@@ -1020,7 +1004,9 @@ fun tilAttesteringSøknadsbehandling(
                                 saksbehandler = saksbehandler,
                                 fritekstTilBrev = fritekstTilBrev,
                                 clock = clock,
-                            ).getOrFail()
+                            ).getOrFail().let {
+                                sak.oppdaterSøknadsbehandling(it) to it
+                            }
                         }
 
                         is BeregnetSøknadsbehandling.Innvilget -> {
@@ -1028,17 +1014,20 @@ fun tilAttesteringSøknadsbehandling(
                             simulertSøknadsbehandling(
                                 clock = clock,
                                 stønadsperiode = stønadsperiode,
-                                sakOgSøknad = sakOgSøknad,
+                                sakOgSøknad = sakOgSøknad.mapFirst { sak },
                                 customGrunnlag = customGrunnlag,
                                 customVilkår = customVilkår,
                                 saksbehandler = saksbehandler,
                                 eksterneGrunnlag = eksterneGrunnlag,
-                            ).let { (_, simulert) ->
+                                søknadsbehandling = beregnet,
+                            ).let { (sak, simulert) ->
                                 simulert.tilAttestering(
                                     saksbehandler = saksbehandler,
                                     fritekstTilBrev = fritekstTilBrev,
                                     clock = clock,
-                                ).getOrFail()
+                                ).getOrFail().let {
+                                    sak.oppdaterSøknadsbehandling(it) to it
+                                }
                             }
                         }
                     }
@@ -1049,9 +1038,6 @@ fun tilAttesteringSøknadsbehandling(
                 throw IllegalStateException("Kan ikke attestere uavklart")
             }
         }
-        sak.copy(
-            søknadsbehandlinger = sak.søknadsbehandlinger.filterNot { it.id == vilkårsvurdert.id } + tilAttestering,
-        ) to tilAttestering
     }
 }
 
@@ -1084,16 +1070,24 @@ fun simulertSøknadsbehandling(
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    søknadsbehandling: BeregnetSøknadsbehandling? = null,
 ): Pair<Sak, SimulertSøknadsbehandling> {
-    return beregnetSøknadsbehandling(
-        clock = clock,
-        stønadsperiode = stønadsperiode,
-        sakOgSøknad = sakOgSøknad,
-        customGrunnlag = customGrunnlag,
-        customVilkår = customVilkår,
-        eksterneGrunnlag = eksterneGrunnlag,
-        saksbehandler = saksbehandler,
-    ).let { (sak, beregnet) ->
+    return (
+        søknadsbehandling?.let {
+            require(sakOgSøknad.first.søknadsbehandlinger.any { it.id == søknadsbehandling.id }) {
+                "Dersom man sender inn søknadsbehandling, må saken være oppdatert med søknadsbehandlingen"
+            }
+            sakOgSøknad.mapSecond { søknadsbehandling }
+        } ?: beregnetSøknadsbehandling(
+            clock = clock,
+            stønadsperiode = stønadsperiode,
+            sakOgSøknad = sakOgSøknad,
+            customGrunnlag = customGrunnlag,
+            customVilkår = customVilkår,
+            eksterneGrunnlag = eksterneGrunnlag,
+            saksbehandler = saksbehandler,
+        )
+        ).let { (sak, beregnet) ->
         beregnet.simuler(
             saksbehandler = saksbehandler,
             clock = clock,
@@ -1124,7 +1118,7 @@ fun simulertSøknadsbehandling(
             }
         }.getOrFail()
             .let { simulert ->
-                sak.copy(søknadsbehandlinger = sak.søknadsbehandlinger.filterNot { it.id == beregnet.id } + simulert) to simulert
+                sak.oppdaterSøknadsbehandling(simulert) to simulert
             }
     }
 }
@@ -1155,16 +1149,19 @@ fun beregnetSøknadsbehandling(
     customVilkår: List<Vilkår> = emptyList(),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    søknadsbehandling: VilkårsvurdertSøknadsbehandling? = null,
 ): Pair<Sak, BeregnetSøknadsbehandling> {
-    return vilkårsvurdertSøknadsbehandling(
-        clock = clock,
-        stønadsperiode = stønadsperiode,
-        sakOgSøknad = sakOgSøknad,
-        customGrunnlag = customGrunnlag,
-        customVilkår = customVilkår,
-        eksterneGrunnlag = eksterneGrunnlag,
-        saksbehandler = saksbehandler,
-    ).let { (sak, vilkårsvurdert) ->
+    return (
+        søknadsbehandling?.let { sakOgSøknad.mapSecond { søknadsbehandling } } ?: vilkårsvurdertSøknadsbehandling(
+            clock = clock,
+            stønadsperiode = stønadsperiode,
+            sakOgSøknad = sakOgSøknad,
+            customGrunnlag = customGrunnlag,
+            customVilkår = customVilkår,
+            eksterneGrunnlag = eksterneGrunnlag,
+            saksbehandler = saksbehandler,
+        )
+        ).let { (sak, vilkårsvurdert) ->
         vilkårsvurdert.beregn(
             begrunnelse = null,
             clock = clock,
@@ -1172,7 +1169,7 @@ fun beregnetSøknadsbehandling(
             nySaksbehandler = saksbehandler,
             uteståendeAvkortingPåSak = sak.uteståendeAvkortingSkalAvkortes,
         ).getOrFail().let { beregnet ->
-            sak.copy(søknadsbehandlinger = sak.søknadsbehandlinger.filterNot { it.id == vilkårsvurdert.id } + beregnet) to beregnet
+            sak.oppdaterSøknadsbehandling(beregnet) to beregnet
         }
     }
 }
@@ -1412,7 +1409,7 @@ fun vilkårsvurdertSøknadsbehandling(
             vilkårsvurdert
         }
 
-        sak.copy(søknadsbehandlinger = sak.søknadsbehandlinger.filterNot { it.id == medFradrag.id } + medFradrag) to medFradrag
+        sak.oppdaterSøknadsbehandling(medFradrag) to medFradrag
     }
 }
 

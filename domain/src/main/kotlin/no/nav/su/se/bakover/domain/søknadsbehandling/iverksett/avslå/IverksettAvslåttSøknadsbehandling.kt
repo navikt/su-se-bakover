@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
+import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
@@ -48,10 +49,10 @@ internal fun Sak.iverksettAvslagSøknadsbehandling(
         )
 
     return IverksattAvslåttSøknadsbehandlingResponse(
-        sak = this.copy(
-            vedtakListe = this.vedtakListe + vedtak,
-            søknadsbehandlinger = this.søknadsbehandlinger.filterNot { it.id == iverksattBehandling.id } + iverksattBehandling,
-        ),
+        sak = this.oppdaterSøknadsbehandling(iverksattBehandling)
+            .copy(
+                vedtakListe = this.vedtakListe + vedtak,
+            ),
         dokument = dokument,
         vedtak = vedtak,
         statistikkhendelse = StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag(vedtak),

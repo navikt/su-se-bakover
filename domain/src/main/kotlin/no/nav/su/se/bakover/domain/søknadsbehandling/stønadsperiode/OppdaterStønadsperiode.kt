@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
+import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.validerOverlappendeStønadsperioder
@@ -91,9 +92,7 @@ private fun Sak.internalOppdater(
         }.left()
     }.let { søknadsbehandlingMedOppdatertStønadsperiode ->
         return Pair(
-            this.copy(
-                søknadsbehandlinger = søknadsbehandlinger.filterNot { it.id == søknadsbehandlingMedOppdatertStønadsperiode.id } + søknadsbehandlingMedOppdatertStønadsperiode,
-            ),
+            this.oppdaterSøknadsbehandling(søknadsbehandlingMedOppdatertStønadsperiode),
             søknadsbehandlingMedOppdatertStønadsperiode,
         ).right()
     }

@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.avkorting.hentOgKontrollerUteståendeAvkorting
 import no.nav.su.se.bakover.domain.revurdering.revurderes.toVedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
+import no.nav.su.se.bakover.domain.sak.nyRevurdering
 import java.time.Clock
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent.Behandling.Revurdering.Opprettet as StatistikkEvent
 
@@ -70,9 +71,7 @@ fun Sak.opprettRevurdering(
                 sakinfo = info(),
             )
         },
-        sak = {
-            this.copy(revurderinger = this.revurderinger + it)
-        },
+        sak = { nyRevurdering(it) },
         statistikkHendelse = { StatistikkEvent(it) },
     ).right()
 }

@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.domain.sak.nySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -85,9 +86,7 @@ internal class SakTest {
                 opprettet = fixedTidspunkt,
                 fnr = Fnr.generer(),
                 søknader = listOf(),
-                søknadsbehandlinger = listOf(),
                 utbetalinger = Utbetalinger(),
-                revurderinger = listOf(),
                 vedtakListe = listOf(),
                 type = Sakstype.UFØRE,
                 uteståendeAvkorting = Avkortingsvarsel.Ingen,
@@ -188,19 +187,19 @@ internal class SakTest {
                 stønadsperiode = Stønadsperiode.create(periode = år(2023)),
             )
 
-            sak.copy(
-                søknadsbehandlinger = sak.søknadsbehandlinger + stønadsperiode2.behandling,
-                vedtakListe = sak.vedtakListe + stønadsperiode2,
-            ).let {
-                it.hentIkkeOpphørtePerioder() shouldBe listOf(
-                    år(2021),
-                    år(2023),
-                )
-                it.vedtakListe shouldContainAll listOf(
-                    stønadsperiode1,
-                    stønadsperiode2,
-                )
-            }
+            sak.nySøknadsbehandling(stønadsperiode2.behandling)
+                .copy(
+                    vedtakListe = sak.vedtakListe + stønadsperiode2,
+                ).let {
+                    it.hentIkkeOpphørtePerioder() shouldBe listOf(
+                        år(2021),
+                        år(2023),
+                    )
+                    it.vedtakListe shouldContainAll listOf(
+                        stønadsperiode1,
+                        stønadsperiode2,
+                    )
+                }
         }
 
         @Test

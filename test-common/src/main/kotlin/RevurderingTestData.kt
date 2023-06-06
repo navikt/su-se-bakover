@@ -47,6 +47,8 @@ import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.sak.nyRevurdering
+import no.nav.su.se.bakover.domain.sak.oppdaterRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Revurderingsvedtak
@@ -163,9 +165,7 @@ fun opprettRevurderingFraSaksopplysninger(
                 or.oppdaterInstitusjonsoppholdOgMarkerSomVurdert(it).getOrFail()
             } ?: or
         }.let { r ->
-            sak.copy(
-                revurderinger = sak.revurderinger.filterNot { it.id == r.id }.plus(r),
-            ) to r
+            sak.oppdaterRevurdering(r) to r
         }
     }
 }
@@ -236,9 +236,7 @@ fun beregnetRevurdering(
             satsFactory = satsFactoryTestPåDato(),
         ).getOrFail()
 
-        sak.copy(
-            revurderinger = sak.revurderinger.filterNot { it.id == beregnet.id } + beregnet,
-        ) to beregnet
+        sak.oppdaterRevurdering(beregnet) to beregnet
     }
 }
 
@@ -311,9 +309,7 @@ fun simulertRevurdering(
             }
         }.leggTilBrevvalg(brevvalg).getOrFail() as SimulertRevurdering
 
-        sak.copy(
-            revurderinger = sak.revurderinger.filterNot { it.id == simulert.id } + simulert,
-        ) to simulert
+        sak.oppdaterRevurdering(simulert) to simulert
     }
 }
 
@@ -366,9 +362,7 @@ fun revurderingTilAttestering(
                 ).getOrFail()
             }
         }
-        sak.copy(
-            revurderinger = sak.revurderinger.filterNot { it.id == tilAttestering.id } + tilAttestering,
-        ) to tilAttestering
+        sak.oppdaterRevurdering(tilAttestering) to tilAttestering
     }
 }
 
@@ -405,9 +399,7 @@ fun revurderingUnderkjent(
             attestering = attestering,
             oppgaveId = OppgaveId("underkjentOppgaveId"),
         )
-        sak.copy(
-            revurderinger = sak.revurderinger.filterNot { it.id == tilAttestering.id } + underkjent,
-        ) to underkjent
+        sak.oppdaterRevurdering(underkjent) to underkjent
     }
 }
 
@@ -620,10 +612,7 @@ fun avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         ).getOrFail()
 
         Pair(
-            sak.copy(
-                // Erstatter den gamle versjonen av samme revurderinger.
-                revurderinger = sak.revurderinger.filterNot { it.id == avsluttet.id } + avsluttet,
-            ),
+            sak.oppdaterRevurdering(avsluttet),
             avsluttet,
         )
     }
@@ -672,10 +661,7 @@ fun simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             sakinfo = sak.info(),
         )
 
-        sak.copy(
-            // Erstatter den gamle versjonen av samme revurderinger.
-            revurderinger = sak.revurderinger.filterNot { it.id == revurdering.id } + revurdering,
-        ) to revurdering
+        sak.nyRevurdering(revurdering) to revurdering
     }
 }
 
@@ -700,10 +686,7 @@ fun iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
     ).let { (sak, simulert) ->
         val iverksatt = simulert.iverksett(attestering).getOrFail()
 
-        sak.copy(
-            // Erstatter den gamle versjonen av samme revurderinger.
-            revurderinger = sak.revurderinger.filterNot { it.id == iverksatt.id } + iverksatt,
-        ) to iverksatt
+        sak.oppdaterRevurdering(iverksatt) to iverksatt
     }
 }
 
@@ -718,10 +701,7 @@ fun avsluttetStansAvYtelseFraIverksattSøknadsbehandlignsvedtak(
             tidspunktAvsluttet = tidspunktAvsluttet,
         ).getOrFail()
 
-        sak.copy(
-            // Erstatter den gamle versjonen av samme revurderinger.
-            revurderinger = sak.revurderinger.filterNot { it.id == avsluttet.id } + avsluttet,
-        ) to avsluttet
+        sak.oppdaterRevurdering(avsluttet) to avsluttet
     }
 }
 
@@ -778,9 +758,7 @@ fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
             revurderingsårsak = revurderingsårsak,
             sakinfo = sak.info(),
         )
-        sak.copy(
-            revurderinger = sak.revurderinger.filterNot { it.id == revurdering.id } + revurdering,
-        ) to revurdering
+        sak.nyRevurdering(revurdering) to revurdering
     }
 }
 
@@ -810,9 +788,7 @@ fun iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse(
     ).let { (sak, simulert) ->
         val iverksatt = simulert.iverksett(attestering)
             .getOrFail("Feil i oppsett for testdata")
-        sak.copy(
-            revurderinger = sak.revurderinger.filterNot { it.id == iverksatt.id } + iverksatt,
-        ) to iverksatt
+        sak.oppdaterRevurdering(iverksatt) to iverksatt
     }
 }
 
@@ -826,9 +802,6 @@ fun avsluttetGjenopptakelseAvYtelseeFraIverksattSøknadsbehandlignsvedtak(
             tidspunktAvsluttet = tidspunktAvsluttet,
         ).getOrFail()
 
-        sak.copy(
-            // Erstatter den gamle versjonen av samme revurderinger.
-            revurderinger = sak.revurderinger.filterNot { it.id == avsluttet.id } + avsluttet,
-        ) to avsluttet
+        sak.oppdaterRevurdering(avsluttet) to avsluttet
     }
 }

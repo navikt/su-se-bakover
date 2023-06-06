@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.common.tid.periode.september
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.sak.nySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.StøtterIkkeOverlappendeStønadsperioder
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -87,9 +88,7 @@ internal class OppdaterStønadsperiodeTest {
 
         val opprettetSøknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().second
 
-        sak.copy(
-            søknadsbehandlinger = sak.søknadsbehandlinger + opprettetSøknadsbehandling,
-        ).let {
+        sak.nySøknadsbehandling(opprettetSøknadsbehandling).let {
             val nyPeriode = Periode.create(1.desember(2021), 31.mars(2022))
 
             it.oppdaterStønadsperiodeForSøknadsbehandling(
@@ -114,24 +113,24 @@ internal class OppdaterStønadsperiodeTest {
         )
         val mellomToAndrePerioder = søknadsbehandlingVilkårsvurdertUavklart().second
 
-        sak.copy(
-            søknadsbehandlinger = sak.søknadsbehandlinger + andreStønadsperiode.behandling + mellomToAndrePerioder,
-            vedtakListe = sak.vedtakListe + andreStønadsperiode,
-        ).let {
-            val nyPeriode = Stønadsperiode.create(periode = år(2022))
+        sak.nySøknadsbehandling(mellomToAndrePerioder)
+            .copy(
+                vedtakListe = sak.vedtakListe + andreStønadsperiode,
+            ).let {
+                val nyPeriode = Stønadsperiode.create(periode = år(2022))
 
-            it.oppdaterStønadsperiodeForSøknadsbehandling(
-                søknadsbehandlingId = mellomToAndrePerioder.id,
-                stønadsperiode = nyPeriode,
-                clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
-                saksbehandler = saksbehandler,
-                hentPerson = { person().right() },
-                saksbehandlersAvgjørelse = null,
-            ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode(
-                StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeForSenerePeriodeEksisterer,
-            ).left()
-        }
+                it.oppdaterStønadsperiodeForSøknadsbehandling(
+                    søknadsbehandlingId = mellomToAndrePerioder.id,
+                    stønadsperiode = nyPeriode,
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                    saksbehandler = saksbehandler,
+                    hentPerson = { person().right() },
+                    saksbehandlersAvgjørelse = null,
+                ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode(
+                    StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeForSenerePeriodeEksisterer,
+                ).left()
+            }
     }
 
     @Test
@@ -165,9 +164,7 @@ internal class OppdaterStønadsperiodeTest {
             opplysningspliktVilkår = tilstrekkeligDokumentert(periode = nyPeriode),
         ).getOrFail() as VilkårsvurdertSøknadsbehandling.Uavklart
 
-        sakMedRevurderingOgSøknadVedtak.copy(
-            søknadsbehandlinger = sakMedRevurderingOgSøknadVedtak.søknadsbehandlinger + nySøknadsbehandling,
-        ).let { sak ->
+        sakMedRevurderingOgSøknadVedtak.nySøknadsbehandling(nySøknadsbehandling).let { sak ->
             listOf(
                 1.mai(2021),
                 1.juni(2021),

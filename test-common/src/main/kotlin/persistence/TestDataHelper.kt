@@ -65,6 +65,8 @@ import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakInfo
+import no.nav.su.se.bakover.domain.sak.nyRegulering
+import no.nav.su.se.bakover.domain.sak.oppdaterRegulering
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.skatt.Skattedokument
 import no.nav.su.se.bakover.domain.søknad.Søknad
@@ -442,9 +444,7 @@ class TestDataHelper(
                 clock = clock,
             ).getOrFail().let {
                 databaseRepos.reguleringRepo.lagre(it)
-                sak.copy(
-                    reguleringer = sak.reguleringer + it,
-                ) to it
+                sak.nyRegulering(it) to it
             }
         }
     }
@@ -471,9 +471,7 @@ class TestDataHelper(
                     },
                 ).getOrFail().tilIverksatt().let { iverksattAttestering ->
                     databaseRepos.reguleringRepo.lagre(iverksattAttestering)
-                    sak.copy(
-                        reguleringer = sak.reguleringer.filterNot { it.id == iverksattAttestering.id } + iverksattAttestering,
-                    ) to iverksattAttestering
+                    sak.oppdaterRegulering(iverksattAttestering) to iverksattAttestering
                 }
             }
         }
