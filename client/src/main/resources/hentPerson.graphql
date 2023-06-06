@@ -1,3 +1,4 @@
+#Endringer her vil kunne medføre at behandlingskatalogen må oppdateres
 query($ident: ID!, $historikk: Boolean!, $identGrupper: [IdentGruppe!]) {
     hentPerson(ident: $ident) {
         navn(historikk: $historikk) {
