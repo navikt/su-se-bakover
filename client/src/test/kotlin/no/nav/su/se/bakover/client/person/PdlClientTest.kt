@@ -84,7 +84,8 @@ internal class PdlClientTest : WiremockBase {
               ],
               "data": {
                 "hentIdenter": null
-              }
+              },
+              "extensions": "her får vi noe warnings i et eller annent format som i ikke bryr oss om fordi dette er en string"
             }
             """.trimIndent()
         wireMockServer.stubFor(
@@ -144,7 +145,8 @@ internal class PdlClientTest : WiremockBase {
                     }
                   ]
                 }
-              }
+              },
+              "extensions": null
             }
             """.trimIndent()
         val azureAdMock = mock<AzureAd> {

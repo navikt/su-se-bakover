@@ -189,10 +189,7 @@ internal class PdlClient(
         return result.fold(
             {
                 val pdlResponse: PdlResponse<Inner> = deserializeParameterizedType<PdlResponse<Inner>, Inner>(it)
-                if (pdlResponse.harWarnings()) {
-                    pdlResponse.extensions!!.logWarnings(log)
-                }
-
+                pdlResponse.logPotentialWarnings(log)
                 if (pdlResponse.hasErrors()) {
                     håndterPdlFeil(pdlResponse).left()
                 } else {
@@ -234,10 +231,16 @@ internal class PdlClient(
 internal data class PdlResponse<T>(
     val data: T,
     val errors: List<PdlError>?,
-    val extensions: PdlExtensions?,
+    val extensions: String?,
 ) {
     fun hasErrors() = !errors.isNullOrEmpty()
-    fun harWarnings() = !extensions?.warnings.isNullOrEmpty()
+
+    fun logPotentialWarnings(log: Logger) {
+        if (extensions != null) {
+            log.error("Warning for kall mot PDL: $extensions")
+        }
+    }
+
     fun toKunneIkkeHentePerson(): List<KunneIkkeHentePerson> {
         return errors.orEmpty().map {
             resolveError(it.extensions.code)
@@ -260,14 +263,6 @@ internal data class PdlError(
 internal data class PdlErrorExtension(
     val code: String,
 )
-
-internal data class PdlExtensions(
-    val warnings: List<Warning>,
-) {
-    fun logWarnings(log: Logger) {
-        log.error("Warning for kall mot PDL: $warnings")
-    }
-}
 
 /**
  * ikke helt klart hva som kan være nullable - typene er hentet ut fra screenshots i #pdl-announcements
