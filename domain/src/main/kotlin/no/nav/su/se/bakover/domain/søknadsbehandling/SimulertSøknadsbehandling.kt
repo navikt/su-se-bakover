@@ -8,6 +8,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
@@ -146,7 +147,8 @@ data class SimulertSøknadsbehandling(
             /**
              * Kun en nødbrems for tilfeller som i utgangspunktet skal være håndtert og forhindret av andre mekanismer.
              */
-            throw IllegalStateException("Simulering inneholder feilutbetalinger")
+            sikkerLogg.error("Simulering inneholder feilutbetalinger (se vanlig log for stacktrace): $simulering")
+            throw IllegalStateException("Simulering inneholder feilutbetalinger. Se sikkerlogg for detaljer.")
         }
         return SøknadsbehandlingTilAttestering.Innvilget(
             id = id,
