@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagReque
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
+import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilVedtaksbrevvalg
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
@@ -19,7 +20,6 @@ import no.nav.su.se.bakover.domain.revurdering.beregning.KunneIkkeBeregneOgSimul
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForAvsluttingAvRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForRevurdering
-import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLeggeTilBrevvalg
 import no.nav.su.se.bakover.domain.revurdering.brev.LeggTilBrevvalgRequest
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
@@ -94,7 +94,7 @@ interface RevurderingService {
 
     fun leggTilBrevvalg(
         request: LeggTilBrevvalgRequest,
-    ): Either<KunneIkkeLeggeTilBrevvalg, Revurdering>
+    ): Either<KunneIkkeLeggeTilVedtaksbrevvalg, Revurdering>
 
     fun lagBrevutkastForRevurdering(
         revurderingId: UUID,

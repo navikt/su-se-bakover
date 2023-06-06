@@ -78,6 +78,7 @@ import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
+import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilVedtaksbrevvalg
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
@@ -88,7 +89,6 @@ import no.nav.su.se.bakover.domain.revurdering.beregning.KunneIkkeBeregneOgSimul
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForAvsluttingAvRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForRevurdering
-import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLeggeTilBrevvalg
 import no.nav.su.se.bakover.domain.revurdering.brev.LeggTilBrevvalgRequest
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
@@ -749,7 +749,7 @@ open class AccessCheckProxy(
                     return services.revurdering.oppdaterTilbakekrevingsbehandling(request)
                 }
 
-                override fun leggTilBrevvalg(request: LeggTilBrevvalgRequest): Either<KunneIkkeLeggeTilBrevvalg, Revurdering> {
+                override fun leggTilBrevvalg(request: LeggTilBrevvalgRequest): Either<KunneIkkeLeggeTilVedtaksbrevvalg, Revurdering> {
                     assertHarTilgangTilRevurdering(request.revurderingId)
                     return services.revurdering.leggTilBrevvalg(request)
                 }
@@ -1212,6 +1212,7 @@ open class AccessCheckProxy(
         personRepo.hentFnrForBehandling(behandlingId).forEach { assertHarTilgangTilPerson(it) }
     }
 
+    @Suppress("unused")
     private fun assertHarTilgangTilUtbetaling(utbetalingId: UUID30) {
         personRepo.hentFnrForUtbetaling(utbetalingId).forEach { assertHarTilgangTilPerson(it) }
     }

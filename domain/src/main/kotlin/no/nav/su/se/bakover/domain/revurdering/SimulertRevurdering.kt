@@ -46,7 +46,7 @@ import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
-sealed class SimulertRevurdering : Revurdering() {
+sealed class SimulertRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
 
     abstract override val beregning: Beregning
     abstract override val simulering: Simulering
@@ -56,6 +56,8 @@ sealed class SimulertRevurdering : Revurdering() {
     abstract override fun accept(visitor: RevurderingVisitor)
 
     override fun erÅpen() = true
+
+    abstract override fun leggTilBrevvalg(brevvalgRevurdering: BrevvalgRevurdering.Valgt): SimulertRevurdering
 
     override fun lagForhåndsvarsel(
         person: Person,
@@ -248,16 +250,16 @@ sealed class SimulertRevurdering : Revurdering() {
             ).right()
         }
 
-        override fun Revurdering.leggTilBrevvalgInternal(
+        override fun leggTilBrevvalg(
             brevvalgRevurdering: BrevvalgRevurdering.Valgt,
-        ): Either<KunneIkkeLeggeTilBrevvalg, Innvilget> {
+        ): Innvilget {
             return copy(
                 brevvalgRevurdering = brevvalgRevurdering,
                 saksbehandler = when (val bestemtAv = brevvalgRevurdering.bestemtAv) {
                     is BrevvalgRevurdering.BestemtAv.Behandler -> NavIdentBruker.Saksbehandler(bestemtAv.ident)
                     BrevvalgRevurdering.BestemtAv.Systembruker -> saksbehandler
                 },
-            ).right()
+            )
         }
     }
 
@@ -281,7 +283,7 @@ sealed class SimulertRevurdering : Revurdering() {
         override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
-    ) : SimulertRevurdering() {
+    ) : SimulertRevurdering(), LeggTilVedtaksbrevvalg {
         override val erOpphørt = true
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -361,16 +363,16 @@ sealed class SimulertRevurdering : Revurdering() {
             ).right()
         }
 
-        override fun Revurdering.leggTilBrevvalgInternal(
+        override fun leggTilBrevvalg(
             brevvalgRevurdering: BrevvalgRevurdering.Valgt,
-        ): Either<KunneIkkeLeggeTilBrevvalg, Opphørt> {
+        ): Opphørt {
             return copy(
                 brevvalgRevurdering = brevvalgRevurdering,
                 saksbehandler = when (val bestemtAv = brevvalgRevurdering.bestemtAv) {
                     is BrevvalgRevurdering.BestemtAv.Behandler -> NavIdentBruker.Saksbehandler(bestemtAv.ident)
                     BrevvalgRevurdering.BestemtAv.Systembruker -> saksbehandler
                 },
-            ).right()
+            )
         }
     }
 }
