@@ -187,19 +187,19 @@ internal class OpprettRevurderingServiceTest {
     fun `for en ny revurdering vil det tas utgangspunkt i nyeste vedtak hvor fraOgMed er inni perioden`() {
         val vedtaksperiode = år(2021)
 
-        val tikkendeKlokke = TikkendeKlokke(fixedClock)
+        val clock = TikkendeKlokke(fixedClock)
 
         val (sak1, _, vedtakForFørsteJanuarLagetForLengeSiden) = iverksattSøknadsbehandlingUføre(
-            clock = tikkendeKlokke,
+            clock = clock,
             stønadsperiode = Stønadsperiode.create(vedtaksperiode),
         )
         val (sak2, vedtakForFørsteJanuarLagetNå) = vedtakRevurdering(
-            clock = tikkendeKlokke,
+            clock = clock,
             revurderingsperiode = vedtaksperiode,
             sakOgVedtakSomKanRevurderes = sak1 to vedtakForFørsteJanuarLagetForLengeSiden as VedtakSomKanRevurderes,
         )
         val (sak3, vedtakForFørsteMarsLagetNå) = vedtakRevurdering(
-            clock = tikkendeKlokke,
+            clock = clock,
             revurderingsperiode = Periode.create(1.mars(2021), 31.desember(2021)),
             sakOgVedtakSomKanRevurderes = sak2 to vedtakForFørsteJanuarLagetNå,
         )
@@ -223,8 +223,10 @@ internal class OpprettRevurderingServiceTest {
             revurderingRepo = mock {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
+            clock = clock,
         ).also {
             val revurderingForFebruar = it.revurderingService.opprettRevurdering(
+
                 OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = fraOgMedDatoFebruar.rangeTo(vedtaksperiode.tilOgMed).toPeriode(),
@@ -256,8 +258,9 @@ internal class OpprettRevurderingServiceTest {
 
     @Test
     fun `kan revurdere en periode med eksisterende revurdering`() {
+        val clock = tikkendeFixedClock()
         val (sak, revurderingVedtak) = vedtakRevurdering(
-            clock = tikkendeFixedClock(),
+            clock = clock,
         )
 
         RevurderingServiceMocks(
@@ -271,6 +274,7 @@ internal class OpprettRevurderingServiceTest {
                 on { hentAktørId(any()) } doReturn aktørId.right()
             },
             revurderingRepo = mock(),
+            clock = clock,
         ).also { mocks ->
             val actual = mocks.revurderingService.opprettRevurdering(
                 OpprettRevurderingCommand(

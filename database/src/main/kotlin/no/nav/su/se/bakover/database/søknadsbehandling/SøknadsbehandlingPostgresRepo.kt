@@ -482,7 +482,7 @@ internal class SøknadsbehandlingPostgresRepo(
     override fun hentForSak(sakId: UUID, sessionContext: SessionContext): List<Søknadsbehandling> {
         return dbMetrics.timeQuery("hentSøknadsbehandlingForSakId") {
             sessionContext.withSession { session ->
-                "select b.*, s.fnr, s.saksnummer, s.type from behandling b inner join sak s on s.id = b.sakId where b.sakId=:sakId"
+                "select b.*, s.fnr, s.saksnummer, s.type from behandling b inner join sak s on s.id = b.sakId where b.sakId=:sakId order by b.opprettet"
                     .hentListe(mapOf("sakId" to sakId), session) {
                         it.toSøknadsbehandling(session)
                     }

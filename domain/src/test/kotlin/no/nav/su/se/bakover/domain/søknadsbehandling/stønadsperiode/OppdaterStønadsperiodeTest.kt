@@ -82,11 +82,15 @@ internal class OppdaterStønadsperiodeTest {
 
     @Test
     fun `innvilget stønadsperioder skal ikke kunne overlappe`() {
+        val clock = TikkendeKlokke()
         val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
             stønadsperiode = Stønadsperiode.create(periode = år(2021)),
+            clock = clock,
         )
 
-        val opprettetSøknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().second
+        val opprettetSøknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart(
+            clock = clock,
+        ).second
 
         sak.nySøknadsbehandling(opprettetSøknadsbehandling).let {
             val nyPeriode = Periode.create(1.desember(2021), 31.mars(2022))
@@ -107,11 +111,15 @@ internal class OppdaterStønadsperiodeTest {
 
     @Test
     fun `stønadsperioder skal ikke kunne legges forut for eksisterende stønadsperioder`() {
+        val clock = TikkendeKlokke()
         val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget()
         val (_, andreStønadsperiode) = vedtakSøknadsbehandlingIverksattInnvilget(
             stønadsperiode = Stønadsperiode.create(periode = år(2023)),
+            clock = clock,
         )
-        val mellomToAndrePerioder = søknadsbehandlingVilkårsvurdertUavklart().second
+        val mellomToAndrePerioder = søknadsbehandlingVilkårsvurdertUavklart(
+            clock = clock,
+        ).second
 
         sak.nySøknadsbehandling(mellomToAndrePerioder)
             .copy(

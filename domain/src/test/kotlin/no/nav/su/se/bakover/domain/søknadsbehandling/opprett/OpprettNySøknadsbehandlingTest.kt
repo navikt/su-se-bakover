@@ -5,6 +5,7 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.innvilgetSøknadsbehandlingMedÅpenRegulering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
@@ -47,25 +48,32 @@ internal class OpprettNySøknadsbehandlingTest {
 
     @Test
     fun `Kan opprette søknadsbehandling dersom det finnes en åpen revurdering`() {
+        val clock = TikkendeKlokke()
         val (sak, søknad) = nySøknadPåEksisterendeSak(
-            eksisterendeSak = opprettetRevurdering().first,
+            eksisterendeSak = opprettetRevurdering(clock = clock).first,
+            clock = clock,
         )
         sak.opprettNySøknadsbehandling(
-            søknad.id,
-            fixedClock,
-            saksbehandler,
+            søknadId = søknad.id,
+            clock = clock,
+            saksbehandler = saksbehandler,
         ).shouldBeRight()
     }
 
     @Test
     fun `Kan opprette søknadsbehandling dersom det finnes en åpen regulering `() {
+        val clock = TikkendeKlokke()
         val (sak, søknad) = nySøknadPåEksisterendeSak(
-            eksisterendeSak = innvilgetSøknadsbehandlingMedÅpenRegulering(mai(2021)).first,
+            clock = clock,
+            eksisterendeSak = innvilgetSøknadsbehandlingMedÅpenRegulering(
+                mai(year = 2021),
+                clock = clock,
+            ).first,
         )
         sak.opprettNySøknadsbehandling(
-            søknad.id,
-            fixedClock,
-            saksbehandler,
+            søknadId = søknad.id,
+            clock = clock,
+            saksbehandler = saksbehandler,
         ).shouldBeRight()
     }
 }

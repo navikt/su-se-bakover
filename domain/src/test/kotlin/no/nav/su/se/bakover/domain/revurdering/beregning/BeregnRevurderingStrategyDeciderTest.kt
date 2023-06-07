@@ -106,6 +106,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
             opprettetRevurdering(
                 sakOgVedtakSomKanRevurderes = medNyStønadsperiode to nyStønadsperiode as VedtakSomKanRevurderes,
                 revurderingsperiode = stønadsperiode2022.periode,
+                clock = clock,
             ).also { (sak, revurdering) ->
                 BeregnRevurderingStrategyDecider(
                     revurdering = revurdering,
