@@ -63,7 +63,6 @@ type Person {
     foreldreansvar(historikk: Boolean = false): [Foreldreansvar!]!
     fullmakt(historikk: Boolean = false): [Fullmakt!]!
     identitetsgrunnlag(historikk: Boolean = false): [Identitetsgrunnlag!]!
-    kjoenn(historikk: Boolean = false): [Kjoenn!]!
     kontaktadresse(historikk: Boolean = false): [Kontaktadresse!]!
     kontaktinformasjonForDoedsbo(historikk: Boolean = false): [KontaktinformasjonForDoedsbo!]!
     navn(historikk: Boolean = false): [Navn!]!
@@ -222,7 +221,6 @@ type FalskIdentitetIdentifiserendeInformasjon {
     personnavn: Personnavn!
     foedselsdato: Date
     statsborgerskap: [String!]!
-    kjoenn: KjoennType
 }
 
 type KontaktinformasjonForDoedsbo {
@@ -296,12 +294,6 @@ type Foedsel {
     metadata: Metadata!
 }
 
-type Kjoenn {
-    kjoenn: KjoennType
-    folkeregistermetadata: Folkeregistermetadata
-    metadata: Metadata!
-}
-
 type Doedsfall {
     doedsdato: Date
     metadata: Metadata!
@@ -357,10 +349,6 @@ type Personnavn {
     fornavn: String!
     mellomnavn: String
     etternavn: String!
-}
-
-enum KjoennType {
-    MANN, KVINNE, UKJENT
 }
 
 type Identitetsgrunnlag {
@@ -529,7 +517,6 @@ type RelatertBiPerson {
     navn: Personnavn
     foedselsdato: Date
     statsborgerskap: String
-    kjoenn: KjoennType
 }
 
 type Metadata {

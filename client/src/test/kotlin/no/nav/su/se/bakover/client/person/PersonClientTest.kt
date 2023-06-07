@@ -212,17 +212,16 @@ internal class PersonClientTest {
                 etternavn = "KRONJUVEL",
             ),
             telefonnummer = null,
-            kjønn = null,
+            adresse = emptyList(),
+            statsborgerskap = null,
+            sivilstand = null,
             fødsel = PdlData.Fødsel(
                 foedselsaar = 1990,
                 foedselsdato = null,
             ),
-            adresse = emptyList(),
-            statsborgerskap = null,
             adressebeskyttelse = null,
             vergemålEllerFremtidsfullmakt = false,
             fullmakt = false,
-            sivilstand = null,
             dødsdato = 22.februar(2022),
         )
 

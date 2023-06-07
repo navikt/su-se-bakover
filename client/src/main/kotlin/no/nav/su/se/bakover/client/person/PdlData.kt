@@ -12,7 +12,6 @@ internal data class PdlData(
     val adresse: List<Adresse>?,
     val statsborgerskap: String?,
     val sivilstand: SivilstandResponse?,
-    val kjønn: String?,
     val fødsel: Fødsel?,
     val adressebeskyttelse: String?,
     val vergemålEllerFremtidsfullmakt: Boolean,

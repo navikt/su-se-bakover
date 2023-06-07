@@ -35,8 +35,6 @@ internal class PdlClientTest : WiremockBase {
             etternavn = "KRONJUVEL",
         ),
         telefonnummer = null,
-        kjønn = "MANN",
-        fødsel = null,
         adresse = listOf(
             PdlData.Adresse(
                 adresselinje = "SANDTAKVEIEN 42",
@@ -48,13 +46,14 @@ internal class PdlClientTest : WiremockBase {
             ),
         ),
         statsborgerskap = "SYR",
-        adressebeskyttelse = null,
-        vergemålEllerFremtidsfullmakt = false,
-        fullmakt = false,
         sivilstand = SivilstandResponse(
             type = SivilstandTyper.GIFT,
             relatertVedSivilstand = "12345678901",
         ),
+        fødsel = null,
+        adressebeskyttelse = null,
+        vergemålEllerFremtidsfullmakt = false,
+        fullmakt = false,
         dødsdato = 21.desember(2021),
     )
 
@@ -359,11 +358,6 @@ internal class PdlClientTest : WiremockBase {
                       "relatertVedSivilstand": "12345678901"
                       }
                   ],
-                  "kjoenn": [
-                    {
-                      "kjoenn": "MANN"
-                    }
-                  ],
                   "foedsel": [
                   {
                     "foedselsdato": "2021-12-21",
@@ -497,11 +491,6 @@ internal class PdlClientTest : WiremockBase {
                       "type": "GIFT",
                       "relatertVedSivilstand": "12345678901"
                       }
-                  ],
-                  "kjoenn": [
-                    {
-                      "kjoenn": "MANN"
-                    }
                   ],
                   "foedsel": [],
                   "adressebeskyttelse": [],
@@ -645,11 +634,6 @@ internal class PdlClientTest : WiremockBase {
                       "relatertVedSivilstand": "12345678901"
                       }
                   ],
-                  "kjoenn": [
-                    {
-                      "kjoenn": "MANN"
-                    }
-                  ],
                   "foedsel": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
@@ -742,7 +726,6 @@ internal class PdlClientTest : WiremockBase {
                   "kontaktadresse": [],
                   "oppholdsadresse": [],
                   "statsborgerskap": [],
-                  "kjoenn": [],
                   "foedsel": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
@@ -779,7 +762,6 @@ internal class PdlClientTest : WiremockBase {
         )
         client.personForSystembruker(Fnr("07028820547")) shouldBe expectedPdlDataTemplate.copy(
             adresse = emptyList(),
-            kjønn = null,
             sivilstand = null,
             dødsdato = null,
             statsborgerskap = null,
@@ -807,7 +789,6 @@ internal class PdlClientTest : WiremockBase {
                   "kontaktadresse": [],
                   "oppholdsadresse": [],
                   "statsborgerskap": [],
-                  "kjoenn": [],
                   "foedsel": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
@@ -852,7 +833,6 @@ internal class PdlClientTest : WiremockBase {
             JwtToken.BrukerToken("ignored because of mock"),
         ) shouldBe expectedPdlDataTemplate.copy(
             adresse = emptyList(),
-            kjønn = null,
             sivilstand = null,
             dødsdato = null,
             statsborgerskap = null,
@@ -873,7 +853,6 @@ internal class PdlClientTest : WiremockBase {
                   "kontaktadresse": [],
                   "oppholdsadresse": [],
                   "statsborgerskap": [],
-                  "kjoenn": [],
                   "foedsel": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
@@ -932,7 +911,6 @@ internal class PdlClientTest : WiremockBase {
                   "kontaktadresse": [],
                   "oppholdsadresse": [],
                   "statsborgerskap": [],
-                  "kjoenn": [],
                   "foedsel": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
@@ -976,7 +954,6 @@ internal class PdlClientTest : WiremockBase {
         )
         client.personForSystembruker(Fnr("07028820547")) shouldBe expectedPdlDataTemplate.copy(
             adresse = emptyList(),
-            kjønn = null,
             sivilstand = null,
             statsborgerskap = null,
         ).right()
