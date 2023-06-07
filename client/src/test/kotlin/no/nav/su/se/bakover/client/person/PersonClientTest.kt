@@ -240,7 +240,6 @@ internal class PersonClientTest {
             adresse = emptyList(),
             statsborgerskap = pdlData().statsborgerskap,
             sivilstand = null,
-            kjønn = pdlData().kjønn,
             fødsel = pdlData().fødsel?.let {
                 if (it.foedselsdato != null) {
                     Person.Fødsel.MedFødselsdato(it.foedselsdato)

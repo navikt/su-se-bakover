@@ -80,7 +80,6 @@ data class PersonResponseJson(
     val adresse: List<AdresseJson>?,
     val statsborgerskap: String?,
     val sivilstand: SivilstandJson?,
-    val kjønn: String?,
     val fødsel: Fødsel?,
     val adressebeskyttelse: String?,
     val skjermet: Boolean?,
@@ -157,7 +156,12 @@ data class PersonResponseJson(
                 )
             },
             statsborgerskap = this.statsborgerskap,
-            kjønn = this.kjønn,
+            sivilstand = this.sivilstand?.let { sivilstand ->
+                SivilstandJson(
+                    type = sivilstand.type.toString(),
+                    relatertVedSivilstand = sivilstand.relatertVedSivilstand?.toString(),
+                )
+            },
             fødsel = when (fødsel) {
                 is Person.Fødsel.MedFødselsdato -> Fødsel(
                     dato = (fødsel as Person.Fødsel.MedFødselsdato).dato,
@@ -174,12 +178,6 @@ data class PersonResponseJson(
                 null -> null
             },
             adressebeskyttelse = this.adressebeskyttelse,
-            sivilstand = this.sivilstand?.let { sivilstand ->
-                SivilstandJson(
-                    type = sivilstand.type.toString(),
-                    relatertVedSivilstand = sivilstand.relatertVedSivilstand?.toString(),
-                )
-            },
             skjermet = this.skjermet,
             kontaktinfo = this.kontaktinfo?.let {
                 KontaktinfoJson(

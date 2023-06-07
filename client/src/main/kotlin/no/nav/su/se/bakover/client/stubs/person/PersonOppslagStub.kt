@@ -35,11 +35,10 @@ object PersonOppslagStub :
             ),
         ),
         statsborgerskap = "NOR",
-        kjønn = "MANN",
+        sivilstand = null,
         fødsel = Person.Fødsel.MedFødselsdato(
             dato = 1.januar(1990),
         ),
-        sivilstand = null,
         adressebeskyttelse = if (fnr.toString() == ApplicationConfig.fnrKode6()) "STRENGT_FORTROLIG_ADRESSE" else null,
         skjermet = false,
         kontaktinfo = Person.Kontaktinfo(

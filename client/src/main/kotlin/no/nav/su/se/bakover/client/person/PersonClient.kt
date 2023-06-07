@@ -126,7 +126,6 @@ internal class PersonClient(
                 relatertVedSivilstand = it.relatertVedSivilstand?.let { fnrString -> Fnr(fnrString) },
             )
         },
-        kjønn = pdlData.kjønn,
         fødsel = pdlData.fødsel?.let {
             if (it.foedselsdato != null) {
                 Person.Fødsel.MedFødselsdato(it.foedselsdato)

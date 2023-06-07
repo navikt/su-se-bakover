@@ -111,7 +111,6 @@ internal class PersonRoutesKtTest {
                     }],
                     "sivilstand": null,
                     "statsborgerskap": "NOR",
-                    "kjønn": "MANN",
                     "fødsel": {
                         "dato": "1990-01-01",
                         "år": 1990,
