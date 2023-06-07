@@ -93,6 +93,11 @@ data class Behandlinger(
         requireSameSakId()
         requireDistinctOpprettet()
         requireSortedByOpprettet()
+        if (revurderinger.isNotEmpty() || reguleringer.isNotEmpty() || klager.isNotEmpty()) {
+            require(søknadsbehandlinger.isNotEmpty()) {
+                "Søknadsbehandlinger må være satt hvis det finnes revurderinger, reguleringer eller klager."
+            }
+        }
     }
 
     private fun requireSortedByOpprettet() {

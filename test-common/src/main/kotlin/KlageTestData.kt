@@ -4,7 +4,6 @@ package no.nav.su.se.bakover.test
 
 import arrow.core.right
 import no.nav.su.se.bakover.common.extensions.januar
-import no.nav.su.se.bakover.common.extensions.mapSecond
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
@@ -484,12 +483,13 @@ fun avsluttetKlage(
     begrunnelse: String = "Begrunnelse for avsluttet klage.",
     tidspunktAvsluttet: Tidspunkt = fixedTidspunkt,
 ): Pair<Sak, AvsluttetKlage> {
-    return bekreftetVurdertKlage().mapSecond {
-        it.avslutt(
+    return bekreftetVurdertKlage().let { (sak, bekreftetVurdertKlage) ->
+        val avsluttetKlage = bekreftetVurdertKlage.avslutt(
             saksbehandler = saksbehandler,
             begrunnelse = begrunnelse,
             tidspunktAvsluttet = tidspunktAvsluttet,
         ).getOrFail()
+        Pair(sak.oppdaterKlage(avsluttetKlage), avsluttetKlage)
     }
 }
 

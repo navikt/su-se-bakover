@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.Brevvalg
-import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.Saksnummer
@@ -18,7 +17,6 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.avvisSøknadMedBrev
 import no.nav.su.se.bakover.test.avvisSøknadUtenBrev
-import no.nav.su.se.bakover.test.behandling.nyeKlager
 import no.nav.su.se.bakover.test.bortfallSøknad
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -194,7 +192,6 @@ fun nySakMedjournalførtSøknadOgOppgave(
     journalpostId: JournalpostId = journalpostIdSøknad,
     oppgaveId: OppgaveId = oppgaveIdSøknad,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
-    klager: List<Klage> = emptyList(),
     clock: Clock = fixedClock,
     søknadInnhold: SøknadInnhold = søknadinnholdUføre(personopplysninger = personopplysninger(fnr)),
 ): Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> {
@@ -209,7 +206,7 @@ fun nySakMedjournalførtSøknadOgOppgave(
     ).let { (sak, journalførtSøknad) ->
         val journalførtSøknadMedOppgave = journalførtSøknad.medOppgave(oppgaveId)
         Pair(
-            sak.nyeKlager(klager).copy(
+            sak.copy(
                 søknader = listOf(journalførtSøknadMedOppgave),
             ),
             journalførtSøknadMedOppgave,

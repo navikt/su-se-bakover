@@ -59,11 +59,7 @@ internal class OpprettKlageTest {
 
     @Test
     fun `kan opprette en klage med en brukt journalpost-id dersom klagen har blitt avsluttet`() {
-        val avsluttetKlage = avsluttetKlage().second
-        val sak = nySakMedjournalførtSøknadOgOppgave(
-            sakId = avsluttetKlage.sakId,
-            klager = listOf(avsluttetKlage),
-        ).first
+        val (sak, avsluttetKlage) = avsluttetKlage()
         val observerMock: StatistikkEventObserver = mock {
             on { handle(any()) }.then {}
         }
