@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat.Companion.logResultat
+import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat.Companion.tilResultat
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -31,30 +32,15 @@ class JournalførDokumentService(
 ) {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-    fun journalfør() {
-        val dokumenterSomMåJournalføres = dokumentRepo.hentDokumenterForJournalføring()
-
-        dokumenterSomMåJournalføres.map { dokumentdistribusjon ->
-            journalførDokument(dokumentdistribusjon)
-                .map { JournalføringOgDistribueringsResultat.Ok(dokumentdistribusjon.id) }
-                .mapLeft {
-                    log.error(
-                        "Kunne ikke journalføre dokument ${dokumentdistribusjon.id}: $it",
-                        RuntimeException("Genererer en stacktrace for enklere debugging."),
-                    )
-                    JournalføringOgDistribueringsResultat.Feil(dokumentdistribusjon.id)
-                }
-        }.logResultat("Journalfør dokument", log)
-    }
+    fun journalfør(): List<JournalføringOgDistribueringsResultat> = dokumentRepo.hentDokumenterForJournalføring()
+        .map { dokumentdistribusjon -> journalførDokument(dokumentdistribusjon).tilResultat(dokumentdistribusjon, log) }
+        .also { it.logResultat("Journalfør dokument", log) }
 
     /**
      * Henter Person fra PersonService med systembruker.
      * Ment brukt fra async-operasjoner som ikke er knyttet til en bruker med token.
-     *
-     * Internal for testing.
-     * sikkert fordi man ikke vil skrive så mye :shrug: kan bli gjort private hvis man tester mulige feil-caser
      */
-    internal fun journalførDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeJournalføreDokument, Dokumentdistribusjon> {
+    private fun journalførDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeJournalføreDokument, Dokumentdistribusjon> {
         val sakInfo = sakService.hentSakInfo(dokumentdistribusjon.dokument.metadata.sakId).getOrElse {
             throw IllegalStateException("Fant ikke sak. Her burde vi egentlig sak finnes. sakId ${dokumentdistribusjon.dokument.metadata.sakId}")
         }

@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.KunneIkkeJournalføreOgDistribuereBrev
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat.Companion.logResultat
+import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat.Companion.tilResultat
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -26,25 +27,11 @@ class DistribuerDokumentService(
 ) {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-    fun distribuer() {
-        dokumentRepo.hentDokumenterForDistribusjon().map { dokument ->
-            distribuerDokument(dokument)
-                .map { JournalføringOgDistribueringsResultat.Ok(it.id) }
-                .mapLeft {
-                    log.error(
-                        "Kunne ikke journalføre dokument ${dokument.id}: $it",
-                        RuntimeException("Genererer en stacktrace for enklere debugging."),
-                    )
-                    JournalføringOgDistribueringsResultat.Feil(dokument.id)
-                }
-        }.logResultat("Distribuer dokument", log)
-    }
+    fun distribuer(): List<JournalføringOgDistribueringsResultat> = dokumentRepo.hentDokumenterForDistribusjon()
+        .map { dokument -> distribuerDokument(dokument).tilResultat(dokument, log) }
+        .also { it.logResultat("Distribuer dokument", log) }
 
-    /**
-     * Internal for testing.
-     * sikkert fordi man ikke vil skrive så mye :shrug: kan bli gjort private hvis man tester mulige feil-caser
-     */
-    internal fun distribuerDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeBestilleBrevForDokument, Dokumentdistribusjon> {
+    private fun distribuerDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeBestilleBrevForDokument, Dokumentdistribusjon> {
         return dokumentdistribusjon.distribuerBrev { jounalpostId ->
             distribuerBrev(
                 jounalpostId,
@@ -68,11 +55,7 @@ class DistribuerDokumentService(
         }
     }
 
-    /**
-     * Internal for testing.
-     * sikkert fordi man ikke vil skrive så mye :shrug: kan bli gjort private hvis man tester mulige feil-caser
-     */
-    internal fun distribuerBrev(
+    private fun distribuerBrev(
         journalpostId: JournalpostId,
         distribusjonstype: Distribusjonstype,
         distribusjonstidspunkt: Distribusjonstidspunkt,

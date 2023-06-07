@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.dokument
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.dokdistfordeling.KunneIkkeBestilleDistribusjon
 import no.nav.su.se.bakover.common.journal.JournalpostId
@@ -17,6 +18,7 @@ import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.person.Person
+import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.sakinfo
@@ -50,22 +52,21 @@ internal class DistribuerDokumentServiceTest {
     fun `distribuerer dokumenter`() {
         val dokumentdistribusjon = dokumentdistribusjon()
             .copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(JournalpostId("very")))
-
         val dokumentRepo = mock<DokumentRepo> {
             on { hentDokumenterForDistribusjon() } doReturn listOf(dokumentdistribusjon)
         }
-
         val dokdistFordeling = mock<DokDistFordeling> {
             on { this.bestillDistribusjon(any(), any(), any()) } doReturn BrevbestillingId("id").right()
         }
 
-        ServiceOgMocks(
-            dokumentRepo = dokumentRepo,
-            dokDistFordeling = dokdistFordeling,
-        ).dokumentService.distribuer()
+        ServiceOgMocks(dokumentRepo = dokumentRepo, dokDistFordeling = dokdistFordeling).dokumentService.distribuer()
+            .let {
+                it.size shouldBe 1
+                it.first().shouldBeInstanceOf<JournalføringOgDistribueringsResultat.Ok>()
+                it.first().brevbestillingsId shouldBe BrevbestillingId("id")
+            }
 
         verify(dokumentRepo, times(1)).hentDokumenterForDistribusjon()
-
         verify(dokdistFordeling).bestillDistribusjon(
             argThat { it shouldBe dokumentdistribusjon.journalføringOgBrevdistribusjon.journalpostId() },
             argThat { it shouldBe Distribusjonstype.VEDTAK },
@@ -82,37 +83,22 @@ internal class DistribuerDokumentServiceTest {
     }
 
     @Test
-    fun `distribuerer brev`() {
-        val dockdistMock = mock<DokDistFordeling> {
-            on {
-                bestillDistribusjon(
-                    JournalpostId("journalpostId"),
-                    distribusjonstype,
-                    distribusjonstidspunkt,
-                )
-            } doReturn BrevbestillingId("en bestillings id").right()
-        }
-
-        ServiceOgMocks(dokDistFordeling = dockdistMock)
-            .dokumentService.distribuerBrev(
-                JournalpostId("journalpostId"),
-                distribusjonstype,
-                distribusjonstidspunkt,
-            ) shouldBe BrevbestillingId("en bestillings id").right()
-
-        verify(dockdistMock).bestillDistribusjon(
-            JournalpostId("journalpostId"),
-            distribusjonstype,
-            distribusjonstidspunkt,
-        )
-    }
-
-    @Test
     fun `distribuer dokument - ikke journalført`() {
         val dokumentdistribusjon = dokumentdistribusjon()
-
-        ServiceOgMocks().let {
-            it.dokumentService.distribuerDokument(dokumentdistribusjon) shouldBe KunneIkkeBestilleBrevForDokument.MåJournalføresFørst.left()
+        val dokumentRepo = mock<DokumentRepo> {
+            on { hentDokumenterForDistribusjon(any()) } doReturn listOf(dokumentdistribusjon)
+        }
+        ServiceOgMocks(dokumentRepo = dokumentRepo).let {
+            it.dokumentService.distribuer().let {
+                it.size shouldBe 1
+                it.first().shouldBeInstanceOf<JournalføringOgDistribueringsResultat.Feil>()
+                it.first().id shouldBe dokumentdistribusjon.id
+                (it.first() as JournalføringOgDistribueringsResultat.Feil).originalFeil shouldBe
+                    JournalføringOgDistribueringsResultat.JournalføringOgDistribueringsFeil.Distribuering(
+                        KunneIkkeBestilleBrevForDokument.MåJournalføresFørst,
+                    )
+            }
+            verify(dokumentRepo).hentDokumenterForDistribusjon()
             it.verifyNoMoreInteraction()
         }
     }
@@ -126,26 +112,48 @@ internal class DistribuerDokumentServiceTest {
                     BrevbestillingId("happy"),
                 ),
             )
+        val dokumentRepo = mock<DokumentRepo> {
+            on { hentDokumenterForDistribusjon(any()) } doReturn listOf(dokumentdistribusjon)
+        }
 
-        ServiceOgMocks().let {
-            it.dokumentService.distribuerDokument(dokumentdistribusjon) shouldBe dokumentdistribusjon.right()
+        ServiceOgMocks(dokumentRepo = dokumentRepo).let {
+            it.dokumentService.distribuer().let {
+                it.size shouldBe 1
+                it.first().shouldBeInstanceOf<JournalføringOgDistribueringsResultat.Ok>()
+                it.first().id shouldBe dokumentdistribusjon.id
+                it.first().journalpostId shouldBe dokumentdistribusjon.journalføringOgBrevdistribusjon.journalpostId()
+                it.first().brevbestillingsId shouldBe dokumentdistribusjon.journalføringOgBrevdistribusjon.brevbestillingsId()
+            }
+            verify(dokumentRepo).hentDokumenterForDistribusjon()
             it.verifyNoMoreInteraction()
         }
     }
 
     @Test
     fun `distribuer dokument - feil ved bestilling av brev`() {
+        val dokumentdistribusjon = dokumentdistribusjon()
+            .copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(JournalpostId("sad")))
+        val dokumentRepo = mock<DokumentRepo> {
+            on { hentDokumenterForDistribusjon(any()) } doReturn listOf(dokumentdistribusjon)
+        }
         val dokDistMock = mock<DokDistFordeling> {
             on { bestillDistribusjon(any(), any(), any()) } doReturn KunneIkkeBestilleDistribusjon.left()
         }
 
-        val dokumentdistribusjon = dokumentdistribusjon()
-            .copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(JournalpostId("sad")))
-
         ServiceOgMocks(
             dokDistFordeling = dokDistMock,
+            dokumentRepo = dokumentRepo,
         ).let {
-            it.dokumentService.distribuerDokument(dokumentdistribusjon) shouldBe KunneIkkeBestilleBrevForDokument.FeilVedBestillingAvBrev.left()
+            it.dokumentService.distribuer().let {
+                it.size shouldBe 1
+                it.first().shouldBeInstanceOf<JournalføringOgDistribueringsResultat.Feil>()
+                it.first().id shouldBe dokumentdistribusjon.id
+                (it.first() as JournalføringOgDistribueringsResultat.Feil).originalFeil shouldBe
+                    JournalføringOgDistribueringsResultat.JournalføringOgDistribueringsFeil.Distribuering(
+                        KunneIkkeBestilleBrevForDokument.FeilVedBestillingAvBrev,
+                    )
+            }
+            verify(dokumentRepo).hentDokumenterForDistribusjon()
             verify(dokDistMock).bestillDistribusjon(
                 JournalpostId("sad"),
                 Distribusjonstype.VEDTAK,

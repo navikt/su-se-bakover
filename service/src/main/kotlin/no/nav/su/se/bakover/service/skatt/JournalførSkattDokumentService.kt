@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
 import no.nav.su.se.bakover.domain.skatt.Skattedokument
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat.Companion.logResultat
+import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat.Companion.tilResultat
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -28,20 +29,10 @@ class JournalførSkattDokumentService(
 ) {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-    fun journalfør() {
-        val skatteDokumenterSomMåJournalføres = dokumentSkattRepo.hentDokumenterForJournalføring()
-
-        skatteDokumenterSomMåJournalføres.map { skattedokument ->
-            journalførSkattedokument(skattedokument)
-                .map { JournalføringOgDistribueringsResultat.Ok(it.id) }
-                .mapLeft {
-                    log.error(
-                        "Kunne ikke journalføre skattedokument ${skattedokument.id}: $it",
-                        RuntimeException("Genererer en stacktrace for enklere debugging."),
-                    )
-                    JournalføringOgDistribueringsResultat.Feil(skattedokument.id)
-                }
-        }.logResultat("Journalføring skatt", log)
+    fun journalfør(): List<JournalføringOgDistribueringsResultat> {
+        return dokumentSkattRepo.hentDokumenterForJournalføring()
+            .map { skattedokument -> journalførSkattedokument(skattedokument).tilResultat(skattedokument, log) }
+            .also { it.logResultat("Journalføring skatt", log) }
     }
 
     private fun journalførSkattedokument(skattedokument: Skattedokument.Generert): Either<KunneIkkeJournalføreDokument, Skattedokument.Journalført> {

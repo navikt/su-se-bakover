@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.dokument
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.common.journal.JournalpostId
@@ -20,6 +21,7 @@ import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
+import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.sakId
@@ -49,14 +51,26 @@ class JournalførDokumentServiceTest {
 
     @Test
     fun `journalfør dokument - finner ikke person`() {
+        val dokumentdistribusjon = dokumentdistribusjon()
         val personServiceMock =
             mock<PersonService> { on { hentPersonMedSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left() }
         val sakService = mock<SakService> {
             on { hentSakInfo(any()) } doReturn SakInfo(sakId, saksnummer, fnr, Sakstype.UFØRE).right()
         }
-
-        ServiceOgMocks(sakService = sakService, personService = personServiceMock).let {
-            it.journalførDokumentService.journalførDokument(dokumentdistribusjon()) shouldBe KunneIkkeJournalføreDokument.KunneIkkeFinnePerson.left()
+        val dokumentRepo = mock<DokumentRepo> {
+            on { hentDokumenterForJournalføring(any()) } doReturn listOf(dokumentdistribusjon)
+        }
+        ServiceOgMocks(sakService = sakService, personService = personServiceMock, dokumentRepo = dokumentRepo).let {
+            it.journalførDokumentService.journalfør().let {
+                it.size shouldBe 1
+                it.first().shouldBeInstanceOf<JournalføringOgDistribueringsResultat.Feil>()
+                it.first().id shouldBe dokumentdistribusjon.id
+                it.first().journalpostId shouldBe null
+                it.first().brevbestillingsId shouldBe null
+                (it.first() as JournalføringOgDistribueringsResultat.Feil).originalFeil shouldBe JournalføringOgDistribueringsResultat.JournalføringOgDistribueringsFeil.Journalføring(
+                    KunneIkkeJournalføreDokument.KunneIkkeFinnePerson,
+                )
+            }
             verify(sakService).hentSakInfo(argThat { it shouldBe sakId })
             verify(personServiceMock).hentPersonMedSystembruker(fnr)
         }
@@ -64,6 +78,10 @@ class JournalførDokumentServiceTest {
 
     @Test
     fun `journalfør dokument - feil ved journalføring`() {
+        val dokumentdistribusjon = dokumentdistribusjon()
+        val dokumentRepo = mock<DokumentRepo> {
+            on { hentDokumenterForJournalføring(any()) } doReturn listOf(dokumentdistribusjon)
+        }
         val personServiceMock =
             mock<PersonService> { on { hentPersonMedSystembruker(any()) } doReturn person.right() }
         val dokarkivMock =
@@ -76,8 +94,19 @@ class JournalførDokumentServiceTest {
             sakService = sakService,
             personService = personServiceMock,
             dokArkiv = dokarkivMock,
+            dokumentRepo = dokumentRepo,
         ).let {
-            it.journalførDokumentService.journalførDokument(dokumentdistribusjon()) shouldBe KunneIkkeJournalføreDokument.FeilVedOpprettelseAvJournalpost.left()
+            it.journalførDokumentService.journalfør().let {
+                it.size shouldBe 1
+                it.first().shouldBeInstanceOf<JournalføringOgDistribueringsResultat.Feil>()
+                it.first().id shouldBe dokumentdistribusjon.id
+                it.first().journalpostId shouldBe null
+                it.first().brevbestillingsId shouldBe null
+                (it.first() as JournalføringOgDistribueringsResultat.Feil).originalFeil shouldBe JournalføringOgDistribueringsResultat.JournalføringOgDistribueringsFeil.Journalføring(
+                    KunneIkkeJournalføreDokument.FeilVedOpprettelseAvJournalpost,
+                )
+            }
+            verify(dokumentRepo).hentDokumenterForJournalføring()
             verify(sakService).hentSakInfo(argThat { it shouldBe sakId })
             verify(personServiceMock).hentPersonMedSystembruker(fnr)
             verify(dokarkivMock).opprettJournalpost(any())
@@ -87,6 +116,11 @@ class JournalførDokumentServiceTest {
 
     @Test
     fun `journalfør dokument - dokument allerede journalført`() {
+        val dokumentdistribusjon = dokumentdistribusjon()
+            .copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(JournalpostId("done")))
+        val dokumentRepo = mock<DokumentRepo> {
+            on { hentDokumenterForJournalføring(any()) } doReturn listOf(dokumentdistribusjon)
+        }
         val personServiceMock = mock<PersonService> {
             on { hentPersonMedSystembruker(any()) } doReturn person.right()
         }
@@ -94,11 +128,15 @@ class JournalførDokumentServiceTest {
             on { hentSakInfo(any()) } doReturn SakInfo(sakId, saksnummer, fnr, Sakstype.UFØRE).right()
         }
 
-        val dokumentdistribusjon = dokumentdistribusjon()
-            .copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(JournalpostId("done")))
-
-        ServiceOgMocks(sakService = sakService, personService = personServiceMock).let {
-            it.journalførDokumentService.journalførDokument(dokumentdistribusjon) shouldBe dokumentdistribusjon.right()
+        ServiceOgMocks(sakService = sakService, personService = personServiceMock, dokumentRepo = dokumentRepo).let {
+            it.journalførDokumentService.journalfør().let {
+                it.size shouldBe 1
+                it.first().shouldBeInstanceOf<JournalføringOgDistribueringsResultat.Ok>()
+                it.first().id shouldBe dokumentdistribusjon.id
+                it.first().journalpostId shouldBe dokumentdistribusjon.journalføringOgBrevdistribusjon.journalpostId()
+                it.first().brevbestillingsId shouldBe dokumentdistribusjon.journalføringOgBrevdistribusjon.brevbestillingsId()
+            }
+            verify(dokumentRepo).hentDokumenterForJournalføring()
             verify(sakService).hentSakInfo(argThat { it shouldBe sakId })
             verify(personServiceMock).hentPersonMedSystembruker(fnr)
             it.verifyNoMoreInteraction()
