@@ -205,8 +205,8 @@ prod: https://prometheus.prod-fss.nais.io
 
 ### View ongoing alerts and manage silences
 
-preprod: https://alertmanager.dev-fss.nais.io
-prod: https://alertmanager.prod-fss.nais.io
+preprod: https://alertmanager.dev-fss.nav.cloud.nais.io/#/alerts
+prod: https://alertmanager.prod-fss.nav.cloud.nais.io/#/alerts
 
 ### Kubectl commands
 
