@@ -177,7 +177,7 @@ internal class StønadsstatistikkTest {
                 }
             ]
             """.trimIndent(),
-            funksjonellTid = "2021-01-01T01:04:10.456789Z",
+            funksjonellTid = "2021-01-01T01:03:53.456789Z",
         )
     }
 
@@ -229,7 +229,7 @@ internal class StønadsstatistikkTest {
             ]
             """.trimIndent(),
             ytelseVirkningstidspunkt = januar(2021).fraOgMed,
-            funksjonellTid = "2021-01-01T01:03:48.456789Z",
+            funksjonellTid = "2021-01-01T01:03:31.456789Z",
         )
     }
 
@@ -281,7 +281,7 @@ internal class StønadsstatistikkTest {
             ]
             """.trimIndent(),
             ytelseVirkningstidspunkt = januar(2021).fraOgMed,
-            funksjonellTid = "2021-01-01T01:03:21.456789Z",
+            funksjonellTid = "2021-01-01T01:03:04.456789Z",
         )
     }
 

@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeIverksetteRevu
 import no.nav.su.se.bakover.domain.revurdering.iverksett.verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
+import no.nav.su.se.bakover.domain.sak.oppdaterRevurdering
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import java.time.Clock
@@ -79,14 +80,14 @@ internal fun Sak.iverksettInnvilgetRevurdering(
                 clock = clock,
             ).let { vedtak ->
                 IverksettInnvilgetRevurderingResponse(
-                    sak = copy(
-                        revurderinger = revurderinger.filterNot { it.id == revurdering.id } + iverksattRevurdering,
-                        vedtakListe = vedtakListe.filterNot { it.id == vedtak.id } + vedtak,
-                        // TODO jah: Her legger vi til en [SimulertUtbetaling] istedenfor en [OversendtUtbetaling] det kan i første omgang klusse til testdataene.
-                        utbetalinger = utbetalinger + simulertUtbetaling,
-                    ).oppdaterUteståendeAvkortingVedIverksettelse(
-                        behandletAvkorting = vedtak.behandling.avkorting,
-                    ),
+                    sak = oppdaterRevurdering(iverksattRevurdering)
+                        .copy(
+                            vedtakListe = vedtakListe.filterNot { it.id == vedtak.id } + vedtak,
+                            // TODO jah: Her legger vi til en [SimulertUtbetaling] istedenfor en [OversendtUtbetaling] det kan i første omgang klusse til testdataene.
+                            utbetalinger = utbetalinger + simulertUtbetaling,
+                        ).oppdaterUteståendeAvkortingVedIverksettelse(
+                            behandletAvkorting = vedtak.behandling.avkorting,
+                        ),
                     vedtak = vedtak,
                     utbetaling = simulertUtbetaling,
                 )

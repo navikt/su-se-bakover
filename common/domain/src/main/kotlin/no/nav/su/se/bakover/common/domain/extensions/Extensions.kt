@@ -28,6 +28,9 @@ fun BigDecimal.avrund(): Int = this.setScale(0, RoundingMode.HALF_UP).intValueEx
 fun <A, B> Pair<A, A>.mapBoth(f: (A) -> B): Pair<B, B> =
     Pair(f(first), f(second))
 
+fun <FIRST, SECOND, MAP_FIRST_TO> Pair<FIRST, SECOND>.mapFirst(f: (FIRST) -> MAP_FIRST_TO) =
+    Pair(f(first), second)
+
 fun <FIRST, SECOND, MAP_SECOND_TO> Pair<FIRST, SECOND>.mapSecond(f: (SECOND) -> MAP_SECOND_TO) =
     Pair(first, f(second))
 

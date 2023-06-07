@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
@@ -357,9 +358,9 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
     }
 
     private class ServiceOgMocks(
-        private val sak: Sak? = null,
+        val sak: Sak? = null,
         private val søknad: Søknad? = null,
-        private val søknadsbehandling: Søknadsbehandling? = null,
+        val søknadsbehandling: Søknadsbehandling? = null,
         private val lukkSøknadCommand: LukkSøknadCommand,
         private val sakService: SakService = mock {
             if (sak != null) {
@@ -503,16 +504,13 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
         }
 
         fun expectedSak(): Sak {
-            return sak!!.copy(
-                søknader = listOf(
-                    expectedLukketSøknad(),
-                ),
-                søknadsbehandlinger = søknadsbehandling?.let {
-                    listOf(
-                        expectedLukketSøknadsbehandling(),
-                    )
-                } ?: sak.søknadsbehandlinger,
-            )
+            return sak!!.let {
+                if (søknadsbehandling != null) {
+                    it.oppdaterSøknadsbehandling(expectedLukketSøknadsbehandling())
+                } else {
+                    it
+                }
+            }.copy(søknader = listOf(expectedLukketSøknad()))
         }
 
         fun expectedLukketSøknadsbehandling() = LukketSøknadsbehandling.createFromPersistedState(

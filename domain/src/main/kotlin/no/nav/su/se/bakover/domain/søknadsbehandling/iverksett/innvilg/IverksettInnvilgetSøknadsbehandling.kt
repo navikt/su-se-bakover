@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalin
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
+import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
@@ -86,9 +87,8 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
         clock = clock,
     )
 
-    val oppdatertSak = this.copy(
+    val oppdatertSak = this.oppdaterSøknadsbehandling(iverksattBehandling).copy(
         vedtakListe = this.vedtakListe + vedtak,
-        søknadsbehandlinger = this.søknadsbehandlinger.filterNot { iverksattBehandling.id == it.id } + iverksattBehandling,
         utbetalinger = this.utbetalinger + simulertUtbetaling,
         /** Ved iverksett innvilgelse: Dersom det finnes en utestående avkorting må denne avkortes i sin helhet. */
         uteståendeAvkorting = Avkortingsvarsel.Ingen,

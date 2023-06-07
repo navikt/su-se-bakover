@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgr
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.behandling.Behandlinger
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
@@ -140,6 +141,7 @@ internal class SakPostgresRepo(
             }
         }
     }
+
     override fun hentSakForVedtak(vedtakId: UUID): Sak? {
         return dbMetrics.timeQuery("hentSakForVedtak") {
             sessionFactory.withSessionContext { sessionContext ->
@@ -298,12 +300,14 @@ internal class SakPostgresRepo(
                 opprettet = tidspunkt("opprettet"),
                 fnr = Fnr(string("fnr")),
                 søknader = SøknadRepoInternal.hentSøknaderInternal(sakId, session),
-                søknadsbehandlinger = søknadsbehandlingRepo.hentForSak(sakId, sessionContext),
+                behandlinger = Behandlinger(
+                    søknadsbehandlinger = søknadsbehandlingRepo.hentForSak(sakId, sessionContext),
+                    revurderinger = revurderingRepo.hentRevurderingerForSak(sakId, session),
+                    reguleringer = reguleringRepo.hentForSakId(sakId, sessionContext),
+                    klager = klageRepo.hentKlager(sakId, sessionContext),
+                ),
                 utbetalinger = Utbetalinger(UtbetalingInternalRepo.hentOversendteUtbetalinger(sakId, session)),
-                revurderinger = revurderingRepo.hentRevurderingerForSak(sakId, session),
                 vedtakListe = vedtakPostgresRepo.hentForSakId(sakId, session),
-                klager = klageRepo.hentKlager(sakId, sessionContext),
-                reguleringer = reguleringRepo.hentForSakId(sakId, sessionContext),
                 type = Sakstype.from(string("type")),
                 uteståendeAvkorting = avkortingsvarselRepo.hentUteståendeAvkorting(sakId, session),
                 utenlandsopphold = utenlandsoppholdRepo.hentForSakId(sakId, sessionContext).currentState,

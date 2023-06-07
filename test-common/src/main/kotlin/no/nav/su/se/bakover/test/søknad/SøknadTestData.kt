@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.avvisSøknadMedBrev
 import no.nav.su.se.bakover.test.avvisSøknadUtenBrev
+import no.nav.su.se.bakover.test.behandling.nyeKlager
 import no.nav.su.se.bakover.test.bortfallSøknad
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -197,9 +198,6 @@ fun nySakMedjournalførtSøknadOgOppgave(
     clock: Clock = fixedClock,
     søknadInnhold: SøknadInnhold = søknadinnholdUføre(personopplysninger = personopplysninger(fnr)),
 ): Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> {
-    klager.forEach {
-        assert(it.sakId == sakId) { "Klagenes sakId må være identisk med sakens id." }
-    }
     return nySakMedJournalførtSøknadUtenOppgave(
         saksnummer = saksnummer,
         sakId = sakId,
@@ -211,9 +209,8 @@ fun nySakMedjournalførtSøknadOgOppgave(
     ).let { (sak, journalførtSøknad) ->
         val journalførtSøknadMedOppgave = journalførtSøknad.medOppgave(oppgaveId)
         Pair(
-            sak.copy(
+            sak.nyeKlager(klager).copy(
                 søknader = listOf(journalførtSøknadMedOppgave),
-                klager = klager,
             ),
             journalførtSøknadMedOppgave,
         )

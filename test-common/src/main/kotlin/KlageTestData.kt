@@ -27,6 +27,8 @@ import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.sak.nyKlage
+import no.nav.su.se.bakover.domain.sak.oppdaterKlage
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import java.time.Clock
 import java.time.LocalDate
@@ -59,7 +61,7 @@ fun opprettetKlage(
         datoKlageMottatt = datoKlageMottatt,
     )
     return Pair(
-        sakMedVedtak.copy(klager = sakMedVedtak.klager + klage),
+        sakMedVedtak.nyKlage(klage),
         klage,
     )
 }
@@ -108,7 +110,7 @@ fun påbegyntVilkårsvurdertKlage(
         if (vilkårsvurdertKlage !is VilkårsvurdertKlage.Påbegynt) throw IllegalStateException("Forventet en Vilkårsvurdert.Påbegynt, men fikk ${vilkårsvurdertKlage::class} ved oppretting av test data")
 
         Pair(
-            sak.copy(klager = sak.klager.filterNot { it.id == vilkårsvurdertKlage.id } + vilkårsvurdertKlage),
+            sak.oppdaterKlage(vilkårsvurdertKlage),
             vilkårsvurdertKlage,
         )
     }
@@ -153,7 +155,7 @@ fun utfyltVilkårsvurdertKlageTilVurdering(
         if (klage !is VilkårsvurdertKlage.Utfylt.TilVurdering) throw IllegalStateException("Forventet en Vilkårsvurdert.Utfylt(TilVurdering), men fikk ${klage::class} ved oppretting av test data")
 
         Pair(
-            it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
+            it.first.oppdaterKlage(klage),
             klage,
         )
     }
@@ -198,7 +200,7 @@ fun utfyltAvvistVilkårsvurdertKlage(
         if (klage !is VilkårsvurdertKlage.Utfylt.Avvist) throw IllegalStateException("Forventet en Vilkårsvurdert.Utfylt(Avvist), men fikk ${klage::class} ved oppretting av test-data")
 
         Pair(
-            it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
+            it.first.oppdaterKlage(klage),
             klage,
         )
     }
@@ -241,7 +243,7 @@ fun bekreftetVilkårsvurdertKlageTilVurdering(
         if (klage !is VilkårsvurdertKlage.Bekreftet.TilVurdering) throw IllegalStateException("Forventet en Vilkårsvurdert.Bekreftet(TilVurdering), men fikk ${klage::class} ved oppretting av test-data")
 
         Pair(
-            it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
+            it.first.oppdaterKlage(klage),
             klage,
         )
     }
@@ -284,7 +286,7 @@ fun bekreftetAvvistVilkårsvurdertKlage(
         if (klage !is VilkårsvurdertKlage.Bekreftet.Avvist) throw IllegalStateException("Forventet en Vilkårsvurdert.Bekreftet(Avvist), men fikk ${klage::class} ved oppretting av test-data")
 
         Pair(
-            it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
+            it.first.oppdaterKlage(klage),
             klage,
         )
     }
@@ -331,7 +333,7 @@ fun påbegyntVurdertKlage(
             ) as VurderingerTilKlage.Påbegynt,
         )
         Pair(
-            it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
+            it.first.oppdaterKlage(klage),
             klage,
         )
     }
@@ -379,7 +381,7 @@ fun utfyltVurdertKlage(
             ) as VurderingerTilKlage.Utfylt,
         )
         Pair(
-            it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
+            it.first.oppdaterKlage(klage),
             klage,
         )
     }
@@ -425,7 +427,7 @@ fun bekreftetVurdertKlage(
             saksbehandler = saksbehandler,
         )
         Pair(
-            it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
+            it.first.oppdaterKlage(klage),
             klage,
         )
     }
@@ -468,7 +470,7 @@ fun avvistKlage(
         )
 
         Pair(
-            it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
+            it.first.oppdaterKlage(klage),
             klage,
         )
     }
@@ -534,7 +536,7 @@ fun vurdertKlageTilAttestering(
 
         if (klage !is KlageTilAttestering.Vurdert) throw IllegalStateException("Forventet en KlageTilAttestering(TilVurdering) ved opprettelse av test data. Fikk ${klage::class}")
         Pair(
-            it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
+            it.first.oppdaterKlage(klage),
             klage,
         )
     }
@@ -576,7 +578,7 @@ fun avvistKlageTilAttestering(
         ) { oppgaveIdTilAttestering.right() }.getOrFail()
 
         Pair(
-            it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
+            it.first.oppdaterKlage(klage),
             klage,
         )
     }
@@ -630,7 +632,7 @@ fun underkjentKlageTilVurdering(
             ),
         ) { underkjentKlageOppgaveId.right() }.getOrFail()
         Pair(
-            it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
+            it.first.oppdaterKlage(klage),
             klage,
         )
     }
@@ -678,7 +680,7 @@ fun underkjentAvvistKlage(
         ) { underkjentKlageOppgaveId.right() }.getOrFail()
 
         Pair(
-            it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
+            it.first.oppdaterKlage(klage),
             klage,
         )
     }
@@ -725,7 +727,7 @@ fun underkjentTilVurderingKlageTilAttestering(
             opprettOppgave = { oppgaveIdTilAttestering.right() },
         ).getOrFail()
         Pair(
-            it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
+            it.first.oppdaterKlage(klage),
             klage,
         )
     }
@@ -775,7 +777,7 @@ fun oversendtKlage(
             ),
         ).getOrFail()
         Pair(
-            it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
+            it.first.oppdaterKlage(klage),
             klage,
         )
     }
@@ -823,10 +825,10 @@ fun iverksattAvvistKlage(
         ).getOrFail()
 
         Pair(
-            it.first.copy(
-                klager = it.first.klager.filterNot { it.id == klage.id } + klage,
-                vedtakListe = it.first.vedtakListe + Klagevedtak.Avvist.fromIverksattAvvistKlage(klage, clock),
-            ),
+            it.first.oppdaterKlage(klage)
+                .copy(
+                    vedtakListe = it.first.vedtakListe + Klagevedtak.Avvist.fromIverksattAvvistKlage(klage, clock),
+                ),
             klage,
         )
     }

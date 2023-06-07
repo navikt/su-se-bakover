@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.domain.sak.nyRegulering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.simulering.simulering
@@ -107,9 +108,7 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
     val regulering = sak.opprettEllerOppdaterRegulering(regulerFraOgMed, clock).getOrFail()
 
     return Pair(
-        sak.copy(
-            reguleringer = listOf(regulering),
-        ),
+        sak.nyRegulering(regulering),
         regulering,
     )
 }
@@ -128,13 +127,12 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
     ).getOrFail()
 
     return Pair(
-        sak.copy(
-            reguleringer = listOf(regulering),
-        ),
+        sak.nyRegulering(regulering),
         regulering,
     )
 }
 
+@Suppress("unused")
 fun innvilgetSøknadsbehandlingMedIverksattRegulering(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
@@ -155,9 +153,7 @@ fun innvilgetSøknadsbehandlingMedIverksattRegulering(
     val regulering = iverksattAutomatiskRegulering()
 
     return Pair(
-        sak.copy(
-            reguleringer = listOf(regulering),
-        ),
+        sak.nyRegulering(regulering),
         regulering,
     )
 }

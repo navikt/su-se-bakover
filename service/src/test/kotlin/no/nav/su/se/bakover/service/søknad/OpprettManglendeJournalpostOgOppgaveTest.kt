@@ -55,7 +55,6 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         opprettet = Tidspunkt.EPOCH,
         fnr = fnr,
         søknader = emptyList(),
-        søknadsbehandlinger = emptyList(),
         utbetalinger = Utbetalinger(),
         type = Sakstype.UFØRE,
         uteståendeAvkorting = Avkortingsvarsel.Ingen,
