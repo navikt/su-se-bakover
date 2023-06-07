@@ -9,6 +9,5 @@ import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 interface SkattDokumentService {
     fun genererOgLagre(vedtak: Stønadsvedtak, txc: TransactionContext): Either<KunneIkkeGenerereSkattedokument, Skattedokument>
 
-    fun lagre(skattedokument: Skattedokument)
     fun lagre(skattedokument: Skattedokument, txc: TransactionContext)
 }
