@@ -1,9 +1,12 @@
 package no.nav.su.se.bakover.database.nøkkeltall
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.ForNav
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
@@ -37,7 +40,7 @@ internal class NøkkeltallPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val nySak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
-            testDataHelper.persisterSøknadUtenJournalføringOgOppgavePåEksisterendeSak(nySak.id)
+            testDataHelper.persisterSøknadUtenJournalføringOgOppgavePåEksisterendeSak(sakId = nySak.id, fnr = nySak.fnr)
 
             val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
             nøkkeltallRepo.hentNøkkeltall() shouldBe Nøkkeltall(
@@ -112,9 +115,12 @@ internal class NøkkeltallPostgresRepoTest {
     fun `en bruker som sendt in en papirsøknad`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
+            val fnr = Fnr.generer()
             val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
             testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave(
+                fnr = fnr,
                 søknadInnhold = søknadinnholdUføre(
+                    personopplysninger = Personopplysninger(fnr),
                     forNav = ForNav.Papirsøknad(
                         mottaksdatoForSøknad = fixedLocalDate,
                         grunnForPapirinnsending = ForNav.Papirsøknad.GrunnForPapirinnsending.MidlertidigUnntakFraOppmøteplikt,

@@ -1,9 +1,13 @@
 package no.nav.su.se.bakover.domain.behandling
 
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
+import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import java.util.UUID
 
 data class Behandlinger(
     val søknadsbehandlinger: List<Søknadsbehandling>,
@@ -11,6 +15,10 @@ data class Behandlinger(
     val reguleringer: List<Regulering>,
     val klager: List<Klage>,
 ) {
+    val saksnummer: Saksnummer? = søknadsbehandlinger.firstOrNull()?.saksnummer
+    val fnr: Fnr? = søknadsbehandlinger.firstOrNull()?.fnr
+    val sakstype: Sakstype? = søknadsbehandlinger.firstOrNull()?.sakstype
+    val sakId: UUID? = søknadsbehandlinger.firstOrNull()?.sakId
 
     companion object {
         fun empty() = Behandlinger(emptyList(), emptyList(), emptyList(), emptyList())
@@ -90,9 +98,53 @@ data class Behandlinger(
 
     init {
         requireDistinctIds()
-        requireSameSakId()
         requireDistinctOpprettet()
         requireSortedByOpprettet()
+        requireRekkefølgePåBehandlinger()
+        requireSameSakId()
+        requireSameSaksnummer()
+        requireSameFnr()
+        requireSameSakstype()
+    }
+
+    private fun requireSameSakstype() {
+        listOf(
+            søknadsbehandlinger.map { it.sakstype },
+            revurderinger.map { it.sakstype },
+            reguleringer.map { it.sakstype },
+        ).flatten().let {
+            require(it.distinct().size <= 1) {
+                "Alle behandlinger må ha samme sakstype: $it"
+            }
+        }
+    }
+    private fun requireSameFnr() {
+        listOf(
+            søknadsbehandlinger.map { it.fnr },
+            revurderinger.map { it.fnr },
+            reguleringer.map { it.fnr },
+            klager.map { it.fnr },
+        ).flatten().let {
+            require(it.distinct().size <= 1) {
+                "Alle behandlinger på en sak ($saksnummer) må ha samme fnr: $it"
+            }
+        }
+    }
+
+    private fun requireSameSaksnummer() {
+        listOf(
+            søknadsbehandlinger.map { it.saksnummer },
+            revurderinger.map { it.saksnummer },
+            reguleringer.map { it.saksnummer },
+            klager.map { it.saksnummer },
+        ).flatten().let {
+            require(it.distinct().size <= 1) {
+                "Alle behandlinger  må ha samme saksnummer: $it"
+            }
+        }
+    }
+
+    private fun requireRekkefølgePåBehandlinger() {
         if (revurderinger.isNotEmpty() || reguleringer.isNotEmpty() || klager.isNotEmpty()) {
             require(søknadsbehandlinger.isNotEmpty()) {
                 "Søknadsbehandlinger må være satt hvis det finnes revurderinger, reguleringer eller klager."

@@ -218,16 +218,17 @@ internal class OppdaterStønadsperiodeTest {
     @Test
     fun `stønadsperioder skal ikke kunne overlappe med perioder som førte til feilutbetaling `() {
         val tikkendeKlokke = TikkendeKlokke()
-        val (sakMedSøknadVedtak, søknadsbehandlingVedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
+        val (sakMedSøknadsbehandlingsvedtak, søknadsbehandlingVedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
             clock = tikkendeKlokke,
             stønadsperiode = stønadsperiode2021,
         )
-        val sakId = sakMedSøknadVedtak.id
+        val sakId = sakMedSøknadsbehandlingsvedtak.id
+        val fnr = sakMedSøknadsbehandlingsvedtak.fnr
         val revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021))
-        val (sakMedRevurderingOgSøknadVedtak, _) = vedtakRevurdering(
+        val (sakMedSøknadsbehandlingsOgRevurderingsvedtak, _) = vedtakRevurdering(
             clock = tikkendeKlokke,
             revurderingsperiode = revurderingsperiode,
-            sakOgVedtakSomKanRevurderes = sakMedSøknadVedtak to søknadsbehandlingVedtak,
+            sakOgVedtakSomKanRevurderes = sakMedSøknadsbehandlingsvedtak to søknadsbehandlingVedtak,
             vilkårOverrides = listOf(
                 avslåttUførevilkårUtenGrunnlag(
                     opprettet = Tidspunkt.now(tikkendeKlokke),
@@ -242,9 +243,10 @@ internal class OppdaterStønadsperiodeTest {
         val nyStønadsperiode = Stønadsperiode.create(nyPeriode)
         val (sakMedNySøknadsbehandling, nySøknadsbehandling) = vilkårsvurdertSøknadsbehandling(
             clock = tikkendeKlokke,
-            sakOgSøknad = sakMedRevurderingOgSøknadVedtak to nySøknadJournalførtMedOppgave(
+            sakOgSøknad = sakMedSøknadsbehandlingsOgRevurderingsvedtak to nySøknadJournalførtMedOppgave(
                 sakId = sakId,
                 clock = tikkendeKlokke,
+                fnr = fnr,
             ),
             stønadsperiode = nyStønadsperiode,
         )

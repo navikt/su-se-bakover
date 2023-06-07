@@ -1,9 +1,11 @@
 package no.nav.su.se.bakover.database.utbetaling
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
@@ -49,13 +51,14 @@ internal class UtbetalingPostgresRepoTest {
             val clock = testDataHelper.clock
             val repo = testDataHelper.utbetalingRepo
             val sakId = UUID.randomUUID()
+            val fnr = Fnr.generer()
             // Lagrer en kvittering med og uten kvittering som ikke skal komme med i hent-operasjonen
             testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
             testDataHelper.persisterSøknadsbehandlingIverksatt(kvittering = null)
 
-            val utbetalingMedKvittering1: Utbetaling.OversendtUtbetaling.MedKvittering =
+            val (_, _, utbetalingMedKvittering1: Utbetaling.OversendtUtbetaling.MedKvittering) =
                 testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
-                    sakOgSøknad = testDataHelper.persisterJournalførtSøknadMedOppgave(sakId),
+                    sakOgSøknad = testDataHelper.persisterJournalførtSøknadMedOppgave(sakId = sakId, fnr = fnr),
                     søknadsbehandling = { (sak, søknad) ->
                         iverksattSøknadsbehandlingUføre(
                             sakInfo = sak.info(),
@@ -64,11 +67,11 @@ internal class UtbetalingPostgresRepoTest {
                             clock = clock,
                         )
                     },
-                ).third
+                )
 
             val utbetalingMedKvittering2: Utbetaling.OversendtUtbetaling.MedKvittering =
                 testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
-                    sakOgSøknad = testDataHelper.persisterJournalførtSøknadMedOppgave(sakId),
+                    sakOgSøknad = testDataHelper.persisterJournalførtSøknadMedOppgave(sakId = sakId, fnr = fnr),
                     søknadsbehandling = { (sak, søknad) ->
                         iverksattSøknadsbehandlingUføre(
                             sakInfo = sak.info(),
@@ -81,7 +84,7 @@ internal class UtbetalingPostgresRepoTest {
 
             val utbetalingUtenKvittering: Utbetaling.OversendtUtbetaling.UtenKvittering =
                 testDataHelper.persisterSøknadsbehandlingIverksatt(
-                    sakOgSøknad = testDataHelper.persisterJournalførtSøknadMedOppgave(sakId),
+                    sakOgSøknad = testDataHelper.persisterJournalførtSøknadMedOppgave(sakId = sakId, fnr = fnr),
                     søknadsbehandling = { (sak, søknad) ->
                         iverksattSøknadsbehandlingUføre(
                             sakInfo = sak.info(),

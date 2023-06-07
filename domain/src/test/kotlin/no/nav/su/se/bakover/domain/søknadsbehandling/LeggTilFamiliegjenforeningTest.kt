@@ -4,6 +4,9 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
@@ -34,9 +37,11 @@ internal class LeggTilFamiliegjenforeningTest {
 
     @Test
     fun `kan legge til familiegjenforening ved uavklart`() {
+        val fnr = Fnr.generer()
         val uavklart = nySøknadsbehandlingMedStønadsperiode(
             sakOgSøknad = nySakMedjournalførtSøknadOgOppgave(
-                søknadInnhold = søknadsinnholdAlder(),
+                fnr = fnr,
+                søknadInnhold = søknadsinnholdAlder(personopplysninger = Personopplysninger(fnr)),
             ),
         )
 

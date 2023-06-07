@@ -17,6 +17,9 @@ class SakFactory(
         søknadInnhold: SøknadInnhold,
         innsendtAv: NavIdentBruker,
     ): NySak {
+        require(fnr == søknadInnhold.personopplysninger.fnr) {
+            "Fnr i søknadinnhold (${søknadInnhold.personopplysninger.fnr}) må være lik fnr i søknad ($fnr)"
+        }
         val opprettet = Tidspunkt.now(clock)
         val sakId = uuidFactory.newUUID()
         return NySak(

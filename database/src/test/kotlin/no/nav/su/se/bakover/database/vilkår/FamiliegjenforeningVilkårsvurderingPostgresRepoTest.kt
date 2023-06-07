@@ -1,7 +1,10 @@
 package no.nav.su.se.bakover.database.vilkår
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.database.grunnlag.FamiliegjenforeningVilkårsvurderingPostgresRepo
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.dbMetricsStub
@@ -45,9 +48,12 @@ internal class FamiliegjenforeningVilkårsvurderingPostgresRepoTest {
             val familiegjenforeningVilkårsvurderingPostgresRepo = FamiliegjenforeningVilkårsvurderingPostgresRepo(
                 dbMetrics = dbMetricsStub,
             )
-
+            val fnr = Fnr.generer()
             val (_, søknadsbehandling) = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert(
-                sakOgSøknad = testDataHelper.persisterJournalførtSøknadMedOppgave(søknadInnhold = søknadsinnholdAlder()),
+                sakOgSøknad = testDataHelper.persisterJournalførtSøknadMedOppgave(
+                    fnr = fnr,
+                    søknadInnhold = søknadsinnholdAlder(personopplysninger = Personopplysninger(fnr)),
+                ),
             ) { (sak, søknad) ->
                 vilkårsvurdertSøknadsbehandling(
                     sakOgSøknad = sak to søknad,

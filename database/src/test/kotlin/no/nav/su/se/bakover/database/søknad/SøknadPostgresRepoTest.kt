@@ -29,7 +29,10 @@ internal class SøknadPostgresRepoTest {
             val søknadRepo = testDataHelper.søknadRepo
             dataSource.withSession {
                 val sak: NySak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
-                val nySøknad: Søknad = testDataHelper.persisterSøknadUtenJournalføringOgOppgavePåEksisterendeSak(sak.id)
+                val nySøknad: Søknad = testDataHelper.persisterSøknadUtenJournalføringOgOppgavePåEksisterendeSak(
+                    sakId = sak.id,
+                    fnr = sak.fnr,
+                )
                 søknadRepo.hentSøknad(nySøknad.id) shouldBe nySøknad
             }
         }
@@ -41,7 +44,8 @@ internal class SøknadPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val søknadRepo = testDataHelper.søknadRepo
             val sak: NySak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
-            val nySøknad: Søknad = testDataHelper.persisterSøknadUtenJournalføringOgOppgavePåEksisterendeSak(sak.id)
+            val nySøknad: Søknad =
+                testDataHelper.persisterSøknadUtenJournalføringOgOppgavePåEksisterendeSak(sakId = sak.id, fnr = sak.fnr)
             søknadRepo.hentSøknad(nySøknad.id)!!.shouldNotBeTypeOf<Søknad.Journalført.MedOppgave.Lukket>()
         }
     }
@@ -129,7 +133,10 @@ internal class SøknadPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val søknadRepo = testDataHelper.søknadRepo
             val sak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
-            val journalførtSøknad = testDataHelper.persisterJournalførtSøknadUtenOppgaveForEksisterendeSak(sak.id)
+            val journalførtSøknad = testDataHelper.persisterJournalførtSøknadUtenOppgaveForEksisterendeSak(
+                sakId = sak.id,
+                fnr = sak.fnr,
+            )
             testDataHelper.persisterJournalførtSøknadMedOppgave(sak.id)
             testDataHelper.persisterLukketJournalførtSøknadMedOppgave(sak.id)
             søknadRepo.hentSøknaderMedJournalpostMenUtenOppgave() shouldBe listOf(

@@ -435,7 +435,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             )
 
             val (sakOppdatertMedSøknad, iverksattAvslagUtenBeregning, _) = testDataHelper.persisterIverksattSøknadsbehandlingAvslag(
-                sakOgSøknad = Pair(sak, testDataHelper.persisterJournalførtSøknadMedOppgave(sakId = sak.id).second),
+                sakOgSøknad = Pair(sak, testDataHelper.persisterJournalførtSøknadMedOppgave(sakId = sak.id, fnr = sak.fnr).second),
             ) { (sak, søknad) ->
                 iverksattSøknadsbehandlingUføre(
                     clock = testDataHelper.clock,
@@ -487,7 +487,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             val uteståendeAvkorting = sak.uteståendeAvkorting as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes
 
             val (sakOppdatertMedSøknad, iverksattSøknadsbehandlingVedtak, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
-                sakOgSøknad = Pair(sak, testDataHelper.persisterJournalførtSøknadMedOppgave(sakId = sak.id).second),
+                sakOgSøknad = Pair(sak, testDataHelper.persisterJournalførtSøknadMedOppgave(sakId = sak.id, fnr = sak.fnr).second),
             ) { (sak, søknad) ->
                 iverksattSøknadsbehandlingUføre(
                     clock = testDataHelper.clock,

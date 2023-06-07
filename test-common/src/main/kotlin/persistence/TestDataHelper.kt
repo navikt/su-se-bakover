@@ -70,6 +70,7 @@ import no.nav.su.se.bakover.domain.sak.oppdaterRegulering
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.skatt.Skattedokument
 import no.nav.su.se.bakover.domain.søknad.Søknad
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
@@ -190,7 +191,7 @@ class TestDataHelper(
         sakId: UUID = UUID.randomUUID(),
         søknadId: UUID = UUID.randomUUID(),
         fnr: Fnr = Fnr.generer(),
-        søknadInnhold: SøknadInnhold = søknadinnholdUføre(),
+        søknadInnhold: SøknadInnhold = søknadinnholdUføre(personopplysninger = Personopplysninger(fnr)),
         søknadInnsendtAv: NavIdentBruker = veileder,
     ): NySak {
         return SakFactory(
@@ -217,7 +218,8 @@ class TestDataHelper(
     fun persisterSøknadUtenJournalføringOgOppgavePåEksisterendeSak(
         sakId: UUID,
         søknadId: UUID = UUID.randomUUID(),
-        søknadInnhold: SøknadInnhold = søknadinnholdUføre(),
+        fnr: Fnr,
+        søknadInnhold: SøknadInnhold = søknadinnholdUføre(personopplysninger = Personopplysninger(fnr)),
         identBruker: NavIdentBruker = veileder,
     ): Søknad.Ny {
         return Søknad.Ny(
@@ -238,7 +240,7 @@ class TestDataHelper(
         søknadId: UUID = UUID.randomUUID(),
         fnr: Fnr = Fnr.generer(),
         journalpostId: JournalpostId = journalpostIdSøknad,
-        søknadInnhold: SøknadsinnholdUføre = søknadinnholdUføre(),
+        søknadInnhold: SøknadsinnholdUføre = søknadinnholdUføre(personopplysninger = Personopplysninger(fnr)),
     ): Søknad.Journalført.MedOppgave.Lukket {
         return persisterJournalførtSøknadMedOppgave(
             sakId = sakId,
@@ -263,7 +265,7 @@ class TestDataHelper(
         søknadId: UUID = UUID.randomUUID(),
         fnr: Fnr = Fnr.generer(),
         journalpostId: JournalpostId = journalpostIdSøknad,
-        søknadInnhold: SøknadInnhold = søknadinnholdUføre(),
+        søknadInnhold: SøknadInnhold = søknadinnholdUføre(personopplysninger = Personopplysninger(fnr)),
     ): Pair<Sak, Søknad.Journalført.UtenOppgave> {
         val nySak: NySak = persisterSakMedSøknadUtenJournalføringOgOppgave(
             fnr = fnr,
@@ -285,11 +287,13 @@ class TestDataHelper(
         sakId: UUID,
         søknadId: UUID = UUID.randomUUID(),
         journalpostId: JournalpostId = journalpostIdSøknad,
-        søknadInnhold: SøknadInnhold = søknadinnholdUføre(),
+        fnr: Fnr,
+        søknadInnhold: SøknadInnhold = søknadinnholdUføre(personopplysninger = Personopplysninger(fnr)),
     ): Søknad.Journalført.UtenOppgave {
         return persisterSøknadUtenJournalføringOgOppgavePåEksisterendeSak(
             sakId = sakId,
             søknadId = søknadId,
+            fnr = fnr,
             søknadInnhold = søknadInnhold,
         ).journalfør(journalpostId).also {
             databaseRepos.søknad.oppdaterjournalpostId(it)
@@ -305,7 +309,7 @@ class TestDataHelper(
         fnr: Fnr = Fnr.generer(),
         oppgaveId: OppgaveId = oppgaveIdSøknad,
         journalpostId: JournalpostId = journalpostIdSøknad,
-        søknadInnhold: SøknadInnhold = søknadinnholdUføre(),
+        søknadInnhold: SøknadInnhold = søknadinnholdUføre(personopplysninger = Personopplysninger(fnr)),
     ): Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> {
         return databaseRepos.sak.hentSak(sakId).let {
             if (it == null) {
@@ -323,6 +327,7 @@ class TestDataHelper(
                         sakId = sakId,
                         søknadId = søknadId,
                         journalpostId = journalpostId,
+                        fnr = fnr,
                         søknadInnhold = søknadInnhold,
                     ),
                 )

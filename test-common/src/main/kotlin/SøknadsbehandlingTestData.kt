@@ -721,6 +721,9 @@ fun nySøknadsbehandlingUtenStønadsperiode(
     require(sakOgSøknad.first.type == sakOgSøknad.first.type) {
         "Støtter ikke å ha forskjellige typer (uføre, alder) på en og samme sak."
     }
+    require(sakOgSøknad.first.fnr == sakOgSøknad.second.fnr) {
+        "Sak (${sakOgSøknad.first.fnr}) og søknad (${sakOgSøknad.second.fnr}) må ha samme fnr"
+    }
     val (sak, søknad) = sakOgSøknad
     return sak.copy(
         søknader = sak.søknader.filterNot { it.id == søknad.id } + søknad, // replace hvis søknaden allerede er lagt til (f.eks hvis man først oppretter bare sak + søknad)
@@ -741,7 +744,7 @@ fun nySøknadsbehandlingMedStønadsperiode(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-    hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person> = { person().right() },
+    hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person> = { person(fnr = fnr).right() },
     saksbehandlersAvgjørelse: SaksbehandlersAvgjørelse? = null,
 ): Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart> {
     return nySøknadsbehandlingUtenStønadsperiode(
