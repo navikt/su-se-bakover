@@ -231,7 +231,7 @@ internal class PdlClient(
 internal data class PdlResponse<T>(
     val data: T,
     val errors: List<PdlError>?,
-    val extensions: String?,
+    val extensions: Map<Any, Any?>?,
 ) {
     fun hasErrors() = !errors.isNullOrEmpty()
 
