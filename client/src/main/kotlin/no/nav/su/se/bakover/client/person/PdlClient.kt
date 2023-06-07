@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.FantIkkePerson
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.IkkeTilgangTilPerson
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.Ukjent
 import no.nav.su.se.bakover.domain.person.Telefonnummer
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
@@ -40,7 +41,7 @@ internal data class PdlClientConfig(
     val azureAd: AzureAd,
 )
 
-// docs for vanlige folk: https://pdldocs-navno.msappproxy.net/ekstern/index.html#_f%C3%B8dsel
+// docs for vanlige folk: https://pdldocs-navno.msappproxy.net/ekstern/index.html
 // api doc: https://github.com/navikt/pdl/blob/master/apps/api/src/main/resources/schemas/pdl.graphqls
 // Du kan leke med de ulike queryene her (naisdevice): https://pdl-playground.dev.intern.nav.no/editor
 
@@ -188,6 +189,7 @@ internal class PdlClient(
         return result.fold(
             {
                 val pdlResponse: PdlResponse<Inner> = deserializeParameterizedType<PdlResponse<Inner>, Inner>(it)
+                pdlResponse.logPotentialWarnings(log)
                 if (pdlResponse.hasErrors()) {
                     håndterPdlFeil(pdlResponse).left()
                 } else {
@@ -229,8 +231,15 @@ internal class PdlClient(
 internal data class PdlResponse<T>(
     val data: T,
     val errors: List<PdlError>?,
+    val extensions: String?,
 ) {
     fun hasErrors() = !errors.isNullOrEmpty()
+
+    fun logPotentialWarnings(log: Logger) {
+        if (extensions != null) {
+            log.error("Warning for kall mot PDL: $extensions")
+        }
+    }
 
     fun toKunneIkkeHentePerson(): List<KunneIkkeHentePerson> {
         return errors.orEmpty().map {
@@ -248,10 +257,10 @@ internal data class PdlResponse<T>(
 internal data class PdlError(
     val message: String,
     val path: List<String>,
-    val extensions: PdlExtension,
+    val extensions: PdlErrorExtension,
 )
 
-internal data class PdlExtension(
+internal data class PdlErrorExtension(
     val code: String,
 )
 
