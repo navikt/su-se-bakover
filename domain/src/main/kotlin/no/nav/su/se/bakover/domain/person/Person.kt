@@ -13,7 +13,6 @@ data class Person(
     val adresse: List<Adresse>? = null,
     val statsborgerskap: String? = null,
     val sivilstand: Sivilstand? = null,
-    val kjønn: String? = null,
     val fødsel: Fødsel? = null,
     val adressebeskyttelse: String? = null,
     val skjermet: Boolean? = null,
