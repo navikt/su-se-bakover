@@ -85,7 +85,7 @@ internal class PdlClientTest : WiremockBase {
               "data": {
                 "hentIdenter": null
               },
-              "extensions": "her får vi noe warnings i et eller annent format som i ikke bryr oss om fordi dette er en string"
+              "extensions": "her får vi noe warnings i et eller annent format som vi logger"
             }
             """.trimIndent()
         wireMockServer.stubFor(

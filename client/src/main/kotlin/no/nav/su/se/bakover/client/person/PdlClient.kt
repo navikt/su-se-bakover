@@ -264,21 +264,6 @@ internal data class PdlErrorExtension(
     val code: String,
 )
 
-/**
- * ikke helt klart hva som kan være nullable - typene er hentet ut fra screenshots i #pdl-announcements
- */
-internal data class Warning(
-    val query: String,
-    val id: String,
-    val code: String?,
-    val message: String,
-    val details: Details?,
-)
-
-internal data class Details(
-    val missing: List<String>,
-)
-
 internal data class IdentResponseData(
     val hentIdenter: HentIdenter?,
 )
