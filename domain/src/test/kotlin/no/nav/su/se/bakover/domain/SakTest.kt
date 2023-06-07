@@ -181,10 +181,12 @@ internal class SakTest {
 
         @Test
         fun `henter stønadsperioder med opphold mellom`() {
-            val (sak, stønadsperiode1) = vedtakSøknadsbehandlingIverksattInnvilget()
+            val clock = TikkendeKlokke()
+            val (sak, stønadsperiode1) = vedtakSøknadsbehandlingIverksattInnvilget(clock = clock)
 
             val (_, stønadsperiode2) = vedtakSøknadsbehandlingIverksattInnvilget(
                 stønadsperiode = Stønadsperiode.create(periode = år(2023)),
+                clock = clock,
             )
 
             sak.nySøknadsbehandling(stønadsperiode2.behandling)

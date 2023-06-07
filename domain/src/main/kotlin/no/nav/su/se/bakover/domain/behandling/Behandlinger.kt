@@ -109,5 +109,25 @@ data class Behandlinger(
                 "Behandlinger (søknadsbehandlinger, revurderinger, reguleringer og klager) inneholder ulike sakId-er: $it"
             }
         }
+        søknadsbehandlinger.map { it.opprettet }.let {
+            require(it.distinct().size == it.size) {
+                "Behandlinger (søknadsbehandlinger) inneholder duplikate opprettet-tidspunkt: $it"
+            }
+        }
+        revurderinger.map { it.opprettet }.let {
+            require(it.distinct().size == it.size) {
+                "Behandlinger (revurderinger) inneholder duplikate opprettet-tidspunkt: $it"
+            }
+        }
+        reguleringer.map { it.opprettet }.let {
+            require(it.distinct().size == it.size) {
+                "Behandlinger (reguleringer) inneholder duplikate opprettet-tidspunkt: $it"
+            }
+        }
+        klager.map { it.opprettet }.let {
+            require(it.distinct().size == it.size) {
+                "Behandlinger (klager) inneholder duplikate opprettet-tidspunkt: $it"
+            }
+        }
     }
 }
