@@ -293,7 +293,7 @@ internal class KlagePostgresRepo(
         return dbMetrics.timeQuery("hentKlager") {
             sessionContext.withSession { session ->
                 """
-                    select k.*, s.fnr, s.saksnummer  from klage k inner join sak s on s.id = k.sakId where k.sakid=:sakid
+                    select k.*, s.fnr, s.saksnummer  from klage k inner join sak s on s.id = k.sakId where k.sakid=:sakid order by k.opprettet
                 """.trimIndent().hentListe(
                     mapOf(
                         "sakid" to sakid,

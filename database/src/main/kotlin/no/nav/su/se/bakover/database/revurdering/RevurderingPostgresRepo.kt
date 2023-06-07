@@ -542,6 +542,7 @@ internal class RevurderingPostgresRepo(
             FROM revurdering r
                 JOIN sak s on s.id = r.sakid
             WHERE r.sakid=:sakId
+            ORDER BY r.opprettet
         """.trimIndent()
             .hentListe(mapOf("sakId" to sakId), session) {
                 it.toRevurdering(session)

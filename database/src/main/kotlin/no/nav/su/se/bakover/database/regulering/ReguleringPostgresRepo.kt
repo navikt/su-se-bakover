@@ -91,7 +91,7 @@ internal class ReguleringPostgresRepo(
     override fun hentForSakId(sakId: UUID, sessionContext: SessionContext): List<Regulering> =
         dbMetrics.timeQuery("hentReguleringerForSakId") {
             sessionContext.withSession { session ->
-                """ select * from regulering r inner join sak s on s.id = r.sakid where sakid = :sakid """.trimIndent()
+                """ select * from regulering r inner join sak s on s.id = r.sakid where sakid = :sakid order by r.opprettet""".trimIndent()
                     .hentListe(
                         mapOf("sakid" to sakId),
                         session,

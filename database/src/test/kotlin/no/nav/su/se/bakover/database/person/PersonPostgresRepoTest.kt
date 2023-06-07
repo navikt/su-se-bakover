@@ -169,8 +169,15 @@ internal class PersonPostgresRepoTest {
     ) {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val bosituasjon = if (epsFnr == null) bosituasjongrunnlagEnslig() else bosituasjongrunnlagEpsUførFlyktning(epsFnr = epsFnr)
-            val formueVilkår = if (epsFnr == null) formuevilkårUtenEps0Innvilget() else formuevilkårMedEps0Innvilget(bosituasjon = nonEmptyListOf(bosituasjongrunnlagEpsUførFlyktning(epsFnr = epsFnr)))
+            val bosituasjon =
+                if (epsFnr == null) bosituasjongrunnlagEnslig() else bosituasjongrunnlagEpsUførFlyktning(epsFnr = epsFnr)
+            val formueVilkår = if (epsFnr == null) {
+                formuevilkårUtenEps0Innvilget()
+            } else {
+                formuevilkårMedEps0Innvilget(
+                    bosituasjon = nonEmptyListOf(bosituasjongrunnlagEpsUførFlyktning(epsFnr = epsFnr)),
+                )
+            }
 
             val (sak, vedtak, utbetaling) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling { (sak, søknad) ->
                 iverksattSøknadsbehandlingUføre(
@@ -206,8 +213,22 @@ internal class PersonPostgresRepoTest {
     ) {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val bosituasjon = if (epsFnrBehandling == null) bosituasjongrunnlagEnslig() else bosituasjongrunnlagEpsUførFlyktning(epsFnr = epsFnrBehandling)
-            val formueVilkår = if (epsFnrBehandling == null) formuevilkårUtenEps0Innvilget() else formuevilkårMedEps0Innvilget(bosituasjon = nonEmptyListOf(bosituasjongrunnlagEpsUførFlyktning(epsFnr = epsFnrBehandling)))
+            val bosituasjon =
+                if (epsFnrBehandling == null) {
+                    bosituasjongrunnlagEnslig()
+                } else {
+                    bosituasjongrunnlagEpsUførFlyktning(
+                        epsFnr = epsFnrBehandling,
+                    )
+                }
+            val formueVilkår =
+                if (epsFnrBehandling == null) {
+                    formuevilkårUtenEps0Innvilget()
+                } else {
+                    formuevilkårMedEps0Innvilget(
+                        bosituasjon = nonEmptyListOf(bosituasjongrunnlagEpsUførFlyktning(epsFnr = epsFnrBehandling)),
+                    )
+                }
 
             val (sak, vedtak, utbetaling) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling { (sak, søknad) ->
                 iverksattSøknadsbehandlingUføre(
@@ -228,7 +249,13 @@ internal class PersonPostgresRepoTest {
             val revurdering = testDataHelper.persisterRevurderingOpprettet((sak to vedtak)) { (s, v) ->
                 opprettetRevurdering(
                     sakOgVedtakSomKanRevurderes = s to v,
-                    grunnlagsdataOverrides = if (epsFnrRevurdering == null) listOf(bosituasjongrunnlagEnslig()) else listOf(bosituasjonEpsUnder67(fnr = epsFnrRevurdering)),
+                    grunnlagsdataOverrides = if (epsFnrRevurdering == null) {
+                        listOf(bosituasjongrunnlagEnslig())
+                    } else {
+                        listOf(
+                            bosituasjonEpsUnder67(fnr = epsFnrRevurdering),
+                        )
+                    },
                 )
             }.second
 
@@ -249,8 +276,22 @@ internal class PersonPostgresRepoTest {
     ) {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val bosituasjon = if (epsFnrBehandling == null) bosituasjongrunnlagEnslig() else bosituasjongrunnlagEpsUførFlyktning(epsFnr = epsFnrBehandling)
-            val formueVilkår = if (epsFnrBehandling == null) formuevilkårUtenEps0Innvilget() else formuevilkårMedEps0Innvilget(bosituasjon = nonEmptyListOf(bosituasjongrunnlagEpsUførFlyktning(epsFnr = epsFnrBehandling)))
+            val bosituasjon =
+                if (epsFnrBehandling == null) {
+                    bosituasjongrunnlagEnslig()
+                } else {
+                    bosituasjongrunnlagEpsUførFlyktning(
+                        epsFnr = epsFnrBehandling,
+                    )
+                }
+            val formueVilkår =
+                if (epsFnrBehandling == null) {
+                    formuevilkårUtenEps0Innvilget()
+                } else {
+                    formuevilkårMedEps0Innvilget(
+                        bosituasjon = nonEmptyListOf(bosituasjongrunnlagEpsUførFlyktning(epsFnr = epsFnrBehandling)),
+                    )
+                }
 
             val (sak, vedtak, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling { (sak, søknad) ->
                 iverksattSøknadsbehandlingUføre(
@@ -271,7 +312,13 @@ internal class PersonPostgresRepoTest {
             val revurderingVedtak = testDataHelper.persisterIverksattRevurdering((sak to vedtak)) { (s, v) ->
                 iverksattRevurdering(
                     sakOgVedtakSomKanRevurderes = s to v,
-                    grunnlagsdataOverrides = if (epsFnrRevurdering == null) listOf(bosituasjongrunnlagEnslig()) else listOf(bosituasjonEpsUnder67(fnr = epsFnrRevurdering)),
+                    grunnlagsdataOverrides = if (epsFnrRevurdering == null) {
+                        listOf(bosituasjongrunnlagEnslig())
+                    } else {
+                        listOf(
+                            bosituasjonEpsUnder67(fnr = epsFnrRevurdering),
+                        )
+                    },
                 )
             }.fourth
 
@@ -292,8 +339,22 @@ internal class PersonPostgresRepoTest {
     ) {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val bosituasjon = if (epsFnrBehandling == null) bosituasjongrunnlagEnslig() else bosituasjongrunnlagEpsUførFlyktning(epsFnr = epsFnrBehandling)
-            val formueVilkår = if (epsFnrBehandling == null) formuevilkårUtenEps0Innvilget() else formuevilkårMedEps0Innvilget(bosituasjon = nonEmptyListOf(bosituasjongrunnlagEpsUførFlyktning(epsFnr = epsFnrBehandling)))
+            val bosituasjon =
+                if (epsFnrBehandling == null) {
+                    bosituasjongrunnlagEnslig()
+                } else {
+                    bosituasjongrunnlagEpsUførFlyktning(
+                        epsFnr = epsFnrBehandling,
+                    )
+                }
+            val formueVilkår =
+                if (epsFnrBehandling == null) {
+                    formuevilkårUtenEps0Innvilget()
+                } else {
+                    formuevilkårMedEps0Innvilget(
+                        bosituasjon = nonEmptyListOf(bosituasjongrunnlagEpsUførFlyktning(epsFnr = epsFnrBehandling)),
+                    )
+                }
 
             val (sak, vedtak, utbetaling) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling { (sak, søknad) ->
                 iverksattSøknadsbehandlingUføre(
@@ -314,17 +375,31 @@ internal class PersonPostgresRepoTest {
             val (sak2, _, _, revurderingVedtak) = testDataHelper.persisterIverksattRevurdering((sak to vedtak)) { (s, v) ->
                 iverksattRevurdering(
                     sakOgVedtakSomKanRevurderes = s to v,
-                    grunnlagsdataOverrides = if (epsFnrRevurdering == null) listOf(bosituasjongrunnlagEnslig()) else listOf(bosituasjonEpsUnder67(fnr = epsFnrRevurdering)),
+                    grunnlagsdataOverrides = if (epsFnrRevurdering == null) {
+                        listOf(bosituasjongrunnlagEnslig())
+                    } else {
+                        listOf(
+                            bosituasjonEpsUnder67(fnr = epsFnrRevurdering),
+                        )
+                    },
+                    clock = testDataHelper.clock,
                 )
             }
 
-            val revurderingAvRevurdering = testDataHelper.persisterRevurderingOpprettet(sakOgVedtak = sak2 to revurderingVedtak) { (s, v) ->
-                opprettetRevurdering(
-                    sakOgVedtakSomKanRevurderes = s to v,
-                    grunnlagsdataOverrides = if (epsFnrRevurderingAvRevurdering == null) listOf(bosituasjongrunnlagEnslig()) else listOf(bosituasjonEpsUnder67(fnr = epsFnrRevurderingAvRevurdering)),
-
-                )
-            }
+            val revurderingAvRevurdering =
+                testDataHelper.persisterRevurderingOpprettet(sakOgVedtak = sak2 to revurderingVedtak) { (s, v) ->
+                    opprettetRevurdering(
+                        sakOgVedtakSomKanRevurderes = s to v,
+                        grunnlagsdataOverrides = if (epsFnrRevurderingAvRevurdering == null) {
+                            listOf(
+                                bosituasjongrunnlagEnslig(),
+                            )
+                        } else {
+                            listOf(bosituasjonEpsUnder67(fnr = epsFnrRevurderingAvRevurdering))
+                        },
+                        clock = testDataHelper.clock,
+                    )
+                }
             Ctx(
                 dataSource = dataSource,
                 repo = testDataHelper.personRepo,

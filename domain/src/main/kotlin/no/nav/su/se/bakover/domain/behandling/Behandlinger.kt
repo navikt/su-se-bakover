@@ -89,6 +89,26 @@ data class Behandlinger(
     }
 
     init {
+        requireDistinctIds()
+        requireSameSakId()
+        requireDistinctOpprettet()
+        requireSortedByOpprettet()
+    }
+
+    private fun requireSortedByOpprettet() {
+        listOf(
+            søknadsbehandlinger.map { it.opprettet },
+            revurderinger.map { it.opprettet },
+            reguleringer.map { it.opprettet },
+            klager.map { it.opprettet },
+        ).forEach {
+            require(it.sortedBy { it.instant } == it) {
+                "Behandlinger (søknadsbehandlinger, revurderinger, reguleringer og klager) er ikke sortert i stigende rekkefølge: $it"
+            }
+        }
+    }
+
+    private fun requireDistinctIds() {
         listOf(
             søknadsbehandlinger.map { it.id },
             revurderinger.map { it.id },
@@ -99,6 +119,9 @@ data class Behandlinger(
                 "Behandlinger (søknadsbehandlinger, revurderinger, reguleringer og klager) inneholder duplikate id-er: $it"
             }
         }
+    }
+
+    private fun requireSameSakId() {
         listOf(
             søknadsbehandlinger.map { it.sakId },
             revurderinger.map { it.sakId },
@@ -109,24 +132,17 @@ data class Behandlinger(
                 "Behandlinger (søknadsbehandlinger, revurderinger, reguleringer og klager) inneholder ulike sakId-er: $it"
             }
         }
-        søknadsbehandlinger.map { it.opprettet }.let {
+    }
+
+    private fun requireDistinctOpprettet() {
+        listOf(
+            søknadsbehandlinger.map { it.opprettet },
+            revurderinger.map { it.opprettet },
+            reguleringer.map { it.opprettet },
+            klager.map { it.opprettet },
+        ).forEach {
             require(it.distinct().size == it.size) {
-                "Behandlinger (søknadsbehandlinger) inneholder duplikate opprettet-tidspunkt: $it"
-            }
-        }
-        revurderinger.map { it.opprettet }.let {
-            require(it.distinct().size == it.size) {
-                "Behandlinger (revurderinger) inneholder duplikate opprettet-tidspunkt: $it"
-            }
-        }
-        reguleringer.map { it.opprettet }.let {
-            require(it.distinct().size == it.size) {
-                "Behandlinger (reguleringer) inneholder duplikate opprettet-tidspunkt: $it"
-            }
-        }
-        klager.map { it.opprettet }.let {
-            require(it.distinct().size == it.size) {
-                "Behandlinger (klager) inneholder duplikate opprettet-tidspunkt: $it"
+                "Behandlinger (søknadsbehandlinger, revurderinger, reguleringer og klager) inneholder duplikate opprettet-tidspunkt: $it"
             }
         }
     }

@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.extensions.mai
 import no.nav.su.se.bakover.common.extensions.oktober
 import no.nav.su.se.bakover.common.extensions.toPeriode
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.august
 import no.nav.su.se.bakover.common.tid.periode.desember
@@ -41,7 +42,6 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattRevurdering
@@ -315,6 +315,7 @@ internal class OppdaterRevurderingServiceTest {
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn opprettetRevurdering.first
             },
+            clock = clock,
         ).also {
             // fullstendig overlapp med hull mellom stønadsperiodene
             it.revurderingService.oppdaterRevurdering(
@@ -348,27 +349,29 @@ internal class OppdaterRevurderingServiceTest {
 
     @Test
     fun `får lov til å oppdatere revurdering dersom periode overlapper opphørsvedtak for utenlandsopphold som ikke førte til avkorting`() {
-        val tikkendeKlokke = TikkendeKlokke()
+        val clock = TikkendeKlokke()
 
         val sakOgSøknadsvedtak = iverksattSøknadsbehandlingUføre(
-            clock = tikkendeKlokke,
+            clock = clock,
             stønadsperiode = stønadsperiode2021,
         )
 
         val revurderingsperiode = Periode.create(1.oktober(2021), 31.desember(2021))
 
         val sakOgSøknadsvedtakOgRevurderingsvedtak = vedtakRevurdering(
-            clock = tikkendeKlokke,
+            clock = clock,
             revurderingsperiode = revurderingsperiode,
             sakOgVedtakSomKanRevurderes = sakOgSøknadsvedtak.first to sakOgSøknadsvedtak.third as VedtakSomKanRevurderes,
             vilkårOverrides = listOf(
                 utenlandsoppholdAvslag(
                     periode = revurderingsperiode,
+                    opprettet = Tidspunkt.now(clock),
                 ),
             ),
         )
         val (sak3, opprettetRevurdering) = opprettetRevurdering(
             sakOgVedtakSomKanRevurderes = sakOgSøknadsvedtakOgRevurderingsvedtak,
+            clock = clock,
         )
 
         RevurderingServiceMocks(
@@ -381,6 +384,7 @@ internal class OppdaterRevurderingServiceTest {
             avkortingsvarselRepo = mock {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
             },
+            clock = clock,
         ).also {
             it.revurderingService.oppdaterRevurdering(
                 command = OppdaterRevurderingCommand(
@@ -405,7 +409,7 @@ internal class OppdaterRevurderingServiceTest {
             vilkårOverrides = listOf(
                 utenlandsoppholdAvslag(
                     id = UUID.randomUUID(),
-                    opprettet = fixedTidspunkt,
+                    opprettet = Tidspunkt.now(clock),
                     periode = Periode.create(1.juni(2021), 31.desember(2021)),
                 ),
             ),
@@ -419,6 +423,7 @@ internal class OppdaterRevurderingServiceTest {
             // Setter en periode vi er trygg på er lovlig.
             revurderingsperiode = år(2021),
             sakOgVedtakSomKanRevurderes = sak1 to opphørUtenlandsopphold,
+            clock = clock,
         )
         RevurderingServiceMocks(
             sakService = mock {
@@ -427,6 +432,7 @@ internal class OppdaterRevurderingServiceTest {
             personService = mock {
                 on { hentAktørId(any()) } doReturn aktørId.right()
             },
+            clock = clock,
         ).let {
             it.revurderingService.oppdaterRevurdering(
                 OppdaterRevurderingCommand(
