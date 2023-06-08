@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.behandling.Avbrutt
 import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.AvvistSøknadBrevRequest
@@ -289,7 +290,7 @@ sealed interface Søknad {
                     override val lukketAv: Saksbehandler,
                     val trukketDato: LocalDate,
                     override val innsendtAv: NavIdentBruker,
-                ) : Lukket {
+                ) : Lukket, Avbrutt {
                     override val brevvalg =
                         Brevvalg.SkalSendeBrev.InformasjonsbrevUtenFritekst("Saksbehandler får ikke per tidspunkt gjøre noen brevvalg dersom bruker trekker søknaden.")
 
@@ -333,7 +334,7 @@ sealed interface Søknad {
                     override val lukketTidspunkt: Tidspunkt,
                     override val lukketAv: Saksbehandler,
                     override val innsendtAv: NavIdentBruker,
-                ) : Lukket {
+                ) : Lukket, Avbrutt {
                     override val brevvalg =
                         Brevvalg.SkalIkkeSendeBrev("Saksbehandler får ikke per tidspunkt gjøre noen brevvalg dersom søknaden bortfaller.")
 
