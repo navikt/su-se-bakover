@@ -233,7 +233,7 @@ internal class SimuleringResponseMapperTest {
                     ordinær(10000)
                     feilutbetaling(10779)
                     motposteringskonto(-10779)
-                    tidligereUtbetalt(-20779)
+                    kreditTidligereUtbetalt(-20779)
                 }
             }
             periode {
@@ -477,7 +477,7 @@ internal class SimuleringResponseMapperTest {
                     forfall = "2021-04-14"
                     ordinær(30000)
                     skattedetalj(-4610)
-                    tidligereUtbetalt(-20779)
+                    kreditTidligereUtbetalt(-20779)
                 }
             }
             periode {

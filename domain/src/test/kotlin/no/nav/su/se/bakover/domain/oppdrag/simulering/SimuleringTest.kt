@@ -21,6 +21,10 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.simulering.simuleringNy
+import no.nav.su.se.bakover.test.simulering.simulertDetaljDebetTidligereUtbetalt
+import no.nav.su.se.bakover.test.simulering.simulertDetaljFeilutbetaling
+import no.nav.su.se.bakover.test.simulering.simulertDetaljMotpostering
+import no.nav.su.se.bakover.test.simulering.simulertDetaljTilbakeføring
 import org.junit.jupiter.api.Test
 
 internal class SimuleringTest {
@@ -274,86 +278,68 @@ internal class SimuleringTest {
 
     @Test
     fun `tolker simulerte feilutbetalinger uten restbeløp til utbetaling (full tilbakekreving for måned)`() {
-        Sakstype.values()
-            .map { it.toYtelsekode() to it.toFeilkode() }
-            .forEach { (ytelse, feilkode) ->
-                Simulering(
-                    gjelderId = fnr,
-                    gjelderNavn = navn,
-                    datoBeregnet = 2.juni(2021),
-                    nettoBeløp = 51924,
-                    måneder = listOf(
-                        SimulertMåned(
-                            måned = januar(2021),
-                            utbetaling = SimulertUtbetaling(
-                                fagSystemId = fagsystemId,
-                                utbetalesTilId = fnr,
-                                utbetalesTilNavn = navn,
-                                forfall = 2.juni(2021),
-                                feilkonto = false,
-                                detaljer = listOf(
-                                    SimulertDetaljer(
-                                        faktiskFraOgMed = 1.januar(2021),
-                                        faktiskTilOgMed = 31.januar(2021),
-                                        konto = konto,
-                                        belop = 8949,
-                                        tilbakeforing = false,
-                                        sats = 0,
-                                        typeSats = "",
-                                        antallSats = 0,
-                                        uforegrad = 0,
-                                        klassekode = ytelse,
-                                        klassekodeBeskrivelse = suBeskrivelse,
-                                        klasseType = KlasseType.YTEL,
-                                    ),
-                                    SimulertDetaljer(
-                                        faktiskFraOgMed = 1.januar(2021),
-                                        faktiskTilOgMed = 31.januar(2021),
-                                        konto = konto,
-                                        belop = 8949,
-                                        tilbakeforing = false,
-                                        sats = 0,
-                                        typeSats = "",
-                                        antallSats = 0,
-                                        uforegrad = 0,
-                                        klassekode = feilkode,
-                                        klassekodeBeskrivelse = "Feilutbetaling $ytelse",
-                                        klasseType = KlasseType.FEIL,
-                                    ),
-                                    SimulertDetaljer(
-                                        faktiskFraOgMed = 1.januar(2021),
-                                        faktiskTilOgMed = 31.januar(2021),
-                                        konto = konto,
-                                        belop = -8949,
-                                        tilbakeforing = true,
-                                        sats = 0,
-                                        typeSats = "",
-                                        antallSats = 0,
-                                        uforegrad = 0,
-                                        klassekode = ytelse,
-                                        klassekodeBeskrivelse = suBeskrivelse,
-                                        klasseType = KlasseType.YTEL,
-                                    ),
-                                ),
+        /**
+         * Eksempelvis:
+         *   Opphør av allerede utbetalt måned (kan sende linje med OPPH eller NY med 0 som beløp).
+         *   Dette vil føre til en feilutbetaling, men i disse tilfellene får vi ikke debet-postering for YTEL med sats==beløp.
+         *   Disse posteringene som inngår i total utbetaling.
+         *   Dette tilsier et beløpet brukeren EGENTLIG skulle hatt (hvis vi ser bort fra hva som allerede er utbetalt).
+         *   Tilsvarende skjer dersom man opphører en ytelse som ikke er utbetalt enda, da vil man få tom respons fra oppdrag dersom ingen måneder skal utbetales.
+         *   Dersom deler av simuleringen har posteringer, vil månedene som ikke har posteringer bli utelatt.
+         *   Vi har en mekanisme der vi inkluderer måneden, men setter `utbetaling` til null.
+         */
+
+        Simulering(
+            gjelderId = fnr,
+            gjelderNavn = navn,
+            datoBeregnet = 2.juni(2021),
+            nettoBeløp = 51924,
+            måneder = listOf(
+                SimulertMåned(
+                    måned = januar(2021),
+                    utbetaling = SimulertUtbetaling(
+                        fagSystemId = fagsystemId,
+                        utbetalesTilId = fnr,
+                        utbetalesTilNavn = navn,
+                        forfall = 2.juni(2021),
+                        feilkonto = false,
+                        detaljer = listOf(
+                            // Vi får ikke en ordinær ved OPPH eller beløp=0
+                            simulertDetaljDebetTidligereUtbetalt(
+                                måned = januar(2021),
+                                beløp = 8949,
+                            ),
+                            simulertDetaljFeilutbetaling(
+                                måned = januar(2021),
+                                beløp = 8949,
+                            ),
+                            simulertDetaljMotpostering(
+                                måned = januar(2021),
+                                beløp = 8949,
+                            ),
+                            simulertDetaljTilbakeføring(
+                                måned = januar(2021),
+                                beløp = 8949,
                             ),
                         ),
                     ),
-                    rawResponse = "SimuleringTest baserer ikke denne på rå XML.",
-                ).let {
-                    it.hentTotalUtbetaling() shouldBe Månedsbeløp(emptyList())
-                    it.hentFeilutbetalteBeløp() shouldBe Månedsbeløp(
-                        listOf(
-                            MånedBeløp(januar(2021), Beløp(8949)),
-                        ),
-                    )
-                    it.hentUtbetalteBeløp() shouldBe Månedsbeløp(
-                        listOf(
-                            MånedBeløp(januar(2021), Beløp(8949)),
-                        ),
-                    )
-                    it.hentTilUtbetaling() shouldBe Månedsbeløp(emptyList())
-                }
-            }
+                ),
+            ),
+            rawResponse = "SimuleringTest baserer ikke denne på rå XML.",
+        ).let {
+            it.hentTotalUtbetaling() shouldBe Månedsbeløp(listOf(MånedBeløp(januar(2021), Beløp(0))))
+            it.hentFeilutbetalteBeløp() shouldBe Månedsbeløp(
+                listOf(
+                    MånedBeløp(januar(2021), Beløp(8949)),
+                ),
+            )
+            it.hentUtbetalteBeløp() shouldBe Månedsbeløp(
+                listOf(
+                    MånedBeløp(januar(2021), Beløp(8949)),
+                ),
+            )
+            it.hentTilUtbetaling() shouldBe Månedsbeløp(emptyList())
+        }
     }
 
     @Test

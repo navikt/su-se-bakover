@@ -92,20 +92,23 @@ internal data class TolketSimulering(
         if (erAlleMånederUtenUtbetaling()) return Månedsbeløp(emptyList())
 
         return Månedsbeløp(
-            tolketMåneder.mapNotNull { tolketMåned ->
-                val tolketUtbetaling = (tolketMåned as TolketMånedMedUtbetalinger).utbetaling
-                tolketUtbetaling.ytelse.filter { it.erUtbetalingSomSimuleres }.let {
-                    when (it.size) {
-                        0 -> null
-                        1 -> it.first().beløp.beløp
-                        else -> throw IllegalStateException("Fant flere YTEL uten tilbakeføring som var større enn 0, hadde typeSats MND, antallSats 1 og sats er lik beløp. Det skal ikke være tilfelle.")
-                    }
-                }?.let {
-                    MånedBeløp(
-                        periode = tolketMåned.måned,
-                        beløp = Beløp(it),
-                    )
-                }
+            tolketMåneder.map { tolketMåned ->
+                MånedBeløp(
+                    periode = tolketMåned.måned,
+                    beløp = when (tolketMåned) {
+                        is TolketMånedMedUtbetalinger -> {
+                            tolketMåned.utbetaling.ytelse.filter { it.erUtbetalingSomSimuleres }.let {
+                                when (it.size) {
+                                    0 -> Beløp.zero() // TODO jah: Hvorfor må dette være null?
+                                    1 -> Beløp(it.first().beløp.beløp)
+                                    else -> throw IllegalStateException("Fant flere YTEL uten tilbakeføring som var større enn 0, hadde typeSats MND, antallSats 1 og sats er lik beløp. Det skal ikke være tilfelle.")
+                                }
+                            }
+                        }
+
+                        is TolketMånedUtenUtbetalinger -> Beløp.zero()
+                    },
+                )
             },
         )
     }
@@ -296,7 +299,10 @@ sealed class TolketDetalj {
             log: Logger = LoggerFactory.getLogger(this::class.java),
         ) = when {
             simulertDetaljer.erFeilkonto() -> {
-                Feilkonto(beløp = Kontobeløp(simulertDetaljer.belop), tilbakeføring = simulertDetaljer.tilbakeforing)
+                Feilkonto(
+                    beløp = Kontobeløp(simulertDetaljer.belop),
+                    tilbakeføring = simulertDetaljer.tilbakeforing,
+                )
             }
 
             simulertDetaljer.erYtelse() -> {

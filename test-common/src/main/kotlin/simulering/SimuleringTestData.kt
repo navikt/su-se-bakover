@@ -504,74 +504,112 @@ fun simulertUtbetaling(
 fun simulertDetaljOrdinær(
     måned: Måned,
     beløp: Int,
-): SimulertDetaljer = SimulertDetaljer(
-    faktiskFraOgMed = måned.fraOgMed,
-    faktiskTilOgMed = måned.tilOgMed,
-    konto = "",
-    belop = beløp,
-    tilbakeforing = false,
-    sats = beløp,
-    typeSats = "MND",
-    antallSats = 1,
-    uforegrad = 0,
-    klassekode = KlasseKode.SUUFORE,
-    klassekodeBeskrivelse = "",
-    klasseType = KlasseType.YTEL,
-)
+    uføregrad: Int = 0,
+): SimulertDetaljer {
+    require(beløp > 0) { "Beløpene må være positive, siden funksjonene simulertDetalj-funksjonene velger riktig fortegn" }
+    return SimulertDetaljer(
+        faktiskFraOgMed = måned.fraOgMed,
+        faktiskTilOgMed = måned.tilOgMed,
+        konto = "",
+        belop = beløp,
+        tilbakeforing = false,
+        sats = beløp,
+        typeSats = "MND",
+        antallSats = 1,
+        uforegrad = uføregrad,
+        klassekode = KlasseKode.SUUFORE,
+        klassekodeBeskrivelse = "",
+        klasseType = KlasseType.YTEL,
+    )
+}
 
 fun simulertDetaljFeilutbetaling(
     måned: Måned,
     beløp: Int,
-): SimulertDetaljer = SimulertDetaljer(
-    faktiskFraOgMed = måned.fraOgMed,
-    faktiskTilOgMed = måned.tilOgMed,
-    konto = "",
-    belop = beløp,
-    tilbakeforing = false,
-    sats = 0,
-    typeSats = "",
-    antallSats = 0,
-    uforegrad = 0,
-    klassekode = KlasseKode.KL_KODE_FEIL_INNT,
-    klassekodeBeskrivelse = "Feilutbetaling Inntektsytelser",
-    klasseType = KlasseType.FEIL,
-)
+): SimulertDetaljer {
+    require(beløp > 0) { "Beløpene må være positive, siden funksjonene simulertDetalj-funksjonene velger riktig fortegn" }
+    return SimulertDetaljer(
+        faktiskFraOgMed = måned.fraOgMed,
+        faktiskTilOgMed = måned.tilOgMed,
+        konto = "",
+        belop = beløp,
+        tilbakeforing = false,
+        sats = 0,
+        typeSats = "",
+        antallSats = 0,
+        uforegrad = 0,
+        klassekode = KlasseKode.KL_KODE_FEIL_INNT,
+        klassekodeBeskrivelse = "Feilutbetaling Inntektsytelser",
+        klasseType = KlasseType.FEIL,
+    )
+}
 
-fun simulertDetaljTidligereUtbetalt(
+fun simulertDetaljMotpostering(
     måned: Måned,
     beløp: Int,
-): SimulertDetaljer = SimulertDetaljer(
-    faktiskFraOgMed = måned.fraOgMed,
-    faktiskTilOgMed = måned.tilOgMed,
-    konto = "",
-    belop = beløp,
-    tilbakeforing = false,
-    sats = 0,
-    typeSats = "",
-    antallSats = 0,
-    uforegrad = 0,
-    klassekode = KlasseKode.SUUFORE,
-    klassekodeBeskrivelse = "",
-    klasseType = KlasseType.YTEL,
-)
+): SimulertDetaljer {
+    require(beløp > 0) { "Beløpene må være positive, siden funksjonene simulertDetalj-funksjonene velger riktig fortegn" }
+    return SimulertDetaljer(
+        faktiskFraOgMed = måned.fraOgMed,
+        faktiskTilOgMed = måned.tilOgMed,
+        konto = "0902900",
+        belop = -beløp,
+        tilbakeforing = false,
+        sats = 0,
+        typeSats = "",
+        antallSats = 0,
+        uforegrad = 0,
+        klassekode = KlasseKode.TBMOTOBS,
+        klassekodeBeskrivelse = "Feilutbetaling motkonto til OBS konto",
+        klasseType = KlasseType.MOTP,
+    )
+}
 
+fun simulertDetaljDebetTidligereUtbetalt(
+    måned: Måned,
+    beløp: Int,
+    uføregrad: Int = 0,
+): SimulertDetaljer {
+    require(beløp > 0) { "Beløpene må være positive, siden funksjonene simulertDetalj-funksjonene velger riktig fortegn" }
+    return SimulertDetaljer(
+        faktiskFraOgMed = måned.fraOgMed,
+        faktiskTilOgMed = måned.tilOgMed,
+        konto = "",
+        belop = beløp,
+        tilbakeforing = false,
+        sats = 0,
+        typeSats = "",
+        antallSats = 0,
+        uforegrad = uføregrad,
+        klassekode = KlasseKode.SUUFORE,
+        klassekodeBeskrivelse = "",
+        klasseType = KlasseType.YTEL,
+    )
+}
+
+/**
+ * @param beløp må være positivt (funksjonen snur fortegnet)
+ */
 fun simulertDetaljTilbakeføring(
     måned: Måned,
     beløp: Int,
-): SimulertDetaljer = SimulertDetaljer(
-    faktiskFraOgMed = måned.fraOgMed,
-    faktiskTilOgMed = måned.tilOgMed,
-    konto = "",
-    belop = -beløp,
-    tilbakeforing = true,
-    sats = 0,
-    typeSats = "",
-    antallSats = 0,
-    uforegrad = 0,
-    klassekode = KlasseKode.SUUFORE,
-    klassekodeBeskrivelse = "",
-    klasseType = KlasseType.YTEL,
-)
+): SimulertDetaljer {
+    require(beløp > 0) { "Beløpene må være positive, siden funksjonene simulertDetalj-funksjonene velger riktig fortegn" }
+    return SimulertDetaljer(
+        faktiskFraOgMed = måned.fraOgMed,
+        faktiskTilOgMed = måned.tilOgMed,
+        konto = "",
+        belop = -beløp,
+        tilbakeforing = true,
+        sats = 0,
+        typeSats = "",
+        antallSats = 0,
+        uforegrad = 0,
+        klassekode = KlasseKode.SUUFORE,
+        klassekodeBeskrivelse = "",
+        klasseType = KlasseType.YTEL,
+    )
+}
 
 data class SimuleringResponseData(
     var gjelderId: String = fnr.toString(),
@@ -619,8 +657,9 @@ data class SimuleringResponseData(
                 belop: Int,
                 klassekode: String = "SUUFORE",
                 typeKlasse: String = "YTEL",
+                uføregrad: String = "100",
             ) {
-                require(belop > 0)
+                require(belop >= 0)
 
                 detaljer += Detalj(
                     faktiskFom = periodeFom,
@@ -634,7 +673,7 @@ data class SimuleringResponseData(
                     sats = "$belop.00",
                     typeSats = "MND",
                     antallSats = "1.00",
-                    uforeGrad = "100",
+                    uforeGrad = uføregrad,
                     klassekode = klassekode,
                     klasseKodeBeskrivelse = "Supplerende stønad Uføre",
                     typeKlasse = typeKlasse,
@@ -706,8 +745,13 @@ data class SimuleringResponseData(
              * Dette vil da blir trukket fra, før det nye beløpet legges til (så lenge ikke det nye beløpet er 0).
              *
              * @param belop må være negativt
+             *
+             * Merk: Dersom vi har fått retur fra UR, så vil vi få en balanserende post til denne (debet) med positivt beløp.
              */
-            fun Periode.tidligereUtbetalt(belop: Int) {
+            fun Periode.kreditTidligereUtbetalt(
+                belop: Int,
+                uføregrad: String = "100",
+            ) {
                 require(belop < 0) { "tidligere utbetalt belop må være negativt" }
 
                 detaljer += Detalj(
@@ -722,7 +766,7 @@ data class SimuleringResponseData(
                     sats = "${abs(belop)}.00",
                     typeSats = "MND",
                     antallSats = "0.00",
-                    uforeGrad = "100",
+                    uforeGrad = uføregrad,
                     klassekode = "SUUFORE",
                     klasseKodeBeskrivelse = "Supplerende stønad Uføre",
                     typeKlasse = "YTEL",
