@@ -154,14 +154,6 @@ data class GjeldendeVedtaksdata(
             ?.any { it.harIdentifisertBehovForFremtidigAvkorting(periode) } ?: false
     }
 
-    /** Tar kun høyde for månedene i [periode]. */
-    fun inneholderOpphørsvedtakMedFeilutbetaling(): Boolean {
-        return tidslinje?.map { it.originaltVedtak }
-            // Her ønsker vi kun de opphørsvedtakene vi har oversendt til oppdrag. De rene avkortingsvedtakene ikke kan føre til feilutbetaling, siden de ikke har utbetaling.
-            ?.filterIsInstance<VedtakOpphørMedUtbetaling>()
-            ?.any { it.førteTilFeilutbetaling(periode) } ?: false
-    }
-
     fun vedtaksperioder(): List<Periode> {
         return vedtakPåTidslinje.map { it.periode }
     }

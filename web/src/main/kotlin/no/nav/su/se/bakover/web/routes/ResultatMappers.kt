@@ -181,8 +181,4 @@ internal fun StøtterIkkeOverlappendeStønadsperioder.tilResultat() = when (this
         message = "Kan ikke overlappe med stønadsmåned som har blitt opphørt og ført til avkortingsvarsel.",
         code = "overlappende_stønadsperiode",
     )
-    StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeInneholderFeilutbetaling -> HttpStatusCode.BadRequest.errorJson(
-        message = "Kan ikke overlappe med stønadsmåned som har blitt opphørt og ført til feilutbetaling.",
-        code = "overlappende_stønadsperiode",
-    )
 }

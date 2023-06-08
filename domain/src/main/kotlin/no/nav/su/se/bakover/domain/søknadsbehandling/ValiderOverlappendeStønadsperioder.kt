@@ -13,7 +13,6 @@ import java.time.Clock
  * Begrensninger:
  * - Støtter ikke overlapp med ikke-opphørte måneder.
  * - Støtter ikke overlapp med opphørte måneder som førte til avkorting.
- * - Støtter ikke overlapp med opphørte måneder som førte til feilutbetaling.
  */
 internal fun Sak.validerOverlappendeStønadsperioder(
     periode: Periode,
@@ -22,7 +21,6 @@ internal fun Sak.validerOverlappendeStønadsperioder(
     return either.eager {
         validerOverlappendeIkkeOpphørtePerioder(periode).bind()
         validerOpphørFørtTilAvkorting(periode, clock).bind()
-        validerOpphørMedFeilutbetaling(periode, clock).bind()
     }
 }
 
@@ -59,28 +57,8 @@ private fun Sak.validerOpphørFørtTilAvkorting(
     )
 }
 
-private fun Sak.validerOpphørMedFeilutbetaling(
-    periode: Periode,
-    clock: Clock,
-): Either<StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeInneholderFeilutbetaling, Unit> {
-    return hentGjeldendeVedtaksdata(
-        periode = periode,
-        clock = clock,
-    ).fold(
-        { Unit.right() },
-        {
-            if (it.inneholderOpphørsvedtakMedFeilutbetaling()) {
-                StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeInneholderFeilutbetaling.left()
-            } else {
-                Unit.right()
-            }
-        },
-    )
-}
-
 sealed interface StøtterIkkeOverlappendeStønadsperioder {
     object StønadsperiodeOverlapperMedIkkeOpphørtStønadsperiode : StøtterIkkeOverlappendeStønadsperioder
     object StønadsperiodeForSenerePeriodeEksisterer : StøtterIkkeOverlappendeStønadsperioder
     object StønadsperiodeInneholderAvkortingPgaUtenlandsopphold : StøtterIkkeOverlappendeStønadsperioder
-    object StønadsperiodeInneholderFeilutbetaling : StøtterIkkeOverlappendeStønadsperioder
 }

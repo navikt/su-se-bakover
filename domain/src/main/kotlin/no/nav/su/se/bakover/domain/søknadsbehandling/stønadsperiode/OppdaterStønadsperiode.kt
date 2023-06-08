@@ -23,7 +23,7 @@ import java.util.UUID
  * - Stønadsperioden kan ikke overlappe med tidligere utbetalte måneder, med noen unntak:
  *     - Stønadsperioden kan overlappe med opphørte måneder dersom de aldri har vært utbetalt.
  *     - Stønadsperioden kan overlappe med opphørte måneder som har blitt tilbakekrevet.
- *     - Stønadsperioden kan ikke overlappe med opphørte måneder som ikke har blitt tilbakekrevet. Dette på grunn av en bug/feature i økonomisystemet, der disse tilfellene vil føre til dobbelt-utbetalinger.
+ *     - Stønadsperioden kan overlappe med opphørte måneder som ikke har blitt tilbakekrevet. Her må saksbehandler selv lage en økonomioppgave så det ikke blir dobbeltutbetaling.
  *     - Stønadsperioden kan ikke overlappe med opphørte måneder som har ført til avkortingsvarsel (via en revurdering).
  *  - Stønadsperioden kan ikke være lenger enn til og med måneden søker blir 67 år.
  *      - Begrensninger:

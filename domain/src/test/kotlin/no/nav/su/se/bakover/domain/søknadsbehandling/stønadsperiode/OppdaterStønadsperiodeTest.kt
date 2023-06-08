@@ -216,7 +216,7 @@ internal class OppdaterStønadsperiodeTest {
     }
 
     @Test
-    fun `stønadsperioder skal ikke kunne overlappe med perioder som førte til feilutbetaling `() {
+    fun `stønadsperioder skal kunne overlappe med perioder som førte til feilutbetaling `() {
         val tikkendeKlokke = TikkendeKlokke()
         val (sakMedSøknadsbehandlingsvedtak, søknadsbehandlingVedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
             clock = tikkendeKlokke,
@@ -262,9 +262,7 @@ internal class OppdaterStønadsperiodeTest {
                 saksbehandler = saksbehandler,
                 hentPerson = { person().right() },
                 saksbehandlersAvgjørelse = null,
-            ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode(
-                StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeInneholderFeilutbetaling,
-            ).left()
+            ).shouldBeRight()
         }
 
         listOf(
