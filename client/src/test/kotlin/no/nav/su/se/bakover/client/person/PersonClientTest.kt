@@ -271,7 +271,6 @@ internal class PersonClientTest {
                 url = "pdl-url-for-test",
                 clientId = "pdl-client-id-for-test",
             ),
-            tokenOppslag = tokenOppslagMock,
             azureAd = oauthMock,
         )
 

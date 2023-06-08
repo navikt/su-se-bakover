@@ -6,7 +6,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
-import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
+import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.extensions.desember
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
@@ -25,7 +25,7 @@ import java.time.LocalDate
 
 internal class PdlClientTest : WiremockBase {
 
-    private val tokenOppslag = TokenOppslagStub
+    private val tokenOppslag = AzureClientStub
 
     private val expectedPdlDataTemplate = PdlData(
         ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
@@ -88,15 +88,14 @@ internal class PdlClientTest : WiremockBase {
             }
             """.trimIndent()
         wireMockServer.stubFor(
-            wiremockBuilderSystembruker("Bearer ${tokenOppslag.token().value}")
+            wiremockBuilderSystembruker("Bearer ${tokenOppslag.getSystemToken("pdlClientId")}")
                 .willReturn(WireMock.ok(errorResponseJson)),
         )
 
         val client = PdlClient(
             PdlClientConfig(
                 vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-                tokenOppslag = tokenOppslag,
-                azureAd = mock(),
+                azureAd = mock<AzureAd> { on { this.getSystemToken(any()) } doReturn "etFintSystemtoken" },
             ),
         )
         client.aktørId(
@@ -108,15 +107,14 @@ internal class PdlClientTest : WiremockBase {
     @Test
     fun `hent aktørid ukjent feil`() {
         wireMockServer.stubFor(
-            wiremockBuilderSystembruker("Bearer ${tokenOppslag.token().value}")
+            wiremockBuilderSystembruker("Bearer ${tokenOppslag.getSystemToken("pdlClientId")}")
                 .willReturn(WireMock.serverError()),
         )
 
         val client = PdlClient(
             PdlClientConfig(
                 vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-                tokenOppslag = tokenOppslag,
-                azureAd = mock(),
+                azureAd = mock<AzureAd> { on { this.getSystemToken(any()) } doReturn "etFintSystemtoken" },
             ),
         )
         client.aktørId(
@@ -160,7 +158,6 @@ internal class PdlClientTest : WiremockBase {
         val client = PdlClient(
             PdlClientConfig(
                 vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-                tokenOppslag = tokenOppslag,
                 azureAd = azureAdMock,
             ),
         )
@@ -204,7 +201,6 @@ internal class PdlClientTest : WiremockBase {
         val client = PdlClient(
             PdlClientConfig(
                 vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-                tokenOppslag = tokenOppslag,
                 azureAd = azureAdMock,
             ),
         )
@@ -255,7 +251,6 @@ internal class PdlClientTest : WiremockBase {
         val client = PdlClient(
             PdlClientConfig(
                 vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-                tokenOppslag = tokenOppslag,
                 azureAd = azureAdMock,
             ),
         )
@@ -268,15 +263,14 @@ internal class PdlClientTest : WiremockBase {
     @Test
     fun `hent person ukjent feil`() {
         wireMockServer.stubFor(
-            wiremockBuilderSystembruker("Bearer ${tokenOppslag.token().value}")
+            wiremockBuilderSystembruker("Bearer ${tokenOppslag.getSystemToken("pdlClientId")}")
                 .willReturn(WireMock.serverError()),
         )
 
         val client = PdlClient(
             PdlClientConfig(
                 vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-                tokenOppslag = tokenOppslag,
-                azureAd = mock(),
+                azureAd = mock<AzureAd> { on { this.getSystemToken(any()) } doReturn "etFintSystemtoken" },
             ),
         )
         client.person(
@@ -400,7 +394,6 @@ internal class PdlClientTest : WiremockBase {
         val client = PdlClient(
             PdlClientConfig(
                 vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-                tokenOppslag = tokenOppslag,
                 azureAd = azureAdMock,
             ),
         )
@@ -529,7 +522,6 @@ internal class PdlClientTest : WiremockBase {
         val client = PdlClient(
             PdlClientConfig(
                 vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-                tokenOppslag = tokenOppslag,
                 azureAd = azureAdMock,
             ),
         )
@@ -667,7 +659,6 @@ internal class PdlClientTest : WiremockBase {
         val client = PdlClient(
             PdlClientConfig(
                 vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-                tokenOppslag = tokenOppslag,
                 azureAd = azureAdMock,
             ),
         )
@@ -749,15 +740,14 @@ internal class PdlClientTest : WiremockBase {
             }
             """.trimIndent()
         wireMockServer.stubFor(
-            wiremockBuilderSystembruker("Bearer ${tokenOppslag.token().value}")
+            wiremockBuilderSystembruker("Bearer ${tokenOppslag.getSystemToken("pdlClientId")}")
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
         val client = PdlClient(
             PdlClientConfig(
                 vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-                tokenOppslag = tokenOppslag,
-                azureAd = mock(),
+                azureAd = mock<AzureAd> { on { this.getSystemToken(any()) } doReturn "etFintSystemtoken" },
             ),
         )
         client.personForSystembruker(Fnr("07028820547")) shouldBe expectedPdlDataTemplate.copy(
@@ -824,7 +814,6 @@ internal class PdlClientTest : WiremockBase {
         val client = PdlClient(
             PdlClientConfig(
                 vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-                tokenOppslag = tokenOppslag,
                 azureAd = azureAdMock,
             ),
         )
@@ -876,15 +865,14 @@ internal class PdlClientTest : WiremockBase {
             }
             """.trimIndent()
         wireMockServer.stubFor(
-            wiremockBuilderSystembruker("Bearer ${tokenOppslag.token().value}")
+            wiremockBuilderSystembruker("Bearer ${tokenOppslag.getSystemToken("pdlClientId")}")
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
         val client = PdlClient(
             PdlClientConfig(
                 vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-                tokenOppslag = tokenOppslag,
-                azureAd = mock(),
+                azureAd = mock<AzureAd> { on { this.getSystemToken(any()) } doReturn "etFintSystemtoken" },
             ),
         )
         client.personForSystembruker(Fnr("07028820547")) shouldBe KunneIkkeHentePerson.FantIkkePerson.left()
@@ -941,15 +929,14 @@ internal class PdlClientTest : WiremockBase {
             }
             """.trimIndent()
         wireMockServer.stubFor(
-            wiremockBuilderSystembruker("Bearer ${tokenOppslag.token().value}")
+            wiremockBuilderSystembruker("Bearer ${tokenOppslag.getSystemToken("pdlClientId")}")
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
         val client = PdlClient(
             PdlClientConfig(
                 vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-                tokenOppslag = tokenOppslag,
-                azureAd = mock(),
+                azureAd = mock<AzureAd> { on { this.getSystemToken(any()) } doReturn "etFintSystemtoken" },
             ),
         )
         client.personForSystembruker(Fnr("07028820547")) shouldBe expectedPdlDataTemplate.copy(

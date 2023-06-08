@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.client.person.PdlData.Ident
 import no.nav.su.se.bakover.client.person.PdlData.Navn
 import no.nav.su.se.bakover.client.person.Variables.Companion.AKTORID
 import no.nav.su.se.bakover.client.person.Variables.Companion.FOLKEREGISTERIDENT
-import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserializeParameterizedType
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
@@ -37,7 +36,6 @@ import java.time.LocalDate
 
 internal data class PdlClientConfig(
     val vars: ApplicationConfig.ClientsConfig.PdlConfig,
-    val tokenOppslag: TokenOppslag,
     val azureAd: AzureAd,
 )
 
@@ -150,9 +148,9 @@ internal class PdlClient(
 
     private inline fun <reified T> kallPDLMedSystembruker(fnr: Fnr, query: String): Either<KunneIkkeHentePerson, T> {
         val pdlRequest = PdlRequest(query, Variables(ident = fnr.toString()))
-        val token = "Bearer ${config.tokenOppslag.token().value}"
+        val token = config.azureAd.getSystemToken(config.vars.clientId)
         val (_, response, result) = "${config.vars.url}/graphql".httpPost()
-            .header("Authorization", token)
+            .header("Authorization", "Bearer $token")
             .header("Tema", Tema.SUPPLERENDE_STØNAD.value)
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")

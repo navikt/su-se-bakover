@@ -66,7 +66,6 @@ data class ProdClientsBuilder(
         val skjermingClient = SkjermingClient(clientsConfig.skjermingUrl)
         val pdlClientConfig = PdlClientConfig(
             vars = clientsConfig.pdlConfig,
-            tokenOppslag = tokenOppslag,
             azureAd = oAuth,
         )
         val personOppslag = PersonClient(
