@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.satser.Satskategori
+import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.test.arbeidsinntekt
 import no.nav.su.se.bakover.test.bosituasjonBorMedAndreVoksne
 import no.nav.su.se.bakover.test.fixedClock
@@ -132,7 +133,7 @@ internal class EnsligBorMedVoksneBeregningTest {
                 ),
             ),
         ).also { (sak, vilkårsvurdert) ->
-            vilkårsvurdert.beregn(
+            (vilkårsvurdert as VilkårsvurdertSøknadsbehandling.Innvilget).beregn(
                 begrunnelse = null,
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(LocalDate.now(1.juni(2021).fixedClock())),

@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.satser.Satskategori
+import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.test.arbeidsinntekt
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -110,7 +111,7 @@ internal class EnsligBeregningTest {
                 ),
             ),
         ).also { (sak, søknadsbehandling) ->
-            søknadsbehandling.beregn(
+            (søknadsbehandling as VilkårsvurdertSøknadsbehandling.Innvilget).beregn(
                 begrunnelse = "blabla",
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(LocalDate.now(1.juni(2021).fixedClock())),

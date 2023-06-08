@@ -140,7 +140,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
 
     @Test
     fun `lagreFradrag har en status som gjør at man ikke kan legge til fradrag`() {
-        val uavklart = søknadsbehandlingVilkårsvurdertUavklart().second
+        val uavklart: VilkårsvurdertSøknadsbehandling.Uavklart = søknadsbehandlingVilkårsvurdertUavklart().second
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn uavklart

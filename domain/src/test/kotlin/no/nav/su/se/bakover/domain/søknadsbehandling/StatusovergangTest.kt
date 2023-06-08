@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldNotBeTypeOf
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -25,6 +26,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.getOrFailAsType
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.nySøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
@@ -97,7 +99,7 @@ internal class StatusovergangTest {
             uførhet = innvilgetUførevilkår(forventetInntekt = 11000000),
             saksbehandler = saksbehandler,
             clock = fixedClock,
-        ).getOrFail().beregn(
+        ).getOrFailAsType<VilkårsvurdertSøknadsbehandling.Innvilget>().beregn(
             begrunnelse = null,
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
@@ -713,13 +715,7 @@ internal class StatusovergangTest {
                 iverksattInnvilget,
                 lukketSøknadsbehandling,
             ).forEach {
-                it.beregn(
-                    begrunnelse = null,
-                    clock = fixedClock,
-                    satsFactory = satsFactoryTestPåDato(),
-                    nySaksbehandler = saksbehandler,
-                    uteståendeAvkortingPåSak = null,
-                ) shouldBe KunneIkkeBeregne.UgyldigTilstand(it::class).left()
+                it.shouldNotBeTypeOf<KanBeregnes>()
             }
         }
     }

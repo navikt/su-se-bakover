@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.KanBeregnes
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen
@@ -160,8 +161,9 @@ class SøknadsbehandlingServiceImpl(
     override fun beregn(request: BeregnRequest): Either<KunneIkkeBeregne, BeregnetSøknadsbehandling> {
         val sak: Sak = sakService.hentSakForSøknadsbehandling(request.behandlingId)
 
-        val søknadsbehandling: Søknadsbehandling = sak.hentSøknadsbehandling(request.behandlingId)
+        val søknadsbehandling: KanBeregnes = sak.hentSøknadsbehandling(request.behandlingId)
             .getOrElse { return KunneIkkeBeregne.FantIkkeBehandling.left() }
+            .let { it as? KanBeregnes ?: return KunneIkkeBeregne.UgyldigTilstand(it::class).left() }
 
         return søknadsbehandling.beregn(
             nySaksbehandler = request.saksbehandler,
@@ -173,10 +175,6 @@ class SøknadsbehandlingServiceImpl(
             when (feil) {
                 no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeBeregne.AvkortingErUfullstendig -> {
                     KunneIkkeBeregne.AvkortingErUfullstendig
-                }
-
-                is no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeBeregne.UgyldigTilstand -> {
-                    KunneIkkeBeregne.UgyldigTilstand(feil.fra, feil.til)
                 }
 
                 is no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag -> {

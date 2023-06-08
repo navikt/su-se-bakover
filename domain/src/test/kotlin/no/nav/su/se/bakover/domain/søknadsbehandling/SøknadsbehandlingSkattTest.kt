@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
 import no.nav.su.se.bakover.test.enUkeEtterFixedTidspunkt
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.getOrFailAsType
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulering.simuleringNy
@@ -70,7 +71,7 @@ internal class SøknadsbehandlingSkattTest {
 
             søknadsbehandlingVilkårsvurdertInnvilget().second
                 .leggTilSkatt(EksterneGrunnlagSkatt.Hentet(nySkattegrunnlag(), null))
-                .getOrFail()
+                .getOrFailAsType<VilkårsvurdertSøknadsbehandling.Innvilget>()
                 .beregn(saksbehandler, "", fixedClock, satsFactoryTestPåDato(), null)
                 .getOrFail()
                 .leggTilSkatt(EksterneGrunnlagSkatt.Hentet(nySkattegrunnlag(), null))
@@ -87,7 +88,7 @@ internal class SøknadsbehandlingSkattTest {
 
             søknadsbehandlingVilkårsvurdertInnvilget().second
                 .leggTilSkatt(EksterneGrunnlagSkatt.Hentet(nySkattegrunnlag(), null))
-                .getOrFail()
+                .getOrFailAsType<VilkårsvurdertSøknadsbehandling.Innvilget>()
                 .beregn(saksbehandler, "", fixedClock, satsFactoryTestPåDato(), null)
                 .getOrFail()
                 .simuler(
@@ -109,7 +110,7 @@ internal class SøknadsbehandlingSkattTest {
 
             søknadsbehandlingVilkårsvurdertInnvilget().second
                 .leggTilSkatt(EksterneGrunnlagSkatt.Hentet(nySkattegrunnlag(), null))
-                .getOrFail()
+                .getOrFailAsType<VilkårsvurdertSøknadsbehandling.Innvilget>()
                 .beregn(saksbehandler, "", fixedClock, satsFactoryTestPåDato(), null)
                 .getOrFail()
                 .simuler(saksbehandler, fixedClock) { _, _ -> simuleringNy().right() }

@@ -138,11 +138,11 @@ interface SøknadsbehandlingService {
 
     sealed class KunneIkkeBeregne {
         object FantIkkeBehandling : KunneIkkeBeregne()
-        object KunneIkkeSimulereUtbetaling : KunneIkkeBeregne()
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
-            val til: KClass<out Søknadsbehandling>,
-        ) : KunneIkkeBeregne()
+        ) : KunneIkkeBeregne() {
+            val til: KClass<out BeregnetSøknadsbehandling> = BeregnetSøknadsbehandling::class
+        }
 
         data class UgyldigTilstandForEndringAvFradrag(val feil: KunneIkkeLeggeTilFradragsgrunnlag) : KunneIkkeBeregne()
         object AvkortingErUfullstendig : KunneIkkeBeregne()

@@ -1165,7 +1165,7 @@ fun beregnetSøknadsbehandling(
             saksbehandler = saksbehandler,
         )
         ).let { (sak, vilkårsvurdert) ->
-        vilkårsvurdert.beregn(
+        (vilkårsvurdert as VilkårsvurdertSøknadsbehandling.Innvilget).beregn(
             begrunnelse = null,
             clock = clock,
             satsFactory = satsFactoryTestPåDato(vilkårsvurdert.opprettet.toLocalDate(zoneIdOslo)),

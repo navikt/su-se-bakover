@@ -30,7 +30,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import java.util.UUID
 
-sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling() {
+sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling {
     abstract override val saksbehandler: NavIdentBruker.Saksbehandler
     abstract fun nyOppgaveId(nyOppgaveId: OppgaveId): SøknadsbehandlingTilAttestering
     abstract fun tilUnderkjent(attestering: Attestering): UnderkjentSøknadsbehandling

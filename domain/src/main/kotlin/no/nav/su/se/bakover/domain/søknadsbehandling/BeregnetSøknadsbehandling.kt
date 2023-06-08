@@ -38,7 +38,10 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import java.time.Clock
 import java.util.UUID
 
-sealed class BeregnetSøknadsbehandling : Søknadsbehandling(), Søknadsbehandling.KanOppdaterePeriodeGrunnlagVilkår {
+sealed class BeregnetSøknadsbehandling :
+    Søknadsbehandling,
+    Søknadsbehandling.KanOppdaterePeriodeGrunnlagVilkår,
+    KanBeregnes {
     abstract override val beregning: Beregning
     abstract override val stønadsperiode: Stønadsperiode
     abstract override val aldersvurdering: Aldersvurdering

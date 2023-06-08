@@ -52,7 +52,7 @@ data class SimulertSøknadsbehandling(
     override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting,
     override val sakstype: Sakstype,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
-) : Søknadsbehandling(), Søknadsbehandling.KanOppdaterePeriodeGrunnlagVilkår {
+) : Søknadsbehandling, Søknadsbehandling.KanOppdaterePeriodeGrunnlagVilkår, KanBeregnes {
     override val periode: Periode = aldersvurdering.stønadsperiode.periode
     override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
