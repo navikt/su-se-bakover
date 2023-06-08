@@ -153,8 +153,6 @@ internal class PdlClient(
         val token = "Bearer ${config.tokenOppslag.token().value}"
         val (_, response, result) = "${config.vars.url}/graphql".httpPost()
             .header("Authorization", token)
-            // TODO jah: PDL faser ut denne i preprod ila. februar 23.
-            .header("Nav-Consumer-Token", token)
             .header("Tema", Tema.SUPPLERENDE_STØNAD.value)
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")

@@ -963,7 +963,6 @@ internal class PdlClientTest : WiremockBase {
         .withHeader("Authorization", WireMock.equalTo(authorization))
         .withHeader("Content-Type", WireMock.equalTo("application/json"))
         .withHeader("Accept", WireMock.equalTo("application/json"))
-        .withHeader("Nav-Consumer-Token", WireMock.equalTo("Bearer ${tokenOppslag.token().value}"))
         .withHeader("Tema", WireMock.equalTo("SUP"))
 
     private fun wiremockBuilderOnBehalfOf(authorization: String) = WireMock.post(WireMock.urlPathEqualTo("/graphql"))
