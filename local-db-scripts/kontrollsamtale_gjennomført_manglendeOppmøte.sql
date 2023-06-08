@@ -22,12 +22,12 @@ select * from antallIverksattGjenopptak;
  */
 WITH kontrollsamtaler AS (
     SELECT
-        DATE_TRUNC('month', opprettet) AS month_year,
+        DATE_TRUNC('month', innkallingsdato) AS month_year,
         status,
         COUNT(status) AS count
     FROM kontrollsamtale
     WHERE status IN ('IKKE_MØTT_INNEN_FRIST', 'GJENNOMFØRT')
-      AND DATE_TRUNC('month', opprettet) BETWEEN '2021-01-01' AND '2023-06-30'
+      AND DATE_TRUNC('month', innkallingsdato) BETWEEN '2021-01-01' AND '2023-06-30'
     GROUP BY month_year, status
 ),
      revurdering AS (
