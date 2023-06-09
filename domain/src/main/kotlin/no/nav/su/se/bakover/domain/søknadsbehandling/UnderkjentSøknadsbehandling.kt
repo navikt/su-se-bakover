@@ -37,7 +37,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import java.time.Clock
 import java.util.UUID
 
-sealed class UnderkjentSøknadsbehandling : Søknadsbehandling(), Søknadsbehandling.KanOppdaterePeriodeGrunnlagVilkår {
+sealed class UnderkjentSøknadsbehandling : Søknadsbehandling, Søknadsbehandling.KanOppdaterePeriodeGrunnlagVilkår, KanBeregnes {
     abstract override val id: UUID
     abstract override val opprettet: Tidspunkt
     abstract override val sakId: UUID

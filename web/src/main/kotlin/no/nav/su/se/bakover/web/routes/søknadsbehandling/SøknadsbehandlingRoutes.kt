@@ -30,7 +30,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeGjel
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkePerson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSaksbehandlerEllerAttestant
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.feilVedGenereringAvDokument
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeSimulere
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
@@ -197,10 +196,6 @@ internal fun Route.søknadsbehandlingRoutes(
                                     val resultat = when (kunneIkkeBeregne) {
                                         KunneIkkeBeregne.FantIkkeBehandling -> {
                                             fantIkkeBehandling
-                                        }
-
-                                        KunneIkkeBeregne.KunneIkkeSimulereUtbetaling -> {
-                                            kunneIkkeSimulere
                                         }
 
                                         is KunneIkkeBeregne.UgyldigTilstand -> {

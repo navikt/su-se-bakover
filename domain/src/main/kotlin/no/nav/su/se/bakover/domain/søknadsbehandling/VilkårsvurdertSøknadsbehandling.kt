@@ -35,7 +35,7 @@ import java.time.Clock
 import java.util.UUID
 
 sealed class VilkårsvurdertSøknadsbehandling :
-    Søknadsbehandling(),
+    Søknadsbehandling,
     Søknadsbehandling.KanOppdaterePeriodeGrunnlagVilkår {
 
     override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> {
@@ -186,6 +186,7 @@ sealed class VilkårsvurdertSøknadsbehandling :
 
         /** Avkorting vurderes ikke før vi må; beregningsteget. */
         override val avkorting = AvkortingVedSøknadsbehandling.IkkeVurdert
+
         init {
             kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
             // TODO jah: Enable denne når det ikke finnes proddata med ufullstendig i denne tilstanden:
@@ -238,7 +239,6 @@ sealed class VilkårsvurdertSøknadsbehandling :
         override val beregning = null
         override val simulering: Simulering? = null
 
-        /** Tar ikke */
         override val avkorting = AvkortingVedSøknadsbehandling.IngenAvkorting
 
         override fun skalSendeVedtaksbrev(): Boolean {

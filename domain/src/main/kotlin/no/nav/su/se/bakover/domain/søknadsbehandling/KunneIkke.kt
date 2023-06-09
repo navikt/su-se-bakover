@@ -10,175 +10,175 @@ sealed interface ValideringsfeilAttestering {
     object InneholderUfullstendigBosituasjon : ValideringsfeilAttestering
 }
 
-sealed class KunneIkkeLeggeTilVilkår {
-    sealed class KunneIkkeLeggeTilUtenlandsopphold : KunneIkkeLeggeTilVilkår() {
+sealed interface KunneIkkeLeggeTilVilkår {
+    sealed interface KunneIkkeLeggeTilUtenlandsopphold : KunneIkkeLeggeTilVilkår {
         data class IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen(
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out Søknadsbehandling>,
-        ) : KunneIkkeLeggeTilUtenlandsopphold()
+        ) : KunneIkkeLeggeTilUtenlandsopphold
 
-        object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUtenlandsopphold()
-        object MåInneholdeKunEnVurderingsperiode : KunneIkkeLeggeTilUtenlandsopphold()
-        object AlleVurderingsperioderMåHaSammeResultat : KunneIkkeLeggeTilUtenlandsopphold()
-        object MåVurdereHelePerioden : KunneIkkeLeggeTilUtenlandsopphold()
+        object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUtenlandsopphold
+        object MåInneholdeKunEnVurderingsperiode : KunneIkkeLeggeTilUtenlandsopphold
+        object AlleVurderingsperioderMåHaSammeResultat : KunneIkkeLeggeTilUtenlandsopphold
+        object MåVurdereHelePerioden : KunneIkkeLeggeTilUtenlandsopphold
     }
 
-    sealed class KunneIkkeLeggeTilOpplysningsplikt : KunneIkkeLeggeTilVilkår() {
+    sealed interface KunneIkkeLeggeTilOpplysningsplikt : KunneIkkeLeggeTilVilkår {
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out Søknadsbehandling> = VilkårsvurdertSøknadsbehandling::class,
-        ) : KunneIkkeLeggeTilOpplysningsplikt()
+        ) : KunneIkkeLeggeTilOpplysningsplikt
 
-        object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilOpplysningsplikt()
+        object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilOpplysningsplikt
     }
 
-    sealed class KunneIkkeLeggeTilLovligOpphold : KunneIkkeLeggeTilVilkår() {
+    sealed interface KunneIkkeLeggeTilLovligOpphold : KunneIkkeLeggeTilVilkår {
 
-        sealed class UgyldigTilstand : KunneIkkeLeggeTilLovligOpphold() {
+        sealed interface UgyldigTilstand : KunneIkkeLeggeTilLovligOpphold {
             data class Søknadsbehandling(
                 val fra: KClass<out no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling>,
-                val til: KClass<out no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling>,
-            ) :
-                UgyldigTilstand()
+                val til: KClass<out VilkårsvurdertSøknadsbehandling>,
+            ) : UgyldigTilstand
 
             data class Revurdering(
                 val fra: KClass<out no.nav.su.se.bakover.domain.revurdering.Revurdering>,
                 val til: KClass<out OpprettetRevurdering>,
-            ) :
-                UgyldigTilstand()
+            ) : UgyldigTilstand
         }
 
-        object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilLovligOpphold()
+        object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilLovligOpphold
     }
 
-    sealed class KunneIkkeLeggeTilPensjonsVilkår : KunneIkkeLeggeTilVilkår() {
+    sealed interface KunneIkkeLeggeTilPensjonsVilkår : KunneIkkeLeggeTilVilkår {
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out Søknadsbehandling> = VilkårsvurdertSøknadsbehandling::class,
-        ) : KunneIkkeLeggeTilPensjonsVilkår()
+        ) : KunneIkkeLeggeTilPensjonsVilkår
 
-        object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilPensjonsVilkår()
-        object VilkårKunRelevantForAlder : KunneIkkeLeggeTilPensjonsVilkår()
+        object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilPensjonsVilkår
+        object VilkårKunRelevantForAlder : KunneIkkeLeggeTilPensjonsVilkår
     }
 
-    sealed class KunneIkkeLeggeTilUførevilkår : KunneIkkeLeggeTilVilkår() {
+    sealed interface KunneIkkeLeggeTilUførevilkår : KunneIkkeLeggeTilVilkår {
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out VilkårsvurdertSøknadsbehandling>,
         ) :
-            KunneIkkeLeggeTilUførevilkår()
+            KunneIkkeLeggeTilUførevilkår
 
-        object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUførevilkår()
+        object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUførevilkår
     }
 
-    sealed class KunneIkkeLeggeTilInstitusjonsoppholdVilkår : KunneIkkeLeggeTilVilkår() {
+    sealed interface KunneIkkeLeggeTilInstitusjonsoppholdVilkår : KunneIkkeLeggeTilVilkår {
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out VilkårsvurdertSøknadsbehandling> = VilkårsvurdertSøknadsbehandling::class,
-        ) : KunneIkkeLeggeTilInstitusjonsoppholdVilkår()
+        ) : KunneIkkeLeggeTilInstitusjonsoppholdVilkår
 
-        object BehandlingsperiodeOgVurderingsperiodeMåVæreLik : KunneIkkeLeggeTilInstitusjonsoppholdVilkår()
+        object BehandlingsperiodeOgVurderingsperiodeMåVæreLik : KunneIkkeLeggeTilInstitusjonsoppholdVilkår
     }
 
-    sealed class KunneIkkeLeggeTilFormuevilkår : KunneIkkeLeggeTilVilkår() {
+    sealed interface KunneIkkeLeggeTilFormuevilkår : KunneIkkeLeggeTilVilkår {
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out Søknadsbehandling>,
-        ) : KunneIkkeLeggeTilFormuevilkår()
+        ) : KunneIkkeLeggeTilFormuevilkår
 
         data class KunneIkkeMappeTilDomenet(val feil: LeggTilFormuevilkårRequest.KunneIkkeMappeTilDomenet) :
-            KunneIkkeLeggeTilFormuevilkår()
+            KunneIkkeLeggeTilFormuevilkår
     }
 
-    sealed class KunneIkkeLeggeTilFamiliegjenforeningVilkår : KunneIkkeLeggeTilVilkår() {
+    sealed interface KunneIkkeLeggeTilFamiliegjenforeningVilkår : KunneIkkeLeggeTilVilkår {
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out VilkårsvurdertSøknadsbehandling>,
-        ) : KunneIkkeLeggeTilFamiliegjenforeningVilkår()
+        ) : KunneIkkeLeggeTilFamiliegjenforeningVilkår
     }
 
-    sealed class KunneIkkeLeggeTilFlyktningVilkår : KunneIkkeLeggeTilVilkår() {
+    sealed interface KunneIkkeLeggeTilFlyktningVilkår : KunneIkkeLeggeTilVilkår {
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out VilkårsvurdertSøknadsbehandling>,
-        ) : KunneIkkeLeggeTilFlyktningVilkår()
+        ) : KunneIkkeLeggeTilFlyktningVilkår
     }
 
-    sealed class KunneIkkeLeggeTilFastOppholdINorgeVilkår : KunneIkkeLeggeTilVilkår() {
+    sealed interface KunneIkkeLeggeTilFastOppholdINorgeVilkår : KunneIkkeLeggeTilVilkår {
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out VilkårsvurdertSøknadsbehandling>,
-        ) : KunneIkkeLeggeTilFastOppholdINorgeVilkår()
+        ) : KunneIkkeLeggeTilFastOppholdINorgeVilkår
     }
 
-    sealed class KunneIkkeLeggeTilPersonligOppmøteVilkår : KunneIkkeLeggeTilVilkår() {
+    sealed interface KunneIkkeLeggeTilPersonligOppmøteVilkår : KunneIkkeLeggeTilVilkår {
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out VilkårsvurdertSøknadsbehandling>,
-        ) : KunneIkkeLeggeTilPersonligOppmøteVilkår()
+        ) : KunneIkkeLeggeTilPersonligOppmøteVilkår
     }
 }
 
-sealed class KunneIkkeLeggeTilGrunnlag {
-    sealed class KunneIkkeLeggeTilFradragsgrunnlag : KunneIkkeLeggeTilGrunnlag() {
+sealed interface KunneIkkeLeggeTilGrunnlag {
+    sealed interface KunneIkkeLeggeTilFradragsgrunnlag : KunneIkkeLeggeTilGrunnlag {
         data class IkkeLovÅLeggeTilFradragIDenneStatusen(
             val status: KClass<out Søknadsbehandling>,
-        ) : KunneIkkeLeggeTilFradragsgrunnlag()
+        ) : KunneIkkeLeggeTilFradragsgrunnlag
 
-        object GrunnlagetMåVæreInnenforBehandlingsperioden : KunneIkkeLeggeTilFradragsgrunnlag()
+        object GrunnlagetMåVæreInnenforBehandlingsperioden : KunneIkkeLeggeTilFradragsgrunnlag
         data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
-            KunneIkkeLeggeTilFradragsgrunnlag()
+            KunneIkkeLeggeTilFradragsgrunnlag
     }
 
-    sealed class KunneIkkeOppdatereBosituasjon : KunneIkkeLeggeTilGrunnlag() {
+    sealed interface KunneIkkeOppdatereBosituasjon : KunneIkkeLeggeTilGrunnlag {
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out VilkårsvurdertSøknadsbehandling>,
-        ) : KunneIkkeOppdatereBosituasjon()
+        ) : KunneIkkeOppdatereBosituasjon
 
-        object GrunnlagetMåVæreInnenforBehandlingsperioden : KunneIkkeOppdatereBosituasjon()
+        object GrunnlagetMåVæreInnenforBehandlingsperioden : KunneIkkeOppdatereBosituasjon
     }
 }
 
-sealed class KunneIkkeOppdatereStønadsperiode {
+sealed interface KunneIkkeOppdatereStønadsperiode {
     data class UgyldigTilstand(
         val fra: KClass<out Søknadsbehandling>,
         val til: KClass<out VilkårsvurdertSøknadsbehandling> = VilkårsvurdertSøknadsbehandling::class,
-    ) : KunneIkkeOppdatereStønadsperiode()
+    ) : KunneIkkeOppdatereStønadsperiode
 
     data class KunneIkkeOppdatereGrunnlagsdata(
         val feil: KunneIkkeLageGrunnlagsdata,
-    ) : KunneIkkeOppdatereStønadsperiode()
+    ) : KunneIkkeOppdatereStønadsperiode
 }
 
-sealed class KunneIkkeBeregne {
-    data class UgyldigTilstand(
-        val fra: KClass<out Søknadsbehandling>,
-        val til: KClass<out BeregnetSøknadsbehandling> = BeregnetSøknadsbehandling::class,
-    ) : KunneIkkeBeregne()
+sealed interface KunneIkkeBeregne {
 
     data class UgyldigTilstandForEndringAvFradrag(val feil: KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag) :
-        KunneIkkeBeregne()
+        KunneIkkeBeregne
 
-    object AvkortingErUfullstendig : KunneIkkeBeregne() {
+    object AvkortingErUfullstendig : KunneIkkeBeregne {
         override fun toString() = this::class.simpleName!!
     }
 }
 
-sealed class KunneIkkeLukkeSøknadsbehandling {
-    override fun toString() = this::class.simpleName!!
+sealed interface KunneIkkeLukkeSøknadsbehandling {
+    object KanIkkeLukkeEnAlleredeLukketSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling {
+        override fun toString() = this::class.simpleName!!
+    }
 
-    object KanIkkeLukkeEnAlleredeLukketSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling()
-    object KanIkkeLukkeEnIverksattSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling()
-    object KanIkkeLukkeEnSøknadsbehandlingTilAttestering : KunneIkkeLukkeSøknadsbehandling()
+    object KanIkkeLukkeEnIverksattSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling {
+        override fun toString() = this::class.simpleName!!
+    }
+
+    object KanIkkeLukkeEnSøknadsbehandlingTilAttestering : KunneIkkeLukkeSøknadsbehandling {
+        override fun toString() = this::class.simpleName!!
+    }
 }
 
-sealed class KunneIkkeSimulereBehandling {
-    data class KunneIkkeSimulere(val feil: SimulerUtbetalingFeilet) : KunneIkkeSimulereBehandling()
+sealed interface KunneIkkeSimulereBehandling {
+    data class KunneIkkeSimulere(val feil: SimulerUtbetalingFeilet) : KunneIkkeSimulereBehandling
     data class UgyldigTilstand(
         val fra: KClass<out Søknadsbehandling>,
         val til: KClass<out SimulertSøknadsbehandling> = SimulertSøknadsbehandling::class,
-    ) : KunneIkkeSimulereBehandling()
+    ) : KunneIkkeSimulereBehandling
 }
 
 sealed interface KunneIkkeLeggeTilSkattegrunnlag {

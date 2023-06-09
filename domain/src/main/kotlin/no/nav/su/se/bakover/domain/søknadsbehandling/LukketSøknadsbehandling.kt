@@ -17,7 +17,7 @@ data class LukketSøknadsbehandling private constructor(
     val underliggendeSøknadsbehandling: Søknadsbehandling,
     override val søknad: Søknad.Journalført.MedOppgave.Lukket,
     override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
-) : Søknadsbehandling() {
+) : Søknadsbehandling {
     override val aldersvurdering: Aldersvurdering? = underliggendeSøknadsbehandling.aldersvurdering
     override val stønadsperiode: Stønadsperiode? get() = aldersvurdering?.stønadsperiode
     override val grunnlagsdata = underliggendeSøknadsbehandling.grunnlagsdata

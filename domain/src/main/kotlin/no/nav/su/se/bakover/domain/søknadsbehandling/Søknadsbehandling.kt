@@ -8,17 +8,11 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsplan
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.MedSaksbehandlerHistorikk
-import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -28,7 +22,6 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling.Companion.opprett
@@ -53,30 +46,30 @@ import no.nav.su.se.bakover.domain.vilkår.inneholderAlle
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 
-sealed class Søknadsbehandling :
+sealed interface Søknadsbehandling :
     BehandlingMedOppgave,
     BehandlingMedAttestering,
     Visitable<SøknadsbehandlingVisitor>,
     MedSaksbehandlerHistorikk<Søknadsbehandlingshendelse> {
-    abstract val søknad: Søknad.Journalført.MedOppgave
+    val søknad: Søknad.Journalført.MedOppgave
 
-    abstract val aldersvurdering: Aldersvurdering?
-    abstract val stønadsperiode: Stønadsperiode?
+    val aldersvurdering: Aldersvurdering?
+    val stønadsperiode: Stønadsperiode?
     abstract override val grunnlagsdata: Grunnlagsdata
     abstract override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling
     abstract override val eksterneGrunnlag: EksterneGrunnlag
     abstract override val attesteringer: Attesteringshistorikk
-    abstract val avkorting: AvkortingVedSøknadsbehandling
+    val avkorting: AvkortingVedSøknadsbehandling
 
     abstract override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk
 
     // TODO ia: fritekst bør flyttes ut av denne klassen og til et eget konsept (som også omfatter fritekst på revurderinger)
-    abstract val fritekstTilBrev: String
+    val fritekstTilBrev: String
 
-    val erIverksatt: Boolean by lazy { this is IverksattSøknadsbehandling.Avslag || this is IverksattSøknadsbehandling.Innvilget }
-    val erLukket: Boolean by lazy { this is LukketSøknadsbehandling }
+    val erIverksatt: Boolean get() = this is IverksattSøknadsbehandling.Avslag || this is IverksattSøknadsbehandling.Innvilget
+    val erLukket: Boolean get() = this is LukketSøknadsbehandling
 
-    abstract val saksbehandler: NavIdentBruker.Saksbehandler
+    val saksbehandler: NavIdentBruker.Saksbehandler
     abstract override val beregning: Beregning?
     abstract override val simulering: Simulering?
 
@@ -91,7 +84,11 @@ sealed class Søknadsbehandling :
             eksterneGrunnlag = eksterneGrunnlag,
         )
 
-    protected fun kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike() {
+    /**
+     * *protected* skal kun kalles fra typer som arver [Søknadsbehandling]
+     * TODO jah: Flytt ut av interfacet.
+     */
+    fun kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike() {
         if (grunnlagsdataOgVilkårsvurderinger.periode() == null) return
         if (grunnlagsdataOgVilkårsvurderinger.periode() != periode) {
             // Det er Søknadbehandling sin oppgave og vurdere om grunnlagsdataOgVilkårsvurderinger
@@ -100,7 +97,7 @@ sealed class Søknadsbehandling :
         }
     }
 
-    abstract fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling>
+    fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling>
 
     fun lukkSøknadsbehandlingOgSøknad(
         lukkSøknadCommand: LukkSøknadCommand,
@@ -109,7 +106,10 @@ sealed class Søknadsbehandling :
         lukkSøknadCommand = lukkSøknadCommand,
     )
 
-    private fun validerFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Unit> {
+    /**
+     * TODO jah: Den skal egentlig være private. Flytt ut av interfacet eller noe annet.
+     */
+    fun validerFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Unit> {
         if (fradragsgrunnlag.isNotEmpty()) {
             if (!periode.inneholder(fradragsgrunnlag.perioder())) {
                 return KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden.left()
@@ -125,17 +125,6 @@ sealed class Søknadsbehandling :
     ) = vilkårsvurder(saksbehandler).let {
         when (it) {
             is KanBeregnes -> leggTilFradragsgrunnlagInternalForSaksbehandler(saksbehandler, fradragsgrunnlag, clock)
-            else -> KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen(
-                this::class,
-            ).left()
-        }
-    }
-
-    protected fun leggTilFradragsgrunnlagForBeregning(
-        fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
-    ) = vilkårsvurder(saksbehandler).let {
-        when (it) {
-            is KanBeregnes -> leggTilFradragsgrunnlagInternalForBeregning(fradragsgrunnlag)
             else -> KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen(
                 this::class,
             ).left()
@@ -158,17 +147,6 @@ sealed class Søknadsbehandling :
                     handling = SøknadsbehandlingsHandling.OppdatertFradragsgrunnlag,
                 ),
             ),
-        ).vilkårsvurder(saksbehandler) as VilkårsvurdertSøknadsbehandling.Innvilget // TODO cast
-    }
-
-    private fun leggTilFradragsgrunnlagInternalForBeregning(
-        fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
-    ) = validerFradragsgrunnlag(fradragsgrunnlag).map {
-        copyInternal(
-            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilFradragsgrunnlag(
-                fradragsgrunnlag,
-            ),
-            søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk,
         ).vilkårsvurder(saksbehandler) as VilkårsvurdertSøknadsbehandling.Innvilget // TODO cast
     }
 
@@ -211,9 +189,13 @@ sealed class Søknadsbehandling :
     }
 
     /**
+     * *protected* skal kun kalles fra typer som arver [Søknadsbehandling]
+     *
      * Eksponerer deler av subklassenes copy-konstruktør slik at vi kan eliminere behovet for duplikate implementasjoner i hver subklasse.
+     *
+     * TODO jah: Skal helst fjernes helt på sikt. Midlertidig løsning kan være å flytte ut av interfacet.
      */
-    protected abstract fun copyInternal(
+    fun copyInternal(
         stønadsperiode: Stønadsperiode = this.stønadsperiode!!,
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling = this.grunnlagsdataOgVilkårsvurderinger,
         søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk,
@@ -273,7 +255,6 @@ sealed class Søknadsbehandling :
 
     // TODO jah: Flytt disse ut til egne filer og la de eie sine egne funksjoner som vilkårsvurder og beregn.
     interface KanOppdaterePeriodeGrunnlagVilkår
-    interface KanBeregnes : KanOppdaterePeriodeGrunnlagVilkår
 
     fun leggTilFormuegrunnlag(
         request: LeggTilFormuevilkårRequest,
@@ -567,41 +548,6 @@ sealed class Søknadsbehandling :
         ).vilkårsvurder(saksbehandler)
     }
 
-    fun beregn(
-        nySaksbehandler: NavIdentBruker.Saksbehandler,
-        begrunnelse: String?,
-        clock: Clock,
-        satsFactory: SatsFactory,
-        uteståendeAvkortingPåSak: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes?,
-    ): Either<KunneIkkeBeregne, BeregnetSøknadsbehandling> {
-        return when (this) {
-            is KanOppdaterePeriodeGrunnlagVilkår -> {
-                when (val vilkårsvurdert = vilkårsvurder(nySaksbehandler)) {
-                    is KanBeregnes -> {
-                        vilkårsvurdert.beregnInternal(
-                            begrunnelse = begrunnelse,
-                            clock = clock,
-                            beregningStrategyFactory = BeregningStrategyFactory(
-                                clock = clock,
-                                satsFactory = satsFactory,
-                            ),
-                            nySaksbehandler = nySaksbehandler,
-                            uteståendeAvkortingPåSak = uteståendeAvkortingPåSak,
-                        )
-                    }
-
-                    else -> {
-                        KunneIkkeBeregne.UgyldigTilstand(this::class).left()
-                    }
-                }
-            }
-
-            else -> {
-                KunneIkkeBeregne.UgyldigTilstand(this::class).left()
-            }
-        }
-    }
-
     fun leggTilInstitusjonsoppholdVilkår(
         saksbehandler: NavIdentBruker.Saksbehandler,
         vilkår: InstitusjonsoppholdVilkår.Vurdert,
@@ -838,164 +784,12 @@ sealed class Søknadsbehandling :
         }
     }
 
-    open fun simuler(
+    fun simuler(
         saksbehandler: NavIdentBruker.Saksbehandler,
         clock: Clock,
         simuler: (beregning: Beregning, uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>?) -> Either<SimulerUtbetalingFeilet, Simulering>,
     ): Either<KunneIkkeSimulereBehandling, SimulertSøknadsbehandling> {
         return KunneIkkeSimulereBehandling.UgyldigTilstand(this::class).left()
-    }
-
-    internal fun beregnInternal(
-        nySaksbehandler: NavIdentBruker.Saksbehandler,
-        begrunnelse: String?,
-        clock: Clock,
-        beregningStrategyFactory: BeregningStrategyFactory,
-        uteståendeAvkortingPåSak: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes?,
-    ): Either<KunneIkkeBeregne, BeregnetSøknadsbehandling> {
-        return when (uteståendeAvkortingPåSak) {
-            null -> {
-                beregnUtenAvkorting(
-                    begrunnelse = begrunnelse,
-                    beregningStrategyFactory = beregningStrategyFactory,
-                ).getOrElse { return it.left() }
-            }
-
-            else -> {
-                beregnMedAvkorting(
-                    avkortingsvarsel = uteståendeAvkortingPåSak,
-                    begrunnelse = begrunnelse,
-                    clock = clock,
-                    beregningStrategyFactory = beregningStrategyFactory,
-                ).getOrElse { return it.left() }
-            }
-        }.let { (behandling, beregning, avkorting) ->
-            val nySøknadsbehandlingshistorikk = behandling.søknadsbehandlingsHistorikk.leggTilNyHendelse(
-                saksbehandlingsHendelse = Søknadsbehandlingshendelse(
-                    tidspunkt = Tidspunkt.now(clock),
-                    saksbehandler = nySaksbehandler,
-                    handling = SøknadsbehandlingsHandling.Beregnet,
-                ),
-            )
-            when (VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
-                is AvslagGrunnetBeregning.Ja -> BeregnetSøknadsbehandling.Avslag(
-                    id = behandling.id,
-                    opprettet = behandling.opprettet,
-                    sakId = behandling.sakId,
-                    saksnummer = behandling.saksnummer,
-                    søknad = behandling.søknad,
-                    oppgaveId = behandling.oppgaveId,
-                    fnr = behandling.fnr,
-                    beregning = beregning,
-                    fritekstTilBrev = behandling.fritekstTilBrev,
-                    aldersvurdering = behandling.aldersvurdering!!,
-                    grunnlagsdata = behandling.grunnlagsdata,
-                    vilkårsvurderinger = behandling.vilkårsvurderinger,
-                    eksterneGrunnlag = behandling.eksterneGrunnlag,
-                    attesteringer = behandling.attesteringer,
-                    søknadsbehandlingsHistorikk = nySøknadsbehandlingshistorikk,
-                    sakstype = behandling.sakstype,
-                    saksbehandler = nySaksbehandler,
-                )
-
-                AvslagGrunnetBeregning.Nei -> {
-                    BeregnetSøknadsbehandling.Innvilget(
-                        id = behandling.id,
-                        opprettet = behandling.opprettet,
-                        sakId = behandling.sakId,
-                        saksnummer = behandling.saksnummer,
-                        søknad = behandling.søknad,
-                        oppgaveId = behandling.oppgaveId,
-                        fnr = behandling.fnr,
-                        beregning = beregning,
-                        fritekstTilBrev = behandling.fritekstTilBrev,
-                        aldersvurdering = behandling.aldersvurdering!!,
-                        grunnlagsdata = behandling.grunnlagsdata,
-                        vilkårsvurderinger = behandling.vilkårsvurderinger,
-                        eksterneGrunnlag = behandling.eksterneGrunnlag,
-                        attesteringer = behandling.attesteringer,
-                        søknadsbehandlingsHistorikk = nySøknadsbehandlingshistorikk,
-                        avkorting = avkorting,
-                        sakstype = behandling.sakstype,
-                        saksbehandler = nySaksbehandler,
-                    )
-                }
-            }.right()
-        }
-    }
-
-    /**
-     * Beregner uten å ta hensyn til avkorting. Fjerner eventuelle [Fradragstype.AvkortingUtenlandsopphold] som måtte
-     * ligge i grunnlaget
-     */
-    private fun beregnUtenAvkorting(
-        begrunnelse: String?,
-        beregningStrategyFactory: BeregningStrategyFactory,
-    ): Either<KunneIkkeBeregne, Triple<VilkårsvurdertSøknadsbehandling, Beregning, AvkortingVedSøknadsbehandling.IngenAvkorting>> {
-        return leggTilFradragsgrunnlagForBeregning(
-            fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold },
-        ).getOrElse {
-            return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left()
-        }.let {
-            Triple(
-                it,
-                gjørBeregning(
-                    søknadsbehandling = it,
-                    begrunnelse = begrunnelse,
-                    beregningStrategyFactory = beregningStrategyFactory,
-                ),
-                AvkortingVedSøknadsbehandling.IngenAvkorting,
-            )
-        }.right()
-    }
-
-    private fun gjørBeregning(
-        søknadsbehandling: Søknadsbehandling,
-        begrunnelse: String?,
-        beregningStrategyFactory: BeregningStrategyFactory,
-    ): Beregning {
-        return beregningStrategyFactory.beregn(søknadsbehandling, begrunnelse)
-    }
-
-    /**
-     * Restbeløpet etter andre fradrag er faktorert inn av [beregnUtenAvkorting] er maksimalt beløp som kan avkortes.
-     */
-    private fun beregnMedAvkorting(
-        avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
-        begrunnelse: String?,
-        clock: Clock,
-        beregningStrategyFactory: BeregningStrategyFactory,
-    ): Either<KunneIkkeBeregne, Triple<VilkårsvurdertSøknadsbehandling, Beregning, AvkortingVedSøknadsbehandling.SkalAvkortes>> {
-        return beregnUtenAvkorting(
-            begrunnelse,
-            beregningStrategyFactory,
-        ).map { (utenAvkorting, beregningUtenAvkorting) ->
-            val fradragForAvkorting = Avkortingsplan(
-                feilutbetaltBeløp = avkortingsvarsel.hentUtbetalteBeløp().sum(),
-                beregning = beregningUtenAvkorting,
-                clock = clock,
-            ).lagFradrag().getOrElse {
-                return when (it) {
-                    Avkortingsplan.KunneIkkeLageAvkortingsplan.AvkortingErUfullstendig -> {
-                        KunneIkkeBeregne.AvkortingErUfullstendig.left()
-                    }
-                }
-            }
-
-            val medAvkorting = utenAvkorting.leggTilFradragsgrunnlagForBeregning(
-                fradragsgrunnlag = utenAvkorting.grunnlagsdata.fradragsgrunnlag + fradragForAvkorting,
-            ).getOrElse { return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left() }
-
-            Triple(
-                medAvkorting,
-                gjørBeregning(
-                    søknadsbehandling = medAvkorting,
-                    begrunnelse = begrunnelse,
-                    beregningStrategyFactory = beregningStrategyFactory,
-                ),
-                AvkortingVedSøknadsbehandling.SkalAvkortes(avkortingsvarsel),
-            )
-        }
     }
 }
 

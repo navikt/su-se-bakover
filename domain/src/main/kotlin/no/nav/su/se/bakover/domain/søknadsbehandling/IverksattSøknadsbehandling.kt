@@ -31,7 +31,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import java.util.UUID
 
-sealed class IverksattSøknadsbehandling : Søknadsbehandling() {
+sealed class IverksattSøknadsbehandling : Søknadsbehandling {
     abstract override val id: UUID
     abstract override val opprettet: Tidspunkt
     abstract override val sakId: UUID
