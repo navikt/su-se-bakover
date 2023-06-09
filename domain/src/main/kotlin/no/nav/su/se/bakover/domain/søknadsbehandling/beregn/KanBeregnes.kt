@@ -16,16 +16,17 @@ import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import java.time.Clock
 
 /**
  * Markerer at en søknadsbehandling kan beregnes.
  */
-interface KanBeregnes :
-    Søknadsbehandling.KanOppdaterePeriodeGrunnlagVilkår {
+sealed interface KanBeregnes : Søknadsbehandling, Søknadsbehandling.KanOppdaterePeriodeGrunnlagVilkår {
+
+    override val aldersvurdering: Aldersvurdering
 
     fun beregn(
         nySaksbehandler: NavIdentBruker.Saksbehandler,
@@ -34,197 +35,145 @@ interface KanBeregnes :
         satsFactory: SatsFactory,
         uteståendeAvkortingPåSak: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes?,
     ): Either<KunneIkkeBeregne, BeregnetSøknadsbehandling> {
-        val vilkårsvurdert = (this as Søknadsbehandling).vilkårsvurder(nySaksbehandler)
-        return vilkårsvurdert.beregnInternal(
-            begrunnelse = begrunnelse,
+        val beregningStrategyFactory = BeregningStrategyFactory(
             clock = clock,
-            beregningStrategyFactory = BeregningStrategyFactory(
-                clock = clock,
-                satsFactory = satsFactory,
-            ),
-            nySaksbehandler = nySaksbehandler,
-            uteståendeAvkortingPåSak = uteståendeAvkortingPåSak,
+            satsFactory = satsFactory,
         )
-    }
+        val utenAvkortingsfradrag: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling =
+            grunnlagsdataOgVilkårsvurderinger.fjernAvkortingsfradrag()
 
-    private fun VilkårsvurdertSøknadsbehandling.beregnInternal(
-        nySaksbehandler: NavIdentBruker.Saksbehandler,
-        begrunnelse: String?,
-        clock: Clock,
-        beregningStrategyFactory: BeregningStrategyFactory,
-        uteståendeAvkortingPåSak: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes?,
-    ): Either<KunneIkkeBeregne, BeregnetSøknadsbehandling> {
+        val beregningUtenAvkorting = beregningStrategyFactory.beregn(
+            grunnlagsdataOgVilkårsvurderinger = utenAvkortingsfradrag,
+            begrunnelse = begrunnelse,
+            sakstype = this.sakstype,
+        )
         return when (uteståendeAvkortingPåSak) {
-            null -> {
-                beregnUtenAvkorting(
-                    begrunnelse = begrunnelse,
-                    beregningStrategyFactory = beregningStrategyFactory,
-                ).getOrElse { return it.left() }
-            }
-
-            else -> {
-                beregnMedAvkorting(
-                    avkortingsvarsel = uteståendeAvkortingPåSak,
-                    begrunnelse = begrunnelse,
-                    clock = clock,
-                    beregningStrategyFactory = beregningStrategyFactory,
-                ).getOrElse { return it.left() }
-            }
-        }.let { (behandling, beregning, avkorting) ->
-            val nySøknadsbehandlingshistorikk = behandling.søknadsbehandlingsHistorikk.leggTilNyHendelse(
+            null -> Triple(beregningUtenAvkorting, AvkortingVedSøknadsbehandling.IngenAvkorting, utenAvkortingsfradrag)
+            else -> medAvkorting(
+                uteståendeAvkortingPåSak = uteståendeAvkortingPåSak,
+                beregningUtenAvkorting = beregningUtenAvkorting,
+                clock = clock,
+                utenAvkortingsfradrag = utenAvkortingsfradrag,
+                beregningStrategyFactory = beregningStrategyFactory,
+                begrunnelse = begrunnelse,
+            ).getOrElse { return it.left() }
+        }.let { (nyBeregning, avkorting, nyGrunnlagsdataOgVilkårsvurderinger) ->
+            val nySøknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.leggTilNyHendelse(
                 saksbehandlingsHendelse = Søknadsbehandlingshendelse(
                     tidspunkt = Tidspunkt.now(clock),
                     saksbehandler = nySaksbehandler,
                     handling = SøknadsbehandlingsHandling.Beregnet,
                 ),
             )
-            when (VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
-                is AvslagGrunnetBeregning.Ja -> BeregnetSøknadsbehandling.Avslag(
-                    id = behandling.id,
-                    opprettet = behandling.opprettet,
-                    sakId = behandling.sakId,
-                    saksnummer = behandling.saksnummer,
-                    søknad = behandling.søknad,
-                    oppgaveId = behandling.oppgaveId,
-                    fnr = behandling.fnr,
-                    beregning = beregning,
-                    fritekstTilBrev = behandling.fritekstTilBrev,
-                    aldersvurdering = behandling.aldersvurdering!!,
-                    grunnlagsdata = behandling.grunnlagsdata,
-                    vilkårsvurderinger = behandling.vilkårsvurderinger,
-                    eksterneGrunnlag = behandling.eksterneGrunnlag,
-                    attesteringer = behandling.attesteringer,
-                    søknadsbehandlingsHistorikk = nySøknadsbehandlingshistorikk,
-                    sakstype = behandling.sakstype,
+            when (VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(nyBeregning)) {
+                is AvslagGrunnetBeregning.Ja -> tilAvslåttBeregning(
                     saksbehandler = nySaksbehandler,
+                    beregning = nyBeregning,
+                    grunnlagsdataOgVilkårsvurderinger = nyGrunnlagsdataOgVilkårsvurderinger,
+                    søknadsbehandlingshistorikk = nySøknadsbehandlingshistorikk,
                 )
 
                 AvslagGrunnetBeregning.Nei -> {
-                    BeregnetSøknadsbehandling.Innvilget(
-                        id = behandling.id,
-                        opprettet = behandling.opprettet,
-                        sakId = behandling.sakId,
-                        saksnummer = behandling.saksnummer,
-                        søknad = behandling.søknad,
-                        oppgaveId = behandling.oppgaveId,
-                        fnr = behandling.fnr,
-                        beregning = beregning,
-                        fritekstTilBrev = behandling.fritekstTilBrev,
-                        aldersvurdering = behandling.aldersvurdering!!,
-                        grunnlagsdata = behandling.grunnlagsdata,
-                        vilkårsvurderinger = behandling.vilkårsvurderinger,
-                        eksterneGrunnlag = behandling.eksterneGrunnlag,
-                        attesteringer = behandling.attesteringer,
-                        søknadsbehandlingsHistorikk = nySøknadsbehandlingshistorikk,
-                        avkorting = avkorting,
-                        sakstype = behandling.sakstype,
+                    tilInnvilgetBeregning(
                         saksbehandler = nySaksbehandler,
+                        beregning = nyBeregning,
+                        grunnlagsdataOgVilkårsvurderinger = nyGrunnlagsdataOgVilkårsvurderinger,
+                        søknadsbehandlingshistorikk = nySøknadsbehandlingshistorikk,
+                        avkorting = avkorting,
                     )
                 }
             }.right()
         }
     }
 
-    /**
-     * Beregner uten å ta hensyn til avkorting. Fjerner eventuelle [Fradragstype.AvkortingUtenlandsopphold] som måtte
-     * ligge i grunnlaget
-     */
-    private fun VilkårsvurdertSøknadsbehandling.beregnUtenAvkorting(
-        begrunnelse: String?,
-        beregningStrategyFactory: BeregningStrategyFactory,
-    ): Either<KunneIkkeBeregne, Triple<VilkårsvurdertSøknadsbehandling, Beregning, AvkortingVedSøknadsbehandling.IngenAvkorting>> {
-        return leggTilFradragsgrunnlagForBeregning(
-            fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold },
-        ).getOrElse {
-            return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left()
-        }.let {
-            Triple(
-                it,
-                gjørBeregning(
-                    søknadsbehandling = it,
-                    begrunnelse = begrunnelse,
-                    beregningStrategyFactory = beregningStrategyFactory,
-                ),
-                AvkortingVedSøknadsbehandling.IngenAvkorting,
-            )
-        }.right()
-    }
-
-    /**
-     * Restbeløpet etter andre fradrag er faktorert inn av [beregnUtenAvkorting] er maksimalt beløp som kan avkortes.
-     */
-    private fun VilkårsvurdertSøknadsbehandling.beregnMedAvkorting(
-        avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
-        begrunnelse: String?,
+    private fun medAvkorting(
+        uteståendeAvkortingPåSak: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
+        beregningUtenAvkorting: Beregning,
         clock: Clock,
+        utenAvkortingsfradrag: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
         beregningStrategyFactory: BeregningStrategyFactory,
-    ): Either<KunneIkkeBeregne, Triple<VilkårsvurdertSøknadsbehandling, Beregning, AvkortingVedSøknadsbehandling.SkalAvkortes>> {
-        return beregnUtenAvkorting(
-            begrunnelse,
-            beregningStrategyFactory,
-        ).map { (utenAvkorting, beregningUtenAvkorting) ->
-            val fradragForAvkorting = Avkortingsplan(
-                feilutbetaltBeløp = avkortingsvarsel.hentUtbetalteBeløp().sum(),
-                beregning = beregningUtenAvkorting,
-                clock = clock,
-            ).lagFradrag().getOrElse {
-                return when (it) {
-                    Avkortingsplan.KunneIkkeLageAvkortingsplan.AvkortingErUfullstendig -> {
-                        KunneIkkeBeregne.AvkortingErUfullstendig.left()
-                    }
+        begrunnelse: String?,
+    ): Either<KunneIkkeBeregne, Triple<Beregning, AvkortingVedSøknadsbehandling.KlarTilIverksetting, GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling>> {
+        return Avkortingsplan(
+            feilutbetaltBeløp = uteståendeAvkortingPåSak.hentUtbetalteBeløp().sum(),
+            beregning = beregningUtenAvkorting,
+            clock = clock,
+        ).lagFradrag().getOrElse {
+            return when (it) {
+                Avkortingsplan.KunneIkkeLageAvkortingsplan.AvkortingErUfullstendig -> {
+                    KunneIkkeBeregne.AvkortingErUfullstendig.left()
                 }
             }
-
-            val medAvkorting = utenAvkorting.leggTilFradragsgrunnlagForBeregning(
-                fradragsgrunnlag = utenAvkorting.grunnlagsdata.fradragsgrunnlag + fradragForAvkorting,
-            ).getOrElse { return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left() }
-
+        }.let {
+            val nyGrunnlagsdataOgVilkårsvurderinger =
+                utenAvkortingsfradrag.oppdaterFradragsgrunnlag(
+                    utenAvkortingsfradrag.grunnlagsdata.fradragsgrunnlag + it,
+                )
             Triple(
-                medAvkorting,
-                gjørBeregning(
-                    søknadsbehandling = medAvkorting,
+                beregningStrategyFactory.beregn(
+                    grunnlagsdataOgVilkårsvurderinger = nyGrunnlagsdataOgVilkårsvurderinger,
                     begrunnelse = begrunnelse,
-                    beregningStrategyFactory = beregningStrategyFactory,
+                    sakstype = this.sakstype,
                 ),
-                AvkortingVedSøknadsbehandling.SkalAvkortes(avkortingsvarsel),
-            )
+                AvkortingVedSøknadsbehandling.SkalAvkortes(uteståendeAvkortingPåSak),
+                nyGrunnlagsdataOgVilkårsvurderinger,
+            ).right()
         }
     }
 
-    private fun gjørBeregning(
-        søknadsbehandling: Søknadsbehandling,
-        begrunnelse: String?,
-        beregningStrategyFactory: BeregningStrategyFactory,
-    ): Beregning {
-        return beregningStrategyFactory.beregn(søknadsbehandling, begrunnelse)
+    private fun tilAvslåttBeregning(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        beregning: Beregning,
+        grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+        søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
+    ): BeregnetSøknadsbehandling.Avslag {
+        return BeregnetSøknadsbehandling.Avslag(
+            id = this.id,
+            opprettet = this.opprettet,
+            sakId = this.sakId,
+            saksnummer = this.saksnummer,
+            søknad = this.søknad,
+            oppgaveId = this.oppgaveId,
+            fnr = this.fnr,
+            beregning = beregning,
+            fritekstTilBrev = this.fritekstTilBrev,
+            aldersvurdering = this.aldersvurdering,
+            grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
+            vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
+            eksterneGrunnlag = this.eksterneGrunnlag,
+            attesteringer = this.attesteringer,
+            søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
+            sakstype = this.sakstype,
+            saksbehandler = saksbehandler,
+        )
     }
 
-    /**
-     * *protected* skal kun kalles fra typer som arver [Søknadsbehandling]
-     */
-    private fun VilkårsvurdertSøknadsbehandling.leggTilFradragsgrunnlagForBeregning(
-        fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
-    ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, VilkårsvurdertSøknadsbehandling.Innvilget> {
-        return vilkårsvurder(saksbehandler).let {
-            when (it) {
-                is KanBeregnes -> leggTilFradragsgrunnlagInternalForBeregning(fradragsgrunnlag)
-                else -> KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen(
-                    this::class,
-                ).left()
-            }
-        }
-    }
-
-    private fun VilkårsvurdertSøknadsbehandling.leggTilFradragsgrunnlagInternalForBeregning(
-        fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
-    ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, VilkårsvurdertSøknadsbehandling.Innvilget> {
-        return validerFradragsgrunnlag(fradragsgrunnlag).map {
-            copyInternal(
-                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilFradragsgrunnlag(
-                    fradragsgrunnlag,
-                ),
-                søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk,
-            ).vilkårsvurder(saksbehandler) as VilkårsvurdertSøknadsbehandling.Innvilget // TODO cast
-        }
+    private fun tilInnvilgetBeregning(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        beregning: Beregning,
+        grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+        søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
+        avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting,
+    ): BeregnetSøknadsbehandling.Innvilget {
+        return BeregnetSøknadsbehandling.Innvilget(
+            id = this.id,
+            opprettet = this.opprettet,
+            sakId = this.sakId,
+            saksnummer = this.saksnummer,
+            søknad = this.søknad,
+            oppgaveId = this.oppgaveId,
+            fnr = this.fnr,
+            beregning = beregning,
+            fritekstTilBrev = this.fritekstTilBrev,
+            aldersvurdering = this.aldersvurdering,
+            grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
+            vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
+            eksterneGrunnlag = this.eksterneGrunnlag,
+            attesteringer = this.attesteringer,
+            søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
+            avkorting = avkorting,
+            sakstype = this.sakstype,
+            saksbehandler = saksbehandler,
+        )
     }
 }

@@ -137,7 +137,7 @@ sealed interface Søknadsbehandling :
         clock: Clock,
     ) = validerFradragsgrunnlag(fradragsgrunnlag).map {
         copyInternal(
-            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilFradragsgrunnlag(
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFradragsgrunnlag(
                 fradragsgrunnlag,
             ),
             søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.leggTilNyHendelse(
