@@ -15,8 +15,9 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurd
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 
 /**
- * Lukket søknadsbehandling kan føre til et vedtak (avvist), eller ikke. Derfor arver den avsluttet og ikke avbrutt.
- * Trukket + Bortfalt er avbrutt
+ * En avvist søknadsbehandling kan resultere i et "vedtak" eller "avbrutt". Derfor arver den fra "avsluttet" og ikke "avbrutt" eller "vedtak".
+    * "Trukket" og "Bortfalt" anses som "avbrutt".
+    */
  */
 data class LukketSøknadsbehandling private constructor(
     val underliggendeSøknadsbehandling: Søknadsbehandling,
