@@ -7,6 +7,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harFjernetEllerEndretEps
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderMedEPS
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderUtenEPS
@@ -32,7 +33,11 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
     fun erVurdert(): Boolean = vilkårsvurderinger.erVurdert && grunnlagsdata.erUtfylt
 
     abstract fun leggTil(vilkår: Vilkår): GrunnlagsdataOgVilkårsvurderinger
-    abstract fun leggTilFradragsgrunnlag(grunnlag: List<Grunnlag.Fradragsgrunnlag>): GrunnlagsdataOgVilkårsvurderinger
+
+    /**
+     * Erstatter eksisterende fradragsgrunnlag med nye.
+     */
+    abstract fun oppdaterFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): GrunnlagsdataOgVilkårsvurderinger
     abstract fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): GrunnlagsdataOgVilkårsvurderinger
 
     protected fun kastHvisPerioderIkkeErLike() {
@@ -119,6 +124,8 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
         )
     }
 
+    abstract fun fjernAvkortingsfradrag(): GrunnlagsdataOgVilkårsvurderinger
+
     data class Søknadsbehandling(
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
@@ -128,17 +135,22 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
             return copy(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår))
         }
 
-        override fun leggTilFradragsgrunnlag(grunnlag: List<Grunnlag.Fradragsgrunnlag>): Søknadsbehandling {
+        override fun oppdaterFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Søknadsbehandling {
             return copy(
                 grunnlagsdata = Grunnlagsdata.tryCreate(
-                    fradragsgrunnlag = grunnlag,
+                    fradragsgrunnlag = fradragsgrunnlag,
                     bosituasjon = grunnlagsdata.bosituasjonSomFullstendig(),
                 ).getOrElse { throw IllegalArgumentException(it.toString()) },
             )
         }
 
-        override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): GrunnlagsdataOgVilkårsvurderinger =
-            this.copy(eksterneGrunnlag = eksterneGrunnlag.leggTilSkatt(skatt))
+        override fun fjernAvkortingsfradrag(): Søknadsbehandling {
+            return oppdaterFradragsgrunnlag(grunnlagsdata.fradragsgrunnlag.filterNot { it.fradrag.fradragstype == Fradragstype.AvkortingUtenlandsopphold })
+        }
+
+        override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Søknadsbehandling {
+            return this.copy(eksterneGrunnlag = eksterneGrunnlag.leggTilSkatt(skatt))
+        }
 
         override fun oppdaterBosituasjon(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>): Søknadsbehandling {
             return super.oppdaterBosituasjon(bosituasjon) as Søknadsbehandling
@@ -219,24 +231,27 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val eksterneGrunnlag: EksterneGrunnlag = StøtterIkkeHentingAvEksternGrunnlag,
     ) : GrunnlagsdataOgVilkårsvurderinger() {
+        init {
+            kastHvisPerioderIkkeErLike()
+        }
 
         override fun oppdaterBosituasjon(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>): Revurdering {
             return super.oppdaterBosituasjon(bosituasjon) as Revurdering
-        }
-
-        init {
-            kastHvisPerioderIkkeErLike()
         }
 
         override fun leggTil(vilkår: Vilkår): Revurdering {
             return copy(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår))
         }
 
-        override fun leggTilFradragsgrunnlag(grunnlag: List<Grunnlag.Fradragsgrunnlag>): Revurdering {
-            return copy(grunnlagsdata = grunnlagsdata.copy(fradragsgrunnlag = grunnlag))
+        override fun oppdaterFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Revurdering {
+            return copy(grunnlagsdata = grunnlagsdata.copy(fradragsgrunnlag = fradragsgrunnlag))
         }
 
-        override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): GrunnlagsdataOgVilkårsvurderinger =
+        override fun fjernAvkortingsfradrag(): Revurdering {
+            return oppdaterFradragsgrunnlag(grunnlagsdata.fradragsgrunnlag.filterNot { it.fradrag.fradragstype == Fradragstype.AvkortingUtenlandsopphold })
+        }
+
+        override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Revurdering =
             throw UnsupportedOperationException("Støtter ikke å legge til skatt fra ekstern kilde for revurdering")
     }
 }

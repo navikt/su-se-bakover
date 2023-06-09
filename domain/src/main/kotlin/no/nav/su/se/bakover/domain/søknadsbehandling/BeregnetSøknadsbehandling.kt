@@ -101,9 +101,7 @@ sealed class BeregnetSøknadsbehandling :
     override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> =
         when (this.eksterneGrunnlag.skatt) {
             is EksterneGrunnlagSkatt.Hentet -> this.copyInternal(
-                grunnlagsdataOgVilkårsvurderinger = this.grunnlagsdataOgVilkårsvurderinger.leggTilSkatt(skatt).let {
-                    if (it !is GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling) throw IllegalStateException("Søknadsbehandling kan kun ha GrunnlagsdataOgVilkårsvurderinger av typen Søkndsbehandling") else it
-                },
+                grunnlagsdataOgVilkårsvurderinger = this.grunnlagsdataOgVilkårsvurderinger.leggTilSkatt(skatt),
             ).right()
 
             EksterneGrunnlagSkatt.IkkeHentet -> KunneIkkeLeggeTilSkattegrunnlag.KanIkkeLeggeTilSkattForTilstandUtenAtDenHarBlittHentetFør.left()

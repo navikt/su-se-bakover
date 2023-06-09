@@ -43,14 +43,6 @@ class BeregningStrategyFactory(
         )
     }
 
-    fun beregn(søknadsbehandling: Søknadsbehandling, begrunnelse: String?): Beregning {
-        return beregn(
-            grunnlagsdataOgVilkårsvurderinger = søknadsbehandling.grunnlagsdataOgVilkårsvurderinger,
-            begrunnelse = begrunnelse,
-            sakstype = søknadsbehandling.sakstype,
-        )
-    }
-
     fun beregn(regulering: Regulering, begrunnelse: String?): Beregning {
         return beregn(
             grunnlagsdataOgVilkårsvurderinger = regulering.grunnlagsdataOgVilkårsvurderinger,
