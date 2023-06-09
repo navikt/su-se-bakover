@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
@@ -29,7 +29,6 @@ import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
@@ -38,7 +37,7 @@ private val log = LoggerFactory.getLogger("RevurderingTilAttestering.kt")
 
 sealed class RevurderingTilAttestering : Revurdering() {
     abstract override val beregning: Beregning
-    abstract override val grunnlagsdata: Grunnlagsdata
+    abstract override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering
 
     abstract override fun accept(visitor: RevurderingVisitor)
     abstract override val avkorting: AvkortingVedRevurdering.Håndtert
@@ -67,8 +66,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val revurderingsårsak: Revurderingsårsak,
         override val beregning: Beregning,
         override val simulering: Simulering,
-        override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
@@ -106,8 +104,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 simulering = simulering,
                 oppgaveId = oppgaveId,
                 revurderingsårsak = revurderingsårsak,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 attesteringer = attesteringer.leggTilNyAttestering(
@@ -136,8 +133,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val revurderingsårsak: Revurderingsårsak,
         override val beregning: Beregning,
         override val simulering: Simulering,
-        override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
@@ -199,8 +195,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                     simulering = simulering,
                     oppgaveId = oppgaveId,
                     revurderingsårsak = revurderingsårsak,
-                    grunnlagsdata = grunnlagsdata,
-                    vilkårsvurderinger = vilkårsvurderinger,
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                     informasjonSomRevurderes = informasjonSomRevurderes,
                     attesteringer = attesteringer.leggTilNyAttestering(
                         Attestering.Iverksatt(
@@ -252,8 +247,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 oppgaveId = oppgaveId,
                 attesteringer = attesteringer.leggTilNyAttestering(attestering),
                 revurderingsårsak = revurderingsårsak,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 avkorting = avkorting,
                 tilbakekrevingsbehandling = tilbakekrevingsbehandling,
@@ -274,8 +268,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 oppgaveId = oppgaveId,
                 attesteringer = attesteringer.leggTilNyAttestering(attestering),
                 revurderingsårsak = revurderingsårsak,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 avkorting = avkorting,
                 tilbakekrevingsbehandling = tilbakekrevingsbehandling,

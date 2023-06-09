@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.Dokumenttilstand
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -130,25 +131,27 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 ),
                 fritekstTilBrev = "fritekstTilBrev",
                 aldersvurdering = Aldersvurdering.SkalIkkeVurderes(Stønadsperiode.create(expectedPeriode)),
-                grunnlagsdata = uavklart.grunnlagsdata,
-                vilkårsvurderinger = uavklart.vilkårsvurderinger.leggTil(
-                    OpplysningspliktVilkår.Vurdert.tryCreate(
-                        vurderingsperioder = nonEmptyListOf(
-                            VurderingsperiodeOpplysningsplikt.create(
-                                id = (actualSak.søknadsbehandlinger[0].vilkårsvurderinger.opplysningsplikt as OpplysningspliktVilkår.Vurdert).vurderingsperioder[0].id,
-                                opprettet = Tidspunkt.now(fixedClock),
-                                grunnlag = Opplysningspliktgrunnlag(
-                                    id = (actualSak.søknadsbehandlinger[0].vilkårsvurderinger.opplysningsplikt).grunnlag[0].id,
+                grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
+                    grunnlagsdata = uavklart.grunnlagsdata,
+                    vilkårsvurderinger = uavklart.vilkårsvurderinger.leggTil(
+                        OpplysningspliktVilkår.Vurdert.tryCreate(
+                            vurderingsperioder = nonEmptyListOf(
+                                VurderingsperiodeOpplysningsplikt.create(
+                                    id = (actualSak.søknadsbehandlinger[0].vilkårsvurderinger.opplysningsplikt as OpplysningspliktVilkår.Vurdert).vurderingsperioder[0].id,
                                     opprettet = Tidspunkt.now(fixedClock),
+                                    grunnlag = Opplysningspliktgrunnlag(
+                                        id = (actualSak.søknadsbehandlinger[0].vilkårsvurderinger.opplysningsplikt).grunnlag[0].id,
+                                        opprettet = Tidspunkt.now(fixedClock),
+                                        periode = expectedPeriode,
+                                        beskrivelse = OpplysningspliktBeskrivelse.UtilstrekkeligDokumentasjon,
+                                    ),
                                     periode = expectedPeriode,
-                                    beskrivelse = OpplysningspliktBeskrivelse.UtilstrekkeligDokumentasjon,
                                 ),
-                                periode = expectedPeriode,
                             ),
-                        ),
-                    ).getOrFail(),
+                        ).getOrFail(),
+                    ),
+                    eksterneGrunnlag = uavklart.eksterneGrunnlag,
                 ),
-                eksterneGrunnlag = uavklart.eksterneGrunnlag,
                 sakstype = sak.type,
                 søknadsbehandlingsHistorikk = Søknadsbehandlingshistorikk.createFromExisting(
                     listOf(
@@ -273,25 +276,25 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 ),
                 fritekstTilBrev = "fritekstTilBrev",
                 aldersvurdering = vilkårsvurdertInnvilget.aldersvurdering,
-                grunnlagsdata = vilkårsvurdertInnvilget.grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurdertInnvilget.vilkårsvurderinger.leggTil(
-                    OpplysningspliktVilkår.Vurdert.tryCreate(
-                        vurderingsperioder = nonEmptyListOf(
-                            VurderingsperiodeOpplysningsplikt.create(
-                                id = (actualSak.søknadsbehandlinger[0].vilkårsvurderinger.opplysningsplikt as OpplysningspliktVilkår.Vurdert).vurderingsperioder[0].id,
-                                opprettet = Tidspunkt.now(fixedClock),
-                                grunnlag = Opplysningspliktgrunnlag(
-                                    id = (actualSak.søknadsbehandlinger[0].vilkårsvurderinger.opplysningsplikt).grunnlag[0].id,
+                grunnlagsdataOgVilkårsvurderinger = vilkårsvurdertInnvilget.grunnlagsdataOgVilkårsvurderinger.oppdaterVilkårsvurderinger(
+                    vilkårsvurdertInnvilget.vilkårsvurderinger.leggTil(
+                        OpplysningspliktVilkår.Vurdert.tryCreate(
+                            vurderingsperioder = nonEmptyListOf(
+                                VurderingsperiodeOpplysningsplikt.create(
+                                    id = (actualSak.søknadsbehandlinger[0].vilkårsvurderinger.opplysningsplikt as OpplysningspliktVilkår.Vurdert).vurderingsperioder[0].id,
                                     opprettet = Tidspunkt.now(fixedClock),
+                                    grunnlag = Opplysningspliktgrunnlag(
+                                        id = (actualSak.søknadsbehandlinger[0].vilkårsvurderinger.opplysningsplikt).grunnlag[0].id,
+                                        opprettet = Tidspunkt.now(fixedClock),
+                                        periode = expectedPeriode,
+                                        beskrivelse = OpplysningspliktBeskrivelse.UtilstrekkeligDokumentasjon,
+                                    ),
                                     periode = expectedPeriode,
-                                    beskrivelse = OpplysningspliktBeskrivelse.UtilstrekkeligDokumentasjon,
                                 ),
-                                periode = expectedPeriode,
                             ),
-                        ),
-                    ).getOrFail(),
+                        ).getOrFail(),
+                    ),
                 ),
-                eksterneGrunnlag = vilkårsvurdertInnvilget.eksterneGrunnlag,
                 sakstype = sak.type,
                 søknadsbehandlingsHistorikk = vilkårsvurdertInnvilget.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
                     nonEmptyListOf(

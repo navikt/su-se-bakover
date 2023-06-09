@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.grunnlag.StøtterHentingAvEksternGrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
@@ -130,8 +129,11 @@ fun søknadsbehandlingVilkårsvurdertInnvilget(
         clock = clock,
     ).let { (sak, søknadsbehandling) ->
         søknadsbehandling.copy(
-            grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger,
+            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                eksterneGrunnlag = søknadsbehandling.eksterneGrunnlag,
+            ),
             søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
         ).vilkårsvurder(saksbehandler).let { vilkårsvurdert ->
             vilkårsvurdert.shouldBeType<VilkårsvurdertSøknadsbehandling.Innvilget>().let {
@@ -166,8 +168,11 @@ fun søknadsbehandlingVilkårsvurdertAvslag(
         clock = clock,
     ).let { (sak, søknadsbehandling) ->
         søknadsbehandling.copy(
-            grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger,
+            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                eksterneGrunnlag = søknadsbehandling.eksterneGrunnlag,
+            ),
             søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
         ).vilkårsvurder(saksbehandler).let { vilkårsvurdert ->
             vilkårsvurdert.shouldBeType<VilkårsvurdertSøknadsbehandling.Avslag>().let {
@@ -1237,7 +1242,7 @@ fun vilkårsvurdertSøknadsbehandling(
                 )
             }
         },
-        eksterneGrunnlag = StøtterHentingAvEksternGrunnlag.ikkeHentet(),
+        eksterneGrunnlag = eksterneGrunnlag,
     )
     return nySøknadsbehandlingMedStønadsperiode(
         clock = clock,
@@ -1402,7 +1407,7 @@ fun vilkårsvurdertSøknadsbehandling(
         }
 
         val medFradrag = if (customGrunnlag.customOrDefault { grunnlagsdata.fradragsgrunnlag }.isNotEmpty()) {
-            vilkårsvurdert.leggTilFradragsgrunnlagFraSaksbehandler(
+            vilkårsvurdert.oppdaterFradragsgrunnlagForSaksbehandler(
                 saksbehandler = saksbehandler,
                 fradragsgrunnlag = customGrunnlag.customOrDefault { grunnlagsdata.fradragsgrunnlag },
                 clock = clock,

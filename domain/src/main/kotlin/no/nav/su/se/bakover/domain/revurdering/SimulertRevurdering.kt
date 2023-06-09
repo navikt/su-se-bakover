@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeTilbakekrev
@@ -41,7 +41,6 @@ import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -50,7 +49,6 @@ sealed class SimulertRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
 
     abstract override val beregning: Beregning
     abstract override val simulering: Simulering
-    abstract override val grunnlagsdata: Grunnlagsdata
     abstract val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling
 
     abstract override fun accept(visitor: RevurderingVisitor)
@@ -149,8 +147,7 @@ sealed class SimulertRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
         clock: Clock,
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
-        grunnlagsdata: Grunnlagsdata,
-        vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering,
         informasjonSomRevurderes: InformasjonSomRevurderes,
         vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         tilRevurdering: UUID,
@@ -161,8 +158,7 @@ sealed class SimulertRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
             clock = clock,
             periode = periode,
             revurderingsårsak = revurderingsårsak,
-            grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger,
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
             vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
             tilRevurdering = tilRevurdering,
@@ -185,8 +181,7 @@ sealed class SimulertRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
         override val revurderingsårsak: Revurderingsårsak,
         override val beregning: Beregning,
         override val simulering: Simulering,
-        override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
@@ -239,8 +234,7 @@ sealed class SimulertRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
                 simulering = simulering,
                 oppgaveId = attesteringsoppgaveId,
                 revurderingsårsak = revurderingsårsak,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 attesteringer = attesteringer,
                 avkorting = avkorting,
@@ -275,8 +269,7 @@ sealed class SimulertRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
         override val revurderingsårsak: Revurderingsårsak,
         override val beregning: Beregning,
         override val simulering: Simulering,
-        override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
@@ -352,8 +345,7 @@ sealed class SimulertRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
                 simulering = simulering,
                 oppgaveId = attesteringsoppgaveId,
                 revurderingsårsak = revurderingsårsak,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 attesteringer = attesteringer,
                 avkorting = avkorting,

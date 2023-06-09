@@ -558,7 +558,7 @@ internal class ReguleringServiceImplTest {
                             vedtak.copy(
                                 behandling = vedtak.behandling.let {
                                     it.copy(
-                                        grunnlagsdata = it.grunnlagsdata.copy(
+                                        grunnlagsdataOgVilkårsvurderinger = it.grunnlagsdataOgVilkårsvurderinger.oppdaterFradragsgrunnlag(
                                             fradragsgrunnlag = listOf(
                                                 fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 10000.0),
                                             ),

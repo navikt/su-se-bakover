@@ -71,12 +71,12 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             fnr = behandling.fnr,
             fritekstTilBrev = behandling.fritekstTilBrev,
             aldersvurdering = behandling.aldersvurdering,
-            grunnlagsdata = Grunnlagsdata.create(
-                fradragsgrunnlag = fradragsgrunnlag,
-                bosituasjon = behandling.grunnlagsdata.bosituasjonSomFullstendig(),
+            grunnlagsdataOgVilkårsvurderinger = behandling.grunnlagsdataOgVilkårsvurderinger.oppdaterGrunnlagsdata(
+                Grunnlagsdata.create(
+                    fradragsgrunnlag = fradragsgrunnlag,
+                    bosituasjon = behandling.grunnlagsdata.bosituasjonSomFullstendig(),
+                ),
             ),
-            vilkårsvurderinger = behandling.vilkårsvurderinger,
-            eksterneGrunnlag = behandling.eksterneGrunnlag,
             attesteringer = behandling.attesteringer,
             sakstype = behandling.sakstype,
             saksbehandler = behandling.saksbehandler,
@@ -90,7 +90,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
         verify(søknadsbehandlingRepoMock).lagre(
             argThat {
                 it shouldBe behandling.copy(
-                    grunnlagsdata = behandling.grunnlagsdata.copy(fradragsgrunnlag = fradragsgrunnlag),
+                    grunnlagsdataOgVilkårsvurderinger = behandling.grunnlagsdataOgVilkårsvurderinger.oppdaterFradragsgrunnlag(fradragsgrunnlag),
                     søknadsbehandlingsHistorikk =
                     behandling.søknadsbehandlingsHistorikk.leggTilNyHendelse(
                         nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertFradragsgrunnlag),

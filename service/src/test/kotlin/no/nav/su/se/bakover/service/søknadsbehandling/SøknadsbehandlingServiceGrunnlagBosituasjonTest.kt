@@ -57,8 +57,10 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         )
 
         val expected = uavklart.copy(
-            grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjon)),
-            vilkårsvurderinger = uavklart.vilkårsvurderinger.leggTil(tilstrekkeligDokumentert()),
+            grunnlagsdataOgVilkårsvurderinger = uavklart.grunnlagsdataOgVilkårsvurderinger.copy(
+                grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjon)),
+                vilkårsvurderinger = uavklart.vilkårsvurderinger.leggTil(tilstrekkeligDokumentert()),
+            ),
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -166,10 +168,12 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         val bosituasjon = bosituasjongrunnlagEnslig()
 
         val expected = søknadsbehandling.copy(
-            grunnlagsdata = Grunnlagsdata.create(
-                bosituasjon = listOf(bosituasjon),
+            grunnlagsdataOgVilkårsvurderinger = søknadsbehandling.grunnlagsdataOgVilkårsvurderinger.copy(
+                grunnlagsdata = Grunnlagsdata.create(
+                    bosituasjon = listOf(bosituasjon),
+                ),
+                vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger.leggTil(tilstrekkeligDokumentert()),
             ),
-            vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger.leggTil(tilstrekkeligDokumentert()),
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -195,7 +199,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         ).getOrFail()
 
         response shouldBe expected.copy(
-            grunnlagsdata = Grunnlagsdata.create(
+            grunnlagsdataOgVilkårsvurderinger = response.grunnlagsdataOgVilkårsvurderinger.oppdaterBosituasjon(
                 bosituasjon = listOf(
                     bosituasjon.copy(
                         id = response.grunnlagsdata.bosituasjon.first().id,

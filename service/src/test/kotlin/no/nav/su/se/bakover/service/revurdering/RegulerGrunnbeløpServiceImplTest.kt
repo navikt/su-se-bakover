@@ -99,20 +99,22 @@ internal class RegulerGrunnbeløpServiceImplTest {
             verify(it.revurderingRepo).lagre(
                 argThat {
                     it shouldBe opprettetRevurdering.copy(
-                        vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger.leggTil(
-                            innvilgetUførevilkår(
-                                vurderingsperiodeId = (
-                                    it.vilkårsvurderinger.uføreVilkår()
-                                        .getOrFail() as UføreVilkår.Vurdert
-                                    ).vurderingsperioder.first().id,
-                                grunnlagsId = (
-                                    it.vilkårsvurderinger.uføreVilkår()
-                                        .getOrFail() as UføreVilkår.Vurdert
-                                    ).grunnlag.first().id,
-                                opprettet = fixedTidspunkt,
-                                periode = nyttUføregrunnlag.periode,
-                                forventetInntekt = nyttUføregrunnlag.forventetInntekt,
-                                uføregrad = nyttUføregrunnlag.uføregrad,
+                        grunnlagsdataOgVilkårsvurderinger = opprettetRevurdering.grunnlagsdataOgVilkårsvurderinger.oppdaterVilkårsvurderinger(
+                            opprettetRevurdering.vilkårsvurderinger.leggTil(
+                                innvilgetUførevilkår(
+                                    vurderingsperiodeId = (
+                                        it.vilkårsvurderinger.uføreVilkår()
+                                            .getOrFail() as UføreVilkår.Vurdert
+                                        ).vurderingsperioder.first().id,
+                                    grunnlagsId = (
+                                        it.vilkårsvurderinger.uføreVilkår()
+                                            .getOrFail() as UføreVilkår.Vurdert
+                                        ).grunnlag.first().id,
+                                    opprettet = fixedTidspunkt,
+                                    periode = nyttUføregrunnlag.periode,
+                                    forventetInntekt = nyttUføregrunnlag.forventetInntekt,
+                                    uføregrad = nyttUføregrunnlag.uføregrad,
+                                ),
                             ),
                         ),
                         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Uførhet))

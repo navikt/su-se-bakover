@@ -14,11 +14,9 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.inneholderUfullstendigeBosituasjoner
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -28,7 +26,6 @@ import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
 import java.util.UUID
 
@@ -44,9 +41,7 @@ data class SimulertSøknadsbehandling(
     override val simulering: Simulering,
     override val fritekstTilBrev: String,
     override val aldersvurdering: Aldersvurdering,
-    override val grunnlagsdata: Grunnlagsdata,
-    override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
-    override val eksterneGrunnlag: EksterneGrunnlag,
+    override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
     override val attesteringer: Attesteringshistorikk,
     override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
     override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting,
@@ -77,9 +72,8 @@ data class SimulertSøknadsbehandling(
     ): SimulertSøknadsbehandling {
         return copy(
             aldersvurdering = aldersvurdering,
-            grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
-            vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
-            eksterneGrunnlag = grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag,
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
             søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
         )
     }
@@ -116,9 +110,8 @@ data class SimulertSøknadsbehandling(
                 simulering = simulering,
                 fritekstTilBrev = fritekstTilBrev,
                 aldersvurdering = aldersvurdering,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                eksterneGrunnlag = eksterneGrunnlag,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk.leggTilNyHendelse(
                     saksbehandlingsHendelse = Søknadsbehandlingshendelse(
@@ -163,9 +156,8 @@ data class SimulertSøknadsbehandling(
             saksbehandler = saksbehandler,
             fritekstTilBrev = fritekstTilBrev,
             aldersvurdering = aldersvurdering,
-            grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger,
-            eksterneGrunnlag = eksterneGrunnlag,
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
             attesteringer = attesteringer,
             søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk.leggTilNyHendelse(
                 saksbehandlingsHendelse = Søknadsbehandlingshendelse(

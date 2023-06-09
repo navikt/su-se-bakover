@@ -13,9 +13,7 @@ import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.toAvslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.krevAlleVilkårInnvilget
 import no.nav.su.se.bakover.domain.grunnlag.krevMinstEttAvslag
@@ -27,7 +25,6 @@ import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import java.util.UUID
 
@@ -69,9 +66,7 @@ sealed class IverksattSøknadsbehandling : Søknadsbehandling {
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val fritekstTilBrev: String,
         override val aldersvurdering: Aldersvurdering,
-        override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
-        override val eksterneGrunnlag: EksterneGrunnlag,
+        override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
         override val avkorting: AvkortingVedSøknadsbehandling.Ferdig,
         override val sakstype: Sakstype,
     ) : IverksattSøknadsbehandling() {
@@ -112,9 +107,7 @@ sealed class IverksattSøknadsbehandling : Søknadsbehandling {
             override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
             override val fritekstTilBrev: String,
             override val aldersvurdering: Aldersvurdering,
-            override val grunnlagsdata: Grunnlagsdata,
-            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
-            override val eksterneGrunnlag: EksterneGrunnlag,
+            override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             override val sakstype: Sakstype,
         ) : Avslag() {
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
@@ -162,9 +155,7 @@ sealed class IverksattSøknadsbehandling : Søknadsbehandling {
             override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
             override val fritekstTilBrev: String,
             override val aldersvurdering: Aldersvurdering,
-            override val grunnlagsdata: Grunnlagsdata,
-            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
-            override val eksterneGrunnlag: EksterneGrunnlag,
+            override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             override val sakstype: Sakstype,
         ) : Avslag() {
             override val periode: Periode = aldersvurdering.stønadsperiode.periode

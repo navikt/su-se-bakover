@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.StøtterIkkeHentingAvEksternGrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 
 interface Reguleringsfelter : Behandling {
     override val beregning: Beregning?
@@ -15,5 +16,6 @@ interface Reguleringsfelter : Behandling {
         get() = StøtterIkkeHentingAvEksternGrunnlag
     val saksbehandler: NavIdentBruker.Saksbehandler
     val reguleringstype: Reguleringstype
-    val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger
+    override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering
+    override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering get() = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
 }

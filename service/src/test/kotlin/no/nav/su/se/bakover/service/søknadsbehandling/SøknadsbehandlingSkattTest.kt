@@ -53,8 +53,10 @@ class SøknadsbehandlingSkattTest {
         verify(søknadsbehandlingRepoMock, times(1)).lagre(
             søknadsbehandling = argThat {
                 it shouldBe søknadsbehandling.copy(
-                    eksterneGrunnlag = StøtterHentingAvEksternGrunnlag(
-                        skatt = EksterneGrunnlagSkatt.Hentet(søkers = nySkattegrunnlag(skatteId), eps = null),
+                    grunnlagsdataOgVilkårsvurderinger = søknadsbehandling.grunnlagsdataOgVilkårsvurderinger.copy(
+                        eksterneGrunnlag = StøtterHentingAvEksternGrunnlag(
+                            skatt = EksterneGrunnlagSkatt.Hentet(søkers = nySkattegrunnlag(skatteId), eps = null),
+                        ),
                     ),
                 )
             },

@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.brev.Brevvalg
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
@@ -17,7 +16,6 @@ import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.visitors.RevurderingVisitor
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakInfo
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 
 data class AvsluttetRevurdering private constructor(
@@ -33,8 +31,7 @@ data class AvsluttetRevurdering private constructor(
     override val periode: Periode = underliggendeRevurdering.periode
     override val tilRevurdering: UUID = underliggendeRevurdering.tilRevurdering
     override val sakinfo: SakInfo = underliggendeRevurdering.sakinfo
-    override val grunnlagsdata: Grunnlagsdata = underliggendeRevurdering.grunnlagsdata
-    override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering = underliggendeRevurdering.vilkårsvurderinger
+    override val grunnlagsdataOgVilkårsvurderinger = underliggendeRevurdering.grunnlagsdataOgVilkårsvurderinger
 
     /** se egne valg for brev for avslutting [Brevvalg] */
     override val brevvalgRevurdering: BrevvalgRevurdering = underliggendeRevurdering.brevvalgRevurdering

@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
@@ -52,11 +51,6 @@ data class OpprettetRegulering(
     }
 
     override val erFerdigstilt = false
-
-    override val grunnlagsdata: Grunnlagsdata
-        get() = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata
-    override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
-        get() = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
 
     init {
         if (reguleringstype == Reguleringstype.AUTOMATISK) {

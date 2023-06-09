@@ -435,7 +435,10 @@ internal class SøknadsbehandlingPostgresRepoTest {
             )
 
             val (sakOppdatertMedSøknad, iverksattAvslagUtenBeregning, _) = testDataHelper.persisterIverksattSøknadsbehandlingAvslag(
-                sakOgSøknad = Pair(sak, testDataHelper.persisterJournalførtSøknadMedOppgave(sakId = sak.id, fnr = sak.fnr).second),
+                sakOgSøknad = Pair(
+                    sak,
+                    testDataHelper.persisterJournalførtSøknadMedOppgave(sakId = sak.id, fnr = sak.fnr).second,
+                ),
             ) { (sak, søknad) ->
                 iverksattSøknadsbehandlingUføre(
                     clock = testDataHelper.clock,
@@ -487,7 +490,10 @@ internal class SøknadsbehandlingPostgresRepoTest {
             val uteståendeAvkorting = sak.uteståendeAvkorting as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes
 
             val (sakOppdatertMedSøknad, iverksattSøknadsbehandlingVedtak, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
-                sakOgSøknad = Pair(sak, testDataHelper.persisterJournalførtSøknadMedOppgave(sakId = sak.id, fnr = sak.fnr).second),
+                sakOgSøknad = Pair(
+                    sak,
+                    testDataHelper.persisterJournalførtSøknadMedOppgave(sakId = sak.id, fnr = sak.fnr).second,
+                ),
             ) { (sak, søknad) ->
                 iverksattSøknadsbehandlingUføre(
                     clock = testDataHelper.clock,
@@ -581,7 +587,11 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 skattRepo.hent(medEpsEpsId, session) shouldNotBe null
             }
 
-            val utenEps = medEps.copy(eksterneGrunnlag = medEps.eksterneGrunnlag.fjernEps()).also { utenEps ->
+            val utenEps = medEps.copy(
+                grunnlagsdataOgVilkårsvurderinger = medEps.grunnlagsdataOgVilkårsvurderinger.copy(
+                    eksterneGrunnlag = medEps.eksterneGrunnlag.fjernEps(),
+                ),
+            ).also { utenEps ->
                 repo.lagre(utenEps)
 
                 repo.hent(utenEps.id)!!.let {

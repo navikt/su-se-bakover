@@ -553,7 +553,7 @@ internal class SøknadsbehandlingPostgresRepo(
             ),
         )
 
-        val (grunnlagsdata, vilkårsvurderinger) = grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForSøknadsbehandling(
+        val grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForSøknadsbehandling(
             behandlingId = behandlingId,
             session = session,
             sakstype = Sakstype.from(string("type")),
@@ -573,9 +573,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 fnr = fnr,
                 fritekstTilBrev = fritekstTilBrev,
                 aldersvurdering = aldersvurdering,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                eksterneGrunnlag = eksterneGrunnlag,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 sakstype = sakstype,
@@ -592,9 +591,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 fnr = fnr,
                 fritekstTilBrev = fritekstTilBrev,
                 aldersvurdering = aldersvurdering!!,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                eksterneGrunnlag = eksterneGrunnlag,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 sakstype = sakstype,
@@ -611,9 +609,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 fnr = fnr,
                 fritekstTilBrev = fritekstTilBrev,
                 aldersvurdering = aldersvurdering!!,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                eksterneGrunnlag = eksterneGrunnlag,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 sakstype = sakstype,
@@ -631,9 +628,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 beregning = beregning!!,
                 fritekstTilBrev = fritekstTilBrev,
                 aldersvurdering = aldersvurdering!!,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                eksterneGrunnlag = eksterneGrunnlag,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 avkorting = avkorting() as AvkortingVedSøknadsbehandling.KlarTilIverksetting,
@@ -652,9 +648,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 beregning = beregning!!,
                 fritekstTilBrev = fritekstTilBrev,
                 aldersvurdering = aldersvurdering!!,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                eksterneGrunnlag = eksterneGrunnlag,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 sakstype = sakstype,
@@ -673,9 +668,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 simulering = simulering!!,
                 fritekstTilBrev = fritekstTilBrev,
                 aldersvurdering = aldersvurdering!!,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                eksterneGrunnlag = eksterneGrunnlag,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 avkorting = avkorting() as AvkortingVedSøknadsbehandling.KlarTilIverksetting,
@@ -696,9 +690,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = fritekstTilBrev,
                 aldersvurdering = aldersvurdering!!,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                eksterneGrunnlag = eksterneGrunnlag,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 avkorting = avkorting() as AvkortingVedSøknadsbehandling.KlarTilIverksetting,
@@ -717,10 +710,9 @@ internal class SøknadsbehandlingPostgresRepo(
                     saksbehandler = saksbehandler,
                     fritekstTilBrev = fritekstTilBrev,
                     aldersvurdering = aldersvurdering!!,
-                    grunnlagsdata = grunnlagsdata,
-                    vilkårsvurderinger = vilkårsvurderinger,
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                     attesteringer = attesteringer,
-                    eksterneGrunnlag = eksterneGrunnlag,
+
                     søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                     sakstype = sakstype,
                 )
@@ -737,9 +729,8 @@ internal class SøknadsbehandlingPostgresRepo(
                     saksbehandler = saksbehandler,
                     fritekstTilBrev = fritekstTilBrev,
                     aldersvurdering = aldersvurdering!!,
-                    grunnlagsdata = grunnlagsdata,
-                    vilkårsvurderinger = vilkårsvurderinger,
-                    eksterneGrunnlag = eksterneGrunnlag,
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
                     attesteringer = attesteringer,
                     søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                     sakstype = sakstype,
@@ -761,9 +752,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 fritekstTilBrev = fritekstTilBrev,
                 aldersvurdering = aldersvurdering!!,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                eksterneGrunnlag = eksterneGrunnlag,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
                 avkorting = avkorting() as AvkortingVedSøknadsbehandling.KlarTilIverksetting,
                 sakstype = sakstype,
             )
@@ -782,9 +772,8 @@ internal class SøknadsbehandlingPostgresRepo(
                     søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                     fritekstTilBrev = fritekstTilBrev,
                     aldersvurdering = aldersvurdering!!,
-                    grunnlagsdata = grunnlagsdata,
-                    vilkårsvurderinger = vilkårsvurderinger,
-                    eksterneGrunnlag = eksterneGrunnlag,
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
                     sakstype = sakstype,
                 )
 
@@ -802,9 +791,8 @@ internal class SøknadsbehandlingPostgresRepo(
                     søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                     fritekstTilBrev = fritekstTilBrev,
                     aldersvurdering = aldersvurdering!!,
-                    grunnlagsdata = grunnlagsdata,
-                    vilkårsvurderinger = vilkårsvurderinger,
-                    eksterneGrunnlag = eksterneGrunnlag,
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
                     sakstype = sakstype,
                 )
             }
@@ -825,9 +813,8 @@ internal class SøknadsbehandlingPostgresRepo(
                     søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                     fritekstTilBrev = fritekstTilBrev,
                     aldersvurdering = aldersvurdering!!,
-                    grunnlagsdata = grunnlagsdata,
-                    vilkårsvurderinger = vilkårsvurderinger,
-                    eksterneGrunnlag = eksterneGrunnlag,
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
                     avkorting = avkorting() as AvkortingVedSøknadsbehandling.Ferdig,
                     sakstype = sakstype,
                 )
@@ -848,9 +835,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                         fritekstTilBrev = fritekstTilBrev,
                         aldersvurdering = aldersvurdering!!,
-                        grunnlagsdata = grunnlagsdata,
-                        vilkårsvurderinger = vilkårsvurderinger,
-                        eksterneGrunnlag = eksterneGrunnlag,
+                        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                         sakstype = sakstype,
                     )
 
@@ -868,9 +853,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                         fritekstTilBrev = fritekstTilBrev,
                         aldersvurdering = aldersvurdering!!,
-                        grunnlagsdata = grunnlagsdata,
-                        vilkårsvurderinger = vilkårsvurderinger,
-                        eksterneGrunnlag = eksterneGrunnlag,
+                        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                         sakstype = sakstype,
                     )
                 }

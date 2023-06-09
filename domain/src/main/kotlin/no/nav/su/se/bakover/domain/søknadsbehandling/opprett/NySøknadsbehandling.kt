@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.StøtterHentingAvEksternGrunnlag
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.sak.Saksnummer
@@ -55,12 +56,14 @@ data class NySøknadsbehandling(
             fnr = fnr,
             fritekstTilBrev = "",
             aldersvurdering = null,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = when (sakstype) {
-                Sakstype.ALDER -> Vilkårsvurderinger.Søknadsbehandling.Alder.ikkeVurdert()
-                Sakstype.UFØRE -> Vilkårsvurderinger.Søknadsbehandling.Uføre.ikkeVurdert()
-            },
-            eksterneGrunnlag = StøtterHentingAvEksternGrunnlag.ikkeHentet(),
+            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
+                grunnlagsdata = Grunnlagsdata.IkkeVurdert,
+                vilkårsvurderinger = when (sakstype) {
+                    Sakstype.ALDER -> Vilkårsvurderinger.Søknadsbehandling.Alder.ikkeVurdert()
+                    Sakstype.UFØRE -> Vilkårsvurderinger.Søknadsbehandling.Uføre.ikkeVurdert()
+                },
+                eksterneGrunnlag = StøtterHentingAvEksternGrunnlag.ikkeHentet(),
+            ),
             attesteringer = Attesteringshistorikk.empty(),
             søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
             sakstype = sakstype,

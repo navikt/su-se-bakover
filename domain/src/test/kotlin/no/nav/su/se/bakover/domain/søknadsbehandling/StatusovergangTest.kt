@@ -528,7 +528,7 @@ internal class StatusovergangTest {
                 customGrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 50000.0)),
             ).also { (_, underkjent) ->
                 underkjent.shouldBeType<UnderkjentSøknadsbehandling.Avslag.MedBeregning>().also {
-                    underkjent.leggTilFradragsgrunnlagFraSaksbehandler(
+                    underkjent.oppdaterFradragsgrunnlagForSaksbehandler(
                         saksbehandler = saksbehandler,
                         emptyList(),
                         clock = fixedClock,

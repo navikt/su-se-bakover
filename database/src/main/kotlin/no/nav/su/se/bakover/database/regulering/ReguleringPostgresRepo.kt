@@ -272,6 +272,7 @@ internal class ReguleringPostgresRepo(
         val saksbehandler = NavIdentBruker.Saksbehandler(string("saksbehandler"))
         val periode = deserialize<Periode>(string("periode"))
 
+        // Merk at denne ikke inneholder eksterneGrunnlag
         val grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForRevurdering(
             behandlingId = id,
             session = session,

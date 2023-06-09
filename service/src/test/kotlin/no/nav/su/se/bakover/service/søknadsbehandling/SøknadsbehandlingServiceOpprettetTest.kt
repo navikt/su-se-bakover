@@ -9,6 +9,7 @@ import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.StøtterHentingAvEksternGrunnlag
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
@@ -197,9 +198,11 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                 fnr = søknad.fnr,
                 fritekstTilBrev = "",
                 aldersvurdering = null,
-                grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-                vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
-                eksterneGrunnlag = StøtterHentingAvEksternGrunnlag.ikkeHentet(),
+                grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
+                    grunnlagsdata = Grunnlagsdata.IkkeVurdert,
+                    vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
+                    eksterneGrunnlag = StøtterHentingAvEksternGrunnlag.ikkeHentet(),
+                ),
                 attesteringer = Attesteringshistorikk.empty(),
                 sakstype = sak.type,
                 saksbehandler = saksbehandler,
@@ -242,9 +245,11 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                         fnr = søknad.fnr,
                         fritekstTilBrev = "",
                         aldersvurdering = null,
-                        grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-                        vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
-                        eksterneGrunnlag = StøtterHentingAvEksternGrunnlag.ikkeHentet(),
+                        grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
+                            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
+                            vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
+                            eksterneGrunnlag = StøtterHentingAvEksternGrunnlag.ikkeHentet(),
+                        ),
                         attesteringer = Attesteringshistorikk.empty(),
                         sakstype = sak.type,
                         saksbehandler = saksbehandler,

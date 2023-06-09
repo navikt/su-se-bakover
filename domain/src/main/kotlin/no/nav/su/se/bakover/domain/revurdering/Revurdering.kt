@@ -87,12 +87,7 @@ sealed class Revurdering :
     abstract override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis
     abstract override val sakinfo: SakInfo
     abstract override val oppdatert: Tidspunkt
-    abstract override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
-
-    override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering get() = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
-    )
+    abstract override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering
     override val sakId: UUID get() = sakinfo.sakId
     override val saksnummer: Saksnummer get() = sakinfo.saksnummer
     override val fnr: Fnr get() = sakinfo.fnr
@@ -146,8 +141,7 @@ sealed class Revurdering :
         clock: Clock,
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
-        grunnlagsdata: Grunnlagsdata,
-        vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering,
         informasjonSomRevurderes: InformasjonSomRevurderes,
         vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         tilRevurdering: UUID,
@@ -164,8 +158,7 @@ sealed class Revurdering :
         clock: Clock,
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
-        grunnlagsdata: Grunnlagsdata,
-        vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering,
         informasjonSomRevurderes: InformasjonSomRevurderes,
         vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         tilRevurdering: UUID,
@@ -181,8 +174,7 @@ sealed class Revurdering :
             saksbehandler = saksbehandler,
             oppgaveId = oppgaveId,
             revurderingsårsak = revurderingsårsak,
-            grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger,
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
             vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
             attesteringer = attesteringer,
@@ -535,8 +527,7 @@ sealed class Revurdering :
             saksbehandler = saksbehandler,
             oppgaveId = oppgaveId,
             revurderingsårsak = revurderingsårsak,
-            grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger,
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterVilkårsvurderinger(vilkårsvurderinger),
             informasjonSomRevurderes = informasjonSomRevurderes,
             vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
             attesteringer = attesteringer,
@@ -575,8 +566,7 @@ sealed class Revurdering :
             saksbehandler = saksbehandler,
             oppgaveId = oppgaveId,
             revurderingsårsak = revurderingsårsak,
-            grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger,
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterGrunnlagsdata(grunnlagsdata),
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer,
             avkorting = avkorting.let {
@@ -630,8 +620,7 @@ sealed class Revurdering :
                 saksbehandler = revurdering.saksbehandler,
                 oppgaveId = revurdering.oppgaveId,
                 revurderingsårsak = revurdering.revurderingsårsak,
-                grunnlagsdata = revurdering.grunnlagsdata,
-                vilkårsvurderinger = revurdering.vilkårsvurderinger,
+                grunnlagsdataOgVilkårsvurderinger = revurdering.grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
                 vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 attesteringer = revurdering.attesteringer,
@@ -652,8 +641,7 @@ sealed class Revurdering :
                 beregning = revurdertBeregning,
                 oppgaveId = revurdering.oppgaveId,
                 revurderingsårsak = revurdering.revurderingsårsak,
-                grunnlagsdata = revurdering.grunnlagsdata,
-                vilkårsvurderinger = revurdering.vilkårsvurderinger,
+                grunnlagsdataOgVilkårsvurderinger = revurdering.grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
                 attesteringer = revurdering.attesteringer,
                 avkorting = revurdering.avkorting.håndter(),
