@@ -40,7 +40,7 @@ enum class Avslagsgrunn {
     // TODO: bør lage en paragraf-type/enum
     fun getParagrafer() = when (this) {
         UFØRHET -> listOf(1, 2)
-        FLYKTNING -> listOf(3)
+        FLYKTNING -> listOf(2, 3)
         OPPHOLDSTILLATELSE -> listOf(1, 2)
         PERSONLIG_OPPMØTE -> listOf(17)
         FORMUE -> listOf(8)
