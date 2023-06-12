@@ -65,90 +65,105 @@ import org.junit.jupiter.api.assertThrows
 
 internal class StatusovergangTest {
 
-    private val stønadsperiode = stønadsperiode2021
+    private val stønadsperiode get() = stønadsperiode2021
 
-    private val sakOgUavklart = søknadsbehandlingVilkårsvurdertUavklart(
-        stønadsperiode = stønadsperiode,
-    )
+    private val sakOgUavklart
+        get() = søknadsbehandlingVilkårsvurdertUavklart(
+            stønadsperiode = stønadsperiode,
+        )
 
-    private val opprettet = sakOgUavklart.second
+    private val opprettet get() = sakOgUavklart.second
 
     private val fritekstTilBrev: String = "Fritekst til brev"
 
-    private val vilkårsvurdertInnvilget: VilkårsvurdertSøknadsbehandling.Innvilget =
-        søknadsbehandlingVilkårsvurdertInnvilget(
-            vilkårsvurderinger = vilkårsvurderingerSøknadsbehandlingInnvilget(
-                uføre = innvilgetUførevilkårForventetInntekt12000(),
-            ),
-        ).second
+    private val vilkårsvurdertInnvilget: VilkårsvurdertSøknadsbehandling.Innvilget
+        get() =
+            søknadsbehandlingVilkårsvurdertInnvilget(
+                vilkårsvurderinger = vilkårsvurderingerSøknadsbehandlingInnvilget(
+                    uføre = innvilgetUførevilkårForventetInntekt12000(),
+                ),
+            ).second
 
-    private val vilkårsvurdertAvslag: VilkårsvurdertSøknadsbehandling.Avslag =
-        søknadsbehandlingVilkårsvurdertAvslag().second
+    private val vilkårsvurdertAvslag: VilkårsvurdertSøknadsbehandling.Avslag
+        get() =
+            søknadsbehandlingVilkårsvurdertAvslag().second
 
-    private val beregnetInnvilget: BeregnetSøknadsbehandling.Innvilget =
-        vilkårsvurdertInnvilget.beregn(
-            begrunnelse = null,
-            clock = fixedClock,
-            satsFactory = satsFactoryTestPåDato(),
-            nySaksbehandler = saksbehandler,
-            uteståendeAvkortingPåSak = null,
-        ).getOrFail() as BeregnetSøknadsbehandling.Innvilget
+    private val beregnetInnvilget: BeregnetSøknadsbehandling.Innvilget
+        get() =
+            vilkårsvurdertInnvilget.beregn(
+                begrunnelse = null,
+                clock = fixedClock,
+                satsFactory = satsFactoryTestPåDato(),
+                nySaksbehandler = saksbehandler,
+                uteståendeAvkortingPåSak = null,
+            ).getOrFail() as BeregnetSøknadsbehandling.Innvilget
 
-    private val beregnetAvslag: BeregnetSøknadsbehandling.Avslag =
-        vilkårsvurdertInnvilget.leggTilUførevilkår(
-            uførhet = innvilgetUførevilkår(forventetInntekt = 11000000),
-            saksbehandler = saksbehandler,
-            clock = fixedClock,
-        ).getOrFailAsType<VilkårsvurdertSøknadsbehandling.Innvilget>().beregn(
-            begrunnelse = null,
-            clock = fixedClock,
-            satsFactory = satsFactoryTestPåDato(),
-            nySaksbehandler = saksbehandler,
-            uteståendeAvkortingPåSak = null,
-        ).getOrFail() as BeregnetSøknadsbehandling.Avslag
+    private val beregnetAvslag: BeregnetSøknadsbehandling.Avslag
+        get() =
+            vilkårsvurdertInnvilget.leggTilUførevilkår(
+                uførhet = innvilgetUførevilkår(forventetInntekt = 11000000),
+                saksbehandler = saksbehandler,
+                clock = fixedClock,
+            ).getOrFailAsType<VilkårsvurdertSøknadsbehandling.Innvilget>().beregn(
+                begrunnelse = null,
+                clock = fixedClock,
+                satsFactory = satsFactoryTestPåDato(),
+                nySaksbehandler = saksbehandler,
+                uteståendeAvkortingPåSak = null,
+            ).getOrFail() as BeregnetSøknadsbehandling.Avslag
 
-    private val simulert: SimulertSøknadsbehandling =
-        beregnetInnvilget.simuler(
-            saksbehandler = saksbehandler,
-            clock = fixedClock,
-        ) { _, _ ->
-            simulerUtbetaling(
-                sak = sakOgUavklart.first,
-                søknadsbehandling = beregnetInnvilget,
-            ).map {
-                it.simulering
-            }
-        }.getOrFail()
+    private val simulert: SimulertSøknadsbehandling
+        get() =
+            beregnetInnvilget.simuler(
+                saksbehandler = saksbehandler,
+                clock = fixedClock,
+            ) { _, _ ->
+                simulerUtbetaling(
+                    sak = sakOgUavklart.first,
+                    søknadsbehandling = beregnetInnvilget,
+                ).map {
+                    it.simulering
+                }
+            }.getOrFail()
 
-    private val tilAttesteringInnvilget: SøknadsbehandlingTilAttestering.Innvilget =
-        simulert.tilAttestering(saksbehandler, fritekstTilBrev, fixedClock).getOrFail()
+    private val tilAttesteringInnvilget: SøknadsbehandlingTilAttestering.Innvilget
+        get() =
+            simulert.tilAttestering(saksbehandler, fritekstTilBrev, fixedClock).getOrFail()
 
-    private val tilAttesteringAvslagVilkår: SøknadsbehandlingTilAttestering.Avslag.UtenBeregning =
-        vilkårsvurdertAvslag.tilAttesteringForSaksbehandler(saksbehandler, fritekstTilBrev, fixedClock).getOrFail()
+    private val tilAttesteringAvslagVilkår: SøknadsbehandlingTilAttestering.Avslag.UtenBeregning
+        get() =
+            vilkårsvurdertAvslag.tilAttesteringForSaksbehandler(saksbehandler, fritekstTilBrev, fixedClock).getOrFail()
 
-    private val tilAttesteringAvslagBeregning: SøknadsbehandlingTilAttestering.Avslag.MedBeregning =
-        beregnetAvslag.tilAttestering(saksbehandler, fritekstTilBrev, fixedClock).getOrFail()
+    private val tilAttesteringAvslagBeregning: SøknadsbehandlingTilAttestering.Avslag.MedBeregning
+        get() =
+            beregnetAvslag.tilAttestering(saksbehandler, fritekstTilBrev, fixedClock).getOrFail()
 
-    private val underkjentInnvilget: UnderkjentSøknadsbehandling.Innvilget =
-        tilAttesteringInnvilget.tilUnderkjent(attesteringUnderkjent(clock = fixedClock))
-    private val underkjentAvslagVilkår: UnderkjentSøknadsbehandling.Avslag.UtenBeregning =
-        tilAttesteringAvslagVilkår.tilUnderkjent(attesteringUnderkjent(clock = fixedClock))
-    private val underkjentAvslagBeregning: UnderkjentSøknadsbehandling.Avslag.MedBeregning =
-        tilAttesteringAvslagBeregning.tilUnderkjent(attesteringUnderkjent(clock = fixedClock))
-    private val iverksattInnvilget = iverksattSøknadsbehandling().second as IverksattSøknadsbehandling.Innvilget
+    private val underkjentInnvilget: UnderkjentSøknadsbehandling.Innvilget
+        get() =
+            tilAttesteringInnvilget.tilUnderkjent(attesteringUnderkjent(clock = fixedClock))
+    private val underkjentAvslagVilkår: UnderkjentSøknadsbehandling.Avslag.UtenBeregning
+        get() =
+            tilAttesteringAvslagVilkår.tilUnderkjent(attesteringUnderkjent(clock = fixedClock))
+    private val underkjentAvslagBeregning: UnderkjentSøknadsbehandling.Avslag.MedBeregning
+        get() =
+            tilAttesteringAvslagBeregning.tilUnderkjent(attesteringUnderkjent(clock = fixedClock))
+    private val iverksattInnvilget get() = iverksattSøknadsbehandling().second as IverksattSøknadsbehandling.Innvilget
 
-    private val iverksattAvslagVilkår = iverksattSøknadsbehandling(
-        customVilkår = listOf(avslåttUførevilkårUtenGrunnlag()),
-    ).second as IverksattSøknadsbehandling.Avslag.UtenBeregning
+    private val iverksattAvslagVilkår
+        get() = iverksattSøknadsbehandling(
+            customVilkår = listOf(avslåttUførevilkårUtenGrunnlag()),
+        ).second as IverksattSøknadsbehandling.Avslag.UtenBeregning
 
-    private val iverksattAvslagBeregning = iverksattSøknadsbehandling(
-        customGrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 30000.0)),
-    ).second as IverksattSøknadsbehandling.Avslag.MedBeregning
+    private val iverksattAvslagBeregning
+        get() = iverksattSøknadsbehandling(
+            customGrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 30000.0)),
+        ).second as IverksattSøknadsbehandling.Avslag.MedBeregning
 
-    private val lukketSøknadsbehandling =
-        underkjentInnvilget.lukkSøknadsbehandlingOgSøknad(
-            trekkSøknad(søknadId),
-        ).getOrFail()
+    private val lukketSøknadsbehandling
+        get() =
+            underkjentInnvilget.lukkSøknadsbehandlingOgSøknad(
+                trekkSøknad(søknadId),
+            ).getOrFail()
 
     @Nested
     inner class TilVilkårsvurdert {
