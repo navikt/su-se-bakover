@@ -1237,7 +1237,7 @@ class TestDataHelper(
         saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     ): Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart> {
         val (sak, søknad) = persisterJournalførtSøknadMedOppgave(sakId = sakId, søknadId = søknadId)
-        assert(sak.id == sakId && sak.søknader.count { it.sakId == sakId && it.id == søknadId } == 1)
+        require(sak.id == sakId && sak.søknader.count { it.sakId == sakId && it.id == søknadId } == 1)
         val opprettet = Tidspunkt.now(clock)
         return NySøknadsbehandling(
             id = id,
@@ -1260,7 +1260,7 @@ class TestDataHelper(
                 saksbehandlersAvgjørelse = null,
             ).getOrFail().second.let {
                 databaseRepos.søknadsbehandling.lagre(it)
-                assert(it.fnr == sak.fnr && it.sakId == sakId)
+                require(it.fnr == sak.fnr && it.sakId == sakId)
                 Pair(databaseRepos.sak.hentSak(sakId)!!, it as VilkårsvurdertSøknadsbehandling.Uavklart)
             }
         }

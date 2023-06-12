@@ -31,8 +31,8 @@ internal data class PersistertMånedsberegning(
                         måned = måned,
                         satskategori = sats,
                     ).also {
-                        assert(satsbeløp == it.satsForMånedAsDouble)
-                        assert(sats == it.satskategori)
+                        check(satsbeløp == it.satsForMånedAsDouble)
+                        check(sats == it.satskategori)
                     }
                 }
                 Sakstype.UFØRE -> {
@@ -40,11 +40,11 @@ internal data class PersistertMånedsberegning(
                         måned = måned,
                         satskategori = sats,
                     ).also {
-                        assert(benyttetGrunnbeløp == it.grunnbeløp.grunnbeløpPerÅr) {
+                        check(benyttetGrunnbeløp == it.grunnbeløp.grunnbeløpPerÅr) {
                             "Hentet benyttetGrunnbeløp: $benyttetGrunnbeløp fra databasen, mens den utleda verdien for grunnbeløp var: ${it.grunnbeløp.grunnbeløpPerÅr}"
                         }
-                        assert(satsbeløp == it.satsForMånedAsDouble)
-                        assert(sats == it.satskategori)
+                        check(satsbeløp == it.satsForMånedAsDouble)
+                        check(sats == it.satskategori)
                     }
                 }
             },

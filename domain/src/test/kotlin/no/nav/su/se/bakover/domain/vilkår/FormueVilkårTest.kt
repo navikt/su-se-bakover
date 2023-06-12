@@ -318,13 +318,13 @@ internal class FormueVilkårTest {
             bosituasjon = bosituasjon,
         ),
     ): VurderingsperiodeFormue {
-        assert(år(2021).inneholder(periodeInnenfor2021))
+        require(år(2021).inneholder(periodeInnenfor2021))
         return VurderingsperiodeFormue.tryCreateFromGrunnlag(
             id = id,
             grunnlag = grunnlag,
             formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).also {
-            assert(it.vurdering == vurdering)
+            require(it.vurdering == vurdering)
         }
     }
 }

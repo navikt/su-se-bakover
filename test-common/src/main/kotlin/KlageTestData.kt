@@ -46,8 +46,8 @@ fun opprettetKlage(
     datoKlageMottatt: LocalDate = 15.januar(2021),
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
 ): Pair<Sak, OpprettetKlage> {
-    assert(sakMedVedtak.vedtakListe.isNotEmpty())
-    assert(opprettet.toLocalDate(ZoneId.of("UTC")) >= datoKlageMottatt)
+    require(sakMedVedtak.vedtakListe.isNotEmpty())
+    require(opprettet.toLocalDate(ZoneId.of("UTC")) >= datoKlageMottatt)
     val klage = OpprettetKlage(
         id = id,
         opprettet = opprettet,
@@ -308,7 +308,7 @@ fun påbegyntVurdertKlage(
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering? = null,
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
 ): Pair<Sak, VurdertKlage.Påbegynt> {
-    assert(vedtaksvurdering == null || vedtaksvurdering is VurderingerTilKlage.Vedtaksvurdering.Påbegynt)
+    require(vedtaksvurdering == null || vedtaksvurdering is VurderingerTilKlage.Vedtaksvurdering.Påbegynt)
     return bekreftetVilkårsvurdertKlageTilVurdering(
         id = id,
         opprettet = opprettet,

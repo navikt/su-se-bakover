@@ -773,7 +773,7 @@ private fun hentBehandlingVedtaksknytning(vedtakId: UUID, session: Session): Beh
     session,
 ) {
     val id = it.uuid("id")
-    assert(it.uuid("vedtakId") == vedtakId)
+    check(it.uuid("vedtakId") == vedtakId)
     val sakId = it.uuid("sakId")
     val søknadsbehandlingId = it.stringOrNull("søknadsbehandlingId")
     val revurderingId = it.stringOrNull("revurderingId")

@@ -55,8 +55,8 @@ fun nySakMedNySøknad(
     søknadInnhold = søknadInnhold,
     innsendtAv = søknadInnsendtAv,
 ).let {
-    assert(it.id == sakId)
-    assert(it.søknad.id == søknadId)
+    require(it.id == sakId)
+    require(it.søknad.id == søknadId)
     Pair(it.toSak(saksnummer, Hendelsesversjon(1)), it.søknad)
 }
 

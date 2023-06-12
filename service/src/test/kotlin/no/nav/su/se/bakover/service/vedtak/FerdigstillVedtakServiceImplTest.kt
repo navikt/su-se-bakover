@@ -65,7 +65,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 ).let { (sak, vedtak) ->
                     val utbetaling =
                         sak.utbetalinger.single { it.id == vedtak.utbetalingId } as Utbetaling.OversendtUtbetaling.MedKvittering
-                    assert(utbetaling.erReaktivering())
+                    require(utbetaling.erReaktivering())
                     utbetaling
                 },
             ) shouldBe Unit.right()
@@ -80,7 +80,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().let { (sak, vedtak) ->
                     val utbetaling =
                         sak.utbetalinger.single { it.id == vedtak.utbetalingId } as Utbetaling.OversendtUtbetaling.MedKvittering
-                    assert(utbetaling.erStans())
+                    require(utbetaling.erStans())
                     utbetaling
                 },
             ) shouldBe Unit.right()

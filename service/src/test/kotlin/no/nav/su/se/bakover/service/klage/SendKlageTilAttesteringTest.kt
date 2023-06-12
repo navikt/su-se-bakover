@@ -236,7 +236,7 @@ internal class SendKlageTilAttesteringTest {
                 vedtak = it.first.vedtakListe.first(),
                 klage = it.second,
                 tilordnetRessurs = it.second.attesteringer.let { attesteringshistorikk ->
-                    assert(attesteringshistorikk.size == 1)
+                    require(attesteringshistorikk.size == 1)
                     attesteringshistorikk.first().attestant
                 },
             )
@@ -250,7 +250,7 @@ internal class SendKlageTilAttesteringTest {
                 vedtak = it.first.vedtakListe.first(),
                 klage = it.second,
                 tilordnetRessurs = it.second.attesteringer.let { attesteringshistorikk ->
-                    assert(attesteringshistorikk.size == 1)
+                    require(attesteringshistorikk.size == 1)
                     attesteringshistorikk.first().attestant
                 },
             )

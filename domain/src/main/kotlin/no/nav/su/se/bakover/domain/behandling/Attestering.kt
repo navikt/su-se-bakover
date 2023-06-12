@@ -29,7 +29,7 @@ data class Attesteringshistorikk private constructor(
             attesteringer: List<Attestering>,
         ): Attesteringshistorikk {
             // TODO jah: Denne vil feile for Klage dersom en oversendt klage kommer i retur vil vi "iverksette" to ganger. Selv om det ikke kan kalles en iverksetting.
-            assert(attesteringer.filterIsInstance<Attestering.Iverksatt>().size <= 1) {
+            check(attesteringer.filterIsInstance<Attestering.Iverksatt>().size <= 1) {
                 "Attesteringshistorikk kan maks inneholde en iverksetting, men var: $attesteringer"
             }
             return Attesteringshistorikk(
@@ -39,7 +39,7 @@ data class Attesteringshistorikk private constructor(
     }
 
     fun leggTilNyAttestering(attestering: Attestering): Attesteringshistorikk {
-        assert(this.all { it.opprettet.instant < attestering.opprettet.instant }) {
+        check(this.all { it.opprettet.instant < attestering.opprettet.instant }) {
             "Kan ikke legge til en attestering som ikke er nyere enn den forrige attesteringen"
         }
         return create(attesteringer = this + attestering)
@@ -49,9 +49,6 @@ data class Attesteringshistorikk private constructor(
     fun hentSisteAttestering(): Attestering = this.last()
 
     fun prøvHentSisteAttestering(): Attestering? = if (this.isEmpty()) null else this.last()
-
-    /** @throws NoSuchElementException hvis lista er tom */
-    fun sisteAttesteringErIverksatt(): Boolean = hentSisteAttestering() is Attestering.Iverksatt
 
     fun hentSisteIverksatteAttesteringOrNull(): Attestering.Iverksatt? {
         return this.filterIsInstance<Attestering.Iverksatt>().singleOrNull()

@@ -218,7 +218,7 @@ fun vedtakIverksattAutomatiskRegulering(
     ),
     utbetalingId: UUID30 = UUID30.randomUUID(),
 ): Pair<Sak, VedtakEndringIYtelse> {
-    assert(stønadsperiode.inneholder(regulerFraOgMed))
+    require(stønadsperiode.inneholder(regulerFraOgMed))
 
     return vedtakSøknadsbehandlingIverksattInnvilget(
         stønadsperiode = stønadsperiode,
