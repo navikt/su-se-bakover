@@ -35,7 +35,7 @@ data class OversendtKlage(
     }
 
     override fun lagBrevRequest(
-        hentNavnForNavIdent: (saksbehandler: NavIdentBruker.Saksbehandler) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
+        hentNavnForNavIdent: (saksbehandler: NavIdentBruker) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
         hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
         hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
         clock: Clock,
@@ -48,6 +48,8 @@ data class OversendtKlage(
             saksbehandlerNavn = hentNavnForNavIdent(this.saksbehandler).getOrElse {
                 return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvSaksbehandlernavn(it).left()
             },
+            attestantNavn = this.attesteringer.hentSisteAttestering().attestant.let { hentNavnForNavIdent(it) }
+                .getOrElse { return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvAttestantnavn(it).left() },
             fritekst = this.vurderinger.fritekstTilOversendelsesbrev,
             saksnummer = this.saksnummer,
             klageDato = this.datoKlageMottatt,
@@ -80,6 +82,7 @@ data class OversendtKlage(
                 KlageinstansUtfall.UGUNST,
                 KlageinstansUtfall.AVVIST,
                 -> this.copy(klageinstanshendelser = oppdatertKlageinstanshendelser)
+
                 KlageinstansUtfall.RETUR -> this.forrigeSteg.returFraKlageinstans(
                     oppgaveId = oppgaveId,
                     klageinstanshendelser = oppdatertKlageinstanshendelser,

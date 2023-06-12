@@ -69,7 +69,7 @@ sealed interface Klage : Klagefelter {
     }
 
     fun lagBrevRequest(
-        hentNavnForNavIdent: (saksbehandler: NavIdentBruker.Saksbehandler) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
+        hentNavnForNavIdent: (saksbehandler: NavIdentBruker) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
         hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
         hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
         clock: Clock,
@@ -192,6 +192,7 @@ sealed interface KunneIkkeLageBrevRequestForKlage {
     data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeLageBrevRequestForKlage
     data class FeilVedHentingAvPerson(val personFeil: KunneIkkeHentePerson) : KunneIkkeLageBrevRequestForKlage
     data class FeilVedHentingAvSaksbehandlernavn(val feil: KunneIkkeHenteNavnForNavIdent) : KunneIkkeLageBrevRequestForKlage
+    class FeilVedHentingAvAttestantnavn(val feil: KunneIkkeHenteNavnForNavIdent) : KunneIkkeLageBrevRequestForKlage
 }
 
 sealed interface KunneIkkeHenteFritekstTilBrev {

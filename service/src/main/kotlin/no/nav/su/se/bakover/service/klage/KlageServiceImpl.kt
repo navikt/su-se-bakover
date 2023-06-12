@@ -304,15 +304,12 @@ class KlageServiceImpl(
                 .left()
         }
 
-        val oversendtKlage = klage.oversend(
-            Attestering.Iverksatt(
-                attestant = attestant,
-                opprettet = Tidspunkt.now(clock),
-            ),
-        ).getOrElse { return it.left() }
+        val oversendtKlage =
+            klage.oversend(Attestering.Iverksatt(attestant = attestant, opprettet = Tidspunkt.now(clock)))
+                .getOrElse { return it.left() }
 
-        val dokument = klage.lagBrevRequest(
-            hentNavnForNavIdent = { identClient.hentNavnForNavIdent(klage.saksbehandler) },
+        val dokument = oversendtKlage.lagBrevRequest(
+            hentNavnForNavIdent = identClient::hentNavnForNavIdent,
             hentVedtaksbrevDato = { klageRepo.hentVedtaksbrevDatoSomDetKlagesPå(klage.id) },
             hentPerson = { personService.hentPerson(klage.fnr) },
             clock = clock,

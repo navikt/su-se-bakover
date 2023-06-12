@@ -432,6 +432,7 @@ interface LagBrevRequest {
             override val person: Person,
             override val dagensDato: LocalDate,
             val saksbehandlerNavn: String,
+            val attestantNavn: String?,
             val fritekst: String,
             val klageDato: LocalDate,
             val vedtaksbrevDato: LocalDate,
@@ -440,6 +441,7 @@ interface LagBrevRequest {
             override val pdfInnhold: PdfInnhold = PdfInnhold.Klage.Oppretthold(
                 personalia = lagPersonalia(),
                 saksbehandlerNavn = saksbehandlerNavn,
+                attestantNavn = attestantNavn,
                 fritekst = fritekst,
                 klageDato = klageDato.ddMMyyyy(),
                 vedtakDato = vedtaksbrevDato.ddMMyyyy(),

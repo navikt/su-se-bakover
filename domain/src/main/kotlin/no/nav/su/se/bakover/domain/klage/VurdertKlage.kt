@@ -32,7 +32,7 @@ sealed interface VurdertKlage : Klage, VurdertKlageFelter {
     }
 
     override fun lagBrevRequest(
-        hentNavnForNavIdent: (saksbehandler: NavIdentBruker.Saksbehandler) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
+        hentNavnForNavIdent: (saksbehandler: NavIdentBruker) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
         hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
         hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
         clock: Clock,
@@ -45,6 +45,8 @@ sealed interface VurdertKlage : Klage, VurdertKlageFelter {
             saksbehandlerNavn = hentNavnForNavIdent(this.saksbehandler).getOrElse {
                 return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvSaksbehandlernavn(it).left()
             },
+            attestantNavn = this.attesteringer.prøvHentSisteAttestering()?.attestant?.let { hentNavnForNavIdent(it) }
+                ?.getOrElse { return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvAttestantnavn(it).left() },
             fritekst = this.vurderinger.fritekstTilOversendelsesbrev.orEmpty(),
             saksnummer = this.saksnummer,
             klageDato = this.datoKlageMottatt,
@@ -74,6 +76,7 @@ sealed interface VurdertKlage : Klage, VurdertKlageFelter {
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
             )
+
             is VilkårsvurderingerTilKlage.Utfylt -> VilkårsvurdertKlage.Utfylt.create(
                 id = id,
                 opprettet = opprettet,
@@ -129,6 +132,7 @@ sealed interface VurdertKlage : Klage, VurdertKlageFelter {
                     saksbehandler = saksbehandler,
                     vurderinger = vurderinger,
                 )
+
                 is VurderingerTilKlage.Utfylt -> Utfylt(
                     forrigeSteg = this,
                     saksbehandler = saksbehandler,
@@ -162,7 +166,8 @@ sealed interface VurdertKlage : Klage, VurdertKlageFelter {
     interface UtfyltFelter : VurdertKlageFelter {
         override val vurderinger: VurderingerTilKlage.Utfylt
 
-        fun erOpprettholdelse(): Boolean = vurderinger.vedtaksvurdering is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold
+        fun erOpprettholdelse(): Boolean =
+            vurderinger.vedtaksvurdering is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold
     }
 
     data class Utfylt(

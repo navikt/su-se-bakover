@@ -31,8 +31,10 @@ import no.nav.su.se.bakover.test.utfyltAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.vurdertKlageTilAttestering
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import java.time.ZoneOffset
@@ -144,7 +146,11 @@ internal class HentBrevutkastTest {
         mocks.service.brevutkast(
             klageId = klage.id,
             saksbehandler = saksbehandler,
-        ) shouldBe KunneIkkeLageBrevutkast.FeilVedBrevRequest(KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvPerson(KunneIkkeHentePerson.FantIkkePerson)).left()
+        ) shouldBe KunneIkkeLageBrevutkast.FeilVedBrevRequest(
+            KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvPerson(
+                KunneIkkeHentePerson.FantIkkePerson,
+            ),
+        ).left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
@@ -190,6 +196,7 @@ internal class HentBrevutkastTest {
                     person = person,
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Ola Nordmann",
+                    attestantNavn = null,
                     fritekst = "",
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
@@ -239,6 +246,7 @@ internal class HentBrevutkastTest {
                     person = person,
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Ola Nordmann",
+                    attestantNavn = null,
                     fritekst = "",
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
@@ -288,6 +296,7 @@ internal class HentBrevutkastTest {
                     person = person,
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Ola Nordmann",
+                    attestantNavn = null,
                     fritekst = "jeg er fritekst for et brev",
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
@@ -349,7 +358,8 @@ internal class HentBrevutkastTest {
         mocks.service.brevutkast(
             klageId = klage.id,
             saksbehandler = klage.saksbehandler,
-        ) shouldBe KunneIkkeLageBrevutkast.FeilVedBrevRequest(KunneIkkeLageBrevRequestForKlage.UgyldigTilstand(klage::class)).left()
+        ) shouldBe KunneIkkeLageBrevutkast.FeilVedBrevRequest(KunneIkkeLageBrevRequestForKlage.UgyldigTilstand(klage::class))
+            .left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         mocks.verifyNoMoreInteractions()
@@ -368,6 +378,7 @@ internal class HentBrevutkastTest {
                 person = person,
                 dagensDato = fixedLocalDate,
                 saksbehandlerNavn = "Ola Nordmann",
+                attestantNavn = null,
                 fritekst = "",
                 klageDato = 15.januar(2021),
                 vedtaksbrevDato = 1.januar(2021),
@@ -408,6 +419,7 @@ internal class HentBrevutkastTest {
                 person = person,
                 dagensDato = fixedLocalDate,
                 saksbehandlerNavn = "Ola Nordmann",
+                attestantNavn = null,
                 fritekst = "fritekstTilBrev",
                 klageDato = 15.januar(2021),
                 vedtaksbrevDato = 1.januar(2021),
@@ -448,6 +460,7 @@ internal class HentBrevutkastTest {
                 person = person,
                 dagensDato = fixedLocalDate,
                 saksbehandlerNavn = "Ola Nordmann",
+                attestantNavn = null,
                 fritekst = "fritekstTilBrev",
                 klageDato = 15.januar(2021),
                 vedtaksbrevDato = 1.januar(2021),
@@ -460,19 +473,45 @@ internal class HentBrevutkastTest {
     fun `kan hente brevutkast fra iverksatt Avvist`() {
         val (sak, klage) = iverksattAvvistKlage()
         val person = person(fnr = sak.fnr)
+        val vedtak = sak.vedtakListe.first()
+        val pdfAsBytes = "brevbytes".toByteArray()
 
-        kanHenteBrevUtkastFraTilstand(
-            sak,
-            klage,
-            person,
-            LagBrevRequest.Klage.Avvist(
-                person = person,
-                dagensDato = fixedLocalDate,
-                saksbehandlerNavn = "Ola Nordmann",
-                fritekst = "dette er en fritekst med person opplysninger",
-                saksnummer = Saksnummer(12345676),
-            ),
+        val mocks = KlageServiceMocks(
+            klageRepoMock = mock {
+                on { hentKlage(any()) } doReturn klage
+                on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
+            },
+            identClient = mock {
+                on { hentNavnForNavIdent(any()) }.thenReturn("Ola Nordmann".right(), "attestant".right())
+            },
+            personServiceMock = mock {
+                on { hentPerson(any()) } doReturn person.right()
+            },
+            brevServiceMock = mock {
+                on { lagBrev(any()) } doReturn pdfAsBytes.right()
+            },
         )
+        val attestant = NavIdentBruker.Saksbehandler("s2")
+        mocks.service.brevutkast(klageId = klage.id, saksbehandler = attestant) shouldBe pdfAsBytes.right()
+
+        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        val captor = argumentCaptor<NavIdentBruker>()
+        verify(mocks.identClient, Mockito.times(1)).hentNavnForNavIdent(captor.capture())
+        captor.firstValue shouldBe klage.saksbehandler
+        captor.lastValue shouldBe attestant
+        verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
+        verify(mocks.brevServiceMock).lagBrev(
+            argThat {
+                it shouldBe LagBrevRequest.Klage.Avvist(
+                    person = person,
+                    dagensDato = fixedLocalDate,
+                    saksbehandlerNavn = "Ola Nordmann",
+                    fritekst = "dette er en fritekst med person opplysninger",
+                    saksnummer = Saksnummer(12345676),
+                )
+                }
+        )
+        mocks.verifyNoMoreInteractions()
     }
 
     private fun kanHenteBrevUtkastFraTilstand(
@@ -490,7 +529,7 @@ internal class HentBrevutkastTest {
                 on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
             },
             identClient = mock {
-                on { hentNavnForNavIdent(any()) } doReturn "Ola Nordmann".right()
+                on { hentNavnForNavIdent(any()) }.thenReturn("Ola Nordmann".right(), "attestant".right())
             },
             personServiceMock = mock {
                 on { hentPerson(any()) } doReturn person.right()
@@ -510,7 +549,10 @@ internal class HentBrevutkastTest {
         if (brevrequestType is LagBrevRequest.Klage.Oppretthold) {
             verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         }
-        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe saksbehandler })
+        val captor = argumentCaptor<NavIdentBruker>()
+        verify(mocks.identClient, Mockito.times(2)).hentNavnForNavIdent(captor.capture())
+        captor.firstValue shouldBe saksbehandler
+        captor.lastValue shouldBe saksbehandler
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
         verify(mocks.brevServiceMock).lagBrev(
             argThat {
@@ -522,10 +564,12 @@ internal class HentBrevutkastTest {
                         fritekst = brevrequestType.fritekst,
                         saksnummer = Saksnummer(12345676),
                     )
+
                     is LagBrevRequest.Klage.Oppretthold -> LagBrevRequest.Klage.Oppretthold(
                         person = person,
                         dagensDato = fixedLocalDate,
                         saksbehandlerNavn = "Ola Nordmann",
+                        attestantNavn = null,
                         fritekst = brevrequestType.fritekst,
                         klageDato = 15.januar(2021),
                         vedtaksbrevDato = 1.januar(2021),

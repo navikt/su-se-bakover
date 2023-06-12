@@ -37,7 +37,7 @@ sealed interface KlageTilAttestering : Klage, KlageTilAttesteringFelter {
         }
 
         override fun lagBrevRequest(
-            hentNavnForNavIdent: (saksbehandler: NavIdentBruker.Saksbehandler) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
+            hentNavnForNavIdent: (saksbehandler: NavIdentBruker) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
             hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
             hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
             clock: Clock,
@@ -103,7 +103,7 @@ sealed interface KlageTilAttestering : Klage, KlageTilAttesteringFelter {
         override fun getFritekstTilBrev() = vurderinger.fritekstTilOversendelsesbrev.right()
 
         override fun lagBrevRequest(
-            hentNavnForNavIdent: (saksbehandler: NavIdentBruker.Saksbehandler) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
+            hentNavnForNavIdent: (saksbehandler: NavIdentBruker) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
             hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
             hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
             clock: Clock,
@@ -116,6 +116,8 @@ sealed interface KlageTilAttestering : Klage, KlageTilAttesteringFelter {
                 saksbehandlerNavn = hentNavnForNavIdent(this.saksbehandler).getOrElse {
                     return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvSaksbehandlernavn(it).left()
                 },
+                attestantNavn = this.attesteringer.prøvHentSisteAttestering()?.attestant?.let { hentNavnForNavIdent(it) }
+                    ?.getOrElse { return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvAttestantnavn(it).left() },
                 fritekst = this.vurderinger.fritekstTilOversendelsesbrev,
                 saksnummer = this.saksnummer,
                 klageDato = this.datoKlageMottatt,
