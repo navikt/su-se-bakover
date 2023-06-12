@@ -6,6 +6,7 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandling
 import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
 import no.nav.su.se.bakover.test.enUkeEtterFixedTidspunkt
@@ -64,8 +65,10 @@ internal class SøknadsbehandlingSkattTest {
         @Test
         fun `tilstand beregnet - kan legge til dersom hentet fra før, ellers left`() {
             beregnetSøknadsbehandling(
+                clock = TikkendeKlokke(),
                 eksterneGrunnlag = eksternGrunnlagHentet().copy(
                     skatt = EksterneGrunnlagSkatt.IkkeHentet,
+
                 ),
             ).second.leggTilSkatt(EksterneGrunnlagSkatt.Hentet(nySkattegrunnlag(), null)).shouldBeLeft()
 

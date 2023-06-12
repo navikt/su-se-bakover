@@ -963,8 +963,14 @@ class TestDataHelper(
 
     fun persisterSøknadsbehandlingBeregnetInnvilget(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
+        søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, BeregnetSøknadsbehandling> = { (sak, søknad) ->
+            beregnetSøknadsbehandling(
+                sakOgSøknad = sak to søknad,
+                clock = clock,
+            )
+        },
     ): Pair<Sak, BeregnetSøknadsbehandling.Innvilget> {
-        return persisterSøknadsbehandlingBeregnet(sakOgSøknad).let { (sak, søknadsbehandling) ->
+        return persisterSøknadsbehandlingBeregnet(sakOgSøknad, søknadsbehandling).let { (sak, søknadsbehandling) ->
             sak to søknadsbehandling as BeregnetSøknadsbehandling.Innvilget
         }
     }

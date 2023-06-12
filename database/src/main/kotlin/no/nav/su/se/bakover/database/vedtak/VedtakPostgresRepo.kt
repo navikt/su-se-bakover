@@ -366,7 +366,7 @@ internal class VedtakPostgresRepo(
         val utbetalingId = uuid30OrNull("utbetalingId")
         val beregning: BeregningMedFradragBeregnetMånedsvis? =
             stringOrNull("beregning")?.deserialiserBeregning(
-                satsFactory = satsFactory.gjeldende(opprettet),
+                satsFactory = satsFactory,
                 sakstype = behandling!!.sakstype,
             )
         val simulering = stringOrNull("simulering").deserializeNullableSimulering()

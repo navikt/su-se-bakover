@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.common.extensions.mapFirst
 import no.nav.su.se.bakover.common.extensions.mapSecond
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
-import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -1145,7 +1144,8 @@ fun beregnetSøknadsbehandlingUføre(
 }
 
 fun beregnetSøknadsbehandling(
-    clock: Clock = fixedClock,
+    clock: Clock,
+    beregnetClock: Clock = clock,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
     customGrunnlag: List<Grunnlag> = emptyList(),
@@ -1167,8 +1167,8 @@ fun beregnetSøknadsbehandling(
         ).let { (sak, vilkårsvurdert) ->
         (vilkårsvurdert as VilkårsvurdertSøknadsbehandling.Innvilget).beregn(
             begrunnelse = null,
-            clock = clock,
-            satsFactory = satsFactoryTestPåDato(vilkårsvurdert.opprettet.toLocalDate(zoneIdOslo)),
+            clock = beregnetClock,
+            satsFactory = satsFactoryTest.gjeldende(Tidspunkt.now(beregnetClock)),
             nySaksbehandler = saksbehandler,
             uteståendeAvkortingPåSak = sak.uteståendeAvkortingSkalAvkortes,
         ).getOrFail().let { beregnet ->
