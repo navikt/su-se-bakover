@@ -60,11 +60,11 @@ data class OpprettetRegulering(
 
     init {
         if (reguleringstype == Reguleringstype.AUTOMATISK) {
-            assert(vilkårsvurderinger.vurdering is Vilkårsvurderingsresultat.Innvilget)
+            require(vilkårsvurderinger.vurdering is Vilkårsvurderingsresultat.Innvilget)
         }
-        assert(grunnlagsdataOgVilkårsvurderinger.erVurdert())
-        assert(periode == grunnlagsdataOgVilkårsvurderinger.periode())
-        beregning?.let { assert(periode == beregning.periode) }
+        require(grunnlagsdataOgVilkårsvurderinger.erVurdert())
+        require(periode == grunnlagsdataOgVilkårsvurderinger.periode())
+        beregning?.let { require(periode == beregning.periode) }
     }
 
     fun leggTilFradrag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): OpprettetRegulering =

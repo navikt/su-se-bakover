@@ -28,7 +28,7 @@ internal class Periode_periodisert_Test {
 
     @Test
     fun `må være sortert i stigende rekkefølge`() {
-        shouldThrow<AssertionError> {
+        shouldThrow<IllegalArgumentException> {
             RåSatser(
                 nonEmptyListOf(
                     RåSats(1.mai(2019), "a"),
@@ -40,7 +40,7 @@ internal class Periode_periodisert_Test {
 
     @Test
     fun `kan ikke inneholde duplikater`() {
-        shouldThrow<AssertionError> {
+        shouldThrow<IllegalArgumentException> {
             RåSatser(
                 nonEmptyListOf(
                     RåSats(1.mai(2019), "a"),
@@ -53,7 +53,7 @@ internal class Periode_periodisert_Test {
     @Test
     fun `et element eldre enn tidligsteTilgjengeligeMåned gir exception`() {
         // I dette tilfellet vil vi mangle data for april 2018. Det er ikke ønskelig.
-        shouldThrow<AssertionError> {
+        shouldThrow<IllegalStateException> {
             RåSatser(RåSats(1.mai(2018), "a")).periodisert(april(2018))
         }.message shouldBe "Kan ikke periodisere siden vi mangler data for første ønsket måned: 2018-04. Tidligste måned tilgjengelig er 2018-05"
     }
@@ -61,7 +61,7 @@ internal class Periode_periodisert_Test {
     @Test
     fun `to elementer eldre enn tidligsteTilgjengeligeMåned gir exception`() {
         // I dette tilfellet vil vi mange verdier for april 2018. Det er ikke noe vi ønsker å støtte.
-        shouldThrow<AssertionError> {
+        shouldThrow<IllegalStateException> {
             RåSatser(
                 nonEmptyListOf(
                     RåSats(1.mai(2018), "a"),
@@ -74,7 +74,7 @@ internal class Periode_periodisert_Test {
     @Test
     fun `tre elementer eldre enn tidligsteTilgjengeligeMåned gir exception`() {
         // I dette tilfellet vil vi mange verdier for april 2018. Det er ikke noe vi ønsker å støtte.
-        shouldThrow<AssertionError> {
+        shouldThrow<IllegalStateException> {
             RåSatser(
                 nonEmptyListOf(
                     RåSats(1.mai(2018), "a"),

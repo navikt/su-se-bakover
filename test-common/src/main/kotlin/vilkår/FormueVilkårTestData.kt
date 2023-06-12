@@ -53,9 +53,9 @@ fun formuevilkårUtenEps0Innvilget(
                 grunnlag = formueGrunnlagUtenEps0Innvilget(opprettet, periode, bosituasjon),
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(opprettet),
             ).also {
-                assert(it.vurdering == Vurdering.Innvilget)
-                assert(it.periode == periode)
-                assert(it.opprettet == opprettet)
+                require(it.vurdering == Vurdering.Innvilget)
+                require(it.periode == periode)
+                require(it.opprettet == opprettet)
             },
         ),
     )
@@ -76,9 +76,9 @@ fun formuevilkårMedEps0Innvilget(
                 grunnlag = formueGrunnlagMedEps0Innvilget(opprettet, periode, bosituasjon),
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(opprettet),
             ).also {
-                assert(it.vurdering == Vurdering.Innvilget)
-                assert(it.periode == periode)
-                assert(it.opprettet == opprettet)
+                require(it.vurdering == Vurdering.Innvilget)
+                require(it.periode == periode)
+                require(it.opprettet == opprettet)
             },
         ),
     )
@@ -101,9 +101,9 @@ fun formuevilkårAvslåttPgaBrukersformue(
                 ),
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(opprettet),
             ).also {
-                assert(it.vurdering == Vurdering.Avslag)
-                assert(it.periode == periode)
-                assert(it.opprettet == opprettet)
+                require(it.vurdering == Vurdering.Avslag)
+                require(it.periode == periode)
+                require(it.opprettet == opprettet)
             },
         ),
     )
@@ -124,9 +124,9 @@ fun formuevilkårAvslåttPgaBrukersformue(
                 ),
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).also {
-                assert(it.vurdering == Vurdering.Avslag)
-                assert(it.periode == periode)
-                assert(it.opprettet == opprettet)
+                require(it.vurdering == Vurdering.Avslag)
+                require(it.periode == periode)
+                require(it.opprettet == opprettet)
             },
         ),
     )

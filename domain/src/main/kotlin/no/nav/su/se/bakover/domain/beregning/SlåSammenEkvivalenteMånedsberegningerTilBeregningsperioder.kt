@@ -66,7 +66,7 @@ internal data class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
                     if (it.count() == 1) {
                         // alltid ok dersom det bare er et element i listen
                     } else {
-                        assert(it.count() == 2)
+                        require(it.count() == 2)
                         require(!it.first().periode.overlapper(it.last().periode)) { "Overlappende månedsberegninger" }
                         require(it.first().periode.tilstøter(it.last().periode)) { "Perioder tilstøter ikke" }
                         require(it.first().likehetUtenDato(it.last())) { "Månedsberegninger ex periode er ulike" }

@@ -148,7 +148,7 @@ internal class AttesteringshistorikkTest {
             grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
             kommentar = "kommentar",
         )
-        shouldThrow<AssertionError> {
+        shouldThrow<IllegalStateException> {
             Attesteringshistorikk.empty()
                 .leggTilNyAttestering(attestering1)
                 .leggTilNyAttestering(attestering2)
@@ -170,7 +170,7 @@ internal class AttesteringshistorikkTest {
             grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
             kommentar = "kommentar",
         )
-        shouldThrow<AssertionError> {
+        shouldThrow<IllegalStateException> {
             Attesteringshistorikk.empty()
                 .leggTilNyAttestering(attestering1)
                 .leggTilNyAttestering(attestering2)
@@ -187,7 +187,7 @@ internal class AttesteringshistorikkTest {
             attestant = NavIdentBruker.Attestant(navIdent = "Den andre attestanten som iverksatte (dette skal feile.)"),
             opprettet = fixedTidspunkt.plus(1, ChronoUnit.MICROS),
         )
-        shouldThrow<AssertionError> {
+        shouldThrow<IllegalStateException> {
             Attesteringshistorikk.empty()
                 .leggTilNyAttestering(attestering1)
                 .leggTilNyAttestering(attestering2)

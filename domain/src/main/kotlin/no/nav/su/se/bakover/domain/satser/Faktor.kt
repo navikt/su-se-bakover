@@ -5,7 +5,7 @@ import java.math.BigDecimal
 @JvmInline
 value class Faktor(val value: Double) {
     init {
-        assert(value > 0)
+        require(value > 0)
     }
     fun toBigDecimal(): BigDecimal = value.toBigDecimal()
 

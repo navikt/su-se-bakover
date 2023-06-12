@@ -21,7 +21,7 @@ data class Klageinstanshendelser private constructor(
     }
 
     fun leggTilNyttVedtak(vedtattUtfall: ProsessertKlageinstanshendelse): Klageinstanshendelser {
-        assert(this.all { it.opprettet.instant < vedtattUtfall.opprettet.instant }) {
+        require(this.all { it.opprettet.instant < vedtattUtfall.opprettet.instant }) {
             "Kan ikke legge til ett vedtak som er eldre enn det forrige vedtaket"
         }
 

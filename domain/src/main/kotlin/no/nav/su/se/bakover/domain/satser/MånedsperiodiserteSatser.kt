@@ -23,7 +23,7 @@ import java.time.LocalDate
  * @param tidligsteTilgjengeligeMåned filtrerer vekk alle månedene før dette.
  */
 fun <T> RåSatser<T>.periodisert(tidligsteTilgjengeligeMåned: Måned): Månedssatser<T> {
-    assert(this.any { it.måned <= tidligsteTilgjengeligeMåned }) {
+    check(this.any { it.måned <= tidligsteTilgjengeligeMåned }) {
         "Kan ikke periodisere siden vi mangler data for første ønsket måned: $tidligsteTilgjengeligeMåned. Tidligste måned tilgjengelig er ${this.first().måned}"
     }
     if (this.size == 1 || this.all { it.måned < tidligsteTilgjengeligeMåned }) {
@@ -62,7 +62,7 @@ data class RåSatser<T>(
     constructor(sats: RåSats<T>) : this(nonEmptyListOf(sats))
 
     init {
-        assert(this.map { it.virkningstidspunkt }.erSortertOgUtenDuplikater()) {
+        require(this.map { it.virkningstidspunkt }.erSortertOgUtenDuplikater()) {
             // Dersom vi fjerner denne, trenger vi et konsept om kunngjøringsdato eller en form for siste element har presedens over første.
             "Datoene må være sortert i stigende rekkefølge og uten duplikater: ${this.map { it.virkningstidspunkt }}"
         }
@@ -76,7 +76,7 @@ data class RåSats<T>(
     val måned = Måned.fra(virkningstidspunkt)
 
     init {
-        assert(virkningstidspunkt.erFørsteDagIMåned()) { "Kan kun periodisere datoer hvor virkningstidspunkt er første dag i måneden." }
+        require(virkningstidspunkt.erFørsteDagIMåned()) { "Kan kun periodisere datoer hvor virkningstidspunkt er første dag i måneden." }
     }
 }
 
@@ -90,7 +90,7 @@ data class Månedssatser<T>(
 
     init {
         satser.map { it.måned }.let {
-            assert(it.erSammenhengendeSortertOgUtenDuplikater()) {
+            require(it.erSammenhengendeSortertOgUtenDuplikater()) {
                 "Kunne ikke periodisere. Sammenhengende: ${it.erSammenhengende()}, duplikate: ${it.harDuplikater()}, sortert: ${it.erSortert()}"
             }
         }
@@ -103,7 +103,7 @@ data class Månedssats<T>(
     val verdi: T,
 ) {
     init {
-        assert(virkningstidspunkt.erFørsteDagIMåned()) { "Kan kun periodisere datoer hvor virkningstidspunkt er første dag i måneden." }
-        assert(måned >= Måned.fra(virkningstidspunkt))
+        require(virkningstidspunkt.erFørsteDagIMåned()) { "Kan kun periodisere datoer hvor virkningstidspunkt er første dag i måneden." }
+        require(måned >= Måned.fra(virkningstidspunkt))
     }
 }
