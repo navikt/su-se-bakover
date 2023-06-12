@@ -5,6 +5,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeTypeOf
+import no.nav.su.se.bakover.common.extensions.juni
+import no.nav.su.se.bakover.common.extensions.mai
 import no.nav.su.se.bakover.common.infrastructure.persistence.antall
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -25,10 +27,13 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbeh
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.attesteringIverksatt
+import no.nav.su.se.bakover.test.beregnetSøknadsbehandling
 import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
 import no.nav.su.se.bakover.test.enUkeEtterFixedClock
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
@@ -253,6 +258,31 @@ internal class SøknadsbehandlingPostgresRepoTest {
     }
 
     @Nested
+    inner class Beregnet {
+        @Test
+        fun `persistert og hentet beregning er lik - selvom behandlingen er startet før satsendring`() {
+            withMigratedDb { dataSource ->
+                val klokkeFørBeregning = TikkendeKlokke(fixedClockAt(1.mai(2021)))
+                val klokkeUnderBeregning = TikkendeKlokke(fixedClockAt(1.juni(2021)))
+                val testDataHelper = TestDataHelper(dataSource)
+                val repo = testDataHelper.søknadsbehandlingRepo
+                val tilAttestering = testDataHelper.persisterSøknadsbehandlingBeregnetInnvilget(
+
+                    sakOgSøknad = testDataHelper.persisterJournalførtSøknadMedOppgave(),
+                    søknadsbehandling = { (sak, søknad) ->
+                        beregnetSøknadsbehandling(
+                            clock = klokkeFørBeregning,
+                            beregnetClock = klokkeUnderBeregning,
+                            sakOgSøknad = sak to søknad,
+                        )
+                    },
+                ).second
+                repo.hent(tilAttestering.id) shouldBe tilAttestering
+            }
+        }
+    }
+
+    @Nested
     inner class TilAttestering {
         @Test
         fun `til attestering innvilget`() {
@@ -435,7 +465,10 @@ internal class SøknadsbehandlingPostgresRepoTest {
             )
 
             val (sakOppdatertMedSøknad, iverksattAvslagUtenBeregning, _) = testDataHelper.persisterIverksattSøknadsbehandlingAvslag(
-                sakOgSøknad = Pair(sak, testDataHelper.persisterJournalførtSøknadMedOppgave(sakId = sak.id, fnr = sak.fnr).second),
+                sakOgSøknad = Pair(
+                    sak,
+                    testDataHelper.persisterJournalførtSøknadMedOppgave(sakId = sak.id, fnr = sak.fnr).second,
+                ),
             ) { (sak, søknad) ->
                 iverksattSøknadsbehandlingUføre(
                     clock = testDataHelper.clock,
@@ -487,7 +520,10 @@ internal class SøknadsbehandlingPostgresRepoTest {
             val uteståendeAvkorting = sak.uteståendeAvkorting as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes
 
             val (sakOppdatertMedSøknad, iverksattSøknadsbehandlingVedtak, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
-                sakOgSøknad = Pair(sak, testDataHelper.persisterJournalførtSøknadMedOppgave(sakId = sak.id, fnr = sak.fnr).second),
+                sakOgSøknad = Pair(
+                    sak,
+                    testDataHelper.persisterJournalførtSøknadMedOppgave(sakId = sak.id, fnr = sak.fnr).second,
+                ),
             ) { (sak, søknad) ->
                 iverksattSøknadsbehandlingUføre(
                     clock = testDataHelper.clock,

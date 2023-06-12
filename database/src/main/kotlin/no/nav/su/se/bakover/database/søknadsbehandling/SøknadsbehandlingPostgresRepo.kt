@@ -528,7 +528,7 @@ internal class SøknadsbehandlingPostgresRepo(
         val oppgaveId = OppgaveId(string("oppgaveId"))
         val sakstype = Sakstype.from(string("type"))
         val beregning: BeregningMedFradragBeregnetMånedsvis? = stringOrNull("beregning")?.deserialiserBeregning(
-            satsFactory = satsFactory.gjeldende(opprettet),
+            satsFactory = satsFactory,
             sakstype = sakstype,
         )
         val simulering = stringOrNull("simulering").deserializeNullableSimulering()

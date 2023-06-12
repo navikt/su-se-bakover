@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.satser.Satskategori
+import org.slf4j.LoggerFactory
 
 internal data class PersistertMånedsberegning(
     val sumYtelse: Int,
@@ -21,6 +22,8 @@ internal data class PersistertMånedsberegning(
     val fribeløpForEps: Double,
     val merknader: List<PersistertMerknad.Beregning> = emptyList(),
 ) {
+    private val log = LoggerFactory.getLogger(this::class.java)
+
     fun toMånedsberegning(satsFactory: SatsFactory, sakstype: Sakstype): BeregningForMåned {
         val måned = periode.tilMåned()
         return BeregningForMåned(
@@ -35,16 +38,22 @@ internal data class PersistertMånedsberegning(
                         check(sats == it.satskategori)
                     }
                 }
+
                 Sakstype.UFØRE -> {
                     satsFactory.forSatskategoriUføre(
                         måned = måned,
                         satskategori = sats,
                     ).also {
-                        check(benyttetGrunnbeløp == it.grunnbeløp.grunnbeløpPerÅr) {
-                            "Hentet benyttetGrunnbeløp: $benyttetGrunnbeløp fra databasen, mens den utleda verdien for grunnbeløp var: ${it.grunnbeløp.grunnbeløpPerÅr}"
+                        // TODO jah: Disse skulle egentlig være checks, men siden vi har beregninger med satser i prod får vi prøve finne og fikse dem etterhvert som de dukker opp.
+                        if (benyttetGrunnbeløp == it.grunnbeløp.grunnbeløpPerÅr) {
+                            log.error("Hentet benyttetGrunnbeløp: $benyttetGrunnbeløp fra databasen, mens den utleda verdien for grunnbeløp var: ${it.grunnbeløp.grunnbeløpPerÅr}")
                         }
-                        check(satsbeløp == it.satsForMånedAsDouble)
-                        check(sats == it.satskategori)
+                        if (satsbeløp == it.satsForMånedAsDouble) {
+                            log.error("Hentet satsbeløp $satsbeløp fra databasen, mens den utleda verdien for satsForMånedAsDouble var: ${it.satsForMånedAsDouble}")
+                        }
+                        require(sats == it.satskategori) {
+                            "Hentet sats $sats fra databasen, mens den utleda verdien for satskategori var: ${it.satskategori}"
+                        }
                     }
                 }
             },
