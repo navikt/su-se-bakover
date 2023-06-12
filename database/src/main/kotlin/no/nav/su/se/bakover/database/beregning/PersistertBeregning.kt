@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import java.util.UUID
@@ -25,7 +26,7 @@ private data class PersistertBeregning(
     val periode: PeriodeJson,
     val begrunnelse: String?,
 ) {
-    fun toBeregning(satsFactory: SatsFactoryForSupplerendeStønad, sakstype: Sakstype): BeregningMedFradragBeregnetMånedsvis {
+    fun toBeregning(satsFactory: SatsFactoryForSupplerendeStønad, sakstype: Sakstype, saksnummer: Saksnummer): BeregningMedFradragBeregnetMånedsvis {
         return BeregningMedFradragBeregnetMånedsvis(
             id = id,
             opprettet = opprettet,
@@ -38,14 +39,19 @@ private data class PersistertBeregning(
                 it.toMånedsberegning(
                     satsFactory = satsFactory.gjeldende(opprettet),
                     sakstype = sakstype,
+                    saksnummer = saksnummer,
                 )
             }.toNonEmptyList(),
         )
     }
 }
 
-internal fun String.deserialiserBeregning(satsFactory: SatsFactoryForSupplerendeStønad, sakstype: Sakstype): BeregningMedFradragBeregnetMånedsvis {
-    return deserialize<PersistertBeregning>(this).toBeregning(satsFactory, sakstype)
+internal fun String.deserialiserBeregning(
+    satsFactory: SatsFactoryForSupplerendeStønad,
+    sakstype: Sakstype,
+    saksnummer: Saksnummer,
+): BeregningMedFradragBeregnetMånedsvis {
+    return deserialize<PersistertBeregning>(this).toBeregning(satsFactory, sakstype, saksnummer)
 }
 
 /** Serialiserer til json-struktur til persistering */

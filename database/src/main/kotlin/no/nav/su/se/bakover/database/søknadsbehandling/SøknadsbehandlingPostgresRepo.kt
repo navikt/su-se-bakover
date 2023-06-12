@@ -527,16 +527,18 @@ internal class SøknadsbehandlingPostgresRepo(
         val status = SøknadsbehandlingStatusDB.valueOf(string("status"))
         val oppgaveId = OppgaveId(string("oppgaveId"))
         val sakstype = Sakstype.from(string("type"))
+        val saksnummer = Saksnummer(long("saksnummer"))
         val beregning: BeregningMedFradragBeregnetMånedsvis? = stringOrNull("beregning")?.deserialiserBeregning(
             satsFactory = satsFactory,
             sakstype = sakstype,
+            saksnummer = saksnummer,
         )
         val simulering = stringOrNull("simulering").deserializeNullableSimulering()
         val attesteringer = Attesteringshistorikk.create(deserializeList((string("attestering"))))
         val søknadsbehandlingHistorikk =
             SøknadsbehandlingshistorikkJson.toSøknadsbehandlingsHistorikk(string("saksbehandling"))
         val saksbehandler = NavIdentBruker.Saksbehandler(string("saksbehandler"))
-        val saksnummer = Saksnummer(long("saksnummer"))
+
         val fritekstTilBrev = stringOrNull("fritekstTilBrev") ?: ""
         val stønadsperiode = deserializeNullable<Stønadsperiode>(stringOrNull("stønadsperiode"))
 

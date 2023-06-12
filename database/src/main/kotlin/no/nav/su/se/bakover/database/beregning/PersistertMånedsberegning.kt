@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.infrastructure.MånedJson.Companion.toJson
 import no.nav.su.se.bakover.domain.beregning.BeregningForMåned
 import no.nav.su.se.bakover.domain.beregning.Merknader
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.satser.Satskategori
@@ -24,7 +25,7 @@ internal data class PersistertMånedsberegning(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    fun toMånedsberegning(satsFactory: SatsFactory, sakstype: Sakstype): BeregningForMåned {
+    fun toMånedsberegning(satsFactory: SatsFactory, sakstype: Sakstype, saksnummer: Saksnummer): BeregningForMåned {
         val måned = periode.tilMåned()
         return BeregningForMåned(
             måned = måned,
@@ -45,11 +46,17 @@ internal data class PersistertMånedsberegning(
                         satskategori = sats,
                     ).also {
                         // TODO jah: Disse skulle egentlig være checks, men siden vi har beregninger med satser i prod får vi prøve finne og fikse dem etterhvert som de dukker opp.
-                        if (benyttetGrunnbeløp == it.grunnbeløp.grunnbeløpPerÅr) {
-                            log.error("Hentet benyttetGrunnbeløp: $benyttetGrunnbeløp fra databasen, mens den utleda verdien for grunnbeløp var: ${it.grunnbeløp.grunnbeløpPerÅr}")
+                        if (benyttetGrunnbeløp != it.grunnbeløp.grunnbeløpPerÅr) {
+                            log.warn(
+                                "Saksnummer $saksnummer: Hentet benyttetGrunnbeløp: $benyttetGrunnbeløp fra databasen, mens den utleda verdien for grunnbeløp var: ${it.grunnbeløp.grunnbeløpPerÅr}",
+                                RuntimeException("Genererer en stacktrace for enklere debugging."),
+                            )
                         }
-                        if (satsbeløp == it.satsForMånedAsDouble) {
-                            log.error("Hentet satsbeløp $satsbeløp fra databasen, mens den utleda verdien for satsForMånedAsDouble var: ${it.satsForMånedAsDouble}")
+                        if (satsbeløp != it.satsForMånedAsDouble) {
+                            log.warn(
+                                "Saksnummer $saksnummer: Hentet satsbeløp $satsbeløp fra databasen, mens den utleda verdien for satsForMånedAsDouble var: ${it.satsForMånedAsDouble}",
+                                RuntimeException("Genererer en stacktrace for enklere debugging."),
+                            )
                         }
                         require(sats == it.satskategori) {
                             "Hentet sats $sats fra databasen, mens den utleda verdien for satskategori var: ${it.satskategori}"

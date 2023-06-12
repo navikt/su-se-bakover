@@ -564,6 +564,7 @@ internal class RevurderingPostgresRepo(
         val beregning: BeregningMedFradragBeregnetMånedsvis? = stringOrNull("beregning")?.deserialiserBeregning(
             satsFactory = satsFactory,
             sakstype = sakinfo.type,
+            saksnummer = sakinfo.saksnummer,
         )
         val simulering = stringOrNull("simulering").deserializeNullableSimulering()
         val saksbehandler = string("saksbehandler")

@@ -267,6 +267,7 @@ internal class ReguleringPostgresRepo(
         val beregning: BeregningMedFradragBeregnetMånedsvis? = stringOrNull("beregning")?.deserialiserBeregning(
             satsFactory = satsFactory,
             sakstype = sakstype,
+            saksnummer = saksnummer,
         )
         val simulering = stringOrNull("simulering").deserializeNullableSimulering()
         val saksbehandler = NavIdentBruker.Saksbehandler(string("saksbehandler"))
