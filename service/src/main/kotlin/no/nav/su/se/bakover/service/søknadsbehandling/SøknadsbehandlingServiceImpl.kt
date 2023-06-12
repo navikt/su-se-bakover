@@ -473,7 +473,7 @@ class SøknadsbehandlingServiceImpl(
          * Vi ønsker gradvis å gå over til sistenevnte måte å gjøre det på.
          */
         val oppdatertBehandling =
-            behandling.leggTilFradragsgrunnlagFraSaksbehandler(saksbehandler, request.fradragsgrunnlag, clock)
+            behandling.oppdaterFradragsgrunnlagForSaksbehandler(saksbehandler, request.fradragsgrunnlag, clock)
                 .getOrElse {
                     return it.toService().left()
                 }

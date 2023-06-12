@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeIverksetteGjenopptakAvYtelse
@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeLageAvsluttet
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakInfo
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 
 sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
@@ -58,8 +57,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
         override val opprettet: Tidspunkt = underliggendeStansAvYtelse.opprettet
         override val oppdatert: Tidspunkt = underliggendeStansAvYtelse.oppdatert
         override val periode: Periode = underliggendeStansAvYtelse.periode
-        override val grunnlagsdata: Grunnlagsdata = underliggendeStansAvYtelse.grunnlagsdata
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering = underliggendeStansAvYtelse.vilkårsvurderinger
+        override val grunnlagsdataOgVilkårsvurderinger = underliggendeStansAvYtelse.grunnlagsdataOgVilkårsvurderinger
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt.IkkeSendBrev =
             underliggendeStansAvYtelse.brevvalgRevurdering
         override val saksbehandler: NavIdentBruker.Saksbehandler = underliggendeStansAvYtelse.saksbehandler
@@ -99,8 +97,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
         override val opprettet: Tidspunkt,
         override val oppdatert: Tidspunkt,
         override val periode: Periode,
-        override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering,
         override val tilRevurdering: UUID,
         override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
@@ -126,8 +123,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
                 opprettet = opprettet,
                 oppdatert = oppdatert,
                 periode = periode,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 tilRevurdering = tilRevurdering,
                 vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 saksbehandler = saksbehandler,
@@ -144,8 +140,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
         override val opprettet: Tidspunkt,
         override val oppdatert: Tidspunkt,
         override val periode: Periode,
-        override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering,
         override val tilRevurdering: UUID,
         override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         override val saksbehandler: NavIdentBruker.Saksbehandler,

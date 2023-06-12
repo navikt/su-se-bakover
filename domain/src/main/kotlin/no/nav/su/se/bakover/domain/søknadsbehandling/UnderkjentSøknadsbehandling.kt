@@ -17,11 +17,9 @@ import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.toAvslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.inneholderUfullstendigeBosituasjoner
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -32,7 +30,6 @@ import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import java.time.Clock
 import java.util.UUID
@@ -76,9 +73,7 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling, Søknadsbehandli
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val fritekstTilBrev: String,
         override val aldersvurdering: Aldersvurdering,
-        override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
-        override val eksterneGrunnlag: EksterneGrunnlag,
+        override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
         override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting,
         override val sakstype: Sakstype,
     ) : UnderkjentSøknadsbehandling() {
@@ -102,9 +97,8 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling, Søknadsbehandli
         ): Innvilget {
             return copy(
                 aldersvurdering = aldersvurdering,
-                grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
-                vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
-                eksterneGrunnlag = grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
                 søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
             )
         }
@@ -149,9 +143,8 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling, Søknadsbehandli
                     simulering = simulering,
                     fritekstTilBrev = fritekstTilBrev,
                     aldersvurdering = aldersvurdering,
-                    grunnlagsdata = grunnlagsdata,
-                    vilkårsvurderinger = vilkårsvurderinger,
-                    eksterneGrunnlag = eksterneGrunnlag,
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
                     attesteringer = attesteringer,
                     søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk.leggTilNyHendelse(
                         saksbehandlingsHendelse = Søknadsbehandlingshendelse(
@@ -193,9 +186,8 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling, Søknadsbehandli
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = fritekstTilBrev,
                 aldersvurdering = aldersvurdering,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                eksterneGrunnlag = eksterneGrunnlag,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk.leggTilNyHendelse(
                     saksbehandlingsHendelse = Søknadsbehandlingshendelse(
@@ -228,9 +220,7 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling, Søknadsbehandli
             override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
             override val fritekstTilBrev: String,
             override val aldersvurdering: Aldersvurdering,
-            override val grunnlagsdata: Grunnlagsdata,
-            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
-            override val eksterneGrunnlag: EksterneGrunnlag,
+            override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             override val sakstype: Sakstype,
         ) : Avslag() {
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
@@ -259,9 +249,8 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling, Søknadsbehandli
             ): MedBeregning {
                 return copy(
                     aldersvurdering = aldersvurdering,
-                    grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
-                    vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
-                    eksterneGrunnlag = grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag,
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
                     søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
                 )
             }
@@ -293,9 +282,8 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling, Søknadsbehandli
                     saksbehandler = saksbehandler,
                     fritekstTilBrev = fritekstTilBrev,
                     aldersvurdering = aldersvurdering,
-                    grunnlagsdata = grunnlagsdata,
-                    vilkårsvurderinger = vilkårsvurderinger,
-                    eksterneGrunnlag = eksterneGrunnlag,
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
                     attesteringer = attesteringer,
                     søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk.leggTilNyHendelse(
                         saksbehandlingsHendelse = Søknadsbehandlingshendelse(
@@ -329,9 +317,7 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling, Søknadsbehandli
             override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
             override val fritekstTilBrev: String,
             override val aldersvurdering: Aldersvurdering,
-            override val grunnlagsdata: Grunnlagsdata,
-            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
-            override val eksterneGrunnlag: EksterneGrunnlag,
+            override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             override val sakstype: Sakstype,
         ) : Avslag() {
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
@@ -346,9 +332,8 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling, Søknadsbehandli
             ): UtenBeregning {
                 return copy(
                     aldersvurdering = aldersvurdering,
-                    grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
-                    vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
-                    eksterneGrunnlag = grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag,
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
                     søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
                 )
             }
@@ -389,9 +374,8 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling, Søknadsbehandli
                     saksbehandler = saksbehandler,
                     fritekstTilBrev = fritekstTilBrev,
                     aldersvurdering = aldersvurdering,
-                    grunnlagsdata = grunnlagsdata,
-                    vilkårsvurderinger = vilkårsvurderinger,
-                    eksterneGrunnlag = eksterneGrunnlag,
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
                     attesteringer = attesteringer,
                     søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk.leggTilNyHendelse(
                         saksbehandlingsHendelse = Søknadsbehandlingshendelse(

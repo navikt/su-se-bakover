@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -61,8 +62,10 @@ internal class StansAvYtelsePostgresRepoTest {
                 id = simulertRevurdering.id,
                 opprettet = simulertRevurdering.opprettet,
                 periode = mai(2021),
-                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(mai(2021)),
-                vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(periode = mai(2021)),
+                grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+                    grunnlagsdata = grunnlagsdataEnsligUtenFradrag(mai(2021)),
+                    vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(periode = mai(2021)),
+                ),
                 tilRevurdering = vedtak.id,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksern"),
                 simulering = simulering().copy(

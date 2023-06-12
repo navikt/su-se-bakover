@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perio
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
+import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
@@ -31,8 +32,12 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
     }
 
     fun erVurdert(): Boolean = vilkårsvurderinger.erVurdert && grunnlagsdata.erUtfylt
+    fun harVurdertOpplysningsplikt(): Boolean = vilkårsvurderinger.opplysningsplikt is OpplysningspliktVilkår.Vurdert
 
     abstract fun leggTil(vilkår: Vilkår): GrunnlagsdataOgVilkårsvurderinger
+
+    abstract fun oppdaterGrunnlagsdata(grunnlagsdata: Grunnlagsdata): GrunnlagsdataOgVilkårsvurderinger
+    abstract fun oppdaterVilkårsvurderinger(vilkårsvurderinger: Vilkårsvurderinger): GrunnlagsdataOgVilkårsvurderinger
 
     /**
      * Erstatter eksisterende fradragsgrunnlag med nye.
@@ -125,6 +130,8 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
     }
 
     abstract fun fjernAvkortingsfradrag(): GrunnlagsdataOgVilkårsvurderinger
+    abstract fun oppdaterEksterneGrunnlag(eksternGrunnlag: EksterneGrunnlag): GrunnlagsdataOgVilkårsvurderinger
+    abstract fun oppdaterOpplysningsplikt(opplysningspliktVilkår: OpplysningspliktVilkår): GrunnlagsdataOgVilkårsvurderinger
 
     data class Søknadsbehandling(
         override val grunnlagsdata: Grunnlagsdata,
@@ -133,6 +140,15 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
     ) : GrunnlagsdataOgVilkårsvurderinger() {
         override fun leggTil(vilkår: Vilkår): Søknadsbehandling {
             return copy(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår))
+        }
+
+        override fun oppdaterGrunnlagsdata(grunnlagsdata: Grunnlagsdata): Søknadsbehandling {
+            return copy(grunnlagsdata = grunnlagsdata)
+        }
+
+        override fun oppdaterVilkårsvurderinger(vilkårsvurderinger: Vilkårsvurderinger): Søknadsbehandling {
+            // TODO jah: Dersom vi skal slippe cast, må vi utvide GrunnlagsdataOgVilkårsvurderinger med en generisk type for vilkårsvurderinger
+            return copy(vilkårsvurderinger = vilkårsvurderinger as Vilkårsvurderinger.Søknadsbehandling)
         }
 
         override fun oppdaterFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Søknadsbehandling {
@@ -146,6 +162,18 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
 
         override fun fjernAvkortingsfradrag(): Søknadsbehandling {
             return oppdaterFradragsgrunnlag(grunnlagsdata.fradragsgrunnlag.filterNot { it.fradrag.fradragstype == Fradragstype.AvkortingUtenlandsopphold })
+        }
+
+        override fun oppdaterEksterneGrunnlag(eksternGrunnlag: EksterneGrunnlag): Søknadsbehandling {
+            return this.copy(eksterneGrunnlag = eksternGrunnlag)
+        }
+
+        override fun oppdaterOpplysningsplikt(opplysningspliktVilkår: OpplysningspliktVilkår): Søknadsbehandling {
+            return this.copy(
+                vilkårsvurderinger = vilkårsvurderinger.leggTil(
+                    vilkår = opplysningspliktVilkår,
+                ),
+            )
         }
 
         override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Søknadsbehandling {
@@ -243,12 +271,33 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
             return copy(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår))
         }
 
+        override fun oppdaterGrunnlagsdata(grunnlagsdata: Grunnlagsdata): Revurdering {
+            return copy(grunnlagsdata = grunnlagsdata)
+        }
+
+        override fun oppdaterVilkårsvurderinger(vilkårsvurderinger: Vilkårsvurderinger): Revurdering {
+            // TODO jah: Dersom vi skal slippe cast, må vi utvide GrunnlagsdataOgVilkårsvurderinger med en generisk type for vilkårsvurderinger
+            return copy(vilkårsvurderinger = vilkårsvurderinger as Vilkårsvurderinger.Revurdering)
+        }
+
         override fun oppdaterFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Revurdering {
             return copy(grunnlagsdata = grunnlagsdata.copy(fradragsgrunnlag = fradragsgrunnlag))
         }
 
         override fun fjernAvkortingsfradrag(): Revurdering {
             return oppdaterFradragsgrunnlag(grunnlagsdata.fradragsgrunnlag.filterNot { it.fradrag.fradragstype == Fradragstype.AvkortingUtenlandsopphold })
+        }
+
+        override fun oppdaterEksterneGrunnlag(eksternGrunnlag: EksterneGrunnlag): Revurdering {
+            throw UnsupportedOperationException("Støtter ikke å legge til eksterne grunnlag for revurdering")
+        }
+
+        override fun oppdaterOpplysningsplikt(opplysningspliktVilkår: OpplysningspliktVilkår): Revurdering {
+            return this.copy(
+                vilkårsvurderinger = vilkårsvurderinger.leggTil(
+                    vilkår = opplysningspliktVilkår,
+                ),
+            )
         }
 
         override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Revurdering =

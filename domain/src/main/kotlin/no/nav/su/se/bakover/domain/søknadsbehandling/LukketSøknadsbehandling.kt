@@ -20,9 +20,7 @@ data class LukketSøknadsbehandling private constructor(
 ) : Søknadsbehandling {
     override val aldersvurdering: Aldersvurdering? = underliggendeSøknadsbehandling.aldersvurdering
     override val stønadsperiode: Stønadsperiode? get() = aldersvurdering?.stønadsperiode
-    override val grunnlagsdata = underliggendeSøknadsbehandling.grunnlagsdata
-    override val vilkårsvurderinger = underliggendeSøknadsbehandling.vilkårsvurderinger
-    override val eksterneGrunnlag = underliggendeSøknadsbehandling.eksterneGrunnlag
+    override val grunnlagsdataOgVilkårsvurderinger = underliggendeSøknadsbehandling.grunnlagsdataOgVilkårsvurderinger
     override val attesteringer = underliggendeSøknadsbehandling.attesteringer
     override val fritekstTilBrev = underliggendeSøknadsbehandling.fritekstTilBrev
     override val oppgaveId = underliggendeSøknadsbehandling.oppgaveId

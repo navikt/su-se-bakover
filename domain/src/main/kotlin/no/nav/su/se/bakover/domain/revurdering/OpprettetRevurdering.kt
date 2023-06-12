@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
@@ -29,7 +29,6 @@ import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
 import java.util.UUID
 
@@ -42,8 +41,7 @@ data class OpprettetRevurdering(
     override val saksbehandler: NavIdentBruker.Saksbehandler,
     override val oppgaveId: OppgaveId,
     override val revurderingsårsak: Revurderingsårsak,
-    override val grunnlagsdata: Grunnlagsdata,
-    override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+    override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering,
     override val informasjonSomRevurderes: InformasjonSomRevurderes,
     override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
     override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
@@ -140,8 +138,7 @@ data class OpprettetRevurdering(
         clock: Clock,
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
-        grunnlagsdata: Grunnlagsdata,
-        vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering,
         informasjonSomRevurderes: InformasjonSomRevurderes,
         vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         tilRevurdering: UUID,
@@ -152,8 +149,7 @@ data class OpprettetRevurdering(
             clock = clock,
             periode = periode,
             revurderingsårsak = revurderingsårsak,
-            grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger,
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
             vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
             tilRevurdering = tilRevurdering,

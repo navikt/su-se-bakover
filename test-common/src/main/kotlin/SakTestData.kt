@@ -42,10 +42,7 @@ fun Sak.hentGjeldendeVilkårOgGrunnlag(
             )
         },
         {
-            GrunnlagsdataOgVilkårsvurderinger.Revurdering(
-                grunnlagsdata = it.grunnlagsdata,
-                vilkårsvurderinger = it.vilkårsvurderinger,
-            )
+            it.grunnlagsdataOgVilkårsvurderinger
         },
     )
 }

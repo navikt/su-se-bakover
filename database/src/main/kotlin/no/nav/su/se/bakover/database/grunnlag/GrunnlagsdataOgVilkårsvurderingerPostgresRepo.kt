@@ -163,6 +163,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
             GrunnlagsdataOgVilkårsvurderinger.Revurdering(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
+                // TODO jah: Må håndtere eksterneGrunnlag for revurdering hvis vi implementerer det.
             )
         }
     }

@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.sak.SakInfo
@@ -25,14 +26,16 @@ interface Behandling {
     val saksnummer: Saksnummer
     val fnr: Fnr
     val periode: Periode
-    val grunnlagsdata: Grunnlagsdata
-    val vilkårsvurderinger: Vilkårsvurderinger
-    val eksterneGrunnlag: EksterneGrunnlag
+    val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger
+
     val sakstype: Sakstype
 
     val beregning: Beregning?
     val simulering: Simulering?
 
+    val grunnlagsdata: Grunnlagsdata get() = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata
+    val vilkårsvurderinger: Vilkårsvurderinger get() = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
+    val eksterneGrunnlag: EksterneGrunnlag get() = grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag
     fun sakinfo(): SakInfo {
         return SakInfo(
             sakId = sakId,

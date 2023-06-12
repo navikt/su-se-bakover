@@ -17,8 +17,7 @@ import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
 
-fun Regulering.inneholderAvslag(): Boolean =
-    this.grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.vurdering is Vilkårsvurderingsresultat.Avslag
+fun Regulering.inneholderAvslag(): Boolean = this.vilkårsvurderinger.vurdering is Vilkårsvurderingsresultat.Avslag
 
 sealed interface Regulering : Reguleringsfelter {
 

@@ -13,11 +13,9 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.MedSaksbehandlerHistorikk
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.perioder
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.sak.Sakstype
@@ -55,13 +53,12 @@ sealed interface Søknadsbehandling :
 
     val aldersvurdering: Aldersvurdering?
     val stønadsperiode: Stønadsperiode?
-    abstract override val grunnlagsdata: Grunnlagsdata
-    abstract override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling
-    abstract override val eksterneGrunnlag: EksterneGrunnlag
-    abstract override val attesteringer: Attesteringshistorikk
+    override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling
+    override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling get() = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
+    override val attesteringer: Attesteringshistorikk
     val avkorting: AvkortingVedSøknadsbehandling
 
-    abstract override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk
+    override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk
 
     // TODO ia: fritekst bør flyttes ut av denne klassen og til et eget konsept (som også omfatter fritekst på revurderinger)
     val fritekstTilBrev: String
@@ -70,19 +67,12 @@ sealed interface Søknadsbehandling :
     val erLukket: Boolean get() = this is LukketSøknadsbehandling
 
     val saksbehandler: NavIdentBruker.Saksbehandler
-    abstract override val beregning: Beregning?
-    abstract override val simulering: Simulering?
+    override val beregning: Beregning?
+    override val simulering: Simulering?
 
     fun erÅpen(): Boolean {
         return !(erIverksatt || erLukket)
     }
-
-    val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling
-        get() = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
-            grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger,
-            eksterneGrunnlag = eksterneGrunnlag,
-        )
 
     /**
      * *protected* skal kun kalles fra typer som arver [Søknadsbehandling]
@@ -106,10 +96,7 @@ sealed interface Søknadsbehandling :
         lukkSøknadCommand = lukkSøknadCommand,
     )
 
-    /**
-     * TODO jah: Den skal egentlig være private. Flytt ut av interfacet eller noe annet.
-     */
-    fun validerFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Unit> {
+    private fun validerFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Unit> {
         if (fradragsgrunnlag.isNotEmpty()) {
             if (!periode.inneholder(fradragsgrunnlag.perioder())) {
                 return KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden.left()
@@ -118,25 +105,32 @@ sealed interface Søknadsbehandling :
         return Unit.right()
     }
 
-    fun leggTilFradragsgrunnlagFraSaksbehandler(
+    /**
+     * Oppdaterer fradragsgrunnlag, legger til en ny hendelse og endrer tilstand til [VilkårsvurdertSøknadsbehandling.Innvilget]
+     */
+    fun oppdaterFradragsgrunnlagForSaksbehandler(
         saksbehandler: NavIdentBruker.Saksbehandler,
         fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
         clock: Clock,
     ) = vilkårsvurder(saksbehandler).let {
         when (it) {
-            is KanBeregnes -> leggTilFradragsgrunnlagInternalForSaksbehandler(saksbehandler, fradragsgrunnlag, clock)
+            is KanBeregnes -> oppdaterFradragsgrunnlagInternalForSaksbehandler(saksbehandler, fradragsgrunnlag, clock)
             else -> KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen(
                 this::class,
             ).left()
         }
     }
 
-    private fun leggTilFradragsgrunnlagInternalForSaksbehandler(
+    /**
+     * Oppdaterer fradragsgrunnlag, legger til en ny hendelse og endrer tilstand til [VilkårsvurdertSøknadsbehandling.Innvilget]
+     */
+    private fun oppdaterFradragsgrunnlagInternalForSaksbehandler(
         saksbehandler: NavIdentBruker.Saksbehandler,
         fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
         clock: Clock,
     ) = validerFradragsgrunnlag(fradragsgrunnlag).map {
         copyInternal(
+            // TODO jah: Føles litt rart og oppdatere grunnlagene via. copy, mens selve vilkårsvurderingen (tilstandsendringen) er en egen funksjon. Slå sammen?
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFradragsgrunnlag(
                 fradragsgrunnlag,
             ),

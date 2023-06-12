@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
@@ -64,8 +65,10 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
                 opprettet = fixedTidspunkt,
                 oppdatert = fixedTidspunkt,
                 periode = år(2021),
-                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
-                vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(),
+                grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+                    grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
+                    vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(),
+                ),
                 tilRevurdering = vedtak.id,
                 vedtakSomRevurderesMånedsvis = VedtakSomRevurderesMånedsvis(
                     mapOf(
@@ -88,8 +91,10 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
             val nyInformasjon = simulertRevurdering.copy(
                 oppdatert = enUkeEtterFixedTidspunkt,
                 periode = mai(2021),
-                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(mai(2021)),
-                vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(periode = mai(2021)),
+                grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+                    grunnlagsdata = grunnlagsdataEnsligUtenFradrag(mai(2021)),
+                    vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(periode = mai(2021)),
+                ),
                 tilRevurdering = vedtak.id,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksern"),
                 simulering = simulering().copy(
@@ -116,8 +121,10 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
                 opprettet = fixedTidspunkt,
                 oppdatert = fixedTidspunkt,
                 periode = år(2021),
-                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
-                vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(),
+                grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+                    grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
+                    vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(),
+                ),
                 tilRevurdering = vedtak.id,
                 vedtakSomRevurderesMånedsvis = VedtakSomRevurderesMånedsvis(
                     mapOf(

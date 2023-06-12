@@ -12,11 +12,8 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 
 sealed interface AbstraktRevurdering : Behandling {
-    val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering
-        get() = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
-            grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger,
-        )
+    override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering
+    override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering get() = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
 
     /** TODO jah: Fjern fra domenemodellen? Bør heller bruke [vedtakSomRevurderesMånedsvis]*/
     val tilRevurdering: UUID
@@ -35,7 +32,6 @@ sealed interface AbstraktRevurdering : Behandling {
     override val fnr get() = sakinfo.fnr
     override val sakstype get() = sakinfo.type
 
-    abstract override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
     override val eksterneGrunnlag: EksterneGrunnlag
         get() = StøtterIkkeHentingAvEksternGrunnlag
 

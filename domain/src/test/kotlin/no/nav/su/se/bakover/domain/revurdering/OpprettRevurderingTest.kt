@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.tid.periode.september
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.revurdering.avkorting.KanIkkeRevurderePgaAvkorting
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingCommand
@@ -203,8 +204,10 @@ internal class OpprettRevurderingTest {
                 årsak = Revurderingsårsak.Årsak.DØDSFALL,
                 begrunnelse = Revurderingsårsak.Begrunnelse.create("Oppdaterer med ny årsak. Oppdatert tidspunktet skal være endret, og ikke lik opprettet"),
             ),
-            grunnlagsdata = opprettetRevurdering.grunnlagsdata,
-            vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
+            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+                grunnlagsdata = opprettetRevurdering.grunnlagsdata,
+                vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
+            ),
             informasjonSomRevurderes = opprettetRevurdering.informasjonSomRevurderes,
             vedtakSomRevurderesMånedsvis = opprettetRevurdering.vedtakSomRevurderesMånedsvis,
             tilRevurdering = opprettetRevurdering.tilRevurdering,

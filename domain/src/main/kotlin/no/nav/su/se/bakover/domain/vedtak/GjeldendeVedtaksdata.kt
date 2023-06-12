@@ -37,9 +37,9 @@ data class GjeldendeVedtaksdata(
     private val vedtakListe: NonEmptyList<VedtakSomKanRevurderes>,
     private val clock: Clock,
 ) {
-    val grunnlagsdata: Grunnlagsdata
-    val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering
+    val grunnlagsdata: Grunnlagsdata get() = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata
+    val vilkårsvurderinger: Vilkårsvurderinger.Revurdering get() = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
 
     private val tidslinje: Tidslinje<VedtakPåTidslinje>? = vedtakListe.lagTidslinje().krympTilPeriode(periode)
 
@@ -50,58 +50,56 @@ data class GjeldendeVedtaksdata(
 
     // TODO istedenfor å bruke constructor + init, burde GjeldendeVedtaksdata ha en tryCreate
     init {
-        grunnlagsdata = Grunnlagsdata.create(
-            fradragsgrunnlag = vedtakPåTidslinje.flatMap {
-                it.grunnlagsdata.fradragsgrunnlag
-            }.slåSammenPeriodeOgFradrag(clock),
-            bosituasjon = vedtakPåTidslinje.flatMap {
-                it.grunnlagsdata.bosituasjonSomFullstendig()
-            }.slåSammenPeriodeOgBosituasjon(),
-        )
-        vilkårsvurderinger = vedtakPåTidslinje.let {
-            // TODO("vilkårsvurdering_alder mulig vi må/bør gjøre dette på en annen måte")
-            when {
-                vedtakPåTidslinje.all {
-                    it.vilkårsvurderinger is Vilkårsvurderinger.Søknadsbehandling.Uføre ||
-                        it.vilkårsvurderinger is Vilkårsvurderinger.Revurdering.Uføre
-                } -> {
-                    Vilkårsvurderinger.Revurdering.Uføre(
-                        uføre = it.uføreVilkår(),
-                        lovligOpphold = it.lovligoppholdVilkår(),
-                        formue = it.formueVilkår(),
-                        utenlandsopphold = it.utenlandsoppholdVilkår(),
-                        opplysningsplikt = it.opplysningspliktVilkår(),
-                        flyktning = it.flyktningVilkår(),
-                        fastOpphold = it.fastOppholdINorgeVilkår(),
-                        personligOppmøte = it.personligOppmøteVilkår(),
-                        institusjonsopphold = it.institusjonsoppholdVilkår(),
-                    )
-                }
-
-                vedtakPåTidslinje.all {
-                    it.vilkårsvurderinger is Vilkårsvurderinger.Søknadsbehandling.Alder ||
-                        it.vilkårsvurderinger is Vilkårsvurderinger.Revurdering.Alder
-                } -> {
-                    Vilkårsvurderinger.Revurdering.Alder(
-                        lovligOpphold = it.lovligoppholdVilkår(),
-                        formue = it.formueVilkår(),
-                        utenlandsopphold = it.utenlandsoppholdVilkår(),
-                        opplysningsplikt = it.opplysningspliktVilkår(),
-                        pensjon = it.pensjonsVilkår(),
-                        familiegjenforening = it.familiegjenforeningvilkår(),
-                        fastOpphold = it.fastOppholdINorgeVilkår(),
-                        personligOppmøte = it.personligOppmøteVilkår(),
-                    )
-                }
-
-                else -> {
-                    throw IllegalStateException("Kan ikke hente gjeldende vedtaksdata for blanding av uføre og alder.")
-                }
-            }
-        }
         grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
-            grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger,
+            grunnlagsdata = Grunnlagsdata.create(
+                fradragsgrunnlag = vedtakPåTidslinje.flatMap {
+                    it.grunnlagsdata.fradragsgrunnlag
+                }.slåSammenPeriodeOgFradrag(clock),
+                bosituasjon = vedtakPåTidslinje.flatMap {
+                    it.grunnlagsdata.bosituasjonSomFullstendig()
+                }.slåSammenPeriodeOgBosituasjon(),
+            ),
+            vilkårsvurderinger = vedtakPåTidslinje.let {
+                // TODO("vilkårsvurdering_alder mulig vi må/bør gjøre dette på en annen måte")
+                when {
+                    vedtakPåTidslinje.all {
+                        it.vilkårsvurderinger is Vilkårsvurderinger.Søknadsbehandling.Uføre ||
+                            it.vilkårsvurderinger is Vilkårsvurderinger.Revurdering.Uføre
+                    } -> {
+                        Vilkårsvurderinger.Revurdering.Uføre(
+                            uføre = it.uføreVilkår(),
+                            lovligOpphold = it.lovligoppholdVilkår(),
+                            formue = it.formueVilkår(),
+                            utenlandsopphold = it.utenlandsoppholdVilkår(),
+                            opplysningsplikt = it.opplysningspliktVilkår(),
+                            flyktning = it.flyktningVilkår(),
+                            fastOpphold = it.fastOppholdINorgeVilkår(),
+                            personligOppmøte = it.personligOppmøteVilkår(),
+                            institusjonsopphold = it.institusjonsoppholdVilkår(),
+                        )
+                    }
+
+                    vedtakPåTidslinje.all {
+                        it.vilkårsvurderinger is Vilkårsvurderinger.Søknadsbehandling.Alder ||
+                            it.vilkårsvurderinger is Vilkårsvurderinger.Revurdering.Alder
+                    } -> {
+                        Vilkårsvurderinger.Revurdering.Alder(
+                            lovligOpphold = it.lovligoppholdVilkår(),
+                            formue = it.formueVilkår(),
+                            utenlandsopphold = it.utenlandsoppholdVilkår(),
+                            opplysningsplikt = it.opplysningspliktVilkår(),
+                            pensjon = it.pensjonsVilkår(),
+                            familiegjenforening = it.familiegjenforeningvilkår(),
+                            fastOpphold = it.fastOppholdINorgeVilkår(),
+                            personligOppmøte = it.personligOppmøteVilkår(),
+                        )
+                    }
+
+                    else -> {
+                        throw IllegalStateException("Kan ikke hente gjeldende vedtaksdata for blanding av uføre og alder.")
+                    }
+                }
+            },
         )
     }
 

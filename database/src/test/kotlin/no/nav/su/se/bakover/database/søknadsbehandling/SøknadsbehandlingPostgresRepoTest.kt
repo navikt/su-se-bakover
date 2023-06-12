@@ -617,7 +617,11 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 skattRepo.hent(medEpsEpsId, session) shouldNotBe null
             }
 
-            val utenEps = medEps.copy(eksterneGrunnlag = medEps.eksterneGrunnlag.fjernEps()).also { utenEps ->
+            val utenEps = medEps.copy(
+                grunnlagsdataOgVilkårsvurderinger = medEps.grunnlagsdataOgVilkårsvurderinger.copy(
+                    eksterneGrunnlag = medEps.eksterneGrunnlag.fjernEps(),
+                ),
+            ).also { utenEps ->
                 repo.lagre(utenEps)
 
                 repo.hent(utenEps.id)!!.let {

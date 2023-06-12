@@ -12,10 +12,8 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
-import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.inneholderUfullstendigeBosituasjoner
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
@@ -28,7 +26,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
 import java.time.Clock
@@ -61,37 +58,17 @@ sealed class VilkårsvurdertSøknadsbehandling :
             sakstype: Sakstype,
             saksbehandler: NavIdentBruker.Saksbehandler,
         ): VilkårsvurdertSøknadsbehandling {
-            val grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata
-            val vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
-            val eksterneGrunnlag = grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag
-            val oppdaterteVilkårsvurderinger = vilkårsvurderinger.let {
-                if (vilkårsvurderinger.opplysningspliktVilkår() !is OpplysningspliktVilkår.Vurdert) {
-                    it.leggTil(
+            val oppdaterteGrunnlagsdataOgVilkårsvurderinger =
+                if (!grunnlagsdataOgVilkårsvurderinger.harVurdertOpplysningsplikt()) {
+                    grunnlagsdataOgVilkårsvurderinger.leggTil(
                         /**
                          * Legger til implisitt vilkår for oppfylt opplysningsplikt dersom dette ikke er vurdert fra før.
                          * Tar enn så lenge ikke stilling til dette vilkåret fra frontend ved søknadsbehandling.
                          */
-                        OpplysningspliktVilkår.Vurdert.tryCreate(
-                            vurderingsperioder = nonEmptyListOf(
-                                VurderingsperiodeOpplysningsplikt.create(
-                                    id = UUID.randomUUID(),
-                                    opprettet = opprettet,
-                                    periode = aldersvurdering.stønadsperiode.periode,
-                                    grunnlag = Opplysningspliktgrunnlag(
-                                        id = UUID.randomUUID(),
-                                        opprettet = opprettet,
-                                        periode = aldersvurdering.stønadsperiode.periode,
-                                        beskrivelse = OpplysningspliktBeskrivelse.TilstrekkeligDokumentasjon,
-                                    ),
-                                ),
-                            ),
-                        ).getOrElse { throw IllegalArgumentException(it.toString()) },
+                        lagOpplysningspliktVilkår(opprettet, aldersvurdering),
                     )
-                } else {
-                    it
-                }
-            }
-            return when (oppdaterteVilkårsvurderinger.vurdering) {
+                } else { grunnlagsdataOgVilkårsvurderinger }
+            return when (oppdaterteGrunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.vurdering) {
                 is Vilkårsvurderingsresultat.Avslag -> {
                     Avslag(
                         id = id,
@@ -103,9 +80,7 @@ sealed class VilkårsvurdertSøknadsbehandling :
                         fnr = fnr,
                         fritekstTilBrev = fritekstTilBrev,
                         aldersvurdering = aldersvurdering,
-                        grunnlagsdata = grunnlagsdata,
-                        vilkårsvurderinger = oppdaterteVilkårsvurderinger,
-                        eksterneGrunnlag = eksterneGrunnlag,
+                        grunnlagsdataOgVilkårsvurderinger = oppdaterteGrunnlagsdataOgVilkårsvurderinger,
                         attesteringer = attesteringer,
                         søknadsbehandlingsHistorikk = saksbehandlingsHistorikk,
                         sakstype = sakstype,
@@ -124,9 +99,7 @@ sealed class VilkårsvurdertSøknadsbehandling :
                         fnr = fnr,
                         fritekstTilBrev = fritekstTilBrev,
                         aldersvurdering = aldersvurdering,
-                        grunnlagsdata = grunnlagsdata,
-                        vilkårsvurderinger = oppdaterteVilkårsvurderinger,
-                        eksterneGrunnlag = eksterneGrunnlag,
+                        grunnlagsdataOgVilkårsvurderinger = oppdaterteGrunnlagsdataOgVilkårsvurderinger,
                         attesteringer = attesteringer,
                         søknadsbehandlingsHistorikk = saksbehandlingsHistorikk,
                         sakstype = sakstype,
@@ -145,9 +118,7 @@ sealed class VilkårsvurdertSøknadsbehandling :
                         fnr = fnr,
                         fritekstTilBrev = fritekstTilBrev,
                         aldersvurdering = aldersvurdering,
-                        grunnlagsdata = grunnlagsdata,
-                        vilkårsvurderinger = oppdaterteVilkårsvurderinger,
-                        eksterneGrunnlag = eksterneGrunnlag,
+                        grunnlagsdataOgVilkårsvurderinger = oppdaterteGrunnlagsdataOgVilkårsvurderinger,
                         attesteringer = attesteringer,
                         søknadsbehandlingsHistorikk = saksbehandlingsHistorikk,
                         sakstype = sakstype,
@@ -156,6 +127,25 @@ sealed class VilkårsvurdertSøknadsbehandling :
                 }
             }
         }
+
+        private fun lagOpplysningspliktVilkår(
+            opprettet: Tidspunkt,
+            aldersvurdering: Aldersvurdering,
+        ) = OpplysningspliktVilkår.Vurdert.tryCreate(
+            vurderingsperioder = nonEmptyListOf(
+                VurderingsperiodeOpplysningsplikt.create(
+                    id = UUID.randomUUID(),
+                    opprettet = opprettet,
+                    periode = aldersvurdering.stønadsperiode.periode,
+                    grunnlag = Opplysningspliktgrunnlag(
+                        id = UUID.randomUUID(),
+                        opprettet = opprettet,
+                        periode = aldersvurdering.stønadsperiode.periode,
+                        beskrivelse = OpplysningspliktBeskrivelse.TilstrekkeligDokumentasjon,
+                    ),
+                ),
+            ),
+        ).getOrElse { throw IllegalArgumentException(it.toString()) }
     }
 
     data class Innvilget(
@@ -168,9 +158,7 @@ sealed class VilkårsvurdertSøknadsbehandling :
         override val fnr: Fnr,
         override val fritekstTilBrev: String,
         override val aldersvurdering: Aldersvurdering,
-        override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
-        override val eksterneGrunnlag: EksterneGrunnlag,
+        override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
         override val attesteringer: Attesteringshistorikk,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val sakstype: Sakstype,
@@ -207,9 +195,8 @@ sealed class VilkårsvurdertSøknadsbehandling :
         ): VilkårsvurdertSøknadsbehandling {
             return copy(
                 aldersvurdering = aldersvurdering,
-                grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
-                vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
-                eksterneGrunnlag = grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
                 søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
             )
         }
@@ -225,9 +212,7 @@ sealed class VilkårsvurdertSøknadsbehandling :
         override val fnr: Fnr,
         override val fritekstTilBrev: String,
         override val aldersvurdering: Aldersvurdering,
-        override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
-        override val eksterneGrunnlag: EksterneGrunnlag,
+        override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
         override val attesteringer: Attesteringshistorikk,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val sakstype: Sakstype,
@@ -251,9 +236,8 @@ sealed class VilkårsvurdertSøknadsbehandling :
         ): Avslag {
             return copy(
                 aldersvurdering = aldersvurdering,
-                grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
-                vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
-                eksterneGrunnlag = grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
                 søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
             )
         }
@@ -289,9 +273,8 @@ sealed class VilkårsvurdertSøknadsbehandling :
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = fritekstTilBrev,
                 aldersvurdering = aldersvurdering,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                eksterneGrunnlag = eksterneGrunnlag,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = this.søknadsbehandlingsHistorikk,
                 sakstype = sakstype,
@@ -317,9 +300,8 @@ sealed class VilkårsvurdertSøknadsbehandling :
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = fritekstTilBrev,
                 aldersvurdering = aldersvurdering,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                eksterneGrunnlag = eksterneGrunnlag,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk.leggTilNyHendelse(
                     saksbehandlingsHendelse = Søknadsbehandlingshendelse(
@@ -350,9 +332,7 @@ sealed class VilkårsvurdertSøknadsbehandling :
         override val fnr: Fnr,
         override val fritekstTilBrev: String,
         override val aldersvurdering: Aldersvurdering?,
-        override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
-        override val eksterneGrunnlag: EksterneGrunnlag,
+        override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
         override val attesteringer: Attesteringshistorikk,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
 
@@ -376,9 +356,8 @@ sealed class VilkårsvurdertSøknadsbehandling :
         ): Uavklart {
             return copy(
                 aldersvurdering = aldersvurdering,
-                grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
-                vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
-                eksterneGrunnlag = grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+
                 søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
             )
         }
