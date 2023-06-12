@@ -58,42 +58,22 @@ class BeregningFactory(val clock: Clock) {
         fun Månedsberegning.sosialstønadFørerTilBeløpUnderToProsentAvHøySats(strategy: BeregningStrategy): Boolean {
             val toProsentAvHøy = fullSupplerendeStønadForMåned.toProsentAvHøyForMånedAsDouble
 
-            // hvis sum er mer enn 2%, er alt good
+            // Hvis ytelsen er 2% eller mer av høy sats fører ikke sosialstønad til at vi havner under 2%
             if (getSumYtelse() >= toProsentAvHøy) return false
 
-            // hvis sum uten avkorting gjør at vi havner under 2% er det sosialstønad som har skylda
-            if (sumYtelseUtenAvkorting(måned = måned, strategy = strategy) < toProsentAvHøy &&
-                sumYtelseUtenSosialstønad(
-                    måned = måned,
-                    strategy = strategy,
-                ) != getSumYtelse() // se om det finnes sosialstønad
-            ) {
-                return true
-            }
-
-            // hvis vi er under 2% og har kommet hit, er det avkorting sin skyld og ikke sosialstønad
-            return false
+            // Avkortinga vil lage et fradrag på resterende ytelse, så vi forsikre oss om at den ikke har skylda.
+            // hvis sum uten sosialstønad gjør at vi havner over 2% er det sosialstønad som har skylda
+            return sumYtelseUtenAvkorting(måned = måned, strategy = strategy) < toProsentAvHøy && sumYtelseUtenSosialstønad(måned = måned, strategy = strategy) >= toProsentAvHøy
         }
 
         fun Månedsberegning.avkortingFørerTilBeløpUnderToProsentAvHøySats(strategy: BeregningStrategy): Boolean {
             val toProsentAvHøy = fullSupplerendeStønadForMåned.toProsentAvHøyForMånedAsDouble
 
-            // hvis sum er mer enn 2%, er alt good
+            // Hvis ytelsen er 2% eller mer av høy sats fører ikke avkortinga til at vi havner under 2%
             if (getSumYtelse() >= toProsentAvHøy) return false
 
-            // hvis sum uten avkorting gjør at vi havner under 2% er det sosialstønad som har skylda
-            if (sumYtelseUtenAvkorting(måned = måned, strategy = strategy) < toProsentAvHøy &&
-                sumYtelseUtenSosialstønad(
-                    måned = måned,
-                    strategy = strategy,
-                ) != getSumYtelse() // se om det finnes sosialstønad
-            ) {
-                return false
-            }
-
-            // hvis vi er under 2% og har kommet hit, er det avkorting sin skyld hvis det finnes noen avkorting
-            if (sumYtelseUtenAvkorting(måned, strategy = strategy) != getSumYtelse()) return true
-            return false
+            // hvis sum uten avkorting gjør at vi havner over 2% er det avkorting som har skylda
+            return sumYtelseUtenAvkorting(måned = måned, strategy = strategy) >= toProsentAvHøy
         }
 
         fun Månedsberegning.lagFradragForBeløpUnderMinstegrense() = FradragFactory.periodiser(
