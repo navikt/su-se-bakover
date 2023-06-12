@@ -4,7 +4,6 @@ import no.nav.okonomi.tilbakekrevingservice.TilbakekrevingPortType
 import no.nav.su.se.bakover.client.oppdrag.sts.wrapInStsClient
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import org.apache.cxf.jaxws.JaxWsProxyFactoryBean
-import org.apache.cxf.ws.addressing.WSAddressingFeature
 import org.slf4j.LoggerFactory
 import javax.xml.namespace.QName
 
@@ -32,7 +31,7 @@ class TilbakekrevingSoapClientConfig(
             serviceName = SERVICE
             endpointName = PORT
             serviceClass = TilbakekrevingPortType::class.java
-            features = listOf(WSAddressingFeature()) // Add LoggingFeature() to enable full logging of req/resp
+            // features = listOf(LoggingFeature()) // Add LoggingFeature() to enable full logging of req/resp
         }.wrapInStsClient(stsSoapUrl, serviceUser, disableCNCheck)
     }
 }
