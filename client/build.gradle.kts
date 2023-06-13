@@ -1,6 +1,6 @@
 val fuelVersion = "2.3.1"
 val tjenestespesifikasjonVersion = "2616.df1f47c"
-val cxfVersion = "3.5.5"
+val cxfVersion = "4.0.2"
 
 dependencies {
     implementation(project(":common:domain"))
@@ -10,6 +10,8 @@ dependencies {
     implementation("com.github.kittinunf.fuel:fuel:$fuelVersion")
     implementation("com.github.kittinunf.fuel:fuel-gson:$fuelVersion")
     implementation("javax.xml.bind:jaxb-api:2.3.1")
+    implementation("com.sun.xml.bind:jaxb-impl:2.3.1")
+    implementation("com.sun.xml.bind:jaxb-core:2.3.0.1")
 
     implementation("org.json:json:20230227")
 
