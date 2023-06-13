@@ -146,7 +146,7 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling {
         abstract override val aldersvurdering: Aldersvurdering
 
         /** Ingenting og avkorte ved avslag. */
-        override val avkorting = AvkortingVedSøknadsbehandling.IngenAvkorting
+        override val avkorting: AvkortingVedSøknadsbehandling.IngenAvkorting = AvkortingVedSøknadsbehandling.IngenAvkorting
 
         fun iverksett(attestering: Attestering.Iverksatt): IverksattSøknadsbehandling.Avslag {
             return when (this) {

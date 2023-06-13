@@ -177,7 +177,7 @@ sealed class BeregnetSøknadsbehandling :
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
         /** Ingenting og avkorte ved avslag. */
-        override val avkorting = IngenAvkorting
+        override val avkorting: IngenAvkorting = IngenAvkorting
 
         private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
             when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {

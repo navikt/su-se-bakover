@@ -204,7 +204,7 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling, Søknadsbehandli
 
     sealed class Avslag : UnderkjentSøknadsbehandling(), ErAvslag {
 
-        override val avkorting = AvkortingVedSøknadsbehandling.IngenAvkorting
+        override val avkorting: AvkortingVedSøknadsbehandling.IngenAvkorting = AvkortingVedSøknadsbehandling.IngenAvkorting
 
         data class MedBeregning(
             override val id: UUID,

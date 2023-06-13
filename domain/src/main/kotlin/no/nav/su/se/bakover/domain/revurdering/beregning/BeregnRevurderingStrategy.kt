@@ -41,7 +41,7 @@ internal class VidereførAvkorting(
             feilutbetaltBeløp = avkortingsgrunnlag
                 .sumOf { it.periode.getAntallMåneder() * it.månedsbeløp }
                 .roundToInt(),
-            beregning = beregningUtenAvkorting,
+            beregningUtenAvkorting = beregningUtenAvkorting,
             clock = clock,
         ).lagFradrag().getOrElse {
             return KunneIkkeBeregneRevurdering.AvkortingErUfullstendig.left()

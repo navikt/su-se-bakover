@@ -91,7 +91,7 @@ sealed class IverksattSøknadsbehandling : Søknadsbehandling {
     sealed class Avslag : IverksattSøknadsbehandling(), ErAvslag {
 
         /** Ingenting og avkorte ved avslag. */
-        override val avkorting = AvkortingVedSøknadsbehandling.IngenAvkorting
+        override val avkorting: AvkortingVedSøknadsbehandling.IngenAvkorting = AvkortingVedSøknadsbehandling.IngenAvkorting
 
         data class MedBeregning(
             override val id: UUID,

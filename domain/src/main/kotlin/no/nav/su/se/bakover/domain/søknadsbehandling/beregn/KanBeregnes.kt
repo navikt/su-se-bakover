@@ -96,7 +96,7 @@ sealed interface KanBeregnes : Søknadsbehandling, Søknadsbehandling.KanOppdate
     ): Either<KunneIkkeBeregne, Triple<Beregning, AvkortingVedSøknadsbehandling.KlarTilIverksetting, GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling>> {
         return Avkortingsplan(
             feilutbetaltBeløp = uteståendeAvkortingPåSak.hentUtbetalteBeløp().sum(),
-            beregning = beregningUtenAvkorting,
+            beregningUtenAvkorting = beregningUtenAvkorting,
             clock = clock,
         ).lagFradrag().getOrElse {
             return when (it) {

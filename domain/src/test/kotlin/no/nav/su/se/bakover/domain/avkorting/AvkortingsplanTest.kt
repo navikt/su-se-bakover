@@ -43,7 +43,7 @@ internal class AvkortingsplanTest {
         val (_, søknadsbehandling) = søknadsbehandlingBeregnetInnvilget()
         Avkortingsplan(
             feilutbetaltBeløp = Månedsbeløp(emptyList()).sum(),
-            beregning = søknadsbehandling.beregning,
+            beregningUtenAvkorting = søknadsbehandling.beregning,
             clock = fixedClock,
         ).lagFradrag().getOrFail() shouldBe emptyList()
     }
@@ -65,7 +65,7 @@ internal class AvkortingsplanTest {
                     MånedBeløp(mars(2021), Beløp(satsFactoryTestPåDato().høyUføre(mars(2021)).satsForMånedAvrundet)),
                 ),
             ).sum(),
-            beregning = søknadsbehandling.beregning,
+            beregningUtenAvkorting = søknadsbehandling.beregning,
             clock = fixedClock,
         ).lagFradrag().getOrFail().let {
             it shouldHaveSize 3
@@ -130,7 +130,7 @@ internal class AvkortingsplanTest {
                     MånedBeløp(mars(2021), Beløp(satsFactoryTestPåDato().høyUføre(mars(2021)).satsForMånedAvrundet)),
                 ),
             ).sum(),
-            beregning = søknadsbehandling.beregning,
+            beregningUtenAvkorting = søknadsbehandling.beregning,
             clock = fixedClock,
         ).lagFradrag().getOrFail().let {
             it[0].shouldBeEqualToExceptId(
@@ -200,7 +200,7 @@ internal class AvkortingsplanTest {
                     MånedBeløp(mars(2021), Beløp(satsFactoryTestPåDato().høyUføre(mars(2021)).satsForMånedAvrundet)),
                 ),
             ).sum(),
-            beregning = søknadsbehandling.beregning,
+            beregningUtenAvkorting = søknadsbehandling.beregning,
             clock = fixedClock,
         ).lagFradrag() shouldBe Avkortingsplan.KunneIkkeLageAvkortingsplan.AvkortingErUfullstendig.left()
     }
@@ -240,7 +240,7 @@ internal class AvkortingsplanTest {
                     MånedBeløp(mars(2021), Beløp(satsFactoryTestPåDato().høyUføre(mars(2021)).satsForMånedAvrundet)),
                 ),
             ).sum(),
-            beregning = søknadsbehandling.beregning,
+            beregningUtenAvkorting = søknadsbehandling.beregning,
             clock = fixedClock,
         ).lagFradrag().getOrFail().let {
             it shouldHaveSize 6

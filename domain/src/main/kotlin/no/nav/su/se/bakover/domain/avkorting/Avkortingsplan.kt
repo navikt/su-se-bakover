@@ -19,14 +19,14 @@ import java.util.UUID
 
 internal class Avkortingsplan(
     private val feilutbetaltBeløp: Int,
-    beregning: Beregning,
+    beregningUtenAvkorting: Beregning,
     private val clock: Clock,
 ) {
     init {
-        check(beregning.getFradrag().none { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }) { "Beregning inneholder allerede fradrag av type: ${Fradragstype.AvkortingUtenlandsopphold}. Gamle fradrag må fjenres før ny beregning kan gjennomføres." }
+        check(beregningUtenAvkorting.getFradrag().none { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }) { "Beregning inneholder allerede fradrag av type: ${Fradragstype.AvkortingUtenlandsopphold}. Gamle fradrag må fjenres før ny beregning kan gjennomføres." }
     }
 
-    private val tilbakebetalinger: Månedsbeløp = lagTilbakebetalingsplan(beregning)
+    private val tilbakebetalinger: Månedsbeløp = lagTilbakebetalingsplan(beregningUtenAvkorting)
 
     private fun lagTilbakebetalingsplan(
         beregning: Beregning,
@@ -68,23 +68,22 @@ internal class Avkortingsplan(
     }
 
     fun lagFradrag(): Either<KunneIkkeLageAvkortingsplan, List<Grunnlag.Fradragsgrunnlag>> {
-        return if (feilutbetaltBeløp == tilbakebetalinger.sum()) {
-            tilbakebetalinger.månedbeløp.map {
-                Grunnlag.Fradragsgrunnlag.create(
-                    id = UUID.randomUUID(),
-                    opprettet = Tidspunkt.now(clock),
-                    fradrag = FradragFactory.nyFradragsperiode(
-                        fradragstype = Fradragstype.AvkortingUtenlandsopphold,
-                        månedsbeløp = it.beløp.sum().toDouble(),
-                        periode = it.periode,
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                )
-            }.right()
-        } else {
-            KunneIkkeLageAvkortingsplan.AvkortingErUfullstendig.left()
+        if (feilutbetaltBeløp != tilbakebetalinger.sum()) {
+            return KunneIkkeLageAvkortingsplan.AvkortingErUfullstendig.left()
         }
+        return tilbakebetalinger.månedbeløp.map {
+            Grunnlag.Fradragsgrunnlag.create(
+                id = UUID.randomUUID(),
+                opprettet = Tidspunkt.now(clock),
+                fradrag = FradragFactory.nyFradragsperiode(
+                    fradragstype = Fradragstype.AvkortingUtenlandsopphold,
+                    månedsbeløp = it.beløp.sum().toDouble(),
+                    periode = it.periode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            )
+        }.right()
     }
 
     sealed class KunneIkkeLageAvkortingsplan {

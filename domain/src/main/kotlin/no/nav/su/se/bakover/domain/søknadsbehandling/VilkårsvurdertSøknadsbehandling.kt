@@ -171,7 +171,7 @@ sealed class VilkårsvurdertSøknadsbehandling :
         override val simulering: Simulering? = null
 
         /** Avkorting vurderes ikke før vi må; beregningsteget. */
-        override val avkorting = AvkortingVedSøknadsbehandling.IkkeVurdert
+        override val avkorting: AvkortingVedSøknadsbehandling.IkkeVurdert = AvkortingVedSøknadsbehandling.IkkeVurdert
 
         init {
             kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
@@ -222,7 +222,7 @@ sealed class VilkårsvurdertSøknadsbehandling :
         override val beregning = null
         override val simulering: Simulering? = null
 
-        override val avkorting = AvkortingVedSøknadsbehandling.IngenAvkorting
+        override val avkorting: AvkortingVedSøknadsbehandling.IngenAvkorting = AvkortingVedSøknadsbehandling.IngenAvkorting
 
         override fun skalSendeVedtaksbrev(): Boolean {
             return true
@@ -342,7 +342,7 @@ sealed class VilkårsvurdertSøknadsbehandling :
         override val stønadsperiode: Stønadsperiode? = aldersvurdering?.stønadsperiode
         override val beregning = null
         override val simulering: Simulering? = null
-        override val avkorting = AvkortingVedSøknadsbehandling.IkkeVurdert
+        override val avkorting: AvkortingVedSøknadsbehandling.IkkeVurdert = AvkortingVedSøknadsbehandling.IkkeVurdert
 
         override fun skalSendeVedtaksbrev(): Boolean {
             return true
