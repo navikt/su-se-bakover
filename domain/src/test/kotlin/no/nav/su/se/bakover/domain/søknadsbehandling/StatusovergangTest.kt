@@ -3,8 +3,9 @@ package no.nav.su.se.bakover.domain.søknadsbehandling
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.nonEmptyListOf
-import arrow.core.right
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.shouldNotBeTypeOf
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -614,17 +615,28 @@ internal class StatusovergangTest {
     inner class Beregnet {
         @Test
         fun `kan beregne for vilkårsvurdert innvilget`() {
+            val vilkårsvurdertInnvilget = vilkårsvurdertInnvilget
             vilkårsvurdertInnvilget.beregn(
-                begrunnelse = null,
+                begrunnelse = "123",
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
                 nySaksbehandler = saksbehandler,
                 uteståendeAvkortingPåSak = null,
-            ).getOrFail() shouldBe beregnetInnvilget
+            ).getOrFail().let {
+                it shouldBe beOfType<BeregnetSøknadsbehandling.Innvilget>()
+                it.saksbehandler shouldBe saksbehandler
+                it.beregning.getBegrunnelse() shouldBe "123"
+                it.søknadsbehandlingsHistorikk shouldBe vilkårsvurdertInnvilget.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
+                    nonEmptyListOf(
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.Beregnet),
+                    ),
+                )
+            }
         }
 
         @Test
         fun `kan beregne på nytt for beregnet innvilget`() {
+            val beregnetInnvilget = beregnetInnvilget
             beregnetInnvilget.beregn(
                 begrunnelse = null,
                 clock = fixedClock,
@@ -642,6 +654,7 @@ internal class StatusovergangTest {
 
         @Test
         fun `kan beregne på nytt for beregnet avslag`() {
+            val beregnetAvslag = beregnetAvslag
             beregnetAvslag.beregn(
                 begrunnelse = null,
                 clock = fixedClock,
@@ -659,61 +672,70 @@ internal class StatusovergangTest {
 
         @Test
         fun `kan beregne på nytt for simulert`() {
+            val simulert = simulert
             simulert.beregn(
-                begrunnelse = null,
+                begrunnelse = "123",
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
                 nySaksbehandler = saksbehandler,
                 uteståendeAvkortingPåSak = null,
-            ).getOrFail() shouldBe beregnetInnvilget.copy(
-                søknadsbehandlingsHistorikk = simulert.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
+            ).getOrFail().let {
+                it shouldBe beOfType<BeregnetSøknadsbehandling.Innvilget>()
+                it.saksbehandler shouldBe saksbehandler
+                it.beregning.getBegrunnelse() shouldBe "123"
+                it.fritekstTilBrev shouldBe ""
+                it.attesteringer shouldBe Attesteringshistorikk.empty()
+                it.søknadsbehandlingsHistorikk shouldBe simulert.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
                     nonEmptyListOf(
                         nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.Beregnet),
                     ),
-                ),
-            )
+                )
+            }
         }
 
         @Test
         fun `kan beregne på nytt underkjent avslag med beregning`() {
+            val underkjentAvslagBeregning = underkjentAvslagBeregning
             underkjentAvslagBeregning.beregn(
                 begrunnelse = null,
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
                 nySaksbehandler = saksbehandler,
                 uteståendeAvkortingPåSak = null,
-            ).getOrFail() shouldBe beregnetAvslag
-                .medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
-                .copy(
-                    attesteringer = Attesteringshistorikk.create(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())),
-                    søknadsbehandlingsHistorikk = underkjentAvslagBeregning.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
-                        nonEmptyListOf(
-                            nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.Beregnet),
-                        ),
+            ).getOrFail().let {
+                it shouldBe beOfType<BeregnetSøknadsbehandling.Avslag>()
+                it.saksbehandler shouldBe saksbehandler
+                it.fritekstTilBrev shouldBe fritekstTilBrev
+                it.attesteringer shouldBe Attesteringshistorikk.create(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering()))
+                it.søknadsbehandlingsHistorikk shouldBe underkjentAvslagBeregning.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
+                    nonEmptyListOf(
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.Beregnet),
                     ),
                 )
+            }
         }
 
         @Test
         fun `kan beregne på nytt underkjent innvilgelse med beregning`() {
+            val underkjentInnvilget = underkjentInnvilget
             underkjentInnvilget.beregn(
-                begrunnelse = null,
+                begrunnelse = "123",
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
                 nySaksbehandler = saksbehandler,
                 uteståendeAvkortingPåSak = null,
-            ).getOrFail() shouldBe beregnetInnvilget
-                .medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev)
-                .copy(
-                    attesteringer = Attesteringshistorikk.create(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())),
-                    søknadsbehandlingsHistorikk = beregnetInnvilget.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
-                        nonEmptyListOf(
-                            nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.Simulert),
-                            nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),
-                            nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.Beregnet),
-                        ),
+            ).getOrFail().let {
+                it shouldBe beOfType<BeregnetSøknadsbehandling.Innvilget>()
+                it.saksbehandler shouldBe saksbehandler
+                it.beregning.getBegrunnelse() shouldBe "123"
+                it.fritekstTilBrev shouldBe underkjentInnvilget.fritekstTilBrev
+                it.attesteringer shouldBe Attesteringshistorikk.create(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering()))
+                it.søknadsbehandlingsHistorikk shouldBe underkjentInnvilget.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
+                    nonEmptyListOf(
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.Beregnet),
                     ),
                 )
+            }
         }
 
         @Test
@@ -739,77 +761,110 @@ internal class StatusovergangTest {
     inner class TilAttestering {
         @Test
         fun `vilkårsvurder avslag til attestering`() {
+            val vilkårsvurdertAvslag = vilkårsvurdertAvslag
             statusovergang(
                 vilkårsvurdertAvslag,
                 Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev, fixedClock),
-            ) shouldBe tilAttesteringAvslagVilkår.right()
+            ).getOrFail().let {
+                it shouldBe beOfType<SøknadsbehandlingTilAttestering.Avslag.UtenBeregning>()
+                it.saksbehandler shouldBe saksbehandler
+                it.fritekstTilBrev shouldBe fritekstTilBrev
+                it.søknadsbehandlingsHistorikk shouldBe vilkårsvurdertAvslag.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
+                    nonEmptyListOf(
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),
+                    ),
+                )
+            }
         }
 
         @Test
         fun `vilkårsvurder beregning til attestering`() {
+            val beregnetAvslag = beregnetAvslag
             statusovergang(
                 beregnetAvslag,
                 Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev, fixedClock),
-            ) shouldBe tilAttesteringAvslagBeregning.right()
+            ).getOrFail().let {
+                it shouldBe beOfType<SøknadsbehandlingTilAttestering.Avslag.MedBeregning>()
+                it.saksbehandler shouldBe saksbehandler
+                it.fritekstTilBrev shouldBe fritekstTilBrev
+                it.søknadsbehandlingsHistorikk shouldBe beregnetAvslag.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
+                    nonEmptyListOf(
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),
+                    ),
+                )
+            }
         }
 
         @Test
         fun `simulert til attestering`() {
+            val simulert = simulert
             statusovergang(
                 simulert,
                 Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev, fixedClock),
-            ) shouldBe tilAttesteringInnvilget.right()
+            ).getOrFail().let {
+                it shouldBe beOfType<SøknadsbehandlingTilAttestering.Innvilget>()
+                it.saksbehandler shouldBe saksbehandler
+                it.fritekstTilBrev shouldBe fritekstTilBrev
+                it.søknadsbehandlingsHistorikk shouldBe simulert.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
+                    nonEmptyListOf(
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),
+                    ),
+                )
+            }
         }
 
         @Test
         fun `underkjent avslag vilkår til attestering`() {
+            val underkjentAvslagVilkår = underkjentAvslagVilkår
             statusovergang(
                 underkjentAvslagVilkår,
                 Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev, fixedClock),
-            ) shouldBe tilAttesteringAvslagVilkår.copy(
-                attesteringer = Attesteringshistorikk.create(
-                    listOf(
-                        underkjentAvslagVilkår.attesteringer.hentSisteAttestering(),
+            ).getOrFail().let {
+                it shouldBe beOfType<SøknadsbehandlingTilAttestering.Avslag.UtenBeregning>()
+                it.saksbehandler shouldBe saksbehandler
+                it.fritekstTilBrev shouldBe fritekstTilBrev
+                it.søknadsbehandlingsHistorikk shouldBe underkjentAvslagVilkår.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
+                    nonEmptyListOf(
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),
                     ),
-                ),
-                søknadsbehandlingsHistorikk = underkjentAvslagVilkår.søknadsbehandlingsHistorikk.leggTilNyHendelse(
-                    nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),
-                ),
-            ).right()
+                )
+            }
         }
 
         @Test
         fun `underkjent avslag beregning til attestering`() {
+            val underkjentAvslagBeregning = underkjentAvslagBeregning
             statusovergang(
                 underkjentAvslagBeregning,
                 Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev, fixedClock),
-            ) shouldBe tilAttesteringAvslagBeregning.copy(
-                attesteringer = Attesteringshistorikk.create(
-                    listOf(
-                        underkjentAvslagBeregning.attesteringer.hentSisteAttestering(),
+            ).getOrFail().let {
+                it shouldBe beOfType<SøknadsbehandlingTilAttestering.Avslag.MedBeregning>()
+                it.saksbehandler shouldBe saksbehandler
+                it.fritekstTilBrev shouldBe fritekstTilBrev
+                it.søknadsbehandlingsHistorikk shouldBe underkjentAvslagBeregning.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
+                    nonEmptyListOf(
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),
                     ),
-                ),
-                søknadsbehandlingsHistorikk = underkjentAvslagBeregning.søknadsbehandlingsHistorikk.leggTilNyHendelse(
-                    nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),
-                ),
-            ).right()
+                )
+            }
         }
 
         @Test
         fun `underkjent innvilging til attestering`() {
+            val underkjentInnvilget = underkjentInnvilget
             statusovergang(
                 underkjentInnvilget,
                 Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev, fixedClock),
-            ) shouldBe tilAttesteringInnvilget.copy(
-                attesteringer = Attesteringshistorikk.create(
-                    listOf(
-                        underkjentInnvilget.attesteringer.hentSisteAttestering(),
+            ).getOrFail().let {
+                it shouldBe beOfType<SøknadsbehandlingTilAttestering.Innvilget>()
+                it.saksbehandler shouldBe saksbehandler
+                it.fritekstTilBrev shouldBe fritekstTilBrev
+                it.søknadsbehandlingsHistorikk shouldBe underkjentInnvilget.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
+                    nonEmptyListOf(
+                        nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),
                     ),
-                ),
-                søknadsbehandlingsHistorikk = underkjentInnvilget.søknadsbehandlingsHistorikk.leggTilNyHendelse(
-                    nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),
-                ),
-            ).right()
+                )
+            }
         }
 
         @Test
@@ -872,26 +927,53 @@ internal class StatusovergangTest {
     inner class TilUnderkjent {
         @Test
         fun `til attestering avslag vilkår til underkjent avslag vilkår`() {
+            val attestering = attesteringUnderkjent(clock = fixedClock)
+            val søknadsbehandling = tilAttesteringAvslagVilkår
             forsøkStatusovergang(
-                tilAttesteringAvslagVilkår,
-                Statusovergang.TilUnderkjent(attesteringUnderkjent(clock = fixedClock)),
-            ) shouldBe underkjentAvslagVilkår.right()
+                søknadsbehandling,
+                Statusovergang.TilUnderkjent(attestering),
+            ).getOrFail().let {
+                it shouldBe beOfType<UnderkjentSøknadsbehandling.Avslag.UtenBeregning>()
+                it.saksbehandler shouldBe saksbehandler
+                it.beregning shouldBe null
+                it.fritekstTilBrev shouldBe fritekstTilBrev
+                it.attesteringer shouldBe Attesteringshistorikk.create(listOf(attestering))
+                it.søknadsbehandlingsHistorikk shouldBe søknadsbehandling.søknadsbehandlingsHistorikk
+            }
         }
 
         @Test
         fun `til attestering avslag beregning til underkjent avslag beregning`() {
+            val attestering = attesteringUnderkjent(clock = fixedClock)
+            val tilAttesteringAvslagBeregning = tilAttesteringAvslagBeregning
             forsøkStatusovergang(
                 tilAttesteringAvslagBeregning,
-                Statusovergang.TilUnderkjent(attesteringUnderkjent(clock = fixedClock)),
-            ) shouldBe underkjentAvslagBeregning.right()
+                Statusovergang.TilUnderkjent(attestering),
+            ).getOrFail().let {
+                it shouldBe beOfType<UnderkjentSøknadsbehandling.Avslag.MedBeregning>()
+                it.saksbehandler shouldBe saksbehandler
+                it.beregning shouldNotBe null
+                it.fritekstTilBrev shouldBe fritekstTilBrev
+                it.attesteringer shouldBe Attesteringshistorikk.create(listOf(attestering))
+                it.søknadsbehandlingsHistorikk shouldBe tilAttesteringAvslagBeregning.søknadsbehandlingsHistorikk
+            }
         }
 
         @Test
         fun `til attestering innvilget til underkjent innvilging`() {
+            val tilAttesteringInnvilget = tilAttesteringInnvilget
+            val attestering = attesteringUnderkjent(clock = fixedClock)
             forsøkStatusovergang(
                 tilAttesteringInnvilget,
-                Statusovergang.TilUnderkjent(attesteringUnderkjent(clock = fixedClock)),
-            ) shouldBe underkjentInnvilget.right()
+                Statusovergang.TilUnderkjent(attestering),
+            ).getOrFail().let {
+                it shouldBe beOfType<UnderkjentSøknadsbehandling.Innvilget>()
+                it.saksbehandler shouldBe saksbehandler
+                it.beregning shouldBe tilAttesteringInnvilget.beregning
+                it.fritekstTilBrev shouldBe fritekstTilBrev
+                it.attesteringer shouldBe Attesteringshistorikk.create(listOf(attestering))
+                it.søknadsbehandlingsHistorikk shouldBe tilAttesteringInnvilget.søknadsbehandlingsHistorikk
+            }
         }
 
         @Test
