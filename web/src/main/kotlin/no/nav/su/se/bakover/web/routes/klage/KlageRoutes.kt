@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkePers
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSaksbehandlerEllerAttestant
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeVedtak
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.feilVedHentingAvAttestantNavn
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.feilVedHentingAvSaksbehandlerNavn
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.feilVedHentingAvVedtakDato
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeOppretteOppgave
@@ -515,6 +516,8 @@ private fun KunneIkkeLageBrevRequestForKlage.toErrorJson(): Resultat {
             "Kan ikke gå fra tilstanden ${fra.simpleName}",
             "ugyldig_tilstand",
         )
+
+        is KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvAttestantnavn -> feilVedHentingAvAttestantNavn
     }
 }
 

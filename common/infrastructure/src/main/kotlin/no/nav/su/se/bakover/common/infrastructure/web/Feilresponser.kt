@@ -210,6 +210,10 @@ object Feilresponser {
         "Feil ved henting av saksbehandler navn",
         "feil_ved_henting_av_saksbehandler_navn",
     )
+    val feilVedHentingAvAttestantNavn = InternalServerError.errorJson(
+        "Feil ved henting av attestant navn",
+        "feil_ved_henting_av_attestant_navn",
+    )
 
     val feilVedHentingAvVedtakDato = InternalServerError.errorJson(
         "Feil ved henting av vedtak dato",

@@ -21,6 +21,8 @@ data class Attesteringshistorikk private constructor(
             return create(emptyList())
         }
 
+        fun create(attestering: Attestering): Attesteringshistorikk = create(listOf(attestering))
+
         /**
          * For å gjenopprette en persistert [Attesteringshistorikk]
          */

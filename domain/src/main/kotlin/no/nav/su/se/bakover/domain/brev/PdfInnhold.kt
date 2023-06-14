@@ -210,6 +210,7 @@ abstract class PdfInnhold {
         data class Oppretthold(
             val personalia: Personalia,
             val saksbehandlerNavn: String,
+            val attestantNavn: String?,
             val fritekst: String,
             val klageDato: String,
             val vedtakDato: String,

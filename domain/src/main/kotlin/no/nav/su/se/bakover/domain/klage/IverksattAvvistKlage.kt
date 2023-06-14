@@ -36,7 +36,7 @@ data class IverksattAvvistKlage(
     }
 
     override fun lagBrevRequest(
-        hentNavnForNavIdent: (saksbehandler: NavIdentBruker.Saksbehandler) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
+        hentNavnForNavIdent: (saksbehandler: NavIdentBruker) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
         hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
         hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
         clock: Clock,

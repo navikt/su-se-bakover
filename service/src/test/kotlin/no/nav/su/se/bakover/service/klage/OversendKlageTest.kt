@@ -44,9 +44,11 @@ import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.utfyltVurdertKlage
 import no.nav.su.se.bakover.test.vurdertKlageTilAttestering
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
@@ -139,7 +141,7 @@ internal class OversendKlageTest {
                 on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2021)
             },
             identClient = mock {
-                on { hentNavnForNavIdent(any()) } doReturn "Some name".right()
+                on { hentNavnForNavIdent(any()) }.thenReturn("Some name".right(), "attestant".right())
             },
             personServiceMock = mock {
                 on { hentPerson(any()) } doReturn person.right()
@@ -156,7 +158,11 @@ internal class OversendKlageTest {
 
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
+        val captor = argumentCaptor<NavIdentBruker>()
+        verify(mocks.identClient, times(2)).hentNavnForNavIdent(captor.capture())
+        captor.firstValue shouldBe klage.saksbehandler
+        captor.lastValue shouldBe attestant
+
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
         verify(mocks.brevServiceMock).lagBrev(
             argThat {
@@ -164,6 +170,7 @@ internal class OversendKlageTest {
                     person = person,
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Some name",
+                    attestantNavn = "attestant",
                     fritekst = klage.vurderinger.fritekstTilOversendelsesbrev,
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
@@ -184,7 +191,7 @@ internal class OversendKlageTest {
                 on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2021)
             },
             identClient = mock {
-                on { hentNavnForNavIdent(any()) } doReturn "Some name".right()
+                on { hentNavnForNavIdent(any()) }.thenReturn("Some name".right(), "attestant".right())
             },
             personServiceMock = mock {
                 on { hentPerson(any()) } doReturn person.right()
@@ -204,7 +211,10 @@ internal class OversendKlageTest {
 
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
+        val captor = argumentCaptor<NavIdentBruker>()
+        verify(mocks.identClient, times(2)).hentNavnForNavIdent(captor.capture())
+        captor.firstValue shouldBe klage.saksbehandler
+        captor.lastValue shouldBe attestant
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
         verify(mocks.brevServiceMock).lagBrev(
             argThat {
@@ -212,6 +222,7 @@ internal class OversendKlageTest {
                     person = person,
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Some name",
+                    attestantNavn = "attestant",
                     fritekst = klage.vurderinger.fritekstTilOversendelsesbrev,
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
@@ -224,7 +235,7 @@ internal class OversendKlageTest {
     }
 
     @Test
-    fun `Kunne ikke oversende til klageinstans`() {
+    fun `Kunne ikke oversende til klageinstans (client feil)`() {
         val (sak, klage) = vurdertKlageTilAttestering()
         val person = person(fnr = sak.fnr)
         val journalpostIdKnyttetTilVedtakDetKlagePå = JournalpostId("journalpostIdKnyttetTilVedtakDetKlagePå")
@@ -235,7 +246,7 @@ internal class OversendKlageTest {
                 on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2021)
             },
             identClient = mock {
-                on { hentNavnForNavIdent(any()) } doReturn "Some name".right()
+                on { hentNavnForNavIdent(any()) }.thenReturn("Some name".right(), "attestant".right())
             },
             personServiceMock = mock {
                 on { hentPerson(any()) } doReturn person.right()
@@ -258,7 +269,10 @@ internal class OversendKlageTest {
 
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
+        val captor = argumentCaptor<NavIdentBruker>()
+        verify(mocks.identClient, times(2)).hentNavnForNavIdent(captor.capture())
+        captor.firstValue shouldBe klage.saksbehandler
+        captor.lastValue shouldBe attestant
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
         verify(mocks.brevServiceMock).lagBrev(
             argThat {
@@ -266,6 +280,7 @@ internal class OversendKlageTest {
                     person = person,
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Some name",
+                    attestantNavn = "attestant",
                     fritekst = klage.vurderinger.fritekstTilOversendelsesbrev,
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
@@ -277,12 +292,7 @@ internal class OversendKlageTest {
         val expectedKlage = OversendtKlage(
             forrigeSteg = klage,
             attesteringer = Attesteringshistorikk.create(
-                listOf(
-                    Attestering.Iverksatt(
-                        attestant = attestant,
-                        opprettet = fixedTidspunkt,
-                    ),
-                ),
+                Attestering.Iverksatt(attestant = attestant, opprettet = fixedTidspunkt),
             ),
             klageinstanshendelser = Klageinstanshendelser.empty(),
         )
@@ -299,7 +309,7 @@ internal class OversendKlageTest {
                         opprettet = it.opprettet,
                         tittel = "Oversendelsesbrev til klager",
                         generertDokument = pdfAsBytes,
-                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${sak.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\",\"saksnummer\":12345676},\"saksbehandlerNavn\":\"Some name\",\"fritekst\":\"fritekstTilBrev\",\"klageDato\":\"15.01.2021\",\"vedtakDato\":\"01.01.2021\",\"saksnummer\":12345676,\"erAldersbrev\":false}",
+                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${sak.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\",\"saksnummer\":12345676},\"saksbehandlerNavn\":\"Some name\",\"attestantNavn\":\"attestant\",\"fritekst\":\"fritekstTilBrev\",\"klageDato\":\"15.01.2021\",\"vedtakDato\":\"01.01.2021\",\"saksnummer\":12345676,\"erAldersbrev\":false}",
                     ),
                     metadata = Dokument.Metadata(
                         sakId = sak.id,
@@ -466,7 +476,7 @@ internal class OversendKlageTest {
                 on { hentJournalpostId(any()) } doReturn journalpostIdForVedtak
             },
             identClient = mock {
-                on { hentNavnForNavIdent(any()) } doReturn "Some name".right()
+                on { hentNavnForNavIdent(any()) }.thenReturn("Some name".right(), "attestant".right())
             },
             personServiceMock = mock {
                 on { hentPerson(any()) } doReturn person.right()
@@ -482,7 +492,7 @@ internal class OversendKlageTest {
             },
             observer = observerMock,
         )
-        val attestant = NavIdentBruker.Attestant("s2")
+        val attestant = NavIdentBruker.Attestant("attestant")
 
         var expectedKlage: OversendtKlage?
         mocks.service.oversend(
@@ -492,12 +502,7 @@ internal class OversendKlageTest {
             expectedKlage = OversendtKlage(
                 forrigeSteg = klage,
                 attesteringer = Attesteringshistorikk.create(
-                    listOf(
-                        Attestering.Iverksatt(
-                            attestant = attestant,
-                            opprettet = fixedTidspunkt,
-                        ),
-                    ),
+                    Attestering.Iverksatt(attestant = attestant, opprettet = fixedTidspunkt),
                 ),
                 klageinstanshendelser = Klageinstanshendelser.empty(),
             )
@@ -507,7 +512,11 @@ internal class OversendKlageTest {
 
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
+        val captor = argumentCaptor<NavIdentBruker>()
+        verify(mocks.identClient, times(2)).hentNavnForNavIdent(captor.capture())
+        captor.firstValue shouldBe expectedKlage!!.saksbehandler
+        captor.lastValue shouldBe expectedKlage!!.attesteringer.hentSisteAttestering().attestant
+
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
         verify(mocks.brevServiceMock).lagBrev(
             argThat {
@@ -515,6 +524,7 @@ internal class OversendKlageTest {
                     person = person,
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Some name",
+                    attestantNavn = "attestant",
                     fritekst = klage.vurderinger.fritekstTilOversendelsesbrev,
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
@@ -535,7 +545,7 @@ internal class OversendKlageTest {
                         opprettet = it.opprettet,
                         tittel = "Oversendelsesbrev til klager",
                         generertDokument = pdfAsBytes,
-                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${sak.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\",\"saksnummer\":12345676},\"saksbehandlerNavn\":\"Some name\",\"fritekst\":\"fritekstTilBrev\",\"klageDato\":\"15.01.2021\",\"vedtakDato\":\"01.01.2021\",\"saksnummer\":12345676,\"erAldersbrev\":false}",
+                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${sak.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\",\"saksnummer\":12345676},\"saksbehandlerNavn\":\"Some name\",\"attestantNavn\":\"attestant\",\"fritekst\":\"fritekstTilBrev\",\"klageDato\":\"15.01.2021\",\"vedtakDato\":\"01.01.2021\",\"saksnummer\":12345676,\"erAldersbrev\":false}",
                     ),
                     metadata = Dokument.Metadata(
                         sakId = sak.id,
@@ -546,7 +556,6 @@ internal class OversendKlageTest {
                         journalpostId = null,
                         brevbestillingId = null,
                     ),
-
                 )
             },
             argThat { it shouldBe TestSessionFactory.transactionContext },
