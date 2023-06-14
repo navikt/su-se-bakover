@@ -131,7 +131,7 @@ internal fun StatistikkEvent.Behandling.Revurdering.toBehandlingsstatistikkDto(
             totrinnsbehandling = false,
             beslutter = null,
             behandlingYtelseDetaljer = this.revurdering.behandlingYtelseDetaljer(),
-            funksjonellTid = this.revurdering.tidspunktAvsluttet,
+            funksjonellTid = this.revurdering.avsluttetTidspunkt,
             saksbehandler = this.saksbehandler,
         )
     }

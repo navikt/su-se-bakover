@@ -41,7 +41,7 @@ data class OpprettetKlage(
         underliggendeKlage = this,
         saksbehandler = saksbehandler,
         begrunnelse = begrunnelse,
-        tidspunktAvsluttet = tidspunktAvsluttet,
+        avsluttetTidspunkt = tidspunktAvsluttet,
     ).right()
 
     override fun vilkårsvurder(

@@ -16,7 +16,7 @@ data class AvsluttetKlageJson(
             return serialize(
                 AvsluttetKlageJson(
                     begrunnelse = begrunnelse,
-                    tidspunktAvsluttet = tidspunktAvsluttet,
+                    tidspunktAvsluttet = avsluttetTidspunkt,
                 ),
             )
         }

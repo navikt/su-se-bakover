@@ -283,7 +283,7 @@ internal fun Klage.toJson(): KlageJson {
         )
         is AvsluttetKlage -> this.hentUnderliggendeKlage().toJson().copy(
             avsluttet = KlageJson.Avsluttet.ER_AVSLUTTET,
-            avsluttetTidspunkt = this.tidspunktAvsluttet.toString(),
+            avsluttetTidspunkt = this.avsluttetTidspunkt.toString(),
         )
     }
 }

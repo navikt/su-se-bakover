@@ -24,7 +24,7 @@ data class AvsluttetRevurdering private constructor(
     val begrunnelse: String,
     /** Denne er ikke låst til [Brevvalg.SaksbehandlersValg] siden det avhenger av om det er forhåndsvarslet eller ikke. Dette ble også migrert på et tidspunkt, tidligere ble det alltid sendt brev dersom det var forhåndsvarslet. */
     val brevvalg: Brevvalg,
-    val tidspunktAvsluttet: Tidspunkt,
+    override val avsluttetTidspunkt: Tidspunkt,
 ) : Revurdering(), Avbrutt {
     override val id: UUID = underliggendeRevurdering.id
     override val opprettet: Tidspunkt = underliggendeRevurdering.opprettet

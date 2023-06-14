@@ -452,6 +452,7 @@ internal class GjenopptakAvYtelseServiceTest {
                         expectedVedtak,
                         VedtakSomKanRevurderes::id,
                         VedtakSomKanRevurderes::opprettet,
+                        VedtakSomKanRevurderes::avsluttetTidspunkt,
                     )
                 },
                 tx = argThat { it shouldBe TestSessionFactory.transactionContext },
@@ -470,6 +471,7 @@ internal class GjenopptakAvYtelseServiceTest {
                     ),
                     VedtakSomKanRevurderes::id,
                     VedtakSomKanRevurderes::opprettet,
+                    VedtakSomKanRevurderes::avsluttetTidspunkt,
                 )
             }
             eventCaptor.allValues[1].shouldBeTypeOf<StatistikkEvent.Stønadsvedtak>()

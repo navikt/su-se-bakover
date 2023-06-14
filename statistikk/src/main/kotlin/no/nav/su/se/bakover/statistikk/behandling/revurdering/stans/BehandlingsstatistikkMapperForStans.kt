@@ -48,7 +48,7 @@ internal fun StatistikkEvent.Behandling.Stans.toBehandlingsstatistikkDto(
             behandlingResultat = BehandlingResultat.Avbrutt,
             resultatBegrunnelse = null,
             avsluttet = true,
-            funksjonellTid = this.revurdering.tidspunktAvsluttet,
+            funksjonellTid = this.revurdering.avsluttetTidspunkt,
         )
     }
 }

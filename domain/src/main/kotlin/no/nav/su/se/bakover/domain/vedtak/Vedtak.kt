@@ -10,7 +10,13 @@ import java.util.UUID
  * Toppnivået av vedtak. Støtter både stønadsvedtak og klagevedtak.
  */
 sealed interface Vedtak : Avsluttet {
-    val id: UUID
+    override val id: UUID
+
+    /**
+     * Et vedtak blir opprettet & avsluttet samtidig
+     */
+    override val avsluttetTidspunkt: Tidspunkt get() = opprettet
+
     val opprettet: Tidspunkt
     val saksbehandler: NavIdentBruker.Saksbehandler
     val attestant: NavIdentBruker.Attestant

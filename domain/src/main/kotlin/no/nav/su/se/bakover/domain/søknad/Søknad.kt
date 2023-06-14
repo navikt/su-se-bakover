@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.behandling.Avbrutt
+import no.nav.su.se.bakover.domain.behandling.Avsluttet
 import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.AvvistSøknadBrevRequest
@@ -246,7 +247,8 @@ sealed interface Søknad {
                     override val lukketAv: Saksbehandler,
                     override val brevvalg: Brevvalg.SaksbehandlersValg,
                     override val innsendtAv: NavIdentBruker,
-                ) : Lukket {
+                ) : Lukket, Avsluttet {
+                    override val avsluttetTidspunkt: Tidspunkt = lukketTidspunkt
                     init {
                         // Vi får ikke kompilatorstøtte for dette ved å bruke en generisk type som Brevvalg.
                         require(brevvalg is Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev || brevvalg is Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst || brevvalg is Brevvalg.SaksbehandlersValg.SkalSendeBrev.VedtaksbrevUtenFritekst)
@@ -277,7 +279,7 @@ sealed interface Søknad {
                  * Dette fører ikke til et vedtak.
                  * Det sendes et informasjonsbrev uten fritekst.
                  *
-                 * @param trukketDato Den faktiske datoen brukeren trakk søknaden. Må være før eller lik [lukketTidspunkt] og etter eller lik [mottaksdato]
+                 * @param trukketDato Den faktiske datoen brukeren trakk søknaden. Må være før eller lik [avsluttetTidspunkt] og etter eller lik [mottaksdato]
                  */
                 data class TrukketAvSøker(
                     override val id: UUID,
@@ -286,23 +288,24 @@ sealed interface Søknad {
                     override val søknadInnhold: SøknadInnhold,
                     override val journalpostId: JournalpostId,
                     override val oppgaveId: OppgaveId,
-                    override val lukketTidspunkt: Tidspunkt,
                     override val lukketAv: Saksbehandler,
                     val trukketDato: LocalDate,
                     override val innsendtAv: NavIdentBruker,
+                    override val lukketTidspunkt: Tidspunkt,
                 ) : Lukket, Avbrutt {
+                    override val avsluttetTidspunkt: Tidspunkt = lukketTidspunkt
                     override val brevvalg =
                         Brevvalg.SkalSendeBrev.InformasjonsbrevUtenFritekst("Saksbehandler får ikke per tidspunkt gjøre noen brevvalg dersom bruker trekker søknaden.")
 
                     init {
-                        require(trukketDato <= lukketTidspunkt.toLocalDate(zoneIdOslo)) {
-                            "trukketDato $trukketDato må være samtidig eller før lukketTidspunkt $lukketTidspunkt for søknad $id"
+                        require(trukketDato <= avsluttetTidspunkt.toLocalDate(zoneIdOslo)) {
+                            "trukketDato $trukketDato må være samtidig eller før avsluttet $avsluttetTidspunkt for søknad $id"
                         }
                         require(trukketDato >= mottaksdato) {
                             "trukketDato $trukketDato må være samtidig eller etter mottaksdato $mottaksdato for søknad $id"
                         }
-                        require(lukketTidspunkt >= opprettet) {
-                            "lukketTidspunkt $lukketTidspunkt må være samtidig eller etter opprettet $opprettet for søknad $id"
+                        require(avsluttetTidspunkt >= opprettet) {
+                            "avsluttet $avsluttetTidspunkt må være samtidig eller etter opprettet $opprettet for søknad $id"
                         }
                     }
 
@@ -335,6 +338,7 @@ sealed interface Søknad {
                     override val lukketAv: Saksbehandler,
                     override val innsendtAv: NavIdentBruker,
                 ) : Lukket, Avbrutt {
+                    override val avsluttetTidspunkt: Tidspunkt = lukketTidspunkt
                     override val brevvalg =
                         Brevvalg.SkalIkkeSendeBrev("Saksbehandler får ikke per tidspunkt gjøre noen brevvalg dersom søknaden bortfaller.")
 

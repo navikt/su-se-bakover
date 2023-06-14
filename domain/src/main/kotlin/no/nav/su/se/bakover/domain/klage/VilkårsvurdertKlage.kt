@@ -84,7 +84,7 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
             underliggendeKlage = this,
             saksbehandler = saksbehandler,
             begrunnelse = begrunnelse,
-            tidspunktAvsluttet = tidspunktAvsluttet,
+            avsluttetTidspunkt = tidspunktAvsluttet,
         ).right()
     }
 
@@ -182,7 +182,7 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
                 underliggendeKlage = this,
                 saksbehandler = saksbehandler,
                 begrunnelse = begrunnelse,
-                tidspunktAvsluttet = tidspunktAvsluttet,
+                avsluttetTidspunkt = tidspunktAvsluttet,
             ).right()
         }
 
@@ -285,7 +285,7 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
                         underliggendeKlage = this,
                         saksbehandler = saksbehandler,
                         begrunnelse = begrunnelse,
-                        tidspunktAvsluttet = tidspunktAvsluttet,
+                        avsluttetTidspunkt = tidspunktAvsluttet,
                     ).right()
                 } else {
                     KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
@@ -451,7 +451,7 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
                 underliggendeKlage = this,
                 saksbehandler = saksbehandler,
                 begrunnelse = begrunnelse,
-                tidspunktAvsluttet = tidspunktAvsluttet,
+                avsluttetTidspunkt = tidspunktAvsluttet,
             ).right()
         }
 
@@ -587,7 +587,7 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
                         underliggendeKlage = this,
                         saksbehandler = saksbehandler,
                         begrunnelse = begrunnelse,
-                        tidspunktAvsluttet = tidspunktAvsluttet,
+                        avsluttetTidspunkt = tidspunktAvsluttet,
                     ).right()
                 } else {
                     KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()

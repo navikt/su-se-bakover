@@ -471,7 +471,7 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson {
             simulering = simulering?.toJson(),
             attesteringer = attesteringer.toJson(),
             sakstype = sakstype.toJson(),
-            avsluttetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(tidspunktAvsluttet),
+            avsluttetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(avsluttetTidspunkt),
             brevvalg = brevvalgRevurdering.toJson(),
         )
     }
@@ -571,7 +571,7 @@ internal fun StansAvYtelseRevurdering.toJson(satsFactory: SatsFactory): Revurder
             simulering = simulering.toJson(),
             attesteringer = emptyList(),
             sakstype = sakstype.toJson(),
-            avsluttetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(tidspunktAvsluttet),
+            avsluttetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(avsluttetTidspunkt),
             brevvalg = brevvalgRevurdering.toJson(),
         )
     }
@@ -640,7 +640,7 @@ internal fun GjenopptaYtelseRevurdering.toJson(satsFactory: SatsFactory): Revurd
             simulering = simulering.toJson(),
             attesteringer = emptyList(),
             sakstype = sakstype.toJson(),
-            avsluttetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(tidspunktAvsluttet),
+            avsluttetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(avsluttetTidspunkt),
             brevvalg = brevvalgRevurdering.toJson(),
         )
     }

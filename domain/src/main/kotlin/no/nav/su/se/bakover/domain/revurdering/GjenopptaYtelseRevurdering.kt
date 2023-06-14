@@ -48,7 +48,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
     data class AvsluttetGjenoppta private constructor(
         private val underliggendeStansAvYtelse: SimulertGjenopptakAvYtelse,
         val begrunnelse: String,
-        val tidspunktAvsluttet: Tidspunkt,
+        override val avsluttetTidspunkt: Tidspunkt,
     ) : GjenopptaYtelseRevurdering(), Avbrutt {
         override val tilRevurdering: UUID = underliggendeStansAvYtelse.tilRevurdering
         override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis =

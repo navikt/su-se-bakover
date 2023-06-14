@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.domain.behandling.Avbrutt
 
 data class AvsluttetRegulering(
     val opprettetRegulering: OpprettetRegulering,
-    val avsluttetTidspunkt: Tidspunkt,
+    override val avsluttetTidspunkt: Tidspunkt,
 ) : Regulering, Reguleringsfelter by opprettetRegulering, Avbrutt {
     override fun erÅpen(): Boolean = false
     override val erFerdigstilt = true

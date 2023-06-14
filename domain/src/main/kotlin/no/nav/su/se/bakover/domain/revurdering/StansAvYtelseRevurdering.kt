@@ -46,7 +46,7 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering {
     data class AvsluttetStansAvYtelse private constructor(
         private val underliggendeStansAvYtelse: SimulertStansAvYtelse,
         val begrunnelse: String,
-        val tidspunktAvsluttet: Tidspunkt,
+        override val avsluttetTidspunkt: Tidspunkt,
     ) : StansAvYtelseRevurdering(), Avbrutt {
         override val tilRevurdering = underliggendeStansAvYtelse.tilRevurdering
         override val vedtakSomRevurderesMånedsvis = underliggendeStansAvYtelse.vedtakSomRevurderesMånedsvis
