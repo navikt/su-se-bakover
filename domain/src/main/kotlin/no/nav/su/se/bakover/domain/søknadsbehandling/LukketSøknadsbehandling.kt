@@ -16,9 +16,9 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadspe
 
 /**
  * En avvist søknadsbehandling kan resultere i et "vedtak" eller "avbrutt". Derfor arver den fra "avsluttet" og ikke "avbrutt" eller "vedtak".
-    * "Trukket" og "Bortfalt" anses som "avbrutt".
-    */
+ * "Trukket" og "Bortfalt" anses som "avbrutt".
  */
+
 data class LukketSøknadsbehandling private constructor(
     val underliggendeSøknadsbehandling: Søknadsbehandling,
     override val søknad: Søknad.Journalført.MedOppgave.Lukket,
