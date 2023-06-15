@@ -232,7 +232,7 @@ configure(
 ) {
     tasks.test {
         sharedTestSetup()
-        maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
+        maxParallelForks = (Runtime.getRuntime().availableProcessors() * 0.4).toInt().takeIf { it > 0 } ?: 1
         // https://junit.org/junit5/docs/snapshot/user-guide/#writing-tests-parallel-execution
         systemProperties["junit.jupiter.execution.parallel.enabled"] = true
         systemProperties["junit.jupiter.execution.parallel.mode.default"] = "concurrent"
