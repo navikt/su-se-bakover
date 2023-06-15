@@ -254,7 +254,7 @@ sealed interface VilkårsvurdertSøknadsbehandling :
 
         /**
          * Til bruk der systemet har behov for å gjøre handling
-         * Se eksempel: [AvslåPgaManglendeDokumentasjon.kt]
+         * Se eksempel: [no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.avslåSøknadPgaManglendeDokumentasjon]
          */
         fun tilAttestering(
             fritekstTilBrev: String,

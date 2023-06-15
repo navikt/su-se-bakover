@@ -122,7 +122,7 @@ private fun avslå(
 }
 
 /**
- * Burde kanskje oppdatere via [Sak.oppdaterStønadsperiodeForSøknadsbehandling] men for å unngå problemer i tilfeller der stønadsperiode
+ * Burde kanskje oppdatere via [no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling] men for å unngå problemer i tilfeller der stønadsperiode
  * ikke er valgt av saksbeahndler gjør vi det direkte på søknadsbehandling.
  */
 private fun Søknadsbehandling.leggTilStønadsperiodeOgAldersvurderingHvisNull(
