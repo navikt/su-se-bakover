@@ -247,9 +247,6 @@ sealed interface Søknadsbehandling :
         )
     }
 
-    // TODO jah: Flytt disse ut til egne filer og la de eie sine egne funksjoner som vilkårsvurder og beregn.
-    interface KanOppdaterePeriodeGrunnlagVilkår
-
     fun leggTilFormuegrunnlag(
         request: LeggTilFormuevilkårRequest,
         formuegrenserFactory: FormuegrenserFactory,

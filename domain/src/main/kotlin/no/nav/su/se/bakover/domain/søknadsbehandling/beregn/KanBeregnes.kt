@@ -24,7 +24,7 @@ import java.time.Clock
 /**
  * Markerer at en søknadsbehandling kan beregnes.
  */
-sealed interface KanBeregnes : Søknadsbehandling, Søknadsbehandling.KanOppdaterePeriodeGrunnlagVilkår {
+sealed interface KanBeregnes : Søknadsbehandling, KanOppdaterePeriodeGrunnlagVilkår {
 
     override val aldersvurdering: Aldersvurdering
 

@@ -37,7 +37,7 @@ import java.util.UUID
 
 sealed interface BeregnetSøknadsbehandling :
     Søknadsbehandling,
-    Søknadsbehandling.KanOppdaterePeriodeGrunnlagVilkår,
+    KanOppdaterePeriodeGrunnlagVilkår,
     KanBeregnes {
     abstract override val beregning: Beregning
     abstract override val stønadsperiode: Stønadsperiode

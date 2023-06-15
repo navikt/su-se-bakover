@@ -36,7 +36,7 @@ import java.util.UUID
 
 sealed interface UnderkjentSøknadsbehandling :
     Søknadsbehandling,
-    Søknadsbehandling.KanOppdaterePeriodeGrunnlagVilkår,
+    KanOppdaterePeriodeGrunnlagVilkår,
     KanBeregnes {
     abstract override val id: UUID
     abstract override val opprettet: Tidspunkt

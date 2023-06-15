@@ -33,7 +33,7 @@ import java.util.UUID
 
 sealed interface VilkårsvurdertSøknadsbehandling :
     Søknadsbehandling,
-    Søknadsbehandling.KanOppdaterePeriodeGrunnlagVilkår {
+    KanOppdaterePeriodeGrunnlagVilkår {
 
     override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> {
         return copyInternal(

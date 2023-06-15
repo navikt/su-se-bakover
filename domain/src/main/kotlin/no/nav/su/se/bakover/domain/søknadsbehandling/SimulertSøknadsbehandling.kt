@@ -47,7 +47,7 @@ data class SimulertSøknadsbehandling(
     override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting,
     override val sakstype: Sakstype,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
-) : Søknadsbehandling, Søknadsbehandling.KanOppdaterePeriodeGrunnlagVilkår, KanBeregnes {
+) : Søknadsbehandling, KanOppdaterePeriodeGrunnlagVilkår, KanBeregnes {
     // TODO jah: Den må enten arve bergnet sin periode, eller definere denne selv. Også må init sjekke at aldersperioden har samme.
     override val periode: Periode = aldersvurdering.stønadsperiode.periode
     override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
