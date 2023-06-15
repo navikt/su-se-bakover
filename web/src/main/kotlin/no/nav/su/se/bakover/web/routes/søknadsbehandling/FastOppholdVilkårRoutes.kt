@@ -27,7 +27,7 @@ internal fun Route.fastOppholdVilkårRoutes(
     satsFactory: SatsFactory,
     clock: Clock,
 ) {
-    post("$behandlingPath/{behandlingId}/fastopphold") {
+    post("$søknadsbehandlingPath/{behandlingId}/fastopphold") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId {
                 call.withBody<List<LeggTilVurderingsperiodeFastOppholdJson>> { body ->

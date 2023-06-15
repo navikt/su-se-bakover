@@ -27,10 +27,10 @@ import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
+import no.nav.su.se.bakover.domain.revurdering.vilkår.opphold.KunneIkkeOppdatereLovligOppholdOgMarkereSomVurdert
 import no.nav.su.se.bakover.domain.revurdering.visitors.RevurderingVisitor
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakInfo
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
@@ -120,7 +120,9 @@ sealed class SimulertRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
         return oppdaterOpplysnigspliktOgMarkerSomVurdertInternal(opplysningspliktVilkår)
     }
 
-    override fun oppdaterLovligOppholdOgMarkerSomVurdert(lovligOppholdVilkår: LovligOppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold, OpprettetRevurdering> {
+    override fun oppdaterLovligOppholdOgMarkerSomVurdert(
+        lovligOppholdVilkår: LovligOppholdVilkår.Vurdert,
+    ): Either<KunneIkkeOppdatereLovligOppholdOgMarkereSomVurdert, OpprettetRevurdering> {
         return oppdaterLovligOppholdOgMarkerSomVurdertInternal(lovligOppholdVilkår)
     }
 

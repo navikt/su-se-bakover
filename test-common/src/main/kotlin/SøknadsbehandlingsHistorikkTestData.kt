@@ -101,7 +101,7 @@ fun nySøknadsbehandlingshistorikkAlleVilkår(
             Søknadsbehandlingshendelse(
                 tidspunkt = tidspunkt,
                 saksbehandler = saksbehandler,
-                handling = SøknadsbehandlingsHandling.TattStillingTilEPS,
+                handling = SøknadsbehandlingsHandling.OppdatertBosituasjon,
             ),
             Søknadsbehandlingshendelse(
                 tidspunkt = tidspunkt,

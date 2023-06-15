@@ -63,4 +63,8 @@ sealed interface SøknadsbehandlingsHandling : SaksbehandlingsHandling {
     data object Simulert : SøknadsbehandlingsHandling
     data object SendtTilAttestering : SøknadsbehandlingsHandling
     data object Lukket : SøknadsbehandlingsHandling
+
+    // Aldersspesifikke handlinger
+    data object OppdatertPensjonsvilkår : SøknadsbehandlingsHandling
+    data object OppdatertFamiliegjenforening : SøknadsbehandlingsHandling
 }

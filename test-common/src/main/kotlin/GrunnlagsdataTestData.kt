@@ -16,8 +16,9 @@ import java.util.UUID
 fun fradragsgrunnlagArbeidsinntekt1000(
     periode: Periode = år(2021),
     opprettet: Tidspunkt = fixedTidspunkt,
+    tilhører: FradragTilhører = FradragTilhører.BRUKER,
 ): Grunnlag.Fradragsgrunnlag {
-    return fradragsgrunnlagArbeidsinntekt(periode = periode, arbeidsinntekt = 1000.0, opprettet = opprettet)
+    return fradragsgrunnlagArbeidsinntekt(periode = periode, arbeidsinntekt = 1000.0, opprettet = opprettet, tilhører = tilhører)
 }
 
 /**

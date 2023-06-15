@@ -3,8 +3,10 @@ package no.nav.su.se.bakover.domain.grunnlag
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -14,11 +16,14 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perio
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
+import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageOpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
 import java.time.Clock
+import java.util.UUID
 
 sealed interface GrunnlagsdataOgVilkårsvurderinger {
     val grunnlagsdata: Grunnlagsdata
@@ -34,7 +39,7 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
     fun erVurdert(): Boolean = vilkårsvurderinger.erVurdert && grunnlagsdata.erUtfylt
     fun harVurdertOpplysningsplikt(): Boolean = vilkårsvurderinger.opplysningsplikt is OpplysningspliktVilkår.Vurdert
 
-    fun leggTil(vilkår: Vilkår): GrunnlagsdataOgVilkårsvurderinger
+    fun oppdaterVilkår(vilkår: Vilkår): GrunnlagsdataOgVilkårsvurderinger
 
     fun oppdaterGrunnlagsdata(grunnlagsdata: Grunnlagsdata): GrunnlagsdataOgVilkårsvurderinger
     fun oppdaterVilkårsvurderinger(vilkårsvurderinger: Vilkårsvurderinger): GrunnlagsdataOgVilkårsvurderinger
@@ -43,7 +48,7 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
      * Erstatter eksisterende fradragsgrunnlag med nye.
      */
     fun oppdaterFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): GrunnlagsdataOgVilkårsvurderinger
-    fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): GrunnlagsdataOgVilkårsvurderinger
+    fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Søknadsbehandling
 
     /**
      * Fjerner EPS sin formue/fradrag dersom søker ikke har EPS.
@@ -85,14 +90,14 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
             is Revurdering -> {
                 Revurdering(
                     grunnlagsdata = grunnlagsdataJustertForEPS,
-                    vilkårsvurderinger = vilkårsvurderinger.leggTil(formueJustertForEPS),
+                    vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(formueJustertForEPS),
                 )
             }
 
             is Søknadsbehandling -> {
                 Søknadsbehandling(
                     grunnlagsdata = grunnlagsdataJustertForEPS,
-                    vilkårsvurderinger = vilkårsvurderinger.leggTil(formueJustertForEPS),
+                    vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(formueJustertForEPS),
                     eksterneGrunnlag = if (this.grunnlagsdata.bosituasjon.harFjernetEllerEndretEps(bosituasjon)) {
                         eksterneGrunnlag.fjernEps()
                     } else {
@@ -128,8 +133,8 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
         override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
         override val eksterneGrunnlag: EksterneGrunnlag,
     ) : GrunnlagsdataOgVilkårsvurderinger {
-        override fun leggTil(vilkår: Vilkår): Søknadsbehandling {
-            return copy(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår))
+        override fun oppdaterVilkår(vilkår: Vilkår): Søknadsbehandling {
+            return copy(vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(vilkår))
         }
 
         override fun oppdaterGrunnlagsdata(grunnlagsdata: Grunnlagsdata): Søknadsbehandling {
@@ -160,14 +165,18 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
 
         override fun oppdaterOpplysningsplikt(opplysningspliktVilkår: OpplysningspliktVilkår): Søknadsbehandling {
             return this.copy(
-                vilkårsvurderinger = vilkårsvurderinger.leggTil(
+                vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(
                     vilkår = opplysningspliktVilkår,
                 ),
             )
         }
 
-        override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Søknadsbehandling {
-            return this.copy(eksterneGrunnlag = eksterneGrunnlag.leggTilSkatt(skatt))
+        override fun leggTilSkatt(
+            skatt: EksterneGrunnlagSkatt,
+        ): Søknadsbehandling {
+            return this.copy(
+                eksterneGrunnlag = eksterneGrunnlag.leggTilSkatt(skatt),
+            )
         }
 
         override fun oppdaterBosituasjon(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>): Søknadsbehandling {
@@ -236,7 +245,7 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
                 }
             }
 
-            return leggTil(vilkår)
+            return oppdaterVilkår(vilkår)
         }
 
         init {
@@ -257,8 +266,8 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
             return super.oppdaterBosituasjon(bosituasjon) as Revurdering
         }
 
-        override fun leggTil(vilkår: Vilkår): Revurdering {
-            return copy(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår))
+        override fun oppdaterVilkår(vilkår: Vilkår): Revurdering {
+            return copy(vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(vilkår))
         }
 
         override fun oppdaterGrunnlagsdata(grunnlagsdata: Grunnlagsdata): Revurdering {
@@ -284,15 +293,37 @@ sealed interface GrunnlagsdataOgVilkårsvurderinger {
 
         override fun oppdaterOpplysningsplikt(opplysningspliktVilkår: OpplysningspliktVilkår): Revurdering {
             return this.copy(
-                vilkårsvurderinger = vilkårsvurderinger.leggTil(
+                vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(
                     vilkår = opplysningspliktVilkår,
                 ),
             )
         }
 
-        override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Revurdering =
+        override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Nothing {
             throw UnsupportedOperationException("Støtter ikke å legge til skatt fra ekstern kilde for revurdering")
+        }
     }
+}
+
+inline fun <reified T : GrunnlagsdataOgVilkårsvurderinger> GrunnlagsdataOgVilkårsvurderinger.avslåPgaOpplysningsplikt(
+    tidspunkt: Tidspunkt,
+    periode: Periode,
+): Either<KunneIkkeLageOpplysningspliktVilkår, T> {
+    return OpplysningspliktVilkår.Vurdert.tryCreate(
+        vurderingsperioder = nonEmptyListOf(
+            VurderingsperiodeOpplysningsplikt.create(
+                id = UUID.randomUUID(),
+                opprettet = tidspunkt,
+                periode = periode,
+                grunnlag = Opplysningspliktgrunnlag(
+                    id = UUID.randomUUID(),
+                    opprettet = tidspunkt,
+                    periode = periode,
+                    beskrivelse = OpplysningspliktBeskrivelse.UtilstrekkeligDokumentasjon,
+                ),
+            ),
+        ),
+    ).map { oppdaterOpplysningsplikt(it) as T }
 }
 
 fun GrunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget() {

@@ -3,27 +3,15 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 import arrow.core.left
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
+import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
-import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
-import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
-import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
-import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
-import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
-import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningVurderinger
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningvilkårStatus
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
-import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
-import no.nav.su.se.bakover.test.søknad.søknadsinnholdAlder
 import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandling
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -56,26 +44,12 @@ internal class SøknadsbehandlingServiceLeggTilFamiliegjenforeningTest {
 
     @Test
     fun `får lagt til familiegjenforening vilkår`() {
-        val fnr = Fnr.generer()
+        val søknadsbehandling = nySøknadsbehandlingMedStønadsperiode(
+            sakstype = Sakstype.ALDER,
+        ).second
         SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = mock {
-                on { hent(any()) } doReturn vilkårsvurdertSøknadsbehandling(
-                    sakOgSøknad = nySakMedjournalførtSøknadOgOppgave(
-                        fnr = fnr,
-                        søknadInnhold = søknadsinnholdAlder(personopplysninger = Personopplysninger(fnr)),
-                    ),
-                    customVilkår = listOf(
-                        FormueVilkår.IkkeVurdert,
-                        LovligOppholdVilkår.IkkeVurdert,
-                        FastOppholdINorgeVilkår.IkkeVurdert,
-                        InstitusjonsoppholdVilkår.IkkeVurdert,
-                        UtenlandsoppholdVilkår.IkkeVurdert,
-                        PersonligOppmøteVilkår.IkkeVurdert,
-                        OpplysningspliktVilkår.IkkeVurdert,
-                        PensjonsVilkår.IkkeVurdert,
-                        FamiliegjenforeningVilkår.IkkeVurdert,
-                    ),
-                ).second
+                on { hent(any()) } doReturn søknadsbehandling
             },
         ).let { søknadsbehandlingServiceAndMocks ->
             val behandlingId = UUID.randomUUID()
@@ -101,23 +75,11 @@ internal class SøknadsbehandlingServiceLeggTilFamiliegjenforeningTest {
 
     @Test
     fun `kaster hvis vurderinger ikke har noen elementer`() {
-        assertThrows<IllegalArgumentException> {
+        val vilkårsvurdertSøknadsbehandling = nySøknadsbehandlingMedStønadsperiode().second
+        assertThrows<IllegalArgumentException>("") {
             SøknadsbehandlingServiceAndMocks(
                 søknadsbehandlingRepo = mock {
-                    on { hent(any()) } doReturn vilkårsvurdertSøknadsbehandling(
-                        sakOgSøknad = nySakMedjournalførtSøknadOgOppgave(),
-                        customVilkår = listOf(
-                            FormueVilkår.IkkeVurdert,
-                            LovligOppholdVilkår.IkkeVurdert,
-                            FastOppholdINorgeVilkår.IkkeVurdert,
-                            InstitusjonsoppholdVilkår.IkkeVurdert,
-                            UtenlandsoppholdVilkår.IkkeVurdert,
-                            PersonligOppmøteVilkår.IkkeVurdert,
-                            OpplysningspliktVilkår.IkkeVurdert,
-                            PensjonsVilkår.IkkeVurdert,
-                            FamiliegjenforeningVilkår.IkkeVurdert,
-                        ),
-                    ).second
+                    on { hent(any()) } doReturn vilkårsvurdertSøknadsbehandling
                 },
             ).let { søknadsbehandlingServiceAndMocks ->
                 val behandlingId = UUID.randomUUID()

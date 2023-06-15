@@ -9,11 +9,13 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteÅrsak
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
+import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodePersonligOppmøte
-import no.nav.su.se.bakover.domain.vilkår.oppmøte.KunneIkkeLeggeTilPersonligOppmøteVilkår
+import no.nav.su.se.bakover.domain.vilkår.oppmøte.KunneIkkeLeggeTilPersonligOppmøteVilkårForRevurdering
+import no.nav.su.se.bakover.domain.vilkår.oppmøte.KunneIkkeLeggeTilPersonligOppmøteVilkårForSøknadsbehandling
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkår.tilResultat
 import java.time.Clock
 import java.util.UUID
 
@@ -25,24 +27,30 @@ internal fun List<LeggTilVurderingsperiodePersonligOppmøteJson>.toDomain(clock:
     }
 }
 
-internal fun KunneIkkeLeggeTilPersonligOppmøteVilkår.tilResultat(): Resultat {
+internal fun KunneIkkeLeggeTilPersonligOppmøteVilkårForSøknadsbehandling.tilResultat(): Resultat {
     return when (this) {
-        KunneIkkeLeggeTilPersonligOppmøteVilkår.FantIkkeBehandling -> {
+        KunneIkkeLeggeTilPersonligOppmøteVilkårForSøknadsbehandling.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
+        is KunneIkkeLeggeTilPersonligOppmøteVilkårForSøknadsbehandling.Underliggende -> {
+            when (val feil = this.feil) {
+                is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPersonligOppmøteVilkår.Vilkårsfeil -> feil.underliggende.tilResultat()
+            }
+        }
+    }
+}
+
+internal fun KunneIkkeLeggeTilPersonligOppmøteVilkårForRevurdering.tilResultat(): Resultat {
+    return when (this) {
+        KunneIkkeLeggeTilPersonligOppmøteVilkårForRevurdering.FantIkkeBehandling -> {
             Feilresponser.fantIkkeBehandling
         }
-        is KunneIkkeLeggeTilPersonligOppmøteVilkår.Revurdering -> {
+
+        is KunneIkkeLeggeTilPersonligOppmøteVilkårForRevurdering.Underliggende -> {
             when (val feil = this.feil) {
                 Revurdering.KunneIkkeLeggeTilPersonligOppmøteVilkår.HeleBehandlingsperiodenErIkkeVurdert -> {
                     Feilresponser.heleBehandlingsperiodenMåHaVurderinger
                 }
+
                 is Revurdering.KunneIkkeLeggeTilPersonligOppmøteVilkår.UgyldigTilstand -> {
-                    Feilresponser.ugyldigTilstand(feil.fra, feil.til)
-                }
-            }
-        }
-        is KunneIkkeLeggeTilPersonligOppmøteVilkår.Søknadsbehandling -> {
-            when (val feil = this.feil) {
-                is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPersonligOppmøteVilkår.UgyldigTilstand -> {
                     Feilresponser.ugyldigTilstand(feil.fra, feil.til)
                 }
             }
@@ -121,6 +129,7 @@ internal fun PersonligOppmøteVilkår.toJson(): PersonligOppmøteVilkårJson? {
         PersonligOppmøteVilkår.IkkeVurdert -> {
             null
         }
+
         is PersonligOppmøteVilkår.Vurdert -> {
             this.toJson()
         }

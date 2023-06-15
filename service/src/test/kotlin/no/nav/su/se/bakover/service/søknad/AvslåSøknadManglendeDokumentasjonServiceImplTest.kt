@@ -133,7 +133,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 aldersvurdering = Aldersvurdering.SkalIkkeVurderes(Stønadsperiode.create(expectedPeriode)),
                 grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
                     grunnlagsdata = uavklart.grunnlagsdata,
-                    vilkårsvurderinger = uavklart.vilkårsvurderinger.leggTil(
+                    vilkårsvurderinger = uavklart.vilkårsvurderinger.oppdaterVilkår(
                         OpplysningspliktVilkår.Vurdert.tryCreate(
                             vurderingsperioder = nonEmptyListOf(
                                 VurderingsperiodeOpplysningsplikt.create(
@@ -277,7 +277,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 fritekstTilBrev = "fritekstTilBrev",
                 aldersvurdering = vilkårsvurdertInnvilget.aldersvurdering,
                 grunnlagsdataOgVilkårsvurderinger = vilkårsvurdertInnvilget.grunnlagsdataOgVilkårsvurderinger.oppdaterVilkårsvurderinger(
-                    vilkårsvurdertInnvilget.vilkårsvurderinger.leggTil(
+                    vilkårsvurdertInnvilget.vilkårsvurderinger.oppdaterVilkår(
                         OpplysningspliktVilkår.Vurdert.tryCreate(
                             vurderingsperioder = nonEmptyListOf(
                                 VurderingsperiodeOpplysningsplikt.create(
@@ -371,7 +371,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     fritekstTilBrev = "fritekstTilBrev",
                 ),
             )
-        }.message shouldBe "UgyldigTilstand(fra=class no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling\$Innvilget, til=class no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling)"
+        }.message shouldBe "Søknadsbehandling var ikke av typen KanOppdaterePeriodeGrunnlagVilkår ved avslag pga. manglende dokumentasjon. Actual: Innvilget "
         verify(serviceAndMocks.sakService).hentSakForSøknad(søknadId)
         serviceAndMocks.verifyNoMoreInteractions()
     }

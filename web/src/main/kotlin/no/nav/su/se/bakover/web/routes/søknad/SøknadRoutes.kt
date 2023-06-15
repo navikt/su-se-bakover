@@ -54,6 +54,7 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.KunneIkkeLageS
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.iverksett.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.opprett.tilResultat
+import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.tilResultat
 import java.time.Clock
 
 enum class Søknadstype(val value: String) {
@@ -345,6 +346,7 @@ internal fun KunneIkkeAvslåSøknad.tilResultat(): Resultat = when (this) {
     is KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling -> this.underliggendeFeil.tilResultat()
     is KunneIkkeAvslåSøknad.KunneIkkeIverksetteSøknadsbehandling -> this.underliggendeFeil.tilResultat()
     is KunneIkkeAvslåSøknad.HarValideringsfeil -> this.feil.tilResultat()
+    is KunneIkkeAvslåSøknad.Periodefeil -> this.underliggende.tilResultat()
 }
 
 private fun ValideringsfeilAttestering.tilResultat(): Resultat = when (this) {

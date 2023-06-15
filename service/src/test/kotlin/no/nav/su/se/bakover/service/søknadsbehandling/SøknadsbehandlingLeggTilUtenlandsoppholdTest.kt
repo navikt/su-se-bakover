@@ -6,6 +6,7 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.domain.søknadsbehandling.KanOppdaterePeriodeBosituasjonVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
@@ -94,7 +95,7 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
                 saksbehandler = saksbehandler,
             ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand(
                 fra = iverksatt::class,
-                til = VilkårsvurdertSøknadsbehandling::class,
+                til = KanOppdaterePeriodeBosituasjonVilkår::class,
             ).left()
 
             verify(it.søknadsbehandlingRepo).hent(any())

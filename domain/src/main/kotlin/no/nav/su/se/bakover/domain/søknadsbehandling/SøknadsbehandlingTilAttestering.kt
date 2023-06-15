@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
-import arrow.core.Either
 import arrow.core.left
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -35,8 +34,7 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling {
     abstract override val attesteringer: Attesteringshistorikk
     abstract override val avkorting: AvkortingVedSøknadsbehandling.Vurdert
 
-    override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> =
-        KunneIkkeLeggeTilSkattegrunnlag.UgyldigTilstand.left()
+    override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt) = KunneIkkeLeggeTilSkattegrunnlag.UgyldigTilstand.left()
 
     data class Innvilget(
         override val id: UUID,

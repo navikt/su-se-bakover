@@ -199,6 +199,8 @@ fun vilkårsvurderingerAvslåttAlleRevurdering(
 }
 
 /**
+ * Denne er ikke reell, da man i praksis ikke kan avslå alt samtidig, og bør brukes i minst mulig grad.
+ *
  * Defaults:
  * periode: 2021
  * bosituasjon: enslig
@@ -207,7 +209,6 @@ fun vilkårsvurderingerAvslåttAlleRevurdering(
  * uføre: avslag
  * formue: innvilget
  */
-@Suppress("unused")
 fun vilkårsvurderingerAvslåttAlle(
     periode: Periode = år(2021),
 ): Vilkårsvurderinger.Søknadsbehandling.Uføre {

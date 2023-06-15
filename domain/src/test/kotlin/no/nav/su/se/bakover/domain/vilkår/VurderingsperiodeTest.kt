@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.vilkår
 
 import arrow.core.left
+import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.CopyArgs
@@ -181,6 +182,6 @@ internal class VurderingsperiodeTest {
             vurdering = Vurdering.Innvilget,
             grunnlag = null,
             vurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
-        ).isRight() shouldBe true
+        ).shouldBeRight()
     }
 }

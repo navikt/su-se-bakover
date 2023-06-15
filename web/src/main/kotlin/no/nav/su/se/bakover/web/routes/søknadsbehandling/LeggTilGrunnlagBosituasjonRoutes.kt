@@ -27,7 +27,7 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
     satsFactory: SatsFactory,
 ) {
-    post("$behandlingPath/{behandlingId}/grunnlag/bosituasjon") {
+    post("$søknadsbehandlingPath/{behandlingId}/grunnlag/bosituasjon") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->

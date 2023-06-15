@@ -27,7 +27,7 @@ internal fun Route.pensjonsVilkårRoutes(
     satsFactory: SatsFactory,
     clock: Clock,
 ) {
-    post("$behandlingPath/{behandlingId}/pensjon") {
+    post("$søknadsbehandlingPath/{behandlingId}/pensjon") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId {
                 call.withBody<List<LeggTilVurderingsperiodePensjonsvilkårJson>> { body ->

@@ -24,8 +24,8 @@ import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.behandlingPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.jsonBody
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.søknadsbehandlingPath
 import no.nav.su.se.bakover.web.routes.tilResultat
 import java.time.Clock
 
@@ -35,7 +35,7 @@ internal fun Route.iverksettSøknadsbehandlingRoute(
     clock: Clock,
     applicationConfig: ApplicationConfig,
 ) {
-    patch("$behandlingPath/{behandlingId}/iverksett") {
+    patch("$søknadsbehandlingPath/{behandlingId}/iverksett") {
         authorize(Brukerrolle.Attestant) {
             call.withBehandlingId { behandlingId ->
 

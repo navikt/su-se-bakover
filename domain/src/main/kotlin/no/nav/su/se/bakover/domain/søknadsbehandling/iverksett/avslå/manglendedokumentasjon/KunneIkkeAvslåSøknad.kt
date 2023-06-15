@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglend
 
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.søknadsbehandling.ValideringsfeilAttestering
+import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageOpplysningspliktVilkår
 
 sealed interface KunneIkkeAvslåSøknad {
     data class KunneIkkeOppretteSøknadsbehandling(
@@ -13,4 +14,6 @@ sealed interface KunneIkkeAvslåSøknad {
     ) : KunneIkkeAvslåSøknad
 
     data class HarValideringsfeil(val feil: ValideringsfeilAttestering) : KunneIkkeAvslåSøknad
+
+    data class Periodefeil(val underliggende: KunneIkkeLageOpplysningspliktVilkår) : KunneIkkeAvslåSøknad
 }

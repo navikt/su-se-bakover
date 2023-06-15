@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.vilkår.oppmøte
 
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
+import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import java.util.UUID
 
@@ -9,12 +9,19 @@ data class LeggTilPersonligOppmøteVilkårRequest(
     val vilkår: PersonligOppmøteVilkår.Vurdert,
 )
 
-sealed interface KunneIkkeLeggeTilPersonligOppmøteVilkår {
-    data class Søknadsbehandling(val feil: KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPersonligOppmøteVilkår) :
-        KunneIkkeLeggeTilPersonligOppmøteVilkår
+sealed interface KunneIkkeLeggeTilPersonligOppmøteVilkårForSøknadsbehandling {
+    data class Underliggende(
+        val feil: KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPersonligOppmøteVilkår,
+    ) : KunneIkkeLeggeTilPersonligOppmøteVilkårForSøknadsbehandling
 
-    data class Revurdering(val feil: no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilPersonligOppmøteVilkår) :
-        KunneIkkeLeggeTilPersonligOppmøteVilkår
+    data object FantIkkeBehandling : KunneIkkeLeggeTilPersonligOppmøteVilkårForSøknadsbehandling
+}
 
-    data object FantIkkeBehandling : KunneIkkeLeggeTilPersonligOppmøteVilkår
+sealed interface KunneIkkeLeggeTilPersonligOppmøteVilkårForRevurdering {
+
+    data class Underliggende(
+        val feil: no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilPersonligOppmøteVilkår,
+    ) : KunneIkkeLeggeTilPersonligOppmøteVilkårForRevurdering
+
+    data object FantIkkeBehandling : KunneIkkeLeggeTilPersonligOppmøteVilkårForRevurdering
 }

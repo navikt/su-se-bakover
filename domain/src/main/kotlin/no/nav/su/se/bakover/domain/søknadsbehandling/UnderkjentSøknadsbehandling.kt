@@ -36,8 +36,7 @@ import java.util.UUID
 
 sealed interface UnderkjentSøknadsbehandling :
     Søknadsbehandling,
-    KanOppdaterePeriodeGrunnlagVilkår,
-    KanBeregnes {
+    KanOppdaterePeriodeBosituasjonVilkår {
     abstract override val id: UUID
     abstract override val opprettet: Tidspunkt
     abstract override val sakId: UUID
@@ -52,14 +51,7 @@ sealed interface UnderkjentSøknadsbehandling :
 
     fun nyOppgaveId(nyOppgaveId: OppgaveId): UnderkjentSøknadsbehandling
 
-    override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> =
-        when (this.eksterneGrunnlag.skatt) {
-            is EksterneGrunnlagSkatt.Hentet -> this.copyInternal(
-                grunnlagsdataOgVilkårsvurderinger = this.grunnlagsdataOgVilkårsvurderinger.leggTilSkatt(skatt),
-            ).right()
-
-            EksterneGrunnlagSkatt.IkkeHentet -> KunneIkkeLeggeTilSkattegrunnlag.KanIkkeLeggeTilSkattForTilstandUtenAtDenHarBlittHentetFør.left()
-        }
+    abstract override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, UnderkjentSøknadsbehandling>
 
     data class Innvilget(
         override val id: UUID,
@@ -79,8 +71,19 @@ sealed interface UnderkjentSøknadsbehandling :
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
         override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting,
         override val sakstype: Sakstype,
-    ) : UnderkjentSøknadsbehandling {
+    ) : UnderkjentSøknadsbehandling, KanBeregnes, KanOppdatereFradragsgrunnlag {
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
+
+        override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Innvilget> {
+            return when (this.eksterneGrunnlag.skatt) {
+                is EksterneGrunnlagSkatt.Hentet -> this.copy(
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilSkatt(skatt),
+                ).right()
+
+                EksterneGrunnlagSkatt.IkkeHentet -> KunneIkkeLeggeTilSkattegrunnlag.KanIkkeLeggeTilSkattForTilstandUtenAtDenHarBlittHentetFør.left()
+            }
+        }
+
         override val periode: Periode = aldersvurdering.stønadsperiode.periode
 
         init {
@@ -225,9 +228,20 @@ sealed interface UnderkjentSøknadsbehandling :
             override val aldersvurdering: Aldersvurdering,
             override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             override val sakstype: Sakstype,
-        ) : Avslag {
+        ) : Avslag, KanBeregnes, KanOppdatereFradragsgrunnlag {
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
             override val simulering: Simulering? = null
+
+            override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Avslag> {
+                return when (this.eksterneGrunnlag.skatt) {
+                    is EksterneGrunnlagSkatt.Hentet -> this.copy(
+                        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilSkatt(skatt),
+                    ).right()
+
+                    EksterneGrunnlagSkatt.IkkeHentet -> KunneIkkeLeggeTilSkattegrunnlag.KanIkkeLeggeTilSkattForTilstandUtenAtDenHarBlittHentetFør.left()
+                }
+            }
+
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
             private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                 when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
@@ -326,6 +340,16 @@ sealed interface UnderkjentSøknadsbehandling :
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
             override val beregning = null
             override val simulering: Simulering? = null
+
+            override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, UtenBeregning> {
+                return when (this.eksterneGrunnlag.skatt) {
+                    is EksterneGrunnlagSkatt.Hentet -> this.copy(
+                        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilSkatt(skatt),
+                    ).right()
+
+                    EksterneGrunnlagSkatt.IkkeHentet -> KunneIkkeLeggeTilSkattegrunnlag.KanIkkeLeggeTilSkattForTilstandUtenAtDenHarBlittHentetFør.left()
+                }
+            }
 
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,

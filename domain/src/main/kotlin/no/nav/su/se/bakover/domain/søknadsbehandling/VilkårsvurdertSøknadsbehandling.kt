@@ -13,8 +13,10 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.inneholderUfullstendigeBosituasjoner
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
@@ -26,6 +28,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
 import java.time.Clock
@@ -33,95 +36,93 @@ import java.util.UUID
 
 sealed interface VilkårsvurdertSøknadsbehandling :
     Søknadsbehandling,
-    KanOppdaterePeriodeGrunnlagVilkår {
+    KanOppdaterePeriodeBosituasjonVilkår {
 
-    override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> {
-        return copyInternal(
-            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilSkatt(skatt),
-        ).right()
-    }
+    abstract override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, VilkårsvurdertSøknadsbehandling>
 
     companion object {
+        /**
+         * @param handling støtter null her, siden vi har noen maskinelle/automatiske handlinger som vi ikke ønsker i handlingsloggen. I.e. OppdaterStønadsperiode ved avslagPgaManglendeDokumentasjon.
+         */
         fun opprett(
-            id: UUID,
-            opprettet: Tidspunkt,
-            sakId: UUID,
-            saksnummer: Saksnummer,
-            søknad: Søknad.Journalført.MedOppgave,
-            oppgaveId: OppgaveId,
-            fnr: Fnr,
-            fritekstTilBrev: String,
-            aldersvurdering: Aldersvurdering,
-            grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-            attesteringer: Attesteringshistorikk,
-            saksbehandlingsHistorikk: Søknadsbehandlingshistorikk,
-            sakstype: Sakstype,
+            forrigeTilstand: KanOppdaterePeriodeGrunnlagVilkår,
             saksbehandler: NavIdentBruker.Saksbehandler,
+            grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+            tidspunkt: Tidspunkt,
+            // TODO jah: 2023-06-15 Finn en bedre løsning enn bang her.
+            //  Jeg tror vi setter aldersvurderingen sammen med oppdatering av stønadsperiode.
+            aldersvurdering: Aldersvurdering = forrigeTilstand.aldersvurdering!!,
+            handling: SøknadsbehandlingsHandling?,
         ): VilkårsvurdertSøknadsbehandling {
             val oppdaterteGrunnlagsdataOgVilkårsvurderinger =
                 if (!grunnlagsdataOgVilkårsvurderinger.harVurdertOpplysningsplikt()) {
-                    grunnlagsdataOgVilkårsvurderinger.leggTil(
+                    grunnlagsdataOgVilkårsvurderinger.oppdaterVilkår(
                         /**
                          * Legger til implisitt vilkår for oppfylt opplysningsplikt dersom dette ikke er vurdert fra før.
                          * Tar enn så lenge ikke stilling til dette vilkåret fra frontend ved søknadsbehandling.
                          */
-                        lagOpplysningspliktVilkår(opprettet, aldersvurdering),
+                        lagOpplysningspliktVilkår(tidspunkt, aldersvurdering.stønadsperiode.periode),
                     )
-                } else { grunnlagsdataOgVilkårsvurderinger }
+                } else {
+                    grunnlagsdataOgVilkårsvurderinger
+                }
+
+            val søknadsbehandlingshistorikk = when (handling) {
+                null -> forrigeTilstand.søknadsbehandlingsHistorikk
+                else -> forrigeTilstand.søknadsbehandlingsHistorikk.leggTilNyHendelse(
+                    Søknadsbehandlingshendelse(
+                        tidspunkt = tidspunkt,
+                        saksbehandler = saksbehandler,
+                        handling = handling,
+                    ),
+                )
+            }
             return when (oppdaterteGrunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.vurdering) {
                 is Vilkårsvurderingsresultat.Avslag -> {
                     Avslag(
-                        id = id,
-                        opprettet = opprettet,
-                        sakId = sakId,
-                        saksnummer = saksnummer,
-                        søknad = søknad,
-                        oppgaveId = oppgaveId,
-                        fnr = fnr,
-                        fritekstTilBrev = fritekstTilBrev,
+                        forrigeTilstand = forrigeTilstand,
                         aldersvurdering = aldersvurdering,
                         grunnlagsdataOgVilkårsvurderinger = oppdaterteGrunnlagsdataOgVilkårsvurderinger,
-                        attesteringer = attesteringer,
-                        søknadsbehandlingsHistorikk = saksbehandlingsHistorikk,
-                        sakstype = sakstype,
+                        søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
                         saksbehandler = saksbehandler,
+                        fritekstTilBrev = forrigeTilstand.fritekstTilBrev,
                     )
                 }
 
                 is Vilkårsvurderingsresultat.Innvilget -> {
                     Innvilget(
-                        id = id,
-                        opprettet = opprettet,
-                        sakId = sakId,
-                        saksnummer = saksnummer,
-                        søknad = søknad,
-                        oppgaveId = oppgaveId,
-                        fnr = fnr,
-                        fritekstTilBrev = fritekstTilBrev,
+                        id = forrigeTilstand.id,
+                        opprettet = forrigeTilstand.opprettet,
+                        sakId = forrigeTilstand.sakId,
+                        saksnummer = forrigeTilstand.saksnummer,
+                        søknad = forrigeTilstand.søknad,
+                        oppgaveId = forrigeTilstand.oppgaveId,
+                        fnr = forrigeTilstand.fnr,
+                        fritekstTilBrev = forrigeTilstand.fritekstTilBrev,
                         aldersvurdering = aldersvurdering,
                         grunnlagsdataOgVilkårsvurderinger = oppdaterteGrunnlagsdataOgVilkårsvurderinger,
-                        attesteringer = attesteringer,
-                        søknadsbehandlingsHistorikk = saksbehandlingsHistorikk,
-                        sakstype = sakstype,
+                        attesteringer = forrigeTilstand.attesteringer,
+                        søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
+                        sakstype = forrigeTilstand.sakstype,
                         saksbehandler = saksbehandler,
                     )
                 }
 
                 is Vilkårsvurderingsresultat.Uavklart -> {
                     Uavklart(
-                        id = id,
-                        opprettet = opprettet,
-                        sakId = sakId,
-                        saksnummer = saksnummer,
-                        søknad = søknad,
-                        oppgaveId = oppgaveId,
-                        fnr = fnr,
-                        fritekstTilBrev = fritekstTilBrev,
+                        id = forrigeTilstand.id,
+                        opprettet = forrigeTilstand.opprettet,
+                        sakId = forrigeTilstand.sakId,
+                        saksnummer = forrigeTilstand.saksnummer,
+                        søknad = forrigeTilstand.søknad,
+                        oppgaveId = forrigeTilstand.oppgaveId,
+                        fnr = forrigeTilstand.fnr,
+                        fritekstTilBrev = forrigeTilstand.fritekstTilBrev,
                         aldersvurdering = aldersvurdering,
                         grunnlagsdataOgVilkårsvurderinger = oppdaterteGrunnlagsdataOgVilkårsvurderinger,
-                        attesteringer = attesteringer,
-                        søknadsbehandlingsHistorikk = saksbehandlingsHistorikk,
-                        sakstype = sakstype,
+                        attesteringer = forrigeTilstand.attesteringer,
+                        søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
+                        sakstype = forrigeTilstand.sakstype,
                         saksbehandler = saksbehandler,
                     )
                 }
@@ -130,17 +131,17 @@ sealed interface VilkårsvurdertSøknadsbehandling :
 
         private fun lagOpplysningspliktVilkår(
             opprettet: Tidspunkt,
-            aldersvurdering: Aldersvurdering,
+            periode: Periode,
         ) = OpplysningspliktVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(
                 VurderingsperiodeOpplysningsplikt.create(
                     id = UUID.randomUUID(),
                     opprettet = opprettet,
-                    periode = aldersvurdering.stønadsperiode.periode,
+                    periode = periode,
                     grunnlag = Opplysningspliktgrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = opprettet,
-                        periode = aldersvurdering.stønadsperiode.periode,
+                        periode = periode,
                         beskrivelse = OpplysningspliktBeskrivelse.TilstrekkeligDokumentasjon,
                     ),
                 ),
@@ -163,12 +164,18 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
-    ) : VilkårsvurdertSøknadsbehandling, KanBeregnes {
+    ) : VilkårsvurdertSøknadsbehandling, KanBeregnes, KanOppdatereFradragsgrunnlag {
         override val periode: Periode = aldersvurdering.stønadsperiode.periode
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
         override val beregning = null
         override val simulering: Simulering? = null
+
+        override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Innvilget> {
+            return this.copy(
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilSkatt(skatt),
+            ).right()
+        }
 
         /** Avkorting vurderes ikke før vi må; beregningsteget. */
         override val avkorting: AvkortingVedSøknadsbehandling.IkkeVurdert = AvkortingVedSøknadsbehandling.IkkeVurdert
@@ -203,26 +210,34 @@ sealed interface VilkårsvurdertSøknadsbehandling :
     }
 
     data class Avslag(
-        override val id: UUID,
-        override val opprettet: Tidspunkt,
-        override val sakId: UUID,
-        override val saksnummer: Saksnummer,
-        override val søknad: Søknad.Journalført.MedOppgave,
-        override val oppgaveId: OppgaveId,
-        override val fnr: Fnr,
-        override val fritekstTilBrev: String,
+        private val forrigeTilstand: KanOppdaterePeriodeGrunnlagVilkår,
+        override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val aldersvurdering: Aldersvurdering,
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-        override val attesteringer: Attesteringshistorikk,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
-        override val sakstype: Sakstype,
-        override val saksbehandler: NavIdentBruker.Saksbehandler,
-    ) : VilkårsvurdertSøknadsbehandling, ErAvslag {
-        override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
+        // TODO jah: Eksisterer kun slik at vi kan lage brevutkast. Fjern når vi ikke trenger det.
+        override val fritekstTilBrev: String,
+    ) : VilkårsvurdertSøknadsbehandling,
+        KanOppdaterePeriodeBosituasjonVilkår,
+        Søknadsbehandling by forrigeTilstand,
+        ErAvslag {
+
+        override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling =
+            grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
+        override val grunnlagsdata: Grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata
+        override val eksterneGrunnlag: EksterneGrunnlag = grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag
+
         override val beregning = null
         override val simulering: Simulering? = null
 
-        override val avkorting: AvkortingVedSøknadsbehandling.IngenAvkorting = AvkortingVedSøknadsbehandling.IngenAvkorting
+        override val avkorting: AvkortingVedSøknadsbehandling.IngenAvkorting =
+            AvkortingVedSøknadsbehandling.IngenAvkorting
+
+        override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Avslag> {
+            return this.copy(
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilSkatt(skatt),
+            ).right()
+        }
 
         override fun skalSendeVedtaksbrev(): Boolean {
             return true
@@ -342,6 +357,13 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         override val stønadsperiode: Stønadsperiode? = aldersvurdering?.stønadsperiode
         override val beregning = null
         override val simulering: Simulering? = null
+
+        override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Uavklart> {
+            return this.copy(
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilSkatt(skatt),
+            ).right()
+        }
+
         override val avkorting: AvkortingVedSøknadsbehandling.IkkeVurdert = AvkortingVedSøknadsbehandling.IkkeVurdert
 
         override fun skalSendeVedtaksbrev(): Boolean {

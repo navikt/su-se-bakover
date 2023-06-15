@@ -12,12 +12,13 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Pensjonsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Pensjonsopplysninger
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
+import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLagePensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodePensjon
 import no.nav.su.se.bakover.domain.vilkår.pensjon.KunneIkkeLeggeTilPensjonsVilkår
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkår.tilResultat
 import java.time.Clock
 import java.util.UUID
 
@@ -258,18 +259,12 @@ internal fun KunneIkkeLeggeTilPensjonsVilkår.tilResultat(): Resultat {
         }
 
         is KunneIkkeLeggeTilPensjonsVilkår.Søknadsbehandling -> {
-            when (val feil = this.feil) {
-                is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår.HeleBehandlingsperiodenErIkkeVurdert -> {
-                    Feilresponser.vilkårMåVurderesForHeleBehandlingsperioden
-                }
-
-                is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår.UgyldigTilstand -> {
-                    Feilresponser.ugyldigTilstand(feil.fra, feil.til)
-                }
-
+            when (val f = this.feil) {
                 is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår.VilkårKunRelevantForAlder -> {
                     Feilresponser.vilkårKunRelevantForAlder
                 }
+
+                is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår.Vilkårsfeil -> f.underliggende.tilResultat()
             }
         }
     }

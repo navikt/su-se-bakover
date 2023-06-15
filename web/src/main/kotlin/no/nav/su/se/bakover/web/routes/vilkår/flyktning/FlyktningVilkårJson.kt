@@ -8,11 +8,12 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
+import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFlyktning
 import no.nav.su.se.bakover.domain.vilkår.flyktning.KunneIkkeLeggeTilFlyktningVilkår
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkår.tilResultat
 import java.time.Clock
 import java.util.UUID
 
@@ -47,9 +48,7 @@ internal fun KunneIkkeLeggeTilFlyktningVilkår.tilResultat(): Resultat {
         }
         is KunneIkkeLeggeTilFlyktningVilkår.Søknadsbehandling -> {
             when (val feil = this.feil) {
-                is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFlyktningVilkår.UgyldigTilstand -> {
-                    Feilresponser.ugyldigTilstand(feil.fra, feil.til)
-                }
+                is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFlyktningVilkår.Vilkårsfeil -> feil.underliggende.tilResultat()
             }
         }
         is KunneIkkeLeggeTilFlyktningVilkår.UgyldigFlyktningVilkår -> {

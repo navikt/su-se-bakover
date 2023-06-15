@@ -38,8 +38,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandlin
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
@@ -57,6 +55,7 @@ import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
+import no.nav.su.se.bakover.domain.vilkår.IkkeVurdertVilkår
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
@@ -76,6 +75,7 @@ import no.nav.su.se.bakover.test.søknad.oppgaveIdSøknad
 import no.nav.su.se.bakover.test.søknad.personopplysninger
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.utbetaling.kvittering
+import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
@@ -116,7 +116,7 @@ fun søknadsbehandlingVilkårsvurdertAvslag(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
     customGrunnlag: List<Grunnlag> = emptyList(),
-    customVilkår: List<Vilkår> = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode).vilkår.toList(),
+    customVilkår: List<Vilkår> = listOf(institusjonsoppholdvilkårAvslag()),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
 ): Pair<Sak, VilkårsvurdertSøknadsbehandling.Avslag> {
@@ -263,7 +263,7 @@ fun søknadsbehandlingTilAttesteringAvslagUtenBeregning(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
     customGrunnlag: List<Grunnlag> = emptyList(),
-    customVilkår: List<Vilkår> = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode).vilkår.toList(),
+    customVilkår: List<Vilkår> = listOf(institusjonsoppholdvilkårAvslag()),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     fritekstTilBrev: String = "",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
@@ -316,7 +316,7 @@ fun søknadsbehandlingUnderkjentAvslagUtenBeregning(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
     customGrunnlag: List<Grunnlag> = emptyList(),
-    customVilkår: List<Vilkår> = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode).vilkår.toList(),
+    customVilkår: List<Vilkår> = listOf(institusjonsoppholdvilkårAvslag()),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     fritekstTilBrev: String = "",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
@@ -451,7 +451,7 @@ fun søknadsbehandlingIverksattAvslagUtenBeregning(
         clock = clock,
     ),
     customGrunnlag: List<Grunnlag> = emptyList(),
-    customVilkår: List<Vilkår> = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode).vilkår.toList(),
+    customVilkår: List<Vilkår> = listOf(institusjonsoppholdvilkårAvslag()),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     attestering: Attestering.Iverksatt = attesteringIverksatt(clock),
     fritekstTilBrev: String = "",
@@ -573,15 +573,26 @@ fun nySøknadsbehandlingMedStønadsperiode(
     sakId: UUID = UUID.randomUUID(),
     fnr: Fnr = Fnr.generer(),
     sakstype: Sakstype = Sakstype.UFØRE,
-    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(
-        clock = clock,
-        sakInfo = SakInfo(
-            sakId = sakId,
-            saksnummer = saksnummer,
-            fnr = fnr,
-            type = sakstype,
-        ),
-    ),
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = when (sakstype) {
+        Sakstype.ALDER -> nySakAlder(
+            clock = clock,
+            sakInfo = SakInfo(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                type = Sakstype.ALDER,
+            ),
+        )
+        Sakstype.UFØRE -> nySakUføre(
+            clock = clock,
+            sakInfo = SakInfo(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                type = Sakstype.UFØRE,
+            ),
+        )
+    },
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person> = { person(fnr = fnr).right() },
     saksbehandlersAvgjørelse: SaksbehandlersAvgjørelse? = null,
@@ -1063,9 +1074,15 @@ fun vilkårsvurdertSøknadsbehandling(
 ): Pair<Sak, VilkårsvurdertSøknadsbehandling> {
     customVilkår.ifNotEmpty {
         require(this.groupBy { it::class }.all { it.value.count() == 1 }) { "Tillater bare et vilkår av hver type" }
+        require(this.filterIsInstance<IkkeVurdertVilkår>().isEmpty()) {
+            "Vi støtter ikke delvis vurderte vilkår i søknadsbehandlingen (enda), da må denne funksjonen endres"
+        }
+    }
+    customVilkår.filterIsInstance<OpplysningspliktVilkår>().ifNotEmpty {
+        throw IllegalArgumentException("Vi støtter ikke å manuelt legge til opplysningsplikt-vilkår i søknadsbehandlingen (enda)")
     }
 
-    val (grunnlagsdata, vilkår) = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
+    val (defaultGrunnlagsdata, defaultVilkår) = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
         grunnlagsdata = grunnlagsdataEnsligUtenFradrag(
             periode = stønadsperiode.periode,
         ),
@@ -1090,55 +1107,42 @@ fun vilkårsvurdertSøknadsbehandling(
         sakOgSøknad = sakOgSøknad,
         saksbehandler = saksbehandler,
     ).let { (sak, søknadsbehandling) ->
-        val vilkårsvurdert = when (vilkår) {
+        val vilkårsvurdert = when (defaultVilkår) {
             is Vilkårsvurderinger.Søknadsbehandling.Alder -> {
                 søknadsbehandling
                     .leggTilPensjonsVilkår(
                         saksbehandler = saksbehandler,
-                        vilkår = customVilkår.customOrDefault { vilkår.pensjon as PensjonsVilkår.Vurdert },
-                    )
-                    .getOrFail()
-                    .leggTilOpplysningspliktVilkår(
-                        opplysningspliktVilkår = customVilkår.customOrDefault { vilkår.opplysningsplikt as OpplysningspliktVilkår.Vurdert },
+                        vilkår = customVilkår.customOrDefault { defaultVilkår.pensjon as PensjonsVilkår.Vurdert },
                     )
                     .getOrFail()
                     .leggTilFamiliegjenforeningvilkår(
                         saksbehandler = saksbehandler,
-                        familiegjenforening = customVilkår.customOrDefault { vilkår.familiegjenforening as FamiliegjenforeningVilkår.Vurdert },
+                        vilkår = customVilkår.customOrDefault { defaultVilkår.familiegjenforening as FamiliegjenforeningVilkår.Vurdert },
                     )
                     .getOrFail()
                     .leggTilLovligOpphold(
                         saksbehandler = saksbehandler,
-                        clock = clock,
-                        lovligOppholdVilkår = customVilkår.customOrDefault { vilkår.lovligOpphold as LovligOppholdVilkår.Vurdert },
+                        lovligOppholdVilkår = customVilkår.customOrDefault { defaultVilkår.lovligOpphold as LovligOppholdVilkår.Vurdert },
                     ).getOrFail()
                     .leggTilFastOppholdINorgeVilkår(
                         saksbehandler = saksbehandler,
-                        vilkår = customVilkår.customOrDefault { vilkår.fastOpphold as FastOppholdINorgeVilkår.Vurdert },
-                        clock = clock,
+                        vilkår = customVilkår.customOrDefault { defaultVilkår.fastOpphold as FastOppholdINorgeVilkår.Vurdert },
                     )
                     .getOrFail()
                     .leggTilInstitusjonsoppholdVilkår(
                         saksbehandler = saksbehandler,
-                        vilkår = customVilkår.customOrDefault { vilkår.institusjonsopphold as InstitusjonsoppholdVilkår.Vurdert },
-                        clock = clock,
+                        vilkår = customVilkår.customOrDefault { defaultVilkår.institusjonsopphold as InstitusjonsoppholdVilkår.Vurdert },
                     )
                     .getOrFail()
                     .leggTilUtenlandsopphold(
                         saksbehandler = saksbehandler,
-                        utenlandsopphold = customVilkår.customOrDefault { vilkår.utenlandsopphold as UtenlandsoppholdVilkår.Vurdert },
-                        clock = clock,
+                        vilkår = customVilkår.customOrDefault { defaultVilkår.utenlandsopphold as UtenlandsoppholdVilkår.Vurdert },
                     )
                     .getOrFail()
                     .oppdaterBosituasjon(
                         saksbehandler = saksbehandler,
-                        bosituasjon = customGrunnlag.customOrDefault { grunnlagsdata.bosituasjonSomFullstendig() }
+                        bosituasjon = customGrunnlag.customOrDefault { defaultGrunnlagsdata.bosituasjonSomFullstendig() }
                             .single(),
-                        hendelse = Søknadsbehandlingshendelse(
-                            tidspunkt = Tidspunkt.now(clock),
-                            saksbehandler = saksbehandler,
-                            handling = SøknadsbehandlingsHandling.OppdatertBosituasjon,
-                        ),
                     )
                     .getOrFail()
                     .leggTilSkatt(
@@ -1146,11 +1150,12 @@ fun vilkårsvurdertSøknadsbehandling(
                     )
                     .getOrFail()
                     .let {
+                        it is VilkårsvurdertSøknadsbehandling.Innvilget
                         if (!customVilkår.any { it is FormueVilkår.IkkeVurdert }) {
                             it.leggTilFormuegrunnlag(
                                 request = LeggTilFormuevilkårRequest(
                                     behandlingId = søknadsbehandling.id,
-                                    formuegrunnlag = customVilkår.customOrDefault { vilkår.formue }.grunnlag.toFormueRequestGrunnlag(),
+                                    formuegrunnlag = customVilkår.customOrDefault { defaultVilkår.formue }.grunnlag.toFormueRequestGrunnlag(),
                                     saksbehandler = saksbehandler,
                                     tidspunkt = Tidspunkt.now(clock),
                                 ),
@@ -1162,8 +1167,7 @@ fun vilkårsvurdertSøknadsbehandling(
                     }
                     .leggTilPersonligOppmøteVilkår(
                         saksbehandler = saksbehandler,
-                        vilkår = customVilkår.customOrDefault { vilkår.personligOppmøte as PersonligOppmøteVilkår.Vurdert },
-                        clock = clock,
+                        vilkår = customVilkår.customOrDefault { defaultVilkår.personligOppmøte as PersonligOppmøteVilkår.Vurdert },
                     )
                     .getOrFail()
             }
@@ -1171,51 +1175,37 @@ fun vilkårsvurdertSøknadsbehandling(
             is Vilkårsvurderinger.Søknadsbehandling.Uføre -> {
                 søknadsbehandling.leggTilUførevilkår(
                     saksbehandler = saksbehandler,
-                    uførhet = customVilkår.customOrDefault { vilkår.uføre as UføreVilkår.Vurdert },
-                    clock = clock,
+                    vilkår = customVilkår.customOrDefault { defaultVilkår.uføre as UføreVilkår.Vurdert },
                 ).getOrFail()
-                    .leggTilOpplysningspliktVilkår(
-                        opplysningspliktVilkår = customVilkår.customOrDefault { vilkår.opplysningsplikt as OpplysningspliktVilkår.Vurdert },
-                    )
-                    .getOrFail()
                     .leggTilFlyktningVilkår(
                         saksbehandler = saksbehandler,
-                        vilkår = customVilkår.customOrDefault { vilkår.flyktning as FlyktningVilkår.Vurdert },
+                        vilkår = customVilkår.customOrDefault { defaultVilkår.flyktning as FlyktningVilkår.Vurdert },
                         clock = clock,
                     )
                     .getOrFail()
                     .leggTilLovligOpphold(
                         saksbehandler = saksbehandler,
-                        clock = clock,
-                        lovligOppholdVilkår = customVilkår.customOrDefault { vilkår.lovligOpphold as LovligOppholdVilkår.Vurdert },
+                        lovligOppholdVilkår = customVilkår.customOrDefault { defaultVilkår.lovligOpphold as LovligOppholdVilkår.Vurdert },
                     ).getOrFail()
                     .leggTilFastOppholdINorgeVilkår(
                         saksbehandler = saksbehandler,
-                        vilkår = customVilkår.customOrDefault { vilkår.fastOpphold as FastOppholdINorgeVilkår.Vurdert },
-                        clock = clock,
+                        vilkår = customVilkår.customOrDefault { defaultVilkår.fastOpphold as FastOppholdINorgeVilkår.Vurdert },
                     )
                     .getOrFail()
                     .leggTilInstitusjonsoppholdVilkår(
                         saksbehandler = saksbehandler,
-                        vilkår = customVilkår.customOrDefault { vilkår.institusjonsopphold as InstitusjonsoppholdVilkår.Vurdert },
-                        clock = clock,
+                        vilkår = customVilkår.customOrDefault { defaultVilkår.institusjonsopphold as InstitusjonsoppholdVilkår.Vurdert },
                     )
                     .getOrFail()
                     .leggTilUtenlandsopphold(
                         saksbehandler = saksbehandler,
-                        utenlandsopphold = customVilkår.customOrDefault { vilkår.utenlandsopphold as UtenlandsoppholdVilkår.Vurdert },
-                        clock = clock,
+                        vilkår = customVilkår.customOrDefault { defaultVilkår.utenlandsopphold as UtenlandsoppholdVilkår.Vurdert },
                     )
                     .getOrFail()
                     .oppdaterBosituasjon(
                         saksbehandler = saksbehandler,
-                        bosituasjon = customGrunnlag.customOrDefault { grunnlagsdata.bosituasjonSomFullstendig() }
+                        bosituasjon = customGrunnlag.customOrDefault { defaultGrunnlagsdata.bosituasjonSomFullstendig() }
                             .single(),
-                        hendelse = Søknadsbehandlingshendelse(
-                            tidspunkt = Tidspunkt.now(clock),
-                            saksbehandler = saksbehandler,
-                            handling = SøknadsbehandlingsHandling.TattStillingTilEPS,
-                        ),
                     )
                     .getOrFail()
                     .leggTilSkatt(
@@ -1227,7 +1217,7 @@ fun vilkårsvurdertSøknadsbehandling(
                             it.leggTilFormuegrunnlag(
                                 request = LeggTilFormuevilkårRequest(
                                     behandlingId = søknadsbehandling.id,
-                                    formuegrunnlag = customVilkår.customOrDefault { vilkår.formue }.grunnlag.toFormueRequestGrunnlag(),
+                                    formuegrunnlag = customVilkår.customOrDefault { defaultVilkår.formue }.grunnlag.toFormueRequestGrunnlag(),
                                     saksbehandler = saksbehandler,
                                     tidspunkt = Tidspunkt.now(clock),
                                 ),
@@ -1239,17 +1229,16 @@ fun vilkårsvurdertSøknadsbehandling(
                     }
                     .leggTilPersonligOppmøteVilkår(
                         saksbehandler = saksbehandler,
-                        vilkår = customVilkår.customOrDefault { vilkår.personligOppmøte as PersonligOppmøteVilkår.Vurdert },
-                        clock = clock,
+                        vilkår = customVilkår.customOrDefault { defaultVilkår.personligOppmøte as PersonligOppmøteVilkår.Vurdert },
                     )
                     .getOrFail()
             }
         }
 
-        val medFradrag = if (customGrunnlag.customOrDefault { grunnlagsdata.fradragsgrunnlag }.isNotEmpty()) {
-            vilkårsvurdert.oppdaterFradragsgrunnlagForSaksbehandler(
+        val medFradrag = if (customGrunnlag.customOrDefault { defaultGrunnlagsdata.fradragsgrunnlag }.isNotEmpty() && vilkårsvurdert is VilkårsvurdertSøknadsbehandling.Innvilget) {
+            vilkårsvurdert.oppdaterFradragsgrunnlag(
                 saksbehandler = saksbehandler,
-                fradragsgrunnlag = customGrunnlag.customOrDefault { grunnlagsdata.fradragsgrunnlag },
+                fradragsgrunnlag = customGrunnlag.customOrDefault { defaultGrunnlagsdata.fradragsgrunnlag },
                 clock = clock,
             )
                 .getOrFail()

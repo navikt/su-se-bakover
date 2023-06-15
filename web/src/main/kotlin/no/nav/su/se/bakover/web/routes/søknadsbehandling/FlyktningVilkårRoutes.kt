@@ -27,7 +27,7 @@ internal fun Route.flyktningVilkårRoutes(
     satsFactory: SatsFactory,
     clock: Clock,
 ) {
-    post("$behandlingPath/{behandlingId}/flyktning") {
+    post("$søknadsbehandlingPath/{behandlingId}/flyktning") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId {
                 call.withBody<List<LeggTilVurderingsperiodeFlyktningVilkårJson>> { body ->

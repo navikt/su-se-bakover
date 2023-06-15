@@ -8,11 +8,12 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
+import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFastOppholdINorge
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkår.tilResultat
 import java.time.Clock
 import java.util.UUID
 
@@ -32,26 +33,29 @@ internal fun KunneIkkeLeggeFastOppholdINorgeVilkår.tilResultat(): Resultat {
         KunneIkkeLeggeFastOppholdINorgeVilkår.FantIkkeBehandling -> {
             Feilresponser.fantIkkeBehandling
         }
+
         is KunneIkkeLeggeFastOppholdINorgeVilkår.Revurdering -> {
             when (val feil = this.feil) {
                 Revurdering.KunneIkkeLeggeTilFastOppholdINorgeVilkår.HeleBehandlingsperiodenErIkkeVurdert -> {
                     Feilresponser.heleBehandlingsperiodenMåHaVurderinger
                 }
+
                 is Revurdering.KunneIkkeLeggeTilFastOppholdINorgeVilkår.UgyldigTilstand -> {
                     Feilresponser.ugyldigTilstand(feil.fra, feil.til)
                 }
+
                 Revurdering.KunneIkkeLeggeTilFastOppholdINorgeVilkår.AlleVurderingsperioderMåHaSammeResultat -> {
                     Feilresponser.alleVurderingsperioderMåHaSammeResultat
                 }
             }
         }
+
         is KunneIkkeLeggeFastOppholdINorgeVilkår.Søknadsbehandling -> {
             when (val feil = this.feil) {
-                is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFastOppholdINorgeVilkår.UgyldigTilstand -> {
-                    Feilresponser.ugyldigTilstand(feil.fra, feil.til)
-                }
+                is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFastOppholdINorgeVilkår.Vilkårsfeil -> feil.underliggende.tilResultat()
             }
         }
+
         is KunneIkkeLeggeFastOppholdINorgeVilkår.UgyldigFastOppholdINorgeVikår -> {
             when (this.feil) {
                 FastOppholdINorgeVilkår.Vurdert.UgyldigFastOppholdINorgeVikår.OverlappendeVurderingsperioder -> {
@@ -106,6 +110,7 @@ internal fun FastOppholdINorgeVilkår.toJson(): FastOppholdINorgeVilkårJson? {
         FastOppholdINorgeVilkår.IkkeVurdert -> {
             null
         }
+
         is FastOppholdINorgeVilkår.Vurdert -> {
             this.toJson()
         }

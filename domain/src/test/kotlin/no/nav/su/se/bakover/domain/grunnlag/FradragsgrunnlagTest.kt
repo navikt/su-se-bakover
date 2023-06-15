@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
 import arrow.core.left
+import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.extensions.august
 import no.nav.su.se.bakover.common.extensions.desember
@@ -88,7 +89,7 @@ internal class FradragsgrunnlagTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 opprettet = fixedTidspunkt,
-            ).isRight() shouldBe true
+            ).shouldBeRight()
         }
     }
 

@@ -1280,7 +1280,7 @@ class TestDataHelper(
     ): VilkårsvurdertSøknadsbehandling.Uavklart {
         return persisternySøknadsbehandlingMedStønadsperiode().second.leggTilSkatt(skatt).getOrFail().also {
             søknadsbehandlingRepo.lagre(it)
-        } as VilkårsvurdertSøknadsbehandling.Uavklart
+        }
     }
 
     fun persisterKlageOpprettet(

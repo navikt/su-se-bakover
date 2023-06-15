@@ -28,21 +28,23 @@ import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.vilkår.utenlandsopphold.KunneIkkeLeggeTilUtenlandsopphold
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
 import no.nav.su.se.bakover.web.routes.revurdering.revurderingPath
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.behandlingPath
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.søknadsbehandlingPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkår.tilResultat
 import java.util.UUID
 
 internal fun Route.leggTilUtenlandsopphold(
     søknadsbehandlingService: SøknadsbehandlingService,
     satsFactory: SatsFactory,
 ) {
-    post("$behandlingPath/{behandlingId}/utenlandsopphold") {
+    post("$søknadsbehandlingPath/{behandlingId}/utenlandsopphold") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 call.withBody<UtenlandsoppholdBody> { body ->
@@ -128,21 +130,14 @@ internal fun SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.tilResu
             Feilresponser.ugyldigTilstand(fra = this.fra, til = this.til)
         }
 
-        SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode -> {
-            Feilresponser.utenforBehandlingsperioden
-        }
+        is SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.Domenefeil -> underliggende.tilResultat()
+    }
+}
 
-        SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat -> {
-            Feilresponser.alleResultaterMåVæreLike
-        }
-
-        SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.MåInneholdeKunEnVurderingsperiode -> {
-            Feilresponser.måInnheholdeKunEnVurderingsperiode
-        }
-
-        SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden -> {
-            Feilresponser.måVurdereHelePerioden
-        }
+internal fun KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.tilResultat(): Resultat {
+    return when (this) {
+        is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.MåInneholdeKunEnVurderingsperiode -> Feilresponser.måInnheholdeKunEnVurderingsperiode
+        is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.Vilkårsfeil -> underliggende.tilResultat()
     }
 }
 

@@ -74,7 +74,7 @@ fun nySakAlder(
         fnr = fnr,
         type = Sakstype.ALDER,
     ),
-    søknadsInnhold: SøknadsinnholdAlder = søknadsinnholdAlder(personopplysninger = Personopplysninger(fnr)),
+    søknadsInnhold: SøknadsinnholdAlder = søknadsinnholdAlder(personopplysninger = Personopplysninger(sakInfo.fnr)),
     søknadInnsendtAv: NavIdentBruker = veileder,
 ): Pair<Sak, Søknad.Journalført.MedOppgave> {
     return nySak(

@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher
@@ -106,7 +107,7 @@ class AvstemmingPublisherTest {
             ),
         )
 
-        res.isRight() shouldBe true
+        res.shouldBeRight()
     }
 
     @Test

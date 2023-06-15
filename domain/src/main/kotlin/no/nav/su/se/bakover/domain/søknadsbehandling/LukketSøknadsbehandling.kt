@@ -111,8 +111,7 @@ data class LukketSøknadsbehandling private constructor(
         }
     }
 
-    override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> =
-        KunneIkkeLeggeTilSkattegrunnlag.UgyldigTilstand.left()
+    override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt) = KunneIkkeLeggeTilSkattegrunnlag.UgyldigTilstand.left()
 
     companion object {
 
