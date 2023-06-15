@@ -70,7 +70,7 @@ internal fun StatistikkEvent.Behandling.Klage.toBehandlingsstatistikkDto(
             // Klagebehandlingene krever i utgangspunktet totrinnsbehandling, bortsett fra hvis den avsluttes.
             avsluttet = true,
             totrinnsbehandling = false,
-            funksjonellTid = this.klage.tidspunktAvsluttet,
+            funksjonellTid = this.klage.avsluttetTidspunkt,
             beslutter = null,
         )
     }

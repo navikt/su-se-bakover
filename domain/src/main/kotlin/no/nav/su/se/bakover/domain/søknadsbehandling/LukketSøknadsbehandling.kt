@@ -4,7 +4,9 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
+import no.nav.su.se.bakover.domain.behandling.Avsluttet
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.sak.Sakstype
@@ -13,11 +15,17 @@ import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 
+/**
+ * En avvist søknadsbehandling kan resultere i et "vedtak" eller "avbrutt". Derfor arver den fra "avsluttet" og ikke "avbrutt" eller "vedtak".
+ * "Trukket" og "Bortfalt" anses som "avbrutt".
+ */
+
 data class LukketSøknadsbehandling private constructor(
     val underliggendeSøknadsbehandling: Søknadsbehandling,
     override val søknad: Søknad.Journalført.MedOppgave.Lukket,
     override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
-) : Søknadsbehandling {
+) : Søknadsbehandling, Avsluttet {
+    override val avsluttetTidspunkt: Tidspunkt = søknad.lukketTidspunkt
     override val aldersvurdering: Aldersvurdering? = underliggendeSøknadsbehandling.aldersvurdering
     override val stønadsperiode: Stønadsperiode? get() = aldersvurdering?.stønadsperiode
     override val grunnlagsdataOgVilkårsvurderinger = underliggendeSøknadsbehandling.grunnlagsdataOgVilkårsvurderinger

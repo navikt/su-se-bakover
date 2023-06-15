@@ -155,7 +155,7 @@ sealed interface VurdertKlage : Klage, VurdertKlageFelter {
                     underliggendeKlage = this,
                     saksbehandler = saksbehandler,
                     begrunnelse = begrunnelse,
-                    tidspunktAvsluttet = tidspunktAvsluttet,
+                    avsluttetTidspunkt = tidspunktAvsluttet,
                 ).right()
             } else {
                 KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
@@ -213,7 +213,7 @@ sealed interface VurdertKlage : Klage, VurdertKlageFelter {
                     underliggendeKlage = this,
                     saksbehandler = saksbehandler,
                     begrunnelse = begrunnelse,
-                    tidspunktAvsluttet = tidspunktAvsluttet,
+                    avsluttetTidspunkt = tidspunktAvsluttet,
                 ).right()
             } else {
                 KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
@@ -284,7 +284,7 @@ sealed interface VurdertKlage : Klage, VurdertKlageFelter {
                     underliggendeKlage = this,
                     saksbehandler = saksbehandler,
                     begrunnelse = begrunnelse,
-                    tidspunktAvsluttet = tidspunktAvsluttet,
+                    avsluttetTidspunkt = tidspunktAvsluttet,
                 ).right()
             } else {
                 KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()

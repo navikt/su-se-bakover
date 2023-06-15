@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
+import no.nav.su.se.bakover.domain.behandling.Avbrutt
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -47,8 +48,8 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
     data class AvsluttetGjenoppta private constructor(
         private val underliggendeStansAvYtelse: SimulertGjenopptakAvYtelse,
         val begrunnelse: String,
-        val tidspunktAvsluttet: Tidspunkt,
-    ) : GjenopptaYtelseRevurdering() {
+        override val avsluttetTidspunkt: Tidspunkt,
+    ) : GjenopptaYtelseRevurdering(), Avbrutt {
         override val tilRevurdering: UUID = underliggendeStansAvYtelse.tilRevurdering
         override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis =
             underliggendeStansAvYtelse.vedtakSomRevurderesMånedsvis

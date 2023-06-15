@@ -190,7 +190,7 @@ internal class AvsluttKlageTest {
                     underliggendeKlage = klage,
                     saksbehandler = saksbehandler,
                     begrunnelse = begrunnelse,
-                    tidspunktAvsluttet = fixedTidspunkt,
+                    avsluttetTidspunkt = fixedTidspunkt,
                 )
             },
             anyOrNull(),

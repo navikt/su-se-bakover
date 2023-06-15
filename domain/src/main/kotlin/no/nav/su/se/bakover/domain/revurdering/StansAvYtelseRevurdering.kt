@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
+import no.nav.su.se.bakover.domain.behandling.Avbrutt
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -45,8 +46,8 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering {
     data class AvsluttetStansAvYtelse private constructor(
         private val underliggendeStansAvYtelse: SimulertStansAvYtelse,
         val begrunnelse: String,
-        val tidspunktAvsluttet: Tidspunkt,
-    ) : StansAvYtelseRevurdering() {
+        override val avsluttetTidspunkt: Tidspunkt,
+    ) : StansAvYtelseRevurdering(), Avbrutt {
         override val tilRevurdering = underliggendeStansAvYtelse.tilRevurdering
         override val vedtakSomRevurderesMånedsvis = underliggendeStansAvYtelse.vedtakSomRevurderesMånedsvis
         override val sakinfo = underliggendeStansAvYtelse.sakinfo

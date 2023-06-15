@@ -73,7 +73,7 @@ internal class StatistikkSøknadTest {
             behandlingStatusBeskrivelse = "Behandlingen/søknaden har blitt avsluttet/lukket.",
             resultat = "TRUKKET",
             resultatBeskrivelse = "Bruker eller verge/fullmakt har bedt om å trekke søknad/klage. En spesifisering av [AVBRUTT].",
-            funksjonellTid = søknad.lukketTidspunkt,
+            funksjonellTid = søknad.avsluttetTidspunkt,
             avsluttet = true,
             totrinnsbehandling = false,
         )

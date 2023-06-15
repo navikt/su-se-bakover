@@ -154,7 +154,7 @@ data class AvvistKlage(
         underliggendeKlage = this,
         saksbehandler = saksbehandler,
         begrunnelse = begrunnelse,
-        tidspunktAvsluttet = tidspunktAvsluttet,
+        avsluttetTidspunkt = tidspunktAvsluttet,
     ).right()
 }
 

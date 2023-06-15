@@ -60,7 +60,7 @@ internal class StatistikkGjenopptaTest {
             resultat = "AVBRUTT",
             resultatBeskrivelse = "En paraplybetegnelse for å avbryte/avslutte/lukke en behandling der vi ikke har mer spesifikke data. Spesifiseringer av Avbrutt: [FEILREGISTRERT, TRUKKET, AVVIST].",
             avsluttet = true,
-            funksjonellTid = gjenopptak.tidspunktAvsluttet,
+            funksjonellTid = gjenopptak.avsluttetTidspunkt,
         )
     }
 

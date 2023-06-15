@@ -183,7 +183,7 @@ private fun Revurdering.toDb(): RevurderingDb {
                 avsluttet = AvsluttetRevurderingDatabaseJson(
                     begrunnelse = this.begrunnelse,
                     brevvalg = this.brevvalg.toJson(),
-                    tidspunktAvsluttet = this.tidspunktAvsluttet,
+                    tidspunktAvsluttet = this.avsluttetTidspunkt,
                 ),
                 tilbakekrevingsbehandling = null,
             )
@@ -466,7 +466,7 @@ internal class RevurderingPostgresRepo(
                     avsluttet = AvsluttetRevurderingDatabaseJson(
                         begrunnelse = this.begrunnelse,
                         brevvalg = null,
-                        tidspunktAvsluttet = this.tidspunktAvsluttet,
+                        tidspunktAvsluttet = this.avsluttetTidspunkt,
                     ),
                     tilbakekrevingsbehandling = null,
                 )
@@ -505,7 +505,7 @@ internal class RevurderingPostgresRepo(
                     avsluttet = AvsluttetRevurderingDatabaseJson(
                         begrunnelse = this.begrunnelse,
                         brevvalg = null,
-                        tidspunktAvsluttet = this.tidspunktAvsluttet,
+                        tidspunktAvsluttet = this.avsluttetTidspunkt,
                     ),
                     tilbakekrevingsbehandling = null,
                 )

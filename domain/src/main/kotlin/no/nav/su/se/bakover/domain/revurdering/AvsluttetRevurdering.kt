@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
+import no.nav.su.se.bakover.domain.behandling.Avbrutt
 import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
@@ -23,8 +24,8 @@ data class AvsluttetRevurdering private constructor(
     val begrunnelse: String,
     /** Denne er ikke låst til [Brevvalg.SaksbehandlersValg] siden det avhenger av om det er forhåndsvarslet eller ikke. Dette ble også migrert på et tidspunkt, tidligere ble det alltid sendt brev dersom det var forhåndsvarslet. */
     val brevvalg: Brevvalg,
-    val tidspunktAvsluttet: Tidspunkt,
-) : Revurdering() {
+    override val avsluttetTidspunkt: Tidspunkt,
+) : Revurdering(), Avbrutt {
     override val id: UUID = underliggendeRevurdering.id
     override val opprettet: Tidspunkt = underliggendeRevurdering.opprettet
     override val oppdatert: Tidspunkt = underliggendeRevurdering.oppdatert

@@ -527,7 +527,7 @@ internal class KlagePostgresRepo(
                 underliggendeKlage = klage,
                 saksbehandler = saksbehandler,
                 begrunnelse = avsluttet.begrunnelse,
-                tidspunktAvsluttet = avsluttet.tidspunktAvsluttet,
+                avsluttetTidspunkt = avsluttet.tidspunktAvsluttet,
             )
         } else {
             klage
