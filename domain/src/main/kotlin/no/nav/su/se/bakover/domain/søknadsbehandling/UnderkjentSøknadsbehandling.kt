@@ -34,7 +34,10 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import java.time.Clock
 import java.util.UUID
 
-sealed class UnderkjentSøknadsbehandling : Søknadsbehandling, Søknadsbehandling.KanOppdaterePeriodeGrunnlagVilkår, KanBeregnes {
+sealed interface UnderkjentSøknadsbehandling :
+    Søknadsbehandling,
+    Søknadsbehandling.KanOppdaterePeriodeGrunnlagVilkår,
+    KanBeregnes {
     abstract override val id: UUID
     abstract override val opprettet: Tidspunkt
     abstract override val sakId: UUID
@@ -47,7 +50,7 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling, Søknadsbehandli
     abstract override val aldersvurdering: Aldersvurdering
     abstract override val avkorting: AvkortingVedSøknadsbehandling.Vurdert
 
-    abstract fun nyOppgaveId(nyOppgaveId: OppgaveId): UnderkjentSøknadsbehandling
+    fun nyOppgaveId(nyOppgaveId: OppgaveId): UnderkjentSøknadsbehandling
 
     override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> =
         when (this.eksterneGrunnlag.skatt) {
@@ -76,7 +79,7 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling, Søknadsbehandli
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
         override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting,
         override val sakstype: Sakstype,
-    ) : UnderkjentSøknadsbehandling() {
+    ) : UnderkjentSøknadsbehandling {
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
         override val periode: Periode = aldersvurdering.stønadsperiode.periode
 
@@ -202,9 +205,9 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling, Søknadsbehandli
         }
     }
 
-    sealed class Avslag : UnderkjentSøknadsbehandling(), ErAvslag {
+    sealed interface Avslag : UnderkjentSøknadsbehandling, ErAvslag {
 
-        override val avkorting: AvkortingVedSøknadsbehandling.IngenAvkorting = AvkortingVedSøknadsbehandling.IngenAvkorting
+        override val avkorting: AvkortingVedSøknadsbehandling.IngenAvkorting get() = AvkortingVedSøknadsbehandling.IngenAvkorting
 
         data class MedBeregning(
             override val id: UUID,
@@ -222,7 +225,7 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling, Søknadsbehandli
             override val aldersvurdering: Aldersvurdering,
             override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             override val sakstype: Sakstype,
-        ) : Avslag() {
+        ) : Avslag {
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
             override val simulering: Simulering? = null
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
@@ -319,7 +322,7 @@ sealed class UnderkjentSøknadsbehandling : Søknadsbehandling, Søknadsbehandli
             override val aldersvurdering: Aldersvurdering,
             override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             override val sakstype: Sakstype,
-        ) : Avslag() {
+        ) : Avslag {
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
             override val beregning = null
             override val simulering: Simulering? = null

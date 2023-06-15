@@ -35,9 +35,9 @@ data class Stønadsperiode private constructor(
         }
     }
 
-    sealed class UgyldigStønadsperiode {
-        object PeriodeKanIkkeVæreLengreEnn12Måneder : UgyldigStønadsperiode()
-        object FraOgMedDatoKanIkkeVæreFør2021 : UgyldigStønadsperiode()
+    sealed interface UgyldigStønadsperiode {
+        object PeriodeKanIkkeVæreLengreEnn12Måneder : UgyldigStønadsperiode
+        object FraOgMedDatoKanIkkeVæreFør2021 : UgyldigStønadsperiode
     }
 
     override fun compareTo(other: Stønadsperiode) = periode.compareTo(other.periode)

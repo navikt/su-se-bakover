@@ -28,7 +28,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadspe
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import java.util.UUID
 
-sealed class IverksattSøknadsbehandling : Søknadsbehandling {
+sealed interface IverksattSøknadsbehandling : Søknadsbehandling {
     abstract override val id: UUID
     abstract override val opprettet: Tidspunkt
     abstract override val sakId: UUID
@@ -69,7 +69,7 @@ sealed class IverksattSøknadsbehandling : Søknadsbehandling {
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
         override val avkorting: AvkortingVedSøknadsbehandling.Ferdig,
         override val sakstype: Sakstype,
-    ) : IverksattSøknadsbehandling() {
+    ) : IverksattSøknadsbehandling {
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
         override val periode: Periode = aldersvurdering.stønadsperiode.periode
 
@@ -88,10 +88,10 @@ sealed class IverksattSøknadsbehandling : Søknadsbehandling {
         }
     }
 
-    sealed class Avslag : IverksattSøknadsbehandling(), ErAvslag {
+    sealed interface Avslag : IverksattSøknadsbehandling, ErAvslag {
 
         /** Ingenting og avkorte ved avslag. */
-        override val avkorting: AvkortingVedSøknadsbehandling.IngenAvkorting = AvkortingVedSøknadsbehandling.IngenAvkorting
+        override val avkorting: AvkortingVedSøknadsbehandling.IngenAvkorting get() = AvkortingVedSøknadsbehandling.IngenAvkorting
 
         data class MedBeregning(
             override val id: UUID,
@@ -109,7 +109,7 @@ sealed class IverksattSøknadsbehandling : Søknadsbehandling {
             override val aldersvurdering: Aldersvurdering,
             override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             override val sakstype: Sakstype,
-        ) : Avslag() {
+        ) : Avslag {
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
             override val simulering: Simulering? = null
@@ -157,7 +157,7 @@ sealed class IverksattSøknadsbehandling : Søknadsbehandling {
             override val aldersvurdering: Aldersvurdering,
             override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             override val sakstype: Sakstype,
-        ) : Avslag() {
+        ) : Avslag {
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
             override val beregning = null

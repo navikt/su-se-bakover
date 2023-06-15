@@ -35,7 +35,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import java.time.Clock
 import java.util.UUID
 
-sealed class BeregnetSøknadsbehandling :
+sealed interface BeregnetSøknadsbehandling :
     Søknadsbehandling,
     Søknadsbehandling.KanOppdaterePeriodeGrunnlagVilkår,
     KanBeregnes {
@@ -119,7 +119,7 @@ sealed class BeregnetSøknadsbehandling :
         override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting,
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
-    ) : BeregnetSøknadsbehandling() {
+    ) : BeregnetSøknadsbehandling {
         override val periode: Periode = aldersvurdering.stønadsperiode.periode
         override val simulering: Simulering? = null
 
@@ -168,7 +168,7 @@ sealed class BeregnetSøknadsbehandling :
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
-    ) : BeregnetSøknadsbehandling(), ErAvslag {
+    ) : BeregnetSøknadsbehandling, ErAvslag {
 
         override val periode: Periode = aldersvurdering.stønadsperiode.periode
 

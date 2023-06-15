@@ -27,10 +27,10 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadspe
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import java.util.UUID
 
-sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling {
+sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling {
     abstract override val saksbehandler: NavIdentBruker.Saksbehandler
-    abstract fun nyOppgaveId(nyOppgaveId: OppgaveId): SøknadsbehandlingTilAttestering
-    abstract fun tilUnderkjent(attestering: Attestering): UnderkjentSøknadsbehandling
+    fun nyOppgaveId(nyOppgaveId: OppgaveId): SøknadsbehandlingTilAttestering
+    fun tilUnderkjent(attestering: Attestering): UnderkjentSøknadsbehandling
     abstract override val aldersvurdering: Aldersvurdering
     abstract override val attesteringer: Attesteringshistorikk
     abstract override val avkorting: AvkortingVedSøknadsbehandling.Vurdert
@@ -56,7 +56,7 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling {
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val sakstype: Sakstype,
         override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting,
-    ) : SøknadsbehandlingTilAttestering() {
+    ) : SøknadsbehandlingTilAttestering {
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
         override fun copyInternal(
@@ -141,12 +141,12 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling {
         }
     }
 
-    sealed class Avslag : SøknadsbehandlingTilAttestering(), ErAvslag {
+    sealed interface Avslag : SøknadsbehandlingTilAttestering, ErAvslag {
 
         abstract override val aldersvurdering: Aldersvurdering
 
         /** Ingenting og avkorte ved avslag. */
-        override val avkorting: AvkortingVedSøknadsbehandling.IngenAvkorting = AvkortingVedSøknadsbehandling.IngenAvkorting
+        override val avkorting: AvkortingVedSøknadsbehandling.IngenAvkorting get() = AvkortingVedSøknadsbehandling.IngenAvkorting
 
         fun iverksett(attestering: Attestering.Iverksatt): IverksattSøknadsbehandling.Avslag {
             return when (this) {
@@ -170,7 +170,7 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling {
             override val attesteringer: Attesteringshistorikk,
             override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
             override val sakstype: Sakstype,
-        ) : Avslag() {
+        ) : Avslag {
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
             // TODO fiks typing/gyldig tilstand/vilkår fradrag?
@@ -274,7 +274,7 @@ sealed class SøknadsbehandlingTilAttestering : Søknadsbehandling {
             override val attesteringer: Attesteringshistorikk,
             override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
             override val sakstype: Sakstype,
-        ) : Avslag() {
+        ) : Avslag {
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
             private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                 when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {

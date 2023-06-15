@@ -31,7 +31,7 @@ import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
 import java.time.Clock
 import java.util.UUID
 
-sealed class VilkårsvurdertSøknadsbehandling :
+sealed interface VilkårsvurdertSøknadsbehandling :
     Søknadsbehandling,
     Søknadsbehandling.KanOppdaterePeriodeGrunnlagVilkår {
 
@@ -163,7 +163,7 @@ sealed class VilkårsvurdertSøknadsbehandling :
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
-    ) : VilkårsvurdertSøknadsbehandling(), KanBeregnes {
+    ) : VilkårsvurdertSøknadsbehandling, KanBeregnes {
         override val periode: Periode = aldersvurdering.stønadsperiode.periode
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
@@ -217,7 +217,7 @@ sealed class VilkårsvurdertSøknadsbehandling :
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
-    ) : VilkårsvurdertSøknadsbehandling(), ErAvslag {
+    ) : VilkårsvurdertSøknadsbehandling, ErAvslag {
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
         override val beregning = null
         override val simulering: Simulering? = null
@@ -338,7 +338,7 @@ sealed class VilkårsvurdertSøknadsbehandling :
 
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
-    ) : VilkårsvurdertSøknadsbehandling() {
+    ) : VilkårsvurdertSøknadsbehandling {
         override val stønadsperiode: Stønadsperiode? = aldersvurdering?.stønadsperiode
         override val beregning = null
         override val simulering: Simulering? = null
