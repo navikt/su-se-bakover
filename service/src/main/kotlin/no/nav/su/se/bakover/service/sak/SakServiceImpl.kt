@@ -16,6 +16,9 @@ import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
+import no.nav.su.se.bakover.domain.journalpost.Journalpost
+import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
+import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalposter
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.Behandlingssammendrag
@@ -35,6 +38,7 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import org.slf4j.LoggerFactory
+import java.lang.IllegalArgumentException
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -46,6 +50,7 @@ class SakServiceImpl(
     private val brevService: BrevService,
     private val personService: PersonService,
     private val identClient: IdentClient,
+    private val journalpostClient: JournalpostClient,
 ) : SakService {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
@@ -161,6 +166,12 @@ class SakServiceImpl(
         }.onRight {
             dokumentRepo.lagre(it)
         }
+    }
+
+    override fun hentAlleJournalposter(sakId: UUID): Either<KunneIkkeHenteJournalposter, List<Journalpost>> {
+        return sakRepo.hentSakInfo(sakId)?.let {
+            journalpostClient.hentJournalposterFor(it.saksnummer)
+        } ?: throw IllegalArgumentException("Fant ikke sak ved henting av journalposter. id $sakId")
     }
 
     override fun opprettSak(sak: NySak) {

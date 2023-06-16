@@ -9,18 +9,6 @@ scalar DateTime
 # Schema parser kjenner ikke til Typen long  men den er støttet av graphql-java, så definerer den her for at schema skal validere.
 scalar Long
 
-schema {
-    query: Queries
-}
-
-type Queries {
-    hentPerson(ident: ID!): Person
-    hentPersonBolk(identer: [ID!]!): [HentPersonBolkResult!]!
-    hentIdenter(ident: ID!, grupper: [IdentGruppe!], historikk: Boolean = false): Identliste
-    hentIdenterBolk(identer: [ID!]!, grupper: [IdentGruppe!], historikk: Boolean = false): [HentIdenterBolkResult!]!
-    sokPerson(criteria:[Criterion], paging:Paging): SearchResult
-}
-
 type Identliste {
     identer: [IdentInformasjon!]!
 }

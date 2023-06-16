@@ -29,24 +29,29 @@ internal data class HentDokumentoversiktFagsakHttpResponse(
 ) : GraphQLHttpResponse()
 
 internal data class HentDokumentoversiktFagsakResponse(
-    val dokumentoversiktFagsak: DokumentoversiktFagsak,
+    val dokumentoversikt: Dokumentoversikt,
 )
 
-internal data class DokumentoversiktFagsak(
+internal data class Dokumentoversikt(
     val journalposter: List<Journalpost>,
+)
+
+data class Fagsak(
+    val fagsakId: String,
+    val fagsaksystem: String = "SUPSTONAD",
 )
 
 /**
  * Variabler for spørringer mot dokumentoversiktFagsak
+ * Fyll ut det som er nødvendig for din spørring
  */
-internal data class HentJournalpostForFagsakVariables(
-    val fagsakId: String,
-    val fagsaksystem: String,
-    val fraDato: String,
-    val tema: String,
-    val journalposttyper: List<String>,
-    val journalstatuser: List<String>,
-    val foerste: Int,
+internal data class DokumentoversiktFagsakVariables(
+    val fagsak: Fagsak,
+    val fraDato: String? = null,
+    val tema: String = "SUP",
+    val journalposttyper: List<String> = emptyList(),
+    val journalstatuser: List<String> = emptyList(),
+    val foerste: Int = 30,
 )
 
 /**

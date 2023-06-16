@@ -1,6 +1,10 @@
+# https://confluence.adeo.no/display/BOA/Query%3A+journalpost
+
 query($journalpostId: String!){
     journalpost(journalpostId: $journalpostId){
-        <<DATAFELTER>>
+        sak {
+            fagsakId
+        }
     }
 }
 

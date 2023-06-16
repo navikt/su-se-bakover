@@ -14,6 +14,8 @@ interface JournalpostClient {
         saksnummer: Saksnummer,
     ): Either<KunneIkkeSjekkeTilknytningTilSak, ErTilknyttetSak>
 
+    fun hentJournalposterFor(saksnummer: Saksnummer): Either<KunneIkkeHenteJournalposter, List<Journalpost>>
+
     /**
      * Skreddersydd for å svare på om det er mottatt et kontrollnotat for [saksnummer] i løpet av gitt [periode].
      */
@@ -40,4 +42,8 @@ sealed interface KunneIkkeSjekkeTilknytningTilSak {
     object TekniskFeil : KunneIkkeSjekkeTilknytningTilSak
     object UgyldigInput : KunneIkkeSjekkeTilknytningTilSak
     object JournalpostIkkeKnyttetTilSak : KunneIkkeSjekkeTilknytningTilSak
+}
+
+sealed interface KunneIkkeHenteJournalposter {
+    object ClientError : KunneIkkeHenteJournalposter
 }

@@ -1,0 +1,16 @@
+schema {
+    query: Queries
+}
+
+type Queries {
+    #PDL
+    hentPerson(ident: ID!): Person
+    hentPersonBolk(identer: [ID!]!): [HentPersonBolkResult!]!
+    hentIdenter(ident: ID!, grupper: [IdentGruppe!], historikk: Boolean = false): Identliste
+    hentIdenterBolk(identer: [ID!]!, grupper: [IdentGruppe!], historikk: Boolean = false): [HentIdenterBolkResult!]!
+    sokPerson(criteria:[Criterion], paging:Paging): SearchResult
+
+    #Journalpost
+    journalpost(journalpostId: String!): Journalpost
+    dokumentoversiktFagsak(input: dokumentoversiktFagsakInput!): Dokumentoversikt
+}

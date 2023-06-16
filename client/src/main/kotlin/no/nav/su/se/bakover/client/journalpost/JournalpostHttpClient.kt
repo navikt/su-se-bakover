@@ -19,8 +19,10 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
 import no.nav.su.se.bakover.domain.journalpost.ErTilknyttetSak
+import no.nav.su.se.bakover.domain.journalpost.Journalpost
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClientMetrics
+import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalposter
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkKontrollnotatMottatt
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkeTilknytningTilSak
 import no.nav.su.se.bakover.domain.sak.Saksnummer
@@ -39,7 +41,10 @@ internal class JournalpostHttpClient(
     private val azureAd: AzureAd,
     private val sts: TokenOppslag,
     private val metrics: JournalpostClientMetrics,
-    private val erTilknyttetSakCache: Cache<JournalpostId, ErTilknyttetSak> = newCache(cacheName = "erTilknyttetSak", expireAfterWrite = Duration.ofHours(1)),
+    private val erTilknyttetSakCache: Cache<JournalpostId, ErTilknyttetSak> = newCache(
+        cacheName = "erTilknyttetSak",
+        expireAfterWrite = Duration.ofHours(1),
+    ),
 ) : JournalpostClient {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
     private val graphQLUrl: URI = URI.create("${safConfig.url}/graphql")
@@ -54,10 +59,7 @@ internal class JournalpostHttpClient(
     ): Either<KunneIkkeSjekkeTilknytningTilSak, ErTilknyttetSak> {
         erTilknyttetSakCache.getIfPresent(journalpostId)?.let { return it.right() }
         val request = GraphQLQuery<HentJournalpostHttpResponse>(
-            lagRequest(
-                query = "/hentJournalpostQuery.graphql",
-                datafelter = "/erJournalpostTilknyttetSakDatafelter.graphql",
-            ),
+            getQueryFrom("/hentJournalpostQuery.graphql"),
             HentJournalpostVariables(journalpostId.toString()),
         )
         val brukerToken = JwtToken.BrukerToken.fraMdc()
@@ -75,6 +77,7 @@ internal class JournalpostHttpClient(
                         "journalpostId er en ikke-numerisk verdi." -> KunneIkkeSjekkeTilknytningTilSak.FantIkkeJournalpost
                         else -> KunneIkkeSjekkeTilknytningTilSak.UgyldigInput
                     }
+
                     is GraphQLApiFeil.HttpFeil.Forbidden -> KunneIkkeSjekkeTilknytningTilSak.IkkeTilgang
                     is GraphQLApiFeil.HttpFeil.NotFound -> KunneIkkeSjekkeTilknytningTilSak.FantIkkeJournalpost
                     is GraphQLApiFeil.HttpFeil.ServerError -> KunneIkkeSjekkeTilknytningTilSak.TekniskFeil
@@ -98,6 +101,34 @@ internal class JournalpostHttpClient(
         )
     }
 
+    override fun hentJournalposterFor(saksnummer: Saksnummer): Either<KunneIkkeHenteJournalposter, List<Journalpost>> {
+        val request = GraphQLQuery<HentDokumentoversiktFagsakHttpResponse>(
+            query = getQueryFrom("/dokumentoversiktFagsakQuery.graphql"),
+            variables = DokumentoversiktFagsakVariables(
+                fagsak = Fagsak(fagsakId = saksnummer.toString()),
+                foerste = 50,
+            ),
+        )
+        return runBlocking {
+            gqlRequest(request = request, token = sts.token().value).mapLeft {
+                KunneIkkeHenteJournalposter.ClientError.also { log.error("Feil: $it ved henting av journalposter for saksnummer:$saksnummer") }
+            }.map {
+                it.data!!.dokumentoversikt.journalposter.map {
+                    Journalpost(JournalpostId(it.journalpostId!!), it.tittel!!)
+                }
+            }
+        }
+    }
+
+    private fun getQueryFrom(path: String): String {
+        val gqlQuery = javaClass.getResource(path)?.readText()
+            ?: throw IllegalArgumentException("Fant ikke fil med navn: $path")
+
+        // henter alt fra det som starter på 'query' til slutten av filen
+        val regex = Regex("query[^{]*\\{.*}", RegexOption.DOT_MATCHES_ALL)
+        return regex.find(gqlQuery)?.value ?: throw IllegalArgumentException("Fant ikke query i $path. $gqlQuery")
+    }
+
     override fun kontrollnotatMotatt(
         saksnummer: Saksnummer,
         periode: DatoIntervall,
@@ -116,15 +147,10 @@ internal class JournalpostHttpClient(
         }
 
         val request = GraphQLQuery<HentDokumentoversiktFagsakHttpResponse>(
-            query = lagRequest(
-                query = "/dokumentoversiktFagsakQuery.graphql",
-                datafelter = "/hentMottattKontrollnotatDatafelter.graphql",
-            ),
-            variables = HentJournalpostForFagsakVariables(
-                fagsakId = saksnummer.toString(),
-                fagsaksystem = "SUPSTONAD",
+            query = getQueryFrom("/dokumentoversiktFagsakQuery.graphql"),
+            variables = DokumentoversiktFagsakVariables(
+                fagsak = Fagsak(fagsakId = saksnummer.toString()),
                 fraDato = periode.fraOgMed.toString(),
-                tema = "SUP",
                 journalposttyper = listOf("I"),
                 journalstatuser = listOf("JOURNALFOERT"),
                 foerste = 100,
@@ -137,7 +163,7 @@ internal class JournalpostHttpClient(
             ).mapLeft { error ->
                 KunneIkkeSjekkKontrollnotatMottatt(error).also { log.error("Feil: $it ved henting av journalposter for saksnummer:$saksnummer") }
             }.map { response ->
-                response.data!!.dokumentoversiktFagsak.journalposter
+                response.data!!.dokumentoversikt.journalposter
                     .toDomain()
                     .sortedBy { it.datoOpprettet }
                     .lastOrNull {
@@ -150,19 +176,6 @@ internal class JournalpostHttpClient(
                     ?.let { ErKontrollNotatMottatt.Ja(it) } ?: ErKontrollNotatMottatt.Nei
             }
         }
-    }
-
-    private fun lagRequest(
-        query: String,
-        datafelter: String,
-    ): String {
-        val gqlQuery = javaClass.getResource(query)
-            ?.readText()
-            ?: throw IllegalArgumentException("Fant ikke fil med navn: $query")
-        val data = javaClass.getResource(datafelter)
-            ?.readText()
-            ?: throw IllegalArgumentException("Fant ikke fil med navn: $query")
-        return gqlQuery.replace("<<DATAFELTER>>", data)
     }
 
     private suspend inline fun <reified Response : GraphQLHttpResponse> gqlRequest(

@@ -41,6 +41,8 @@ import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.dokument.toJson
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
 import no.nav.su.se.bakover.web.routes.grunnlag.toJson
+import no.nav.su.se.bakover.web.routes.journalpost.JournalpostJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.journalpost.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.BehandlingsoversiktJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import java.time.Clock
@@ -276,6 +278,17 @@ internal fun Route.sakRoutes(
                         { call.respondBytes(it.generertDokument, ContentType.Application.Pdf) },
                     )
                 }
+            }
+        }
+    }
+
+    get("$sakPath/{sakId}/journalposter") {
+        authorize(Brukerrolle.Saksbehandler) {
+            call.withSakId {
+                sakService.hentAlleJournalposter(it).fold(
+                    { call.svar(it.tilResultat()) },
+                    { call.svar(Resultat.json(OK, it.toJson())) },
+                )
             }
         }
     }
