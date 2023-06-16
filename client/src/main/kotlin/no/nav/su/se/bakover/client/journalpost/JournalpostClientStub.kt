@@ -26,7 +26,7 @@ object JournalpostClientStub : JournalpostClient {
     }
 
     override fun hentJournalposterFor(saksnummer: Saksnummer): Either<KunneIkkeHenteJournalposter, List<Journalpost>> =
-        listOf(Journalpost(JournalpostId("453812134"), "Journalpost tittel")).right()
+        listOf(Journalpost(JournalpostId("453812134"), "Innsendt klage")).right()
 
     override fun kontrollnotatMotatt(saksnummer: Saksnummer, periode: DatoIntervall): Either<KunneIkkeSjekkKontrollnotatMottatt, ErKontrollNotatMottatt> {
         return ErKontrollNotatMottatt.Ja(
