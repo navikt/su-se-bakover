@@ -163,7 +163,7 @@ internal class ReguleringPostgresRepoTest {
             testDataHelper.persisterSøknadsbehandlingIverksattAvslagUtenBeregning()
             testDataHelper.persisterSøknadsbehandlingAvsluttet()
             testDataHelper.persisterRevurderingAvsluttet()
-            testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart()
+            testDataHelper.persisternySøknadsbehandlingMedStønadsperiode()
             testDataHelper.persisterSøknadsbehandlingVilkårsvurdertAvslag()
             testDataHelper.persisterSøknadsbehandlingVilkårsvurdertInnvilget()
 
@@ -171,7 +171,7 @@ internal class ReguleringPostgresRepoTest {
                 testDataHelper.persisterIverksattStansOgVedtak().second.behandling.saksnummer,
                 testDataHelper.persisterSøknadsbehandlingBeregnetAvslag().first.saksnummer,
                 testDataHelper.persisterSøknadsbehandlingBeregnetInnvilget().first.saksnummer,
-                testDataHelper.persisterSøknadsbehandlingSimulert().first.saksnummer,
+                testDataHelper.persistersimulertSøknadsbehandling().first.saksnummer,
                 testDataHelper.persisterSøknadsbehandlingTilAttesteringAvslagUtenBeregning().first.saksnummer,
                 testDataHelper.persisterSøknadsbehandlingTilAttesteringAvslagMedBeregning().first.saksnummer,
                 testDataHelper.persisterSøknadsbehandlingTilAttesteringInnvilget().first.saksnummer,

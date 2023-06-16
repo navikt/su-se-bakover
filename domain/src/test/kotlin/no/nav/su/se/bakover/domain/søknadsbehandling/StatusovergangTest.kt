@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.getOrFailAsType
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
+import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.nySøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
 import no.nav.su.se.bakover.test.person
@@ -37,14 +38,13 @@ import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.simulering.simuleringFeilutbetaling
+import no.nav.su.se.bakover.test.simulertSøknadsbehandling
 import no.nav.su.se.bakover.test.simulertSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.søknadId
-import no.nav.su.se.bakover.test.søknadsbehandlingSimulert
 import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.trekkSøknad
 import no.nav.su.se.bakover.test.underkjentSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårInnvilget
@@ -58,7 +58,6 @@ import no.nav.su.se.bakover.test.vilkår.utilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt12000
-import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingUføre
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -69,7 +68,7 @@ internal class StatusovergangTest {
     private val stønadsperiode get() = stønadsperiode2021
 
     private val sakOgUavklart
-        get() = søknadsbehandlingVilkårsvurdertUavklart(
+        get() = nySøknadsbehandlingMedStønadsperiode(
             stønadsperiode = stønadsperiode,
         )
 
@@ -80,9 +79,7 @@ internal class StatusovergangTest {
     private val vilkårsvurdertInnvilget: VilkårsvurdertSøknadsbehandling.Innvilget
         get() =
             søknadsbehandlingVilkårsvurdertInnvilget(
-                vilkårsvurderinger = vilkårsvurderingerSøknadsbehandlingInnvilget(
-                    uføre = innvilgetUførevilkårForventetInntekt12000(),
-                ),
+                customVilkår = listOf(innvilgetUførevilkårForventetInntekt12000()),
             ).second
 
     private val vilkårsvurdertAvslag: VilkårsvurdertSøknadsbehandling.Avslag
@@ -869,7 +866,7 @@ internal class StatusovergangTest {
 
         @Test
         fun `kaster excepiton hvis innvilget simulering inneholder feilutbetalinger`() {
-            val simulertMedFeilutbetaling = søknadsbehandlingSimulert().let { (_, søknadsbehandling) ->
+            val simulertMedFeilutbetaling = simulertSøknadsbehandling().let { (_, søknadsbehandling) ->
                 søknadsbehandling.copy(
                     simulering = simuleringFeilutbetaling(
                         søknadsbehandling.beregning.getMånedsberegninger().first().periode,

@@ -42,22 +42,25 @@ fun nySakMedNySøknad(
     søknadInnsendtAv: NavIdentBruker = veileder,
     søknadInnhold: SøknadInnhold = søknadinnholdUføre(personopplysninger = personopplysninger(fnr)),
     clock: Clock = fixedClock,
-): Pair<Sak, Søknad.Ny> = SakFactory(
-    uuidFactory = object : UUIDFactory() {
-        val ids = LinkedList(listOf(sakId, søknadId))
-        override fun newUUID(): UUID {
-            return ids.pop()
-        }
-    },
-    clock = clock,
-).nySakMedNySøknad(
-    fnr = fnr,
-    søknadInnhold = søknadInnhold,
-    innsendtAv = søknadInnsendtAv,
-).let {
-    require(it.id == sakId)
-    require(it.søknad.id == søknadId)
-    Pair(it.toSak(saksnummer, Hendelsesversjon(1)), it.søknad)
+): Pair<Sak, Søknad.Ny> {
+    require(fnr == søknadInnhold.personopplysninger.fnr) { "Fnr i søknadInnhold må være lik fnr" }
+    return SakFactory(
+        uuidFactory = object : UUIDFactory() {
+            val ids = LinkedList(listOf(sakId, søknadId))
+            override fun newUUID(): UUID {
+                return ids.pop()
+            }
+        },
+        clock = clock,
+    ).nySakMedNySøknad(
+        fnr = fnr,
+        søknadInnhold = søknadInnhold,
+        innsendtAv = søknadInnsendtAv,
+    ).let {
+        require(it.id == sakId)
+        require(it.søknad.id == søknadId)
+        Pair(it.toSak(saksnummer, Hendelsesversjon(1)), it.søknad)
+    }
 }
 
 fun nySøknadPåEksisterendeSak(
@@ -167,6 +170,7 @@ fun nySakMedJournalførtSøknadUtenOppgave(
     clock: Clock = fixedClock,
     søknadInnhold: SøknadInnhold = søknadinnholdUføre(personopplysninger = personopplysninger(fnr)),
 ): Pair<Sak, Søknad.Journalført.UtenOppgave> {
+    require(fnr == søknadInnhold.personopplysninger.fnr) { "Fnr i søknadInnhold må være lik fnr" }
     return nySakMedNySøknad(
         saksnummer = saksnummer,
         sakId = sakId,
@@ -195,6 +199,7 @@ fun nySakMedjournalførtSøknadOgOppgave(
     clock: Clock = fixedClock,
     søknadInnhold: SøknadInnhold = søknadinnholdUføre(personopplysninger = personopplysninger(fnr)),
 ): Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> {
+    require(fnr == søknadInnhold.personopplysninger.fnr) { "Fnr i søknadInnhold må være lik fnr" }
     return nySakMedJournalførtSøknadUtenOppgave(
         saksnummer = saksnummer,
         sakId = sakId,

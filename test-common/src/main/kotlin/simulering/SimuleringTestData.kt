@@ -455,14 +455,19 @@ fun simuleringFeilutbetaling(
     vararg perioder: Periode = listOf(juni(2021)).toTypedArray(),
     simulertePerioder: List<SimulertMåned> = perioder.map { it.måneder() }.flatten()
         .map { simulertMånedFeilutbetaling(it) },
+    gjelderId: Fnr = fnr,
+    gjelderNavn: String = "navn",
+    datoBeregnet: LocalDate = fixedLocalDate,
+    nettopBeløp: Int = 0,
+    rawResponse: String = "SimuleringTestData baserer seg ikke på rå XML.",
 ): Simulering {
     return Simulering(
-        gjelderId = fnr,
-        gjelderNavn = "navn",
-        datoBeregnet = fixedLocalDate,
-        nettoBeløp = 0,
+        gjelderId = gjelderId,
+        gjelderNavn = gjelderNavn,
+        datoBeregnet = datoBeregnet,
+        nettoBeløp = nettopBeløp,
         måneder = simulertePerioder,
-        rawResponse = "SimuleringTestData baserer seg ikke på rå XML.",
+        rawResponse = rawResponse,
     ).settFiktivNetto()
 }
 

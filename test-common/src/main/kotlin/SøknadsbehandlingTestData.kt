@@ -2,13 +2,13 @@ package no.nav.su.se.bakover.test
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import arrow.core.flatten
 import arrow.core.right
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.common.extensions.mapFirst
 import no.nav.su.se.bakover.common.extensions.mapSecond
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -18,11 +18,11 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.SakInfo
@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.søknad.Søknad
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
@@ -39,7 +40,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
@@ -70,9 +70,11 @@ import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
+import no.nav.su.se.bakover.test.søknad.journalpostIdSøknad
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.søknad.oppgaveIdSøknad
-import no.nav.su.se.bakover.test.søknad.søknadsinnholdAlder
+import no.nav.su.se.bakover.test.søknad.personopplysninger
+import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.utbetaling.kvittering
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
@@ -82,157 +84,92 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 /**
- * Skal tilsvare en ny søknadsbehandling.
- * TODO jah: Vi bør kunne gjøre dette via NySøknadsbehandling og en funksjon som tar inn saksnummer og gir oss VilkårsvurdertSøknadsbehandling.Uavklart
- */
-fun søknadsbehandlingVilkårsvurdertUavklart(
-    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
-    stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    clock: Clock = fixedClock,
-    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-): Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart> {
-    val sakOgSøknad = nySakMedjournalførtSøknadOgOppgave(
-        sakId = sakId,
-        saksnummer = saksnummer,
-        oppgaveId = oppgaveIdSøknad,
-        fnr = fnr,
-    )
-    return nySøknadsbehandlingMedStønadsperiode(
-        clock = clock,
-        stønadsperiode = stønadsperiode,
-        sakOgSøknad = sakOgSøknad,
-        saksbehandler = saksbehandler,
-    )
-}
-
-/**
  * Baserer seg på at alt er innvilget, og utfylt til og med fradrag.
  */
 fun søknadsbehandlingVilkårsvurdertInnvilget(
-    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
-    stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
-        stønadsperiode.periode,
-    ),
-    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     clock: Clock = fixedClock,
-    søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk = nySøknadsbehandlingshistorikkAlleVilkårMedBosituasjonOgFradrag(
-        clock = clock,
-        saksbehandler = saksbehandler,
-    ),
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
+    customGrunnlag: List<Grunnlag> = emptyList(),
+    customVilkår: List<Vilkår> = emptyList(),
+    eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
+    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
 ): Pair<Sak, VilkårsvurdertSøknadsbehandling.Innvilget> {
-    return søknadsbehandlingVilkårsvurdertUavklart(
-        saksnummer = saksnummer,
-        stønadsperiode = stønadsperiode,
+    return vilkårsvurdertSøknadsbehandling(
         clock = clock,
-    ).let { (sak, søknadsbehandling) ->
-        søknadsbehandling.copy(
-            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                eksterneGrunnlag = søknadsbehandling.eksterneGrunnlag,
-            ),
-            søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
-        ).vilkårsvurder(saksbehandler).let { vilkårsvurdert ->
-            vilkårsvurdert.shouldBeType<VilkårsvurdertSøknadsbehandling.Innvilget>().let {
-                Pair(
-                    sak.oppdaterSøknadsbehandling(it),
-                    it,
-                )
-            }
-        }
-    }
+        stønadsperiode = stønadsperiode,
+        sakOgSøknad = sakOgSøknad,
+        customGrunnlag = customGrunnlag,
+        customVilkår = customVilkår,
+        eksterneGrunnlag = eksterneGrunnlag,
+        saksbehandler = saksbehandler,
+    ).mapSecond { it as VilkårsvurdertSøknadsbehandling.Innvilget }
 }
 
 /**
- * @param grunnlagsdata defaults to enslig uten fradrag
- * @param vilkårsvurderinger alle vilkår gir avslag
+ * @param sakOgSøknad sak og søknad det skal opprettes søknadsbehandling for
+ * @param customGrunnlag brukes for å spesifisere grunnlag som skal overstyre default
+ * @param customVilkår brukes for å overstyre vilkår som skal overstyre default
  */
 fun søknadsbehandlingVilkårsvurdertAvslag(
-    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
-    stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode),
-    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     clock: Clock = fixedClock,
-    søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk = nySøknadsbehandlingshistorikkAlleVilkår(
-        clock = clock,
-        saksbehandler = saksbehandler,
-    ),
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
+    customGrunnlag: List<Grunnlag> = emptyList(),
+    customVilkår: List<Vilkår> = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode).vilkår.toList(),
+    eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
+    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
 ): Pair<Sak, VilkårsvurdertSøknadsbehandling.Avslag> {
-    return søknadsbehandlingVilkårsvurdertUavklart(
-        saksnummer = saksnummer,
-        stønadsperiode = stønadsperiode,
+    return vilkårsvurdertSøknadsbehandling(
         clock = clock,
-    ).let { (sak, søknadsbehandling) ->
-        søknadsbehandling.copy(
-            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                eksterneGrunnlag = søknadsbehandling.eksterneGrunnlag,
-            ),
-            søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
-        ).vilkårsvurder(saksbehandler).let { vilkårsvurdert ->
-            vilkårsvurdert.shouldBeType<VilkårsvurdertSøknadsbehandling.Avslag>().let {
-                Pair(
-                    sak.oppdaterSøknadsbehandling(it),
-                    it,
-                )
-            }
-        }
-    }
+        stønadsperiode = stønadsperiode,
+        sakOgSøknad = sakOgSøknad,
+        customGrunnlag = customGrunnlag,
+        customVilkår = customVilkår,
+        eksterneGrunnlag = eksterneGrunnlag,
+        saksbehandler = saksbehandler,
+    ).mapSecond { it as VilkårsvurdertSøknadsbehandling.Avslag }
 }
 
+@Suppress("unused")
 fun søknadsbehandlingBeregnetInnvilget(
-    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    clock: Clock = TikkendeKlokke(),
+    beregnetClock: Clock = clock,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
-        stønadsperiode.periode,
-    ),
-    clock: Clock = fixedClock,
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
+    customGrunnlag: List<Grunnlag> = emptyList(),
+    customVilkår: List<Vilkår> = emptyList(),
+    eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-    søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk = nySøknadsbehandlingshistorikkAlleVilkårMedBosituasjonOgFradrag(
-        clock = clock,
-        saksbehandler = saksbehandler,
-    ),
+    søknadsbehandling: VilkårsvurdertSøknadsbehandling? = null,
 ): Pair<Sak, BeregnetSøknadsbehandling.Innvilget> {
-    return søknadsbehandlingVilkårsvurdertInnvilget(
-        saksnummer = saksnummer,
+    return beregnetSøknadsbehandling(
+        clock = clock,
+        beregnetClock = beregnetClock,
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
-        søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
-    ).let { (sak, søknadsbehandling) ->
-        val oppdatertSøknadsbehandling = søknadsbehandling.beregn(
-            begrunnelse = null,
-            clock = clock,
-            satsFactory = satsFactoryTestPåDato(),
-            nySaksbehandler = saksbehandler,
-            uteståendeAvkortingPåSak = sak.uteståendeAvkortingSkalAvkortes,
-        ).getOrFail() as BeregnetSøknadsbehandling.Innvilget
-        Pair(
-            sak.oppdaterSøknadsbehandling(oppdatertSøknadsbehandling),
-            oppdatertSøknadsbehandling,
-        )
-    }
+        sakOgSøknad = sakOgSøknad,
+        customGrunnlag = customGrunnlag,
+        customVilkår = customVilkår,
+        eksterneGrunnlag = eksterneGrunnlag,
+        saksbehandler = saksbehandler,
+        søknadsbehandling = søknadsbehandling,
+    ).mapSecond { it as BeregnetSøknadsbehandling.Innvilget }
 }
 
 /**
  * Defaultverdier:
  * - Forventet inntekt: 1_000_000
  *
- * @param grunnlagsdata må gi avslag, hvis ikke får man en runtime exception
+ *  [customVilkår] og/eller [customGrunnlag] må gi beregningsavslag, hvis ikke får man en runtime exception
  */
 fun søknadsbehandlingBeregnetAvslag(
-    clock: Clock = fixedClock,
-    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    clock: Clock = TikkendeKlokke(),
+    beregnetClock: Clock = clock,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
-        periode = stønadsperiode.periode,
-        uføre = innvilgetUførevilkårForventetInntekt0(
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
+    customGrunnlag: List<Grunnlag> = emptyList(),
+    customVilkår: List<Vilkår> = listOf(
+        innvilgetUførevilkårForventetInntekt0(
             id = UUID.randomUUID(),
             periode = stønadsperiode.periode,
             uføregrunnlag = uføregrunnlagForventetInntekt(
@@ -241,340 +178,220 @@ fun søknadsbehandlingBeregnetAvslag(
             ),
         ),
     ),
-
+    eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-    søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk = nySøknadsbehandlingshistorikkBeregnet(
-        clock = clock,
-        saksbehandler = saksbehandler,
-    ),
+    søknadsbehandling: VilkårsvurdertSøknadsbehandling? = null,
 ): Pair<Sak, BeregnetSøknadsbehandling.Avslag> {
-    return søknadsbehandlingVilkårsvurdertInnvilget(
-        saksnummer = saksnummer,
-        stønadsperiode = stønadsperiode,
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
-        søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
-    ).let { (sak, søknadsbehandling) ->
-        val oppdatertSøknadsbehandling = søknadsbehandling.beregn(
-            begrunnelse = null,
-            clock = clock,
-            satsFactory = satsFactoryTestPåDato(),
-            nySaksbehandler = saksbehandler,
-            uteståendeAvkortingPåSak = sak.uteståendeAvkortingSkalAvkortes,
-        ).getOrFail() as BeregnetSøknadsbehandling.Avslag
-        Pair(
-            sak.oppdaterSøknadsbehandling(oppdatertSøknadsbehandling),
-            oppdatertSøknadsbehandling,
-        )
-    }
-}
-
-fun søknadsbehandlingSimulert(
-    clock: Clock = tikkendeFixedClock(),
-    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
-    stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
-        stønadsperiode.periode,
-    ),
-    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-    søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk = nySøknadsbehandlingshistorikkBeregnet(
+    return beregnetSøknadsbehandling(
         clock = clock,
-        saksbehandler = saksbehandler,
-    ),
-): Pair<Sak, SimulertSøknadsbehandling> {
-    return søknadsbehandlingBeregnetInnvilget(
-        saksnummer = saksnummer,
+        beregnetClock = beregnetClock,
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
-        clock = clock,
+        sakOgSøknad = sakOgSøknad,
+        customGrunnlag = customGrunnlag,
+        customVilkår = customVilkår,
+        eksterneGrunnlag = eksterneGrunnlag,
         saksbehandler = saksbehandler,
-        søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
-    ).let { (sak, søknadsbehandling) ->
-        søknadsbehandling.simuler(
-            saksbehandler = saksbehandler,
-            clock = clock,
-        ) { beregning, uføregrunnlag ->
-            sak.lagNyUtbetaling(
-                saksbehandler = saksbehandler,
-                beregning = beregning,
-                clock = clock,
-                utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                uføregrunnlag = uføregrunnlag,
-            ).let {
-                sak.simulerUtbetaling(
-                    utbetalingForSimulering = it,
-                    periode = søknadsbehandling.periode,
-                    simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
-                        simulerUtbetaling(
-                            sak = sak,
-                            utbetaling = utbetalingForSimulering,
-                            simuleringsperiode = periode,
-                        )
-                    },
-                    kontrollerMotTidligereSimulering = null,
-                ).map { simulertUtbetaling ->
-                    simulertUtbetaling.simulering
-                }
-            }
-        }.getOrFail()
-            .let { simulert ->
-                Pair(
-                    sak.oppdaterSøknadsbehandling(simulert),
-                    simulert,
-                )
-            }
-    }
+        søknadsbehandling = søknadsbehandling,
+    ).mapSecond { it as BeregnetSøknadsbehandling.Avslag }
 }
 
 fun søknadsbehandlingTilAttesteringInnvilget(
-    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
-    stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
-        stønadsperiode.periode,
-    ),
     clock: Clock = fixedClock,
-    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-    søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk = nySøknadsbehandlingshistorikkSimulert(
-        clock = clock,
-        saksbehandler = saksbehandler,
-    ),
-): Pair<Sak, SøknadsbehandlingTilAttestering.Innvilget> {
-    return søknadsbehandlingSimulert(
-        saksnummer = saksnummer,
-        stønadsperiode = stønadsperiode,
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
-        clock = clock,
-        saksbehandler = saksbehandler,
-        søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
-    ).let { (sak, søknadsbehandling) ->
-        val oppdatertSøknadsbehandling = søknadsbehandling.tilAttestering(
-            saksbehandler = saksbehandler,
-            fritekstTilBrev = "",
-            clock = clock,
-        ).getOrFail()
-        Pair(
-            sak.oppdaterSøknadsbehandling(oppdatertSøknadsbehandling),
-            oppdatertSøknadsbehandling,
-        )
-    }
-}
-
-fun søknadsbehandlingTilAttesteringAvslagMedBeregning(
-    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
-        periode = stønadsperiode.periode,
-        uføre = innvilgetUførevilkårForventetInntekt0(
-            id = UUID.randomUUID(),
-            periode = stønadsperiode.periode,
-            uføregrunnlag = uføregrunnlagForventetInntekt(
-                periode = stønadsperiode.periode,
-                forventetInntekt = 1_000_000,
-            ),
-        ),
-    ),
-    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-    clock: Clock = fixedClock,
-    søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk = nySøknadsbehandlingshistorikkSendtTilAttesteringAvslåttBeregning(
-        clock = clock,
-        saksbehandler = saksbehandler,
-    ),
-): Pair<Sak, SøknadsbehandlingTilAttestering.Avslag.MedBeregning> {
-    return søknadsbehandlingBeregnetAvslag(
-        saksnummer = saksnummer,
-        stønadsperiode = stønadsperiode,
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
-        saksbehandler = saksbehandler,
-        clock = clock,
-        søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
-    ).let { (sak, søknadsbehandling) ->
-        val oppdatertSøknadsbehandling = søknadsbehandling.tilAttestering(
-            saksbehandler = saksbehandler,
-            fritekstTilBrev = "",
-            clock = clock,
-        ).getOrFail()
-        Pair(
-            sak.oppdaterSøknadsbehandling(oppdatertSøknadsbehandling),
-            oppdatertSøknadsbehandling,
-        )
-    }
-}
-
-fun søknadsbehandlingTilAttesteringAvslagUtenBeregning(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
-    stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode),
-    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-    clock: Clock = fixedClock,
-    søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk = nySøknadsbehandlingshistorikkSendtTilAttesteringAvslått(
-        clock = clock,
-        saksbehandler = saksbehandler,
-    ),
-): Pair<Sak, SøknadsbehandlingTilAttestering.Avslag.UtenBeregning> {
-    return søknadsbehandlingVilkårsvurdertAvslag(
-        saksnummer = saksnummer,
-        stønadsperiode = stønadsperiode,
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
-        saksbehandler = saksbehandler,
-        søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
-        clock = clock,
-    ).let { (sak, søknadsbehandling) ->
-        val oppdatertSøknadsbehandling = søknadsbehandling.tilAttesteringForSaksbehandler(
-            saksbehandler = saksbehandler,
-            fritekstTilBrev = "",
-            clock = clock,
-        ).getOrFail()
-        Pair(
-            sak.oppdaterSøknadsbehandling(oppdatertSøknadsbehandling),
-            oppdatertSøknadsbehandling,
-        )
-    }
-}
-
-fun søknadsbehandlingUnderkjentInnvilget(
-    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
-    stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(periode = stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
-        stønadsperiode.periode,
-    ),
-    clock: Clock = fixedClock,
-    attestering: Attestering = attesteringUnderkjent(clock = clock),
-    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-    søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk = nySøknadsbehandlingshistorikkSendtTilAttestering(
-        clock = clock,
-        saksbehandler = saksbehandler,
-    ),
-): Pair<Sak, UnderkjentSøknadsbehandling.Innvilget> {
-    return søknadsbehandlingTilAttesteringInnvilget(
-        saksnummer = saksnummer,
-        stønadsperiode = stønadsperiode,
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
-        saksbehandler = saksbehandler,
-        søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
-    ).let { (sak, søknadsbehandling) ->
-        val oppdatertSøknadsbehandling = søknadsbehandling.tilUnderkjent(
-            attestering = attestering,
-        )
-        Pair(
-            sak.oppdaterSøknadsbehandling(oppdatertSøknadsbehandling),
-            oppdatertSøknadsbehandling,
-        )
-    }
-}
-
-fun søknadsbehandlingUnderkjentAvslagUtenBeregning(
-    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
-    stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode),
-    clock: Clock = fixedClock,
-    attestering: Attestering = attesteringUnderkjent(clock = clock),
-    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-    søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk = nySøknadsbehandlingshistorikkSendtTilAttesteringAvslått(
-        clock = clock,
-        saksbehandler = saksbehandler,
-    ),
-): Pair<Sak, UnderkjentSøknadsbehandling.Avslag.UtenBeregning> {
-    return søknadsbehandlingTilAttesteringAvslagUtenBeregning(
-        saksnummer = saksnummer,
-        stønadsperiode = stønadsperiode,
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
-        saksbehandler = saksbehandler,
-        søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
-    ).let { (sak, søknadsbehandling) ->
-        val oppdatertSøknadsbehandling = søknadsbehandling.tilUnderkjent(
-            attestering = attestering,
-        )
-        Pair(
-            sak.oppdaterSøknadsbehandling(oppdatertSøknadsbehandling),
-            oppdatertSøknadsbehandling,
-        )
-    }
-}
-
-fun søknadsbehandlingUnderkjentAvslagMedBeregning(
-    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
-    stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
-        periode = stønadsperiode.periode,
-        uføre = innvilgetUførevilkårForventetInntekt0(
-            id = UUID.randomUUID(),
-            periode = stønadsperiode.periode,
-            uføregrunnlag = uføregrunnlagForventetInntekt(
-                periode = stønadsperiode.periode,
-                forventetInntekt = 1_000_000,
-            ),
-        ),
-    ),
-    clock: Clock = fixedClock,
-    attestering: Attestering = attesteringUnderkjent(clock = clock),
-    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-    søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk = nySøknadsbehandlingshistorikkSendtTilAttestering(
-        clock = clock,
-        saksbehandler = saksbehandler,
-    ),
-): Pair<Sak, UnderkjentSøknadsbehandling.Avslag.MedBeregning> {
-    return søknadsbehandlingTilAttesteringAvslagMedBeregning(
-        saksnummer = saksnummer,
-        stønadsperiode = stønadsperiode,
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
-        saksbehandler = saksbehandler,
-        søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
-    ).let { (sak, søknadsbehandling) ->
-        val oppdatertSøknadsbehandling = søknadsbehandling.tilUnderkjent(
-            attestering = attestering,
-        )
-        Pair(
-            sak.oppdaterSøknadsbehandling(oppdatertSøknadsbehandling),
-            oppdatertSøknadsbehandling,
-        )
-    }
-}
-
-fun søknadsbehandlingIverksattInnvilget(
-    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
-    stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
-        stønadsperiode.periode,
-    ),
-    eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
-    clock: Clock = fixedClock,
-    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-    sakstype: Sakstype = Sakstype.UFØRE,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(
         clock = clock,
         sakInfo = SakInfo(
-            sakId = sakId,
+            sakId = UUID.randomUUID(),
             saksnummer = saksnummer,
-            fnr = fnr,
-            type = sakstype,
+            fnr = Fnr.generer(),
+            type = Sakstype.UFØRE,
         ),
     ),
+    customGrunnlag: List<Grunnlag> = emptyList(),
+    customVilkår: List<Vilkår> = emptyList(),
+    eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
+    fritekstTilBrev: String = "",
+    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+): Pair<Sak, SøknadsbehandlingTilAttestering.Innvilget> {
+    return tilAttesteringSøknadsbehandling(
+        clock = clock,
+        stønadsperiode = stønadsperiode,
+        sakOgSøknad = sakOgSøknad,
+        customGrunnlag = customGrunnlag,
+        customVilkår = customVilkår,
+        eksterneGrunnlag = eksterneGrunnlag,
+        fritekstTilBrev = fritekstTilBrev,
+        saksbehandler = saksbehandler,
+    ).mapSecond { it as SøknadsbehandlingTilAttestering.Innvilget }
+}
+
+fun søknadsbehandlingTilAttesteringAvslagMedBeregning(
+    clock: Clock = fixedClock,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
+    customGrunnlag: List<Grunnlag> = listOf(
+        fradragsgrunnlagArbeidsinntekt1000(),
+    ),
+    customVilkår: List<Vilkår> = listOf(
+        innvilgetUførevilkårForventetInntekt0(
+            periode = stønadsperiode.periode,
+            uføregrunnlag = uføregrunnlagForventetInntekt(
+                periode = stønadsperiode.periode,
+                forventetInntekt = 1_000_000,
+            ),
+        ),
+    ),
+    eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
+    fritekstTilBrev: String = "",
+    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+): Pair<Sak, SøknadsbehandlingTilAttestering.Avslag.MedBeregning> {
+    return tilAttesteringSøknadsbehandling(
+        clock = clock,
+        stønadsperiode = stønadsperiode,
+        sakOgSøknad = sakOgSøknad,
+        customGrunnlag = customGrunnlag,
+        customVilkår = customVilkår,
+        eksterneGrunnlag = eksterneGrunnlag,
+        fritekstTilBrev = fritekstTilBrev,
+        saksbehandler = saksbehandler,
+    ).mapSecond { it as SøknadsbehandlingTilAttestering.Avslag.MedBeregning }
+}
+
+fun søknadsbehandlingTilAttesteringAvslagUtenBeregning(
+    clock: Clock = fixedClock,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
+    customGrunnlag: List<Grunnlag> = emptyList(),
+    customVilkår: List<Vilkår> = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode).vilkår.toList(),
+    eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
+    fritekstTilBrev: String = "",
+    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+): Pair<Sak, SøknadsbehandlingTilAttestering.Avslag.UtenBeregning> {
+    return tilAttesteringSøknadsbehandling(
+        clock = clock,
+        stønadsperiode = stønadsperiode,
+        sakOgSøknad = sakOgSøknad,
+        customGrunnlag = customGrunnlag,
+        customVilkår = customVilkår,
+        eksterneGrunnlag = eksterneGrunnlag,
+        fritekstTilBrev = fritekstTilBrev,
+        saksbehandler = saksbehandler,
+    ).mapSecond { it as SøknadsbehandlingTilAttestering.Avslag.UtenBeregning }
+}
+
+fun søknadsbehandlingUnderkjentInnvilget(
+    clock: Clock = fixedClock,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(
+        clock = clock,
+        sakInfo = SakInfo(
+            sakId = UUID.randomUUID(),
+            saksnummer = saksnummer,
+            fnr = Fnr.generer(),
+            type = Sakstype.UFØRE,
+        ),
+    ),
+    customGrunnlag: List<Grunnlag> = emptyList(),
+    customVilkår: List<Vilkår> = emptyList(),
+    eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
+    fritekstTilBrev: String = "",
+    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+): Pair<Sak, UnderkjentSøknadsbehandling.Innvilget> {
+    return underkjentSøknadsbehandling(
+        clock = clock,
+        stønadsperiode = stønadsperiode,
+        sakOgSøknad = sakOgSøknad,
+        customGrunnlag = customGrunnlag,
+        customVilkår = customVilkår,
+        eksterneGrunnlag = eksterneGrunnlag,
+        fritekstTilBrev = fritekstTilBrev,
+        saksbehandler = saksbehandler,
+    ).mapSecond { it as UnderkjentSøknadsbehandling.Innvilget }
+}
+
+fun søknadsbehandlingUnderkjentAvslagUtenBeregning(
+    clock: Clock = fixedClock,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
+    customGrunnlag: List<Grunnlag> = emptyList(),
+    customVilkår: List<Vilkår> = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode).vilkår.toList(),
+    eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
+    fritekstTilBrev: String = "",
+    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+): Pair<Sak, UnderkjentSøknadsbehandling.Avslag.UtenBeregning> {
+    return underkjentSøknadsbehandling(
+        clock = clock,
+        stønadsperiode = stønadsperiode,
+        sakOgSøknad = sakOgSøknad,
+        customGrunnlag = customGrunnlag,
+        customVilkår = customVilkår,
+        eksterneGrunnlag = eksterneGrunnlag,
+        fritekstTilBrev = fritekstTilBrev,
+        saksbehandler = saksbehandler,
+    ).mapSecond { it as UnderkjentSøknadsbehandling.Avslag.UtenBeregning }
+}
+
+fun søknadsbehandlingUnderkjentAvslagMedBeregning(
+    clock: Clock = fixedClock,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
+    customGrunnlag: List<Grunnlag> = emptyList(),
+    customVilkår: List<Vilkår> = listOf(
+        innvilgetUførevilkårForventetInntekt0(
+            id = UUID.randomUUID(),
+            periode = stønadsperiode.periode,
+            uføregrunnlag = uføregrunnlagForventetInntekt(
+                periode = stønadsperiode.periode,
+                forventetInntekt = 1_000_000,
+            ),
+        ),
+    ),
+    eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
+    fritekstTilBrev: String = "",
+    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+): Pair<Sak, UnderkjentSøknadsbehandling.Avslag.MedBeregning> {
+    return underkjentSøknadsbehandling(
+        clock = clock,
+        stønadsperiode = stønadsperiode,
+        sakOgSøknad = sakOgSøknad,
+        customGrunnlag = customGrunnlag,
+        customVilkår = customVilkår,
+        eksterneGrunnlag = eksterneGrunnlag,
+        fritekstTilBrev = fritekstTilBrev,
+        saksbehandler = saksbehandler,
+    ).mapSecond { it as UnderkjentSøknadsbehandling.Avslag.MedBeregning }
+}
+
+/**
+ * Merk at denne gir deg et vedtak også.
+ */
+fun søknadsbehandlingIverksattInnvilget(
+    clock: Clock = TikkendeKlokke(),
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(
+        clock = clock,
+    ),
+    customGrunnlag: List<Grunnlag> = emptyList(),
+    customVilkår: List<Vilkår> = emptyList(),
+    eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
+    attestering: Attestering.Iverksatt = attesteringIverksatt(clock),
+    fritekstTilBrev: String = "",
+    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    kvittering: Kvittering? = kvittering(clock = clock),
 ): Triple<Sak, IverksattSøknadsbehandling.Innvilget, VedtakInnvilgetSøknadsbehandling> {
     return iverksattSøknadsbehandling(
-        sakOgSøknad = sakOgSøknad,
-        stønadsperiode = stønadsperiode,
-        customVilkår = vilkårsvurderinger.vilkår.toList(),
-        customGrunnlag = grunnlagsdata.let {
-            listOf(it.bosituasjon, it.fradragsgrunnlag).flatten()
-        },
-        eksterneGrunnlag = eksterneGrunnlag,
-        saksbehandler = saksbehandler,
         clock = clock,
+        stønadsperiode = stønadsperiode,
+        sakOgSøknad = sakOgSøknad,
+        customGrunnlag = customGrunnlag,
+        customVilkår = customVilkår,
+        eksterneGrunnlag = eksterneGrunnlag,
+        attestering = attestering,
+        fritekstTilBrev = fritekstTilBrev,
+        saksbehandler = saksbehandler,
+        kvittering = kvittering,
     ).let {
         Triple(
             it.first,
@@ -585,15 +402,14 @@ fun søknadsbehandlingIverksattInnvilget(
 }
 
 fun søknadsbehandlingIverksattAvslagMedBeregning(
-    sakId: UUID = UUID.randomUUID(),
-    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
-    sakstype: Sakstype = Sakstype.UFØRE,
-    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    clock: Clock = TikkendeKlokke(),
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
-        periode = stønadsperiode.periode,
-        uføre = innvilgetUførevilkårForventetInntekt0(
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(
+        clock = clock,
+    ),
+    customGrunnlag: List<Grunnlag> = emptyList(),
+    customVilkår: List<Vilkår> = listOf(
+        innvilgetUførevilkårForventetInntekt0(
             id = UUID.randomUUID(),
             periode = stønadsperiode.periode,
             uføregrunnlag = uføregrunnlagForventetInntekt(
@@ -602,69 +418,76 @@ fun søknadsbehandlingIverksattAvslagMedBeregning(
             ),
         ),
     ),
-    clock: Clock = fixedClock,
+    eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
+    attestering: Attestering.Iverksatt = attesteringIverksatt(clock),
+    fritekstTilBrev: String = "",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    kvittering: Kvittering? = kvittering(clock = clock),
 ): Triple<Sak, IverksattSøknadsbehandling.Avslag.MedBeregning, Avslagsvedtak> {
     return iverksattSøknadsbehandling(
-        sakOgSøknad = nySakUføre(
-            clock = clock,
-            sakInfo = SakInfo(
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                type = sakstype,
-            ),
-        ),
-        stønadsperiode = stønadsperiode,
-        customVilkår = vilkårsvurderinger.vilkår.toList(),
-        customGrunnlag = grunnlagsdata.let {
-            listOf(it.bosituasjon, it.fradragsgrunnlag).flatten()
-        },
-        saksbehandler = saksbehandler,
         clock = clock,
-    ).let { Triple(it.first, it.second as IverksattSøknadsbehandling.Avslag.MedBeregning, it.third as Avslagsvedtak) }
+        stønadsperiode = stønadsperiode,
+        sakOgSøknad = sakOgSøknad,
+        customGrunnlag = customGrunnlag,
+        customVilkår = customVilkår,
+        eksterneGrunnlag = eksterneGrunnlag,
+        attestering = attestering,
+        fritekstTilBrev = fritekstTilBrev,
+        saksbehandler = saksbehandler,
+        kvittering = kvittering,
+    ).let {
+        Triple(
+            it.first,
+            it.second as IverksattSøknadsbehandling.Avslag.MedBeregning,
+            it.third as Avslagsvedtak,
+        )
+    }
 }
 
 fun søknadsbehandlingIverksattAvslagUtenBeregning(
-    sakId: UUID = UUID.randomUUID(),
-    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
-    sakstype: Sakstype = Sakstype.UFØRE,
-    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    clock: Clock = TikkendeKlokke(),
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode),
-    clock: Clock = fixedClock,
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(
+        clock = clock,
+    ),
+    customGrunnlag: List<Grunnlag> = emptyList(),
+    customVilkår: List<Vilkår> = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode).vilkår.toList(),
+    eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
+    attestering: Attestering.Iverksatt = attesteringIverksatt(clock),
+    fritekstTilBrev: String = "",
+    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    kvittering: Kvittering? = kvittering(clock = clock),
 ): Triple<Sak, IverksattSøknadsbehandling.Avslag.UtenBeregning, Avslagsvedtak> {
     return iverksattSøknadsbehandling(
-        sakOgSøknad = nySakUføre(
-            clock = clock,
-            sakInfo = SakInfo(
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                type = sakstype,
-            ),
-        ),
-        stønadsperiode = stønadsperiode,
-        customVilkår = vilkårsvurderinger.vilkår.toList(),
-        customGrunnlag = grunnlagsdata.let {
-            listOf(it.bosituasjon, it.fradragsgrunnlag).flatten()
-        },
         clock = clock,
-    ).let { Triple(it.first, it.second as IverksattSøknadsbehandling.Avslag.UtenBeregning, it.third as Avslagsvedtak) }
+        stønadsperiode = stønadsperiode,
+        sakOgSøknad = sakOgSøknad,
+        customGrunnlag = customGrunnlag,
+        customVilkår = customVilkår,
+        eksterneGrunnlag = eksterneGrunnlag,
+        attestering = attestering,
+        fritekstTilBrev = fritekstTilBrev,
+        saksbehandler = saksbehandler,
+        kvittering = kvittering,
+    ).let {
+        Triple(
+            it.first,
+            it.second as IverksattSøknadsbehandling.Avslag.UtenBeregning,
+            it.third as Avslagsvedtak,
+        )
+    }
 }
 
 /**
  * En lukket uavklart vilkårsvurdert søknadsbehandling
  */
 fun søknadsbehandlingTrukket(
-    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     saksbehandlerSomLukket: NavIdentBruker.Saksbehandler = saksbehandler,
     clock: Clock = fixedClock,
 ): Pair<Sak, LukketSøknadsbehandling> {
-    return søknadsbehandlingVilkårsvurdertUavklart(
-        saksnummer = saksnummer,
+    return nySøknadsbehandlingMedStønadsperiode(
+        clock = clock,
         stønadsperiode = stønadsperiode,
     ).let { (sak, søknadsbehandling) ->
         sak.lukkSøknadOgSøknadsbehandling(
@@ -680,22 +503,6 @@ fun søknadsbehandlingTrukket(
         )
     }.let {
         Pair(it.sak, it.søknadsbehandling!!)
-    }
-}
-
-@Suppress("unused")
-fun nySøknadsbehandlingAlder(
-    clock: Clock = fixedClock,
-    stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakAlder(søknadsInnhold = søknadsinnholdAlder()),
-): Pair<Sak, VilkårsvurdertSøknadsbehandling> {
-    require(sakOgSøknad.first.type == Sakstype.ALDER) { "Bruk nySøknadsbehandlingUføre dersom du ønsker deg en uføresak." }
-    return nySøknadsbehandlingMedStønadsperiode(
-        clock = clock,
-        stønadsperiode = stønadsperiode,
-        sakOgSøknad = sakOgSøknad,
-    ).let {
-        it.first to it.second
     }
 }
 
@@ -719,7 +526,23 @@ fun nySøknadsbehandlingUføre(
  */
 fun nySøknadsbehandlingUtenStønadsperiode(
     clock: Clock = fixedClock,
-    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakMedjournalførtSøknadOgOppgave(),
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    sakId: UUID = UUID.randomUUID(),
+    søknadId: UUID = UUID.randomUUID(),
+    fnr: Fnr = Fnr.generer(),
+    journalpostId: JournalpostId = journalpostIdSøknad,
+    oppgaveId: OppgaveId = oppgaveIdSøknad,
+    søknadInnhold: SøknadInnhold = søknadinnholdUføre(personopplysninger = personopplysninger(fnr)),
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakMedjournalførtSøknadOgOppgave(
+        sakId = sakId,
+        saksnummer = saksnummer,
+        søknadId = søknadId,
+        journalpostId = journalpostId,
+        oppgaveId = oppgaveId,
+        fnr = fnr,
+        clock = clock,
+        søknadInnhold = søknadInnhold,
+    ),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
 ): Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart> {
     require(sakOgSøknad.first.type == sakOgSøknad.first.type) {
@@ -746,7 +569,19 @@ fun nySøknadsbehandlingUtenStønadsperiode(
 fun nySøknadsbehandlingMedStønadsperiode(
     clock: Clock = fixedClock,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    sakId: UUID = UUID.randomUUID(),
+    fnr: Fnr = Fnr.generer(),
+    sakstype: Sakstype = Sakstype.UFØRE,
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(
+        clock = clock,
+        sakInfo = SakInfo(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            type = sakstype,
+        ),
+    ),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person> = { person(fnr = fnr).right() },
     saksbehandlersAvgjørelse: SaksbehandlersAvgjørelse? = null,
@@ -815,6 +650,7 @@ fun underkjentSøknadsbehandling(
     customVilkår: List<Vilkår> = emptyList(),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     fritekstTilBrev: String = "",
+    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
 ): Pair<Sak, UnderkjentSøknadsbehandling> {
     return tilAttesteringSøknadsbehandling(
         clock = clock,
@@ -824,6 +660,7 @@ fun underkjentSøknadsbehandling(
         customVilkår = customVilkår,
         eksterneGrunnlag = eksterneGrunnlag,
         fritekstTilBrev = fritekstTilBrev,
+        saksbehandler = saksbehandler,
     ).let { (sak, tilAttestering) ->
         val underkjent = tilAttestering.tilUnderkjent(attestering = attesteringUnderkjent(clock))
         sak.oppdaterSøknadsbehandling(underkjent) to underkjent
@@ -859,6 +696,9 @@ fun iverksattSøknadsbehandlingUføre(
     )
 }
 
+/**
+ * Lager vedtak, men journalfører/distriburer ikke brev.
+ */
 fun iverksattSøknadsbehandling(
     clock: Clock = TikkendeKlokke(),
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
@@ -1149,7 +989,7 @@ fun beregnetSøknadsbehandlingUføre(
 }
 
 fun beregnetSøknadsbehandling(
-    clock: Clock,
+    clock: Clock = TikkendeKlokke(),
     beregnetClock: Clock = clock,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
@@ -1297,7 +1137,7 @@ fun vilkårsvurdertSøknadsbehandling(
                         hendelse = Søknadsbehandlingshendelse(
                             tidspunkt = Tidspunkt.now(clock),
                             saksbehandler = saksbehandler,
-                            handling = SøknadsbehandlingsHandling.TattStillingTilEPS,
+                            handling = SøknadsbehandlingsHandling.OppdatertBosituasjon,
                         ),
                     )
                     .getOrFail()

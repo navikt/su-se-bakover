@@ -131,11 +131,6 @@ fun nySøknadsbehandlingshistorikkAlleVilkårMedBosituasjonOgFradrag(
             Søknadsbehandlingshendelse(
                 tidspunkt = tidspunkt,
                 saksbehandler = saksbehandler,
-                handling = SøknadsbehandlingsHandling.FullførtBosituasjon,
-            ),
-            Søknadsbehandlingshendelse(
-                tidspunkt = tidspunkt,
-                saksbehandler = saksbehandler,
                 handling = SøknadsbehandlingsHandling.OppdatertFradragsgrunnlag,
             ),
         ),

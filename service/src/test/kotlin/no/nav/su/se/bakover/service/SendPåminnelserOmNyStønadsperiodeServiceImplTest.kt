@@ -153,7 +153,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                 dokument = argThat {
                     it.tittel shouldBe PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel()
                     it.metadata shouldBe Dokument.Metadata(
-                        sakId = sak1.id,
+                        sakId = sak2.id,
                     )
                 },
                 transactionContext = argThat { it shouldBe serviceAndMocks.sessionFactory.newTransactionContext() },

@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.test.enUkeEtterFixedTidspunkt
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.getOrFailAsType
+import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulering.simuleringNy
@@ -22,7 +23,6 @@ import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingTrukket
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.underkjentSøknadsbehandling
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -57,7 +57,7 @@ internal class SøknadsbehandlingSkattTest {
     inner class KanLeggeTil {
         @Test
         fun `tilstand vilkårsvurdert med eps`() {
-            søknadsbehandlingVilkårsvurdertUavklart().second.leggTilSkatt(
+            nySøknadsbehandlingMedStønadsperiode().second.leggTilSkatt(
                 EksterneGrunnlagSkatt.Hentet(nySkattegrunnlag(), nySkattegrunnlag()),
             ).shouldBeRight()
         }

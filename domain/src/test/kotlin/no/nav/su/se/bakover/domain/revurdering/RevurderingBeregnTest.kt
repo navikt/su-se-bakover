@@ -42,7 +42,6 @@ import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.stønadsperiode2022
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
-import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.vilkår.avslåttFormueVilkår
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
@@ -324,7 +323,7 @@ internal class RevurderingBeregnTest {
             sakOgSøknad = sak to nySøknadJournalførtMedOppgave(
                 clock = clock,
                 sakId = sak.id,
-                søknadInnhold = søknadinnholdUføre(),
+                fnr = sak.fnr,
             ),
         )
 
@@ -425,7 +424,7 @@ internal class RevurderingBeregnTest {
             sakOgSøknad = sak to nySøknadJournalførtMedOppgave(
                 clock = clock,
                 sakId = sak.id,
-                søknadInnhold = søknadinnholdUføre(),
+                fnr = sak.fnr,
             ),
             clock = clock,
         )
@@ -566,7 +565,7 @@ internal class RevurderingBeregnTest {
             sakOgSøknad = sak to nySøknadJournalførtMedOppgave(
                 clock = tikkendeKlokke,
                 sakId = sak.id,
-                søknadInnhold = søknadinnholdUføre(),
+                fnr = sak.fnr,
             ),
         )
 

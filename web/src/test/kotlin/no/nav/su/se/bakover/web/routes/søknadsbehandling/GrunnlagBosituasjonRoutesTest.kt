@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBositu
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
+import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
@@ -32,7 +32,7 @@ import org.mockito.kotlin.verifyNoMoreInteractions
 class GrunnlagBosituasjonRoutesTest {
 
     private val services = TestServicesBuilder.services()
-    private val søknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().second
+    private val søknadsbehandling = nySøknadsbehandlingMedStønadsperiode().second
 
     @Test
     fun `andre roller enn saksbehandler skal ikke ha tilgang til bosituasjon`() {

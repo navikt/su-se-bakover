@@ -16,7 +16,7 @@ internal class SkattPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             testDataHelper.sessionFactory.withSession { session ->
                 val repo = SkattPostgresRepo
-                val (sak, _) = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart()
+                val (sak, _) = testDataHelper.persisternySøknadsbehandlingMedStønadsperiode()
 
                 val søkersId = UUID.randomUUID()
 

@@ -11,8 +11,8 @@ import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
+import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.sakId
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -139,7 +139,7 @@ class OppdaterStønadsperiodeTest {
 
     @Test
     fun `svarer med 201 og søknadsbehandling hvis alt er ok`() {
-        val søknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().second
+        val søknadsbehandling = nySøknadsbehandlingMedStønadsperiode().second
 
         val serviceMock = mock<SøknadsbehandlingService> {
             on { oppdaterStønadsperiode(any()) } doReturn søknadsbehandling.right()

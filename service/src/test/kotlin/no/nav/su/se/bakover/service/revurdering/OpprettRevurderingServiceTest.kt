@@ -278,7 +278,7 @@ internal class OpprettRevurderingServiceTest {
         ).also { mocks ->
             val actual = mocks.revurderingService.opprettRevurdering(
                 OpprettRevurderingCommand(
-                    sakId = sakId,
+                    sakId = sak.id,
                     periode = februar(2021).fraOgMed.rangeTo(revurderingVedtak.periode.tilOgMed)
                         .toPeriode(),
                     årsak = "MELDING_FRA_BRUKER",
@@ -291,18 +291,18 @@ internal class OpprettRevurderingServiceTest {
             )
 
             actual.getOrFail().also {
-                it.saksnummer shouldBe saksnummer
+                it.saksnummer shouldBe sak.saksnummer
                 it.tilRevurdering shouldBe revurderingVedtak.id
             }
 
-            verify(mocks.sakService).hentSak(sakId)
-            verify(mocks.personService).hentAktørId(argThat { it shouldBe fnr })
+            verify(mocks.sakService).hentSak(sak.id)
+            verify(mocks.personService).hentAktørId(argThat { it shouldBe sak.fnr })
             verify(mocks.revurderingRepo).defaultTransactionContext()
             verify(mocks.revurderingRepo).lagre(argThat { it.right() shouldBe actual }, anyOrNull())
             verify(mocks.oppgaveService).opprettOppgave(
                 argThat {
                     it shouldBe OppgaveConfig.Revurderingsbehandling(
-                        saksnummer = saksnummer,
+                        saksnummer = sak.saksnummer,
                         aktørId = aktørId,
                         tilordnetRessurs = null,
                         clock = mocks.clock,
@@ -483,7 +483,7 @@ internal class OpprettRevurderingServiceTest {
         ).let {
             it.revurderingService.opprettRevurdering(
                 OpprettRevurderingCommand(
-                    sakId = sakId,
+                    sakId = sak.id,
                     periode = nyRevurderingsperiode,
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",

@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fnr
@@ -28,13 +29,16 @@ internal class UnderkjennRevurderingTest {
 
     @Test
     fun `underkjenn - underkjenner en revurdering`() {
-        val (_, tilAttestering) = revurderingTilAttestering()
+        val clock = TikkendeKlokke()
+        val (sak, tilAttestering) = revurderingTilAttestering(
+            clock = clock,
+        )
 
         val attestering = Attestering.Underkjent(
             attestant = NavIdentBruker.Attestant(navIdent = "123"),
             grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
             kommentar = "pls math",
-            opprettet = Tidspunkt.EPOCH,
+            opprettet = Tidspunkt.now(clock),
         )
 
         val nyOppgaveId = OppgaveId("nyOppgaveId")
@@ -64,11 +68,11 @@ internal class UnderkjennRevurderingTest {
 
             inOrder(mocks.revurderingRepo, mocks.personService, mocks.oppgaveService, mocks.observer) {
                 verify(mocks.revurderingRepo).hent(argThat { it shouldBe tilAttestering.id })
-                verify(mocks.personService).hentAktørId(argThat { it shouldBe fnr })
+                verify(mocks.personService).hentAktørId(argThat { it shouldBe sak.fnr })
                 verify(mocks.oppgaveService).opprettOppgave(
                     argThat {
                         it shouldBe OppgaveConfig.Revurderingsbehandling(
-                            saksnummer = saksnummer,
+                            saksnummer = sak.saksnummer,
                             aktørId = aktørId,
                             tilordnetRessurs = saksbehandler,
                             clock = mocks.clock,

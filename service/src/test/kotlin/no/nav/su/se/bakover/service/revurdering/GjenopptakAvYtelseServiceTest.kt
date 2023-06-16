@@ -47,7 +47,7 @@ import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
-import no.nav.su.se.bakover.test.sakId
+import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulering.simulerGjenopptak
@@ -55,7 +55,6 @@ import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.simulering.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.simulertRevurdering
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.utbetaling.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
@@ -81,7 +80,7 @@ internal class GjenopptakAvYtelseServiceTest {
     fun `svarer med feil dersom sak ikke har noen vedtak`() {
         ServiceMocks(
             sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn søknadsbehandlingVilkårsvurdertUavklart().first.right()
+                on { hentSak(any<UUID>()) } doReturn nySøknadsbehandlingMedStønadsperiode().first.right()
             },
         ).let {
             it.revurderingService.gjenopptaYtelse(defaultOpprettRequest()) shouldBe KunneIkkeSimulereGjenopptakAvYtelse.FantIngenVedtak.left()
@@ -120,7 +119,7 @@ internal class GjenopptakAvYtelseServiceTest {
             },
             clock = tikkendeKlokke,
         ).let {
-            it.revurderingService.gjenopptaYtelse(defaultOpprettRequest()) shouldBe KunneIkkeSimulereGjenopptakAvYtelse.KunneIkkeSimulere(
+            it.revurderingService.gjenopptaYtelse(defaultOpprettRequest(sakId = sak.id)) shouldBe KunneIkkeSimulereGjenopptakAvYtelse.KunneIkkeSimulere(
                 SimulerGjenopptakFeil.KunneIkkeSimulere(SimulerUtbetalingFeilet.FeilVedSimulering(SimuleringFeilet.TekniskFeil)),
             ).left()
 
@@ -159,7 +158,7 @@ internal class GjenopptakAvYtelseServiceTest {
             clock = tikkendeKlokke,
         )
 
-        val response = serviceAndMocks.revurderingService.gjenopptaYtelse(defaultOpprettRequest()).getOrFail()
+        val response = serviceAndMocks.revurderingService.gjenopptaYtelse(defaultOpprettRequest(sakId = sak.id)).getOrFail()
 
         response.saksbehandler shouldBe saksbehandler
         response.periode shouldBe vedtak.periode
@@ -477,7 +476,9 @@ internal class GjenopptakAvYtelseServiceTest {
         }
     }
 
-    private fun defaultOpprettRequest() = GjenopptaYtelseRequest.Opprett(
+    private fun defaultOpprettRequest(
+        sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    ) = GjenopptaYtelseRequest.Opprett(
         sakId = sakId,
         saksbehandler = saksbehandler,
         revurderingsårsak = Revurderingsårsak.create(

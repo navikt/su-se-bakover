@@ -25,7 +25,9 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.sak.nyKlage
 import no.nav.su.se.bakover.domain.sak.oppdaterKlage
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
@@ -44,16 +46,19 @@ fun opprettetKlage(
     oppgaveId: OppgaveId = OppgaveId("klageOppgaveId"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
-    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, OpprettetKlage> {
     require(sakMedVedtak.vedtakListe.isNotEmpty())
     require(opprettet.toLocalDate(ZoneId.of("UTC")) >= datoKlageMottatt)
+    require(sakId == sakMedVedtak.id) {
+        "Saken id ${sakMedVedtak.id} var ulik sakId $sakId"
+    }
     val klage = OpprettetKlage(
         id = id,
         opprettet = opprettet,
         sakId = sakId,
-        saksnummer = saksnummer,
-        fnr = fnr,
+        saksnummer = sakMedVedtak.saksnummer,
+        fnr = sakMedVedtak.fnr,
         journalpostId = journalpostId,
         oppgaveId = oppgaveId,
         saksbehandler = saksbehandler,
@@ -83,7 +88,7 @@ fun påbegyntVilkårsvurdertKlage(
     klagesDetPåKonkreteElementerIVedtaket: Boolean? = null,
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord? = null,
     begrunnelse: String? = null,
-    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, VilkårsvurdertKlage.Påbegynt> {
     return opprettetKlage(
         id = id,
@@ -128,8 +133,11 @@ fun utfyltVilkårsvurdertKlageTilVurdering(
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
     begrunnelse: String = "begrunnelse",
-    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, VilkårsvurdertKlage.Utfylt.TilVurdering> {
+    require(sakId == sakMedVedtak.id) {
+        "Saken id ${sakMedVedtak.id} var ulik sakId $sakId"
+    }
     return opprettetKlage(
         id = id,
         opprettet = opprettet,
@@ -173,7 +181,7 @@ fun utfyltAvvistVilkårsvurdertKlage(
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
     begrunnelse: String = "begrunnelse",
-    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, VilkårsvurdertKlage.Utfylt.Avvist> {
     return opprettetKlage(
         id = id,
@@ -218,8 +226,11 @@ fun bekreftetVilkårsvurdertKlageTilVurdering(
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
     begrunnelse: String = "begrunnelse",
-    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, VilkårsvurdertKlage.Bekreftet.TilVurdering> {
+    require(sakId == sakMedVedtak.id) {
+        "Saken id ${sakMedVedtak.id} var ulik sakId $sakId"
+    }
     return utfyltVilkårsvurdertKlageTilVurdering(
         id = id,
         opprettet = opprettet,
@@ -261,7 +272,7 @@ fun bekreftetAvvistVilkårsvurdertKlage(
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
     begrunnelse: String = "begrunnelse",
-    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, VilkårsvurdertKlage.Bekreftet.Avvist> {
     return utfyltAvvistVilkårsvurdertKlage(
         id = id,
@@ -306,7 +317,7 @@ fun påbegyntVurdertKlage(
     begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String? = null,
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering? = null,
-    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, VurdertKlage.Påbegynt> {
     require(vedtaksvurdering == null || vedtaksvurdering is VurderingerTilKlage.Vedtaksvurdering.Påbegynt)
     return bekreftetVilkårsvurdertKlageTilVurdering(
@@ -342,6 +353,7 @@ fun utfyltVurdertKlage(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    fnr: Fnr = Fnr.generer(),
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
     oppgaveId: OppgaveId = OppgaveId("klageOppgaveId"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
@@ -355,8 +367,11 @@ fun utfyltVurdertKlage(
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
     ).getOrFail(),
-    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId, fnr = fnr).first,
 ): Pair<Sak, VurdertKlage.Utfylt> {
+    require(sakId == sakMedVedtak.id) {
+        "Saken id ${sakMedVedtak.id} var ulik sakId $sakId"
+    }
     return bekreftetVilkårsvurdertKlageTilVurdering(
         id = id,
         opprettet = opprettet,
@@ -403,8 +418,11 @@ fun bekreftetVurdertKlage(
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
     ).getOrFail(),
-    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, VurdertKlage.Bekreftet> {
+    require(sakId == sakMedVedtak.id) {
+        "Saken id ${sakMedVedtak.id} var ulik sakId $sakId"
+    }
     return utfyltVurdertKlage(
         id = id,
         opprettet = opprettet,
@@ -446,8 +464,11 @@ fun avvistKlage(
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
     begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String = "dette er en fritekst med person opplysninger",
-    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, AvvistKlage> {
+    require(sakId == sakMedVedtak.id) {
+        "Saken id ${sakMedVedtak.id} var ulik sakId $sakId"
+    }
     return bekreftetAvvistVilkårsvurdertKlage(
         id = id,
         opprettet = opprettet,
@@ -510,7 +531,7 @@ fun vurdertKlageTilAttestering(
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
     ).getOrFail(),
-    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, KlageTilAttestering.Vurdert> {
     return bekreftetVurdertKlage(
         id = id,
@@ -556,8 +577,11 @@ fun avvistKlageTilAttestering(
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
     begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String = "dette er en fritekst med person opplysninger",
-    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, KlageTilAttestering.Avvist> {
+    require(sakId == sakMedVedtak.id) {
+        "Saken id ${sakMedVedtak.id} var ulik sakId $sakId"
+    }
     return avvistKlage(
         id = id,
         opprettet = opprettet,
@@ -604,7 +628,7 @@ fun underkjentKlageTilVurdering(
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     attesteringsgrunn: Attestering.Underkjent.Grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
     attesteringskommentar: String = "attesteringskommentar",
-    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, VurdertKlage.Bekreftet> {
     return vurdertKlageTilAttestering(
         id = id,
@@ -651,11 +675,14 @@ fun underkjentAvvistKlage(
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
     begrunnelse: String = "begrunnelse",
-    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     attesteringsgrunn: Attestering.Underkjent.Grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
     attesteringskommentar: String = "attesteringskommentar",
 ): Pair<Sak, AvvistKlage> {
+    require(sakId == sakMedVedtak.id) {
+        "Saken id ${sakMedVedtak.id} var ulik sakId $sakId"
+    }
     return avvistKlageTilAttestering(
         id = id,
         opprettet = opprettet,
@@ -703,7 +730,7 @@ fun underkjentTilVurderingKlageTilAttestering(
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
     ).getOrFail(),
-    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, KlageTilAttestering> {
     return underkjentKlageTilVurdering(
         id = id,
@@ -734,9 +761,10 @@ fun underkjentTilVurderingKlageTilAttestering(
 }
 
 fun oversendtKlage(
-    id: UUID = UUID.randomUUID(),
-    opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
-    sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    clock: Clock = TikkendeKlokke(),
+    klageId: UUID = UUID.randomUUID(),
+    opprettet: Tidspunkt = Tidspunkt.now(clock).plus(31, ChronoUnit.DAYS),
+    sakId: UUID = UUID.randomUUID(),
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
     oppgaveIdTilAttestering: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
@@ -751,10 +779,20 @@ fun oversendtKlage(
         hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
     ).getOrFail(),
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
-    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(
+        sakOgSøknad = nySakUføre(
+            sakInfo = SakInfo(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = Fnr.generer(),
+                type = Sakstype.UFØRE,
+            ),
+            clock = clock,
+        ),
+    ).first,
 ): Pair<Sak, OversendtKlage> {
     return vurdertKlageTilAttestering(
-        id = id,
+        id = klageId,
         opprettet = opprettet,
         sakId = sakId,
         journalpostId = journalpostId,
@@ -798,7 +836,7 @@ fun iverksattAvvistKlage(
     begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String = "dette er en fritekst med person opplysninger",
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
-    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
     clock: Clock = fixedClock,
 ): Pair<Sak, IverksattAvvistKlage> {
     return avvistKlageTilAttestering(

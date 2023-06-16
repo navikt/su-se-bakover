@@ -214,7 +214,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
 
             inOrder(it.revurderingRepo, it.personService, it.oppgaveService) {
                 verify(it.revurderingRepo).hent(simulertRevurdering.id)
-                verify(it.personService).hentAktørId(argThat { it shouldBe fnr })
+                verify(it.personService).hentAktørId(argThat { it shouldBe sak.fnr })
                 verify(it.oppgaveService).opprettOppgave(any())
                 verify(it.oppgaveService).lukkOppgave(any())
             }

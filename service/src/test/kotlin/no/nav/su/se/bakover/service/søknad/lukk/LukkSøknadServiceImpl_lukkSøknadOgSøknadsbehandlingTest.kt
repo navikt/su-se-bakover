@@ -44,6 +44,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.saksbehandler
@@ -54,7 +55,6 @@ import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingTrukket
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.trekkSøknad
 import no.nav.su.se.bakover.test.veileder
 import org.junit.jupiter.api.Test
@@ -90,7 +90,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
 
     @Test
     fun `fant ikke person`() {
-        val (sak, søknadsbehandling) = søknadsbehandlingVilkårsvurdertUavklart()
+        val (sak, søknadsbehandling) = nySøknadsbehandlingMedStønadsperiode()
         val søknad = søknadsbehandling.søknad
         ServiceOgMocks(
             sak = sak,
@@ -262,7 +262,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
 
     @Test
     fun `Feil ved generering av brev ved lukking`() {
-        val (sak, søknadsbehandling) = søknadsbehandlingVilkårsvurdertUavklart()
+        val (sak, søknadsbehandling) = nySøknadsbehandlingMedStønadsperiode()
         val søknad = sak.søknader.first()
 
         ServiceOgMocks(
@@ -307,7 +307,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
     // TODO jah: Slett tilsvarende lukk søknad tester hvis den/de flyttes til regresjonslaget.
     @Test
     fun `lukker avvist søknad uten brev`() {
-        val (sak, søknadsbehandling) = søknadsbehandlingVilkårsvurdertUavklart()
+        val (sak, søknadsbehandling) = nySøknadsbehandlingMedStønadsperiode()
         val søknad = sak.søknader.first() as Søknad.Journalført.MedOppgave.IkkeLukket
         ServiceOgMocks(
             sak = sak,

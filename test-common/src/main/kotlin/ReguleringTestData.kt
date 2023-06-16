@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.sak.nyRegulering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.test.simulering.simulering
 import java.time.Clock
 import java.util.UUID
@@ -91,17 +91,15 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
     regulerFraOgMed: Måned,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(
-        stønadsperiode.periode,
-    ),
+    customGrunnlag: List<Grunnlag> = emptyList(),
+    customVilkår: List<Vilkår> = emptyList(),
     clock: Clock = TikkendeKlokke(),
 ): Pair<Sak, OpprettetRegulering> {
     val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
+        customGrunnlag = customGrunnlag,
+        customVilkår = customVilkår,
         clock = clock,
     )
     val sak = sakOgVedtak.first
@@ -136,17 +134,15 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
 fun innvilgetSøknadsbehandlingMedIverksattRegulering(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(
-        stønadsperiode.periode,
-    ),
+    customGrunnlag: List<Grunnlag> = emptyList(),
+    customVilkår: List<Vilkår> = emptyList(),
     clock: Clock = TikkendeKlokke(),
 ): Pair<Sak, IverksattRegulering> {
     val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
+        customGrunnlag = customGrunnlag,
+        customVilkår = customVilkår,
         clock = clock,
     )
     val sak = sakOgVedtak.first

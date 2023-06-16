@@ -101,7 +101,7 @@ internal class RevurderingSendTilAttesteringTest {
 
             inOrder(mocks.revurderingRepo, mocks.personService, mocks.oppgaveService, mocks.observer) {
                 verify(mocks.revurderingRepo).hent(argThat { it shouldBe simulertRevurdering.id })
-                verify(mocks.personService).hentAktørId(argThat { it shouldBe fnr })
+                verify(mocks.personService).hentAktørId(argThat { it shouldBe sak.fnr })
                 verify(mocks.oppgaveService).opprettOppgave(
                     argThat {
                         it shouldBe OppgaveConfig.AttesterRevurdering(
@@ -239,7 +239,7 @@ internal class RevurderingSendTilAttesteringTest {
                 verify(mocks.revurderingRepo).hent(revurderingId)
                 verify(mocks.sakService).hentSakForRevurdering(revurdering.id)
                 verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any<UUID>())
-                verify(mocks.personService).hentAktørId(argThat { it shouldBe fnr })
+                verify(mocks.personService).hentAktørId(argThat { it shouldBe sak.fnr })
                 verify(mocks.oppgaveService).opprettOppgave(
                     argThat {
                         it shouldBe

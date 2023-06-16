@@ -108,7 +108,7 @@ internal class ReguleringServiceImplTest {
     inner class UtledRegulertypeTest {
         private val reguleringService = lagReguleringServiceImpl(
             vedtakSøknadsbehandlingIverksattInnvilget(
-                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(
+                customGrunnlag = grunnlagsdataEnsligUtenFradrag(
                     fradragsgrunnlag = listOf(
                         Grunnlag.Fradragsgrunnlag.create(
                             opprettet = fixedTidspunkt,
@@ -121,7 +121,7 @@ internal class ReguleringServiceImplTest {
                             ),
                         ),
                     ),
-                ),
+                ).let { listOf(it.bosituasjon, it.fradragsgrunnlag) }.flatten(),
             ).first,
         )
 
@@ -285,7 +285,7 @@ internal class ReguleringServiceImplTest {
         fun `manuell behandling happy case`() {
             val (sak, regulering) = innvilgetSøknadsbehandlingMedÅpenRegulering(
                 regulerFraOgMed = mai(2021),
-                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(
+                customGrunnlag = grunnlagsdataEnsligUtenFradrag(
                     periode = stønadsperiode2021.periode,
                     fradragsgrunnlag = listOf(
                         offentligPensjonGrunnlag(8000.0, år(2021)),
@@ -295,7 +295,7 @@ internal class ReguleringServiceImplTest {
                             periode = stønadsperiode2021.periode,
                         ),
                     ),
-                ),
+                ).let { listOf(it.bosituasjon, it.fradragsgrunnlag) }.flatten(),
             )
 
             val reguleringService = lagReguleringServiceImpl(sak)
@@ -402,7 +402,7 @@ internal class ReguleringServiceImplTest {
             val sakOgVedtak = innvilgetSøknadsbehandlingMedÅpenRegulering(
                 regulerFraOgMed = august(2021),
                 /* Manuell regulering */
-                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(
+                customGrunnlag = grunnlagsdataEnsligUtenFradrag(
                     fradragsgrunnlag = listOf(
                         Grunnlag.Fradragsgrunnlag.create(
                             opprettet = fixedTidspunkt,
@@ -415,7 +415,7 @@ internal class ReguleringServiceImplTest {
                             ),
                         ),
                     ),
-                ),
+                ).let { listOf(it.bosituasjon, it.fradragsgrunnlag) }.flatten(),
             )
             val (sak, regulering) = sakOgVedtak
 
@@ -447,7 +447,7 @@ internal class ReguleringServiceImplTest {
             val sakOgVedtak = innvilgetSøknadsbehandlingMedÅpenRegulering(
                 regulerFraOgMed = januar(2021),
                 /* Manuell regulering */
-                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(
+                customGrunnlag = grunnlagsdataEnsligUtenFradrag(
                     fradragsgrunnlag = listOf(
                         Grunnlag.Fradragsgrunnlag.create(
                             opprettet = fixedTidspunkt,
@@ -460,7 +460,7 @@ internal class ReguleringServiceImplTest {
                             ),
                         ),
                     ),
-                ),
+                ).let { listOf(it.bosituasjon, it.fradragsgrunnlag) }.flatten(),
             )
             val (sak, regulering) = sakOgVedtak
 

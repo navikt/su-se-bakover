@@ -283,7 +283,7 @@ internal class UnderkjennKlageTest {
         )
         mocks.service.underkjenn(request).getOrElse { throw RuntimeException(it.toString()) }.also {
             expectedKlage = VurdertKlage.Bekreftet(
-                forrigeSteg = utfyltVurdertKlage(id = klage.id, vedtakId = klage.vilkårsvurderinger.vedtakId).second,
+                forrigeSteg = utfyltVurdertKlage(fnr = klage.fnr, id = klage.id, vedtakId = klage.vilkårsvurderinger.vedtakId).second,
                 oppgaveId = OppgaveId("nyOppgaveId"),
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
                 attesteringer = Attesteringshistorikk.create(

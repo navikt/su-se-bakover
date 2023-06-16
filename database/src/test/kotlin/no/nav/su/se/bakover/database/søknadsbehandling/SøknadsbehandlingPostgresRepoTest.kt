@@ -80,7 +80,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.søknadsbehandlingRepo
-            val vilkårsvurdert = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
+            val vilkårsvurdert = testDataHelper.persisternySøknadsbehandlingMedStønadsperiode().second
             repo.hent(vilkårsvurdert.id).also {
                 it shouldBe vilkårsvurdert
                 it.shouldBeTypeOf<VilkårsvurdertSøknadsbehandling.Uavklart>()
@@ -142,7 +142,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.søknadsbehandlingRepo
 
-            val (sak, vilkårsvurdert) = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart { (sak, søknad) ->
+            val (sak, vilkårsvurdert) = testDataHelper.persisternySøknadsbehandlingMedStønadsperiode { (sak, søknad) ->
                 nySøknadsbehandlingMedStønadsperiode(
                     sakOgSøknad = sak to søknad,
                     stønadsperiode = Stønadsperiode.create(periode = januar(2021)),
@@ -415,7 +415,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val søknadsbehandlingRepo = testDataHelper.søknadsbehandlingRepo
-            testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second.let {
+            testDataHelper.persisternySøknadsbehandlingMedStønadsperiode().second.let {
                 søknadsbehandlingRepo.hentForSøknad(it.søknad.id) shouldBe it
             }
         }
@@ -597,7 +597,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.søknadsbehandlingRepo
-            val medEps = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklartMedSkatt(
+            val medEps = testDataHelper.persisternySøknadsbehandlingMedStønadsperiodeMedSkatt(
                 EksterneGrunnlagSkatt.Hentet(nySkattegrunnlag(), nySkattegrunnlag()),
             )
             val skattRepo = SkattPostgresRepo

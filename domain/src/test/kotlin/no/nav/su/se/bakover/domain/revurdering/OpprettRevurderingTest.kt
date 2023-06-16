@@ -38,7 +38,6 @@ import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.stønadsperiode2022
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
-import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
@@ -123,7 +122,7 @@ internal class OpprettRevurderingTest {
             stønadsperiode = stønadsperiode2022,
             sakOgSøknad = sak to nySøknadJournalførtMedOppgave(
                 sakId = sak.id,
-                søknadInnhold = søknadinnholdUføre(),
+                fnr = sak.fnr,
             ),
             clock = clock,
         ).let { it.first to it.third }

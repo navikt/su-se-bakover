@@ -83,7 +83,7 @@ internal class AvkortingsvarselPostgresRepoTest {
                 ) shouldBe avkortingsvarsel
             }
 
-            val nySøknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
+            val nySøknadsbehandling = testDataHelper.persisternySøknadsbehandlingMedStønadsperiode().second
 
             val avkortet: Avkortingsvarsel.Utenlandsopphold.Avkortet = avkortingsvarsel.avkortet(nySøknadsbehandling.id)
 
@@ -107,7 +107,7 @@ internal class AvkortingsvarselPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val avkortingsvarselRepo = testDataHelper.avkortingsvarselRepo as AvkortingsvarselPostgresRepo
             val (sak, revurdering) = testDataHelper.persisterRevurderingOpprettet()
-            val nySøknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart(
+            val nySøknadsbehandling = testDataHelper.persisternySøknadsbehandlingMedStønadsperiode(
                 sakId = sak.id,
                 stønadsperiode = stønadsperiode2022,
             ).second
@@ -166,7 +166,7 @@ internal class AvkortingsvarselPostgresRepoTest {
             val revurdering2 = testDataHelper.persisterRevurderingOpprettet(sakOgVedtak = (sak to vedtak)).second
             val revurdering3 = testDataHelper.persisterRevurderingOpprettet(sakOgVedtak = (sak to vedtak)).second
 
-            val (_, nySøknadsbehandling) = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart { (sak, søknad) ->
+            val (_, nySøknadsbehandling) = testDataHelper.persisternySøknadsbehandlingMedStønadsperiode { (sak, søknad) ->
                 nySøknadsbehandlingMedStønadsperiode(
                     sakOgSøknad = sak to søknad,
                     stønadsperiode = stønadsperiode2022,
