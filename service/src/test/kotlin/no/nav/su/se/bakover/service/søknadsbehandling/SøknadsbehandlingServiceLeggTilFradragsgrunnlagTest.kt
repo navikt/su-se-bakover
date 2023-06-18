@@ -15,10 +15,10 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandlin
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.mockito.kotlin.any
@@ -140,7 +140,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
 
     @Test
     fun `lagreFradrag har en status som gjør at man ikke kan legge til fradrag`() {
-        val uavklart: VilkårsvurdertSøknadsbehandling.Uavklart = søknadsbehandlingVilkårsvurdertUavklart().second
+        val uavklart: VilkårsvurdertSøknadsbehandling.Uavklart = nySøknadsbehandlingMedStønadsperiode().second
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn uavklart

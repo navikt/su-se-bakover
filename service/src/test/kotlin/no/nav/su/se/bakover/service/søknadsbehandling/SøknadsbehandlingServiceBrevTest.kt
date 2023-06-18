@@ -13,9 +13,9 @@ import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
@@ -26,7 +26,7 @@ import org.mockito.kotlin.verify
 
 internal class SøknadsbehandlingServiceBrevTest {
     private val tilAttesteringInnvilget = søknadsbehandlingTilAttesteringInnvilget().second
-    private val uavklart = søknadsbehandlingVilkårsvurdertUavklart().second
+    private val uavklart = nySøknadsbehandlingMedStønadsperiode().second
 
     @Test
     fun `svarer med feil hvis vi ikke finner person`() {

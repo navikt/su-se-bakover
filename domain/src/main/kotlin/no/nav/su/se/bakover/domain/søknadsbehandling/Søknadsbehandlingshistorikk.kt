@@ -33,34 +33,72 @@ data class Søknadsbehandlingshistorikk private constructor(
 }
 
 sealed interface SøknadsbehandlingsHandling : SaksbehandlingsHandling {
-    object StartetBehandling : SøknadsbehandlingsHandling
-    object OppdatertStønadsperiode : SøknadsbehandlingsHandling
-    object OppdatertUførhet : SøknadsbehandlingsHandling
-    object OppdatertOpplysningsplikt : SøknadsbehandlingsHandling
-    object OppdatertFlyktning : SøknadsbehandlingsHandling
-    object OppdatertLovligOpphold : SøknadsbehandlingsHandling
-    object OppdatertInstitusjonsopphold : SøknadsbehandlingsHandling
-    object OppdatertUtenlandsopphold : SøknadsbehandlingsHandling
-    object OppdatertPersonligOppmøte : SøknadsbehandlingsHandling
-    object OppdatertFastOppholdINorge : SøknadsbehandlingsHandling
-    object OppdatertBosituasjon : SøknadsbehandlingsHandling
-    object OppdatertFormue : SøknadsbehandlingsHandling
+    object StartetBehandling : SøknadsbehandlingsHandling {
+        override fun toString(): String = this.javaClass.simpleName
+    }
+    object OppdatertStønadsperiode : SøknadsbehandlingsHandling {
+        override fun toString(): String = this.javaClass.simpleName
+    }
+    object OppdatertUførhet : SøknadsbehandlingsHandling {
+        override fun toString(): String = this.javaClass.simpleName
+    }
+    object OppdatertOpplysningsplikt : SøknadsbehandlingsHandling {
+        override fun toString(): String = this.javaClass.simpleName
+    }
+    object OppdatertFlyktning : SøknadsbehandlingsHandling {
+        override fun toString(): String = this.javaClass.simpleName
+    }
+    object OppdatertLovligOpphold : SøknadsbehandlingsHandling {
+        override fun toString(): String = this.javaClass.simpleName
+    }
+    object OppdatertInstitusjonsopphold : SøknadsbehandlingsHandling {
+        override fun toString(): String = this.javaClass.simpleName
+    }
+    object OppdatertUtenlandsopphold : SøknadsbehandlingsHandling {
+        override fun toString(): String = this.javaClass.simpleName
+    }
+    object OppdatertPersonligOppmøte : SøknadsbehandlingsHandling {
+        override fun toString(): String = this.javaClass.simpleName
+    }
+    object OppdatertFastOppholdINorge : SøknadsbehandlingsHandling {
+        override fun toString(): String = this.javaClass.simpleName
+    }
+    object OppdatertBosituasjon : SøknadsbehandlingsHandling {
+        override fun toString(): String = this.javaClass.simpleName
+    }
+    object OppdatertFormue : SøknadsbehandlingsHandling {
+        override fun toString(): String = this.javaClass.simpleName
+    }
 
     /**
      * Bruker får ja/nei spørsmål ved Formue-steget i frontend
      *
      * Historisk (eller man har benyttet seg av leggTilBosituasjonEpsgrunnlag())
      */
-    object TattStillingTilEPS : SøknadsbehandlingsHandling
+    object TattStillingTilEPS : SøknadsbehandlingsHandling {
+        override fun toString(): String = this.javaClass.simpleName
+    }
 
     /**
      * Historisk (eller man har benyttet seg av fullførBosituasjongrunnlag())
      */
-    object FullførtBosituasjon : SøknadsbehandlingsHandling
+    object FullførtBosituasjon : SøknadsbehandlingsHandling {
+        override fun toString(): String = this.javaClass.simpleName
+    }
 
-    object OppdatertFradragsgrunnlag : SøknadsbehandlingsHandling
-    object Beregnet : SøknadsbehandlingsHandling
-    object Simulert : SøknadsbehandlingsHandling
-    object SendtTilAttestering : SøknadsbehandlingsHandling
-    object Lukket : SøknadsbehandlingsHandling
+    object OppdatertFradragsgrunnlag : SøknadsbehandlingsHandling {
+        override fun toString(): String = this.javaClass.simpleName
+    }
+    object Beregnet : SøknadsbehandlingsHandling {
+        override fun toString(): String = this.javaClass.simpleName
+    }
+    object Simulert : SøknadsbehandlingsHandling {
+        override fun toString(): String = this.javaClass.simpleName
+    }
+    object SendtTilAttestering : SøknadsbehandlingsHandling {
+        override fun toString(): String = this.javaClass.simpleName
+    }
+    object Lukket : SøknadsbehandlingsHandling {
+        override fun toString(): String = this.javaClass.simpleName
+    }
 }

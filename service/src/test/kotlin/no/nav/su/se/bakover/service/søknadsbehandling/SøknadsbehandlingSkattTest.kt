@@ -9,9 +9,9 @@ import no.nav.su.se.bakover.domain.grunnlag.StøtterHentingAvEksternGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.test.argThat
+import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.skatt.nySkattegrunnlag
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.tilAttesteringSøknadsbehandling
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -28,7 +28,7 @@ class SøknadsbehandlingSkattTest {
 
     @Test
     fun `henter ny`() {
-        val søknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().second
+        val søknadsbehandling = nySøknadsbehandlingMedStønadsperiode().second
         val skatteId = UUID.randomUUID()
         val skatteServiceMock = mock<SkatteService> {
             on { this.hentSamletSkattegrunnlagForÅr(any(), any(), any()) } doReturn nySkattegrunnlag(skatteId)

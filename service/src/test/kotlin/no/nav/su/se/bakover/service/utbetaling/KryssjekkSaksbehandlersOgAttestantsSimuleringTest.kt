@@ -78,6 +78,7 @@ class KryssjekkSaksbehandlersOgAttestantsSimuleringTest {
             clock = clock,
         ).copy(
             simulering = simuleringFeilutbetaling(
+                gjelderId = sak.fnr,
                 perioder = revurdering.periode.måneder().toTypedArray(),
             ),
         )

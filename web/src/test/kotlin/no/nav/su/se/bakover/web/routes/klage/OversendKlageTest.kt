@@ -208,7 +208,7 @@ internal class OversendKlageTest {
                 {
                   "id":"${oversendtKlage.id}",
                   "sakid":"${oversendtKlage.sakId}",
-                  "opprettet":"2021-02-01T01:02:03.456789Z",
+                  "opprettet":"2021-02-01T01:02:04.456789Z",
                   "journalpostId":"klageJournalpostId",
                   "saksbehandler":"saksbehandler",
                   "datoKlageMottatt":"2021-01-15",
@@ -233,7 +233,7 @@ internal class OversendKlageTest {
                     {
                       "attestant":"attestant",
                       "underkjennelse":null,
-                      "opprettet":"2021-02-01T01:02:03.456789Z"
+                      "opprettet":"2021-02-01T01:02:04.456789Z"
                     }
                   ],
                   "klagevedtakshistorikk": [],

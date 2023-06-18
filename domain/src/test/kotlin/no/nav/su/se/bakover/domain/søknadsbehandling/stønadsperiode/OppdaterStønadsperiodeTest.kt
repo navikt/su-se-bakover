@@ -35,18 +35,20 @@ import no.nav.su.se.bakover.common.tid.periode.september
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.sak.nySøknadsbehandling
+import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.StøtterIkkeOverlappendeStønadsperioder
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
+import no.nav.su.se.bakover.test.nySøknadsbehandlingUtenStønadsperiode
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
@@ -88,8 +90,12 @@ internal class OppdaterStønadsperiodeTest {
             clock = clock,
         )
 
-        val opprettetSøknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart(
+        val opprettetSøknadsbehandling = nySøknadsbehandlingUtenStønadsperiode(
             clock = clock,
+            sakOgSøknad = sak to nySøknadJournalførtMedOppgave(
+                sakId = sak.id,
+                fnr = sak.fnr,
+            ),
         ).second
 
         sak.nySøknadsbehandling(opprettetSøknadsbehandling).let {
@@ -112,33 +118,41 @@ internal class OppdaterStønadsperiodeTest {
     @Test
     fun `stønadsperioder skal ikke kunne legges forut for eksisterende stønadsperioder`() {
         val clock = TikkendeKlokke()
-        val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val (_, andreStønadsperiode) = vedtakSøknadsbehandlingIverksattInnvilget(
-            stønadsperiode = Stønadsperiode.create(periode = år(2023)),
+        val (sakEtterFørstePeriode, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(periode = år(2021)),
             clock = clock,
         )
-        val mellomToAndrePerioder = søknadsbehandlingVilkårsvurdertUavklart(
+        val (sakEtterAndrePeriode, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(periode = år(2023)),
             clock = clock,
-        ).second
+            sakOgSøknad = sakEtterFørstePeriode to nySøknadJournalførtMedOppgave(
+                sakId = sakEtterFørstePeriode.id,
+                fnr = sakEtterFørstePeriode.fnr,
+            ),
+        )
+        val (sakEtterTredjePeriode, mellomToAndrePerioder) = nySøknadsbehandlingUtenStønadsperiode(
+            clock = clock,
+            sakOgSøknad = sakEtterAndrePeriode to nySøknadJournalførtMedOppgave(
+                sakId = sakEtterAndrePeriode.id,
+                fnr = sakEtterAndrePeriode.fnr,
+            ),
+        )
 
-        sak.nySøknadsbehandling(mellomToAndrePerioder)
-            .copy(
-                vedtakListe = sak.vedtakListe + andreStønadsperiode,
-            ).let {
-                val nyPeriode = Stønadsperiode.create(periode = år(2022))
+        sakEtterTredjePeriode.oppdaterSøknadsbehandling(mellomToAndrePerioder).let {
+            val nyPeriode = Stønadsperiode.create(periode = år(2022))
 
-                it.oppdaterStønadsperiodeForSøknadsbehandling(
-                    søknadsbehandlingId = mellomToAndrePerioder.id,
-                    stønadsperiode = nyPeriode,
-                    clock = fixedClock,
-                    formuegrenserFactory = formuegrenserFactoryTestPåDato(),
-                    saksbehandler = saksbehandler,
-                    hentPerson = { person().right() },
-                    saksbehandlersAvgjørelse = null,
-                ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode(
-                    StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeForSenerePeriodeEksisterer,
-                ).left()
-            }
+            it.oppdaterStønadsperiodeForSøknadsbehandling(
+                søknadsbehandlingId = mellomToAndrePerioder.id,
+                stønadsperiode = nyPeriode,
+                clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                saksbehandler = saksbehandler,
+                hentPerson = { person().right() },
+                saksbehandlersAvgjørelse = null,
+            ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode(
+                StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeForSenerePeriodeEksisterer,
+            ).left()
+        }
     }
 
     @Test
@@ -163,9 +177,13 @@ internal class OppdaterStønadsperiodeTest {
 
         val nyPeriode = år(2022)
         val nyStønadsperiode = Stønadsperiode.create(nyPeriode)
-        val (_, nySøknadsbehandling) = søknadsbehandlingVilkårsvurdertUavklart(
+        val (_, nySøknadsbehandling) = nySøknadsbehandlingMedStønadsperiode(
             clock = tikkendeKlokke,
             stønadsperiode = nyStønadsperiode,
+            sakOgSøknad = sakMedRevurderingOgSøknadVedtak to nySøknadJournalførtMedOppgave(
+                sakId = sakMedRevurderingOgSøknadVedtak.id,
+                fnr = sakMedRevurderingOgSøknadVedtak.fnr,
+            ),
         )
 
         val nySøknadsbehandlingMedOpplysningsplikt = nySøknadsbehandling.leggTilOpplysningspliktVilkår(

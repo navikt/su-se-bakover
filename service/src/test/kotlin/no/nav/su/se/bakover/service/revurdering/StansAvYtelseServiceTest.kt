@@ -383,7 +383,7 @@ internal class StansAvYtelseServiceTest {
         ).let { serviceAndMocks ->
             val response = serviceAndMocks.stansYtelseService.stansAvYtelse(
                 StansYtelseRequest.Oppdater(
-                    sakId = sakId,
+                    sakId = sak.id,
                     saksbehandler = NavIdentBruker.Saksbehandler("kjeks"),
                     fraOgMed = mars(2021).fraOgMed,
                     revurderingsårsak = Revurderingsårsak.create(

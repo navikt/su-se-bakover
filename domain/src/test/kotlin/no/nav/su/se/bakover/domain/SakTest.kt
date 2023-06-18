@@ -44,12 +44,12 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.vedtakIverksattGjenopptakAvYtelseFraIverksattStans
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
@@ -67,7 +67,7 @@ internal class SakTest {
 
     @Test
     fun `henter åpne søknadsbehandlinger`() {
-        val sakMedÅpenBehandling = søknadsbehandlingVilkårsvurdertUavklart().first
+        val sakMedÅpenBehandling = nySøknadsbehandlingMedStønadsperiode().first
         sakMedÅpenBehandling.hentÅpneSøknadsbehandlinger().shouldNotBeEmpty()
         sakMedÅpenBehandling.harÅpenSøknadsbehandling() shouldBe true
 
@@ -187,6 +187,10 @@ internal class SakTest {
             val (_, stønadsperiode2) = vedtakSøknadsbehandlingIverksattInnvilget(
                 stønadsperiode = Stønadsperiode.create(periode = år(2023)),
                 clock = clock,
+                sakOgSøknad = sak to nySøknadJournalførtMedOppgave(
+                    sakId = sak.id,
+                    fnr = sak.fnr,
+                ),
             )
 
             sak.nySøknadsbehandling(stønadsperiode2.behandling)
@@ -225,7 +229,7 @@ internal class SakTest {
                 clock = clock,
                 sakOgSøknad = sakRevurdering1 to nySøknadJournalførtMedOppgave(
                     sakId = sakStønadsperiode1.id,
-                    søknadInnhold = søknadinnholdUføre(),
+                    fnr = sakStønadsperiode1.fnr,
                 ),
             )
 
@@ -312,8 +316,9 @@ internal class SakTest {
                 stønadsperiode = stønadsperiode2022,
                 clock = clock,
                 sakOgSøknad = sakStønadsperiode1 to nySøknadJournalførtMedOppgave(
+                    clock = clock,
                     sakId = sakStønadsperiode1.id,
-                    søknadInnhold = søknadinnholdUføre(),
+                    fnr = sakStønadsperiode1.fnr,
                 ),
             )
 

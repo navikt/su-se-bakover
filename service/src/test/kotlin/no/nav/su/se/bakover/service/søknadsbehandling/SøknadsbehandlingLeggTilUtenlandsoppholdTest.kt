@@ -14,11 +14,11 @@ import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilUtenlandsopph
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
+import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
@@ -57,7 +57,7 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
     fun `kaster exception hvis vilkår har overlappende perioder`() {
         assertThrows<IllegalStateException> {
             SøknadsbehandlingServiceAndMocks(
-                søknadsbehandlingRepo = mock { on { hent(any()) } doReturn søknadsbehandlingVilkårsvurdertUavklart().second },
+                søknadsbehandlingRepo = mock { on { hent(any()) } doReturn nySøknadsbehandlingMedStønadsperiode().second },
             ).let {
                 it.søknadsbehandlingService.leggTilUtenlandsopphold(
                     // I praksis ikke mulig at dette tryner per nå

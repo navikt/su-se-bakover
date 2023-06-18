@@ -7,8 +7,8 @@ import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.opprettetRevurdering
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import org.junit.jupiter.api.Test
 
 internal class OpprettEllerOppdaterReguleringKtTest {
@@ -28,7 +28,7 @@ internal class OpprettEllerOppdaterReguleringKtTest {
 
     @Test
     fun `kan ikke regulere sak uten vedtak`() {
-        val sakMedÅpenSøknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().first
+        val sakMedÅpenSøknadsbehandling = nySøknadsbehandlingMedStønadsperiode().first
         sakMedÅpenSøknadsbehandling.opprettEllerOppdaterRegulering(mai(2020), fixedClock).shouldBe(
             Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left(),
         )

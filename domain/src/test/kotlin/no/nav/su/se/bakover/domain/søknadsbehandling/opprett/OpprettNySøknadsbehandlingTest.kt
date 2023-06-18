@@ -10,10 +10,10 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.innvilgetSøknadsbehandlingMedÅpenRegulering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.nySakUføre
+import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknad.nySøknadPåEksisterendeSak
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import org.junit.jupiter.api.Test
 
 internal class OpprettNySøknadsbehandlingTest {
@@ -37,7 +37,7 @@ internal class OpprettNySøknadsbehandlingTest {
     @Test
     fun `Kan ikke opprette søknadsbehandling dersom det finnes en åpen søknadsbehandling`() {
         val (sak, søknad) = nySøknadPåEksisterendeSak(
-            eksisterendeSak = søknadsbehandlingVilkårsvurdertUavklart().first,
+            eksisterendeSak = nySøknadsbehandlingMedStønadsperiode().first,
         )
         sak.opprettNySøknadsbehandling(
             søknad.id,

@@ -13,8 +13,8 @@ import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.UførevilkårStatus
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -26,7 +26,7 @@ internal class SøknadsbehandlingLeggTilUførevilkårTest {
     fun `happy path`() {
         SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = mock {
-                on { hent(any()) } doReturn søknadsbehandlingVilkårsvurdertUavklart().second
+                on { hent(any()) } doReturn nySøknadsbehandlingMedStønadsperiode().second
             },
         ).let { serviceAndMocks ->
             serviceAndMocks.søknadsbehandlingService.leggTilUførevilkår(

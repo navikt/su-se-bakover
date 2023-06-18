@@ -24,7 +24,7 @@ internal class FamiliegjenforeningVilkårsvurderingPostgresRepoTest {
             val familiegjenforeningVilkårsvurderingPostgresRepo = FamiliegjenforeningVilkårsvurderingPostgresRepo(
                 dbMetrics = dbMetricsStub,
             )
-            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
+            val søknadsbehandling = testDataHelper.persisternySøknadsbehandlingMedStønadsperiode().second
             val familiegjenforeningVilkår = familiegjenforeningVilkårInnvilget()
 
             dataSource.withTransaction { session ->

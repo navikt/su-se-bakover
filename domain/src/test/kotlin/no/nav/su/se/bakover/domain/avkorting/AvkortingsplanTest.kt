@@ -26,21 +26,20 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.test.beregnetSøknadsbehandling
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.shouldBeEqualToExceptId
-import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetInnvilget
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 internal class AvkortingsplanTest {
     @Test
     fun `avkorter ingenting dersom det ikke finnes noe å avkorte`() {
-        val (_, søknadsbehandling) = søknadsbehandlingBeregnetInnvilget()
+        val (_, søknadsbehandling) = beregnetSøknadsbehandling()
         Avkortingsplan(
             feilutbetaltBeløp = Månedsbeløp(emptyList()).sum(),
             beregningUtenAvkorting = søknadsbehandling.beregning,
@@ -50,7 +49,7 @@ internal class AvkortingsplanTest {
 
     @Test
     fun `avkorter så mye som mulig, så fort som mulig`() {
-        val (_, søknadsbehandling) = søknadsbehandlingBeregnetInnvilget()
+        val (_, søknadsbehandling) = beregnetSøknadsbehandling()
         Avkortingsplan(
             feilutbetaltBeløp = Månedsbeløp(
                 listOf(
@@ -92,33 +91,31 @@ internal class AvkortingsplanTest {
 
     @Test
     fun `avkorting går ikke på bekostning av vanlige fradrag`() {
-        val (_, søknadsbehandling) = søknadsbehandlingBeregnetInnvilget(
-            grunnlagsdata = Grunnlagsdata.create(
-                fradragsgrunnlag = listOf(
-                    Grunnlag.Fradragsgrunnlag.create(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        fradrag = FradragFactory.nyFradragsperiode(
-                            fradragstype = Fradragstype.Sosialstønad,
-                            månedsbeløp = satsFactoryTestPåDato().høyUføre(januar(2021)).satsForMånedAsDouble,
-                            periode = Periode.create(1.januar(2021), 30.april(2021)),
-                            utenlandskInntekt = null,
-                            tilhører = FradragTilhører.BRUKER,
-                        ),
-                    ),
-                    Grunnlag.Fradragsgrunnlag.create(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        fradrag = FradragFactory.nyFradragsperiode(
-                            fradragstype = Fradragstype.Sosialstønad,
-                            månedsbeløp = satsFactoryTestPåDato().høyUføre(mai(2021)).satsForMånedAsDouble,
-                            periode = Periode.create(1.mai(2021), 30.september(2021)),
-                            utenlandskInntekt = null,
-                            tilhører = FradragTilhører.BRUKER,
-                        ),
+        val (_, søknadsbehandling) = beregnetSøknadsbehandling(
+            customGrunnlag = listOf(
+                Grunnlag.Fradragsgrunnlag.create(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    fradrag = FradragFactory.nyFradragsperiode(
+                        fradragstype = Fradragstype.Sosialstønad,
+                        månedsbeløp = satsFactoryTestPåDato().høyUføre(januar(2021)).satsForMånedAsDouble,
+                        periode = Periode.create(1.januar(2021), 30.april(2021)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
                     ),
                 ),
-                bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = år(2021))),
+                Grunnlag.Fradragsgrunnlag.create(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    fradrag = FradragFactory.nyFradragsperiode(
+                        fradragstype = Fradragstype.Sosialstønad,
+                        månedsbeløp = satsFactoryTestPåDato().høyUføre(mai(2021)).satsForMånedAsDouble,
+                        periode = Periode.create(1.mai(2021), 30.september(2021)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+                bosituasjongrunnlagEnslig(periode = år(2021)),
             ),
         )
 
@@ -156,33 +153,31 @@ internal class AvkortingsplanTest {
 
     @Test
     fun `svarer med feil dersom beløp til avkorting ikke lar seg akorte fullstendig for aktuell beregning`() {
-        val (_, søknadsbehandling) = søknadsbehandlingBeregnetInnvilget(
-            grunnlagsdata = Grunnlagsdata.create(
-                fradragsgrunnlag = listOf(
-                    Grunnlag.Fradragsgrunnlag.create(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        fradrag = FradragFactory.nyFradragsperiode(
-                            fradragstype = Fradragstype.Sosialstønad,
-                            månedsbeløp = satsFactoryTestPåDato().høyUføre(januar(2021)).satsForMånedAsDouble,
-                            periode = Periode.create(1.januar(2021), 30.april(2021)),
-                            utenlandskInntekt = null,
-                            tilhører = FradragTilhører.BRUKER,
-                        ),
-                    ),
-                    Grunnlag.Fradragsgrunnlag.create(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        fradrag = FradragFactory.nyFradragsperiode(
-                            fradragstype = Fradragstype.Sosialstønad,
-                            månedsbeløp = satsFactoryTestPåDato().høyUføre(mai(2021)).satsForMånedAsDouble,
-                            periode = Periode.create(1.mai(2021), 31.desember(2021)),
-                            utenlandskInntekt = null,
-                            tilhører = FradragTilhører.BRUKER,
-                        ),
+        val (_, søknadsbehandling) = beregnetSøknadsbehandling(
+            customGrunnlag = listOf(
+                Grunnlag.Fradragsgrunnlag.create(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    fradrag = FradragFactory.nyFradragsperiode(
+                        fradragstype = Fradragstype.Sosialstønad,
+                        månedsbeløp = satsFactoryTestPåDato().høyUføre(januar(2021)).satsForMånedAsDouble,
+                        periode = Periode.create(1.januar(2021), 30.april(2021)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
                     ),
                 ),
-                bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = år(2021))),
+                Grunnlag.Fradragsgrunnlag.create(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    fradrag = FradragFactory.nyFradragsperiode(
+                        fradragstype = Fradragstype.Sosialstønad,
+                        månedsbeløp = satsFactoryTestPåDato().høyUføre(mai(2021)).satsForMånedAsDouble,
+                        periode = Periode.create(1.mai(2021), 31.desember(2021)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+                bosituasjongrunnlagEnslig(periode = år(2021)),
             ),
         )
 
@@ -207,22 +202,20 @@ internal class AvkortingsplanTest {
 
     @Test
     fun `forskyver avkorting til påfølgende måned dersom beløp ikke lar seg avkorte`() {
-        val (_, søknadsbehandling) = søknadsbehandlingBeregnetInnvilget(
-            grunnlagsdata = Grunnlagsdata.create(
-                fradragsgrunnlag = listOf(
-                    Grunnlag.Fradragsgrunnlag.create(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        fradrag = FradragFactory.nyFradragsperiode(
-                            fradragstype = Fradragstype.Kapitalinntekt,
-                            månedsbeløp = 10000.0,
-                            periode = år(2021),
-                            utenlandskInntekt = null,
-                            tilhører = FradragTilhører.BRUKER,
-                        ),
+        val (_, søknadsbehandling) = beregnetSøknadsbehandling(
+            customGrunnlag = listOf(
+                Grunnlag.Fradragsgrunnlag.create(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    fradrag = FradragFactory.nyFradragsperiode(
+                        fradragstype = Fradragstype.Kapitalinntekt,
+                        månedsbeløp = 10000.0,
+                        periode = år(2021),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
                     ),
                 ),
-                bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = år(2021))),
+                bosituasjongrunnlagEnslig(periode = år(2021)),
             ),
         )
 

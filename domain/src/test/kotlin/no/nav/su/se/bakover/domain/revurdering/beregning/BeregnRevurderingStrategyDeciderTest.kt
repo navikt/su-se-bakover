@@ -99,7 +99,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 sakOgSøknad = sak to nySøknadJournalførtMedOppgave(
                     clock = clock,
                     sakId = sak.id,
-                    søknadInnhold = søknadinnholdUføre(),
+                    fnr = sak.fnr,
                 ),
             )
 

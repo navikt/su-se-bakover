@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
@@ -18,7 +19,6 @@ import no.nav.su.se.bakover.test.søknadsbehandlingTrukket
 import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattAvslagMedBeregning
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
@@ -37,7 +37,7 @@ internal class StatistikkSøknadsbehandlingTest {
 
     @Test
     fun `publiserer opprettet søknadsbehandling`() {
-        val søknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().second
+        val søknadsbehandling = nySøknadsbehandlingMedStønadsperiode().second
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Søknad.Opprettet(
                 søknadsbehandling = søknadsbehandling,

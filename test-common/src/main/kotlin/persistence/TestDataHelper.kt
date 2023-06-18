@@ -835,7 +835,7 @@ class TestDataHelper(
         søknadId: UUID = UUID.randomUUID(),
         stønadsperiode: Stønadsperiode = stønadsperiode2021,
     ): Pair<Sak, LukketSøknadsbehandling> {
-        return persisterSøknadsbehandlingVilkårsvurdertUavklart(
+        return persisternySøknadsbehandlingMedStønadsperiode(
             id = id,
             sakId = sakId,
             søknadId = søknadId,
@@ -902,7 +902,7 @@ class TestDataHelper(
         }
     }
 
-    fun persisterSøknadsbehandlingVilkårsvurdertUavklart(
+    fun persisternySøknadsbehandlingMedStønadsperiode(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart> = { (sak, søknad) ->
             nySøknadsbehandlingMedStønadsperiode(
@@ -992,7 +992,7 @@ class TestDataHelper(
         }
     }
 
-    fun persisterSøknadsbehandlingSimulert(
+    fun persistersimulertSøknadsbehandling(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, SimulertSøknadsbehandling> = { (sak, søknad) ->
             simulertSøknadsbehandling(
@@ -1238,7 +1238,7 @@ class TestDataHelper(
      * 1) persisterer en [NySøknadsbehandling]
      * 2) legger stønadsperiode og persisterer
      */
-    fun persisterSøknadsbehandlingVilkårsvurdertUavklart(
+    fun persisternySøknadsbehandlingMedStønadsperiode(
         id: UUID = UUID.randomUUID(),
         sakId: UUID = UUID.randomUUID(),
         søknadId: UUID = UUID.randomUUID(),
@@ -1275,10 +1275,10 @@ class TestDataHelper(
         }
     }
 
-    fun persisterSøknadsbehandlingVilkårsvurdertUavklartMedSkatt(
+    fun persisternySøknadsbehandlingMedStønadsperiodeMedSkatt(
         skatt: EksterneGrunnlagSkatt = EksterneGrunnlagSkatt.Hentet(søkers = nySkattegrunnlag(), eps = null),
     ): VilkårsvurdertSøknadsbehandling.Uavklart {
-        return persisterSøknadsbehandlingVilkårsvurdertUavklart().second.leggTilSkatt(skatt).getOrFail().also {
+        return persisternySøknadsbehandlingMedStønadsperiode().second.leggTilSkatt(skatt).getOrFail().also {
             søknadsbehandlingRepo.lagre(it)
         } as VilkårsvurdertSøknadsbehandling.Uavklart
     }

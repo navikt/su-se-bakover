@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjon
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.revurderingTilAttestering
@@ -29,7 +30,6 @@ import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -119,9 +119,9 @@ internal class SakServiceImplTest {
         val saksnr1 = Saksnummer(2021)
         val saksnr2 = Saksnummer(2022)
 
-        val uavklartSøkandsbehandling = søknadsbehandlingVilkårsvurdertUavklart(saksnr1).second
-        val underkjentSøknadsbehandling = søknadsbehandlingUnderkjentInnvilget(saksnr1).second
-        val tilAttesteringSøknadsbehandling = søknadsbehandlingTilAttesteringInnvilget(saksnr2).second
+        val uavklartSøkandsbehandling = nySøknadsbehandlingMedStønadsperiode(saksnummer = saksnr1).second
+        val underkjentSøknadsbehandling = søknadsbehandlingUnderkjentInnvilget(saksnummer = saksnr1).second
+        val tilAttesteringSøknadsbehandling = søknadsbehandlingTilAttesteringInnvilget(saksnummer = saksnr2).second
 
         val sakRepo: SakRepo = mock {
             on { hentÅpneBehandlinger() } doReturn listOf(

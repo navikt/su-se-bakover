@@ -18,20 +18,18 @@ internal class OppdaterBosituasjonTest {
     @Test
     fun `fjerner formue og fradrag for eps dersom hvis bosituasjon oppdateres til enslig`() {
         val bosituasjon = bosituasjongrunnlagEpsUførFlyktning()
-        val (grunnlag, vilkår) = grunnlagsdataMedEpsMedFradrag(
+        val customGrunnlag = grunnlagsdataMedEpsMedFradrag(
             bosituasjon = nonEmptyListOf(bosituasjon),
-        ).let {
-            it to vilkårsvurderingerSøknadsbehandlingInnvilget(
+        ).let { listOf(it.bosituasjon, it.fradragsgrunnlag) }.flatten()
+        val customVilkår = vilkårsvurderingerSøknadsbehandlingInnvilget(
+            bosituasjon = nonEmptyListOf(bosituasjon),
+            formue = formuevilkårMedEps0Innvilget(
                 bosituasjon = nonEmptyListOf(bosituasjon),
-                formue = formuevilkårMedEps0Innvilget(
-                    bosituasjon = nonEmptyListOf(bosituasjon),
-                ),
-            )
-        }
-
+            ),
+        ).vilkår.toList()
         søknadsbehandlingVilkårsvurdertInnvilget(
-            grunnlagsdata = grunnlag,
-            vilkårsvurderinger = vilkår,
+            customGrunnlag = customGrunnlag,
+            customVilkår = customVilkår,
         ).second.let { original ->
             original.grunnlagsdata.fradragsgrunnlag.harEpsInntekt() shouldBe true
             original.vilkårsvurderinger.formue.harEPSFormue() shouldBe true

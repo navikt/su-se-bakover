@@ -55,7 +55,7 @@ internal class LeggTilFamiliegjenforeningRoutesTest {
     @Test
     fun `ok request`() {
         val vilkårsvurdert =
-            søknadsbehandlingVilkårsvurdertInnvilget(vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder()).second
+            søknadsbehandlingVilkårsvurdertInnvilget(customVilkår = vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder().vilkår.toList()).second
         testApplication {
             application {
                 testSusebakoverWithMockedDb(
