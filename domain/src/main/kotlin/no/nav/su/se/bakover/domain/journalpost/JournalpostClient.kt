@@ -14,7 +14,7 @@ interface JournalpostClient {
         saksnummer: Saksnummer,
     ): Either<KunneIkkeSjekkeTilknytningTilSak, ErTilknyttetSak>
 
-    fun hentJournalposterFor(saksnummer: Saksnummer): Either<KunneIkkeHenteJournalposter, List<Journalpost>>
+    fun hentJournalposterFor(saksnummer: Saksnummer, limit: Int = 50): Either<KunneIkkeHenteJournalposter, List<Journalpost>>
 
     /**
      * Skreddersydd for å svare på om det er mottatt et kontrollnotat for [saksnummer] i løpet av gitt [periode].

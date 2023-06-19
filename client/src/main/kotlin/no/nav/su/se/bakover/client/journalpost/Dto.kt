@@ -45,13 +45,13 @@ data class Fagsak(
  * Variabler for spørringer mot dokumentoversiktFagsak
  * Fyll ut det som er nødvendig for din spørring
  */
-internal data class DokumentoversiktFagsakVariables(
+internal data class HentJournalposterForSakVariables(
     val fagsak: Fagsak,
     val fraDato: String? = null,
     val tema: String = "SUP",
     val journalposttyper: List<String> = emptyList(),
     val journalstatuser: List<String> = emptyList(),
-    val foerste: Int = 30,
+    val foerste: Int = 50,
 )
 
 /**

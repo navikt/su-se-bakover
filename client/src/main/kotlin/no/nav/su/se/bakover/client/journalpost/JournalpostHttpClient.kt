@@ -101,12 +101,12 @@ internal class JournalpostHttpClient(
         )
     }
 
-    override fun hentJournalposterFor(saksnummer: Saksnummer): Either<KunneIkkeHenteJournalposter, List<Journalpost>> {
+    override fun hentJournalposterFor(saksnummer: Saksnummer, limit: Int): Either<KunneIkkeHenteJournalposter, List<Journalpost>> {
         val request = GraphQLQuery<HentDokumentoversiktFagsakHttpResponse>(
             query = getQueryFrom("/dokumentoversiktFagsakQuery.graphql"),
-            variables = DokumentoversiktFagsakVariables(
+            variables = HentJournalposterForSakVariables(
                 fagsak = Fagsak(fagsakId = saksnummer.toString()),
-                foerste = 50,
+                foerste = limit,
             ),
         )
         return runBlocking {
@@ -148,7 +148,7 @@ internal class JournalpostHttpClient(
 
         val request = GraphQLQuery<HentDokumentoversiktFagsakHttpResponse>(
             query = getQueryFrom("/dokumentoversiktFagsakQuery.graphql"),
-            variables = DokumentoversiktFagsakVariables(
+            variables = HentJournalposterForSakVariables(
                 fagsak = Fagsak(fagsakId = saksnummer.toString()),
                 fraDato = periode.fraOgMed.toString(),
                 journalposttyper = listOf("I"),

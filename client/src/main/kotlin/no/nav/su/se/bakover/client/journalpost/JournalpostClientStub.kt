@@ -25,10 +25,19 @@ object JournalpostClientStub : JournalpostClient {
         return ErTilknyttetSak.Ja.right()
     }
 
-    override fun hentJournalposterFor(saksnummer: Saksnummer): Either<KunneIkkeHenteJournalposter, List<Journalpost>> =
-        listOf(Journalpost(JournalpostId("453812134"), "Innsendt klage")).right()
+    override fun hentJournalposterFor(
+        saksnummer: Saksnummer,
+        limit: Int,
+    ): Either<KunneIkkeHenteJournalposter, List<Journalpost>> =
+        listOf(
+            Journalpost(JournalpostId("453812134"), "Innsendt klage"),
+            Journalpost(JournalpostId("234252334"), "Innsendt klage V2"),
+        ).right()
 
-    override fun kontrollnotatMotatt(saksnummer: Saksnummer, periode: DatoIntervall): Either<KunneIkkeSjekkKontrollnotatMottatt, ErKontrollNotatMottatt> {
+    override fun kontrollnotatMotatt(
+        saksnummer: Saksnummer,
+        periode: DatoIntervall,
+    ): Either<KunneIkkeSjekkKontrollnotatMottatt, ErKontrollNotatMottatt> {
         return ErKontrollNotatMottatt.Ja(
             KontrollnotatMottattJournalpost(
                 tema = JournalpostTema.SUP,
