@@ -85,6 +85,7 @@ object ServiceBuilder {
             brevService = brevService,
             personService = personService,
             identClient = clients.identClient,
+            clients.journalpostClient,
         ).apply { addObserver(statistikkEventObserver) }
 
         val oppgaveService = OppgaveServiceImpl(

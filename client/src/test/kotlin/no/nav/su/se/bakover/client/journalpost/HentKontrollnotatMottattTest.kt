@@ -96,7 +96,7 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
         )
 
         val expected = """
-            {"query":"query(${"\$fagsakId"}: String!, ${"\$fagsaksystem"}: String! ${"\$fraDato"}: Date!, ${"\$tema"}: [Tema]!, ${"\$journalposttyper"}: [Journalposttype]!, ${"\$journalstatuser"}: [Journalstatus]!, ${"\$foerste"}:Int!) {\n  dokumentoversiktFagsak(fagsak:{fagsakId:${"\$fagsakId"},fagsaksystem:${"\$fagsaksystem"}}, fraDato:${"\$fraDato"}, tema:${"\$tema"}, journalposttyper:${"\$journalposttyper"}, journalstatuser:${"\$journalstatuser"}, foerste:${"\$foerste"}){\n    journalposter {\n  tema\n  journalstatus\n  journalposttype\n  sak {\n    fagsakId\n  }\n  journalpostId\n  tittel\n  datoOpprettet\n}\n  }\n}","variables":{"fagsakId":"10002027","fagsaksystem":"SUPSTONAD","fraDato":"2022-09-01","tema":"SUP","journalposttyper":["I"],"journalstatuser":["JOURNALFOERT"],"foerste":100}}
+            {"query":"query(${"\$dokumentoversiktInput"}: dokumentoversiktFagsakInput!) {\n    dokumentoversiktFagsak(input: ${"\$dokumentoversiktInput"}){\n        journalposter {\n            tema\n            journalstatus\n            journalposttype\n            sak {\n                fagsakId\n            }\n            journalpostId\n            tittel\n            datoOpprettet\n        }\n    }\n}","variables":{"fagsak":{"fagsakId":"10002027","fagsaksystem":"SUPSTONAD"},"fraDato":"2022-09-01","tema":"SUP","journalposttyper":["I"],"journalstatuser":["JOURNALFOERT"],"foerste":100}}
         """.trimIndent()
 
         setupClient().also {
@@ -112,7 +112,7 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
         val manglerFelterJson = """
             {
             "data": {
-                "dokumentoversiktFagsak": {
+                "dokumentoversikt": {
                     "journalposter": [                        
                         {
                             "tema": "SUP",
@@ -145,7 +145,7 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
         val manglerFelterJson = """
             {
             "data": {
-                "dokumentoversiktFagsak": {
+                "dokumentoversikt": {
                     "journalposter": []
                 }
             }
@@ -213,7 +213,7 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
         val flereKontrollnotat = """
             {
             "data": {
-                "dokumentoversiktFagsak": {
+                "dokumentoversikt": {
                     "journalposter": [                        
                         {
                             "tema": "SUP",
@@ -268,7 +268,7 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
         return """
         {
             "data": {
-                "dokumentoversiktFagsak": {
+                "dokumentoversikt": {
                     "journalposter": [                        
                         {
                             "tema": "SUP",

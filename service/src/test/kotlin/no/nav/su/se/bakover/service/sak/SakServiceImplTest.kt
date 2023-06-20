@@ -3,15 +3,19 @@ package no.nav.su.se.bakover.service.sak
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.journalpost.Journalpost
+import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
@@ -36,10 +40,12 @@ import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doThrow
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
+import java.lang.IllegalArgumentException
 import java.util.UUID
 
 internal class SakServiceImplTest {
@@ -56,7 +62,7 @@ internal class SakServiceImplTest {
 
         val observer: StatistikkEventObserver = mock()
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock())
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock(), mock())
         sakService.addObserver(observer)
         sakService.opprettSak(mock { on { id } doReturn sakId })
 
@@ -73,7 +79,7 @@ internal class SakServiceImplTest {
 
         val observer: StatistikkEventObserver = mock()
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock())
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock(), mock())
         sakService.addObserver(observer)
         assertThrows<RuntimeException> {
             sakService.opprettSak(mock())
@@ -99,7 +105,7 @@ internal class SakServiceImplTest {
             )
         }
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock())
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock(), mock())
         val sakMedÅpenSøknad = sakService.hentÅpneBehandlingerForAlleSaker()
 
         sakMedÅpenSøknad shouldBe listOf(
@@ -152,7 +158,7 @@ internal class SakServiceImplTest {
             )
         }
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock())
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock(), mock())
         val sakerMedÅpneBehandlinger = sakService.hentÅpneBehandlingerForAlleSaker()
 
         sakerMedÅpneBehandlinger shouldBe listOf(
@@ -247,7 +253,7 @@ internal class SakServiceImplTest {
             )
         }
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock())
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock(), mock())
         val sakerMedÅpneRevurderinger = sakService.hentÅpneBehandlingerForAlleSaker()
 
         sakerMedÅpneRevurderinger shouldBe listOf(
@@ -303,13 +309,46 @@ internal class SakServiceImplTest {
             on { hentNavnForNavIdent(any()) } doReturn saksbehandlerNavn.right()
         }
 
-        SakServiceImpl(sakRepo, fixedClock, mock(), brevService, personService, identClient).opprettFritekstDokument(
-            request = OpprettDokumentRequest(
-                sakId = sak.id,
-                saksbehandler = saksbehandler,
-                tittel = "Brev tittel",
-                fritekst = "Brev fritekst",
-            ),
-        ).shouldBeRight()
+        SakServiceImpl(sakRepo, fixedClock, mock(), brevService, personService, identClient, mock())
+            .opprettFritekstDokument(
+                request = OpprettDokumentRequest(
+                    sakId = sak.id,
+                    saksbehandler = saksbehandler,
+                    tittel = "Brev tittel",
+                    fritekst = "Brev fritekst",
+                ),
+            ).shouldBeRight()
+    }
+
+    @Test
+    fun `henter alle journalposter`() {
+        val sak = nySakMedjournalførtSøknadOgOppgave().first
+        val sakRepo: SakRepo = mock {
+            on { hentSakInfo(any<UUID>()) } doReturn SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type)
+        }
+        val journalpostClient = mock<JournalpostClient> {
+            on { hentJournalposterFor(any(), any()) } doReturn listOf(
+                Journalpost(JournalpostId("journalpostId"), "journalpost tittel"),
+            ).right()
+        }
+        SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock(), journalpostClient)
+            .hentAlleJournalposter(sak.id).shouldBeRight()
+
+        verify(sakRepo).hentSakInfo(argThat { it shouldBe sak.id })
+        verify(journalpostClient).hentJournalposterFor(argThat { it shouldBe sak.saksnummer }, eq(50))
+    }
+
+    @Test
+    fun `kaster exception dersom sak ikke finnes ved henting av journalposter`() {
+        val sak = nySakMedjournalførtSøknadOgOppgave().first
+        val sakRepo: SakRepo = mock {
+            on { hentSakInfo(any<UUID>()) } doReturn null
+        }
+
+        assertThrows<IllegalArgumentException> {
+            SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock(), mock())
+                .hentAlleJournalposter(sak.id)
+        }
+        verify(sakRepo).hentSakInfo(argThat { it shouldBe sak.id })
     }
 }

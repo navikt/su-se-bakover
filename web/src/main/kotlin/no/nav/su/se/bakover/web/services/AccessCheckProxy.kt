@@ -25,6 +25,8 @@ import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
+import no.nav.su.se.bakover.domain.journalpost.Journalpost
+import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalposter
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
@@ -350,6 +352,11 @@ open class AccessCheckProxy(
                 override fun lagreOgSendFritekstDokument(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.MedMetadata> {
                     assertHarTilgangTilSak(request.sakId)
                     return services.sak.lagreOgSendFritekstDokument(request)
+                }
+
+                override fun hentAlleJournalposter(sakId: UUID): Either<KunneIkkeHenteJournalposter, List<Journalpost>> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.sak.hentAlleJournalposter(sakId)
                 }
 
                 override fun opprettSak(sak: NySak) {

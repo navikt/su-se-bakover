@@ -1,5 +1,17 @@
-query($fagsakId: String!, $fagsaksystem: String! $fraDato: Date!, $tema: [Tema]!, $journalposttyper: [Journalposttype]!, $journalstatuser: [Journalstatus]!, $foerste:Int!) {
-  dokumentoversiktFagsak(fagsak:{fagsakId:$fagsakId,fagsaksystem:$fagsaksystem}, fraDato:$fraDato, tema:$tema, journalposttyper:$journalposttyper, journalstatuser:$journalstatuser, foerste:$foerste){
-    <<DATAFELTER>>
-  }
+#https://confluence.adeo.no/display/BOA/Query%3A+dokumentoversiktFagsak
+
+query($dokumentoversiktInput: dokumentoversiktFagsakInput!) {
+    dokumentoversiktFagsak(input: $dokumentoversiktInput){
+        journalposter {
+            tema
+            journalstatus
+            journalposttype
+            sak {
+                fagsakId
+            }
+            journalpostId
+            tittel
+            datoOpprettet
+        }
+    }
 }

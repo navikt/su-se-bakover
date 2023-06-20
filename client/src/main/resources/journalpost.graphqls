@@ -1,0 +1,35 @@
+# https://confluence.adeo.no/display/BOA/Type%3A+Journalpost
+
+input FagsakInput {
+    fagsakId: String!,
+    fagsaksystem: String!
+}
+
+input dokumentoversiktFagsakInput {
+    fagsak: FagsakInput!
+    tema: [Tema!]!
+    fraDato: Date
+    journalposttyper: [Journalposttype!]!
+    journalstatuser: [Journalstatus!]!
+    foerste: Int!
+}
+
+type Dokumentoversikt { journalposter: [Journalpost!]! }
+
+type Journalpost {
+    journalpostId: String!
+    tittel: String!
+    journalposttype: Journalposttype!
+    journalstatus: Journalstatus!
+    tema: Tema!
+    sak: Sak!
+    datoOpprettet: DateTime!
+}
+
+type Sak { fagsakId: String! }
+
+enum Journalstatus { JOURNALFOERT, FERDIGSTILT }
+
+enum Tema { SUP }
+
+enum Journalposttype { I, N }

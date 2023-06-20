@@ -8,6 +8,8 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.journalpost.Journalpost
+import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalposter
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import java.util.UUID
@@ -47,6 +49,7 @@ interface SakService {
     fun hentSakForSøknad(søknadId: UUID): Either<FantIkkeSak, Sak>
     fun opprettFritekstDokument(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.UtenMetadata>
     fun lagreOgSendFritekstDokument(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.MedMetadata>
+    fun hentAlleJournalposter(sakId: UUID): Either<KunneIkkeHenteJournalposter, List<Journalpost>>
 }
 
 object FantIkkeSak {
