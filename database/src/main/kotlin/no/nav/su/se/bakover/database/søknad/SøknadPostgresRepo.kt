@@ -100,7 +100,16 @@ internal class SøknadPostgresRepo(
     override fun hentSøknaderUtenJournalpost(): List<Søknad.Ny> {
         return dbMetrics.timeQuery("hentSøknaderUtenJournalpost") {
             sessionFactory.withSession { session ->
-                "select * from søknad where journalpostId is null".hentListe(
+                """
+                    select s.*,
+                           d.id             as dokumentid,
+                           dd.brevbestillingid,
+                           dd.journalpostid as journalpostidDokument
+                    from søknad s
+                             left join dokument d on s.id = d.søknadid
+                             left join dokument_distribusjon dd on d.id = dd.dokumentid
+                    where s.journalpostId is null
+                """.trimIndent().hentListe(
                     session = session,
                 ) {
                     it.toSøknad()
@@ -112,7 +121,16 @@ internal class SøknadPostgresRepo(
     override fun hentSøknaderMedJournalpostMenUtenOppgave(): List<Søknad.Journalført.UtenOppgave> {
         return dbMetrics.timeQuery("hentSøknaderMedJournalpostMenUtenOppgave") {
             sessionFactory.withSession { session ->
-                "select * from søknad where journalpostId is not null and oppgaveId is null".hentListe(
+                """
+                    select s.*,
+                           d.id             as dokumentid,
+                           dd.brevbestillingid,
+                           dd.journalpostid as journalpostidDokument
+                    from søknad s
+                             left join dokument d on s.id = d.søknadid
+                             left join dokument_distribusjon dd on d.id = dd.dokumentid
+                    where s.journalpostId is not null and oppgaveId is null
+                """.trimIndent().hentListe(
                     session = session,
                 ) {
                     it.toSøknad()

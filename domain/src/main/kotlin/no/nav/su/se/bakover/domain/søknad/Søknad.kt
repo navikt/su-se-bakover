@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.AvvistSøknadBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
+import no.nav.su.se.bakover.domain.dokument.Dokumenttilstand
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Saksnummer
@@ -139,6 +140,7 @@ sealed interface Søknad {
                             lukketAv = lukkSøknadCommand.saksbehandler,
                             brevvalg = lukkSøknadCommand.brevvalg,
                             innsendtAv = innsendtAv,
+                            dokumenttilstand = lukkSøknadCommand.dokumenttilstand,
                         )
 
                         is LukkSøknadCommand.UtenBrev.AvvistSøknad -> Lukket.Avvist(
@@ -152,6 +154,7 @@ sealed interface Søknad {
                             lukketAv = lukkSøknadCommand.saksbehandler,
                             brevvalg = Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev(),
                             innsendtAv = innsendtAv,
+                            dokumenttilstand = lukkSøknadCommand.dokumenttilstand,
                         )
 
                         is LukkSøknadCommand.MedBrev.TrekkSøknad -> Lukket.TrukketAvSøker(
@@ -165,6 +168,7 @@ sealed interface Søknad {
                             lukketAv = lukkSøknadCommand.saksbehandler,
                             trukketDato = lukkSøknadCommand.trukketDato,
                             innsendtAv = innsendtAv,
+                            dokumenttilstand = lukkSøknadCommand.dokumenttilstand,
                         )
 
                         is LukkSøknadCommand.UtenBrev.BortfaltSøknad -> Lukket.Bortfalt(
@@ -207,7 +211,7 @@ sealed interface Søknad {
              *
              * TODO: Avklar om vi skal rename denne til Avslutt eller Avbrutt for å stemme mer overens med behandlingene.
              */
-            sealed interface Lukket : MedOppgave {
+            sealed interface Lukket : MedOppgave, Avsluttet {
                 override val id: UUID
                 override val opprettet: Tidspunkt
                 override val sakId: UUID
@@ -217,6 +221,7 @@ sealed interface Søknad {
                 val lukketTidspunkt: Tidspunkt
                 val lukketAv: Saksbehandler
                 val brevvalg: Brevvalg
+                val dokumenttilstand: Dokumenttilstand
 
                 /**
                  * @return null dersom det ikke skal kunne lages brev.
@@ -247,7 +252,8 @@ sealed interface Søknad {
                     override val lukketAv: Saksbehandler,
                     override val brevvalg: Brevvalg.SaksbehandlersValg,
                     override val innsendtAv: NavIdentBruker,
-                ) : Lukket, Avsluttet {
+                    override val dokumenttilstand: Dokumenttilstand,
+                ) : Lukket {
                     override val avsluttetTidspunkt: Tidspunkt = lukketTidspunkt
                     init {
                         when (brevvalg) {
@@ -296,6 +302,7 @@ sealed interface Søknad {
                     val trukketDato: LocalDate,
                     override val innsendtAv: NavIdentBruker,
                     override val lukketTidspunkt: Tidspunkt,
+                    override val dokumenttilstand: Dokumenttilstand,
                 ) : Lukket, Avbrutt {
                     override val avsluttetTidspunkt: Tidspunkt = lukketTidspunkt
                     override val brevvalg =
@@ -345,6 +352,7 @@ sealed interface Søknad {
                     override val avsluttetTidspunkt: Tidspunkt = lukketTidspunkt
                     override val brevvalg =
                         Brevvalg.SkalIkkeSendeBrev("Saksbehandler får ikke per tidspunkt gjøre noen brevvalg dersom søknaden bortfaller.")
+                    override val dokumenttilstand: Dokumenttilstand = Dokumenttilstand.SKAL_IKKE_GENERERE
 
                     override fun toBrevRequest(
                         hentPerson: () -> Person,

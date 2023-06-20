@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.AvvistSøknadBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.dokument.Dokumenttilstand
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.IdentClient
@@ -541,6 +542,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
                         lukketAv = saksbehandler,
                         brevvalg = lukkSøknadCommand.brevvalg,
                         innsendtAv = veileder,
+                        dokumenttilstand = Dokumenttilstand.IKKE_GENERERT_ENDA,
                     )
                 }
 
@@ -556,6 +558,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
                         lukketAv = saksbehandler,
                         trukketDato = lukkSøknadCommand.trukketDato,
                         innsendtAv = veileder,
+                        dokumenttilstand = Dokumenttilstand.IKKE_GENERERT_ENDA,
                     )
                 }
 
@@ -571,6 +574,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
                         lukketAv = saksbehandler,
                         brevvalg = Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev(),
                         innsendtAv = veileder,
+                        dokumenttilstand = Dokumenttilstand.SKAL_IKKE_GENERERE,
                     )
                 }
 

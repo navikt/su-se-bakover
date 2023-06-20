@@ -179,7 +179,8 @@ internal class UføresøknadJsonTest {
             {
                 "tidspunkt":"2021-01-01T01:02:03.456789Z",
                 "saksbehandler":"saksbehandler",
-                "type":"TRUKKET"
+                "type":"TRUKKET",
+                "dokumenttilstand": "IKKE_GENERERT_ENDA"
             }
         """.trimIndent()
         JSONAssert.assertEquals(expectedJson, serialize(trukket.toJson()), true)
@@ -187,6 +188,7 @@ internal class UføresøknadJsonTest {
             tidspunkt = "2021-01-01T01:02:03.456789Z",
             saksbehandler = "saksbehandler",
             type = "TRUKKET",
+            dokumenttilstand = "IKKE_GENERERT_ENDA",
         )
     }
 }

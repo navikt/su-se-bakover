@@ -21,6 +21,7 @@ data class LukketJson(
     val tidspunkt: String,
     val saksbehandler: String,
     val type: String,
+    val dokumenttilstand: String,
 )
 
 fun Søknad.toJson(): SøknadJson {
@@ -41,4 +42,5 @@ internal fun Søknad.Journalført.MedOppgave.Lukket.toJson() = LukketJson(
         is Søknad.Journalført.MedOppgave.Lukket.Bortfalt -> "BORTFALT"
         is Søknad.Journalført.MedOppgave.Lukket.TrukketAvSøker -> "TRUKKET"
     },
+    dokumenttilstand = this.dokumenttilstand.toString(),
 )
