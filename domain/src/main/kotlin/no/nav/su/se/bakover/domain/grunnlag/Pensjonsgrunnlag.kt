@@ -12,7 +12,7 @@ data class Pensjonsgrunnlag(
     override val opprettet: Tidspunkt,
     override val periode: Periode,
     val pensjonsopplysninger: Pensjonsopplysninger,
-) : Grunnlag(), KanPlasseresPåTidslinje<Pensjonsgrunnlag> {
+) : Grunnlag, KanPlasseresPåTidslinje<Pensjonsgrunnlag> {
 
     fun oppdaterPeriode(periode: Periode): Pensjonsgrunnlag {
         return copy(periode = periode)
@@ -71,9 +71,9 @@ data class Pensjonsopplysninger(
             }
         }
 
-        sealed class Svar {
-            object HarSøktPensjonFraFolketrygden : Svar()
-            object HarIkkeSøktPensjonFraFolketrygden : Svar()
+        sealed interface Svar {
+            object HarSøktPensjonFraFolketrygden : Svar
+            object HarIkkeSøktPensjonFraFolketrygden : Svar
         }
     }
 
@@ -94,10 +94,10 @@ data class Pensjonsopplysninger(
             }
         }
 
-        sealed class Svar {
-            object HarSøktAndreNorskePensjonerEnnFolketrygden : Svar()
-            object HarIkkeSøktAndreNorskePensjonerEnnFolketrygden : Svar()
-            object IkkeAktuelt : Svar()
+        sealed interface Svar {
+            object HarSøktAndreNorskePensjonerEnnFolketrygden : Svar
+            object HarIkkeSøktAndreNorskePensjonerEnnFolketrygden : Svar
+            object IkkeAktuelt : Svar
         }
     }
 
@@ -118,10 +118,10 @@ data class Pensjonsopplysninger(
             }
         }
 
-        sealed class Svar {
-            object HarSøktUtenlandskePensjoner : Svar()
-            object HarIkkeSøktUtenlandskePensjoner : Svar()
-            object IkkeAktuelt : Svar()
+        sealed interface Svar {
+            object HarSøktUtenlandskePensjoner : Svar
+            object HarIkkeSøktUtenlandskePensjoner : Svar
+            object IkkeAktuelt : Svar
         }
     }
 }

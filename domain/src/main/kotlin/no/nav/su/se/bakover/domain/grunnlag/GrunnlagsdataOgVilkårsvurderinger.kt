@@ -20,10 +20,10 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import java.time.Clock
 
-sealed class GrunnlagsdataOgVilkårsvurderinger {
-    abstract val grunnlagsdata: Grunnlagsdata
-    abstract val vilkårsvurderinger: Vilkårsvurderinger
-    abstract val eksterneGrunnlag: EksterneGrunnlag
+sealed interface GrunnlagsdataOgVilkårsvurderinger {
+    val grunnlagsdata: Grunnlagsdata
+    val vilkårsvurderinger: Vilkårsvurderinger
+    val eksterneGrunnlag: EksterneGrunnlag
 
     val eps: List<Fnr> get() = grunnlagsdata.eps
 
@@ -34,31 +34,21 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
     fun erVurdert(): Boolean = vilkårsvurderinger.erVurdert && grunnlagsdata.erUtfylt
     fun harVurdertOpplysningsplikt(): Boolean = vilkårsvurderinger.opplysningsplikt is OpplysningspliktVilkår.Vurdert
 
-    abstract fun leggTil(vilkår: Vilkår): GrunnlagsdataOgVilkårsvurderinger
+    fun leggTil(vilkår: Vilkår): GrunnlagsdataOgVilkårsvurderinger
 
-    abstract fun oppdaterGrunnlagsdata(grunnlagsdata: Grunnlagsdata): GrunnlagsdataOgVilkårsvurderinger
-    abstract fun oppdaterVilkårsvurderinger(vilkårsvurderinger: Vilkårsvurderinger): GrunnlagsdataOgVilkårsvurderinger
+    fun oppdaterGrunnlagsdata(grunnlagsdata: Grunnlagsdata): GrunnlagsdataOgVilkårsvurderinger
+    fun oppdaterVilkårsvurderinger(vilkårsvurderinger: Vilkårsvurderinger): GrunnlagsdataOgVilkårsvurderinger
 
     /**
      * Erstatter eksisterende fradragsgrunnlag med nye.
      */
-    abstract fun oppdaterFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): GrunnlagsdataOgVilkårsvurderinger
-    abstract fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): GrunnlagsdataOgVilkårsvurderinger
-
-    protected fun kastHvisPerioderIkkeErLike() {
-        if (grunnlagsdata.periode != null && vilkårsvurderinger.periode != null) {
-            require(grunnlagsdata.periode == vilkårsvurderinger.periode) {
-                "Grunnlagsdataperioden (${grunnlagsdata.periode}) må være lik vilkårsvurderingerperioden (${vilkårsvurderinger.periode})"
-            }
-            // TODO jah: Dersom periodene ikke er sammenhengende bør vi heller sjekke at periodene er like.
-        }
-        // TODO jah: Grunnlagsdata og Vilkårsvurderinger bør ha tilsvarende sjekk og vurderingsperiodene bør sjekke at de er sortert og uten duplikater
-    }
+    fun oppdaterFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): GrunnlagsdataOgVilkårsvurderinger
+    fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): GrunnlagsdataOgVilkårsvurderinger
 
     /**
      * Fjerner EPS sin formue/fradrag dersom søker ikke har EPS.
      * */
-    open fun oppdaterBosituasjon(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>): GrunnlagsdataOgVilkårsvurderinger {
+    fun oppdaterBosituasjon(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>): GrunnlagsdataOgVilkårsvurderinger {
         return oppdaterBosituasjonFullstendig(bosituasjon)
     }
 
@@ -129,15 +119,15 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
         )
     }
 
-    abstract fun fjernAvkortingsfradrag(): GrunnlagsdataOgVilkårsvurderinger
-    abstract fun oppdaterEksterneGrunnlag(eksternGrunnlag: EksterneGrunnlag): GrunnlagsdataOgVilkårsvurderinger
-    abstract fun oppdaterOpplysningsplikt(opplysningspliktVilkår: OpplysningspliktVilkår): GrunnlagsdataOgVilkårsvurderinger
+    fun fjernAvkortingsfradrag(): GrunnlagsdataOgVilkårsvurderinger
+    fun oppdaterEksterneGrunnlag(eksternGrunnlag: EksterneGrunnlag): GrunnlagsdataOgVilkårsvurderinger
+    fun oppdaterOpplysningsplikt(opplysningspliktVilkår: OpplysningspliktVilkår): GrunnlagsdataOgVilkårsvurderinger
 
     data class Søknadsbehandling(
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
         override val eksterneGrunnlag: EksterneGrunnlag,
-    ) : GrunnlagsdataOgVilkårsvurderinger() {
+    ) : GrunnlagsdataOgVilkårsvurderinger {
         override fun leggTil(vilkår: Vilkår): Søknadsbehandling {
             return copy(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår))
         }
@@ -258,7 +248,7 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val eksterneGrunnlag: EksterneGrunnlag = StøtterIkkeHentingAvEksternGrunnlag,
-    ) : GrunnlagsdataOgVilkårsvurderinger() {
+    ) : GrunnlagsdataOgVilkårsvurderinger {
         init {
             kastHvisPerioderIkkeErLike()
         }
@@ -315,4 +305,17 @@ fun GrunnlagsdataOgVilkårsvurderinger.krevMinstEttAvslag() {
     vilkårsvurderinger.vurdering.also {
         check(it is Vilkårsvurderingsresultat.Avslag) { "Ugyldig tilstand, minst et vilkår må være avslått, var: $it" }
     }
+}
+
+/**
+ * Skal kun kastes fra undertyper av [GrunnlagsdataOgVilkårsvurderinger]
+ */
+internal fun GrunnlagsdataOgVilkårsvurderinger.kastHvisPerioderIkkeErLike() {
+    if (grunnlagsdata.periode != null && vilkårsvurderinger.periode != null) {
+        require(grunnlagsdata.periode == vilkårsvurderinger.periode) {
+            "Grunnlagsdataperioden (${grunnlagsdata.periode}) må være lik vilkårsvurderingerperioden (${vilkårsvurderinger.periode})"
+        }
+        // TODO jah: Dersom periodene ikke er sammenhengende bør vi heller sjekke at periodene er like.
+    }
+    // TODO jah: Grunnlagsdata og Vilkårsvurderinger bør ha tilsvarende sjekk og vurderingsperiodene bør sjekke at de er sortert og uten duplikater
 }

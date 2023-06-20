@@ -49,8 +49,8 @@ sealed interface OpplysningspliktVilkår : Vilkår {
     }
 
     data class Vurdert private constructor(
-        val vurderingsperioder: Nel<VurderingsperiodeOpplysningsplikt>,
-    ) : OpplysningspliktVilkår {
+        override val vurderingsperioder: Nel<VurderingsperiodeOpplysningsplikt>,
+    ) : OpplysningspliktVilkår, VurdertVilkår {
         override val grunnlag: List<Opplysningspliktgrunnlag> = vurderingsperioder.map { it.grunnlag }
         override fun lagTidslinje(periode: Periode): OpplysningspliktVilkår =
             copy(vurderingsperioder = vurderingsperioder.lagTidslinje().krympTilPeriode(periode)!!.toNonEmptyList())

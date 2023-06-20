@@ -7,46 +7,46 @@ import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import java.util.UUID
 
-sealed class PersonligOppmøteÅrsak {
-    abstract fun tilVurdering(): Vurdering
+sealed interface PersonligOppmøteÅrsak {
+    fun tilVurdering(): Vurdering
 
-    object MøttPersonlig : PersonligOppmøteÅrsak() {
+    object MøttPersonlig : PersonligOppmøteÅrsak {
         override fun tilVurdering(): Vurdering {
             return Vurdering.Innvilget
         }
     }
 
-    object IkkeMøttMenVerge : PersonligOppmøteÅrsak() {
+    object IkkeMøttMenVerge : PersonligOppmøteÅrsak {
         override fun tilVurdering(): Vurdering {
             return Vurdering.Innvilget
         }
     }
 
-    object IkkeMøttMenSykMedLegeerklæringOgFullmakt : PersonligOppmøteÅrsak() {
+    object IkkeMøttMenSykMedLegeerklæringOgFullmakt : PersonligOppmøteÅrsak {
         override fun tilVurdering(): Vurdering {
             return Vurdering.Innvilget
         }
     }
 
-    object IkkeMøttMenKortvarigSykMedLegeerklæring : PersonligOppmøteÅrsak() {
+    object IkkeMøttMenKortvarigSykMedLegeerklæring : PersonligOppmøteÅrsak {
         override fun tilVurdering(): Vurdering {
             return Vurdering.Innvilget
         }
     }
 
-    object IkkeMøttMenMidlertidigUnntakFraOppmøteplikt : PersonligOppmøteÅrsak() {
+    object IkkeMøttMenMidlertidigUnntakFraOppmøteplikt : PersonligOppmøteÅrsak {
         override fun tilVurdering(): Vurdering {
             return Vurdering.Innvilget
         }
     }
 
-    object IkkeMøttPersonlig : PersonligOppmøteÅrsak() {
+    object IkkeMøttPersonlig : PersonligOppmøteÅrsak {
         override fun tilVurdering(): Vurdering {
             return Vurdering.Avslag
         }
     }
 
-    object Uavklart : PersonligOppmøteÅrsak() {
+    object Uavklart : PersonligOppmøteÅrsak {
         override fun tilVurdering(): Vurdering {
             return Vurdering.Uavklart
         }
@@ -58,7 +58,7 @@ data class PersonligOppmøteGrunnlag(
     override val opprettet: Tidspunkt,
     override val periode: Periode,
     val årsak: PersonligOppmøteÅrsak,
-) : Grunnlag(), KanPlasseresPåTidslinje<PersonligOppmøteGrunnlag> {
+) : Grunnlag, KanPlasseresPåTidslinje<PersonligOppmøteGrunnlag> {
 
     fun vurdering(): Vurdering {
         return årsak.tilVurdering()

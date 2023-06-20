@@ -166,14 +166,13 @@ data class Grunnlagsdata private constructor(
     }
 }
 
-sealed class KunneIkkeLageGrunnlagsdata {
-    object MåLeggeTilBosituasjonFørFradrag : KunneIkkeLageGrunnlagsdata()
-    object FradragManglerBosituasjon : KunneIkkeLageGrunnlagsdata()
-    object FradragForEPSMenBosituasjonUtenEPS : KunneIkkeLageGrunnlagsdata()
-    data class UgyldigFradragsgrunnlag(val feil: Fradragsgrunnlag.UgyldigFradragsgrunnlag) :
-        KunneIkkeLageGrunnlagsdata()
+sealed interface KunneIkkeLageGrunnlagsdata {
+    object MåLeggeTilBosituasjonFørFradrag : KunneIkkeLageGrunnlagsdata
+    object FradragManglerBosituasjon : KunneIkkeLageGrunnlagsdata
+    object FradragForEPSMenBosituasjonUtenEPS : KunneIkkeLageGrunnlagsdata
+    data class UgyldigFradragsgrunnlag(val feil: Fradragsgrunnlag.UgyldigFradragsgrunnlag) : KunneIkkeLageGrunnlagsdata
 
-    data class Konsistenssjekk(val feil: Konsistensproblem.BosituasjonOgFradrag) : KunneIkkeLageGrunnlagsdata()
+    data class Konsistenssjekk(val feil: Konsistensproblem.BosituasjonOgFradrag) : KunneIkkeLageGrunnlagsdata
 }
 
 fun List<Uføregrunnlag>.harForventetInntektStørreEnn0() = this.sumOf { it.forventetInntekt } > 0

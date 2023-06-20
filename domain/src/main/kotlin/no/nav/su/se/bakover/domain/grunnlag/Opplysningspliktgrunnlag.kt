@@ -9,9 +9,9 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import java.util.UUID
 
-sealed class OpplysningspliktBeskrivelse {
-    object TilstrekkeligDokumentasjon : OpplysningspliktBeskrivelse()
-    object UtilstrekkeligDokumentasjon : OpplysningspliktBeskrivelse()
+sealed interface OpplysningspliktBeskrivelse {
+    object TilstrekkeligDokumentasjon : OpplysningspliktBeskrivelse
+    object UtilstrekkeligDokumentasjon : OpplysningspliktBeskrivelse
 }
 
 data class Opplysningspliktgrunnlag(
@@ -19,7 +19,7 @@ data class Opplysningspliktgrunnlag(
     override val opprettet: Tidspunkt,
     override val periode: Periode,
     val beskrivelse: OpplysningspliktBeskrivelse,
-) : Grunnlag(), KanPlasseresPåTidslinje<Opplysningspliktgrunnlag> {
+) : Grunnlag, KanPlasseresPåTidslinje<Opplysningspliktgrunnlag> {
 
     fun oppdaterPeriode(periode: Periode): Opplysningspliktgrunnlag {
         return tryCreate(

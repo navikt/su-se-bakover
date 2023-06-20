@@ -18,7 +18,7 @@ data class Formuegrunnlag private constructor(
     override val opprettet: Tidspunkt,
     val epsFormue: Verdier?,
     val søkersFormue: Verdier,
-) : Grunnlag(), KanPlasseresPåTidslinje<Formuegrunnlag> {
+) : Grunnlag, KanPlasseresPåTidslinje<Formuegrunnlag> {
 
     fun harEPSFormue(): Boolean {
         return epsFormue != null
@@ -147,7 +147,7 @@ data class Formuegrunnlag private constructor(
             epsFormue: Verdier?,
             søkersFormue: Verdier,
             // Denne tar ikke høyde for søknadsbehandling da denne ikke nødvendigvis er fullstendig
-            bosituasjon: List<Bosituasjon.Fullstendig>,
+            bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>,
             behandlingsPeriode: Periode,
         ): Either<KunneIkkeLageFormueGrunnlag, Formuegrunnlag> {
             val formuegrunnlag = Formuegrunnlag(
@@ -181,7 +181,7 @@ data class Formuegrunnlag private constructor(
             epsFormue: Verdier?,
             søkersFormue: Verdier,
             // Tillater ufullstending for å kunne bruke med søknadsbehandling
-            bosituasjon: List<Bosituasjon>,
+            bosituasjon: List<Grunnlag.Bosituasjon>,
             behandlingsPeriode: Periode,
         ): Either<KunneIkkeLageFormueGrunnlag, Formuegrunnlag> {
             val formuegrunnlag = Formuegrunnlag(
@@ -222,7 +222,7 @@ data class Formuegrunnlag private constructor(
         }
 
         private fun konsistenssjekk(
-            bosituasjon: List<Bosituasjon>,
+            bosituasjon: List<Grunnlag.Bosituasjon>,
             formuegrunnlag: List<Formuegrunnlag>,
         ): Either<KunneIkkeLageFormueGrunnlag, Unit> {
             return SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
@@ -262,14 +262,14 @@ data class Formuegrunnlag private constructor(
     }
 }
 
-sealed class KunneIkkeLageFormueGrunnlag {
-    object FormuePeriodeErUtenforBehandlingsperioden : KunneIkkeLageFormueGrunnlag()
-    data class Konsistenssjekk(val feil: Konsistensproblem.BosituasjonOgFormue) : KunneIkkeLageFormueGrunnlag()
+sealed interface KunneIkkeLageFormueGrunnlag {
+    object FormuePeriodeErUtenforBehandlingsperioden : KunneIkkeLageFormueGrunnlag
+    data class Konsistenssjekk(val feil: Konsistensproblem.BosituasjonOgFormue) : KunneIkkeLageFormueGrunnlag
 }
 
-sealed class KunneIkkeLageFormueVerdier {
-    object DepositumErStørreEnnInnskudd : KunneIkkeLageFormueVerdier()
-    object VerdierKanIkkeVæreNegativ : KunneIkkeLageFormueVerdier()
+sealed interface KunneIkkeLageFormueVerdier {
+    object DepositumErStørreEnnInnskudd : KunneIkkeLageFormueVerdier
+    object VerdierKanIkkeVæreNegativ : KunneIkkeLageFormueVerdier
 }
 
 /**

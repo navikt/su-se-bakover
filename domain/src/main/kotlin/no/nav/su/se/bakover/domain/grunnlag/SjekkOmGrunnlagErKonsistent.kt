@@ -183,7 +183,7 @@ data class SjekkOmGrunnlagErKonsistent(
     }
 }
 
-sealed class Konsistensproblem {
+sealed interface Konsistensproblem {
 
     /**
      * Konsistensproblemene er delt opp i 2:
@@ -192,72 +192,72 @@ sealed class Konsistensproblem {
      */
     abstract fun erGyldigTilstand(): Boolean
 
-    sealed class Uføre : Konsistensproblem() {
+    sealed interface Uføre : Konsistensproblem {
         /** Da er ikke vilkåret for Uføre innfridd. Dette vil føre til avslag eller opphør. */
-        object Mangler : Uføre() {
+        object Mangler : Uføre {
             override fun erGyldigTilstand() = true
         }
     }
 
-    sealed class Bosituasjon : Konsistensproblem() {
+    sealed interface Bosituasjon : Konsistensproblem {
         /** Du har f.eks. valgt EPS, men ikke tatt stilling til om hen bor med voksne/alene etc.  */
-        object Ufullstendig : Bosituasjon() {
+        object Ufullstendig : Bosituasjon {
             override fun erGyldigTilstand() = false
         }
 
         /** Vi må alltid ha en utfylt bosituasjon når vi vedtar en stønadsbehandling (revurdering,søknad,regulering etc.)*/
-        object Mangler : Bosituasjon() {
+        object Mangler : Bosituasjon {
             override fun erGyldigTilstand() = false
         }
 
         /** Periodene med bosituasjon overlapper hverandre */
-        object Overlapp : Bosituasjon() {
+        object Overlapp : Bosituasjon {
             override fun erGyldigTilstand(): Boolean = false
         }
     }
 
-    sealed class Formue : Konsistensproblem() {
-        object Mangler : Formue() {
+    sealed interface Formue : Konsistensproblem {
+        object Mangler : Formue {
             override fun erGyldigTilstand(): Boolean = false
         }
 
-        object Overlapp : Formue() {
+        object Overlapp : Formue {
             override fun erGyldigTilstand(): Boolean = false
         }
     }
 
-    sealed class BosituasjonOgFradrag : Konsistensproblem() {
-        object IngenBosituasjonForFradragsperiode : BosituasjonOgFradrag() {
+    sealed interface BosituasjonOgFradrag : Konsistensproblem {
+        object IngenBosituasjonForFradragsperiode : BosituasjonOgFradrag {
             override fun erGyldigTilstand() = false
         }
 
-        data class UgyldigBosituasjon(val feil: Set<Bosituasjon>) : BosituasjonOgFradrag() {
+        data class UgyldigBosituasjon(val feil: Set<Bosituasjon>) : BosituasjonOgFradrag {
             override fun erGyldigTilstand() = false
         }
 
-        object KombinasjonAvBosituasjonOgFradragErUgyldig : BosituasjonOgFradrag() {
+        object KombinasjonAvBosituasjonOgFradragErUgyldig : BosituasjonOgFradrag {
             override fun erGyldigTilstand() = false
         }
     }
 
-    sealed class BosituasjonOgFormue : Konsistensproblem() {
-        object IngenFormueForBosituasjonsperiode : BosituasjonOgFormue() {
+    sealed interface BosituasjonOgFormue : Konsistensproblem {
+        object IngenFormueForBosituasjonsperiode : BosituasjonOgFormue {
             override fun erGyldigTilstand() = false
         }
 
-        data class UgyldigBosituasjon(val feil: Set<Bosituasjon>) : BosituasjonOgFormue() {
+        data class UgyldigBosituasjon(val feil: Set<Bosituasjon>) : BosituasjonOgFormue {
             override fun erGyldigTilstand() = false
         }
 
-        data class UgyldigFormue(val feil: Set<Formue>) : BosituasjonOgFormue() {
+        data class UgyldigFormue(val feil: Set<Formue>) : BosituasjonOgFormue {
             override fun erGyldigTilstand(): Boolean = false
         }
 
-        object KombinasjonAvBosituasjonOgFormueErUyldig : BosituasjonOgFormue() {
+        object KombinasjonAvBosituasjonOgFormueErUyldig : BosituasjonOgFormue {
             override fun erGyldigTilstand() = false
         }
 
-        object FormueForEPSManglerForBosituasjonsperiode : BosituasjonOgFormue() {
+        object FormueForEPSManglerForBosituasjonsperiode : BosituasjonOgFormue {
             override fun erGyldigTilstand() = false
         }
     }

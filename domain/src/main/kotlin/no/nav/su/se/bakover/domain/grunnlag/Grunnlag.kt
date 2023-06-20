@@ -24,17 +24,17 @@ import org.jetbrains.annotations.TestOnly
 import java.time.Clock
 import java.util.UUID
 
-sealed class Grunnlag {
-    abstract val id: UUID
+sealed interface Grunnlag {
+    val id: UUID
 
-    abstract val periode: Periode
+    val periode: Periode
 
     fun tilstøter(other: Grunnlag) = this.periode.tilstøter(other.periode)
 
     /**
      * unnlater å sjekke på ID og opprettet
      */
-    abstract fun erLik(other: Grunnlag): Boolean
+    fun erLik(other: Grunnlag): Boolean
 
     fun tilstøterOgErLik(other: Grunnlag) = this.tilstøter(other) && this.erLik(other)
 
@@ -48,7 +48,7 @@ sealed class Grunnlag {
         val uføregrad: Uføregrad,
         /** Kan ikke være negativ. */
         val forventetInntekt: Int,
-    ) : Grunnlag(), KanPlasseresPåTidslinje<Uføregrunnlag> {
+    ) : Grunnlag, KanPlasseresPåTidslinje<Uføregrunnlag> {
         init {
             if (forventetInntekt < 0) throw IllegalArgumentException("forventetInntekt kan ikke være mindre enn 0")
         }
@@ -106,7 +106,7 @@ sealed class Grunnlag {
         override val id: UUID = UUID.randomUUID(),
         override val opprettet: Tidspunkt,
         val fradrag: Fradrag,
-    ) : Grunnlag(), Fradrag by fradrag, KanPlasseresPåTidslinjeMedSegSelv<Fradragsgrunnlag> {
+    ) : Grunnlag, Fradrag by fradrag, KanPlasseresPåTidslinjeMedSegSelv<Fradragsgrunnlag> {
         override val periode: Periode = fradrag.periode
 
         fun oppdaterFradragsperiode(
@@ -241,8 +241,8 @@ sealed class Grunnlag {
                 this.last().let { it.tilstøter(other) && it.erLik(other) }
         }
 
-        sealed class UgyldigFradragsgrunnlag {
-            object UgyldigFradragstypeForGrunnlag : UgyldigFradragsgrunnlag()
+        sealed interface UgyldigFradragsgrunnlag {
+            object UgyldigFradragstypeForGrunnlag : UgyldigFradragsgrunnlag
         }
 
         override fun copy(args: CopyArgs.Tidslinje): Fradragsgrunnlag = when (args) {
@@ -267,18 +267,18 @@ sealed class Grunnlag {
     /**
      * Domain model (create a flat model in addition to this in database-layer)
      */
-    sealed class Bosituasjon : Grunnlag() {
+    sealed interface Bosituasjon : Grunnlag {
         abstract override val id: UUID
         abstract override val periode: Periode
-        abstract val opprettet: Tidspunkt
-        abstract val satskategori: Satskategori?
-        abstract val eps: Fnr?
+        val opprettet: Tidspunkt
+        val satskategori: Satskategori?
+        val eps: Fnr?
 
         /**
          * Bosituasjon med ektefelle/partner/samboer.
          * NB: ikke det samme som om bruker bor med eller uten andre personer.
          */
-        abstract fun harEPS(): Boolean
+        fun harEPS(): Boolean
 
         fun oppdaterBosituasjonsperiode(oppdatertPeriode: Periode): Fullstendig {
             return when (this) {
@@ -354,21 +354,21 @@ sealed class Grunnlag {
             }
         }
 
-        sealed class Fullstendig : Bosituasjon(), KanPlasseresPåTidslinje<Fullstendig> {
+        sealed interface Fullstendig : Bosituasjon, KanPlasseresPåTidslinje<Fullstendig> {
             abstract override val satskategori: Satskategori
 
-            sealed class EktefellePartnerSamboer : Fullstendig() {
-                abstract val fnr: Fnr
+            sealed interface EktefellePartnerSamboer : Fullstendig {
+                val fnr: Fnr
                 override val eps: Fnr? get() = fnr
                 override fun harEPS(): Boolean = true
 
-                sealed class Under67 : EktefellePartnerSamboer() {
+                sealed interface Under67 : EktefellePartnerSamboer {
                     data class UførFlyktning(
                         override val id: UUID,
                         override val opprettet: Tidspunkt,
                         override val periode: Periode,
                         override val fnr: Fnr,
-                    ) : EktefellePartnerSamboer() {
+                    ) : EktefellePartnerSamboer {
                         override val satskategori: Satskategori = Satskategori.ORDINÆR
 
                         override fun erLik(other: Grunnlag): Boolean {
@@ -394,7 +394,7 @@ sealed class Grunnlag {
                         override val opprettet: Tidspunkt,
                         override val periode: Periode,
                         override val fnr: Fnr,
-                    ) : EktefellePartnerSamboer() {
+                    ) : EktefellePartnerSamboer {
 
                         override val satskategori: Satskategori = Satskategori.HØY
 
@@ -422,7 +422,7 @@ sealed class Grunnlag {
                     override val opprettet: Tidspunkt,
                     override val periode: Periode,
                     override val fnr: Fnr,
-                ) : EktefellePartnerSamboer() {
+                ) : EktefellePartnerSamboer {
 
                     override val satskategori: Satskategori = Satskategori.ORDINÆR
 
@@ -450,7 +450,7 @@ sealed class Grunnlag {
                 override val id: UUID,
                 override val opprettet: Tidspunkt,
                 override val periode: Periode,
-            ) : Fullstendig() {
+            ) : Fullstendig {
                 override val eps: Fnr? get() = null
                 override val satskategori: Satskategori = Satskategori.HØY
 
@@ -477,7 +477,7 @@ sealed class Grunnlag {
                 override val id: UUID,
                 override val opprettet: Tidspunkt,
                 override val periode: Periode,
-            ) : Fullstendig() {
+            ) : Fullstendig {
                 override val eps: Fnr? get() = null
                 override val satskategori: Satskategori = Satskategori.ORDINÆR
 
@@ -501,9 +501,9 @@ sealed class Grunnlag {
             }
         }
 
-        sealed class Ufullstendig : Bosituasjon() {
+        sealed interface Ufullstendig : Bosituasjon {
 
-            override val satskategori: Nothing? = null
+            override val satskategori: Nothing? get() = null
 
             /** Dette er en midlertid tilstand hvor det er valgt Ikke Eps, men ikke tatt stilling til bosituasjon Enslig eller med voksne
              Data klassen kan godt få et bedre navn... */
@@ -511,7 +511,7 @@ sealed class Grunnlag {
                 override val id: UUID,
                 override val opprettet: Tidspunkt,
                 override val periode: Periode,
-            ) : Ufullstendig() {
+            ) : Ufullstendig {
                 override val eps: Fnr? get() = null
                 override fun harEPS(): Boolean {
                     return false
@@ -529,7 +529,7 @@ sealed class Grunnlag {
                 override val opprettet: Tidspunkt,
                 override val periode: Periode,
                 val fnr: Fnr,
-            ) : Ufullstendig() {
+            ) : Ufullstendig {
                 override val eps: Fnr? get() = fnr
                 override fun harEPS(): Boolean {
                     return true
