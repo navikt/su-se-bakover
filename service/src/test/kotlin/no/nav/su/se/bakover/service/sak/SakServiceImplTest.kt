@@ -40,6 +40,7 @@ import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doThrow
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
@@ -326,7 +327,7 @@ internal class SakServiceImplTest {
             on { hentSakInfo(any<UUID>()) } doReturn SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type)
         }
         val journalpostClient = mock<JournalpostClient> {
-            on { hentJournalposterFor(any()) } doReturn listOf(
+            on { hentJournalposterFor(any(), any()) } doReturn listOf(
                 Journalpost(JournalpostId("journalpostId"), "journalpost tittel"),
             ).right()
         }
@@ -334,7 +335,7 @@ internal class SakServiceImplTest {
             .hentAlleJournalposter(sak.id).shouldBeRight()
 
         verify(sakRepo).hentSakInfo(argThat { it shouldBe sak.id })
-        verify(journalpostClient).hentJournalposterFor(argThat { it shouldBe sak.saksnummer })
+        verify(journalpostClient).hentJournalposterFor(argThat { it shouldBe sak.saksnummer }, eq(50))
     }
 
     @Test
