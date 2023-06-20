@@ -30,7 +30,7 @@ jobs:
           java-version: '19'
           distribution: 'temurin'
       - name: test and build
-        run: ./gradlew :datapakker:søknad:build
+        run: ./gradlew --no-build-cache :datapakker:søknad:build
         env:
           ORG_GRADLE_PROJECT_githubUser: x-access-token
           ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}

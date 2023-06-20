@@ -23,7 +23,3 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
-    ignore:
-      - dependency-name: ghcr.io/navikt/baseimages/temurin
-        versions:
-          - "18"
