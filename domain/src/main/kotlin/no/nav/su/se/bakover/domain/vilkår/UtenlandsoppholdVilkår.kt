@@ -17,15 +17,15 @@ import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import java.time.LocalDate
 import java.util.UUID
 
-sealed class UtenlandsoppholdVilkår : Vilkår() {
-    override val vilkår = Inngangsvilkår.Utenlandsopphold
-    abstract val grunnlag: List<Utenlandsoppholdgrunnlag>
+sealed interface UtenlandsoppholdVilkår : Vilkår {
+    override val vilkår get() = Inngangsvilkår.Utenlandsopphold
+    val grunnlag: List<Utenlandsoppholdgrunnlag>
 
     abstract override fun lagTidslinje(periode: Periode): UtenlandsoppholdVilkår
-    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): UtenlandsoppholdVilkår
+    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): UtenlandsoppholdVilkår
     abstract override fun slåSammenLikePerioder(): UtenlandsoppholdVilkår
 
-    object IkkeVurdert : UtenlandsoppholdVilkår() {
+    object IkkeVurdert : UtenlandsoppholdVilkår {
         override val vurdering: Vurdering = Vurdering.Uavklart
         override val erAvslag = false
         override val erInnvilget = false
@@ -49,7 +49,7 @@ sealed class UtenlandsoppholdVilkår : Vilkår() {
 
     data class Vurdert private constructor(
         val vurderingsperioder: Nel<VurderingsperiodeUtenlandsopphold>,
-    ) : UtenlandsoppholdVilkår() {
+    ) : UtenlandsoppholdVilkår {
 
         override val grunnlag: List<Utenlandsoppholdgrunnlag> = vurderingsperioder.mapNotNull { it.grunnlag }
         override fun lagTidslinje(periode: Periode): UtenlandsoppholdVilkår =
@@ -104,8 +104,8 @@ sealed class UtenlandsoppholdVilkår : Vilkår() {
             }
         }
 
-        sealed class UgyldigUtenlandsoppholdVilkår {
-            object OverlappendeVurderingsperioder : UgyldigUtenlandsoppholdVilkår()
+        sealed interface UgyldigUtenlandsoppholdVilkår {
+            object OverlappendeVurderingsperioder : UgyldigUtenlandsoppholdVilkår
         }
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): UtenlandsoppholdVilkår {
@@ -129,7 +129,7 @@ data class VurderingsperiodeUtenlandsopphold private constructor(
     override val vurdering: Vurdering,
     override val grunnlag: Utenlandsoppholdgrunnlag?,
     override val periode: Periode,
-) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodeUtenlandsopphold> {
+) : Vurderingsperiode, KanPlasseresPåTidslinje<VurderingsperiodeUtenlandsopphold> {
 
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeUtenlandsopphold {
         return create(
@@ -202,7 +202,7 @@ data class VurderingsperiodeUtenlandsopphold private constructor(
         }
     }
 
-    sealed class UgyldigVurderingsperiode {
-        object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigVurderingsperiode()
+    sealed interface UgyldigVurderingsperiode {
+        object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigVurderingsperiode
     }
 }

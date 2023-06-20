@@ -28,16 +28,13 @@ data class LeggTilUførevilkårRequest(
     val oppfylt: UførevilkårStatus,
     val begrunnelse: String?,
 ) {
-    sealed class UgyldigUførevurdering {
-        object UføregradOgForventetInntektMangler : UgyldigUførevurdering()
-        object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigUførevurdering()
-        object OverlappendeVurderingsperioder : UgyldigUførevurdering()
-        object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : UgyldigUførevurdering()
+    sealed interface UgyldigUførevurdering {
+        object UføregradOgForventetInntektMangler : UgyldigUførevurdering
+        object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigUførevurdering
+        object OverlappendeVurderingsperioder : UgyldigUførevurdering
+        object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : UgyldigUførevurdering
     }
 
-    /**
-     * @param behandlingsperiode Ved en søknadsbehandling kan det være støndadsperiode. Ved en revurdering kan det være revurderingsperioden.
-     */
     fun toVurderingsperiode(
         clock: Clock,
     ): Either<UgyldigUførevurdering, VurderingsperiodeUføre> {

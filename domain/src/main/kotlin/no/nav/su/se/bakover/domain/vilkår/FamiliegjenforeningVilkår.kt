@@ -11,13 +11,13 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadspe
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import java.time.LocalDate
 
-sealed class FamiliegjenforeningVilkår : Vilkår() {
-    override val vilkår: Inngangsvilkår = Inngangsvilkår.Familiegjenforening
+sealed interface FamiliegjenforeningVilkår : Vilkår {
+    override val vilkår: Inngangsvilkår get() = Inngangsvilkår.Familiegjenforening
 
     abstract override fun lagTidslinje(periode: Periode): FamiliegjenforeningVilkår
-    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FamiliegjenforeningVilkår
+    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FamiliegjenforeningVilkår
 
-    object IkkeVurdert : FamiliegjenforeningVilkår() {
+    object IkkeVurdert : FamiliegjenforeningVilkår {
         override val vurdering: Vurdering = Vurdering.Uavklart
         override val erAvslag: Boolean = false
         override val erInnvilget: Boolean = false
@@ -32,7 +32,7 @@ sealed class FamiliegjenforeningVilkår : Vilkår() {
 
     data class Vurdert private constructor(
         val vurderingsperioder: Nel<VurderingsperiodeFamiliegjenforening>,
-    ) : FamiliegjenforeningVilkår() {
+    ) : FamiliegjenforeningVilkår {
         override val erInnvilget = vurderingsperioder.all { it.vurdering == Vurdering.Innvilget }
         override val erAvslag = vurderingsperioder.any { it.vurdering == Vurdering.Avslag }
         override val vurdering =

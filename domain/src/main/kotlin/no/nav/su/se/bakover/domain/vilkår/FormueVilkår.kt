@@ -14,11 +14,11 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadspe
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import java.time.LocalDate
 
-sealed class FormueVilkår : Vilkår() {
-    override val vilkår = Inngangsvilkår.Formue
-    abstract val grunnlag: List<Formuegrunnlag>
+sealed interface FormueVilkår : Vilkår {
+    override val vilkår get() = Inngangsvilkår.Formue
+    val grunnlag: List<Formuegrunnlag>
 
-    abstract fun oppdaterStønadsperiode(
+    fun oppdaterStønadsperiode(
         stønadsperiode: Stønadsperiode,
         formuegrenserFactory: FormuegrenserFactory,
     ): FormueVilkår
@@ -30,15 +30,15 @@ sealed class FormueVilkår : Vilkår() {
         return grunnlag.any { it.harEPSFormue() }
     }
 
-    abstract fun leggTilTomEPSFormueHvisDetMangler(perioder: List<Periode>): FormueVilkår
+    fun leggTilTomEPSFormueHvisDetMangler(perioder: List<Periode>): FormueVilkår
 
     /**
      * @param perioder vi ønsker å fjerne formue for EPS for. Eventuell formue for EPS som ligger utenfor
      * periodene bevares.
      */
-    abstract fun fjernEPSFormue(perioder: List<Periode>): FormueVilkår
+    fun fjernEPSFormue(perioder: List<Periode>): FormueVilkår
 
-    object IkkeVurdert : FormueVilkår() {
+    object IkkeVurdert : FormueVilkår {
         override val vurdering: Vurdering = Vurdering.Uavklart
         override val erAvslag = false
         override val erInnvilget = false
@@ -75,7 +75,7 @@ sealed class FormueVilkår : Vilkår() {
 
     data class Vurdert private constructor(
         val vurderingsperioder: Nel<VurderingsperiodeFormue>,
-    ) : FormueVilkår() {
+    ) : FormueVilkår {
 
         override val perioder: Nel<Periode> = vurderingsperioder.minsteAntallSammenhengendePerioder()
 
@@ -178,8 +178,8 @@ sealed class FormueVilkår : Vilkår() {
             }
         }
 
-        sealed class UgyldigFormuevilkår {
-            object OverlappendeVurderingsperioder : UgyldigFormuevilkår()
+        sealed interface UgyldigFormuevilkår {
+            object OverlappendeVurderingsperioder : UgyldigFormuevilkår
         }
     }
 }

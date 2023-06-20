@@ -15,13 +15,13 @@ data class LeggTilUførevurderingerRequest(
     val behandlingId: UUID,
     val vurderinger: Nel<LeggTilUførevilkårRequest>,
 ) {
-    sealed class UgyldigUførevurdering {
-        object UføregradOgForventetInntektMangler : UgyldigUførevurdering()
-        object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigUførevurdering()
-        object OverlappendeVurderingsperioder : UgyldigUførevurdering()
-        object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : UgyldigUførevurdering()
-        object AlleVurderingeneMåHaSammeResultat : UgyldigUførevurdering()
-        object HeleBehandlingsperiodenMåHaVurderinger : UgyldigUførevurdering()
+    sealed interface UgyldigUførevurdering {
+        object UføregradOgForventetInntektMangler : UgyldigUførevurdering
+        object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigUførevurdering
+        object OverlappendeVurderingsperioder : UgyldigUførevurdering
+        object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : UgyldigUførevurdering
+        object AlleVurderingeneMåHaSammeResultat : UgyldigUførevurdering
+        object HeleBehandlingsperiodenMåHaVurderinger : UgyldigUførevurdering
     }
 
     fun toVilkår(

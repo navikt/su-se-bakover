@@ -17,14 +17,14 @@ import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import java.time.LocalDate
 import java.util.UUID
 
-sealed class FlyktningVilkår : Vilkår() {
-    override val vilkår = Inngangsvilkår.Flyktning
+sealed interface FlyktningVilkår : Vilkår {
+    override val vilkår get() = Inngangsvilkår.Flyktning
 
     abstract override fun lagTidslinje(periode: Periode): FlyktningVilkår
-    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FlyktningVilkår
+    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FlyktningVilkår
     abstract override fun slåSammenLikePerioder(): FlyktningVilkår
 
-    object IkkeVurdert : FlyktningVilkår() {
+    object IkkeVurdert : FlyktningVilkår {
         override val vurdering: Vurdering = Vurdering.Uavklart
         override val erAvslag = false
         override val erInnvilget = false
@@ -47,7 +47,7 @@ sealed class FlyktningVilkår : Vilkår() {
 
     data class Vurdert private constructor(
         val vurderingsperioder: Nel<VurderingsperiodeFlyktning>,
-    ) : FlyktningVilkår() {
+    ) : FlyktningVilkår {
 
         override fun lagTidslinje(periode: Periode): FlyktningVilkår =
             copy(vurderingsperioder = vurderingsperioder.lagTidslinje().krympTilPeriode(periode)!!.toNonEmptyList())
@@ -92,8 +92,8 @@ sealed class FlyktningVilkår : Vilkår() {
             }
         }
 
-        sealed class UgyldigFlyktningVilkår {
-            object OverlappendeVurderingsperioder : UgyldigFlyktningVilkår()
+        sealed interface UgyldigFlyktningVilkår {
+            object OverlappendeVurderingsperioder : UgyldigFlyktningVilkår
         }
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FlyktningVilkår {
@@ -116,7 +116,7 @@ data class VurderingsperiodeFlyktning private constructor(
     override val opprettet: Tidspunkt,
     override val vurdering: Vurdering,
     override val periode: Periode,
-) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodeFlyktning> {
+) : Vurderingsperiode, KanPlasseresPåTidslinje<VurderingsperiodeFlyktning> {
     override val grunnlag: Grunnlag? = null
 
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeFlyktning {

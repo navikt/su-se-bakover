@@ -6,20 +6,20 @@ import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageOpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import java.util.UUID
 
-sealed class LeggTilOpplysningspliktRequest {
-    abstract val behandlingId: UUID
-    abstract val vilkår: OpplysningspliktVilkår.Vurdert
+sealed interface LeggTilOpplysningspliktRequest {
+    val behandlingId: UUID
+    val vilkår: OpplysningspliktVilkår.Vurdert
 
     data class Søknadsbehandling(
         override val behandlingId: UUID,
         override val vilkår: OpplysningspliktVilkår.Vurdert,
         val saksbehandler: NavIdentBruker.Saksbehandler,
-    ) : LeggTilOpplysningspliktRequest()
+    ) : LeggTilOpplysningspliktRequest
 
     data class Revurdering(
         override val behandlingId: UUID,
         override val vilkår: OpplysningspliktVilkår.Vurdert,
-    ) : LeggTilOpplysningspliktRequest()
+    ) : LeggTilOpplysningspliktRequest
 }
 
 sealed interface KunneIkkeLeggeTilOpplysningsplikt {

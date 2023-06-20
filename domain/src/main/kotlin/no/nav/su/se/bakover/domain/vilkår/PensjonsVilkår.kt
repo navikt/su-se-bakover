@@ -18,15 +18,15 @@ import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import java.time.LocalDate
 import java.util.UUID
 
-sealed class PensjonsVilkår : Vilkår() {
-    override val vilkår = Inngangsvilkår.Pensjon
-    abstract val grunnlag: List<Pensjonsgrunnlag>
+sealed interface PensjonsVilkår : Vilkår {
+    override val vilkår get() = Inngangsvilkår.Pensjon
+    val grunnlag: List<Pensjonsgrunnlag>
 
     abstract override fun lagTidslinje(periode: Periode): PensjonsVilkår
-    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): PensjonsVilkår
+    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): PensjonsVilkår
     abstract override fun slåSammenLikePerioder(): PensjonsVilkår
 
-    object IkkeVurdert : PensjonsVilkår() {
+    object IkkeVurdert : PensjonsVilkår {
         override val vurdering: Vurdering = Vurdering.Uavklart
         override val erAvslag = false
         override val erInnvilget = false
@@ -50,7 +50,7 @@ sealed class PensjonsVilkår : Vilkår() {
 
     data class Vurdert private constructor(
         val vurderingsperioder: Nel<VurderingsperiodePensjon>,
-    ) : PensjonsVilkår() {
+    ) : PensjonsVilkår {
 
         override val grunnlag: List<Pensjonsgrunnlag> = vurderingsperioder.map { it.grunnlag }
         override fun lagTidslinje(periode: Periode): PensjonsVilkår =
@@ -104,8 +104,8 @@ sealed class PensjonsVilkår : Vilkår() {
             }
         }
 
-        sealed class UgyldigPensjonsVilkår {
-            object OverlappendeVurderingsperioder : UgyldigPensjonsVilkår()
+        sealed interface UgyldigPensjonsVilkår {
+            object OverlappendeVurderingsperioder : UgyldigPensjonsVilkår
         }
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): PensjonsVilkår {
@@ -133,7 +133,7 @@ data class VurderingsperiodePensjon private constructor(
     override val vurdering: Vurdering,
     override val grunnlag: Pensjonsgrunnlag,
     override val periode: Periode,
-) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodePensjon> {
+) : Vurderingsperiode, KanPlasseresPåTidslinje<VurderingsperiodePensjon> {
 
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodePensjon {
         return create(
@@ -151,6 +151,7 @@ data class VurderingsperiodePensjon private constructor(
                 grunnlag = grunnlag.copy(args),
             )
         }
+
         is CopyArgs.Tidslinje.NyPeriode -> {
             copy(
                 id = UUID.randomUUID(),

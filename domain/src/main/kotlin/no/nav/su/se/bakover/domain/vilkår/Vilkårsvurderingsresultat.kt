@@ -8,10 +8,10 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
  * vurderingsperiode - inneholder vilkårsvurdering for ett enkelt grunnlag (kan være manuell (kan vurderes uten grunnlag) eller automatisk (har alltid grunnlag))
  * grunnlag - informasjon for en spesifikk periode som forteller noe om oppfyllelsen av et vilkår
  */
-sealed class Vilkårsvurderingsresultat {
+sealed interface Vilkårsvurderingsresultat {
     data class Avslag(
         val vilkår: Set<Vilkår>,
-    ) : Vilkårsvurderingsresultat() {
+    ) : Vilkårsvurderingsresultat {
         val avslagsgrunner: List<Avslagsgrunn> = vilkår.flatMap { it.avslagsgrunner() }
         val tidligsteDatoForAvslag = vilkår.minOf { it.hentTidligesteDatoForAvslag()!! }
 
@@ -65,9 +65,9 @@ sealed class Vilkårsvurderingsresultat {
 
     data class Innvilget(
         val vilkår: Set<Vilkår>,
-    ) : Vilkårsvurderingsresultat()
+    ) : Vilkårsvurderingsresultat
 
     data class Uavklart(
         val vilkår: Set<Vilkår>,
-    ) : Vilkårsvurderingsresultat()
+    ) : Vilkårsvurderingsresultat
 }

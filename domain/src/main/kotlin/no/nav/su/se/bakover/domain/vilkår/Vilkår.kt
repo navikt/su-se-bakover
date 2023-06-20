@@ -12,11 +12,11 @@ import java.time.LocalDate
  * - [no.nav.su.se.bakover.domain.revurdering.Revurdering] og [no.nav.su.se.bakover.domain.regulering.Regulering]: Kan gå på tvers av stønadsperioder og kan da bestå av flere enn et resultat og kan ha hull i periodene.
  * Revurdering/Regulering kan ha strengere regler enn dette i sine respektive implementasjoner.
  */
-sealed class Vilkår {
-    abstract val vurdering: Vurdering
-    abstract val erAvslag: Boolean
-    abstract val erInnvilget: Boolean
-    abstract val vilkår: Inngangsvilkår
+sealed interface Vilkår {
+    val vurdering: Vurdering
+    val erAvslag: Boolean
+    val erInnvilget: Boolean
+    val vilkår: Inngangsvilkår
 
     /**
      * Vurderte vilkår vil ha en eller flere [Periode], mens ikke-vurderte vilkår vil ikke ha en [Periode].
@@ -24,17 +24,20 @@ sealed class Vilkår {
      * De skal også være slått sammen, der det er mulig.
      * Obs: Periodene kan fremdeles ha hull.
      */
-    abstract val perioder: List<Periode>
+    val perioder: List<Periode>
 
-    abstract fun hentTidligesteDatoForAvslag(): LocalDate?
+    fun hentTidligesteDatoForAvslag(): LocalDate?
 
-    abstract fun erLik(other: Vilkår): Boolean
-    abstract fun lagTidslinje(periode: Periode): Vilkår
-    abstract fun slåSammenLikePerioder(): Vilkår
+    fun erLik(other: Vilkår): Boolean
+    fun lagTidslinje(periode: Periode): Vilkår
+    fun slåSammenLikePerioder(): Vilkår
+}
 
-    protected fun kastHvisPerioderErUsortertEllerHarDuplikater() {
-        require(perioder.erSortert())
-        require(!perioder.harDuplikater())
-        // TODO jah: Vurder å legg på require(perioder.minsteAntallSammenhengendePerioder() == perioder)
-    }
+/**
+ * Skal kunne kalles fra undertyper av [Vilkår].
+ */
+fun Vilkår.kastHvisPerioderErUsortertEllerHarDuplikater() {
+    require(perioder.erSortert())
+    require(!perioder.harDuplikater())
+    // TODO jah: Vurder å legg på require(perioder.minsteAntallSammenhengendePerioder() == perioder)
 }

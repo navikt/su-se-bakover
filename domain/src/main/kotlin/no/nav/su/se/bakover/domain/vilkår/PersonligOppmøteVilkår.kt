@@ -13,15 +13,15 @@ import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import java.time.LocalDate
 import java.util.UUID
 
-sealed class PersonligOppmøteVilkår : Vilkår() {
-    override val vilkår = Inngangsvilkår.PersonligOppmøte
-    abstract val grunnlag: List<PersonligOppmøteGrunnlag>
+sealed interface PersonligOppmøteVilkår : Vilkår {
+    override val vilkår get() = Inngangsvilkår.PersonligOppmøte
+    val grunnlag: List<PersonligOppmøteGrunnlag>
 
     abstract override fun lagTidslinje(periode: Periode): PersonligOppmøteVilkår
-    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): PersonligOppmøteVilkår
+    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): PersonligOppmøteVilkår
     abstract override fun slåSammenLikePerioder(): PersonligOppmøteVilkår
 
-    object IkkeVurdert : PersonligOppmøteVilkår() {
+    object IkkeVurdert : PersonligOppmøteVilkår {
         override val vurdering: Vurdering = Vurdering.Uavklart
         override val erAvslag = false
         override val erInnvilget = false
@@ -45,7 +45,7 @@ sealed class PersonligOppmøteVilkår : Vilkår() {
 
     data class Vurdert(
         val vurderingsperioder: Nel<VurderingsperiodePersonligOppmøte>,
-    ) : PersonligOppmøteVilkår() {
+    ) : PersonligOppmøteVilkår {
 
         override val grunnlag: List<PersonligOppmøteGrunnlag> = vurderingsperioder.map { it.grunnlag }
         override fun lagTidslinje(periode: Periode): PersonligOppmøteVilkår =
@@ -100,7 +100,7 @@ data class VurderingsperiodePersonligOppmøte(
     override val opprettet: Tidspunkt,
     override val grunnlag: PersonligOppmøteGrunnlag,
     override val periode: Periode,
-) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodePersonligOppmøte> {
+) : Vurderingsperiode, KanPlasseresPåTidslinje<VurderingsperiodePersonligOppmøte> {
     override val vurdering: Vurdering = grunnlag.vurdering()
 
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodePersonligOppmøte {

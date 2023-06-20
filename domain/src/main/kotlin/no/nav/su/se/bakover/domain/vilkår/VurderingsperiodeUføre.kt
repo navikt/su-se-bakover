@@ -18,7 +18,7 @@ data class VurderingsperiodeUføre private constructor(
     override val vurdering: Vurdering,
     override val grunnlag: Grunnlag.Uføregrunnlag?,
     override val periode: Periode,
-) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodeUføre> {
+) : Vurderingsperiode, KanPlasseresPåTidslinje<VurderingsperiodeUføre> {
 
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeUføre {
         return this.copy(
@@ -90,7 +90,7 @@ data class VurderingsperiodeUføre private constructor(
         }
     }
 
-    sealed class UgyldigVurderingsperiode {
-        object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigVurderingsperiode()
+    sealed interface UgyldigVurderingsperiode {
+        object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigVurderingsperiode
     }
 }

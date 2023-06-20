@@ -12,30 +12,18 @@ import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFlyktning.Companion.
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold.Companion.equals
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
-sealed class Vilkårsvurderinger {
-    abstract val vilkår: Set<Vilkår>
+sealed interface Vilkårsvurderinger {
+    val vilkår: Set<Vilkår>
 
-    abstract val lovligOpphold: LovligOppholdVilkår
-    abstract val formue: FormueVilkår
-    abstract val utenlandsopphold: UtenlandsoppholdVilkår
-    abstract val opplysningsplikt: OpplysningspliktVilkår
-    abstract val fastOpphold: FastOppholdINorgeVilkår
-    abstract val personligOppmøte: PersonligOppmøteVilkår
-    abstract val institusjonsopphold: InstitusjonsoppholdVilkår
+    val lovligOpphold: LovligOppholdVilkår
+    val formue: FormueVilkår
+    val utenlandsopphold: UtenlandsoppholdVilkår
+    val opplysningsplikt: OpplysningspliktVilkår
+    val fastOpphold: FastOppholdINorgeVilkår
+    val personligOppmøte: PersonligOppmøteVilkår
+    val institusjonsopphold: InstitusjonsoppholdVilkår
 
-    val erVurdert: Boolean by lazy { vilkår.none { it.vurdering is Vurdering.Uavklart } }
-
-    protected fun kastHvisPerioderErUlike() {
-        // Merk at hvert enkelt [Vilkår] passer på sine egne data (som f.eks. at periodene er sorterte og uten duplikater)
-        vilkår.map { Pair(it.vilkår, it.perioder) }.zipWithNext { a, b ->
-            // Vilkår med tomme perioder har ikke blitt vurdert enda.
-            if (a.second.isNotEmpty() && b.second.isNotEmpty()) {
-                require(a.second == b.second) {
-                    "Periodene til Vilkårsvurderinger er ulike. $a vs $b."
-                }
-            }
-        }
-    }
+    val erVurdert: Boolean get() = vilkår.none { it.vurdering is Vurdering.Uavklart }
 
     fun uføreVilkår(): Either<VilkårEksistererIkke, UføreVilkår> {
         return when (this) {
@@ -97,36 +85,47 @@ sealed class Vilkårsvurderinger {
                     is FastOppholdINorgeVilkår.Vurdert -> {
                         vilkår.vurderingsperioder.map { it.periode }
                     }
+
                     is FlyktningVilkår.Vurdert -> {
                         vilkår.vurderingsperioder.map { it.periode }
                     }
+
                     is FormueVilkår.Vurdert -> {
                         vilkår.vurderingsperioder.map { it.periode }
                     }
+
                     is InstitusjonsoppholdVilkår.Vurdert -> {
                         vilkår.vurderingsperioder.map { it.periode }
                     }
+
                     is LovligOppholdVilkår.Vurdert -> {
                         vilkår.vurderingsperioder.map { it.periode }
                     }
+
                     is UtenlandsoppholdVilkår.Vurdert -> {
                         vilkår.vurderingsperioder.map { it.periode }
                     }
+
                     is PersonligOppmøteVilkår.Vurdert -> {
                         vilkår.vurderingsperioder.map { it.periode }
                     }
+
                     is UføreVilkår.Vurdert -> {
                         vilkår.vurderingsperioder.map { it.periode }
                     }
+
                     is OpplysningspliktVilkår.Vurdert -> {
                         vilkår.vurderingsperioder.map { it.periode }
                     }
+
                     is PensjonsVilkår.Vurdert -> {
                         vilkår.vurderingsperioder.map { it.periode }
                     }
+
                     is FamiliegjenforeningVilkår.Vurdert -> {
                         vilkår.vurderingsperioder.map { it.periode }
                     }
+
                     FastOppholdINorgeVilkår.IkkeVurdert,
                     FlyktningVilkår.IkkeVurdert,
                     FormueVilkår.IkkeVurdert,
@@ -149,25 +148,27 @@ sealed class Vilkårsvurderinger {
                 vilkår.all { it.vurdering is Vurdering.Innvilget } -> {
                     Vilkårsvurderingsresultat.Innvilget(vilkår)
                 }
+
                 vilkår.any { it.vurdering is Vurdering.Avslag } -> {
                     Vilkårsvurderingsresultat.Avslag(vilkår.filter { it.vurdering is Vurdering.Avslag }.toSet())
                 }
+
                 else -> {
                     Vilkårsvurderingsresultat.Uavklart(vilkår.filter { it.vurdering is Vurdering.Uavklart }.toSet())
                 }
             }
         }
 
-    abstract fun lagTidslinje(periode: Periode): Vilkårsvurderinger
+    fun lagTidslinje(periode: Periode): Vilkårsvurderinger
 
-    abstract fun leggTil(vilkår: Vilkår): Vilkårsvurderinger
+    fun leggTil(vilkår: Vilkår): Vilkårsvurderinger
 
-    abstract fun tilVilkårsvurderingerRevurdering(): Revurdering
-    abstract fun tilVilkårsvurderingerSøknadsbehandling(): Søknadsbehandling
+    fun tilVilkårsvurderingerRevurdering(): Revurdering
+    fun tilVilkårsvurderingerSøknadsbehandling(): Søknadsbehandling
 
-    abstract fun erLik(other: Vilkårsvurderinger): Boolean
+    fun erLik(other: Vilkårsvurderinger): Boolean
 
-    sealed class Søknadsbehandling : Vilkårsvurderinger() {
+    sealed interface Søknadsbehandling : Vilkårsvurderinger {
         abstract override val formue: FormueVilkår
         abstract override val lovligOpphold: LovligOppholdVilkår
         abstract override val fastOpphold: FastOppholdINorgeVilkår
@@ -177,7 +178,7 @@ sealed class Vilkårsvurderinger {
 
         abstract override fun leggTil(vilkår: Vilkår): Søknadsbehandling
 
-        abstract fun oppdaterStønadsperiode(
+        fun oppdaterStønadsperiode(
             stønadsperiode: Stønadsperiode,
             formuegrenserFactory: FormuegrenserFactory,
         ): Søknadsbehandling
@@ -192,7 +193,7 @@ sealed class Vilkårsvurderinger {
             override val opplysningsplikt: OpplysningspliktVilkår,
             val uføre: UføreVilkår,
             val flyktning: FlyktningVilkår,
-        ) : Søknadsbehandling() {
+        ) : Søknadsbehandling {
             override val vilkår: Set<Vilkår>
                 get() {
                     return setOf(
@@ -313,7 +314,7 @@ sealed class Vilkårsvurderinger {
             override val opplysningsplikt: OpplysningspliktVilkår,
             val pensjon: PensjonsVilkår = PensjonsVilkår.IkkeVurdert,
             val familiegjenforening: FamiliegjenforeningVilkår,
-        ) : Søknadsbehandling() {
+        ) : Søknadsbehandling {
             override val vilkår: Set<Vilkår> = setOf(
                 formue,
                 lovligOpphold,
@@ -412,7 +413,7 @@ sealed class Vilkårsvurderinger {
         }
     }
 
-    sealed class Revurdering : Vilkårsvurderinger() {
+    sealed interface Revurdering : Vilkårsvurderinger {
         abstract override val lovligOpphold: LovligOppholdVilkår
         abstract override val formue: FormueVilkår
         abstract override val utenlandsopphold: UtenlandsoppholdVilkår
@@ -432,7 +433,7 @@ sealed class Vilkårsvurderinger {
             override val fastOpphold: FastOppholdINorgeVilkår,
             override val personligOppmøte: PersonligOppmøteVilkår,
             override val institusjonsopphold: InstitusjonsoppholdVilkår,
-        ) : Revurdering() {
+        ) : Revurdering {
 
             override val vilkår: Set<Vilkår> = setOf(
                 uføre,
@@ -550,7 +551,7 @@ sealed class Vilkårsvurderinger {
             val familiegjenforening: FamiliegjenforeningVilkår,
             override val fastOpphold: FastOppholdINorgeVilkår,
             override val personligOppmøte: PersonligOppmøteVilkår,
-        ) : Revurdering() {
+        ) : Revurdering {
             override val vilkår: Set<Vilkår> = setOf(
                 formue,
                 utenlandsopphold,
@@ -616,6 +617,21 @@ sealed class Vilkårsvurderinger {
 
             override fun erLik(other: Vilkårsvurderinger): Boolean {
                 return other is Alder && vilkår.erLik(other.vilkår)
+            }
+        }
+    }
+}
+
+/**
+ * Skal kun kalles fra undertyper av [Vilkårsvurderinger].
+ */
+internal fun Vilkårsvurderinger.kastHvisPerioderErUlike() {
+    // Merk at hvert enkelt [Vilkår] passer på sine egne data (som f.eks. at periodene er sorterte og uten duplikater)
+    vilkår.map { Pair(it.vilkår, it.perioder) }.zipWithNext { a, b ->
+        // Vilkår med tomme perioder har ikke blitt vurdert enda.
+        if (a.second.isNotEmpty() && b.second.isNotEmpty()) {
+            require(a.second == b.second) {
+                "Periodene til Vilkårsvurderinger er ulike. $a vs $b."
             }
         }
     }

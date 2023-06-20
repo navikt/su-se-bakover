@@ -17,14 +17,14 @@ import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import java.time.LocalDate
 import java.util.UUID
 
-sealed class InstitusjonsoppholdVilkår : Vilkår() {
-    override val vilkår = Inngangsvilkår.Institusjonsopphold
+sealed interface InstitusjonsoppholdVilkår : Vilkår {
+    override val vilkår get() = Inngangsvilkår.Institusjonsopphold
 
     abstract override fun lagTidslinje(periode: Periode): InstitusjonsoppholdVilkår
-    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): InstitusjonsoppholdVilkår
+    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): InstitusjonsoppholdVilkår
     abstract override fun slåSammenLikePerioder(): InstitusjonsoppholdVilkår
 
-    object IkkeVurdert : InstitusjonsoppholdVilkår() {
+    object IkkeVurdert : InstitusjonsoppholdVilkår {
         override val vurdering: Vurdering = Vurdering.Uavklart
         override val erAvslag = false
         override val erInnvilget = false
@@ -47,7 +47,7 @@ sealed class InstitusjonsoppholdVilkår : Vilkår() {
 
     data class Vurdert private constructor(
         val vurderingsperioder: Nel<VurderingsperiodeInstitusjonsopphold>,
-    ) : InstitusjonsoppholdVilkår() {
+    ) : InstitusjonsoppholdVilkår {
 
         override fun lagTidslinje(periode: Periode): InstitusjonsoppholdVilkår =
             copy(vurderingsperioder = vurderingsperioder.lagTidslinje().krympTilPeriode(periode)!!.toNonEmptyList())
@@ -93,8 +93,8 @@ sealed class InstitusjonsoppholdVilkår : Vilkår() {
             }
         }
 
-        sealed class UgyldigInstitisjonsoppholdVilkår {
-            object OverlappendeVurderingsperioder : UgyldigInstitisjonsoppholdVilkår()
+        sealed interface UgyldigInstitisjonsoppholdVilkår {
+            object OverlappendeVurderingsperioder : UgyldigInstitisjonsoppholdVilkår
         }
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): InstitusjonsoppholdVilkår {
@@ -117,7 +117,7 @@ data class VurderingsperiodeInstitusjonsopphold private constructor(
     override val opprettet: Tidspunkt,
     override val vurdering: Vurdering,
     override val periode: Periode,
-) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodeInstitusjonsopphold> {
+) : Vurderingsperiode, KanPlasseresPåTidslinje<VurderingsperiodeInstitusjonsopphold> {
 
     override val grunnlag: Grunnlag? = null
 

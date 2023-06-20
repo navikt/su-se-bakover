@@ -15,15 +15,15 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadspe
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import java.time.LocalDate
 
-sealed class LovligOppholdVilkår : Vilkår() {
-    override val vilkår = Inngangsvilkår.LovligOpphold
-    abstract val grunnlag: List<LovligOppholdGrunnlag>
+sealed interface LovligOppholdVilkår : Vilkår {
+    override val vilkår get() = Inngangsvilkår.LovligOpphold
+    val grunnlag: List<LovligOppholdGrunnlag>
 
     abstract override fun lagTidslinje(periode: Periode): LovligOppholdVilkår
-    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): LovligOppholdVilkår
+    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): LovligOppholdVilkår
     abstract override fun slåSammenLikePerioder(): LovligOppholdVilkår
 
-    object IkkeVurdert : LovligOppholdVilkår() {
+    object IkkeVurdert : LovligOppholdVilkår {
         override val vurdering: Vurdering = Vurdering.Uavklart
         override val erAvslag = false
         override val erInnvilget = false
@@ -47,7 +47,7 @@ sealed class LovligOppholdVilkår : Vilkår() {
 
     data class Vurdert private constructor(
         val vurderingsperioder: Nel<VurderingsperiodeLovligOpphold>,
-    ) : LovligOppholdVilkår() {
+    ) : LovligOppholdVilkår {
 
         override val grunnlag: List<LovligOppholdGrunnlag> = vurderingsperioder.mapNotNull { it.grunnlag }
         override fun lagTidslinje(periode: Periode): LovligOppholdVilkår =

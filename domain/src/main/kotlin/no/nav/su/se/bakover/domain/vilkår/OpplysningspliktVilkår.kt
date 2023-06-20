@@ -18,15 +18,15 @@ import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import java.time.LocalDate
 import java.util.UUID
 
-sealed class OpplysningspliktVilkår : Vilkår() {
-    override val vilkår = Inngangsvilkår.Opplysningsplikt
-    abstract val grunnlag: List<Opplysningspliktgrunnlag>
+sealed interface OpplysningspliktVilkår : Vilkår {
+    override val vilkår get() = Inngangsvilkår.Opplysningsplikt
+    val grunnlag: List<Opplysningspliktgrunnlag>
 
     abstract override fun lagTidslinje(periode: Periode): OpplysningspliktVilkår
-    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): OpplysningspliktVilkår
+    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): OpplysningspliktVilkår
     abstract override fun slåSammenLikePerioder(): OpplysningspliktVilkår
 
-    object IkkeVurdert : OpplysningspliktVilkår() {
+    object IkkeVurdert : OpplysningspliktVilkår {
         override val vurdering: Vurdering = Vurdering.Uavklart
         override val erAvslag = false
         override val erInnvilget = false
@@ -50,7 +50,7 @@ sealed class OpplysningspliktVilkår : Vilkår() {
 
     data class Vurdert private constructor(
         val vurderingsperioder: Nel<VurderingsperiodeOpplysningsplikt>,
-    ) : OpplysningspliktVilkår() {
+    ) : OpplysningspliktVilkår {
         override val grunnlag: List<Opplysningspliktgrunnlag> = vurderingsperioder.map { it.grunnlag }
         override fun lagTidslinje(periode: Periode): OpplysningspliktVilkår =
             copy(vurderingsperioder = vurderingsperioder.lagTidslinje().krympTilPeriode(periode)!!.toNonEmptyList())
@@ -121,7 +121,7 @@ data class VurderingsperiodeOpplysningsplikt private constructor(
     override val grunnlag: Opplysningspliktgrunnlag,
     override val vurdering: Vurdering,
     override val periode: Periode,
-) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodeOpplysningsplikt> {
+) : Vurderingsperiode, KanPlasseresPåTidslinje<VurderingsperiodeOpplysningsplikt> {
 
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeOpplysningsplikt {
         return create(

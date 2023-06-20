@@ -17,15 +17,15 @@ import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 import java.time.LocalDate
 import java.util.UUID
 
-sealed class FastOppholdINorgeVilkår : Vilkår() {
-    override val vilkår = Inngangsvilkår.FastOppholdINorge
-    abstract val grunnlag: List<FastOppholdINorgeGrunnlag>
+sealed interface FastOppholdINorgeVilkår : Vilkår {
+    override val vilkår get() = Inngangsvilkår.FastOppholdINorge
+    val grunnlag: List<FastOppholdINorgeGrunnlag>
 
     abstract override fun lagTidslinje(periode: Periode): FastOppholdINorgeVilkår
-    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FastOppholdINorgeVilkår
+    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FastOppholdINorgeVilkår
     abstract override fun slåSammenLikePerioder(): FastOppholdINorgeVilkår
 
-    object IkkeVurdert : FastOppholdINorgeVilkår() {
+    object IkkeVurdert : FastOppholdINorgeVilkår {
         override val vurdering: Vurdering = Vurdering.Uavklart
         override val erAvslag = false
         override val erInnvilget = false
@@ -49,7 +49,7 @@ sealed class FastOppholdINorgeVilkår : Vilkår() {
 
     data class Vurdert private constructor(
         val vurderingsperioder: Nel<VurderingsperiodeFastOppholdINorge>,
-    ) : FastOppholdINorgeVilkår() {
+    ) : FastOppholdINorgeVilkår {
         override val grunnlag: List<FastOppholdINorgeGrunnlag> = vurderingsperioder.mapNotNull { it.grunnlag }
         override fun lagTidslinje(periode: Periode): FastOppholdINorgeVilkår = copy(
             vurderingsperioder = vurderingsperioder.lagTidslinje().krympTilPeriode(periode)!!.toNonEmptyList(),
@@ -90,8 +90,8 @@ sealed class FastOppholdINorgeVilkår : Vilkår() {
             }
         }
 
-        sealed class UgyldigFastOppholdINorgeVikår {
-            object OverlappendeVurderingsperioder : UgyldigFastOppholdINorgeVikår()
+        sealed interface UgyldigFastOppholdINorgeVikår {
+            object OverlappendeVurderingsperioder : UgyldigFastOppholdINorgeVikår
         }
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FastOppholdINorgeVilkår {
@@ -115,7 +115,7 @@ data class VurderingsperiodeFastOppholdINorge private constructor(
     override val grunnlag: FastOppholdINorgeGrunnlag?,
     override val vurdering: Vurdering,
     override val periode: Periode,
-) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodeFastOppholdINorge> {
+) : Vurderingsperiode, KanPlasseresPåTidslinje<VurderingsperiodeFastOppholdINorge> {
 
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeFastOppholdINorge {
         return create(
@@ -181,7 +181,7 @@ data class VurderingsperiodeFastOppholdINorge private constructor(
         }
     }
 
-    sealed class UgyldigVurderingsperiode {
-        object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigVurderingsperiode()
+    sealed interface UgyldigVurderingsperiode {
+        object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigVurderingsperiode
     }
 }

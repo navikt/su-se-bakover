@@ -5,8 +5,8 @@ package no.nav.su.se.bakover.domain.vilkår
  *
  * Må ikke forveksles med [Vilkårsvurderingsresultat] som er det tilsvarende vurderingsresultatet som er gjort på tvers av _alle_ vilkårene.
  */
-sealed class Vurdering {
-    object Avslag : Vurdering()
-    object Innvilget : Vurdering()
-    object Uavklart : Vurdering()
+sealed interface Vurdering {
+    object Avslag : Vurdering
+    object Innvilget : Vurdering
+    object Uavklart : Vurdering
 }

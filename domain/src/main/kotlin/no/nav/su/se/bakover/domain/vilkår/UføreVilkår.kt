@@ -17,15 +17,15 @@ const val uføretrygdMinsteAlder = 18
 const val uføretrygdMaxAlder = 67
 val uføretrygdAldersIntervall = uføretrygdMinsteAlder..uføretrygdMaxAlder
 
-sealed class UføreVilkår : Vilkår() {
-    override val vilkår = Inngangsvilkår.Uførhet
-    abstract val grunnlag: List<Grunnlag.Uføregrunnlag>
+sealed interface UføreVilkår : Vilkår {
+    override val vilkår get() = Inngangsvilkår.Uførhet
+    val grunnlag: List<Grunnlag.Uføregrunnlag>
 
-    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): UføreVilkår
+    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): UføreVilkår
 
     abstract override fun lagTidslinje(periode: Periode): UføreVilkår
 
-    object IkkeVurdert : UføreVilkår() {
+    object IkkeVurdert : UføreVilkår {
         override val vurdering: Vurdering = Vurdering.Uavklart
         override val erAvslag = false
         override val erInnvilget = false
@@ -51,7 +51,7 @@ sealed class UføreVilkår : Vilkår() {
 
     data class Vurdert private constructor(
         val vurderingsperioder: Nel<VurderingsperiodeUføre>,
-    ) : UføreVilkår() {
+    ) : UføreVilkår {
 
         override val grunnlag: List<Grunnlag.Uføregrunnlag> = vurderingsperioder.mapNotNull {
             it.grunnlag
@@ -107,8 +107,8 @@ sealed class UføreVilkår : Vilkår() {
             }
         }
 
-        sealed class UgyldigUførevilkår {
-            object OverlappendeVurderingsperioder : UgyldigUførevilkår()
+        sealed interface UgyldigUførevilkår {
+            object OverlappendeVurderingsperioder : UgyldigUførevilkår
         }
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vurdert {

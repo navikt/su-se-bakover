@@ -15,7 +15,7 @@ data class VurderingsperiodeLovligOpphold private constructor(
     override val vurdering: Vurdering,
     override val grunnlag: LovligOppholdGrunnlag? = null,
     override val periode: Periode,
-) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodeLovligOpphold> {
+) : Vurderingsperiode, KanPlasseresPåTidslinje<VurderingsperiodeLovligOpphold> {
 
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode) = tryCreate(
         id = id,
