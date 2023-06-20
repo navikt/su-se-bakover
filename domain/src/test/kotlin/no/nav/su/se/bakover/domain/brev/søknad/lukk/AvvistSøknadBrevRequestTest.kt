@@ -39,14 +39,14 @@ internal class AvvistSøknadBrevRequestTest {
     fun `lager vedtaks-brevdata`() {
         AvvistSøknadBrevRequest(
             person = person,
-            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.VedtaksbrevUtenFritekst(),
+            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst(null, "fritekst"),
             saksbehandlerNavn = "saksbehandler",
             dagensDato = fixedLocalDate,
             saksnummer = Saksnummer(2021),
         ).pdfInnhold shouldBe AvvistSøknadVedtakPdfInnhold(
             expectedPersonalia,
             "saksbehandler",
-            null,
+            "fritekst",
         )
     }
 

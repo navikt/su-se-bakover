@@ -96,7 +96,7 @@ internal object LukkSøknadInputHandler {
                 ).right()
 
                 else -> {
-                    if (bodyAsJson.brevConfig.brevtype == LukketJson.BrevType.FRITEKST && bodyAsJson.brevConfig.fritekst == null) {
+                    if (bodyAsJson.brevConfig.fritekst == null) {
                         UgyldigLukkSøknadRequest.left()
                     } else {
                         LukkSøknadCommand.MedBrev.AvvistSøknad(
@@ -113,8 +113,8 @@ internal object LukkSøknadInputHandler {
 
     private fun toBrevvalg(brevConfig: LukketJson.AvvistJson.BrevConfigJson): Brevvalg.SaksbehandlersValg {
         return when (brevConfig.brevtype) {
-            LukketJson.BrevType.VEDTAK -> Brevvalg.SaksbehandlersValg.SkalSendeBrev.VedtaksbrevUtenFritekst()
             // Vi sjekker for null hvis brevet er av typen fritekst på steget over
+            LukketJson.BrevType.VEDTAK -> Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst(fritekst = brevConfig.fritekst!!)
             LukketJson.BrevType.FRITEKST -> Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst(
                 brevConfig.fritekst!!,
             )

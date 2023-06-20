@@ -145,7 +145,7 @@ fun avvistSøknadMedVedtaksbrev(
     søknadId: UUID = UUID.randomUUID(),
     lukketTidspunkt: Tidspunkt = fixedTidspunkt.plus(1, ChronoUnit.SECONDS),
     lukketAv: NavIdentBruker.Saksbehandler = saksbehandler,
-    brevvalg: Brevvalg.SaksbehandlersValg.SkalSendeBrev.VedtaksbrevUtenFritekst = Brevvalg.SaksbehandlersValg.SkalSendeBrev.VedtaksbrevUtenFritekst(),
+    brevvalg: Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst = Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst(null, "fritekst for avvisning"),
 ): Søknad.Journalført.MedOppgave.Lukket.Avvist {
     return nySakMedjournalførtSøknadOgOppgave(
         søknadId = søknadId,

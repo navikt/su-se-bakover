@@ -26,10 +26,16 @@ data class AvvistSøknadBrevRequest(
             fritekst = brevvalg.fritekst,
         )
 
-        is Brevvalg.SaksbehandlersValg.SkalSendeBrev.VedtaksbrevUtenFritekst -> AvvistSøknadVedtakPdfInnhold(
+        is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.UtenFritekst -> AvvistSøknadVedtakPdfInnhold(
             personalia = lagPersonalia(),
             saksbehandlerNavn = saksbehandlerNavn,
             fritekst = null,
+        )
+
+        is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst -> AvvistSøknadVedtakPdfInnhold(
+            personalia = lagPersonalia(),
+            saksbehandlerNavn = saksbehandlerNavn,
+            fritekst = brevvalg.fritekst,
         )
     }
 
@@ -50,7 +56,19 @@ data class AvvistSøknadBrevRequest(
                 }
             }
 
-            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.VedtaksbrevUtenFritekst -> {
+            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.UtenFritekst -> {
+                return genererDokument(clock, genererPdf).map {
+                    Dokument.UtenMetadata.Vedtak(
+                        id = UUID.randomUUID(),
+                        opprettet = Tidspunkt.now(clock),
+                        tittel = it.first,
+                        generertDokument = it.second,
+                        generertDokumentJson = it.third,
+                    )
+                }
+            }
+
+            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst -> {
                 return genererDokument(clock, genererPdf).map {
                     Dokument.UtenMetadata.Vedtak(
                         id = UUID.randomUUID(),

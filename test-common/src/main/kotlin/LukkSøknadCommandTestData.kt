@@ -23,7 +23,7 @@ fun avvisSøknadMedBrev(
     søknadId: UUID = no.nav.su.se.bakover.test.søknad.søknadId,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     lukketTidspunkt: Tidspunkt = fixedTidspunkt,
-    brevvalg: Brevvalg.SaksbehandlersValg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.VedtaksbrevUtenFritekst(),
+    brevvalg: Brevvalg.SaksbehandlersValg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.UtenFritekst(),
 ) = LukkSøknadCommand.MedBrev.AvvistSøknad(
     søknadId = søknadId,
     saksbehandler = saksbehandler,

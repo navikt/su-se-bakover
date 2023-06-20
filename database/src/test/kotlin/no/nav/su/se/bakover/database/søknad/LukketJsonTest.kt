@@ -15,7 +15,7 @@ import org.skyscreamer.jsonassert.JSONAssert
 internal class LukketJsonTest {
 
     @Test
-    fun `bortfalt`() {
+    fun bortfalt() {
         //language=JSON
         val expectedJson = """
             {
@@ -39,7 +39,7 @@ internal class LukketJsonTest {
     }
 
     @Test
-    fun `trukket`() {
+    fun trukket() {
         //language=JSON
         val expectedJson = """
             {
@@ -123,9 +123,9 @@ internal class LukketJsonTest {
           "saksbehandler":"saksbehandler",
           "type":"AVVIST",
           "brevvalg":{
-            "fritekst":null,
+            "fritekst":"skal sende med fritekst",
             "begrunnelse":null,
-            "type":"SAKSBEHANDLER_VALG_SKAL_SENDE_VEDTAKSBREV_UTEN_FRITEKST"
+            "type":"SAKSBEHANDLER_VALG_SKAL_SENDE_VEDTAKSBREV_MED_FRITEKST"
           },
           "trukketDato":null
         }
@@ -136,7 +136,7 @@ internal class LukketJsonTest {
             avvistSøknadMedVedtaksbrev(
                 lukketTidspunkt = fixedTidspunkt,
                 lukketAv = saksbehandler,
-                brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.VedtaksbrevUtenFritekst(),
+                brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst(null, "skal sende med fritekst"),
             ).toLukketJson(),
             true,
         )

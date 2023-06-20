@@ -250,8 +250,12 @@ sealed interface Søknad {
                 ) : Lukket, Avsluttet {
                     override val avsluttetTidspunkt: Tidspunkt = lukketTidspunkt
                     init {
-                        // Vi får ikke kompilatorstøtte for dette ved å bruke en generisk type som Brevvalg.
-                        require(brevvalg is Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev || brevvalg is Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst || brevvalg is Brevvalg.SaksbehandlersValg.SkalSendeBrev.VedtaksbrevUtenFritekst)
+                        when (brevvalg) {
+                            is Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev -> require(true)
+                            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst -> require(true)
+                            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst -> require(true)
+                            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.UtenFritekst -> require(false)
+                        }
                         require(lukketTidspunkt >= opprettet)
                     }
 
