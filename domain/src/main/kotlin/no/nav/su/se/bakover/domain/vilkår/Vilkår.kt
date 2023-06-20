@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.domain.vilkår
 
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.common.tid.periode.erSortert
-import no.nav.su.se.bakover.common.tid.periode.harDuplikater
 import java.time.LocalDate
 
 /**
@@ -31,13 +29,4 @@ sealed interface Vilkår {
     fun erLik(other: Vilkår): Boolean
     fun lagTidslinje(periode: Periode): Vilkår
     fun slåSammenLikePerioder(): Vilkår
-}
-
-/**
- * Skal kunne kalles fra undertyper av [Vilkår].
- */
-fun Vilkår.kastHvisPerioderErUsortertEllerHarDuplikater() {
-    require(perioder.erSortert())
-    require(!perioder.harDuplikater())
-    // TODO jah: Vurder å legg på require(perioder.minsteAntallSammenhengendePerioder() == perioder)
 }

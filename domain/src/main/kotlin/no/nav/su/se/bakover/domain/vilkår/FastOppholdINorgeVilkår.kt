@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.domain.grunnlag.FastOppholdINorgeGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
-import java.time.LocalDate
 import java.util.UUID
 
 sealed interface FastOppholdINorgeVilkår : Vilkår {
@@ -25,58 +24,46 @@ sealed interface FastOppholdINorgeVilkår : Vilkår {
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FastOppholdINorgeVilkår
     abstract override fun slåSammenLikePerioder(): FastOppholdINorgeVilkår
 
-    object IkkeVurdert : FastOppholdINorgeVilkår {
-        override val vurdering: Vurdering = Vurdering.Uavklart
-        override val erAvslag = false
-        override val erInnvilget = false
+    object IkkeVurdert : FastOppholdINorgeVilkår, IkkeVurdertVilkår {
         override val grunnlag = emptyList<FastOppholdINorgeGrunnlag>()
-        override val perioder: List<Periode> = emptyList()
-
-        override fun lagTidslinje(periode: Periode): FastOppholdINorgeVilkår {
-            return this
-        }
-
+        override fun lagTidslinje(periode: Periode): FastOppholdINorgeVilkår = this
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): IkkeVurdert = this
-        override fun slåSammenLikePerioder(): FastOppholdINorgeVilkår {
-            return this
-        }
-
-        override fun hentTidligesteDatoForAvslag(): LocalDate? = null
-        override fun erLik(other: Vilkår): Boolean {
-            return other is IkkeVurdert
-        }
+        override fun slåSammenLikePerioder(): FastOppholdINorgeVilkår = this
+        override fun erLik(other: Vilkår): Boolean = other is IkkeVurdert
     }
 
     data class Vurdert private constructor(
-        val vurderingsperioder: Nel<VurderingsperiodeFastOppholdINorge>,
-    ) : FastOppholdINorgeVilkår {
-        override val grunnlag: List<FastOppholdINorgeGrunnlag> = vurderingsperioder.mapNotNull { it.grunnlag }
-        override fun lagTidslinje(periode: Periode): FastOppholdINorgeVilkår = copy(
-            vurderingsperioder = vurderingsperioder.lagTidslinje().krympTilPeriode(periode)!!.toNonEmptyList(),
-        )
-
-        override val erInnvilget: Boolean = vurderingsperioder.all { it.vurdering == Vurdering.Innvilget }
-
-        override val erAvslag: Boolean = vurderingsperioder.any { it.vurdering == Vurdering.Avslag }
-
-        override val vurdering: Vurdering =
-            if (erInnvilget) Vurdering.Innvilget else if (erAvslag) Vurdering.Avslag else Vurdering.Uavklart
-
-        override val perioder: Nel<Periode> = vurderingsperioder.minsteAntallSammenhengendePerioder()
+        override val vurderingsperioder: Nel<VurderingsperiodeFastOppholdINorge>,
+    ) : FastOppholdINorgeVilkår, VurdertVilkår {
 
         init {
             kastHvisPerioderErUsortertEllerHarDuplikater()
+            require(!vurderingsperioder.harOverlappende())
         }
 
-        override fun hentTidligesteDatoForAvslag(): LocalDate? {
-            return vurderingsperioder
-                .filter { it.vurdering == Vurdering.Avslag }
-                .map { it.periode.fraOgMed }
-                .minByOrNull { it }
+        override val grunnlag: List<FastOppholdINorgeGrunnlag> = vurderingsperioder.mapNotNull { it.grunnlag }
+
+        override fun lagTidslinje(periode: Periode): FastOppholdINorgeVilkår {
+            return copy(
+                vurderingsperioder = vurderingsperioder.lagTidslinje().krympTilPeriode(periode)!!.toNonEmptyList(),
+            )
         }
 
         override fun erLik(other: Vilkår): Boolean {
             return other is Vurdert && vurderingsperioder.erLik(other.vurderingsperioder)
+        }
+
+        override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FastOppholdINorgeVilkår {
+            check(vurderingsperioder.count() == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med med enn én vurdering" }
+            return copy(
+                vurderingsperioder = vurderingsperioder.map {
+                    it.oppdaterStønadsperiode(stønadsperiode)
+                },
+            )
+        }
+
+        override fun slåSammenLikePerioder(): FastOppholdINorgeVilkår {
+            return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
 
         companion object {
@@ -92,19 +79,6 @@ sealed interface FastOppholdINorgeVilkår : Vilkår {
 
         sealed interface UgyldigFastOppholdINorgeVikår {
             object OverlappendeVurderingsperioder : UgyldigFastOppholdINorgeVikår
-        }
-
-        override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FastOppholdINorgeVilkår {
-            check(vurderingsperioder.count() == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med med enn én vurdering" }
-            return copy(
-                vurderingsperioder = vurderingsperioder.map {
-                    it.oppdaterStønadsperiode(stønadsperiode)
-                },
-            )
-        }
-
-        override fun slåSammenLikePerioder(): FastOppholdINorgeVilkår {
-            return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
     }
 }

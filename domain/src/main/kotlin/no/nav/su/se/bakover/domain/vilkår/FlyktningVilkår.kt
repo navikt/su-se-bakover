@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
-import java.time.LocalDate
 import java.util.UUID
 
 sealed interface FlyktningVilkår : Vilkår {
@@ -24,56 +23,39 @@ sealed interface FlyktningVilkår : Vilkår {
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FlyktningVilkår
     abstract override fun slåSammenLikePerioder(): FlyktningVilkår
 
-    object IkkeVurdert : FlyktningVilkår {
-        override val vurdering: Vurdering = Vurdering.Uavklart
-        override val erAvslag = false
-        override val erInnvilget = false
-        override val perioder: List<Periode> = emptyList()
-
-        override fun lagTidslinje(periode: Periode): FlyktningVilkår {
-            return this
-        }
-
+    object IkkeVurdert : FlyktningVilkår, IkkeVurdertVilkår {
+        override fun lagTidslinje(periode: Periode): FlyktningVilkår = this
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): IkkeVurdert = this
-        override fun slåSammenLikePerioder(): FlyktningVilkår {
-            return this
-        }
-
-        override fun hentTidligesteDatoForAvslag(): LocalDate? = null
-        override fun erLik(other: Vilkår): Boolean {
-            return other is IkkeVurdert
-        }
+        override fun slåSammenLikePerioder(): FlyktningVilkår = this
+        override fun erLik(other: Vilkår): Boolean = other is IkkeVurdert
     }
 
     data class Vurdert private constructor(
-        val vurderingsperioder: Nel<VurderingsperiodeFlyktning>,
-    ) : FlyktningVilkår {
-
-        override fun lagTidslinje(periode: Periode): FlyktningVilkår =
-            copy(vurderingsperioder = vurderingsperioder.lagTidslinje().krympTilPeriode(periode)!!.toNonEmptyList())
-
-        override val erInnvilget: Boolean = vurderingsperioder.all { it.vurdering == Vurdering.Innvilget }
-
-        override val erAvslag: Boolean = vurderingsperioder.any { it.vurdering == Vurdering.Avslag }
-
-        override val vurdering: Vurdering =
-            if (erInnvilget) Vurdering.Innvilget else if (erAvslag) Vurdering.Avslag else Vurdering.Uavklart
-
-        override val perioder: Nel<Periode> = vurderingsperioder.minsteAntallSammenhengendePerioder()
+        override val vurderingsperioder: Nel<VurderingsperiodeFlyktning>,
+    ) : FlyktningVilkår, VurdertVilkår {
 
         init {
             kastHvisPerioderErUsortertEllerHarDuplikater()
         }
 
-        override fun hentTidligesteDatoForAvslag(): LocalDate? {
-            return vurderingsperioder
-                .filter { it.vurdering == Vurdering.Avslag }
-                .map { it.periode.fraOgMed }
-                .minByOrNull { it }
-        }
+        override fun lagTidslinje(periode: Periode): FlyktningVilkår =
+            copy(vurderingsperioder = vurderingsperioder.lagTidslinje().krympTilPeriode(periode)!!.toNonEmptyList())
 
         override fun erLik(other: Vilkår): Boolean {
             return other is Vurdert && vurderingsperioder.erLik(other.vurderingsperioder)
+        }
+
+        override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FlyktningVilkår {
+            check(vurderingsperioder.count() == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med med enn én vurdering" }
+            return copy(
+                vurderingsperioder = vurderingsperioder.map {
+                    it.oppdaterStønadsperiode(stønadsperiode)
+                },
+            )
+        }
+
+        override fun slåSammenLikePerioder(): FlyktningVilkår {
+            return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
 
         companion object {
@@ -94,19 +76,6 @@ sealed interface FlyktningVilkår : Vilkår {
 
         sealed interface UgyldigFlyktningVilkår {
             object OverlappendeVurderingsperioder : UgyldigFlyktningVilkår
-        }
-
-        override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FlyktningVilkår {
-            check(vurderingsperioder.count() == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med med enn én vurdering" }
-            return copy(
-                vurderingsperioder = vurderingsperioder.map {
-                    it.oppdaterStønadsperiode(stønadsperiode)
-                },
-            )
-        }
-
-        override fun slåSammenLikePerioder(): FlyktningVilkår {
-            return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
     }
 }

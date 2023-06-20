@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
-import java.time.LocalDate
 
 sealed interface FamiliegjenforeningVilkår : Vilkår {
     override val vilkår: Inngangsvilkår get() = Inngangsvilkår.Familiegjenforening
@@ -17,38 +16,35 @@ sealed interface FamiliegjenforeningVilkår : Vilkår {
     abstract override fun lagTidslinje(periode: Periode): FamiliegjenforeningVilkår
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FamiliegjenforeningVilkår
 
-    object IkkeVurdert : FamiliegjenforeningVilkår {
-        override val vurdering: Vurdering = Vurdering.Uavklart
-        override val erAvslag: Boolean = false
-        override val erInnvilget: Boolean = false
-        override val perioder: List<Periode> = emptyList()
-
-        override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode) = this
-        override fun hentTidligesteDatoForAvslag(): LocalDate? = null
-        override fun erLik(other: Vilkår) = other is IkkeVurdert
-        override fun lagTidslinje(periode: Periode) = this
-        override fun slåSammenLikePerioder() = this
+    object IkkeVurdert : FamiliegjenforeningVilkår, IkkeVurdertVilkår {
+        override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): IkkeVurdert = this
+        override fun erLik(other: Vilkår): Boolean = other is IkkeVurdert
+        override fun lagTidslinje(periode: Periode): IkkeVurdert = this
+        override fun slåSammenLikePerioder(): IkkeVurdert = this
     }
 
     data class Vurdert private constructor(
-        val vurderingsperioder: Nel<VurderingsperiodeFamiliegjenforening>,
-    ) : FamiliegjenforeningVilkår {
-        override val erInnvilget = vurderingsperioder.all { it.vurdering == Vurdering.Innvilget }
-        override val erAvslag = vurderingsperioder.any { it.vurdering == Vurdering.Avslag }
-        override val vurdering =
-            if (erInnvilget) Vurdering.Innvilget else if (erAvslag) Vurdering.Avslag else Vurdering.Uavklart
+        override val vurderingsperioder: Nel<VurderingsperiodeFamiliegjenforening>,
+    ) : FamiliegjenforeningVilkår, VurdertVilkår {
 
-        override val perioder: Nel<Periode> = vurderingsperioder.minsteAntallSammenhengendePerioder()
-        override fun erLik(other: Vilkår) = other is Vurdert && vurderingsperioder.erLik(other.vurderingsperioder)
-        override fun slåSammenLikePerioder() = copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
+        init {
+            kastHvisPerioderErUsortertEllerHarDuplikater()
+            require(!vurderingsperioder.harOverlappende())
+        }
 
-        override fun hentTidligesteDatoForAvslag() = vurderingsperioder
-            .filter { it.vurdering == Vurdering.Avslag }
-            .map { it.periode.fraOgMed }
-            .minByOrNull { it }
+        override fun erLik(other: Vilkår): Boolean {
+            return other is Vurdert && vurderingsperioder.erLik(other.vurderingsperioder)
+        }
 
-        override fun lagTidslinje(periode: Periode): Vurdert =
-            copy(vurderingsperioder = vurderingsperioder.lagTidslinje().krympTilPeriode(periode)!!.toNonEmptyList())
+        override fun slåSammenLikePerioder(): Vurdert {
+            return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
+        }
+
+        override fun lagTidslinje(periode: Periode): Vurdert {
+            return copy(
+                vurderingsperioder = vurderingsperioder.lagTidslinje().krympTilPeriode(periode)!!.toNonEmptyList(),
+            )
+        }
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FamiliegjenforeningVilkår {
             check(vurderingsperioder.count() == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med mer enn én vurdering" }
