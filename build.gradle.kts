@@ -1,4 +1,6 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_19
+import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 plugins {
     kotlin("jvm")
@@ -162,11 +164,11 @@ subprojects {
         }
     }
 
-    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-        kotlinOptions {
-            jvmTarget = "19"
-            freeCompilerArgs += "-progressive"
-            allWarningsAsErrors = true
+    tasks.withType<KotlinJvmCompile> {
+        compilerOptions {
+            jvmTarget.set(JVM_19)
+            freeCompilerArgs.add("-progressive")
+            allWarningsAsErrors.set(true)
         }
     }
 
