@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.domain.brev
 
+import no.nav.su.se.bakover.domain.dokument.Dokumenttilstand
+
 /**
  * Ved vedtak, lukking av behandling, forhåndsvarsling og andre handlinger ønsker vi 3 muligheter for brevsending:
  *  1. Send alltid brev.
@@ -12,6 +14,11 @@ package no.nav.su.se.bakover.domain.brev
 sealed interface Brevvalg {
 
     fun skalSendeBrev(): Boolean
+
+    /**
+     * Har kun mulighet å gi ut [Dokumenttilstand.SKAL_IKKE_GENERERE] & [Dokumenttilstand.IKKE_GENERERT_ENDA]
+     */
+    fun tilDokumenttilstand(): Dokumenttilstand
 
     /** null for de variantene som ikke skal sende brev og eventuelle brev som ikke har fritekst. */
     val fritekst: String?
@@ -29,7 +36,7 @@ sealed interface Brevvalg {
     ) : Brevvalg {
         override fun skalSendeBrev() = false
         override val fritekst = null
-
+        override fun tilDokumenttilstand() = Dokumenttilstand.SKAL_IKKE_GENERERE
         override fun toString(): String {
             // Vi ønsker ikke logge fritekst eller begrunnelse i tilfelle den inneholder sensitiv informasjon.
             return "SkalIkkeSendeBrev(begrunnelse='***')"
@@ -42,6 +49,7 @@ sealed interface Brevvalg {
      */
     sealed interface SkalSendeBrev : Brevvalg {
         override fun skalSendeBrev() = true
+        override fun tilDokumenttilstand() = Dokumenttilstand.IKKE_GENERERT_ENDA
 
         /**
          * Tilfeller der vi alltid skal sende brev med fritekst.
@@ -80,7 +88,7 @@ sealed interface Brevvalg {
          * Saksbehandler har valgt at det skal sendes brev.
          */
         sealed interface SkalSendeBrev : SaksbehandlersValg {
-
+            override fun tilDokumenttilstand() = Dokumenttilstand.IKKE_GENERERT_ENDA
             override fun skalSendeBrev() = true
 
             /**
@@ -131,7 +139,7 @@ sealed interface Brevvalg {
             override val begrunnelse: String? = null,
         ) : SaksbehandlersValg {
             override val fritekst = null
-
+            override fun tilDokumenttilstand() = Dokumenttilstand.SKAL_IKKE_GENERERE
             override fun toString(): String {
                 // Vi ønsker ikke logge fritekst eller begrunnelse i tilfelle den inneholder sensitiv informasjon.
                 return "SkalIkkeSendeBrev(begrunnelse='***')"

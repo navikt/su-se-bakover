@@ -10,19 +10,43 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.Brevvalg
+import no.nav.su.se.bakover.domain.dokument.Dokumenttilstand
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import java.util.UUID
 
 internal object SøknadRepoInternal {
-    fun hentSøknadInternal(søknadId: UUID, session: Session): Søknad? = "select * from søknad where id=:id"
+    fun hentSøknadInternal(søknadId: UUID, session: Session): Søknad? = """
+        select s.*,
+               d.id             as dokumentid,
+               dd.brevbestillingid,
+               dd.journalpostid as journalpostidDokument
+        from søknad s
+                 left join dokument d on s.id = d.søknadid
+                 left join dokument_distribusjon dd on d.id = dd.dokumentid
+        where s.id = :id
+          and d.duplikatAv is null
+        order by s.opprettet
+    """.trimIndent()
         .hent(mapOf("id" to søknadId), session) {
             it.toSøknad()
         }
 
-    fun hentSøknaderInternal(sakId: UUID, session: Session) = "select * from søknad where sakId=:sakId"
+    fun hentSøknaderInternal(sakId: UUID, session: Session) = """
+        select s.*,
+               d.id             as dokumentid,
+               dd.brevbestillingid,
+               dd.journalpostid as journalpostidDokument
+        from søknad s
+                 left join dokument d on s.id = d.søknadid
+                 left join dokument_distribusjon dd on d.id = dd.dokumentid
+        where s.sakId = :sakId
+          and d.duplikatAv is null
+        order by s.opprettet
+    """.trimIndent()
         .hentListe(mapOf("sakId" to sakId), session) {
             it.toSøknad()
         }
@@ -53,6 +77,17 @@ internal fun Row.toSøknad(): Søknad {
     val oppgaveId: OppgaveId? = stringOrNull("oppgaveId")?.let { OppgaveId(it) }
     val journalpostId: JournalpostId? = stringOrNull("journalpostId")?.let { JournalpostId(it) }
 
+    val dokumentId: UUID? = uuidOrNull("dokumentid")
+    val journalpostIdDokument: JournalpostId? = stringOrNull("journalpostidDokument")?.let { JournalpostId(it) }
+    val brevbestillingId: BrevbestillingId? = stringOrNull("brevbestillingid")?.let { BrevbestillingId(it) }
+
+    val dokumenttilstand: Dokumenttilstand = when {
+        brevbestillingId != null -> Dokumenttilstand.SENDT
+        journalpostIdDokument != null -> Dokumenttilstand.JOURNALFØRT
+        dokumentId != null -> Dokumenttilstand.GENERERT
+        else -> Dokumenttilstand.IKKE_GENERERT_ENDA
+    }
+
     return when {
         lukket != null -> when (lukket.type) {
             LukketJson.Type.BORTFALT -> Søknad.Journalført.MedOppgave.Lukket.Bortfalt(
@@ -66,6 +101,7 @@ internal fun Row.toSøknad(): Søknad {
                 lukketTidspunkt = lukket.tidspunkt,
                 innsendtAv = innsendtAv,
             )
+
             LukketJson.Type.AVVIST -> Søknad.Journalført.MedOppgave.Lukket.Avvist(
                 sakId = sakId,
                 id = id,
@@ -77,7 +113,9 @@ internal fun Row.toSøknad(): Søknad {
                 lukketTidspunkt = lukket.tidspunkt,
                 brevvalg = lukket.toBrevvalg() as Brevvalg.SaksbehandlersValg,
                 innsendtAv = innsendtAv,
+                dokumenttilstand = dokumenttilstand,
             )
+
             LukketJson.Type.TRUKKET -> Søknad.Journalført.MedOppgave.Lukket.TrukketAvSøker(
                 sakId = sakId,
                 id = id,
@@ -89,8 +127,10 @@ internal fun Row.toSøknad(): Søknad {
                 lukketTidspunkt = lukket.tidspunkt,
                 trukketDato = lukket.trukketDato!!,
                 innsendtAv = innsendtAv,
+                dokumenttilstand = dokumenttilstand,
             )
         }
+
         journalpostId == null -> Søknad.Ny(
             sakId = sakId,
             id = id,
@@ -98,6 +138,7 @@ internal fun Row.toSøknad(): Søknad {
             søknadInnhold = søknadInnhold,
             innsendtAv = innsendtAv,
         )
+
         oppgaveId == null -> Søknad.Journalført.UtenOppgave(
             sakId = sakId,
             id = id,
@@ -106,6 +147,7 @@ internal fun Row.toSøknad(): Søknad {
             journalpostId = journalpostId,
             innsendtAv = innsendtAv,
         )
+
         else -> Søknad.Journalført.MedOppgave.IkkeLukket(
             sakId = sakId,
             id = id,
