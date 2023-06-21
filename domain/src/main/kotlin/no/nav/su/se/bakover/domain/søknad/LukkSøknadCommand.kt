@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.søknad
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.Brevvalg
-import no.nav.su.se.bakover.domain.dokument.Dokumenttilstand
 import java.time.LocalDate
 import java.util.UUID
 
@@ -14,7 +13,6 @@ sealed class LukkSøknadCommand {
 
     // Convenience prop
     open val brevvalg: Brevvalg.SaksbehandlersValg? = null
-    abstract val dokumenttilstand: Dokumenttilstand
 
     sealed class MedBrev : LukkSøknadCommand() {
 
@@ -23,18 +21,14 @@ sealed class LukkSøknadCommand {
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val lukketTidspunkt: Tidspunkt,
             val trukketDato: LocalDate,
-        ) : MedBrev() {
-            override val dokumenttilstand: Dokumenttilstand = Dokumenttilstand.IKKE_GENERERT_ENDA
-        }
+        ) : MedBrev()
 
         data class AvvistSøknad(
             override val søknadId: UUID,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val lukketTidspunkt: Tidspunkt,
             override val brevvalg: Brevvalg.SaksbehandlersValg,
-        ) : MedBrev() {
-            override val dokumenttilstand: Dokumenttilstand = Dokumenttilstand.IKKE_GENERERT_ENDA
-        }
+        ) : MedBrev()
     }
 
     sealed class UtenBrev : LukkSøknadCommand() {
@@ -42,16 +36,12 @@ sealed class LukkSøknadCommand {
             override val søknadId: UUID,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val lukketTidspunkt: Tidspunkt,
-        ) : UtenBrev() {
-            override val dokumenttilstand: Dokumenttilstand = Dokumenttilstand.SKAL_IKKE_GENERERE
-        }
+        ) : UtenBrev()
 
         data class AvvistSøknad(
             override val søknadId: UUID,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val lukketTidspunkt: Tidspunkt,
-        ) : UtenBrev() {
-            override val dokumenttilstand: Dokumenttilstand = Dokumenttilstand.SKAL_IKKE_GENERERE
-        }
+        ) : UtenBrev()
     }
 }

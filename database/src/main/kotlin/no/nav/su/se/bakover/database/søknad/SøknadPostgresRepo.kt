@@ -109,11 +109,14 @@ internal class SøknadPostgresRepo(
                              left join dokument d on s.id = d.søknadid
                              left join dokument_distribusjon dd on d.id = dd.dokumentid
                     where s.journalpostId is null
+                    and d.duplikatAv is null
                 """.trimIndent().hentListe(
                     session = session,
                 ) {
                     it.toSøknad()
-                }.filterIsInstance(Søknad.Ny::class.java)
+                }.filterIsInstance(Søknad.Ny::class.java).also {
+                    check(it.distinctBy { it.id }.size == it.size)
+                }
             }
         }
     }
@@ -129,12 +132,16 @@ internal class SøknadPostgresRepo(
                     from søknad s
                              left join dokument d on s.id = d.søknadid
                              left join dokument_distribusjon dd on d.id = dd.dokumentid
-                    where s.journalpostId is not null and oppgaveId is null
+                    where s.journalpostId is not null 
+                    and oppgaveId is null
+                    and d.duplikatAv is null
                 """.trimIndent().hentListe(
                     session = session,
                 ) {
                     it.toSøknad()
-                }.filterIsInstance(Søknad.Journalført.UtenOppgave::class.java)
+                }.filterIsInstance(Søknad.Journalført.UtenOppgave::class.java).also {
+                    check(it.distinctBy { it.id }.size == it.size)
+                }
             }
         }
     }

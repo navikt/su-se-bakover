@@ -140,7 +140,7 @@ sealed interface Søknad {
                             lukketAv = lukkSøknadCommand.saksbehandler,
                             brevvalg = lukkSøknadCommand.brevvalg,
                             innsendtAv = innsendtAv,
-                            dokumenttilstand = lukkSøknadCommand.dokumenttilstand,
+                            dokumenttilstand = Dokumenttilstand.IKKE_GENERERT_ENDA,
                         )
 
                         is LukkSøknadCommand.UtenBrev.AvvistSøknad -> Lukket.Avvist(
@@ -154,7 +154,7 @@ sealed interface Søknad {
                             lukketAv = lukkSøknadCommand.saksbehandler,
                             brevvalg = Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev(),
                             innsendtAv = innsendtAv,
-                            dokumenttilstand = lukkSøknadCommand.dokumenttilstand,
+                            dokumenttilstand = Dokumenttilstand.SKAL_IKKE_GENERERE,
                         )
 
                         is LukkSøknadCommand.MedBrev.TrekkSøknad -> Lukket.TrukketAvSøker(
@@ -168,7 +168,7 @@ sealed interface Søknad {
                             lukketAv = lukkSøknadCommand.saksbehandler,
                             trukketDato = lukkSøknadCommand.trukketDato,
                             innsendtAv = innsendtAv,
-                            dokumenttilstand = lukkSøknadCommand.dokumenttilstand,
+                            dokumenttilstand = Dokumenttilstand.IKKE_GENERERT_ENDA,
                         )
 
                         is LukkSøknadCommand.UtenBrev.BortfaltSøknad -> Lukket.Bortfalt(
@@ -221,7 +221,7 @@ sealed interface Søknad {
                 val lukketTidspunkt: Tidspunkt
                 val lukketAv: Saksbehandler
                 val brevvalg: Brevvalg
-                val dokumenttilstand: Dokumenttilstand
+                val dokumenttilstand: Dokumenttilstand get() = brevvalg.tilDokumenttilstand()
 
                 /**
                  * @return null dersom det ikke skal kunne lages brev.
@@ -252,7 +252,7 @@ sealed interface Søknad {
                     override val lukketAv: Saksbehandler,
                     override val brevvalg: Brevvalg.SaksbehandlersValg,
                     override val innsendtAv: NavIdentBruker,
-                    override val dokumenttilstand: Dokumenttilstand,
+                    override val dokumenttilstand: Dokumenttilstand = brevvalg.tilDokumenttilstand(),
                 ) : Lukket {
                     override val avsluttetTidspunkt: Tidspunkt = lukketTidspunkt
                     init {
@@ -302,7 +302,7 @@ sealed interface Søknad {
                     val trukketDato: LocalDate,
                     override val innsendtAv: NavIdentBruker,
                     override val lukketTidspunkt: Tidspunkt,
-                    override val dokumenttilstand: Dokumenttilstand,
+                    override val dokumenttilstand: Dokumenttilstand = Dokumenttilstand.IKKE_GENERERT_ENDA,
                 ) : Lukket, Avbrutt {
                     override val avsluttetTidspunkt: Tidspunkt = lukketTidspunkt
                     override val brevvalg =
