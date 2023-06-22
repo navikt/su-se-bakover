@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -18,6 +19,7 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtal
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.innkaltKontrollsamtale
 import no.nav.su.se.bakover.test.planlagtKontrollsamtale
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
@@ -149,8 +151,8 @@ internal class KontrollsamtaleRoutesKtTest {
                 "/kontrollsamtale/hent/${UUID.randomUUID()}",
                 listOf(Brukerrolle.Saksbehandler),
             ).apply {
-                status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe "null"
+                status shouldBe HttpStatusCode.NotFound
+                bodyAsText() shouldContain "fant_ikke_planlagt_kontrollsamtale"
             }
         }
     }
@@ -188,6 +190,37 @@ internal class KontrollsamtaleRoutesKtTest {
             ).apply {
                 status shouldBe HttpStatusCode.InternalServerError
             }
+        }
+    }
+
+    @Test
+    fun `henter alle kontrollsamtaler på sak`() {
+        val sakId = UUID.randomUUID()
+        val kontrollsamtaleMock = mock<KontrollsamtaleService> {
+            on {
+                hentKontrollsamtaler(any())
+            } doReturn listOf(innkaltKontrollsamtale(sakId = sakId), planlagtKontrollsamtale(sakId = sakId))
+        }
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services(
+                        kontrollsamtaleSetup = object : KontrollsamtaleSetup {
+                            override val kontrollsamtaleService = kontrollsamtaleMock
+                            override val opprettPlanlagtKontrollsamtaleService
+                                get() = fail("Should not end up here.")
+                            override val annullerKontrollsamtaleService
+                                get() = fail("Should not end up here.")
+                            override val utløptFristForKontrollsamtaleService: UtløptFristForKontrollsamtaleService
+                                get() = fail("Should not end up here.")
+                        },
+                    ),
+                )
+            }
+            defaultRequest(HttpMethod.Get, "/kontrollsamtaler/$sakId", listOf(Brukerrolle.Saksbehandler))
+                .apply {
+                    status shouldBe HttpStatusCode.OK
+                }
         }
     }
 }

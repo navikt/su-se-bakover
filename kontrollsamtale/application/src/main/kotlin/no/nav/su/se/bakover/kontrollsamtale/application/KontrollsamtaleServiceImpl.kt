@@ -146,6 +146,10 @@ class KontrollsamtaleServiceImpl(
             ?: KunneIkkeHenteKontrollsamtale.FantIkkePlanlagtKontrollsamtale.left()
     }
 
+    override fun hentKontrollsamtaler(sakId: UUID): List<Kontrollsamtale> {
+        return kontrollsamtaleRepo.hentForSakId(sakId)
+    }
+
     override fun hentPlanlagteKontrollsamtaler(
         sessionContext: SessionContext,
     ): Either<KunneIkkeHenteKontrollsamtale, List<Kontrollsamtale>> {

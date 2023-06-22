@@ -1158,6 +1158,11 @@ open class AccessCheckProxy(
                     override fun lagre(kontrollsamtale: Kontrollsamtale, sessionContext: SessionContext) =
                         kastKanKunKallesFraAnnenService()
 
+                    override fun hentKontrollsamtaler(sakId: UUID): List<Kontrollsamtale> {
+                        assertHarTilgangTilSak(sakId)
+                        return service.hentKontrollsamtaler(sakId)
+                    }
+
                     override fun kallInn(
                         sakId: UUID,
                         kontrollsamtale: Kontrollsamtale,

@@ -305,6 +305,25 @@ internal class KontrollsamtaleServiceImplTest {
         verifyNoMoreInteractions(services.sakService, services.kontrollsamtaleRepo)
     }
 
+    @Test
+    fun `henter alle kontrollsamtaler`() {
+        val sakId = UUID.randomUUID()
+        val services = ServiceOgMocks(
+            kontrollsamtaleRepo = mock {
+                on { hentForSakId(any(), anyOrNull()) } doReturn listOf(
+                    planlagtKontrollsamtale(),
+                    innkaltKontrollsamtale(),
+                )
+            },
+            clock = fixedClock,
+        )
+
+        services.kontrollsamtaleService.hentKontrollsamtaler(sakId).let {
+            it.size shouldBe 2
+            verify(services.kontrollsamtaleService).hentKontrollsamtaler(argThat { it shouldBe sakId })
+        }
+    }
+
     private data class ServiceOgMocks(
         val sakService: SakService = mock(),
         val personService: PersonService = mock(),

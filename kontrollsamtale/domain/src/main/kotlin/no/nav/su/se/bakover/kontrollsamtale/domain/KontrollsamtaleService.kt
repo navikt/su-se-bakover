@@ -24,4 +24,5 @@ interface KontrollsamtaleService {
     fun hentInnkalteKontrollsamtalerMedFristUtløpt(dato: LocalDate): List<Kontrollsamtale>
 
     fun lagre(kontrollsamtale: Kontrollsamtale, sessionContext: SessionContext)
+    fun hentKontrollsamtaler(sakId: UUID): List<Kontrollsamtale>
 }

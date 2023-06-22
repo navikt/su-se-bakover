@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
@@ -16,6 +17,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeSetteNyDatoForKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.infrastructure.web.KontrollsamtaleJson.Companion.toJson
 import java.time.LocalDate
 import java.util.UUID
 
@@ -57,9 +59,9 @@ fun Route.kontrollsamtaleRoutes(
                         call.svar(
                             when (it) {
                                 KunneIkkeHenteKontrollsamtale.KunneIkkeHenteKontrollsamtaler -> Feilresponser.kunneIkkeHenteNesteKontrollsamtale
-                                KunneIkkeHenteKontrollsamtale.FantIkkePlanlagtKontrollsamtale -> Resultat.json(
-                                    HttpStatusCode.OK,
-                                    "null",
+                                KunneIkkeHenteKontrollsamtale.FantIkkePlanlagtKontrollsamtale -> HttpStatusCode.NotFound.errorJson(
+                                    "Fant ingen planlagte kontrollsamler",
+                                    "fant_ikke_planlagt_kontrollsamtale",
                                 )
                             },
                         )
@@ -68,6 +70,16 @@ fun Route.kontrollsamtaleRoutes(
                         call.svar(Resultat.json(HttpStatusCode.OK, serialize(it)))
                     },
                 )
+            }
+        }
+    }
+
+    get("kontrollsamtaler/{sakId}") {
+        authorize(Brukerrolle.Saksbehandler) {
+            call.withSakId { sakId ->
+                kontrollsamtaleService.hentKontrollsamtaler(sakId).let {
+                    call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
+                }
             }
         }
     }
