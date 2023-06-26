@@ -35,14 +35,14 @@ import java.util.UUID
 internal class KontrollsamtaleRoutesKtTest {
 
     private val validBody = """
-        {"sakId": "${UUID.randomUUID()}", "nyDato": "${LocalDate.now(fixedClock).plusMonths(2)}"}
+         {"nyDato": "${LocalDate.now(fixedClock).plusMonths(2)}"}
     """.trimIndent()
 
     @Test
     fun `må være innlogget for å endre dato på kontrollsamtale`() {
         testApplication {
             application { testSusebakoverWithMockedDb() }
-            client.post("/kontrollsamtale/nyDato").apply {
+            client.post("/saker/${UUID.randomUUID()}/kontrollsamtaler/nyDato").apply {
                 status shouldBe HttpStatusCode.Unauthorized
             }
         }
@@ -69,7 +69,7 @@ internal class KontrollsamtaleRoutesKtTest {
                     ),
                 )
             }
-            defaultRequest(HttpMethod.Post, "/kontrollsamtale/nyDato", listOf(Brukerrolle.Saksbehandler)) {
+            defaultRequest(HttpMethod.Post, "/saker/${UUID.randomUUID()}/kontrollsamtaler/nyDato", listOf(Brukerrolle.Saksbehandler)) {
                 setBody(validBody)
             }.apply {
                 status shouldBe HttpStatusCode.OK
@@ -81,7 +81,7 @@ internal class KontrollsamtaleRoutesKtTest {
     fun `må være innlogget for å hente kontrollsamtale`() {
         testApplication {
             application { testSusebakoverWithMockedDb() }
-            client.get("/kontrollsamtale/hent/${UUID.randomUUID()}").apply {
+            client.get("/saker/${UUID.randomUUID()}/kontrollsamtaler/hent").apply {
                 status shouldBe HttpStatusCode.Unauthorized
             }
         }
@@ -111,7 +111,7 @@ internal class KontrollsamtaleRoutesKtTest {
             }
             defaultRequest(
                 HttpMethod.Get,
-                "/kontrollsamtale/hent/${UUID.randomUUID()}",
+                "/saker/${UUID.randomUUID()}/kontrollsamtaler/hent",
                 listOf(Brukerrolle.Saksbehandler),
             ).apply {
                 status shouldBe HttpStatusCode.OK
@@ -148,7 +148,7 @@ internal class KontrollsamtaleRoutesKtTest {
             }
             defaultRequest(
                 HttpMethod.Get,
-                "/kontrollsamtale/hent/${UUID.randomUUID()}",
+                "/saker/${UUID.randomUUID()}/kontrollsamtaler/hent",
                 listOf(Brukerrolle.Saksbehandler),
             ).apply {
                 status shouldBe HttpStatusCode.NotFound
@@ -185,7 +185,7 @@ internal class KontrollsamtaleRoutesKtTest {
             }
             defaultRequest(
                 HttpMethod.Get,
-                "/kontrollsamtale/hent/${UUID.randomUUID()}",
+                "/saker/${UUID.randomUUID()}/kontrollsamtaler/hent",
                 listOf(Brukerrolle.Saksbehandler),
             ).apply {
                 status shouldBe HttpStatusCode.InternalServerError
@@ -217,7 +217,7 @@ internal class KontrollsamtaleRoutesKtTest {
                     ),
                 )
             }
-            defaultRequest(HttpMethod.Get, "/kontrollsamtaler/$sakId", listOf(Brukerrolle.Saksbehandler))
+            defaultRequest(HttpMethod.Get, "/saker/$sakId/kontrollsamtaler", listOf(Brukerrolle.Saksbehandler))
                 .apply {
                     status shouldBe HttpStatusCode.OK
                 }

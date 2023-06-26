@@ -19,39 +19,38 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeSetteNyDatoForKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.web.KontrollsamtaleJson.Companion.toJson
 import java.time.LocalDate
-import java.util.UUID
+
+const val sakPath = "/saker"
 
 fun Route.kontrollsamtaleRoutes(
     kontrollsamtaleService: KontrollsamtaleService,
 ) {
-    post("kontrollsamtale/nyDato") {
+    post("$sakPath/{sakId}/kontrollsamtaler/nyDato") {
         authorize(Brukerrolle.Saksbehandler) {
             data class Body(
-                val sakId: UUID,
                 val nyDato: LocalDate,
             )
-
-            call.withBody<Body> { body ->
-                kontrollsamtaleService.nyDato(body.sakId, body.nyDato).fold(
-                    {
-                        call.svar(
-                            when (it) {
-                                KunneIkkeSetteNyDatoForKontrollsamtale.FantIkkeGjeldendeStønadsperiode -> Feilresponser.fantIkkeGjeldendeStønadsperiode
-                                KunneIkkeSetteNyDatoForKontrollsamtale.FantIkkeSak -> Feilresponser.fantIkkeSak
-                                KunneIkkeSetteNyDatoForKontrollsamtale.UgyldigStatusovergang -> Feilresponser.ugyldigStatusovergangKontrollsamtale
-                                KunneIkkeSetteNyDatoForKontrollsamtale.DatoIkkeFørsteIMåned -> Feilresponser.datoMåVæreFørsteIMåned
-                            },
-                        )
-                    },
-                    {
-                        call.svar(Resultat.okJson())
-                    },
-                )
+            call.withSakId { sakId ->
+                call.withBody<Body> { body ->
+                    kontrollsamtaleService.nyDato(sakId, body.nyDato).fold(
+                        {
+                            call.svar(
+                                when (it) {
+                                    KunneIkkeSetteNyDatoForKontrollsamtale.FantIkkeGjeldendeStønadsperiode -> Feilresponser.fantIkkeGjeldendeStønadsperiode
+                                    KunneIkkeSetteNyDatoForKontrollsamtale.FantIkkeSak -> Feilresponser.fantIkkeSak
+                                    KunneIkkeSetteNyDatoForKontrollsamtale.UgyldigStatusovergang -> Feilresponser.ugyldigStatusovergangKontrollsamtale
+                                    KunneIkkeSetteNyDatoForKontrollsamtale.DatoIkkeFørsteIMåned -> Feilresponser.datoMåVæreFørsteIMåned
+                                },
+                            )
+                        },
+                        { call.svar(Resultat.okJson()) },
+                    )
+                }
             }
         }
     }
 
-    get("kontrollsamtale/hent/{sakId}") {
+    get("$sakPath/{sakId}/kontrollsamtaler/hent") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(sakId).fold(
@@ -60,7 +59,7 @@ fun Route.kontrollsamtaleRoutes(
                             when (it) {
                                 KunneIkkeHenteKontrollsamtale.KunneIkkeHenteKontrollsamtaler -> Feilresponser.kunneIkkeHenteNesteKontrollsamtale
                                 KunneIkkeHenteKontrollsamtale.FantIkkePlanlagtKontrollsamtale -> HttpStatusCode.NotFound.errorJson(
-                                    "Fant ingen planlagte kontrollsamler",
+                                    "Fant ikke planlagt kontrollsamle",
                                     "fant_ikke_planlagt_kontrollsamtale",
                                 )
                             },
@@ -74,11 +73,11 @@ fun Route.kontrollsamtaleRoutes(
         }
     }
 
-    get("kontrollsamtaler/{sakId}") {
+    get("$sakPath/{sakId}/kontrollsamtaler") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 kontrollsamtaleService.hentKontrollsamtaler(sakId).let {
-                    call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
+                    call.svar(Resultat.json(HttpStatusCode.OK, it.toJson()))
                 }
             }
         }

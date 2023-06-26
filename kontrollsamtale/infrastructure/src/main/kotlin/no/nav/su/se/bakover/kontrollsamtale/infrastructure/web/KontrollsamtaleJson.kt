@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.kontrollsamtale.infrastructure.web
 
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtalestatus
@@ -30,7 +31,7 @@ data class KontrollsamtaleJson(
             )
         }
 
-        fun List<Kontrollsamtale>.toJson() = this.map { it.toJson() }
+        fun List<Kontrollsamtale>.toJson(): String = serialize(this.map { it.toJson() })
     }
 }
 
