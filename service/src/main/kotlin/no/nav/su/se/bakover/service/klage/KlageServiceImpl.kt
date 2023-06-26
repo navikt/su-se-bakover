@@ -309,7 +309,7 @@ class KlageServiceImpl(
             klage.oversend(Attestering.Iverksatt(attestant = attestant, opprettet = Tidspunkt.now(clock)))
                 .getOrElse { return it.left() }
 
-        val dokument = oversendtKlage.lagBrevRequest(
+        val dokument = oversendtKlage.genererOversendelsesbrev(
             hentNavnForNavIdent = identClient::hentNavnForNavIdent,
             hentVedtaksbrevDato = { klageRepo.hentVedtaksbrevDatoSomDetKlagesPå(klage.id) },
             hentPerson = { personService.hentPerson(klage.fnr) },
@@ -381,9 +381,8 @@ class KlageServiceImpl(
         }
 
         val vedtak = Klagevedtak.Avvist.fromIverksattAvvistKlage(avvistKlage, clock)
-        val dokument = klage.lagBrevRequest(
-            hentNavnForNavIdent = { identClient.hentNavnForNavIdent(klage.saksbehandler) },
-            hentVedtaksbrevDato = { klageRepo.hentVedtaksbrevDatoSomDetKlagesPå(klage.id) },
+        val dokument = avvistKlage.genererAvvistVedtaksbrev(
+            hentNavnForNavIdent = identClient::hentNavnForNavIdent,
             hentPerson = { personService.hentPerson(klage.fnr) },
             clock = clock,
         ).mapLeft {
@@ -425,10 +424,12 @@ class KlageServiceImpl(
 
     override fun brevutkast(
         klageId: UUID,
+        ident: NavIdentBruker,
     ): Either<KunneIkkeLageBrevutkast, PdfA> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeLageBrevutkast.FantIkkeKlage.left()
 
         return klage.lagBrevRequest(
+            utførtAv = ident,
             hentNavnForNavIdent = { identClient.hentNavnForNavIdent(klage.saksbehandler) },
             hentVedtaksbrevDato = { klageRepo.hentVedtaksbrevDatoSomDetKlagesPå(klage.id) },
             hentPerson = { personService.hentPerson(klage.fnr) },

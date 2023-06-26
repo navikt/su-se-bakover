@@ -34,7 +34,7 @@ data class OversendtKlage(
         return vurderinger.fritekstTilOversendelsesbrev.right()
     }
 
-    override fun lagBrevRequest(
+    fun genererOversendelsesbrev(
         hentNavnForNavIdent: (saksbehandler: NavIdentBruker) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
         hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
         hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,

@@ -1032,9 +1032,10 @@ open class AccessCheckProxy(
 
                 override fun brevutkast(
                     klageId: UUID,
+                    ident: NavIdentBruker,
                 ): Either<KunneIkkeLageBrevutkast, PdfA> {
                     assertHarTilgangTilKlage(klageId)
-                    return services.klageService.brevutkast(klageId)
+                    return services.klageService.brevutkast(klageId, ident)
                 }
 
                 override fun avslutt(

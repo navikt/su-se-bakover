@@ -229,6 +229,7 @@ internal fun Route.klageRoutes(
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withKlageId { klageId ->
                 klageService.brevutkast(
+                    ident = call.suUserContext.hentNavIdentBruker(),
                     klageId = klageId,
                 ).fold(
                     ifLeft = {

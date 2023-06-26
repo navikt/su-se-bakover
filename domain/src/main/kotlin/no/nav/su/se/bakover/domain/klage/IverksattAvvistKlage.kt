@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
 import java.time.Clock
 import java.time.LocalDate
-import java.util.UUID
 import kotlin.reflect.KClass
 
 data class IverksattAvvistKlage(
@@ -35,9 +34,8 @@ data class IverksattAvvistKlage(
         return true
     }
 
-    override fun lagBrevRequest(
+    fun genererAvvistVedtaksbrev(
         hentNavnForNavIdent: (saksbehandler: NavIdentBruker) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
-        hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
         hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
         clock: Clock,
     ): Either<KunneIkkeLageBrevRequestForKlage, LagBrevRequest.Klage> {
