@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KanBekrefteKlagevurdering
+import no.nav.su.se.bakover.domain.klage.KanGenerereBrevutkast
 import no.nav.su.se.bakover.domain.klage.KanLeggeTilFritekstTilAvvistBrev
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageClient
@@ -32,6 +33,7 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequestForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
@@ -426,7 +428,14 @@ class KlageServiceImpl(
         klageId: UUID,
         ident: NavIdentBruker,
     ): Either<KunneIkkeLageBrevutkast, PdfA> {
-        val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeLageBrevutkast.FantIkkeKlage.left()
+        val klage: KanGenerereBrevutkast = when (val k = klageRepo.hentKlage(klageId)) {
+            null -> return KunneIkkeLageBrevutkast.FantIkkeKlage.left()
+            else -> {
+                (k as? KanGenerereBrevutkast) ?: return KunneIkkeLageBrevutkast.FeilVedBrevRequest(
+                    KunneIkkeLageBrevRequestForKlage.UgyldigTilstand(fra = k::class),
+                ).left()
+            }
+        }
 
         return klage.lagBrevRequest(
             utførtAv = ident,

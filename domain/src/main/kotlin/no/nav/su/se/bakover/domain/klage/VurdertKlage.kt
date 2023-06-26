@@ -38,6 +38,9 @@ sealed interface VurdertKlage : Klage, VurdertKlageFelter, KanGenerereBrevutkast
         return vurderinger.fritekstTilOversendelsesbrev.orEmpty().right()
     }
 
+    /**
+     * @param utførtAv brukes kun i attesteringsstegene
+     */
     override fun lagBrevRequest(
         utførtAv: NavIdentBruker,
         hentNavnForNavIdent: (saksbehandler: NavIdentBruker) -> Either<KunneIkkeHenteNavnForNavIdent, String>,

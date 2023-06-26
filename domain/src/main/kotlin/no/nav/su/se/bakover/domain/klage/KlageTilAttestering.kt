@@ -104,7 +104,11 @@ sealed interface KlageTilAttestering : Klage, KlageTilAttesteringFelter, KanGene
 
         override fun getFritekstTilBrev() = vurderinger.fritekstTilOversendelsesbrev.right()
 
+        /**
+         * @param attestant kaster IllegalArgumentException dersom denne er null.
+         */
         override fun lagBrevRequest(
+            utførtAv: NavIdentBruker,
             hentNavnForNavIdent: (saksbehandler: NavIdentBruker) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
             hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
             hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,

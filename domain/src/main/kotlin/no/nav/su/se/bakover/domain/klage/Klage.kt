@@ -66,15 +66,6 @@ sealed interface Klage : Klagefelter {
         return KunneIkkeHenteFritekstTilBrev.UgyldigTilstand(this::class).left()
     }
 
-    fun lagBrevRequest(
-        hentNavnForNavIdent: (saksbehandler: NavIdentBruker) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
-        hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
-        hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
-        clock: Clock,
-    ): Either<KunneIkkeLageBrevRequestForKlage, LagBrevRequest.Klage> {
-        return KunneIkkeLageBrevRequestForKlage.UgyldigTilstand(this::class).left()
-    }
-
     /**
      * @return [VilkårsvurdertKlage.Påbegynt] eller [VilkårsvurdertKlage.Utfylt]
      */
