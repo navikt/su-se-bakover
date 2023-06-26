@@ -49,6 +49,8 @@ data class IverksattAvvistKlage(
             saksbehandlerNavn = hentNavnForNavIdent(this.saksbehandler).getOrElse {
                 return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvSaksbehandlernavn(it).left()
             },
+            attestantNavn = this.attesteringer.hentSisteAttestering().attestant.let { hentNavnForNavIdent(it) }
+                .getOrElse { return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvAttestantnavn(it).left() },
             fritekst = this.fritekstTilVedtaksbrev,
             saksnummer = this.saksnummer,
         ).right()

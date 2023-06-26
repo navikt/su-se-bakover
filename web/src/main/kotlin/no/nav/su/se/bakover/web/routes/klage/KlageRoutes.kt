@@ -230,7 +230,6 @@ internal fun Route.klageRoutes(
             call.withKlageId { klageId ->
                 klageService.brevutkast(
                     klageId = klageId,
-                    saksbehandler = call.suUserContext.saksbehandler,
                 ).fold(
                     ifLeft = {
                         call.svar(it.toErrorJson())

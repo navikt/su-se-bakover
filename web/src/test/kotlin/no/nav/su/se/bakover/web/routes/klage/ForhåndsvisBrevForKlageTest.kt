@@ -127,7 +127,7 @@ internal class ForhåndsvisBrevForKlageTest {
         body: String,
     ) {
         val klageServiceMock = mock<KlageService> {
-            on { brevutkast(any(), any()) } doReturn feilkode.left()
+            on { brevutkast(any()) } doReturn feilkode.left()
         }
         testApplication {
             application {
@@ -150,7 +150,7 @@ internal class ForhåndsvisBrevForKlageTest {
     fun `kan forhåndsvise brev`() {
         val pdfAsBytes = "<myPreciousByteArray.org".toByteArray()
         val klageServiceMock = mock<KlageService> {
-            on { brevutkast(any(), any()) } doReturn pdfAsBytes.right()
+            on { brevutkast(any()) } doReturn pdfAsBytes.right()
         }
         testApplication {
             application {

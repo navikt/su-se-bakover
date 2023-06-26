@@ -222,6 +222,7 @@ abstract class PdfInnhold {
         data class Avvist(
             val personalia: Personalia,
             val saksbehandlerNavn: String,
+            val attestantNavn: String?,
             val fritekst: String,
             val saksnummer: Long,
         ) : Klage() {

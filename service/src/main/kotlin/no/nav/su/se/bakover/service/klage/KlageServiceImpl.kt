@@ -424,12 +424,11 @@ class KlageServiceImpl(
 
     override fun brevutkast(
         klageId: UUID,
-        saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLageBrevutkast, ByteArray> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeLageBrevutkast.FantIkkeKlage.left()
 
         return klage.lagBrevRequest(
-            hentNavnForNavIdent = { identClient.hentNavnForNavIdent(saksbehandler) },
+            hentNavnForNavIdent = { identClient.hentNavnForNavIdent(klage.saksbehandler) },
             hentVedtaksbrevDato = { klageRepo.hentVedtaksbrevDatoSomDetKlagesPå(klage.id) },
             hentPerson = { personService.hentPerson(klage.fnr) },
             clock = clock,

@@ -281,6 +281,7 @@ internal class IverksettAvvistKlageTest {
                     person = person,
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Johnny",
+                    attestantNavn = null,
                     fritekst = "dette er min fritekst",
                     saksnummer = klage.saksnummer,
                 )
@@ -309,7 +310,7 @@ internal class IverksettAvvistKlageTest {
                         opprettet = it.opprettet,
                         tittel = "Avvist klage",
                         generertDokument = dokument,
-                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${klage.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\",\"saksnummer\":${klage.saksnummer}},\"saksbehandlerNavn\":\"Johnny\",\"fritekst\":\"dette er min fritekst\",\"saksnummer\":${klage.saksnummer},\"erAldersbrev\":false}",
+                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${klage.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\",\"saksnummer\":${klage.saksnummer}},\"saksbehandlerNavn\":\"Johnny\",\"attestantNavn\":null,\"fritekst\":\"dette er min fritekst\",\"saksnummer\":${klage.saksnummer},\"erAldersbrev\":false}",
                     ),
                     metadata = Dokument.Metadata(
                         sakId = klage.sakId,

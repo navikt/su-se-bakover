@@ -1031,10 +1031,9 @@ open class AccessCheckProxy(
 
                 override fun brevutkast(
                     klageId: UUID,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Either<KunneIkkeLageBrevutkast, ByteArray> {
                     assertHarTilgangTilKlage(klageId)
-                    return services.klageService.brevutkast(klageId, saksbehandler)
+                    return services.klageService.brevutkast(klageId)
                 }
 
                 override fun avslutt(
