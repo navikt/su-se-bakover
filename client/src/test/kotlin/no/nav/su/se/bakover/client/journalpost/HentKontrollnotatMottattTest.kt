@@ -70,7 +70,10 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
                 ),
             ).right()
 
-            verify(metrics, times(2)).inkrementerBenyttetSkjema(JournalpostClientMetrics.BenyttetSkjema.NAV_SU_KONTROLLNOTAT)
+            verify(
+                metrics,
+                times(2),
+            ).inkrementerBenyttetSkjema(JournalpostClientMetrics.BenyttetSkjema.NAV_SU_KONTROLLNOTAT)
 
             it.kontrollnotatMotatt(Saksnummer(10002027), februar(2022)) shouldBe ErKontrollNotatMottatt.Ja(
                 kontrollnotat = KontrollnotatMottattJournalpost(
@@ -96,7 +99,7 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
         )
 
         val expected = """
-            {"query":"query(${"\$dokumentoversiktInput"}: dokumentoversiktFagsakInput!) {\n    dokumentoversiktFagsak(input: ${"\$dokumentoversiktInput"}){\n        journalposter {\n            tema\n            journalstatus\n            journalposttype\n            sak {\n                fagsakId\n            }\n            journalpostId\n            tittel\n            datoOpprettet\n        }\n    }\n}","variables":{"fagsak":{"fagsakId":"10002027","fagsaksystem":"SUPSTONAD"},"fraDato":"2022-09-01","tema":"SUP","journalposttyper":["I"],"journalstatuser":["JOURNALFOERT"],"foerste":100}}
+            {"query":"query(${"\$fagsak"}: FagsakInput! ${"\$tema"}: [Tema!]! ${"\$fraDato"}: Date ${"\$journalposttyper"}: [Journalposttype!]! ${"\$journalstatuser"}: [Journalstatus!]! ${"\$foerste"}: Int!) {\n    dokumentoversiktFagsak(\n            fagsak: ${"\$fagsak"}\n            tema: ${"\$tema"}\n            fraDato: ${"\$fraDato"}\n            journalposttyper: ${"\$journalposttyper"}\n            journalstatuser: ${"\$journalstatuser"}\n            foerste: ${"\$foerste"}\n    ){\n        journalposter {\n            tema\n            journalstatus\n            journalposttype\n            sak {\n                fagsakId\n            }\n            journalpostId\n            tittel\n            datoOpprettet\n        }\n    }\n}","variables":{"fagsak":{"fagsakId":"10002027","fagsaksystem":"SUPSTONAD"},"fraDato":"2022-09-01","tema":"SUP","journalposttyper":["I"],"journalstatuser":["JOURNALFOERT"],"foerste":100}}
         """.trimIndent()
 
         setupClient().also {
