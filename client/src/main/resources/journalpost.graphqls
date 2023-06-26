@@ -5,15 +5,6 @@ input FagsakInput {
     fagsaksystem: String!
 }
 
-input dokumentoversiktFagsakInput {
-    fagsak: FagsakInput!
-    tema: [Tema!]!
-    fraDato: Date
-    journalposttyper: [Journalposttype!]!
-    journalstatuser: [Journalstatus!]!
-    foerste: Int!
-}
-
 type Dokumentoversikt { journalposter: [Journalpost!]! }
 
 type Journalpost {

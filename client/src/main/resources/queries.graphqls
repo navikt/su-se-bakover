@@ -12,5 +12,5 @@ type Queries {
 
     #Journalpost
     journalpost(journalpostId: String!): Journalpost
-    dokumentoversiktFagsak(input: dokumentoversiktFagsakInput!): Dokumentoversikt
+    dokumentoversiktFagsak(fagsak: FagsakInput! tema: [Tema!]! fraDato: Date journalposttyper: [Journalposttype!]! journalstatuser: [Journalstatus!]! foerste: Int!): Dokumentoversikt
 }

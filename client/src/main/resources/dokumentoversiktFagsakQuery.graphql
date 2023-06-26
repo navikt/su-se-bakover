@@ -1,7 +1,14 @@
 #https://confluence.adeo.no/display/BOA/Query%3A+dokumentoversiktFagsak
 
-query($dokumentoversiktInput: dokumentoversiktFagsakInput!) {
-    dokumentoversiktFagsak(input: $dokumentoversiktInput){
+query($fagsak: FagsakInput! $tema: [Tema!]! $fraDato: Date $journalposttyper: [Journalposttype!]! $journalstatuser: [Journalstatus!]! $foerste: Int!) {
+    dokumentoversiktFagsak(
+            fagsak: $fagsak
+            tema: $tema
+            fraDato: $fraDato
+            journalposttyper: $journalposttyper
+            journalstatuser: $journalstatuser
+            foerste: $foerste
+    ){
         journalposter {
             tema
             journalstatus
