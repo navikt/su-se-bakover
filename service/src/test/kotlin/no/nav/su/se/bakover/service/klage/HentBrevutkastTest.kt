@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.klage
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
@@ -201,7 +202,7 @@ internal class HentBrevutkastTest {
         val (sak, klage) = påbegyntVurdertKlage()
         val vedtak = sak.vedtakListe.first()
         val person = person(fnr = sak.fnr)
-        val pdfAsBytes = "brevbytes".toByteArray()
+        val pdfAsBytes = PdfA("brevbytes".toByteArray())
 
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
@@ -215,7 +216,7 @@ internal class HentBrevutkastTest {
                 on { hentPerson(any()) } doReturn person.right()
             },
             brevServiceMock = mock {
-                on { lagBrev(any()) } doReturn pdfAsBytes.right()
+                on { lagBrev(any()) } doReturn pdfAsBytes.getContent().right()
             },
         )
 
@@ -247,7 +248,7 @@ internal class HentBrevutkastTest {
         val (sak, klage) = påbegyntVurdertKlage(fritekstTilBrev = "jeg er fritekst for et brev")
         val vedtak = sak.vedtakListe.first()
         val person = person(fnr = sak.fnr)
-        val pdfAsBytes = "brevbytes".toByteArray()
+        val pdfAsBytes = PdfA("brevbytes".toByteArray())
 
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
@@ -261,7 +262,7 @@ internal class HentBrevutkastTest {
                 on { hentPerson(any()) } doReturn person.right()
             },
             brevServiceMock = mock {
-                on { lagBrev(any()) } doReturn pdfAsBytes.right()
+                on { lagBrev(any()) } doReturn pdfAsBytes.getContent().right()
             },
         )
 
@@ -481,7 +482,7 @@ internal class HentBrevutkastTest {
         expectedIdentClientCalls: Int = 1,
     ) {
         val vedtak = sak.vedtakListe.first()
-        val pdfAsBytes = "brevbytes".toByteArray()
+        val pdfAsBytes = PdfA("brevbytes".toByteArray())
 
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
@@ -495,7 +496,7 @@ internal class HentBrevutkastTest {
                 on { hentPerson(any()) } doReturn person.right()
             },
             brevServiceMock = mock {
-                on { lagBrev(any()) } doReturn pdfAsBytes.right()
+                on { lagBrev(any()) } doReturn pdfAsBytes.getContent().right()
             },
         )
 

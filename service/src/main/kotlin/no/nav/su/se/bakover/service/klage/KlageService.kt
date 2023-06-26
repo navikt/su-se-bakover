@@ -60,7 +60,7 @@ interface KlageService {
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteAvvistKlage, IverksattAvvistKlage>
 
-    fun brevutkast(klageId: UUID): Either<KunneIkkeLageBrevutkast, ByteArray>
+    fun brevutkast(klageId: UUID): Either<KunneIkkeLageBrevutkast, no.nav.su.se.bakover.common.domain.PdfA>
 
     fun avslutt(
         klageId: UUID,

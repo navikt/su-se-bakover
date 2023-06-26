@@ -235,7 +235,7 @@ internal fun Route.klageRoutes(
                         call.svar(it.toErrorJson())
                     },
                     ifRight = {
-                        call.respondBytes(it, ContentType.Application.Pdf)
+                        call.respondBytes(it.getContent(), ContentType.Application.Pdf)
                     },
                 )
             }

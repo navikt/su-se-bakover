@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.services
 import arrow.core.Either
 import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
@@ -1031,7 +1032,7 @@ open class AccessCheckProxy(
 
                 override fun brevutkast(
                     klageId: UUID,
-                ): Either<KunneIkkeLageBrevutkast, ByteArray> {
+                ): Either<KunneIkkeLageBrevutkast, PdfA> {
                     assertHarTilgangTilKlage(klageId)
                     return services.klageService.brevutkast(klageId)
                 }

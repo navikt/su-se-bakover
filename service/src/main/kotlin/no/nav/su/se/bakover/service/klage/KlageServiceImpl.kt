@@ -6,6 +6,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import kotlinx.coroutines.runBlocking
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -424,7 +425,7 @@ class KlageServiceImpl(
 
     override fun brevutkast(
         klageId: UUID,
-    ): Either<KunneIkkeLageBrevutkast, ByteArray> {
+    ): Either<KunneIkkeLageBrevutkast, PdfA> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeLageBrevutkast.FantIkkeKlage.left()
 
         return klage.lagBrevRequest(
@@ -445,7 +446,7 @@ class KlageServiceImpl(
                         KunneIkkeLageBrevForKlage.KunneIkkeGenererePDF,
                     )
                 }
-            }
+            }.map { PdfA(it) }
         }
     }
 
