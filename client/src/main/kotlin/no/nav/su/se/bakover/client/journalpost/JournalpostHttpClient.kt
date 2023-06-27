@@ -113,7 +113,7 @@ internal class JournalpostHttpClient(
             gqlRequest(request = request, token = sts.token().value).mapLeft {
                 KunneIkkeHenteJournalposter.ClientError.also { log.error("Feil: $it ved henting av journalposter for saksnummer:$saksnummer") }
             }.map {
-                it.data!!.dokumentoversikt.journalposter.map {
+                it.data!!.dokumentoversiktFagsak.journalposter.map {
                     Journalpost(JournalpostId(it.journalpostId!!), it.tittel!!)
                 }
             }
@@ -163,7 +163,7 @@ internal class JournalpostHttpClient(
             ).mapLeft { error ->
                 KunneIkkeSjekkKontrollnotatMottatt(error).also { log.error("Feil: $it ved henting av journalposter for saksnummer:$saksnummer") }
             }.map { response ->
-                response.data!!.dokumentoversikt.journalposter
+                response.data!!.dokumentoversiktFagsak.journalposter
                     .toDomain()
                     .sortedBy { it.datoOpprettet }
                     .lastOrNull {

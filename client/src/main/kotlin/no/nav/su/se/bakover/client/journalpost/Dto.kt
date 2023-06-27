@@ -29,10 +29,10 @@ internal data class HentDokumentoversiktFagsakHttpResponse(
 ) : GraphQLHttpResponse()
 
 internal data class HentDokumentoversiktFagsakResponse(
-    val dokumentoversikt: Dokumentoversikt,
+    val dokumentoversiktFagsak: DokumentoversiktFagsak,
 )
 
-internal data class Dokumentoversikt(
+internal data class DokumentoversiktFagsak(
     val journalposter: List<Journalpost>,
 )
 
