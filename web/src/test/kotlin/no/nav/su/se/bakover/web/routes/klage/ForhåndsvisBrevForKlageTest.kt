@@ -12,6 +12,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KunneIkkeLageBrevutkast
@@ -150,7 +151,7 @@ internal class ForhåndsvisBrevForKlageTest {
     fun `kan forhåndsvise brev`() {
         val pdfAsBytes = "<myPreciousByteArray.org".toByteArray()
         val klageServiceMock = mock<KlageService> {
-            on { brevutkast(any(), any()) } doReturn pdfAsBytes.right()
+            on { brevutkast(any(), any()) } doReturn PdfA(pdfAsBytes).right()
         }
         testApplication {
             application {

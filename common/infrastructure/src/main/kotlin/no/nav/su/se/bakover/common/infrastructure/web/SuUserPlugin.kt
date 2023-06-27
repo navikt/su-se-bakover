@@ -17,6 +17,7 @@ import io.ktor.server.routing.RouteSelector
 import io.ktor.server.routing.RouteSelectorEvaluation
 import io.ktor.server.routing.RoutingResolveContext
 import io.ktor.util.AttributeKey
+import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.brukerrolle.AzureGroupMapper
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
@@ -40,6 +41,16 @@ class SuUserContext(val call: ApplicationCall, applicationConfig: ApplicationCon
             call.attributes.put(AttributeKey, SuUserContext(call, applicationConfig))
 
         fun from(call: ApplicationCall) = call.attributes[AttributeKey]
+    }
+
+    fun hentNavIdentBruker(): NavIdentBruker {
+        return when {
+            roller.contains(Brukerrolle.Attestant) -> attestant
+            roller.contains(Brukerrolle.Saksbehandler) -> saksbehandler
+            roller.contains(Brukerrolle.Drift) -> NavIdentBruker.Drift(navIdent)
+            roller.contains(Brukerrolle.Veileder) -> NavIdentBruker.Veileder(navIdent)
+            else -> throw IllegalArgumentException("Brukerrolle var tom eller hadde ukjente roller: $roller")
+        }
     }
 }
 

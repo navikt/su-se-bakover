@@ -229,14 +229,14 @@ internal fun Route.klageRoutes(
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withKlageId { klageId ->
                 klageService.brevutkast(
+                    ident = call.suUserContext.hentNavIdentBruker(),
                     klageId = klageId,
-                    saksbehandler = call.suUserContext.saksbehandler,
                 ).fold(
                     ifLeft = {
                         call.svar(it.toErrorJson())
                     },
                     ifRight = {
-                        call.respondBytes(it, ContentType.Application.Pdf)
+                        call.respondBytes(it.getContent(), ContentType.Application.Pdf)
                     },
                 )
             }

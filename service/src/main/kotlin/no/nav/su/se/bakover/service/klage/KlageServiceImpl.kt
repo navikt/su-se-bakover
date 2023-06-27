@@ -6,6 +6,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import kotlinx.coroutines.runBlocking
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -21,6 +22,7 @@ import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KanBekrefteKlagevurdering
+import no.nav.su.se.bakover.domain.klage.KanGenerereBrevutkast
 import no.nav.su.se.bakover.domain.klage.KanLeggeTilFritekstTilAvvistBrev
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageClient
@@ -31,6 +33,7 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequestForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
@@ -308,7 +311,7 @@ class KlageServiceImpl(
             klage.oversend(Attestering.Iverksatt(attestant = attestant, opprettet = Tidspunkt.now(clock)))
                 .getOrElse { return it.left() }
 
-        val dokument = oversendtKlage.lagBrevRequest(
+        val dokument = oversendtKlage.genererOversendelsesbrev(
             hentNavnForNavIdent = identClient::hentNavnForNavIdent,
             hentVedtaksbrevDato = { klageRepo.hentVedtaksbrevDatoSomDetKlagesPå(klage.id) },
             hentPerson = { personService.hentPerson(klage.fnr) },
@@ -380,9 +383,8 @@ class KlageServiceImpl(
         }
 
         val vedtak = Klagevedtak.Avvist.fromIverksattAvvistKlage(avvistKlage, clock)
-        val dokument = klage.lagBrevRequest(
-            hentNavnForNavIdent = { identClient.hentNavnForNavIdent(klage.saksbehandler) },
-            hentVedtaksbrevDato = { klageRepo.hentVedtaksbrevDatoSomDetKlagesPå(klage.id) },
+        val dokument = avvistKlage.genererAvvistVedtaksbrev(
+            hentNavnForNavIdent = identClient::hentNavnForNavIdent,
             hentPerson = { personService.hentPerson(klage.fnr) },
             clock = clock,
         ).mapLeft {
@@ -424,12 +426,20 @@ class KlageServiceImpl(
 
     override fun brevutkast(
         klageId: UUID,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeLageBrevutkast, ByteArray> {
-        val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeLageBrevutkast.FantIkkeKlage.left()
+        ident: NavIdentBruker,
+    ): Either<KunneIkkeLageBrevutkast, PdfA> {
+        val klage: KanGenerereBrevutkast = when (val k = klageRepo.hentKlage(klageId)) {
+            null -> return KunneIkkeLageBrevutkast.FantIkkeKlage.left()
+            else -> {
+                (k as? KanGenerereBrevutkast) ?: return KunneIkkeLageBrevutkast.FeilVedBrevRequest(
+                    KunneIkkeLageBrevRequestForKlage.UgyldigTilstand(fra = k::class),
+                ).left()
+            }
+        }
 
         return klage.lagBrevRequest(
-            hentNavnForNavIdent = { identClient.hentNavnForNavIdent(saksbehandler) },
+            utførtAv = ident,
+            hentNavnForNavIdent = { identClient.hentNavnForNavIdent(klage.saksbehandler) },
             hentVedtaksbrevDato = { klageRepo.hentVedtaksbrevDatoSomDetKlagesPå(klage.id) },
             hentPerson = { personService.hentPerson(klage.fnr) },
             clock = clock,
@@ -446,7 +456,7 @@ class KlageServiceImpl(
                         KunneIkkeLageBrevForKlage.KunneIkkeGenererePDF,
                     )
                 }
-            }
+            }.map { PdfA(it) }
         }
     }
 

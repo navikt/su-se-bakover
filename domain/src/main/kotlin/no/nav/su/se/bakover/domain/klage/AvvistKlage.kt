@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
-import arrow.core.getOrElse
-import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
@@ -37,7 +35,21 @@ data class AvvistKlage(
     override val fritekstTilVedtaksbrev: String,
     override val oppgaveId: OppgaveId = forrigeSteg.oppgaveId,
     override val attesteringer: Attesteringshistorikk = forrigeSteg.attesteringer,
-) : Klage, AvvistKlageFelter, KanLeggeTilFritekstTilAvvistBrev, VilkårsvurdertKlage.BekreftetFelter by forrigeSteg {
+) : Klage, AvvistKlageFelter, KanLeggeTilFritekstTilAvvistBrev, VilkårsvurdertKlage.BekreftetFelter by forrigeSteg, KanGenerereBrevutkast {
+
+    /**
+     * @param utførtAv brukes kun i attesteringsstegene
+     * @param hentVedtaksbrevDato brukes ikke for [AvvistKlage]
+     */
+    override fun lagBrevRequest(
+        utførtAv: NavIdentBruker,
+        hentNavnForNavIdent: (saksbehandler: NavIdentBruker) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
+        hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
+        hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
+        clock: Clock,
+    ): Either<KunneIkkeLageBrevRequestForKlage, LagBrevRequest.Klage> {
+        return genererAvvistVedtaksbrev(null, hentNavnForNavIdent, hentPerson, clock)
+    }
 
     override fun erÅpen() = true
 
@@ -99,25 +111,6 @@ data class AvvistKlage(
 
     override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
         return fritekstTilVedtaksbrev.right()
-    }
-
-    override fun lagBrevRequest(
-        hentNavnForNavIdent: (saksbehandler: NavIdentBruker) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
-        hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
-        hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
-        clock: Clock,
-    ): Either<KunneIkkeLageBrevRequestForKlage, LagBrevRequest.Klage> {
-        return LagBrevRequest.Klage.Avvist(
-            person = hentPerson(this.fnr).getOrElse {
-                return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvPerson(it).left()
-            },
-            dagensDato = LocalDate.now(clock),
-            saksbehandlerNavn = hentNavnForNavIdent(this.saksbehandler).getOrElse {
-                return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvSaksbehandlernavn(it).left()
-            },
-            fritekst = this.fritekstTilVedtaksbrev,
-            saksnummer = this.saksnummer,
-        ).right()
     }
 
     override fun leggTilFritekstTilAvvistVedtaksbrev(

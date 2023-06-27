@@ -40,9 +40,11 @@ import no.nav.su.se.bakover.test.utfyltVurdertKlage
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.util.UUID
@@ -242,7 +244,7 @@ internal class IverksettAvvistKlageTest {
                 on { lagBrev(any()) } doReturn dokument.right()
             },
             identClient = mock {
-                on { hentNavnForNavIdent(any()) } doReturn "Johnny".right()
+                on { hentNavnForNavIdent(any()) }.thenReturn("Johnny".right(), "Johhny attestanten".right())
             },
             personServiceMock = mock {
                 on { hentPerson(any()) } doReturn person.right()
@@ -273,7 +275,11 @@ internal class IverksettAvvistKlageTest {
         actual shouldBe expected
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
+        argumentCaptor<NavIdentBruker>().apply {
+            verify(mocks.identClient, times(2)).hentNavnForNavIdent(capture())
+            this.firstValue shouldBe klage.saksbehandler
+            this.lastValue shouldBe attestant
+        }
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe klage.fnr })
         verify(mocks.brevServiceMock).lagBrev(
             argThat {
@@ -281,6 +287,7 @@ internal class IverksettAvvistKlageTest {
                     person = person,
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Johnny",
+                    attestantNavn = "Johhny attestanten",
                     fritekst = "dette er min fritekst",
                     saksnummer = klage.saksnummer,
                 )
@@ -309,7 +316,7 @@ internal class IverksettAvvistKlageTest {
                         opprettet = it.opprettet,
                         tittel = "Avvist klage",
                         generertDokument = dokument,
-                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${klage.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\",\"saksnummer\":${klage.saksnummer}},\"saksbehandlerNavn\":\"Johnny\",\"fritekst\":\"dette er min fritekst\",\"saksnummer\":${klage.saksnummer},\"erAldersbrev\":false}",
+                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${klage.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\",\"saksnummer\":${klage.saksnummer}},\"saksbehandlerNavn\":\"Johnny\",\"attestantNavn\":\"Johhny attestanten\",\"fritekst\":\"dette er min fritekst\",\"saksnummer\":${klage.saksnummer},\"erAldersbrev\":false}",
                     ),
                     metadata = Dokument.Metadata(
                         sakId = klage.sakId,

@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
+import java.lang.IllegalStateException
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -25,34 +26,29 @@ interface VurdertKlageFelter : VilkårsvurdertKlageFelter {
     val klageinstanshendelser: Klageinstanshendelser
 }
 
-sealed interface VurdertKlage : Klage, VurdertKlageFelter {
+sealed interface VurdertKlage : Klage, VurdertKlageFelter, KanGenerereBrevutkast {
+    /**
+     * @throws IllegalStateException - dersom saksbehandler ikke har lagt til fritekst enda.
+     */
+    override val fritekstTilVedtaksbrev get() = getFritekstTilBrev().getOrElse {
+        throw IllegalStateException("Vi har ikke fått lagret fritekst for klage $id")
+    }
 
     override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
         return vurderinger.fritekstTilOversendelsesbrev.orEmpty().right()
     }
 
+    /**
+     * @param utførtAv brukes kun i attesteringsstegene
+     */
     override fun lagBrevRequest(
+        utførtAv: NavIdentBruker,
         hentNavnForNavIdent: (saksbehandler: NavIdentBruker) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
         hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
         hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
         clock: Clock,
     ): Either<KunneIkkeLageBrevRequestForKlage, LagBrevRequest.Klage> {
-        return LagBrevRequest.Klage.Oppretthold(
-            person = hentPerson(this.fnr).getOrElse {
-                return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvPerson(it).left()
-            },
-            dagensDato = LocalDate.now(clock),
-            saksbehandlerNavn = hentNavnForNavIdent(this.saksbehandler).getOrElse {
-                return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvSaksbehandlernavn(it).left()
-            },
-            attestantNavn = this.attesteringer.prøvHentSisteAttestering()?.attestant?.let { hentNavnForNavIdent(it) }
-                ?.getOrElse { return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvAttestantnavn(it).left() },
-            fritekst = this.vurderinger.fritekstTilOversendelsesbrev.orEmpty(),
-            saksnummer = this.saksnummer,
-            klageDato = this.datoKlageMottatt,
-            vedtaksbrevDato = hentVedtaksbrevDato(this.id)
-                ?: return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvVedtaksbrevDato.left(),
-        ).right()
+        return genererOversendelsesBrev(null, hentNavnForNavIdent, hentVedtaksbrevDato, hentPerson, clock)
     }
 
     override fun vilkårsvurder(

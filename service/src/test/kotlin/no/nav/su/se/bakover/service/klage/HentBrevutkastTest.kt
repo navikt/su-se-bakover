@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.klage
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
@@ -16,6 +17,7 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.test.argThat
+import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.avvistKlage
 import no.nav.su.se.bakover.test.avvistKlageTilAttestering
 import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
@@ -27,6 +29,7 @@ import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.utfyltAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.vurdertKlageTilAttestering
@@ -49,11 +52,10 @@ internal class HentBrevutkastTest {
                 on { hentKlage(any()) } doReturn null
             },
         )
-        val saksbehandler = NavIdentBruker.Saksbehandler("s2")
         val klageId = UUID.randomUUID()
         mocks.service.brevutkast(
             klageId = klageId,
-            saksbehandler = saksbehandler,
+            ident = saksbehandler,
         ) shouldBe KunneIkkeLageBrevutkast.FantIkkeKlage.left()
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
         mocks.verifyNoMoreInteractions()
@@ -75,18 +77,17 @@ internal class HentBrevutkastTest {
                 on { hentNavnForNavIdent(any()) } doReturn "Ole Nordmann".right()
             },
         )
-        val saksbehandler = NavIdentBruker.Saksbehandler("s2")
 
         mocks.service.brevutkast(
             klageId = klage.id,
-            saksbehandler = saksbehandler,
+            ident = saksbehandler,
         ) shouldBe KunneIkkeLageBrevutkast.FeilVedBrevRequest(KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvVedtaksbrevDato)
             .left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe klage.fnr })
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
-        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe saksbehandler })
+        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
         mocks.verifyNoMoreInteractions()
     }
 
@@ -106,11 +107,10 @@ internal class HentBrevutkastTest {
                 on { hentNavnForNavIdent(any()) } doReturn KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent.left()
             },
         )
-        val saksbehandler = NavIdentBruker.Saksbehandler("s2")
 
         mocks.service.brevutkast(
             klageId = klage.id,
-            saksbehandler = saksbehandler,
+            ident = saksbehandler,
         ) shouldBe KunneIkkeLageBrevutkast.FeilVedBrevRequest(
             KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvSaksbehandlernavn(
                 KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent,
@@ -120,7 +120,7 @@ internal class HentBrevutkastTest {
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe klage.fnr })
-        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe saksbehandler })
+        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
         mocks.verifyNoMoreInteractions()
     }
 
@@ -141,11 +141,10 @@ internal class HentBrevutkastTest {
                 on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
             },
         )
-        val saksbehandler = NavIdentBruker.Saksbehandler("s2")
 
         mocks.service.brevutkast(
             klageId = klage.id,
-            saksbehandler = saksbehandler,
+            ident = saksbehandler,
         ) shouldBe KunneIkkeLageBrevutkast.FeilVedBrevRequest(
             KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvPerson(
                 KunneIkkeHentePerson.FantIkkePerson,
@@ -179,16 +178,14 @@ internal class HentBrevutkastTest {
             },
         )
 
-        val saksbehandler = NavIdentBruker.Saksbehandler("s2")
-
         mocks.service.brevutkast(
             klageId = klage.id,
-            saksbehandler = saksbehandler,
+            ident = saksbehandler,
         ) shouldBe KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(KunneIkkeLageBrevForKlage.KunneIkkeGenererePDF).left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
-        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe saksbehandler })
+        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
         verify(mocks.brevServiceMock).lagBrev(
             argThat {
@@ -212,7 +209,7 @@ internal class HentBrevutkastTest {
         val (sak, klage) = påbegyntVurdertKlage()
         val vedtak = sak.vedtakListe.first()
         val person = person(fnr = sak.fnr)
-        val pdfAsBytes = "brevbytes".toByteArray()
+        val pdfAsBytes = PdfA("brevbytes".toByteArray())
 
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
@@ -226,19 +223,15 @@ internal class HentBrevutkastTest {
                 on { hentPerson(any()) } doReturn person.right()
             },
             brevServiceMock = mock {
-                on { lagBrev(any()) } doReturn pdfAsBytes.right()
+                on { lagBrev(any()) } doReturn pdfAsBytes.getContent().right()
             },
         )
-        val saksbehandler = NavIdentBruker.Saksbehandler("s2")
 
-        mocks.service.brevutkast(
-            klageId = klage.id,
-            saksbehandler = saksbehandler,
-        ) shouldBe pdfAsBytes.right()
+        mocks.service.brevutkast(klageId = klage.id, ident = saksbehandler) shouldBe pdfAsBytes.right()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
-        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe saksbehandler })
+        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
         verify(mocks.brevServiceMock).lagBrev(
             argThat {
@@ -262,7 +255,7 @@ internal class HentBrevutkastTest {
         val (sak, klage) = påbegyntVurdertKlage(fritekstTilBrev = "jeg er fritekst for et brev")
         val vedtak = sak.vedtakListe.first()
         val person = person(fnr = sak.fnr)
-        val pdfAsBytes = "brevbytes".toByteArray()
+        val pdfAsBytes = PdfA("brevbytes".toByteArray())
 
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
@@ -276,19 +269,15 @@ internal class HentBrevutkastTest {
                 on { hentPerson(any()) } doReturn person.right()
             },
             brevServiceMock = mock {
-                on { lagBrev(any()) } doReturn pdfAsBytes.right()
+                on { lagBrev(any()) } doReturn pdfAsBytes.getContent().right()
             },
         )
-        val saksbehandler = NavIdentBruker.Saksbehandler("s2")
 
-        mocks.service.brevutkast(
-            klageId = klage.id,
-            saksbehandler = saksbehandler,
-        ) shouldBe pdfAsBytes.right()
+        mocks.service.brevutkast(klageId = klage.id, ident = saksbehandler) shouldBe pdfAsBytes.right()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
-        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe saksbehandler })
+        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
         verify(mocks.brevServiceMock).lagBrev(
             argThat {
@@ -357,7 +346,7 @@ internal class HentBrevutkastTest {
 
         mocks.service.brevutkast(
             klageId = klage.id,
-            saksbehandler = klage.saksbehandler,
+            ident = saksbehandler,
         ) shouldBe KunneIkkeLageBrevutkast.FeilVedBrevRequest(KunneIkkeLageBrevRequestForKlage.UgyldigTilstand(klage::class))
             .left()
 
@@ -400,6 +389,7 @@ internal class HentBrevutkastTest {
                 person = person,
                 dagensDato = fixedLocalDate,
                 saksbehandlerNavn = "Ola Nordmann",
+                attestantNavn = null,
                 fritekst = "dette er en fritekst med person opplysninger",
                 saksnummer = Saksnummer(12345676),
             ),
@@ -412,10 +402,10 @@ internal class HentBrevutkastTest {
         val person = person(fnr = sak.fnr)
 
         assertAndVerifyBrevutkast(
-            sak,
-            klage,
-            person,
-            LagBrevRequest.Klage.Oppretthold(
+            sak = sak,
+            klage = klage,
+            person = person,
+            brevRequest = LagBrevRequest.Klage.Oppretthold(
                 person = person,
                 dagensDato = fixedLocalDate,
                 saksbehandlerNavn = "Ola Nordmann",
@@ -425,54 +415,14 @@ internal class HentBrevutkastTest {
                 vedtaksbrevDato = 1.januar(2021),
                 saksnummer = Saksnummer(12345676),
             ),
+            utførtAv = attestant,
+            expectedIdentClientCalls = 2,
         )
     }
 
     @Test
     fun `kan hente brevutkast fra avvist til attestering`() {
         val (sak, klage) = avvistKlageTilAttestering()
-        val person = person(fnr = sak.fnr)
-
-        assertAndVerifyBrevutkast(
-            sak,
-            klage,
-            person,
-            LagBrevRequest.Klage.Avvist(
-                person = person,
-                dagensDato = fixedLocalDate,
-                saksbehandlerNavn = "Ola Nordmann",
-                fritekst = "dette er en fritekst med person opplysninger",
-                saksnummer = Saksnummer(12345676),
-            ),
-        )
-    }
-
-    @Test
-    fun `kan hente brevutkast fra oversendt klage`() {
-        val (sak, klage) = oversendtKlage()
-        val person = person(fnr = sak.fnr)
-
-        assertAndVerifyBrevutkast(
-            sak,
-            klage,
-            person,
-            LagBrevRequest.Klage.Oppretthold(
-                person = person,
-                dagensDato = fixedLocalDate,
-                saksbehandlerNavn = "Ola Nordmann",
-                attestantNavn = "Ola Svenskmann",
-                fritekst = "fritekstTilBrev",
-                klageDato = 15.januar(2021),
-                vedtaksbrevDato = 1.januar(2021),
-                saksnummer = Saksnummer(12345676),
-            ),
-            expectedIdentClientCalls = 2,
-        )
-    }
-
-    @Test
-    fun `kan hente brevutkast fra iverksatt Avvist`() {
-        val (sak, klage) = iverksattAvvistKlage()
         val person = person(fnr = sak.fnr)
 
         assertAndVerifyBrevutkast(
@@ -483,10 +433,23 @@ internal class HentBrevutkastTest {
                 person = person,
                 dagensDato = fixedLocalDate,
                 saksbehandlerNavn = "Ola Nordmann",
+                attestantNavn = null,
                 fritekst = "dette er en fritekst med person opplysninger",
                 saksnummer = Saksnummer(12345676),
             ),
+            utførtAv = attestant,
+            expectedIdentClientCalls = 2,
         )
+    }
+
+    @Test
+    fun `kan hente brevutkast fra oversendt klage`() {
+        skalIkkeKunneHenteBrevUtkastFraTilstand(oversendtKlage())
+    }
+
+    @Test
+    fun `kan hente brevutkast fra iverksatt Avvist`() {
+        skalIkkeKunneHenteBrevUtkastFraTilstand(iverksattAvvistKlage())
     }
 
     private fun assertAndVerifyBrevutkast(
@@ -494,10 +457,11 @@ internal class HentBrevutkastTest {
         klage: Klage,
         person: Person,
         brevRequest: LagBrevRequest.Klage,
+        utførtAv: NavIdentBruker = saksbehandler,
         expectedIdentClientCalls: Int = 1,
     ) {
         val vedtak = sak.vedtakListe.first()
-        val pdfAsBytes = "brevbytes".toByteArray()
+        val pdfAsBytes = PdfA("brevbytes".toByteArray())
 
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
@@ -511,13 +475,11 @@ internal class HentBrevutkastTest {
                 on { hentPerson(any()) } doReturn person.right()
             },
             brevServiceMock = mock {
-                on { lagBrev(any()) } doReturn pdfAsBytes.right()
+                on { lagBrev(any()) } doReturn pdfAsBytes.getContent().right()
             },
         )
 
-        val saksbehandler = NavIdentBruker.Saksbehandler("s2")
-
-        mocks.service.brevutkast(klageId = klage.id, saksbehandler = saksbehandler) shouldBe pdfAsBytes.right()
+        mocks.service.brevutkast(klageId = klage.id, ident = utførtAv) shouldBe pdfAsBytes.right()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         if (brevRequest is LagBrevRequest.Klage.Oppretthold) {
@@ -525,9 +487,9 @@ internal class HentBrevutkastTest {
         }
         val captor = argumentCaptor<NavIdentBruker>()
         verify(mocks.identClient, times(expectedIdentClientCalls)).hentNavnForNavIdent(captor.capture())
-        captor.firstValue shouldBe saksbehandler
+        captor.firstValue shouldBe klage.saksbehandler
         if (expectedIdentClientCalls == 2) {
-            captor.lastValue shouldBe saksbehandler
+            captor.lastValue shouldBe klage.saksbehandler
         }
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
         verify(mocks.brevServiceMock).lagBrev(
@@ -537,6 +499,7 @@ internal class HentBrevutkastTest {
                         person = person,
                         dagensDato = fixedLocalDate,
                         saksbehandlerNavn = "Ola Nordmann",
+                        attestantNavn = if (expectedIdentClientCalls == 2) "Ola Svenskmann" else null,
                         fritekst = brevRequest.fritekst,
                         saksnummer = Saksnummer(12345676),
                     )

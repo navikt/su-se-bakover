@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.klage
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
@@ -60,10 +61,7 @@ interface KlageService {
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteAvvistKlage, IverksattAvvistKlage>
 
-    fun brevutkast(
-        klageId: UUID,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeLageBrevutkast, ByteArray>
+    fun brevutkast(klageId: UUID, ident: NavIdentBruker): Either<KunneIkkeLageBrevutkast, PdfA>
 
     fun avslutt(
         klageId: UUID,
