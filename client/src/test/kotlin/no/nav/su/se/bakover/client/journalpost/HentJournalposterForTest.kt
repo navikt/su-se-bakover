@@ -42,7 +42,7 @@ class HentJournalposterForTest {
         return """
         {
             "data": {
-                "dokumentoversikt": {
+                "dokumentoversiktFagsak": {
                     "journalposter": [                        
                         {
                             "tema": "SUP",

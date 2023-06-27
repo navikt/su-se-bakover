@@ -115,7 +115,7 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
         val manglerFelterJson = """
             {
             "data": {
-                "dokumentoversikt": {
+                "dokumentoversiktFagsak": {
                     "journalposter": [                        
                         {
                             "tema": "SUP",
@@ -148,7 +148,7 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
         val manglerFelterJson = """
             {
             "data": {
-                "dokumentoversikt": {
+                "dokumentoversiktFagsak": {
                     "journalposter": []
                 }
             }
@@ -216,7 +216,7 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
         val flereKontrollnotat = """
             {
             "data": {
-                "dokumentoversikt": {
+                "dokumentoversiktFagsak": {
                     "journalposter": [                        
                         {
                             "tema": "SUP",
@@ -271,7 +271,7 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
         return """
         {
             "data": {
-                "dokumentoversikt": {
+                "dokumentoversiktFagsak": {
                     "journalposter": [                        
                         {
                             "tema": "SUP",
