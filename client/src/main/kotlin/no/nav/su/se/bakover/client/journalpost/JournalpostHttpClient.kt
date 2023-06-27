@@ -190,6 +190,7 @@ internal class JournalpostHttpClient(
                 .POST(HttpRequest.BodyPublishers.ofString(serialize(request)))
                 .build()
                 .let { httpRequest ->
+                    log.info("Gjør graphql request med request $request")
                     client.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString()).await()
                         .let { httpResponse ->
                             if (httpResponse.isSuccess()) {
