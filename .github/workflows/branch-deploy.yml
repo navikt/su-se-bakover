@@ -5,7 +5,7 @@ name: Deploy branch to dev-fss [manual deploy]
 on: workflow_dispatch
 
 env:
-  IMAGE: ghcr.io/navikt/${{ github.repository }}/su-se-bakover:${{ github.sha }}
+  IMAGE: ghcr.io/${{ github.repository }}/su-se-bakover:${{ github.sha }}
 
 jobs:
    verify-master-is-ancestor:

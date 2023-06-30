@@ -5,7 +5,7 @@ on:
     types: [published]
 
 env:
-  IMAGE: ghcr.io/navikt/${{ github.repository }}/su-se-bakover:${{ github.sha }}
+  IMAGE: ghcr.io/${{ github.repository }}/su-se-bakover:${{ github.sha }}
 
 jobs:
   deploy_to_prod:
