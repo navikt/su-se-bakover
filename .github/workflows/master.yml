@@ -16,7 +16,7 @@ on:
       - 'datapakker/**'
 
 env:
-  IMAGE: ghcr.io/${{ github.repository }}/su-se-bakover:${{ github.sha }}
+  IMAGE: ghcr.io/navikt/${{ github.repository }}/su-se-bakover:${{ github.sha }}
 
 jobs:
   build:
