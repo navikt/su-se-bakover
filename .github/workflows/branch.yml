@@ -9,8 +9,10 @@ on:
       - '!master'   # excludes master
       - '!main'     # excludes main (will probably replace master)
     paths-ignore:
+      - '.github/workflows/datapakker.yml'
       - '.github/workflows/codeql.yml'
       - '.github/workflows/alerts-deploy.yml'
+      - 'datapakker/**'
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}/su-se-bakover:${{ github.sha }}

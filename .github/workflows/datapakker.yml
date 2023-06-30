@@ -1,22 +1,15 @@
-name: Build and deploy to preprod on push to master
 
 on:
-  # Trigger the workflow on push or pull request,
-  # but only for the master branch
   push:
     branches:
       - master
-    paths-ignore:
+      - datapakker
+    paths:
       - '.github/workflows/datapakker.yml'
-      - '.github/workflows/codeql.yml'
-      - '.github/workflows/alerts-deploy.yml'
-      - 'alerts.yml'
-      - 'README.md'
-      - 'docker-compose.yml'
       - 'datapakker/**'
 
 env:
-  IMAGE: ghcr.io/${{ github.repository }}/su-se-bakover:${{ github.sha }}
+  IMAGE: ghcr.io/${{ github.repository }}/datapakker/soknad:${{ github.sha }}
 
 jobs:
   build:
@@ -37,7 +30,7 @@ jobs:
           java-version: '19'
           distribution: 'temurin'
       - name: test and build
-        run: ./gradlew --no-build-cache test build
+        run: ./gradlew --no-build-cache :datapakker:søknad:build
         env:
           ORG_GRADLE_PROJECT_githubUser: x-access-token
           ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
@@ -51,25 +44,10 @@ jobs:
         uses: docker/build-push-action@v4.1.1
         with:
           context: .
+          file: ./datapakker/søknad/Dockerfile
           push: true
           pull: true
           tags: ${{env.IMAGE}}
-
-  snyk:
-    #https://github.com/snyk/actions/tree/master/gradle
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/gradle@master
-        continue-on-error: true # To make sure that SARIF upload gets called
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-          ORG_GRADLE_PROJECT_githubUser: x-access-token
-          ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          args: --all-sub-projects --org=supstonad --sarif-file-output=${{ github.workspace }}/snyk.sarif
-          command: monitor
 
   deploy_to_dev:
     name: Deploy to dev
@@ -82,14 +60,19 @@ jobs:
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-fss
-          RESOURCE: nais.yml
-          VARS: nais-dev.json
+          RESOURCE: datapakker/søknad/nais.yml
+          VARS: datapakker/søknad/nais-dev.json
 
-  generate-draft-release:
-    name: Generate/update draft release
+  deploy_to_prod:
+    name: Deploy to prod
+    needs: build
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
-      # Drafts your next Release notes as Pull Requests are merged into "master"
-      - uses: release-drafter/release-drafter@v5
+      - uses: actions/checkout@v3
+      - uses: nais/deploy/actions/deploy@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: prod-fss
+          RESOURCE: datapakker/søknad/nais.yml
+          VARS: datapakker/søknad/nais-prod.json
