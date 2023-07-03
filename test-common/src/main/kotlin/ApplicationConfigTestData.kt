@@ -97,4 +97,9 @@ fun applicationConfig() = ApplicationConfig(
     kabalKafkaConfig = ApplicationConfig.KabalKafkaConfig(
         kafkaConfig = emptyMap(),
     ),
+    institusjonsoppholdKafkaConfig = ApplicationConfig.InstitusjonsoppholdKafkaConfig(
+        kafkaConfig = mapOf(),
+        topicName = "stubbedInstitusjonsoppholdTopicName",
+    ),
+
 )

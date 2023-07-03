@@ -37,6 +37,7 @@
     "SKATTEETATEN_URL": "https://sigrun-ske.dev.adeo.no",
     "SKATT_CLIENT_ID": "api://dev-fss.team-inntekt.sigrun-q4",
     "KRR_URL": "https://digdir-krr-proxy.intern.dev.nav.no",
-    "KRR_APP_ID": "api://dev-gcp.team-rocket.digdir-krr-proxy"
+    "KRR_APP_ID": "api://dev-gcp.team-rocket.digdir-krr-proxy",
+    "INSTITUSJONSOPPHOLD_TOPIC": "team-rocket.institusjon-opphold-hendelser-q2"
   }
 }

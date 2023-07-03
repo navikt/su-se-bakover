@@ -51,7 +51,13 @@ data class VedtakPåTidslinje private constructor(
     override fun copy(args: CopyArgs.Tidslinje): VedtakPåTidslinje = when (args) {
         CopyArgs.Tidslinje.Full -> kopi()
         is CopyArgs.Tidslinje.NyPeriode -> nyPeriode(args.periode)
+        else -> TODO("fjern meg")
     }
+
+    /**
+     * Aktiv i denne sammenheng betyr at den ikke er opphørt eller stanset
+     */
+    fun erAktiv(): Boolean = !erOpphør() && !erStans()
 
     fun erOpphør(): Boolean = originaltVedtak.erOpphør()
     fun erStans(): Boolean = originaltVedtak.erStans()
@@ -124,6 +130,12 @@ data class VedtakPåTidslinje private constructor(
                 originaltVedtak = this,
             )
         }
+
+        /**
+         * Se [erAktiv]
+         * @return true dersom det finnes minst en innvilgelse i tidslinjen
+         */
+        fun Tidslinje<VedtakPåTidslinje>?.harInnvilgelse(): Boolean = this != null && this.any { it.erAktiv() }
     }
 }
 

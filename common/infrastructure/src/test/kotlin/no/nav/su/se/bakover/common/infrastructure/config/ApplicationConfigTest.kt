@@ -166,6 +166,29 @@ class ApplicationConfigTest {
                 "max.poll.records" to 100,
             ),
         ),
+        institusjonsoppholdKafkaConfig = ApplicationConfig.InstitusjonsoppholdKafkaConfig(
+            kafkaConfig = mapOf(
+                "bootstrap.servers" to "brokers",
+                "security.protocol" to "SSL",
+                "ssl.endpoint.identification.algorithm" to "",
+                "ssl.truststore.type" to "jks",
+                "ssl.keystore.type" to "PKCS12",
+                "ssl.truststore.location" to "truststorePath",
+                "ssl.truststore.password" to "credstorePwd",
+                "ssl.keystore.location" to "keystorePath",
+                "ssl.keystore.password" to "credstorePwd",
+                "ssl.key.password" to "credstorePwd",
+                "group.id" to "su-se-bakover",
+                "client.id" to "hostname",
+                "enable.auto.commit" to "false",
+                "auto.offset.reset" to "earliest",
+                "key.deserializer" to StringDeserializer::class.java,
+                "value.deserializer" to StringDeserializer::class.java,
+                "max.poll.records" to 100,
+            ),
+            topicName = "INSTITUSJONSOPPHOLD_TOPIC",
+        ),
+
     )
 
     @Test
@@ -216,6 +239,7 @@ class ApplicationConfigTest {
                 "KAFKA_SCHEMA_REGISTRY" to "some-schema-url",
                 "SKATTEETATEN_URL" to "skatteetatenUrl",
                 "SKATT_CLIENT_ID" to "skattClientId",
+                "INSTITUSJONSOPPHOLD_TOPIC" to "INSTITUSJONSOPPHOLD_TOPIC",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
@@ -308,6 +332,7 @@ class ApplicationConfigTest {
                 ),
                 unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover"),
                 kabalKafkaConfig = ApplicationConfig.KabalKafkaConfig(emptyMap()),
+                institusjonsoppholdKafkaConfig = ApplicationConfig.InstitusjonsoppholdKafkaConfig(emptyMap(), "INSTITUSJONSOPPHOLD_TOPIC"),
             )
         }
     }

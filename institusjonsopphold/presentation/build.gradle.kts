@@ -1,7 +1,10 @@
 dependencies {
-    implementation(project(":common:domain"))
-    implementation(project(":domain"))
     implementation(project(":institusjonsopphold:application"))
+
+    implementation(project(":common:domain"))
+    implementation(project(":common:infrastructure"))
+
+    implementation(project(":domain"))
     testImplementation(project(":test-common"))
 }
 

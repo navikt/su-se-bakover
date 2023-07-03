@@ -23,6 +23,10 @@ dependencies {
     implementation(project(":kontrollsamtale:infrastructure"))
     implementation(project(":kontrollsamtale:application"))
     implementation(project(":kontrollsamtale:domain"))
+    implementation(project(":institusjonsopphold:infrastructure"))
+    implementation(project(":institusjonsopphold:application"))
+    implementation(project(":institusjonsopphold:domain"))
+    implementation(project(":institusjonsopphold:presentation"))
     implementation(project(":økonomi:domain"))
     implementation(project(":økonomi:infrastructure"))
 

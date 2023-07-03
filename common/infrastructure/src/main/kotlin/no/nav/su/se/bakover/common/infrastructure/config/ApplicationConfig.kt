@@ -60,6 +60,7 @@ data class ApplicationConfig(
     val kafkaConfig: KafkaConfig,
     val unleash: UnleashConfig,
     val kabalKafkaConfig: KabalKafkaConfig,
+    val institusjonsoppholdKafkaConfig: InstitusjonsoppholdKafkaConfig,
 ) {
     enum class RuntimeEnvironment {
         Test,
@@ -542,6 +543,7 @@ data class ApplicationConfig(
             kafkaConfig = KafkaConfig.createFromEnvironmentVariables(),
             unleash = UnleashConfig.createFromEnvironmentVariables(),
             kabalKafkaConfig = KabalKafkaConfig.createFromEnvironmentVariables(),
+            institusjonsoppholdKafkaConfig = InstitusjonsoppholdKafkaConfig.createFromEnvironmentVariables(),
         )
 
         fun createLocalConfig() = ApplicationConfig(
@@ -559,6 +561,7 @@ data class ApplicationConfig(
             kafkaConfig = KafkaConfig.createLocalConfig(),
             unleash = UnleashConfig.createFromEnvironmentVariables(),
             kabalKafkaConfig = KabalKafkaConfig.createLocalConfig(),
+            institusjonsoppholdKafkaConfig = InstitusjonsoppholdKafkaConfig.createLocalConfig(),
         ).also {
             log.warn("**********  Using local config (the environment variable 'NAIS_CLUSTER_NAME' is missing.)")
         }
@@ -592,6 +595,28 @@ data class ApplicationConfig(
 
             fun createLocalConfig() = KabalKafkaConfig(
                 kafkaConfig = emptyMap(),
+            )
+        }
+    }
+
+    data class InstitusjonsoppholdKafkaConfig(
+        val kafkaConfig: Map<String, Any>,
+        val topicName: String,
+    ) {
+        companion object {
+            fun createFromEnvironmentVariables() = InstitusjonsoppholdKafkaConfig(
+                kafkaConfig = KafkaConfig.CommonAivenKafkaConfig().configure() +
+                    commonConsumerConfig(
+                        keyDeserializer = StringDeserializer::class.java,
+                        valueDeserializer = StringDeserializer::class.java,
+                        clientIdConfig = getEnvironmentVariableOrThrow("HOSTNAME"),
+                    ),
+                topicName = getEnvironmentVariableOrThrow("INSTITUSJONSOPPHOLD_TOPIC"),
+            )
+
+            fun createLocalConfig() = InstitusjonsoppholdKafkaConfig(
+                kafkaConfig = emptyMap(),
+                topicName = "INSTITUSJONSOPPHOLD_TOPIC",
             )
         }
     }
