@@ -8,5 +8,8 @@ dependencies {
     implementation(project(":utenlandsopphold:infrastructure"))
     implementation(project(":økonomi:domain"))
 
+    implementation(project(":institusjonsopphold:infrastructure"))
+    implementation(project(":institusjonsopphold:domain"))
+
     testImplementation(project(":test-common"))
 }

@@ -44,4 +44,5 @@ data class DatabaseRepos(
     val hendelseRepo: HendelseRepo,
     val utenlandsoppholdRepo: UtenlandsoppholdRepo,
     val dokumentSkattRepo: DokumentSkattRepo,
+    val institusjonsoppholdHendelseRepo: InstitusjonsoppholdHendelseRepo,
 )

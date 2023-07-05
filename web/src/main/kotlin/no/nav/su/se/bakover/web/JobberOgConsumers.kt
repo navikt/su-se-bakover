@@ -120,16 +120,19 @@ fun startJobberOgConsumers(
             clock = clock,
         )
 
-        InstitusjonsoppholdConsumer(
-            config = applicationConfig.institusjonsoppholdKafkaConfig,
-            institusjonsoppholdService = InstitusjonsoppholdService(
-                oppgaveService = services.oppgave,
-                personService = services.person,
-                sakRepo = databaseRepos.sak,
+        if (services.toggles.isEnabled("supstonad.institusjonsopphold.hendelser")) {
+            InstitusjonsoppholdConsumer(
+                config = applicationConfig.institusjonsoppholdKafkaConfig,
+                institusjonsoppholdService = InstitusjonsoppholdService(
+                    oppgaveService = services.oppgave,
+                    personService = services.person,
+                    institusjonsoppholdHendelseRepo = databaseRepos.institusjonsoppholdHendelseRepo,
+                    sakRepo = databaseRepos.sak,
+                    clock = clock,
+                ),
                 clock = clock,
-            ),
-            clock = clock,
-        )
+            )
+        }
 
         JournalførDokumentJob(
             initialDelay = initialDelay.next(),
