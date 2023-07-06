@@ -22,8 +22,37 @@ class InstitusjonsoppholdHendelsePostgresRepo(
     private val dbMetrics: DbMetrics,
     private val clock: Clock,
 ) : InstitusjonsoppholdHendelseRepo {
-    override fun lagre(hendelse: InstitusjonsoppholdHendelse) {
-        lagre(hendelse.toDb())
+    override fun lagre(hendelse: InstitusjonsoppholdHendelse.KnyttetTilSak) {
+        hendelse.toDb().let {
+            dbMetrics.timeQuery("lagreInstitusjonsoppholdHendelse") {
+                sessionFactory.withSession { session ->
+                    """
+                    INSERT INTO
+                        institusjonsopphold_hendelse
+                        (id, opprettet, sakId, hendelsesId, oppholdId, norskIdent, type, kilde, oppgaveId)
+                    VALUES 
+                        (:id, :opprettet, :sakId, :hendelsesId, :oppholdId, :norskIdent, :type, :kilde, :oppgaveId)
+                    ON CONFLICT 
+                        (id) do
+                    UPDATE SET
+                        oppgaveId=:oppgaveId
+                    """.trimIndent().insert(
+                        mapOf(
+                            "id" to it.id,
+                            "opprettet" to it.opprettet,
+                            "sakId" to it.sakId,
+                            "hendelsesId" to it.hendelseId,
+                            "oppholdId" to it.oppholdId,
+                            "norskIdent" to it.norskident,
+                            "type" to it.type.toString(),
+                            "kilde" to it.kilde.toString(),
+                            "oppgaveId" to it.oppgaveId,
+                        ),
+                        session,
+                    )
+                }
+            }
+        }
     }
 
     override fun hent(id: UUID): InstitusjonsoppholdHendelse.KnyttetTilSak? =
@@ -35,41 +64,14 @@ class InstitusjonsoppholdHendelsePostgresRepo(
             }
         }
 
-    override fun hentHendelserUtenOppgaveId(): List<InstitusjonsoppholdHendelse> =
+    override fun hentHendelserUtenOppgaveId(): List<InstitusjonsoppholdHendelse.KnyttetTilSak> =
         dbMetrics.timeQuery("hentInstitusjonsoppholdHendelserUtenOppgave") {
             sessionFactory.withSession { session ->
-                "SELECT * FROM  institusjonsopphold_hendelse WHERE oppgaveId = null".hentListe(mapOf(), session) {
+                "SELECT * FROM institusjonsopphold_hendelse WHERE oppgaveId is null".hentListe(mapOf(), session) {
                     it.toInstitusjonsoppholdHendelse()
                 }
             }
         }
-
-    private fun lagre(hendelse: InstitusjonsoppholdHendelseDb) {
-        dbMetrics.timeQuery("lagreInstitusjonsoppholdHendelse") {
-            sessionFactory.withSession { session ->
-                """
-                    INSERT INTO
-                        institusjonsopphold_hendelse
-                        (id, opprettet, sakId, hendelsesId, oppholdId, norskIdent, type, kilde, oppgaveId)
-                    VALUES 
-                        (:id, :opprettet, :sakId, :hendelsesId, :oppholdId, :norskIdent, :type, :kilde, :oppgaveId)
-                """.trimIndent().insert(
-                    mapOf(
-                        "id" to hendelse.id,
-                        "opprettet" to hendelse.opprettet,
-                        "sakId" to hendelse.sakId,
-                        "hendelsesId" to hendelse.hendelseId,
-                        "oppholdId" to hendelse.oppholdId,
-                        "norskIdent" to hendelse.norskident,
-                        "type" to hendelse.type.toString(),
-                        "kilde" to hendelse.kilde.toString(),
-                        "oppgaveId" to hendelse.oppgaveId,
-                    ),
-                    session,
-                )
-            }
-        }
-    }
 
     private fun Row.toInstitusjonsoppholdHendelse(): InstitusjonsoppholdHendelse.KnyttetTilSak {
         val id = uuid("id")
@@ -86,14 +88,14 @@ class InstitusjonsoppholdHendelsePostgresRepo(
         val hendelse = InstitusjonsoppholdHendelse.KnyttetTilSak.UtenOppgaveId(
             sakId = sakId,
             ikkeKnyttetTilSak = InstitusjonsoppholdHendelse.IkkeKnyttetTilSak(
-                id,
-                opprettet,
-                EksternInstitusjonsoppholdHendelse(
-                    hendelsesId,
-                    oppholdId,
-                    norskIdent,
-                    type.toDomain(),
-                    kilde.toDomain(),
+                id = id,
+                opprettet = opprettet,
+                eksternHendelse = EksternInstitusjonsoppholdHendelse(
+                    hendelseId = hendelsesId,
+                    oppholdId = oppholdId,
+                    norskident = norskIdent,
+                    type = type.toDomain(),
+                    kilde = kilde.toDomain(),
                 ),
             ),
         )

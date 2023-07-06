@@ -134,7 +134,6 @@ import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.journalpostIdSøknad
 import no.nav.su.se.bakover.test.søknad.oppgaveIdSøknad
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
-import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.tilAttesteringSøknadsbehandling
 import no.nav.su.se.bakover.test.trekkSøknad
 import no.nav.su.se.bakover.test.underkjentSøknadsbehandling
@@ -1586,7 +1585,7 @@ class TestDataHelper(
     }
 
     fun persisterInstitusjonsoppholdHendelseTilknyttetSakUtenOppgaveId(): InstitusjonsoppholdHendelse.KnyttetTilSak.UtenOppgaveId {
-        return søknadsbehandlingIverksattInnvilget().let {
+        return persisterSøknadsbehandlingIverksatt().let {
             nyInstitusjonsoppholdHendelseKnyttetTilSakUtenOppgaveId(sakId = it.first.id).also {
                 institusjonsoppholdHendelseRepo.lagre(it)
             }

@@ -3,8 +3,10 @@ package no.nav.su.se.bakover.institusjonsopphold.database
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdKilde
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdType
+import no.nav.su.se.bakover.institusjonsopphold.database.InstitusjonsoppholdHendelseDb.Companion.toDb
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.nyInstitusjonsoppholdHendelseIkkeTilknyttetTilSak
@@ -19,12 +21,9 @@ import java.util.UUID
 class InstitusjonsoppholdHendelsePostgresRepoTest {
 
     @Test
-    fun `kaster exception ved lagring av ikke tilknyttet sak`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            assertThrows<IllegalArgumentException> {
-                testDataHelper.institusjonsoppholdHendelseRepo.lagre(nyInstitusjonsoppholdHendelseIkkeTilknyttetTilSak())
-            }
+    fun `kaster exception ved dersom en ikkeKnyttetTilSak gjøres om til db type`() {
+        assertThrows<IllegalStateException> {
+            nyInstitusjonsoppholdHendelseIkkeTilknyttetTilSak().toDb()
         }
     }
 
@@ -77,6 +76,21 @@ class InstitusjonsoppholdHendelsePostgresRepoTest {
                 it.eksternHendelse.type shouldBe InstitusjonsoppholdType.OPPDATERING
                 it.eksternHendelse.kilde shouldBe InstitusjonsoppholdKilde.INST
                 it.oppgaveId shouldBe OppgaveId("oppgaveId")
+            }
+        }
+    }
+
+    @Test
+    fun `henter alle hendelser uten oppgave id`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            testDataHelper.persisterInstitusjonsoppholdHendelseTilknyttetSakUtenOppgaveId()
+            testDataHelper.persisterInstitusjonsoppholdHendelseTilknyttetSakUtenOppgaveId()
+            testDataHelper.persisterInstitusjonsoppholdHendelseTilknyttetSakMedOppgaveId()
+
+            testDataHelper.institusjonsoppholdHendelseRepo.hentHendelserUtenOppgaveId().let {
+                it.size shouldBe 2
+                it.all { it is InstitusjonsoppholdHendelse.KnyttetTilSak.UtenOppgaveId }
             }
         }
     }

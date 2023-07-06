@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.institusjonsopphold.database.InstitusjonsoppholdKildeDb.Companion.toDb
 import no.nav.su.se.bakover.institusjonsopphold.database.InstitusjonsoppholdTypeDb.Companion.toDb
+import java.lang.IllegalStateException
 import java.util.UUID
 
 data class InstitusjonsoppholdHendelseDb(
@@ -19,7 +20,7 @@ data class InstitusjonsoppholdHendelseDb(
 ) {
     companion object {
         fun InstitusjonsoppholdHendelse.toDb(): InstitusjonsoppholdHendelseDb = when (this) {
-            is InstitusjonsoppholdHendelse.IkkeKnyttetTilSak -> throw IllegalArgumentException("Kan ikke lagre hendelse. ekstern hendelse id ${this.eksternHendelse.hendelseId}")
+            is InstitusjonsoppholdHendelse.IkkeKnyttetTilSak -> throw IllegalStateException("Kan ikke lagre hendelse. ekstern hendelse id ${this.eksternHendelse.hendelseId}")
             is InstitusjonsoppholdHendelse.KnyttetTilSak -> InstitusjonsoppholdHendelseDb(
                 id = this.id,
                 opprettet = this.opprettet,

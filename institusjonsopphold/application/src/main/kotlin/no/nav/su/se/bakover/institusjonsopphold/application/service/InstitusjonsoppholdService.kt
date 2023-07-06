@@ -27,7 +27,7 @@ class InstitusjonsoppholdService(
                 sikkerLogg.debug("Forkaster institusjonsopphold hendelse ${hendelse.eksternHendelse.hendelseId} fordi den ikke er knyttet til sak")
             }
         }.single { it.vedtakstidslinje(Måned.now(clock)).harInnvilgelse() }.let {
-            institusjonsoppholdHendelseRepo.lagre(hendelse)
+            institusjonsoppholdHendelseRepo.lagre(hendelse.knyttTilSak(it.id))
         }
     }
 
