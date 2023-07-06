@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
+import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
@@ -112,6 +113,7 @@ import no.nav.su.se.bakover.test.grunnlagsdataMedEpsMedFradrag
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.nyInstitusjonsoppholdHendelseKnyttetTilSakUtenOppgaveId
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurdering
@@ -132,6 +134,7 @@ import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.journalpostIdSøknad
 import no.nav.su.se.bakover.test.søknad.oppgaveIdSøknad
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
+import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.tilAttesteringSøknadsbehandling
 import no.nav.su.se.bakover.test.trekkSøknad
 import no.nav.su.se.bakover.test.underkjentSøknadsbehandling
@@ -183,6 +186,7 @@ class TestDataHelper(
     val tilbakekrevingRepo = databaseRepos.tilbakekrevingRepo
     val søknadsbehandlingRepo = databaseRepos.søknadsbehandling
     val utbetalingRepo = databaseRepos.utbetaling
+    val institusjonsoppholdHendelseRepo = databaseRepos.institusjonsoppholdHendelseRepo
 
     /**
      * Oppretter og persisterer en ny sak (dersom den ikke finnes fra før) med søknad med tomt søknadsinnhold.
@@ -1578,6 +1582,22 @@ class TestDataHelper(
     fun persisterSkattedokumentJournalført(): Skattedokument.Journalført {
         return persisterSkattedokumentGenerert().tilJournalført(JournalpostId("journalpostId")).also {
             databaseRepos.dokumentSkattRepo.lagre(it)
+        }
+    }
+
+    fun persisterInstitusjonsoppholdHendelseTilknyttetSakUtenOppgaveId(): InstitusjonsoppholdHendelse.KnyttetTilSak.UtenOppgaveId {
+        return søknadsbehandlingIverksattInnvilget().let {
+            nyInstitusjonsoppholdHendelseKnyttetTilSakUtenOppgaveId(sakId = it.first.id).also {
+                institusjonsoppholdHendelseRepo.lagre(it)
+            }
+        }
+    }
+
+    fun persisterInstitusjonsoppholdHendelseTilknyttetSakMedOppgaveId(): InstitusjonsoppholdHendelse.KnyttetTilSak.MedOppgaveId {
+        return persisterInstitusjonsoppholdHendelseTilknyttetSakUtenOppgaveId().let {
+            it.knyttTilOppgaveId(OppgaveId("tilknyttet oppgave id"))
+        }.also {
+            institusjonsoppholdHendelseRepo.lagre(it)
         }
     }
 

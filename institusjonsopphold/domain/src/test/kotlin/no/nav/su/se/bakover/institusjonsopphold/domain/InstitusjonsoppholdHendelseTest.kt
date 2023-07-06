@@ -8,16 +8,9 @@ import no.nav.su.se.bakover.test.nyInstitusjonsoppholdHendelseKnyttetTilSakUtenO
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.api.fail
 import java.util.UUID
 
-class InstitusjonsoppholdHendelseTest {
-
-    @Test
-    fun lol() {
-        fail("")
-    }
-
+internal class InstitusjonsoppholdHendelseTest {
     @Nested
     inner class IkkeTilknyttetTilSak {
         @Test
@@ -32,6 +25,11 @@ class InstitusjonsoppholdHendelseTest {
     inner class KnyttetTilSak {
         @Nested
         inner class UtenOppgaveId {
+            @Test
+            fun `uten oppgave id skal alltid ha oppgave id som null`() {
+                nyInstitusjonsoppholdHendelseKnyttetTilSakUtenOppgaveId().oppgaveId shouldBe null
+            }
+
             @Test
             fun `kan knytte til oppgave-id`() {
                 val expectedOppgaveId = OppgaveId("oppgaveId")

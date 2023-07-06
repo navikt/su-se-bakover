@@ -31,15 +31,23 @@ fun nyInstitusjonsoppholdHendelseIkkeTilknyttetTilSak(
 )
 
 fun nyInstitusjonsoppholdHendelseKnyttetTilSakUtenOppgaveId(
+    id: UUID = UUID.randomUUID(),
     sakId: UUID = UUID.randomUUID(),
-    ikkeKnyttetTilSak: InstitusjonsoppholdHendelse.IkkeKnyttetTilSak = nyInstitusjonsoppholdHendelseIkkeTilknyttetTilSak(),
+    ikkeKnyttetTilSak: InstitusjonsoppholdHendelse.IkkeKnyttetTilSak = nyInstitusjonsoppholdHendelseIkkeTilknyttetTilSak(
+        id = id,
+    ),
 ): InstitusjonsoppholdHendelse.KnyttetTilSak.UtenOppgaveId = InstitusjonsoppholdHendelse.KnyttetTilSak.UtenOppgaveId(
     sakId = sakId,
     ikkeKnyttetTilSak = ikkeKnyttetTilSak,
 )
 
 fun nyInstitusjonsoppholdHendelseKnyttetTilSakMedOppgaveId(
-    utenOppgaveId: InstitusjonsoppholdHendelse.KnyttetTilSak.UtenOppgaveId = nyInstitusjonsoppholdHendelseKnyttetTilSakUtenOppgaveId(),
+    id: UUID = UUID.randomUUID(),
+    sakId: UUID = UUID.randomUUID(),
+    utenOppgaveId: InstitusjonsoppholdHendelse.KnyttetTilSak.UtenOppgaveId = nyInstitusjonsoppholdHendelseKnyttetTilSakUtenOppgaveId(
+        id = id,
+        sakId = sakId,
+    ),
     oppgaveId: OppgaveId = OppgaveId("oppgaveId"),
 ): InstitusjonsoppholdHendelse.KnyttetTilSak.MedOppgaveId = InstitusjonsoppholdHendelse.KnyttetTilSak.MedOppgaveId(
     utenOppgaveId = utenOppgaveId,
