@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.oppgave
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 
 interface OppgaveClient {
     fun opprettOppgave(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId>

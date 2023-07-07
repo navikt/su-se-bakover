@@ -11,6 +11,7 @@ import io.kotest.matchers.shouldNot
 import io.ktor.client.HttpClient
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.extensions.desember
 import no.nav.su.se.bakover.common.extensions.førsteINesteMåned
 import no.nav.su.se.bakover.common.extensions.januar
@@ -35,7 +36,6 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingslinjePåTidslin
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.Saksnummer

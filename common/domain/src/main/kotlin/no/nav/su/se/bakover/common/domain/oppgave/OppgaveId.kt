@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.oppgave
+package no.nav.su.se.bakover.common.domain.oppgave
 
 import com.fasterxml.jackson.annotation.JsonValue
 

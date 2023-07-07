@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database
 
 import arrow.core.Either
 import arrow.core.left
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.infrastructure.persistence.QueryParameterMapper
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.database.beregning.serialiser
@@ -12,7 +13,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.sql.PreparedStatement
 
 object DomainToQueryParameterMapper : QueryParameterMapper {

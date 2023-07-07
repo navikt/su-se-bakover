@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.client.oppgave
 
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveSøkeResultat
 import java.time.LocalDate
 import java.time.ZonedDateTime
