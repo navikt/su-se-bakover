@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdf
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagForPdf
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagMedFnr
 import no.nav.su.se.bakover.common.domain.PdfA
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.person.PersonOppslag
@@ -38,48 +37,21 @@ class SkattDokumentServiceImpl(
             EksterneGrunnlagSkatt.IkkeHentet -> return KunneIkkeGenerereSkattedokument.SkattegrunnlagErIkkeHentetForÅGenereDokument.left()
         }
 
-        val søkersSamletSkattegrunnlag = hentetSkatt.søkers.årsgrunnlag.mapNotNull {
-            when (it.oppslag) {
-                is Either.Left -> null
-                is Either.Right -> it
-            }
-        }
-
-        val epsSamletSkattegrunnlag = hentetSkatt.eps?.let {
-            it.årsgrunnlag.mapNotNull {
-                when (it.oppslag) {
-                    is Either.Left -> null
-                    is Either.Right -> it
-                }
-            }
-        }
-
-        if (søkersSamletSkattegrunnlag.isEmpty() && epsSamletSkattegrunnlag.isNullOrEmpty()) {
-            return KunneIkkeGenerereSkattedokument.IngenÅrsgrunnlag.left()
-        }
-
-        return SkattegrunnlagsPdf.lagSkattemeldingsPdf(
+        return SkattegrunnlagsPdf.lagSkattegrunnlagsPdf(
             saksnummer = vedtak.saksnummer,
             søknadsbehandlingsId = vedtak.behandling.id,
             vedtaksId = vedtak.id,
             // vi henter skattemeldingene samtidig
             hentet = hentetSkatt.søkers.hentetTidspunkt,
             skatt = ÅrsgrunnlagForPdf(
-                søkers = if (søkersSamletSkattegrunnlag.isEmpty()) {
+                søkers = ÅrsgrunnlagMedFnr(
+                    fnr = hentetSkatt.søkers.fnr,
+                    årsgrunnlag = hentetSkatt.søkers.årsgrunnlag,
+                ),
+                eps = if (hentetSkatt.eps == null) {
                     null
                 } else {
-                    ÅrsgrunnlagMedFnr(
-                        fnr = hentetSkatt.søkers.fnr,
-                        årsgrunnlag = søkersSamletSkattegrunnlag.toNonEmptyList(),
-                    )
-                },
-                eps = if (hentetSkatt.eps == null || epsSamletSkattegrunnlag.isNullOrEmpty()) {
-                    null
-                } else {
-                    ÅrsgrunnlagMedFnr(
-                        fnr = hentetSkatt.eps!!.fnr,
-                        årsgrunnlag = epsSamletSkattegrunnlag.toNonEmptyList(),
-                    )
+                    ÅrsgrunnlagMedFnr(fnr = hentetSkatt.eps!!.fnr, årsgrunnlag = hentetSkatt.eps!!.årsgrunnlag)
                 },
             ),
             hentNavn = { fnr ->

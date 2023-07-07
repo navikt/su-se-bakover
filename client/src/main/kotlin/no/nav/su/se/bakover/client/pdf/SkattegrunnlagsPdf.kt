@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.client.pdf
 
 import arrow.core.NonEmptyList
-import no.nav.su.se.bakover.client.pdf.SkattPdfData.ÅrsgrunnlagPdfJson.Companion.tilPdfJson
+import no.nav.su.se.bakover.client.pdf.SamletÅrsgrunnlagPdfJson.Companion.tilPdfJson
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.PdfInnhold
@@ -21,13 +21,13 @@ data class SkattegrunnlagsPdf private constructor(
     val vedtaksId: UUID,
     val hentet: Tidspunkt,
     val opprettet: Tidspunkt,
-    val søkers: SkattPdfData?,
-    val eps: SkattPdfData?,
+    val søkers: SkattPdfDataJson,
+    val eps: SkattPdfDataJson?,
 ) : PdfInnhold() {
     override val pdfTemplate: PdfTemplateMedDokumentNavn = SkattegrunnlagPdfTemplate
 
     companion object {
-        fun lagSkattemeldingsPdf(
+        fun lagSkattegrunnlagsPdf(
             saksnummer: Saksnummer,
             søknadsbehandlingsId: UUID,
             vedtaksId: UUID,
@@ -35,19 +35,15 @@ data class SkattegrunnlagsPdf private constructor(
             skatt: ÅrsgrunnlagForPdf,
             hentNavn: (Fnr) -> Person.Navn,
             clock: Clock,
-        ): SkattegrunnlagsPdf {
-            return SkattegrunnlagsPdf(
-                saksnummer = saksnummer,
-                behandlingsId = søknadsbehandlingsId,
-                vedtaksId = vedtaksId,
-                hentet = hentet,
-                opprettet = Tidspunkt.now(clock),
-                søkers = skatt.søkers?.let {
-                    SkattPdfData(it.fnr, hentNavn(it.fnr), it.årsgrunnlag.tilPdfJson(vedtaksId))
-                },
-                eps = skatt.eps?.let { SkattPdfData(it.fnr, hentNavn(it.fnr), it.årsgrunnlag.tilPdfJson(vedtaksId)) },
-            )
-        }
+        ): SkattegrunnlagsPdf = SkattegrunnlagsPdf(
+            saksnummer = saksnummer,
+            behandlingsId = søknadsbehandlingsId,
+            vedtaksId = vedtaksId,
+            hentet = hentet,
+            opprettet = Tidspunkt.now(clock),
+            søkers = SkattPdfDataJson(skatt.søkers.fnr, hentNavn(skatt.søkers.fnr), skatt.søkers.årsgrunnlag.tilPdfJson()),
+            eps = skatt.eps?.let { SkattPdfDataJson(it.fnr, hentNavn(it.fnr), it.årsgrunnlag.tilPdfJson()) },
+        )
     }
 }
 
@@ -61,12 +57,6 @@ data class ÅrsgrunnlagMedFnr(
 )
 
 data class ÅrsgrunnlagForPdf(
-    val søkers: ÅrsgrunnlagMedFnr?,
+    val søkers: ÅrsgrunnlagMedFnr,
     val eps: ÅrsgrunnlagMedFnr?,
-) {
-    init {
-        require(søkers != null || eps != null) {
-            "Både søkers & eps var null. Minst et av dem må suppleres"
-        }
-    }
-}
+)
