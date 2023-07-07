@@ -1,8 +1,12 @@
 package no.nav.su.se.bakover.client.pdf
 
+import arrow.core.Either
 import arrow.core.NonEmptyList
-import arrow.core.getOrElse
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.su.se.bakover.client.pdf.SamletÅrsgrunnlagPdfJson.HarIkkeSkattegrunnlagForÅrOgStadie.HarIkkeSkattegrunnlagFordi.Companion.tilPdfJson
 import no.nav.su.se.bakover.client.pdf.SkattegrunnlagPdfJson.Annet.Companion.tilPdfJson
+import no.nav.su.se.bakover.client.pdf.SkattegrunnlagPdfJson.Formue.Companion.hentKjøretøyPdfJson
 import no.nav.su.se.bakover.client.pdf.SkattegrunnlagPdfJson.Formue.Companion.tilPdfJson
 import no.nav.su.se.bakover.client.pdf.SkattegrunnlagPdfJson.Formuesfradrag.Companion.tilPdfJson
 import no.nav.su.se.bakover.client.pdf.SkattegrunnlagPdfJson.Inntekt.Companion.tilPdfJson
@@ -13,19 +17,39 @@ import no.nav.su.se.bakover.client.pdf.SkattegrunnlagPdfJson.VerdsettingsrabattS
 import no.nav.su.se.bakover.client.pdf.SpesifiseringPdfJson.KjøretøyJson.Companion.tilPdfJson
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.person.Person
+import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import java.time.LocalDate
-import java.util.UUID
 
-data class SkattPdfData(
+data class SkattPdfDataJson(
     val fnr: Fnr,
     val navn: Person.Navn,
-    val årsgrunnlag: NonEmptyList<ÅrsgrunnlagPdfJson>,
-) {
-    data class ÅrsgrunnlagPdfJson(
-        val år: Int,
-        val stadie: ÅrsgrunnlagStadie,
+    val årsgrunnlag: NonEmptyList<SamletÅrsgrunnlagPdfJson>,
+)
+
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.PROPERTY,
+    property = "type",
+)
+@JsonSubTypes(
+    JsonSubTypes.Type(
+        value = SamletÅrsgrunnlagPdfJson.HarIkkeSkattegrunnlagForÅrOgStadie::class,
+        name = "HarIkkeSkattegrunnlag",
+    ),
+    JsonSubTypes.Type(
+        value = SamletÅrsgrunnlagPdfJson.HarSkattegrunnlagForÅrOgStadie::class,
+        name = "HarSkattegrunnlag",
+    ),
+)
+sealed interface SamletÅrsgrunnlagPdfJson {
+    val år: Int
+    val stadie: ÅrsgrunnlagStadie
+
+    data class HarSkattegrunnlagForÅrOgStadie(
+        override val år: Int,
+        override val stadie: ÅrsgrunnlagStadie,
         val oppgjørsdato: LocalDate?,
         val formue: List<SkattegrunnlagPdfJson.Formue> = emptyList(),
         val inntekt: List<SkattegrunnlagPdfJson.Inntekt> = emptyList(),
@@ -35,40 +59,75 @@ data class SkattPdfData(
         val oppjusteringAvEierinntekter: List<SkattegrunnlagPdfJson.OppjusteringAvEierinntekter> = emptyList(),
         val manglerKategori: List<SkattegrunnlagPdfJson.ManglerKategori> = emptyList(),
         val annet: List<SkattegrunnlagPdfJson.Annet> = emptyList(),
-    ) {
-        enum class ÅrsgrunnlagStadie {
-            Oppgjør,
-            Utkast,
-        }
+        val kjøretøy: List<SpesifiseringPdfJson.KjøretøyJson>,
+    ) : SamletÅrsgrunnlagPdfJson
 
-        companion object {
-            fun NonEmptyList<SamletSkattegrunnlagForÅrOgStadie>.tilPdfJson(vedtakContext: UUID): NonEmptyList<ÅrsgrunnlagPdfJson> =
-                this.map { it.tilPdfJson(vedtakContext) }
+    data class HarIkkeSkattegrunnlagForÅrOgStadie(
+        override val år: Int,
+        override val stadie: ÅrsgrunnlagStadie,
+        val grunn: HarIkkeSkattegrunnlagFordi,
+    ) : SamletÅrsgrunnlagPdfJson {
 
-            fun SamletSkattegrunnlagForÅrOgStadie.tilPdfJson(vedtakContext: UUID): ÅrsgrunnlagPdfJson {
-                val skattegrunnlagForÅr = this.oppslag.getOrElse {
-                    throw IllegalStateException("Forventet at vi skulle ha skattegrunnlag på dette tidspunktet, men var $it for vedtak $vedtakContext")
+        enum class HarIkkeSkattegrunnlagFordi {
+            NETTVERKSFEIL,
+            FINNES_IKKE,
+            UKJENT_FEIL,
+            MANGLER_RETTIGHETER,
+            PERSON_FEIL,
+            ;
+
+            companion object {
+                fun KunneIkkeHenteSkattemelding.tilPdfJson(): HarIkkeSkattegrunnlagFordi = when (this) {
+                    KunneIkkeHenteSkattemelding.FinnesIkke -> FINNES_IKKE
+                    KunneIkkeHenteSkattemelding.ManglerRettigheter -> MANGLER_RETTIGHETER
+                    KunneIkkeHenteSkattemelding.Nettverksfeil -> NETTVERKSFEIL
+                    KunneIkkeHenteSkattemelding.PersonFeil -> PERSON_FEIL
+                    KunneIkkeHenteSkattemelding.UkjentFeil -> UKJENT_FEIL
                 }
+            }
+        }
+    }
 
-                return ÅrsgrunnlagPdfJson(
+    companion object {
+        fun NonEmptyList<SamletSkattegrunnlagForÅrOgStadie>.tilPdfJson(): NonEmptyList<SamletÅrsgrunnlagPdfJson> =
+            this.map { it.tilPdfJson() }
+
+        fun SamletSkattegrunnlagForÅrOgStadie.tilPdfJson(): SamletÅrsgrunnlagPdfJson {
+            return when (val oppslag = this.oppslag) {
+                is Either.Left -> HarIkkeSkattegrunnlagForÅrOgStadie(
                     år = this.inntektsår.value,
                     stadie = when (this) {
                         is SamletSkattegrunnlagForÅrOgStadie.Oppgjør -> ÅrsgrunnlagStadie.Oppgjør
                         is SamletSkattegrunnlagForÅrOgStadie.Utkast -> ÅrsgrunnlagStadie.Utkast
                     },
-                    oppgjørsdato = skattegrunnlagForÅr.oppgjørsdato,
-                    formue = skattegrunnlagForÅr.formue.tilPdfJson(),
-                    inntekt = skattegrunnlagForÅr.inntekt.tilPdfJson(),
-                    inntektsfradrag = skattegrunnlagForÅr.inntektsfradrag.tilPdfJson(),
-                    formuesfradrag = skattegrunnlagForÅr.formuesfradrag.tilPdfJson(),
-                    verdsettingsrabattSomGirGjeldsreduksjon = skattegrunnlagForÅr.verdsettingsrabattSomGirGjeldsreduksjon.tilPdfJson(),
-                    oppjusteringAvEierinntekter = skattegrunnlagForÅr.oppjusteringAvEierinntekter.tilPdfJson(),
-                    manglerKategori = skattegrunnlagForÅr.manglerKategori.tilPdfJson(),
-                    annet = skattegrunnlagForÅr.annet.tilPdfJson(),
+                    grunn = oppslag.value.tilPdfJson(),
+                )
+
+                is Either.Right -> HarSkattegrunnlagForÅrOgStadie(
+                    år = this.inntektsår.value,
+                    stadie = when (this) {
+                        is SamletSkattegrunnlagForÅrOgStadie.Oppgjør -> ÅrsgrunnlagStadie.Oppgjør
+                        is SamletSkattegrunnlagForÅrOgStadie.Utkast -> ÅrsgrunnlagStadie.Utkast
+                    },
+                    oppgjørsdato = oppslag.value.oppgjørsdato,
+                    formue = oppslag.value.formue.tilPdfJson(),
+                    inntekt = oppslag.value.inntekt.tilPdfJson(),
+                    inntektsfradrag = oppslag.value.inntektsfradrag.tilPdfJson(),
+                    formuesfradrag = oppslag.value.formuesfradrag.tilPdfJson(),
+                    verdsettingsrabattSomGirGjeldsreduksjon = oppslag.value.verdsettingsrabattSomGirGjeldsreduksjon.tilPdfJson(),
+                    oppjusteringAvEierinntekter = oppslag.value.oppjusteringAvEierinntekter.tilPdfJson(),
+                    manglerKategori = oppslag.value.manglerKategori.tilPdfJson(),
+                    annet = oppslag.value.annet.tilPdfJson(),
+                    kjøretøy = oppslag.value.formue.hentKjøretøyPdfJson(),
                 )
             }
         }
     }
+}
+
+enum class ÅrsgrunnlagStadie {
+    Oppgjør,
+    Utkast,
 }
 
 sealed interface SkattegrunnlagPdfJson {
@@ -79,11 +138,17 @@ sealed interface SkattegrunnlagPdfJson {
     data class Formue(
         override val tekniskNavn: String,
         override val beløp: String,
-        override val spesifisering: List<SpesifiseringPdfJson.KjøretøyJson> = emptyList(),
     ) : SkattegrunnlagPdfJson {
+        /**
+         * Formue feltet som skal til pdf'en skal ikke ha kjøretøy i seg. Den skal være i et eget felt
+         */
+        override val spesifisering: List<SpesifiseringPdfJson.KjøretøyJson> = emptyList()
+
         companion object {
-            fun Skattegrunnlag.Grunnlag.Formue.tilPdfJson(): Formue = Formue(navn, beløp, spesifisering.tilPdfJson())
+            fun Skattegrunnlag.Grunnlag.Formue.tilPdfJson(): Formue = Formue(navn, beløp)
             fun List<Skattegrunnlag.Grunnlag.Formue>.tilPdfJson(): List<Formue> = this.map { it.tilPdfJson() }
+            fun List<Skattegrunnlag.Grunnlag.Formue>.hentKjøretøyPdfJson(): List<SpesifiseringPdfJson.KjøretøyJson> =
+                this.flatMap { it.spesifisering.tilPdfJson() }
         }
     }
 
