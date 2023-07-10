@@ -9,3 +9,7 @@ dependencies {
 tasks.named<Jar>("jar") {
     archiveBaseName.set("institusjonsopphold-application")
 }
+
+tasks.test {
+    useJUnitPlatform()
+}

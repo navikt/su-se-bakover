@@ -1,11 +1,11 @@
-package no.nav.su.se.bakover.institusjonsopphold.application.service
+package no.nav.su.se.bakover.institusjonsopphold.presentation.consumer
 
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdKilde
 
 /**
  * https://github.com/navikt/institusjon/blob/main/apps/institusjon-opphold-hendelser/src/main/java/no/nav/opphold/hendelser/producer/domain/Kilde.java
  */
-enum class EksternInstitusjonsoppholdKilde {
+enum class EksternInstitusjonsoppholdKildeJson {
     APPBRK,
     INST,
     KDI,

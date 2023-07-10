@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.institusjonsopphold.application.service
 
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelseRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.PersonService
@@ -19,9 +20,7 @@ class InstitusjonsoppholdService(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    fun process(eksternHendelse: EksternInstitusjonsoppholdHendelse) {
-        // toDomain burde kanskje skje fra presentation og inn?
-        val hendelse = eksternHendelse.toDomain(clock)
+    fun process(hendelse: InstitusjonsoppholdHendelse.IkkeKnyttetTilSak) {
         sakRepo.hentSaker(hendelse.eksternHendelse.norskident).ifEmpty {
             return Unit.also {
                 sikkerLogg.debug("Forkaster institusjonsopphold hendelse ${hendelse.eksternHendelse.hendelseId} fordi den ikke er knyttet til sak")
@@ -32,26 +31,22 @@ class InstitusjonsoppholdService(
     }
 
 //    fun opprettOppgaveForHendelser() {
-//        institusjonsoppholdHendelseRepo.hentHendelserUtenOppgaveId().forEach {
-//            val sak = sakRepo.hentSak()
-//        }
+//        institusjonsoppholdHendelseRepo.hentHendelserUtenOppgaveId().forEach { hendelse ->
+//            val sak = sakRepo.hentSak(hendelse.sakId)
+//                ?: throw IllegalStateException("Feil ved henting av sak ${hendelse.sakId} for å opprette oppgave for institusjonsopphold")
+//            val person = personService.hentPerson(sak.fnr).getOrElse {
+//                return Unit.also { log.error("Feil ved henting av person, men vi hadde sak ${sak.saksnummer}") }
+//            }
 //
-//
-//        val person = personService.hentPerson(sak.fnr).getOrElse {
-//            return Unit.also { log.error("Fant ikke person for fnr: ${sak.fnr}, men vi hadde sak") }
-//        }
-//
-//        oppgaveService.opprettOppgave(
-//            OppgaveConfig.Institusjonsopphold(
-//                saksnummer = sak.saksnummer,
-//                sakstype = sak.type,
-//                aktørId = person.ident.aktørId,
-//                clock = clock,
-//            ),
-//        ).mapLeft {
-//            log.error("Fikk ikke opprettet oppgave for institusjonsopphold hendelse ${hendelse.hendelseId} for sak ${sak.saksnummer}")
-//        }.map {
-//            TODO("skal vi gjøre noe med oppgave-id'en?")
+//            oppgaveService.opprettOppgave(
+//                OppgaveConfig.Institusjonsopphold(
+//                    saksnummer = sak.saksnummer, sakstype = sak.type, aktørId = person.ident.aktørId, clock = clock,
+//                ),
+//            ).mapLeft {
+//                log.error("Fikk ikke opprettet oppgave for institusjonsopphold hendelse ${hendelse.id} for sak ${sak.saksnummer}")
+//            }.map {
+//                institusjonsoppholdHendelseRepo.lagre(hendelse.knyttTilOppgaveId(it))
+//            }
 //        }
 //    }
 }

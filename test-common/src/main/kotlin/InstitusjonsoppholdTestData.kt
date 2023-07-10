@@ -7,7 +7,24 @@ import no.nav.su.se.bakover.domain.EksternInstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdKilde
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdType
+import no.nav.su.se.bakover.institusjonsopphold.presentation.consumer.EksternInstitusjonsoppholdHendelseJson
+import no.nav.su.se.bakover.institusjonsopphold.presentation.consumer.EksternInstitusjonsoppholdKildeJson
+import no.nav.su.se.bakover.institusjonsopphold.presentation.consumer.EksternInstitusjonsoppholdTypeJson
 import java.util.UUID
+
+fun nyEksternInstitusjonsoppholdHendelse(
+    hendelseId: Long = 1,
+    oppholdId: Long = 2,
+    norskIdent: Fnr = fnr,
+    type: EksternInstitusjonsoppholdTypeJson = EksternInstitusjonsoppholdTypeJson.INNMELDING,
+    kilde: EksternInstitusjonsoppholdKildeJson = EksternInstitusjonsoppholdKildeJson.INST,
+): EksternInstitusjonsoppholdHendelseJson = EksternInstitusjonsoppholdHendelseJson(
+    hendelseId = hendelseId,
+    oppholdId = oppholdId,
+    norskident = norskIdent.toString(),
+    type = type,
+    kilde = kilde,
+)
 
 fun nyInstitusjonsoppholdHendelseIkkeTilknyttetTilSak(
     id: UUID = UUID.randomUUID(),

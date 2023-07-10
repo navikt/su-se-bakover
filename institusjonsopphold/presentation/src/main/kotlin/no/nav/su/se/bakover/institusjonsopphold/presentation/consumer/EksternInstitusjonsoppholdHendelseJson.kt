@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.institusjonsopphold.application.service
+package no.nav.su.se.bakover.institusjonsopphold.presentation.consumer
 
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -9,12 +9,12 @@ import java.util.UUID
 /**
  * https://github.com/navikt/institusjon/blob/main/apps/institusjon-opphold-hendelser/src/main/java/no/nav/opphold/hendelser/producer/domain/KafkaOppholdHendelse.java
  */
-data class EksternInstitusjonsoppholdHendelse(
+data class EksternInstitusjonsoppholdHendelseJson(
     val hendelseId: Long,
     val oppholdId: Long,
     val norskident: String,
-    val type: EksternInstitusjonsoppholdType,
-    val kilde: EksternInstitusjonsoppholdKilde,
+    val type: EksternInstitusjonsoppholdTypeJson,
+    val kilde: EksternInstitusjonsoppholdKildeJson,
 ) {
     fun toDomain(clock: Clock): InstitusjonsoppholdHendelse.IkkeKnyttetTilSak =
         InstitusjonsoppholdHendelse.IkkeKnyttetTilSak(
