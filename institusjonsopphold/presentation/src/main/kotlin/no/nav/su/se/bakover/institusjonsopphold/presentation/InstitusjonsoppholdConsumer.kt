@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.institusjonsopphold.presentation.consumer
+package no.nav.su.se.bakover.institusjonsopphold.presentation
 
 import arrow.core.Either
 import kotlinx.coroutines.CoroutineScope

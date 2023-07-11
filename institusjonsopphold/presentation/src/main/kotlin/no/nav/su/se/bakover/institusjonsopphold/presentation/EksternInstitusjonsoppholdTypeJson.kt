@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.institusjonsopphold.presentation.consumer
+package no.nav.su.se.bakover.institusjonsopphold.presentation
 
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdType
 

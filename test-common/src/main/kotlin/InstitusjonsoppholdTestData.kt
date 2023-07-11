@@ -7,9 +7,9 @@ import no.nav.su.se.bakover.domain.EksternInstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdKilde
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdType
-import no.nav.su.se.bakover.institusjonsopphold.presentation.consumer.EksternInstitusjonsoppholdHendelseJson
-import no.nav.su.se.bakover.institusjonsopphold.presentation.consumer.EksternInstitusjonsoppholdKildeJson
-import no.nav.su.se.bakover.institusjonsopphold.presentation.consumer.EksternInstitusjonsoppholdTypeJson
+import no.nav.su.se.bakover.institusjonsopphold.presentation.EksternInstitusjonsoppholdHendelseJson
+import no.nav.su.se.bakover.institusjonsopphold.presentation.EksternInstitusjonsoppholdKildeJson
+import no.nav.su.se.bakover.institusjonsopphold.presentation.EksternInstitusjonsoppholdTypeJson
 import java.util.UUID
 
 fun nyEksternInstitusjonsoppholdHendelse(

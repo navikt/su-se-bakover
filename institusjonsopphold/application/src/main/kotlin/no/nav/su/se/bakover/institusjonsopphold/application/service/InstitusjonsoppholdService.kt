@@ -34,23 +34,27 @@ class InstitusjonsoppholdService(
 
     fun opprettOppgaveForHendelser() {
         institusjonsoppholdHendelseRepo.hentHendelserUtenOppgaveId().forEach { hendelse ->
-            val sak = sakRepo.hentSak(hendelse.sakId)
-                ?: throw IllegalStateException("Feil ved henting av sak ${hendelse.sakId} for å opprette oppgave for institusjonsopphold")
-            val person = personService.hentPerson(sak.fnr).getOrElse {
-                return Unit.also { log.error("Feil ved henting av person, men vi hadde sak ${sak.saksnummer}") }
-            }
+            try {
+                val sak = sakRepo.hentSak(hendelse.sakId)
+                    ?: throw IllegalStateException("Feil ved henting av sak ${hendelse.sakId} for å opprette oppgave for institusjonsopphold")
+                val person = personService.hentPerson(sak.fnr).getOrElse {
+                    throw IllegalStateException("Feil ved henting av person, men vi hadde sak ${sak.saksnummer}")
+                }
 
-            oppgaveService.opprettOppgave(
-                OppgaveConfig.Institusjonsopphold(
-                    saksnummer = sak.saksnummer,
-                    sakstype = sak.type,
-                    aktørId = person.ident.aktørId,
-                    clock = clock,
-                ),
-            ).mapLeft {
-                log.error("Fikk ikke opprettet oppgave for institusjonsopphold hendelse ${hendelse.id} for sak ${sak.saksnummer}")
-            }.map {
-                institusjonsoppholdHendelseRepo.lagre(hendelse.knyttTilOppgaveId(it))
+                oppgaveService.opprettOppgave(
+                    OppgaveConfig.Institusjonsopphold(
+                        saksnummer = sak.saksnummer,
+                        sakstype = sak.type,
+                        aktørId = person.ident.aktørId,
+                        clock = clock,
+                    ),
+                ).mapLeft {
+                    log.error("Fikk ikke opprettet oppgave for institusjonsopphold hendelse ${hendelse.id} for sak ${sak.saksnummer}")
+                }.map {
+                    institusjonsoppholdHendelseRepo.lagre(hendelse.knyttTilOppgaveId(it))
+                }
+            } catch (e: Exception) {
+                log.error("Kunne ikke opprette oppgave for institusjonsopphold-hendelse ${hendelse.id}. Original feil $e")
             }
         }
     }
