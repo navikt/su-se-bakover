@@ -71,7 +71,7 @@ subprojects {
         }
         implementation("org.apache.avro:avro:1.11.1")
         implementation("com.github.ben-manes.caffeine:caffeine:3.1.6")
-        implementation("io.micrometer:micrometer-core:1.11.1")
+        implementation("io.micrometer:micrometer-core:1.11.2")
         implementation("io.micrometer:micrometer-registry-prometheus:1.11.1")
         implementation("com.github.seratch:kotliquery:1.9.0")
         implementation("org.flywaydb:flyway-core:9.20.0")
