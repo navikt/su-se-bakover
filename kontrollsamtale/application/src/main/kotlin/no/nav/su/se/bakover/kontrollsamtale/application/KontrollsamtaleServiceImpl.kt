@@ -142,7 +142,7 @@ class KontrollsamtaleServiceImpl(
     ): Either<KunneIkkeHenteKontrollsamtale.FantIkkePlanlagtKontrollsamtale, Kontrollsamtale> {
         val samtaler = kontrollsamtaleRepo.hentForSakId(sakId, sessionContext).sortedBy { it.innkallingsdato }
         // TODO jah: Dette kunne vi filtrert i databasen og dersom vi brukte sterkere typer, kunne vi returnert en mer eksakt type.
-        return samtaler.find { it.status === Kontrollsamtalestatus.PLANLAGT_INNKALLING }?.right()
+        return samtaler.find { it.status == Kontrollsamtalestatus.PLANLAGT_INNKALLING }?.right()
             ?: KunneIkkeHenteKontrollsamtale.FantIkkePlanlagtKontrollsamtale.left()
     }
 
