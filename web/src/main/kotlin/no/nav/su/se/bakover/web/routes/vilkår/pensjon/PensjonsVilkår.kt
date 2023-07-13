@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.web.routes.vilkår.pensjon
 
 import arrow.core.Either
-import arrow.core.flatMap
-import arrow.core.sequence
+import arrow.core.getOrElse
+import arrow.core.left
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
@@ -54,9 +54,11 @@ private fun Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar.toJson(): Pensjo
         Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar.HarIkkeSøktUtenlandskePensjoner -> {
             PensjonsoppysningerSvarJson.NEI
         }
+
         Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar.HarSøktUtenlandskePensjoner -> {
             PensjonsoppysningerSvarJson.JA
         }
+
         Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar.IkkeAktuelt -> {
             PensjonsoppysningerSvarJson.IKKE_AKTUELT
         }
@@ -68,9 +70,11 @@ private fun Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar.toJson(): Pensjo
         Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar.HarIkkeSøktAndreNorskePensjonerEnnFolketrygden -> {
             PensjonsoppysningerSvarJson.NEI
         }
+
         Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar.HarSøktAndreNorskePensjonerEnnFolketrygden -> {
             PensjonsoppysningerSvarJson.JA
         }
+
         Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar.IkkeAktuelt -> {
             PensjonsoppysningerSvarJson.IKKE_AKTUELT
         }
@@ -82,6 +86,7 @@ private fun Pensjonsopplysninger.SøktPensjonFolketrygd.Svar.toJson(): Pensjonso
         Pensjonsopplysninger.SøktPensjonFolketrygd.Svar.HarIkkeSøktPensjonFraFolketrygden -> {
             PensjonsoppysningerSvarJson.NEI
         }
+
         Pensjonsopplysninger.SøktPensjonFolketrygd.Svar.HarSøktPensjonFraFolketrygden -> {
             PensjonsoppysningerSvarJson.JA
         }
@@ -99,9 +104,11 @@ enum class PensjonsoppysningerSvarJson {
             JA -> {
                 Pensjonsopplysninger.SøktPensjonFolketrygd.Svar.HarSøktPensjonFraFolketrygden
             }
+
             NEI -> {
                 Pensjonsopplysninger.SøktPensjonFolketrygd.Svar.HarIkkeSøktPensjonFraFolketrygden
             }
+
             IKKE_AKTUELT -> {
                 throw IllegalArgumentException("Ugyldig argument $this for ${Pensjonsopplysninger.SøktPensjonFolketrygd.Svar::class}")
             }
@@ -113,9 +120,11 @@ enum class PensjonsoppysningerSvarJson {
             JA -> {
                 Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar.HarSøktAndreNorskePensjonerEnnFolketrygden
             }
+
             NEI -> {
                 Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar.HarIkkeSøktAndreNorskePensjonerEnnFolketrygden
             }
+
             IKKE_AKTUELT -> {
                 Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar.IkkeAktuelt
             }
@@ -127,9 +136,11 @@ enum class PensjonsoppysningerSvarJson {
             JA -> {
                 Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar.HarSøktUtenlandskePensjoner
             }
+
             NEI -> {
                 Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar.HarIkkeSøktUtenlandskePensjoner
             }
+
             IKKE_AKTUELT -> {
                 Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar.IkkeAktuelt
             }
@@ -177,15 +188,12 @@ internal data class LeggTilVurderingsperiodePensjonsvilkårJson(
 }
 
 internal fun List<LeggTilVurderingsperiodePensjonsvilkårJson>.toDomain(clock: Clock): Either<KunneIkkeLeggeTilPensjonsVilkår, PensjonsVilkår.Vurdert> {
-    return map { it.toDomain(clock) }.sequence()
-        .mapLeft { KunneIkkeLeggeTilPensjonsVilkår.UgyldigPensjonsVilkår(it) }
-        .flatMap { vurderingsperioder ->
-            PensjonsVilkår.Vurdert.tryCreate(
-                vurderingsperioder.toNonEmptyList(),
-
-            )
-                .mapLeft { KunneIkkeLeggeTilPensjonsVilkår.UgyldigPensjonsVilkår(it) }
-        }
+    return map {
+        it.toDomain(clock).getOrElse { return KunneIkkeLeggeTilPensjonsVilkår.UgyldigPensjonsVilkår(it).left() }
+    }.let { vurderingsperioder ->
+        PensjonsVilkår.Vurdert.tryCreate(vurderingsperioder.toNonEmptyList())
+            .mapLeft { KunneIkkeLeggeTilPensjonsVilkår.UgyldigPensjonsVilkår(it) }
+    }
 }
 
 internal fun PensjonsVilkår.toJson(): PensjonsVilkårJson? {
@@ -193,6 +201,7 @@ internal fun PensjonsVilkår.toJson(): PensjonsVilkårJson? {
         PensjonsVilkår.IkkeVurdert -> {
             null
         }
+
         is PensjonsVilkår.Vurdert -> {
             this.toJson()
         }
@@ -219,37 +228,45 @@ internal fun KunneIkkeLeggeTilPensjonsVilkår.tilResultat(): Resultat {
         is KunneIkkeLeggeTilPensjonsVilkår.FantIkkeBehandling -> {
             Feilresponser.fantIkkeBehandling
         }
+
         is KunneIkkeLeggeTilPensjonsVilkår.UgyldigPensjonsVilkår -> {
             when (this.feil) {
                 KunneIkkeLagePensjonsVilkår.OverlappendeVurderingsperioder -> {
                     Feilresponser.overlappendeVurderingsperioder
                 }
+
                 KunneIkkeLagePensjonsVilkår.Vurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig -> {
                     Feilresponser.periodeForGrunnlagOgVurderingErForskjellig
                 }
             }
         }
+
         is KunneIkkeLeggeTilPensjonsVilkår.Revurdering -> {
             when (val feil = this.feil) {
                 is Revurdering.KunneIkkeLeggeTilPensjonsVilkår.HeleBehandlingsperiodenErIkkeVurdert -> {
                     Feilresponser.vilkårMåVurderesForHeleBehandlingsperioden
                 }
+
                 is Revurdering.KunneIkkeLeggeTilPensjonsVilkår.UgyldigTilstand -> {
                     Feilresponser.ugyldigTilstand(feil.fra, feil.til)
                 }
+
                 is Revurdering.KunneIkkeLeggeTilPensjonsVilkår.VilkårKunRelevantForAlder -> {
                     Feilresponser.vilkårKunRelevantForAlder
                 }
             }
         }
+
         is KunneIkkeLeggeTilPensjonsVilkår.Søknadsbehandling -> {
             when (val feil = this.feil) {
                 is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår.HeleBehandlingsperiodenErIkkeVurdert -> {
                     Feilresponser.vilkårMåVurderesForHeleBehandlingsperioden
                 }
+
                 is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår.UgyldigTilstand -> {
                     Feilresponser.ugyldigTilstand(feil.fra, feil.til)
                 }
+
                 is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår.VilkårKunRelevantForAlder -> {
                     Feilresponser.vilkårKunRelevantForAlder
                 }

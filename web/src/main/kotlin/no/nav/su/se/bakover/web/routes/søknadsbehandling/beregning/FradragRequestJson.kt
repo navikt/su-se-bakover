@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.raise.either
 import arrow.core.right
-import arrow.core.sequence
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
@@ -27,12 +27,14 @@ internal fun Fradragstype.Companion.UgyldigFradragstype.tilResultat(): Resultat 
                 code = "uspesifisiert_fradrag_krever_beskrivelse",
             )
         }
+
         Fradragstype.Companion.UgyldigFradragstype.SpesifisertKategoriMedBeskrivelse -> {
             HttpStatusCode.BadRequest.errorJson(
                 message = "Spesifisert kategori skal ikke ha beskrivelse",
                 code = "spesifisert_fradrag_skal_ikke_ha_beskrivelse",
             )
         }
+
         Fradragstype.Companion.UgyldigFradragstype.UkjentFradragstype -> {
             HttpStatusCode.BadRequest.errorJson(
                 message = "Ukjent fradragstype",
@@ -79,9 +81,11 @@ internal data class FradragRequestJson(
 
     companion object {
         fun List<FradragRequestJson>.toFradrag(): Either<Resultat, List<Fradrag>> {
-            return this.map {
-                it.toFradrag()
-            }.sequence()
+            return either {
+                this@toFradrag.map {
+                    it.toFradrag().bind()
+                }
+            }
         }
     }
 }

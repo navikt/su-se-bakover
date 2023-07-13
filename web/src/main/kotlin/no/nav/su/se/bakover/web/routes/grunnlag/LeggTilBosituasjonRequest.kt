@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.web.routes.grunnlag
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.raise.either
 import arrow.core.right
-import arrow.core.sequence
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
@@ -26,9 +26,12 @@ data class LeggTilBosituasjonJsonRequest(
     val bosituasjoner: List<JsonBody>,
 ) {
     fun toService(behandlingId: UUID): Either<Resultat, LeggTilBosituasjonerRequest> {
-        return bosituasjoner.map { it.toService() }.sequence()
-            .mapLeft { it }
-            .map { LeggTilBosituasjonerRequest(behandlingId = behandlingId, bosituasjoner = it) }
+        return either {
+            LeggTilBosituasjonerRequest(
+                behandlingId = behandlingId,
+                bosituasjoner = bosituasjoner.map { it.toService().bind() },
+            )
+        }
     }
 
     data class JsonBody(
