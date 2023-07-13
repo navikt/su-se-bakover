@@ -69,9 +69,9 @@ enum class KlageinstansUtfall {
 }
 
 sealed interface KunneIkkeTolkeKlageinstanshendelse {
-    object KunneIkkeDeserialisere : KunneIkkeTolkeKlageinstanshendelse
-    object UgyldigeVerdier : KunneIkkeTolkeKlageinstanshendelse
+    data object KunneIkkeDeserialisere : KunneIkkeTolkeKlageinstanshendelse
+    data object UgyldigeVerdier : KunneIkkeTolkeKlageinstanshendelse
 
     // TODO jah: Vi bør legge inn støtte for anke hendelser når de begynner å dukke opp.
-    object AnkehendelserStøttesIkke : KunneIkkeTolkeKlageinstanshendelse
+    data object AnkehendelserStøttesIkke : KunneIkkeTolkeKlageinstanshendelse
 }

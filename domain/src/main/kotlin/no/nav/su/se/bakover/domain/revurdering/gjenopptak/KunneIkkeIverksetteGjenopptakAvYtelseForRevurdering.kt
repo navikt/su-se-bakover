@@ -7,7 +7,7 @@ import kotlin.reflect.KClass
 
 sealed interface KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering {
     data class KunneIkkeUtbetale(val feil: UtbetalGjenopptakFeil) : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering
-    object FantIkkeRevurdering : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering {
+    data object FantIkkeRevurdering : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering {
         override fun toString() = this::class.simpleName!!
     }
 
@@ -18,15 +18,15 @@ sealed interface KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering {
             GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse::class
     }
 
-    object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering {
+    data object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering {
         override fun toString() = this::class.simpleName!!
     }
 
-    object LagringFeilet : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering {
+    data object LagringFeilet : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering {
         override fun toString() = this::class.simpleName!!
     }
 
-    object DetHarKommetNyeOverlappendeVedtak : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering {
+    data object DetHarKommetNyeOverlappendeVedtak : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering {
         override fun toString() = this::class.simpleName!!
     }
 }

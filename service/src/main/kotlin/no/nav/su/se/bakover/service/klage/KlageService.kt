@@ -71,7 +71,7 @@ interface KlageService {
 }
 
 sealed class KunneIkkeLageBrevutkast {
-    object FantIkkeKlage : KunneIkkeLageBrevutkast()
+    data object FantIkkeKlage : KunneIkkeLageBrevutkast()
     data class FeilVedBrevRequest(val feil: KunneIkkeLageBrevRequestForKlage) : KunneIkkeLageBrevutkast()
     data class GenereringAvBrevFeilet(val feil: KunneIkkeLageBrevForKlage) : KunneIkkeLageBrevutkast()
 }

@@ -242,7 +242,7 @@ sealed interface Grunnlag {
         }
 
         sealed interface UgyldigFradragsgrunnlag {
-            object UgyldigFradragstypeForGrunnlag : UgyldigFradragsgrunnlag
+            data object UgyldigFradragstypeForGrunnlag : UgyldigFradragsgrunnlag
         }
 
         override fun copy(args: CopyArgs.Tidslinje): Fradragsgrunnlag = when (args) {

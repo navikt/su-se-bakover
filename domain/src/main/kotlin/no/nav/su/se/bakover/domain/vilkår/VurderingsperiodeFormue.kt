@@ -197,6 +197,6 @@ data class VurderingsperiodeFormue private constructor(
     }
 
     sealed interface UgyldigVurderingsperiode {
-        object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigVurderingsperiode
+        data object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigVurderingsperiode
     }
 }

@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
 import no.nav.su.se.bakover.client.krr.Kontaktinformasjon
 import no.nav.su.se.bakover.common.person.Fnr
 
-object KontaktOgReservasjonsregisterStub : KontaktOgReservasjonsregister {
+data object KontaktOgReservasjonsregisterStub : KontaktOgReservasjonsregister {
     override fun hentKontaktinformasjon(fnr: Fnr): Either<KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon, Kontaktinformasjon> {
         return Kontaktinformasjon(
             epostadresse = "mail@epost.com",

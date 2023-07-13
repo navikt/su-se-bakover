@@ -10,5 +10,5 @@ interface MqPublisher {
         val replyTo: String? = null,
     )
 
-    object CouldNotPublish
+    data object CouldNotPublish
 }

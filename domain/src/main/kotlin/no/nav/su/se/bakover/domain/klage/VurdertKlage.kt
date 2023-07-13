@@ -290,11 +290,11 @@ sealed interface VurdertKlage : Klage, VurdertKlageFelter, KanGenerereBrevutkast
 }
 
 sealed interface KunneIkkeVurdereKlage {
-    object FantIkkeKlage : KunneIkkeVurdereKlage
-    object UgyldigOmgjøringsårsak : KunneIkkeVurdereKlage
-    object UgyldigOmgjøringsutfall : KunneIkkeVurdereKlage
-    object UgyldigOpprettholdelseshjemler : KunneIkkeVurdereKlage
-    object KanIkkeVelgeBådeOmgjørOgOppretthold : KunneIkkeVurdereKlage
+    data object FantIkkeKlage : KunneIkkeVurdereKlage
+    data object UgyldigOmgjøringsårsak : KunneIkkeVurdereKlage
+    data object UgyldigOmgjøringsutfall : KunneIkkeVurdereKlage
+    data object UgyldigOpprettholdelseshjemler : KunneIkkeVurdereKlage
+    data object KanIkkeVelgeBådeOmgjørOgOppretthold : KunneIkkeVurdereKlage
     data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeVurdereKlage {
         val til = VurdertKlage::class
     }

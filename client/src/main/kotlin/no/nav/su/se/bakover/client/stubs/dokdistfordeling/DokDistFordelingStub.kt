@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.Distribusjonstidspunkt
 import no.nav.su.se.bakover.domain.brev.Distribusjonstype
 
-object DokDistFordelingStub : DokDistFordeling {
+data object DokDistFordelingStub : DokDistFordeling {
     override fun bestillDistribusjon(
         journalPostId: JournalpostId,
         distribusjonstype: Distribusjonstype,

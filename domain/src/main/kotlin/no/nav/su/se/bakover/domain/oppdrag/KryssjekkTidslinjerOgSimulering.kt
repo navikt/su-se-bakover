@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingslinjePåTidslin
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-object KryssjekkTidslinjerOgSimulering {
+data object KryssjekkTidslinjerOgSimulering {
     fun sjekk(
         log: Logger = LoggerFactory.getLogger(this::class.java),
         underArbeidEndringsperiode: Periode,
@@ -88,11 +88,11 @@ object KryssjekkTidslinjerOgSimulering {
 
 sealed interface KryssjekkAvTidslinjeOgSimuleringFeilet {
     data class KryssjekkFeilet(val feil: KryssjekkFeil) : KryssjekkAvTidslinjeOgSimuleringFeilet
-    object RekonstruertUtbetalingsperiodeErUlikOpprinnelig : KryssjekkAvTidslinjeOgSimuleringFeilet
+    data object RekonstruertUtbetalingsperiodeErUlikOpprinnelig : KryssjekkAvTidslinjeOgSimuleringFeilet
 
     data class KunneIkkeSimulere(val feil: SimuleringFeilet) : KryssjekkAvTidslinjeOgSimuleringFeilet
 
-    object KunneIkkeGenerereTidslinje : KryssjekkAvTidslinjeOgSimuleringFeilet
+    data object KunneIkkeGenerereTidslinje : KryssjekkAvTidslinjeOgSimuleringFeilet
 }
 
 sealed class KryssjekkFeil(val prioritet: Int) : Comparable<KryssjekkFeil> {

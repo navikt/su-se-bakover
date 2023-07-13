@@ -14,4 +14,4 @@ interface DokDistFordeling {
     ): Either<KunneIkkeBestilleDistribusjon, BrevbestillingId>
 }
 
-object KunneIkkeBestilleDistribusjon
+data object KunneIkkeBestilleDistribusjon

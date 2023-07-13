@@ -20,7 +20,7 @@ import java.time.Duration
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
 
-private object EnvironmentConfig {
+private data object EnvironmentConfig {
     private val env by lazy {
         dotenv {
             ignoreIfMissing = true

@@ -13,14 +13,14 @@ sealed class KunneIkkeSendeRevurderingTilAttestering {
     data class FeilOpphørt(val feil: SimulertRevurdering.Opphørt.KanIkkeSendeOpphørtRevurderingTilAttestering) :
         KunneIkkeSendeRevurderingTilAttestering()
 
-    object FantIkkeRevurdering : KunneIkkeSendeRevurderingTilAttestering()
-    object FantIkkeAktørId : KunneIkkeSendeRevurderingTilAttestering()
-    object KunneIkkeOppretteOppgave : KunneIkkeSendeRevurderingTilAttestering()
-    object KanIkkeRegulereGrunnbeløpTilOpphør : KunneIkkeSendeRevurderingTilAttestering()
+    data object FantIkkeRevurdering : KunneIkkeSendeRevurderingTilAttestering()
+    data object FantIkkeAktørId : KunneIkkeSendeRevurderingTilAttestering()
+    data object KunneIkkeOppretteOppgave : KunneIkkeSendeRevurderingTilAttestering()
+    data object KanIkkeRegulereGrunnbeløpTilOpphør : KunneIkkeSendeRevurderingTilAttestering()
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
         KunneIkkeSendeRevurderingTilAttestering()
 
-    object FeilutbetalingStøttesIkke : KunneIkkeSendeRevurderingTilAttestering()
+    data object FeilutbetalingStøttesIkke : KunneIkkeSendeRevurderingTilAttestering()
     data class RevurderingsutfallStøttesIkke(val feilmeldinger: List<RevurderingsutfallSomIkkeStøttes>) :
         KunneIkkeSendeRevurderingTilAttestering()
 

@@ -233,7 +233,7 @@ sealed interface Søknad {
                     hentSaksnummer: () -> Saksnummer,
                 ): Either<KanIkkeLageBrevRequestForDenneTilstanden, LagBrevRequest>
 
-                object KanIkkeLageBrevRequestForDenneTilstanden {
+                data object KanIkkeLageBrevRequestForDenneTilstanden {
                     override fun toString() = this::class.simpleName!!
                 }
 

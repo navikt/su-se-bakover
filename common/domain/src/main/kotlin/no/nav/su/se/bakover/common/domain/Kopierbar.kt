@@ -29,7 +29,7 @@ sealed class CopyArgs {
         /**
          * Kopier aktuelt objekt som det er.
          */
-        object Full : Tidslinje()
+        data object Full : Tidslinje()
     }
 
     /**

@@ -16,5 +16,5 @@ sealed interface KunneIkkeLeggeTilInstitusjonsoppholdVilkår {
     data class Revurdering(val feil: no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilInstitusjonsoppholdVilkår) :
         KunneIkkeLeggeTilInstitusjonsoppholdVilkår
 
-    object FantIkkeBehandling : KunneIkkeLeggeTilInstitusjonsoppholdVilkår
+    data object FantIkkeBehandling : KunneIkkeLeggeTilInstitusjonsoppholdVilkår
 }

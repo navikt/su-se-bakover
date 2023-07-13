@@ -10,43 +10,43 @@ import java.util.UUID
 sealed interface PersonligOppmøteÅrsak {
     fun tilVurdering(): Vurdering
 
-    object MøttPersonlig : PersonligOppmøteÅrsak {
+    data object MøttPersonlig : PersonligOppmøteÅrsak {
         override fun tilVurdering(): Vurdering {
             return Vurdering.Innvilget
         }
     }
 
-    object IkkeMøttMenVerge : PersonligOppmøteÅrsak {
+    data object IkkeMøttMenVerge : PersonligOppmøteÅrsak {
         override fun tilVurdering(): Vurdering {
             return Vurdering.Innvilget
         }
     }
 
-    object IkkeMøttMenSykMedLegeerklæringOgFullmakt : PersonligOppmøteÅrsak {
+    data object IkkeMøttMenSykMedLegeerklæringOgFullmakt : PersonligOppmøteÅrsak {
         override fun tilVurdering(): Vurdering {
             return Vurdering.Innvilget
         }
     }
 
-    object IkkeMøttMenKortvarigSykMedLegeerklæring : PersonligOppmøteÅrsak {
+    data object IkkeMøttMenKortvarigSykMedLegeerklæring : PersonligOppmøteÅrsak {
         override fun tilVurdering(): Vurdering {
             return Vurdering.Innvilget
         }
     }
 
-    object IkkeMøttMenMidlertidigUnntakFraOppmøteplikt : PersonligOppmøteÅrsak {
+    data object IkkeMøttMenMidlertidigUnntakFraOppmøteplikt : PersonligOppmøteÅrsak {
         override fun tilVurdering(): Vurdering {
             return Vurdering.Innvilget
         }
     }
 
-    object IkkeMøttPersonlig : PersonligOppmøteÅrsak {
+    data object IkkeMøttPersonlig : PersonligOppmøteÅrsak {
         override fun tilVurdering(): Vurdering {
             return Vurdering.Avslag
         }
     }
 
-    object Uavklart : PersonligOppmøteÅrsak {
+    data object Uavklart : PersonligOppmøteÅrsak {
         override fun tilVurdering(): Vurdering {
             return Vurdering.Uavklart
         }

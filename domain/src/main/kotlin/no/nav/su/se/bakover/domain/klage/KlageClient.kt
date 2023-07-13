@@ -10,4 +10,4 @@ interface KlageClient {
     ): Either<KunneIkkeOversendeTilKlageinstans, Unit>
 }
 
-object KunneIkkeOversendeTilKlageinstans
+data object KunneIkkeOversendeTilKlageinstans

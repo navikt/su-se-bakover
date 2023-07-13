@@ -57,9 +57,9 @@ data class LeggTilFormuevilkårRequest(
     }
 
     sealed interface KunneIkkeMappeTilDomenet {
-        object FormuePeriodeErUtenforBehandlingsperioden : KunneIkkeMappeTilDomenet
+        data object FormuePeriodeErUtenforBehandlingsperioden : KunneIkkeMappeTilDomenet
         data class Konsistenssjekk(val feil: Konsistensproblem.BosituasjonOgFormue) : KunneIkkeMappeTilDomenet
-        object IkkeLovMedOverlappendePerioder : KunneIkkeMappeTilDomenet
+        data object IkkeLovMedOverlappendePerioder : KunneIkkeMappeTilDomenet
     }
 
     @JvmName("toDomainFullstendig")

@@ -137,7 +137,7 @@ private data class FradragsgrunnlagJson(
     val tilhører: String,
 )
 
-internal object Behandlingsfeilresponser {
+internal data object Behandlingsfeilresponser {
     val ugyldigFradragstype = HttpStatusCode.BadRequest.errorJson(
         "ugyldig fradragstype",
         "fradrag_ugyldig_fradragstype",

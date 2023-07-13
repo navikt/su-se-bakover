@@ -5,8 +5,8 @@ import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerReques
 import kotlin.reflect.KClass
 
 sealed class KunneIkkeLeggeTilUføreVilkår {
-    object FantIkkeBehandling : KunneIkkeLeggeTilUføreVilkår()
-    object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : KunneIkkeLeggeTilUføreVilkår()
+    data object FantIkkeBehandling : KunneIkkeLeggeTilUføreVilkår()
+    data object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : KunneIkkeLeggeTilUføreVilkår()
     data class UgyldigTilstand(
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,

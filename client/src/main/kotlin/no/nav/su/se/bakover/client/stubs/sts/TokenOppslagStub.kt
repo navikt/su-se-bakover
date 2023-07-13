@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.infrastructure.auth.AuthStubCommonConfig
 import org.json.JSONObject
 
-object TokenOppslagStub : TokenOppslag {
+data object TokenOppslagStub : TokenOppslag {
     override fun token() = AccessToken("token")
     override fun jwkConfig(): JSONObject {
         return JSONObject(

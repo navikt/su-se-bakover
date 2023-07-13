@@ -19,7 +19,7 @@ import java.time.Month
 import java.time.ZoneOffset
 import java.util.UUID
 
-internal object TestBeregning : Beregning {
+internal data object TestBeregning : Beregning {
     private val id = UUID.randomUUID()
     override fun getId(): UUID = id
     override fun getOpprettet(): Tidspunkt = LocalDateTime.of(2020, Month.AUGUST, 1, 12, 15, 15).toTidspunkt(ZoneOffset.UTC)
@@ -29,10 +29,9 @@ internal object TestBeregning : Beregning {
     override fun getSumFradrag(): Double = 12000.0
     override val periode: Periode = august(2020)
     override fun getBegrunnelse(): String? = null
-    override fun equals(other: Any?) = (other as? Beregning)?.let { this.equals(other) } ?: false
 }
 
-internal object TestMånedsberegning : Månedsberegning {
+internal data object TestMånedsberegning : Månedsberegning {
     override fun getSumYtelse(): Int = 19946
     override fun getSumFradrag(): Double = 1000.0
     override fun getBenyttetGrunnbeløp(): Int = 101351
@@ -43,7 +42,6 @@ internal object TestMånedsberegning : Månedsberegning {
     override fun getMerknader(): List<Merknad.Beregning> = emptyList()
 
     override val periode: Periode = august(2020)
-    override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
     override val måned: Måned = august(2020)
     override val fullSupplerendeStønadForMåned = satsFactoryTestPåDato().høyUføre(august(2021))
 }

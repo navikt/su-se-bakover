@@ -105,7 +105,7 @@ open class Periode protected constructor(
         }.mapLeft { PerioderKanIkkeSlåsSammen }
     }
 
-    object PerioderKanIkkeSlåsSammen
+    data object PerioderKanIkkeSlåsSammen
 
     /**
      * Forskyver en periode n hele måneder angitt av parameteret [måneder].
@@ -151,15 +151,15 @@ open class Periode protected constructor(
     }
 
     sealed class UgyldigPeriode {
-        object FraOgMedDatoMåVæreFørsteDagIMåneden : UgyldigPeriode() {
+        data object FraOgMedDatoMåVæreFørsteDagIMåneden : UgyldigPeriode() {
             override fun toString(): String = this.javaClass.simpleName
         }
 
-        object TilOgMedDatoMåVæreSisteDagIMåneden : UgyldigPeriode() {
+        data object TilOgMedDatoMåVæreSisteDagIMåneden : UgyldigPeriode() {
             override fun toString(): String = this.javaClass.simpleName
         }
 
-        object FraOgMedDatoMåVæreFørTilOgMedDato : UgyldigPeriode() {
+        data object FraOgMedDatoMåVæreFørTilOgMedDato : UgyldigPeriode() {
             override fun toString(): String = this.javaClass.simpleName
         }
     }

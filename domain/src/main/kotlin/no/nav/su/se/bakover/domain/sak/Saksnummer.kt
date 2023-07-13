@@ -28,5 +28,5 @@ data class Saksnummer(@JsonValue val nummer: Long) {
         private fun isInvalid(saksnummer: Long) = saksnummer < 2021
     }
 
-    object UgyldigSaksnummer
+    data object UgyldigSaksnummer
 }

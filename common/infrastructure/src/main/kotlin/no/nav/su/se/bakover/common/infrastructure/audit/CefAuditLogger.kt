@@ -58,7 +58,7 @@ data class CefField(val cefFieldName: CefFieldName, val value: String)
  * flexString2Label=behandlingId flexString2=2dc4c100-395a-4e25-b1e9-6ea52f49b9e1
  * sproc=40e4608e-7157-415d-86c2-697f4c3c7358
  */
-object CefAuditLogger : AuditLogger {
+data object CefAuditLogger : AuditLogger {
     private const val applicationName = "su-se-bakover"
 
     override fun log(logEvent: AuditLogEvent) {

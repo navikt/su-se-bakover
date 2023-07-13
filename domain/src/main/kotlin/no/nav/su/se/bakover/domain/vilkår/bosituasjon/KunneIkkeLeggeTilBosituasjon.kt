@@ -15,5 +15,5 @@ sealed interface KunneIkkeLeggeTilBosituasjon {
 
     data class Konsistenssjekk(val feil: Konsistensproblem.Bosituasjon) : KunneIkkeLeggeTilBosituasjon
     data class KunneIkkeOppdatereFormue(val feil: Revurdering.KunneIkkeLeggeTilFormue) : KunneIkkeLeggeTilBosituasjon
-    object PerioderMangler : KunneIkkeLeggeTilBosituasjon
+    data object PerioderMangler : KunneIkkeLeggeTilBosituasjon
 }

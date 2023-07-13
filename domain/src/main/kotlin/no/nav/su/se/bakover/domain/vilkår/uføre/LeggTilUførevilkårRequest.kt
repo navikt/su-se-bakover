@@ -29,10 +29,10 @@ data class LeggTilUførevilkårRequest(
     val begrunnelse: String?,
 ) {
     sealed interface UgyldigUførevurdering {
-        object UføregradOgForventetInntektMangler : UgyldigUførevurdering
-        object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigUførevurdering
-        object OverlappendeVurderingsperioder : UgyldigUførevurdering
-        object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : UgyldigUførevurdering
+        data object UføregradOgForventetInntektMangler : UgyldigUførevurdering
+        data object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigUførevurdering
+        data object OverlappendeVurderingsperioder : UgyldigUførevurdering
+        data object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : UgyldigUførevurdering
     }
 
     fun toVurderingsperiode(

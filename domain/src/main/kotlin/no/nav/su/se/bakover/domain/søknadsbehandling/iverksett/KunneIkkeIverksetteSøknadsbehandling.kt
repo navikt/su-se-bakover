@@ -5,14 +5,14 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.StøtterIkkeOverlappendeStønadsperioder
 
 sealed interface KunneIkkeIverksetteSøknadsbehandling {
-    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteSøknadsbehandling
+    data object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteSøknadsbehandling
     data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksetteSøknadsbehandling
     data class KunneIkkeGenerereVedtaksbrev(val underliggendeFeil: KunneIkkeLageDokument) :
         KunneIkkeIverksetteSøknadsbehandling
 
-    object AvkortingErUfullstendig : KunneIkkeIverksetteSøknadsbehandling
-    object SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving : KunneIkkeIverksetteSøknadsbehandling
-    object SimuleringFørerTilFeilutbetaling : KunneIkkeIverksetteSøknadsbehandling
+    data object AvkortingErUfullstendig : KunneIkkeIverksetteSøknadsbehandling
+    data object SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving : KunneIkkeIverksetteSøknadsbehandling
+    data object SimuleringFørerTilFeilutbetaling : KunneIkkeIverksetteSøknadsbehandling
 
     /**
      * En stønadsperiode kan ikke overlappe tidligere stønadsperioder som har utbetalte måneder eller måneder som kommer til å bli utbetalt.
@@ -23,5 +23,5 @@ sealed interface KunneIkkeIverksetteSøknadsbehandling {
         val underliggendeFeil: StøtterIkkeOverlappendeStønadsperioder,
     ) : KunneIkkeIverksetteSøknadsbehandling
 
-    object InneholderUfullstendigeBosituasjoner : KunneIkkeIverksetteSøknadsbehandling
+    data object InneholderUfullstendigeBosituasjoner : KunneIkkeIverksetteSøknadsbehandling
 }

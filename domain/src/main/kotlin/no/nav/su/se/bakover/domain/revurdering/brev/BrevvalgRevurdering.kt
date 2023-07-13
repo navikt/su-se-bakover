@@ -30,10 +30,10 @@ sealed interface BrevvalgRevurdering {
         ) : Valgt
     }
 
-    object IkkeValgt : BrevvalgRevurdering
+    data object IkkeValgt : BrevvalgRevurdering
 
     sealed class BestemtAv {
-        object Systembruker : BestemtAv() {
+        data object Systembruker : BestemtAv() {
             override fun toString(): String {
                 return suSeBakoverConsumerId
             }

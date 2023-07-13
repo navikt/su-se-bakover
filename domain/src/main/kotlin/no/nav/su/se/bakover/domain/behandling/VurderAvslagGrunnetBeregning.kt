@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.finnFørsteMånedMedMerknadForAvslag
 
-object VurderAvslagGrunnetBeregning {
+data object VurderAvslagGrunnetBeregning {
 
     fun vurderAvslagGrunnetBeregning(
         beregning: Beregning?,
@@ -20,7 +20,7 @@ object VurderAvslagGrunnetBeregning {
 
 sealed class AvslagGrunnetBeregning {
     data class Ja(val grunn: Grunn) : AvslagGrunnetBeregning()
-    object Nei : AvslagGrunnetBeregning()
+    data object Nei : AvslagGrunnetBeregning()
 
     enum class Grunn {
         FOR_HØY_INNTEKT,

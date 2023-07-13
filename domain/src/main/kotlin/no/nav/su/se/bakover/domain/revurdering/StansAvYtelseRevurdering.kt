@@ -136,12 +136,12 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering {
     }
 
     sealed class KunneIkkeIverksetteStansAvYtelse {
-        object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteStansAvYtelse()
+        data object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteStansAvYtelse()
     }
 
     sealed class KunneIkkeLageAvsluttetStansAvYtelse {
-        object RevurderingErAlleredeAvsluttet : KunneIkkeLageAvsluttetStansAvYtelse()
-        object RevurderingenErIverksatt : KunneIkkeLageAvsluttetStansAvYtelse()
+        data object RevurderingErAlleredeAvsluttet : KunneIkkeLageAvsluttetStansAvYtelse()
+        data object RevurderingenErIverksatt : KunneIkkeLageAvsluttetStansAvYtelse()
     }
 
     data class IverksattStansAvYtelse(

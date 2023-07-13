@@ -38,5 +38,5 @@ data class InformasjonSomRevurderes private constructor(
         }
     }
 
-    object MåRevurdereMinstEnTing
+    data object MåRevurdereMinstEnTing
 }

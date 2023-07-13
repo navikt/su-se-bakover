@@ -10,4 +10,4 @@ interface PdfGenerator {
     fun genererPdf(pdfInnhold: PdfInnhold): Either<KunneIkkeGenererePdf, ByteArray>
 }
 
-object KunneIkkeGenererePdf
+data object KunneIkkeGenererePdf

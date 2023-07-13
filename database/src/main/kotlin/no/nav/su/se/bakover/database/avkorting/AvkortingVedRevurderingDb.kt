@@ -237,7 +237,7 @@ internal sealed class AvkortingVedRevurderingDb {
     )
     sealed class Uhåndtert : AvkortingVedRevurderingDb() {
         @JsonTypeName("UHÅNDTERT_INGEN_UTESTÅENDE")
-        object IngenUtestående : Uhåndtert()
+        data object IngenUtestående : Uhåndtert()
 
         @JsonTypeName("UHÅNDTERT_UTESTÅENDE")
         data class UteståendeAvkorting(
@@ -261,7 +261,7 @@ internal sealed class AvkortingVedRevurderingDb {
     )
     sealed class DelvisHåndtert : AvkortingVedRevurderingDb() {
         @JsonTypeName("DELVIS_HÅNDTERT_INGEN_UTESTÅENDE")
-        object IngenUtestående : DelvisHåndtert()
+        data object IngenUtestående : DelvisHåndtert()
 
         @JsonTypeName("DELVIS_HÅNDTERT_ANNULLERT_UTESTÅENDE")
         data class AnnullerUtestående(
@@ -288,7 +288,7 @@ internal sealed class AvkortingVedRevurderingDb {
     sealed class Håndtert : AvkortingVedRevurderingDb() {
 
         @JsonTypeName("HÅNDTERT_INGEN_NY_ELLER_UTESTÅENDE")
-        object IngenNyEllerUtestående : Håndtert()
+        data object IngenNyEllerUtestående : Håndtert()
 
         @JsonTypeName("HÅNDTERT_NY_OG_ANNULLERT_UTESTÅENDE")
         data class OpprettNyttAvkortingsvarselOgAnnullerUtestående(
@@ -325,7 +325,7 @@ internal sealed class AvkortingVedRevurderingDb {
     )
     sealed class Iverksatt : AvkortingVedRevurderingDb() {
         @JsonTypeName("IVERKSATT_INGEN_NY_ELLER_UTESTÅENDE")
-        object IngenNyEllerUtestående : Iverksatt()
+        data object IngenNyEllerUtestående : Iverksatt()
 
         @JsonTypeName("IVERKSATT_NY_OG_ANNULLERT_UTESTÅENDE")
         data class OpprettNyttAvkortingsvarselOgAnnullerUtestående(

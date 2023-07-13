@@ -191,11 +191,11 @@ data class RevurderingOgFeilmeldingerResponse(
 }
 
 sealed class KunneIkkeHentePersonEllerSaksbehandlerNavn {
-    object FantIkkePerson : KunneIkkeHentePersonEllerSaksbehandlerNavn()
-    object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeHentePersonEllerSaksbehandlerNavn()
+    data object FantIkkePerson : KunneIkkeHentePersonEllerSaksbehandlerNavn()
+    data object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeHentePersonEllerSaksbehandlerNavn()
 }
 
 sealed class KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger {
-    object FantIkkeBehandling : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
-    object FantIkkeSak : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
+    data object FantIkkeBehandling : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
+    data object FantIkkeSak : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
 }

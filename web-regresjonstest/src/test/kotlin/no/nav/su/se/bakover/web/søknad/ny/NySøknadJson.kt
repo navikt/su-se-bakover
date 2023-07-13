@@ -12,13 +12,13 @@ import no.nav.su.se.bakover.web.søknad.papirsøknadJson
 import no.nav.su.se.bakover.web.søknad.papirsøknadsinnholdUføreJson
 import org.json.JSONObject
 
-object NySøknadJson {
+data object NySøknadJson {
     /**
      * Henger tett sammen med [no.nav.su.se.bakover.web.søknad.ny.NySøknadJson.Response].
      * En forskjell er at requesten tar inn et rent [no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdUføreJson] objekt,
      * mens responsen wrapper dette i [no.nav.su.se.bakover.web.routes.søknad.SøknadJson]
      */
-    object Request {
+    data object Request {
         /**
          * Vil bruke søknadens opprettet når mottaksdato vurderes, i motsetning til forNav sin mottaksdato hvis det er en papirsøknad.
          */
@@ -59,7 +59,7 @@ object NySøknadJson {
      * En forskjell er at requesten mapper til et [no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdUføreJson] objekt,
      * mens responsen wrapper en [no.nav.su.se.bakover.web.routes.søknad.SøknadJson] og et saksnummer
      */
-    object Response {
+    data object Response {
 
         /**
          * Henger tett sammen med [no.nav.su.se.bakover.web.søknad.ny.NySøknadJson.Request.nyDigitalSøknad]

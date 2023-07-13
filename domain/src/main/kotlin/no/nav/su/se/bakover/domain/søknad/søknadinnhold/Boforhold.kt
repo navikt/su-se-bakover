@@ -109,8 +109,8 @@ data class InnlagtPåInstitusjon(
 )
 
 sealed interface FeilVedOpprettelseAvBoforhold {
-    object DelerBoligMedErIkkeUtfylt : FeilVedOpprettelseAvBoforhold
-    object EktefellePartnerSamboerMåVæreUtfylt : FeilVedOpprettelseAvBoforhold
-    object BeggeAdressegrunnerErUtfylt : FeilVedOpprettelseAvBoforhold
-    object InkonsekventInnleggelse : FeilVedOpprettelseAvBoforhold
+    data object DelerBoligMedErIkkeUtfylt : FeilVedOpprettelseAvBoforhold
+    data object EktefellePartnerSamboerMåVæreUtfylt : FeilVedOpprettelseAvBoforhold
+    data object BeggeAdressegrunnerErUtfylt : FeilVedOpprettelseAvBoforhold
+    data object InkonsekventInnleggelse : FeilVedOpprettelseAvBoforhold
 }

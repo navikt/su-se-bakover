@@ -24,7 +24,7 @@ sealed interface UtenlandsoppholdVilkår : Vilkår {
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): UtenlandsoppholdVilkår
     abstract override fun slåSammenLikePerioder(): UtenlandsoppholdVilkår
 
-    object IkkeVurdert : UtenlandsoppholdVilkår, IkkeVurdertVilkår {
+    data object IkkeVurdert : UtenlandsoppholdVilkår, IkkeVurdertVilkår {
         override val grunnlag = emptyList<Utenlandsoppholdgrunnlag>()
         override fun lagTidslinje(periode: Periode): UtenlandsoppholdVilkår = this
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): IkkeVurdert = this
@@ -92,7 +92,7 @@ sealed interface UtenlandsoppholdVilkår : Vilkår {
         }
 
         sealed interface UgyldigUtenlandsoppholdVilkår {
-            object OverlappendeVurderingsperioder : UgyldigUtenlandsoppholdVilkår
+            data object OverlappendeVurderingsperioder : UgyldigUtenlandsoppholdVilkår
         }
     }
 }
@@ -177,6 +177,6 @@ data class VurderingsperiodeUtenlandsopphold private constructor(
     }
 
     sealed interface UgyldigVurderingsperiode {
-        object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigVurderingsperiode
+        data object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigVurderingsperiode
     }
 }

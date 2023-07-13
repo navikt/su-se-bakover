@@ -126,7 +126,7 @@ internal sealed class AvkortingVedSøknadsbehandlingDb {
     )
     sealed class Uhåndtert : AvkortingVedSøknadsbehandlingDb() {
         @JsonTypeName("UHÅNDTERT_INGEN_UTESTÅENDE")
-        object IngenUtestående : Uhåndtert()
+        data object IngenUtestående : Uhåndtert()
 
         @JsonTypeName("UHÅNDTERT_UTESTÅENDE")
         data class UteståendeAvkorting(
@@ -152,7 +152,7 @@ internal sealed class AvkortingVedSøknadsbehandlingDb {
     sealed class Håndtert : AvkortingVedSøknadsbehandlingDb() {
 
         @JsonTypeName("HÅNDTERT_INGEN_UTESTÅENDE")
-        object IngenUtestående : Håndtert()
+        data object IngenUtestående : Håndtert()
 
         @JsonTypeName("HÅNDTERT_AVKORTET_UTESTÅENDE")
         data class AvkortUtestående(
@@ -177,7 +177,7 @@ internal sealed class AvkortingVedSøknadsbehandlingDb {
     )
     sealed class Iverksatt : AvkortingVedSøknadsbehandlingDb() {
         @JsonTypeName("IVERKSATT_INGEN_UTESTÅENDE")
-        object IngenUtestående : Iverksatt()
+        data object IngenUtestående : Iverksatt()
 
         @JsonTypeName("IVERKSATT_AVKORTET_UTESTÅENDE")
         data class AvkortUtestående(

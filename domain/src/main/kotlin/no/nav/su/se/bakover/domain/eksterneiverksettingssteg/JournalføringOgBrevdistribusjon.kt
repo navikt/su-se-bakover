@@ -42,7 +42,7 @@ sealed class JournalføringOgBrevdistribusjon {
         }
     }
 
-    object IkkeJournalførtEllerDistribuert : JournalføringOgBrevdistribusjon() {
+    data object IkkeJournalførtEllerDistribuert : JournalføringOgBrevdistribusjon() {
         fun medJournalpost(journalpostId: JournalpostId): Journalført = Journalført(journalpostId)
 
         override fun journalpostId(): JournalpostId? = null
@@ -110,13 +110,13 @@ sealed class JournalføringOgBrevdistribusjon {
 
 sealed class KunneIkkeJournalføreOgDistribuereBrev {
     sealed class KunneIkkeDistribuereBrev : KunneIkkeJournalføreOgDistribuereBrev() {
-        object MåJournalføresFørst : KunneIkkeDistribuereBrev()
+        data object MåJournalføresFørst : KunneIkkeDistribuereBrev()
         data class AlleredeDistribuertBrev(val journalpostId: JournalpostId) : KunneIkkeDistribuereBrev()
         data class FeilVedDistribueringAvBrev(val journalpostId: JournalpostId) : KunneIkkeDistribuereBrev()
     }
 
     sealed class KunneIkkeJournalføre : KunneIkkeJournalføreOgDistribuereBrev() {
         data class AlleredeJournalført(val journalpostId: JournalpostId) : KunneIkkeJournalføre()
-        object FeilVedJournalføring : KunneIkkeJournalføre()
+        data object FeilVedJournalføring : KunneIkkeJournalføre()
     }
 }

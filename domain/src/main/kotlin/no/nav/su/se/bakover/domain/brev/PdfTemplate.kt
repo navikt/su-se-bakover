@@ -8,29 +8,29 @@ sealed class PdfTemplate(
 ) {
     fun name() = templateName
 
-    object InnvilgetVedtak : PdfTemplate("vedtakInnvilgelse")
-    object AvslagsVedtak : PdfTemplate("vedtakAvslag")
-    object TrukketSøknad : PdfTemplate("søknadTrukket")
-    object AvvistSøknadVedtak : PdfTemplate("avvistSøknadVedtak")
-    object AvvistSøknadFritekst : PdfTemplate("avvistSøknadFritekst")
-    object Opphørsvedtak : PdfTemplate("opphørsvedtak")
-    object Forhåndsvarsel : PdfTemplate("forhåndsvarsel")
-    object ForhåndsvarselTilbakekreving : PdfTemplate("forhåndsvarselTilbakekreving")
-    object InnkallingTilKontrollsamtale : PdfTemplate("innkallingKontrollsamtale")
-    object PåminnelseNyStønadsperiode : PdfTemplate("påminnelseOmNyStønadsperiode")
+    data object InnvilgetVedtak : PdfTemplate("vedtakInnvilgelse")
+    data object AvslagsVedtak : PdfTemplate("vedtakAvslag")
+    data object TrukketSøknad : PdfTemplate("søknadTrukket")
+    data object AvvistSøknadVedtak : PdfTemplate("avvistSøknadVedtak")
+    data object AvvistSøknadFritekst : PdfTemplate("avvistSøknadFritekst")
+    data object Opphørsvedtak : PdfTemplate("opphørsvedtak")
+    data object Forhåndsvarsel : PdfTemplate("forhåndsvarsel")
+    data object ForhåndsvarselTilbakekreving : PdfTemplate("forhåndsvarselTilbakekreving")
+    data object InnkallingTilKontrollsamtale : PdfTemplate("innkallingKontrollsamtale")
+    data object PåminnelseNyStønadsperiode : PdfTemplate("påminnelseOmNyStønadsperiode")
 
     sealed class Revurdering(templateName: String) : PdfTemplate(templateName) {
-        object Inntekt : Revurdering("revurderingAvInntekt")
-        object MedTilbakekreving : Revurdering("revurderingMedTilbakekreving")
-        object Avslutt : Revurdering("avsluttRevurdering")
+        data object Inntekt : Revurdering("revurderingAvInntekt")
+        data object MedTilbakekreving : Revurdering("revurderingMedTilbakekreving")
+        data object Avslutt : Revurdering("avsluttRevurdering")
     }
 
     sealed class Klage(templateName: String) : PdfTemplate(templateName) {
-        object Oppretthold : Klage("sendtTilKlageinstans")
-        object Avvist : Klage("avvistKlage")
+        data object Oppretthold : Klage("sendtTilKlageinstans")
+        data object Avvist : Klage("avvistKlage")
     }
 
-    object FritekstDokument : PdfTemplate("fritekstDokument")
+    data object FritekstDokument : PdfTemplate("fritekstDokument")
 
-    object Skattegrunnlag : PdfTemplate("skattegrunnlag")
+    data object Skattegrunnlag : PdfTemplate("skattegrunnlag")
 }

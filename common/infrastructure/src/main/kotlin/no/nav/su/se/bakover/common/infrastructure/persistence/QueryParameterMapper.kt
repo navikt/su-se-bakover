@@ -9,5 +9,5 @@ import java.sql.PreparedStatement
 interface QueryParameterMapper {
     fun tryMap(idx: Int, v: Any?): Either<TypeStøttesIkke, (preparedStatement: PreparedStatement) -> Unit>
 
-    object TypeStøttesIkke
+    data object TypeStøttesIkke
 }

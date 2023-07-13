@@ -59,7 +59,7 @@ internal sealed class LukketJson {
     }
 }
 
-internal object LukkSøknadInputHandler {
+internal data object LukkSøknadInputHandler {
     fun handle(
         body: String?,
         søknadId: UUID,
@@ -137,4 +137,4 @@ internal inline fun <reified T> deserializeLukketSøknadRequest(body: String): E
     Either.catch { deserialize<T>(body) }
         .mapLeft { UgyldigLukkSøknadRequest }
 
-internal object UgyldigLukkSøknadRequest
+internal data object UgyldigLukkSøknadRequest

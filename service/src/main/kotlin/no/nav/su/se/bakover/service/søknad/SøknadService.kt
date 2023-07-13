@@ -17,20 +17,20 @@ interface SøknadService {
     fun opprettManglendeJournalpostOgOppgave(): OpprettManglendeJournalpostOgOppgaveResultat
 }
 
-object FantIkkeSøknad {
+data object FantIkkeSøknad {
     override fun toString() = this::class.simpleName!!
 }
 
 sealed class KunneIkkeOppretteSøknad {
-    object FantIkkePerson : KunneIkkeOppretteSøknad()
-    object SøknadsinnsendingIkkeTillatt : KunneIkkeOppretteSøknad()
+    data object FantIkkePerson : KunneIkkeOppretteSøknad()
+    data object SøknadsinnsendingIkkeTillatt : KunneIkkeOppretteSøknad()
 }
 
 sealed class KunneIkkeLageSøknadPdf {
-    object FantIkkeSøknad : KunneIkkeLageSøknadPdf()
-    object KunneIkkeLagePdf : KunneIkkeLageSøknadPdf()
-    object FantIkkePerson : KunneIkkeLageSøknadPdf()
-    object FantIkkeSak : KunneIkkeLageSøknadPdf()
+    data object FantIkkeSøknad : KunneIkkeLageSøknadPdf()
+    data object KunneIkkeLagePdf : KunneIkkeLageSøknadPdf()
+    data object FantIkkePerson : KunneIkkeLageSøknadPdf()
+    data object FantIkkeSak : KunneIkkeLageSøknadPdf()
 }
 
 data class OpprettManglendeJournalpostOgOppgaveResultat(

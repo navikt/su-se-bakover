@@ -140,8 +140,8 @@ sealed class IdentifiserRevurderingsopphørSomIkkeStøttes {
 }
 
 sealed class RevurderingsutfallSomIkkeStøttes {
-    object OpphørOgAndreEndringerIKombinasjon : RevurderingsutfallSomIkkeStøttes()
-    object OpphørErIkkeFraFørsteMåned : RevurderingsutfallSomIkkeStøttes()
-    object DelvisOpphør : RevurderingsutfallSomIkkeStøttes()
-    object OpphørAvFlereVilkår : RevurderingsutfallSomIkkeStøttes()
+    data object OpphørOgAndreEndringerIKombinasjon : RevurderingsutfallSomIkkeStøttes()
+    data object OpphørErIkkeFraFørsteMåned : RevurderingsutfallSomIkkeStøttes()
+    data object DelvisOpphør : RevurderingsutfallSomIkkeStøttes()
+    data object OpphørAvFlereVilkår : RevurderingsutfallSomIkkeStøttes()
 }

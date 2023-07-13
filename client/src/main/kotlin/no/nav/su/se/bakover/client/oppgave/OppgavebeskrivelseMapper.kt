@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 
-object OppgavebeskrivelseMapper {
+data object OppgavebeskrivelseMapper {
     fun map(config: OppgaveConfig.Klage.Klageinstanshendelse): String {
         return "Utfall: ${config.utfall.toReadableName()}" +
             "\nRelevante JournalpostIDer: ${config.journalpostIDer.joinToString(", ")}" +

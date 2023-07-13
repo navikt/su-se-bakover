@@ -47,4 +47,4 @@ interface UtbetalingService {
     ): Either<Utbetalinger.FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje>
 }
 
-object FantIkkeUtbetaling
+data object FantIkkeUtbetaling

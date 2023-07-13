@@ -16,7 +16,7 @@ sealed interface FamiliegjenforeningVilkår : Vilkår {
     abstract override fun lagTidslinje(periode: Periode): FamiliegjenforeningVilkår
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FamiliegjenforeningVilkår
 
-    object IkkeVurdert : FamiliegjenforeningVilkår, IkkeVurdertVilkår {
+    data object IkkeVurdert : FamiliegjenforeningVilkår, IkkeVurdertVilkår {
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): IkkeVurdert = this
         override fun erLik(other: Vilkår): Boolean = other is IkkeVurdert
         override fun lagTidslinje(periode: Periode): IkkeVurdert = this
@@ -71,5 +71,5 @@ sealed interface FamiliegjenforeningVilkår : Vilkår {
 }
 
 sealed interface UgyldigFamiliegjenforeningVilkår {
-    object OverlappendeVurderingsperioder : UgyldigFamiliegjenforeningVilkår
+    data object OverlappendeVurderingsperioder : UgyldigFamiliegjenforeningVilkår
 }

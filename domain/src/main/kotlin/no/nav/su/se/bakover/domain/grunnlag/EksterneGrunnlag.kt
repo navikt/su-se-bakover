@@ -26,7 +26,7 @@ data class StøtterHentingAvEksternGrunnlag(
 sealed interface EksterneGrunnlagSkatt {
     fun fjernEps(): EksterneGrunnlagSkatt
 
-    object IkkeHentet : EksterneGrunnlagSkatt {
+    data object IkkeHentet : EksterneGrunnlagSkatt {
         override fun fjernEps(): EksterneGrunnlagSkatt = this
     }
 
@@ -39,7 +39,7 @@ sealed interface EksterneGrunnlagSkatt {
     }
 }
 
-object StøtterIkkeHentingAvEksternGrunnlag : EksterneGrunnlag {
+data object StøtterIkkeHentingAvEksternGrunnlag : EksterneGrunnlag {
     override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): EksterneGrunnlag {
         throw UnsupportedOperationException("Støtter ikke henting av eksterne grunnlagsdata")
     }

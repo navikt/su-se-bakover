@@ -23,5 +23,5 @@ data class Uføregrad private constructor(
         }
     }
 
-    object UføregradMåVæreMellomEnOgHundre
+    data object UføregradMåVæreMellomEnOgHundre
 }

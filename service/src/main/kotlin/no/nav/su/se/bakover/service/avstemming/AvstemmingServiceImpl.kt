@@ -93,4 +93,4 @@ class AvstemmingServiceImpl(
     }
 }
 
-object AvstemmingFeilet
+data object AvstemmingFeilet

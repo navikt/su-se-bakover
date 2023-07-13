@@ -52,20 +52,20 @@ interface SakService {
     fun hentAlleJournalposter(sakId: UUID): Either<KunneIkkeHenteJournalposter, List<Journalpost>>
 }
 
-object FantIkkeSak {
+data object FantIkkeSak {
     override fun toString() = this::class.simpleName!!
 }
 
 sealed class KunneIkkeHenteGjeldendeVedtaksdata {
-    object FantIkkeSak : KunneIkkeHenteGjeldendeVedtaksdata()
-    object IngenVedtak : KunneIkkeHenteGjeldendeVedtaksdata()
+    data object FantIkkeSak : KunneIkkeHenteGjeldendeVedtaksdata()
+    data object IngenVedtak : KunneIkkeHenteGjeldendeVedtaksdata()
 }
 
 sealed class KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak {
     data class Feil(val feil: Sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak) :
         KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak()
 
-    object FantIkkeSak : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak()
+    data object FantIkkeSak : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak()
 }
 
 data class OpprettDokumentRequest(

@@ -183,7 +183,7 @@ internal class BrevServiceImplTest {
         return utenMetadata.leggTilMetadata(metadata)
     }
 
-    object DummyRequest : LagBrevRequest {
+    data object DummyRequest : LagBrevRequest {
         override val person: Person = BrevServiceImplTest.person
         override val pdfInnhold: PdfInnhold = DummyPdfInnhold
         override val saksnummer: Saksnummer = Saksnummer(2021)
@@ -205,7 +205,7 @@ internal class BrevServiceImplTest {
         override val dagensDato = fixedLocalDate
     }
 
-    object DummyPdfInnhold : PdfInnhold() {
+    data object DummyPdfInnhold : PdfInnhold() {
         override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.AvslagsVedtak
     }
 

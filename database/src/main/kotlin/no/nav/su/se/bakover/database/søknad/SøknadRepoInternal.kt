@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import java.util.UUID
 
-internal object SøknadRepoInternal {
+internal data object SøknadRepoInternal {
     fun hentSøknadInternal(søknadId: UUID, session: Session): Søknad? = """
         select s.*,
                d.id             as dokumentid,

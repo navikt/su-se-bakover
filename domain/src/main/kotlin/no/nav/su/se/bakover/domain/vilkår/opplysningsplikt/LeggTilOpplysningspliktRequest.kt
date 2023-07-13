@@ -29,7 +29,7 @@ sealed interface KunneIkkeLeggeTilOpplysningsplikt {
     data class Revurdering(val feil: no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilOpplysningsplikt) :
         KunneIkkeLeggeTilOpplysningsplikt
 
-    object FantIkkeBehandling : KunneIkkeLeggeTilOpplysningsplikt
+    data object FantIkkeBehandling : KunneIkkeLeggeTilOpplysningsplikt
 
     data class UgyldigOpplysningspliktVilkår(val feil: KunneIkkeLageOpplysningspliktVilkår) :
         KunneIkkeLeggeTilOpplysningsplikt

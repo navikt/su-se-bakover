@@ -38,4 +38,4 @@ fun Sak.verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg(
     }
 }
 
-object DetHarKommetNyeOverlappendeVedtak
+data object DetHarKommetNyeOverlappendeVedtak

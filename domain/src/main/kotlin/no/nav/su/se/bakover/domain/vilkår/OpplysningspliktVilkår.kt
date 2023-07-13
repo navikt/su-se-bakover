@@ -25,7 +25,7 @@ sealed interface OpplysningspliktVilkår : Vilkår {
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): OpplysningspliktVilkår
     abstract override fun slåSammenLikePerioder(): OpplysningspliktVilkår
 
-    object IkkeVurdert : OpplysningspliktVilkår, IkkeVurdertVilkår {
+    data object IkkeVurdert : OpplysningspliktVilkår, IkkeVurdertVilkår {
         override val grunnlag: List<Opplysningspliktgrunnlag> = emptyList()
         override fun lagTidslinje(periode: Periode): OpplysningspliktVilkår = this
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): IkkeVurdert = this
@@ -175,8 +175,8 @@ data class VurderingsperiodeOpplysningsplikt private constructor(
 
 sealed interface KunneIkkeLageOpplysningspliktVilkår {
     sealed interface Vurderingsperiode : KunneIkkeLageOpplysningspliktVilkår {
-        object PeriodeForGrunnlagOgVurderingErForskjellig : Vurderingsperiode
+        data object PeriodeForGrunnlagOgVurderingErForskjellig : Vurderingsperiode
     }
 
-    object OverlappendeVurderingsperioder : KunneIkkeLageOpplysningspliktVilkår
+    data object OverlappendeVurderingsperioder : KunneIkkeLageOpplysningspliktVilkår
 }

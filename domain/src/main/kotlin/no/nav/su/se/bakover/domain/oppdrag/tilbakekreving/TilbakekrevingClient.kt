@@ -9,4 +9,4 @@ interface TilbakekrevingClient {
 /**
  * Dersom vi ikke kunne sende kravgrunnlaget (for å avgjøre om feilutbetalingen skulle føre til tilbakekreving eller ikke) til økonomisystemet
  */
-object TilbakekrevingsvedtakForsendelseFeil
+data object TilbakekrevingsvedtakForsendelseFeil

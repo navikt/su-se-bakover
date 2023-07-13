@@ -118,12 +118,12 @@ sealed class Personhendelse {
         /**
          * @see <a href="https://pdldocs-navno.msappproxy.net/ekstern/index.html#opplysningstyper-adresser-bostedsAdresse">Dokumentasjonen</a>
          * */
-        object Bostedsadresse : Hendelse()
+        data object Bostedsadresse : Hendelse()
 
         /**
          * @see <a href="https://pdldocs-navno.msappproxy.net/ekstern/index.html#opplysningstyper-adresser-kontaktAdresse">Dokumentasjonen</a>
          * */
-        object Kontaktadresse : Hendelse()
+        data object Kontaktadresse : Hendelse()
     }
 
     /** Metadata rundt hendelsen

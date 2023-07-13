@@ -42,7 +42,7 @@ import no.nav.su.se.bakover.service.vedtak.VedtakServiceImpl
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
 import java.time.Clock
 
-object ServiceBuilder {
+data object ServiceBuilder {
     fun build(
         databaseRepos: DatabaseRepos,
         clients: Clients,

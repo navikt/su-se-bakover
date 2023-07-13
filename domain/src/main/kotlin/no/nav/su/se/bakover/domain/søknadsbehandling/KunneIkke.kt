@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import kotlin.reflect.KClass
 
 sealed interface ValideringsfeilAttestering {
-    object InneholderUfullstendigBosituasjon : ValideringsfeilAttestering
+    data object InneholderUfullstendigBosituasjon : ValideringsfeilAttestering
 }
 
 sealed interface KunneIkkeLeggeTilVilkår {
@@ -17,10 +17,10 @@ sealed interface KunneIkkeLeggeTilVilkår {
             val til: KClass<out Søknadsbehandling>,
         ) : KunneIkkeLeggeTilUtenlandsopphold
 
-        object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUtenlandsopphold
-        object MåInneholdeKunEnVurderingsperiode : KunneIkkeLeggeTilUtenlandsopphold
-        object AlleVurderingsperioderMåHaSammeResultat : KunneIkkeLeggeTilUtenlandsopphold
-        object MåVurdereHelePerioden : KunneIkkeLeggeTilUtenlandsopphold
+        data object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUtenlandsopphold
+        data object MåInneholdeKunEnVurderingsperiode : KunneIkkeLeggeTilUtenlandsopphold
+        data object AlleVurderingsperioderMåHaSammeResultat : KunneIkkeLeggeTilUtenlandsopphold
+        data object MåVurdereHelePerioden : KunneIkkeLeggeTilUtenlandsopphold
     }
 
     sealed interface KunneIkkeLeggeTilOpplysningsplikt : KunneIkkeLeggeTilVilkår {
@@ -29,7 +29,7 @@ sealed interface KunneIkkeLeggeTilVilkår {
             val til: KClass<out Søknadsbehandling> = VilkårsvurdertSøknadsbehandling::class,
         ) : KunneIkkeLeggeTilOpplysningsplikt
 
-        object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilOpplysningsplikt
+        data object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilOpplysningsplikt
     }
 
     sealed interface KunneIkkeLeggeTilLovligOpphold : KunneIkkeLeggeTilVilkår {
@@ -46,7 +46,7 @@ sealed interface KunneIkkeLeggeTilVilkår {
             ) : UgyldigTilstand
         }
 
-        object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilLovligOpphold
+        data object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilLovligOpphold
     }
 
     sealed interface KunneIkkeLeggeTilPensjonsVilkår : KunneIkkeLeggeTilVilkår {
@@ -55,8 +55,8 @@ sealed interface KunneIkkeLeggeTilVilkår {
             val til: KClass<out Søknadsbehandling> = VilkårsvurdertSøknadsbehandling::class,
         ) : KunneIkkeLeggeTilPensjonsVilkår
 
-        object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilPensjonsVilkår
-        object VilkårKunRelevantForAlder : KunneIkkeLeggeTilPensjonsVilkår
+        data object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilPensjonsVilkår
+        data object VilkårKunRelevantForAlder : KunneIkkeLeggeTilPensjonsVilkår
     }
 
     sealed interface KunneIkkeLeggeTilUførevilkår : KunneIkkeLeggeTilVilkår {
@@ -66,7 +66,7 @@ sealed interface KunneIkkeLeggeTilVilkår {
         ) :
             KunneIkkeLeggeTilUførevilkår
 
-        object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUførevilkår
+        data object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUførevilkår
     }
 
     sealed interface KunneIkkeLeggeTilInstitusjonsoppholdVilkår : KunneIkkeLeggeTilVilkår {
@@ -75,7 +75,7 @@ sealed interface KunneIkkeLeggeTilVilkår {
             val til: KClass<out VilkårsvurdertSøknadsbehandling> = VilkårsvurdertSøknadsbehandling::class,
         ) : KunneIkkeLeggeTilInstitusjonsoppholdVilkår
 
-        object BehandlingsperiodeOgVurderingsperiodeMåVæreLik : KunneIkkeLeggeTilInstitusjonsoppholdVilkår
+        data object BehandlingsperiodeOgVurderingsperiodeMåVæreLik : KunneIkkeLeggeTilInstitusjonsoppholdVilkår
     }
 
     sealed interface KunneIkkeLeggeTilFormuevilkår : KunneIkkeLeggeTilVilkår {
@@ -123,7 +123,7 @@ sealed interface KunneIkkeLeggeTilGrunnlag {
             val status: KClass<out Søknadsbehandling>,
         ) : KunneIkkeLeggeTilFradragsgrunnlag
 
-        object GrunnlagetMåVæreInnenforBehandlingsperioden : KunneIkkeLeggeTilFradragsgrunnlag
+        data object GrunnlagetMåVæreInnenforBehandlingsperioden : KunneIkkeLeggeTilFradragsgrunnlag
         data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
             KunneIkkeLeggeTilFradragsgrunnlag
     }
@@ -134,7 +134,7 @@ sealed interface KunneIkkeLeggeTilGrunnlag {
             val til: KClass<out VilkårsvurdertSøknadsbehandling>,
         ) : KunneIkkeOppdatereBosituasjon
 
-        object GrunnlagetMåVæreInnenforBehandlingsperioden : KunneIkkeOppdatereBosituasjon
+        data object GrunnlagetMåVæreInnenforBehandlingsperioden : KunneIkkeOppdatereBosituasjon
     }
 }
 
@@ -154,21 +154,21 @@ sealed interface KunneIkkeBeregne {
     data class UgyldigTilstandForEndringAvFradrag(val feil: KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag) :
         KunneIkkeBeregne
 
-    object AvkortingErUfullstendig : KunneIkkeBeregne {
+    data object AvkortingErUfullstendig : KunneIkkeBeregne {
         override fun toString() = this::class.simpleName!!
     }
 }
 
 sealed interface KunneIkkeLukkeSøknadsbehandling {
-    object KanIkkeLukkeEnAlleredeLukketSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling {
+    data object KanIkkeLukkeEnAlleredeLukketSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling {
         override fun toString() = this::class.simpleName!!
     }
 
-    object KanIkkeLukkeEnIverksattSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling {
+    data object KanIkkeLukkeEnIverksattSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling {
         override fun toString() = this::class.simpleName!!
     }
 
-    object KanIkkeLukkeEnSøknadsbehandlingTilAttestering : KunneIkkeLukkeSøknadsbehandling {
+    data object KanIkkeLukkeEnSøknadsbehandlingTilAttestering : KunneIkkeLukkeSøknadsbehandling {
         override fun toString() = this::class.simpleName!!
     }
 }
@@ -182,6 +182,6 @@ sealed interface KunneIkkeSimulereBehandling {
 }
 
 sealed interface KunneIkkeLeggeTilSkattegrunnlag {
-    object KanIkkeLeggeTilSkattForTilstandUtenAtDenHarBlittHentetFør : KunneIkkeLeggeTilSkattegrunnlag
-    object UgyldigTilstand : KunneIkkeLeggeTilSkattegrunnlag
+    data object KanIkkeLeggeTilSkattForTilstandUtenAtDenHarBlittHentetFør : KunneIkkeLeggeTilSkattegrunnlag
+    data object UgyldigTilstand : KunneIkkeLeggeTilSkattegrunnlag
 }

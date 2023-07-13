@@ -27,7 +27,7 @@ import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import java.util.UUID
 
-internal object UtbetalingInternalRepo {
+internal data object UtbetalingInternalRepo {
     fun hentOversendtUtbetaling(utbetalingId: UUID30, session: Session): Utbetaling.OversendtUtbetaling? =
         "select u.*, s.saksnummer, s.type as sakstype from utbetaling u join sak s on s.id = u.sakId where u.id = :id".hent(
             mapOf(

@@ -73,7 +73,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 internal class UtbetalingsstrategiNyTest {
-    private object BeregningMedTomMånedsbereninger : Beregning {
+    private data object BeregningMedTomMånedsbereninger : Beregning {
         override fun getId(): UUID = mock()
         override fun getOpprettet(): Tidspunkt = mock()
         override fun getMånedsberegninger(): List<Månedsberegning> = emptyList()
@@ -81,7 +81,6 @@ internal class UtbetalingsstrategiNyTest {
         override fun getSumYtelse(): Int = 1000
         override fun getSumFradrag(): Double = 1000.0
         override fun getBegrunnelse(): String = mock()
-        override fun equals(other: Any?): Boolean = mock()
         override val periode: Periode = Periode.create(
             1.juni(2021),
             30.november(2021),

@@ -35,29 +35,29 @@ sealed interface HentDokumenterForIdType {
 sealed class KunneIkkeLageBrev {
     override fun toString() = this::class.simpleName!!
 
-    object KunneIkkeGenererePDF : KunneIkkeLageBrev()
-    object FantIkkePerson : KunneIkkeLageBrev()
+    data object KunneIkkeGenererePDF : KunneIkkeLageBrev()
+    data object FantIkkePerson : KunneIkkeLageBrev()
 }
 
 sealed class KunneIkkeJournalføreBrev {
     override fun toString() = this::class.simpleName!!
 
-    object KunneIkkeOppretteJournalpost : KunneIkkeJournalføreBrev()
+    data object KunneIkkeOppretteJournalpost : KunneIkkeJournalføreBrev()
 }
 
-object KunneIkkeDistribuereBrev
+data object KunneIkkeDistribuereBrev
 
 sealed class KunneIkkeJournalføreDokument {
     override fun toString() = this::class.simpleName!!
 
-    object KunneIkkeFinneSak : KunneIkkeJournalføreDokument()
-    object KunneIkkeFinnePerson : KunneIkkeJournalføreDokument()
-    object FeilVedOpprettelseAvJournalpost : KunneIkkeJournalføreDokument()
+    data object KunneIkkeFinneSak : KunneIkkeJournalføreDokument()
+    data object KunneIkkeFinnePerson : KunneIkkeJournalføreDokument()
+    data object FeilVedOpprettelseAvJournalpost : KunneIkkeJournalføreDokument()
 }
 
 sealed class KunneIkkeBestilleBrevForDokument {
     override fun toString() = this::class.simpleName!!
 
-    object FeilVedBestillingAvBrev : KunneIkkeBestilleBrevForDokument()
-    object MåJournalføresFørst : KunneIkkeBestilleBrevForDokument()
+    data object FeilVedBestillingAvBrev : KunneIkkeBestilleBrevForDokument()
+    data object MåJournalføresFørst : KunneIkkeBestilleBrevForDokument()
 }

@@ -33,8 +33,8 @@ data class UtenlandskInntekt private constructor(
     }
 
     sealed class UgyldigUtenlandskInntekt {
-        object BeløpKanIkkeVæreNegativ : UgyldigUtenlandskInntekt()
-        object ValutaMåFyllesUt : UgyldigUtenlandskInntekt()
-        object KursKanIkkeVæreNegativ : UgyldigUtenlandskInntekt()
+        data object BeløpKanIkkeVæreNegativ : UgyldigUtenlandskInntekt()
+        data object ValutaMåFyllesUt : UgyldigUtenlandskInntekt()
+        data object KursKanIkkeVæreNegativ : UgyldigUtenlandskInntekt()
     }
 }

@@ -147,12 +147,12 @@ sealed class Utbetalingsstrategi {
         }
 
         sealed class Feil {
-            object IngenUtbetalingerEtterStansDato : Feil()
-            object StansDatoErIkkeFørsteDatoIInneværendeEllerNesteMåned : Feil()
-            object SisteUtbetalingErEnStans : Feil()
-            object SisteUtbetalingErOpphør : Feil()
-            object KanIkkeStanseOpphørtePerioder : Feil()
-            object FantIngenUtbetalinger : Feil()
+            data object IngenUtbetalingerEtterStansDato : Feil()
+            data object StansDatoErIkkeFørsteDatoIInneværendeEllerNesteMåned : Feil()
+            data object SisteUtbetalingErEnStans : Feil()
+            data object SisteUtbetalingErOpphør : Feil()
+            data object KanIkkeStanseOpphørtePerioder : Feil()
+            data object FantIngenUtbetalinger : Feil()
         }
     }
 
@@ -437,9 +437,9 @@ sealed class Utbetalingsstrategi {
         }
 
         sealed class Feil {
-            object FantIngenUtbetalinger : Feil()
-            object SisteUtbetalingErIkkeStans : Feil()
-            object KanIkkeGjenopptaOpphørtePeriode : Feil()
+            data object FantIngenUtbetalinger : Feil()
+            data object SisteUtbetalingErIkkeStans : Feil()
+            data object KanIkkeGjenopptaOpphørtePeriode : Feil()
         }
     }
 

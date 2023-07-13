@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.kontrollsamtale.domain
 
 sealed interface KunneIkkeKalleInnTilKontrollsamtale {
-    object FantIkkeSak : KunneIkkeKalleInnTilKontrollsamtale
-    object FantIkkePerson : KunneIkkeKalleInnTilKontrollsamtale
-    object KunneIkkeGenerereDokument : KunneIkkeKalleInnTilKontrollsamtale
-    object KunneIkkeKalleInn : KunneIkkeKalleInnTilKontrollsamtale
-    object FantIkkeGjeldendeStønadsperiode : KunneIkkeKalleInnTilKontrollsamtale
+    data object FantIkkeSak : KunneIkkeKalleInnTilKontrollsamtale
+    data object FantIkkePerson : KunneIkkeKalleInnTilKontrollsamtale
+    data object KunneIkkeGenerereDokument : KunneIkkeKalleInnTilKontrollsamtale
+    data object KunneIkkeKalleInn : KunneIkkeKalleInnTilKontrollsamtale
+    data object FantIkkeGjeldendeStønadsperiode : KunneIkkeKalleInnTilKontrollsamtale
 }

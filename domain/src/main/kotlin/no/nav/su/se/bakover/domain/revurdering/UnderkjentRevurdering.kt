@@ -306,7 +306,7 @@ sealed class UnderkjentRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
             ).right()
         }
 
-        object KanIkkeSendeEnOpphørtGReguleringTilAttestering
+        data object KanIkkeSendeEnOpphørtGReguleringTilAttestering
 
         fun tilAttestering(
             oppgaveId: OppgaveId,

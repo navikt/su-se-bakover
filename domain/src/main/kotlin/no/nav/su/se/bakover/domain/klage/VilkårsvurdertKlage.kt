@@ -598,9 +598,9 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
 }
 
 sealed interface KunneIkkeVilkårsvurdereKlage {
-    object FantIkkeKlage : KunneIkkeVilkårsvurdereKlage
-    object FantIkkeVedtak : KunneIkkeVilkårsvurdereKlage
-    object KanIkkeAvviseEnKlageSomHarVærtOversendt : KunneIkkeVilkårsvurdereKlage
+    data object FantIkkeKlage : KunneIkkeVilkårsvurdereKlage
+    data object FantIkkeVedtak : KunneIkkeVilkårsvurdereKlage
+    data object KanIkkeAvviseEnKlageSomHarVærtOversendt : KunneIkkeVilkårsvurdereKlage
     data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeVilkårsvurdereKlage {
         val til = VilkårsvurdertKlage::class
     }

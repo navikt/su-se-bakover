@@ -36,7 +36,7 @@ sealed interface FormueVilkår : Vilkår {
      */
     fun fjernEPSFormue(perioder: List<Periode>): FormueVilkår
 
-    object IkkeVurdert : FormueVilkår, IkkeVurdertVilkår {
+    data object IkkeVurdert : FormueVilkår, IkkeVurdertVilkår {
 
         override val grunnlag: List<Formuegrunnlag> = emptyList()
         override fun erLik(other: Vilkår): Boolean = other is IkkeVurdert
@@ -141,7 +141,7 @@ sealed interface FormueVilkår : Vilkår {
         }
 
         sealed interface UgyldigFormuevilkår {
-            object OverlappendeVurderingsperioder : UgyldigFormuevilkår
+            data object OverlappendeVurderingsperioder : UgyldigFormuevilkår
         }
     }
 }

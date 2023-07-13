@@ -139,7 +139,7 @@ sealed interface Klage : Klagefelter {
 
     sealed interface KunneIkkeLeggeTilNyKlageinstansHendelse {
         data class MåVæreEnOversendtKlage(val menVar: KClass<out Klage>) : KunneIkkeLeggeTilNyKlageinstansHendelse
-        object KunneIkkeHenteAktørId : KunneIkkeLeggeTilNyKlageinstansHendelse
+        data object KunneIkkeHenteAktørId : KunneIkkeLeggeTilNyKlageinstansHendelse
         data class KunneIkkeLageOppgave(val feil: OppgaveFeil) : KunneIkkeLeggeTilNyKlageinstansHendelse
     }
 }
@@ -177,7 +177,7 @@ interface Klagefelter {
 }
 
 sealed interface KunneIkkeLageBrevRequestForKlage {
-    object FeilVedHentingAvVedtaksbrevDato : KunneIkkeLageBrevRequestForKlage
+    data object FeilVedHentingAvVedtaksbrevDato : KunneIkkeLageBrevRequestForKlage
     data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeLageBrevRequestForKlage
     data class FeilVedHentingAvPerson(val personFeil: KunneIkkeHentePerson) : KunneIkkeLageBrevRequestForKlage
     data class FeilVedHentingAvSaksbehandlernavn(val feil: KunneIkkeHenteNavnForNavIdent) : KunneIkkeLageBrevRequestForKlage
@@ -189,7 +189,7 @@ sealed interface KunneIkkeHenteFritekstTilBrev {
 }
 
 sealed interface KunneIkkeBekrefteKlagesteg {
-    object FantIkkeKlage : KunneIkkeBekrefteKlagesteg
+    data object FantIkkeKlage : KunneIkkeBekrefteKlagesteg
     data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) :
         KunneIkkeBekrefteKlagesteg
 }
@@ -199,7 +199,7 @@ sealed interface KunneIkkeAvslutteKlage {
         val til: KClass<AvsluttetKlage> = AvsluttetKlage::class
     }
 
-    object FantIkkeKlage : KunneIkkeAvslutteKlage
+    data object FantIkkeKlage : KunneIkkeAvslutteKlage
 }
 
 fun List<Klage>.harEksisterendeJournalpostId(journalpostId: JournalpostId) =

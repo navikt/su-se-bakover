@@ -77,7 +77,7 @@ data class Utbetalinger(
         }
     }
 
-    object FantIkkeGjeldendeUtbetaling
+    data object FantIkkeGjeldendeUtbetaling
 
     fun hentGjeldendeUtbetaling(forDato: LocalDate): Either<FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje> {
         return tidslinje().fold(

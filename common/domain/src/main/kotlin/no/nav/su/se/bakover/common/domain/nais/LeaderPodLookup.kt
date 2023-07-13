@@ -7,6 +7,6 @@ interface LeaderPodLookup {
 }
 
 sealed class LeaderPodLookupFeil {
-    object KunneIkkeKontakteLeaderElectorContainer : LeaderPodLookupFeil()
-    object UkjentSvarFraLeaderElectorContainer : LeaderPodLookupFeil()
+    data object KunneIkkeKontakteLeaderElectorContainer : LeaderPodLookupFeil()
+    data object UkjentSvarFraLeaderElectorContainer : LeaderPodLookupFeil()
 }

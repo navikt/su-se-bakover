@@ -194,40 +194,40 @@ sealed interface Konsistensproblem {
 
     sealed interface Uføre : Konsistensproblem {
         /** Da er ikke vilkåret for Uføre innfridd. Dette vil føre til avslag eller opphør. */
-        object Mangler : Uføre {
+        data object Mangler : Uføre {
             override fun erGyldigTilstand() = true
         }
     }
 
     sealed interface Bosituasjon : Konsistensproblem {
         /** Du har f.eks. valgt EPS, men ikke tatt stilling til om hen bor med voksne/alene etc.  */
-        object Ufullstendig : Bosituasjon {
+        data object Ufullstendig : Bosituasjon {
             override fun erGyldigTilstand() = false
         }
 
         /** Vi må alltid ha en utfylt bosituasjon når vi vedtar en stønadsbehandling (revurdering,søknad,regulering etc.)*/
-        object Mangler : Bosituasjon {
+        data object Mangler : Bosituasjon {
             override fun erGyldigTilstand() = false
         }
 
         /** Periodene med bosituasjon overlapper hverandre */
-        object Overlapp : Bosituasjon {
+        data object Overlapp : Bosituasjon {
             override fun erGyldigTilstand(): Boolean = false
         }
     }
 
     sealed interface Formue : Konsistensproblem {
-        object Mangler : Formue {
+        data object Mangler : Formue {
             override fun erGyldigTilstand(): Boolean = false
         }
 
-        object Overlapp : Formue {
+        data object Overlapp : Formue {
             override fun erGyldigTilstand(): Boolean = false
         }
     }
 
     sealed interface BosituasjonOgFradrag : Konsistensproblem {
-        object IngenBosituasjonForFradragsperiode : BosituasjonOgFradrag {
+        data object IngenBosituasjonForFradragsperiode : BosituasjonOgFradrag {
             override fun erGyldigTilstand() = false
         }
 
@@ -235,13 +235,13 @@ sealed interface Konsistensproblem {
             override fun erGyldigTilstand() = false
         }
 
-        object KombinasjonAvBosituasjonOgFradragErUgyldig : BosituasjonOgFradrag {
+        data object KombinasjonAvBosituasjonOgFradragErUgyldig : BosituasjonOgFradrag {
             override fun erGyldigTilstand() = false
         }
     }
 
     sealed interface BosituasjonOgFormue : Konsistensproblem {
-        object IngenFormueForBosituasjonsperiode : BosituasjonOgFormue {
+        data object IngenFormueForBosituasjonsperiode : BosituasjonOgFormue {
             override fun erGyldigTilstand() = false
         }
 
@@ -253,11 +253,11 @@ sealed interface Konsistensproblem {
             override fun erGyldigTilstand(): Boolean = false
         }
 
-        object KombinasjonAvBosituasjonOgFormueErUyldig : BosituasjonOgFormue {
+        data object KombinasjonAvBosituasjonOgFormueErUyldig : BosituasjonOgFormue {
             override fun erGyldigTilstand() = false
         }
 
-        object FormueForEPSManglerForBosituasjonsperiode : BosituasjonOgFormue {
+        data object FormueForEPSManglerForBosituasjonsperiode : BosituasjonOgFormue {
             override fun erGyldigTilstand() = false
         }
     }

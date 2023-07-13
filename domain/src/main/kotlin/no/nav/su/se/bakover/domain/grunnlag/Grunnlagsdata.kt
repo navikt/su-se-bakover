@@ -167,9 +167,9 @@ data class Grunnlagsdata private constructor(
 }
 
 sealed interface KunneIkkeLageGrunnlagsdata {
-    object MåLeggeTilBosituasjonFørFradrag : KunneIkkeLageGrunnlagsdata
-    object FradragManglerBosituasjon : KunneIkkeLageGrunnlagsdata
-    object FradragForEPSMenBosituasjonUtenEPS : KunneIkkeLageGrunnlagsdata
+    data object MåLeggeTilBosituasjonFørFradrag : KunneIkkeLageGrunnlagsdata
+    data object FradragManglerBosituasjon : KunneIkkeLageGrunnlagsdata
+    data object FradragForEPSMenBosituasjonUtenEPS : KunneIkkeLageGrunnlagsdata
     data class UgyldigFradragsgrunnlag(val feil: Fradragsgrunnlag.UgyldigFradragsgrunnlag) : KunneIkkeLageGrunnlagsdata
 
     data class Konsistenssjekk(val feil: Konsistensproblem.BosituasjonOgFradrag) : KunneIkkeLageGrunnlagsdata

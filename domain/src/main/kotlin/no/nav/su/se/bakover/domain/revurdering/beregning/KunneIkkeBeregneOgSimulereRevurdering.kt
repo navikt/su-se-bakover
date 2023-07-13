@@ -5,8 +5,8 @@ import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import kotlin.reflect.KClass
 
 sealed class KunneIkkeBeregneOgSimulereRevurdering {
-    object FantIkkeRevurdering : KunneIkkeBeregneOgSimulereRevurdering()
-    object KanIkkeVelgeSisteMånedVedNedgangIStønaden : KunneIkkeBeregneOgSimulereRevurdering()
+    data object FantIkkeRevurdering : KunneIkkeBeregneOgSimulereRevurdering()
+    data object KanIkkeVelgeSisteMånedVedNedgangIStønaden : KunneIkkeBeregneOgSimulereRevurdering()
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
         KunneIkkeBeregneOgSimulereRevurdering()
 
@@ -14,11 +14,11 @@ sealed class KunneIkkeBeregneOgSimulereRevurdering {
         val reason: no.nav.su.se.bakover.domain.beregning.UgyldigBeregningsgrunnlag,
     ) : KunneIkkeBeregneOgSimulereRevurdering()
 
-    object KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps : KunneIkkeBeregneOgSimulereRevurdering()
+    data object KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps : KunneIkkeBeregneOgSimulereRevurdering()
 
     data class KunneIkkeSimulere(val simuleringFeilet: SimulerUtbetalingFeilet) :
         KunneIkkeBeregneOgSimulereRevurdering()
 
-    object AvkortingErUfullstendig : KunneIkkeBeregneOgSimulereRevurdering()
-    object OpphørAvYtelseSomSkalAvkortes : KunneIkkeBeregneOgSimulereRevurdering()
+    data object AvkortingErUfullstendig : KunneIkkeBeregneOgSimulereRevurdering()
+    data object OpphørAvYtelseSomSkalAvkortes : KunneIkkeBeregneOgSimulereRevurdering()
 }

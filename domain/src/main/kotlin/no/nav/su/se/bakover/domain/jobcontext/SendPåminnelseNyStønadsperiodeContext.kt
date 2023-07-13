@@ -162,7 +162,7 @@ data class SendPåminnelseNyStønadsperiodeContext(
     }
 
     sealed interface KunneIkkeSendePåminnelse {
-        object FantIkkePerson : KunneIkkeSendePåminnelse
-        object KunneIkkeLageBrev : KunneIkkeSendePåminnelse
+        data object FantIkkePerson : KunneIkkeSendePåminnelse
+        data object KunneIkkeLageBrev : KunneIkkeSendePåminnelse
     }
 }

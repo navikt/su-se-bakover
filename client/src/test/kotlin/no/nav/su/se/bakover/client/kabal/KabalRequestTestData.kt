@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.test.generer
 import java.time.LocalDate
 import java.time.ZoneOffset
 
-internal object KabalRequestTestData {
+internal data object KabalRequestTestData {
     val fnr = Fnr.generer()
 
     val request = KabalRequest(

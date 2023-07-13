@@ -11,7 +11,7 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.Histogram
 
-object SuMetrics {
+data object SuMetrics {
     private val collectorRegistry = CollectorRegistry(true)
     private val prometheusMeterRegistry = PrometheusMeterRegistry(
         PrometheusConfig.DEFAULT,

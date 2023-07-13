@@ -112,7 +112,7 @@ open class DatoIntervall(
         }
     }
 
-    object DatoIntervallKanIkkeSlåsSammen
+    data object DatoIntervallKanIkkeSlåsSammen
 }
 
 fun List<DatoIntervall>.minsteAntallSammenhengendePerioder(): List<DatoIntervall> {

@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-object OppdragDefaults {
+data object OppdragDefaults {
     const val SAKSBEHANDLER_ID = "SU"
     const val KODE_KOMPONENT = "SU"
     val utbetalingsfrekvens = UtbetalingRequest.Utbetalingsfrekvens.MND
@@ -19,7 +19,7 @@ object OppdragDefaults {
         )
 }
 
-object OppdragslinjeDefaults {
+data object OppdragslinjeDefaults {
     const val SAKSBEHANDLER_ID = "SU"
     val fradragEllerTillegg = UtbetalingRequest.Oppdragslinje.FradragTillegg.TILLEGG
     val typeSats = UtbetalingRequest.Oppdragslinje.TypeSats.MND

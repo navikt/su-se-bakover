@@ -35,6 +35,6 @@ internal sealed interface SkatteoppslagFeil {
     }
 
     data class UkjentFeil(val throwable: Throwable) : SkatteoppslagFeil
-    object ManglerRettigheter : SkatteoppslagFeil
+    data object ManglerRettigheter : SkatteoppslagFeil
     data class PersonFeil(val feil: KunneIkkeHentePerson) : SkatteoppslagFeil
 }

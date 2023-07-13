@@ -51,7 +51,7 @@ data class LeggTilLovligOppholdRequest(
 }
 
 sealed interface KunneIkkeLeggetilLovligOppholdVilkår {
-    object FantIkkeBehandling : KunneIkkeLeggetilLovligOppholdVilkår
+    data object FantIkkeBehandling : KunneIkkeLeggetilLovligOppholdVilkår
 
     data class UgyldigLovligOppholdVilkår(val feil: KunneIkkeLageLovligOppholdVilkår) :
         KunneIkkeLeggetilLovligOppholdVilkår

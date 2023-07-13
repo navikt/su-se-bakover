@@ -23,7 +23,7 @@ sealed interface FlyktningVilkår : Vilkår {
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FlyktningVilkår
     abstract override fun slåSammenLikePerioder(): FlyktningVilkår
 
-    object IkkeVurdert : FlyktningVilkår, IkkeVurdertVilkår {
+    data object IkkeVurdert : FlyktningVilkår, IkkeVurdertVilkår {
         override fun lagTidslinje(periode: Periode): FlyktningVilkår = this
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): IkkeVurdert = this
         override fun slåSammenLikePerioder(): FlyktningVilkår = this
@@ -75,7 +75,7 @@ sealed interface FlyktningVilkår : Vilkår {
         }
 
         sealed interface UgyldigFlyktningVilkår {
-            object OverlappendeVurderingsperioder : UgyldigFlyktningVilkår
+            data object OverlappendeVurderingsperioder : UgyldigFlyktningVilkår
         }
     }
 }

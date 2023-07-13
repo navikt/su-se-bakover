@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.beregning.fradrag
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 
-object FradragFactory {
+data object FradragFactory {
     fun nyFradragsperiode(
         fradragstype: Fradragstype,
         månedsbeløp: Double,

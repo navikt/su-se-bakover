@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.domain.brev.PdfInnhold
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 
-object PdfGeneratorStub : PdfGenerator {
+data object PdfGeneratorStub : PdfGenerator {
 
     private val pdf =
         """%PDF-1.0

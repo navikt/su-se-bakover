@@ -10,7 +10,7 @@ sealed class SamletSkattegrunnlagForÅrOgStadie {
     abstract val inntektsår: Year
 
     sealed interface Resultat {
-        object FinnesIkke : Resultat
+        data object FinnesIkke : Resultat
         data class Feil(val originalFeil: KunneIkkeHenteSkattemelding) : Resultat
         data class Finnes(val value: SamletSkattegrunnlagForÅrOgStadie) : Resultat
     }

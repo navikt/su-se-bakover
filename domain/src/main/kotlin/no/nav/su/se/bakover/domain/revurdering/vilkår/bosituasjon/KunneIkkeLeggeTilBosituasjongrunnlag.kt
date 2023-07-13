@@ -3,10 +3,10 @@ package no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 
 sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
-    object FantIkkeBehandling : KunneIkkeLeggeTilBosituasjongrunnlag()
-    object UgyldigData : KunneIkkeLeggeTilBosituasjongrunnlag()
-    object KunneIkkeSlåOppEPS : KunneIkkeLeggeTilBosituasjongrunnlag()
-    object EpsAlderErNull : KunneIkkeLeggeTilBosituasjongrunnlag()
+    data object FantIkkeBehandling : KunneIkkeLeggeTilBosituasjongrunnlag()
+    data object UgyldigData : KunneIkkeLeggeTilBosituasjongrunnlag()
+    data object KunneIkkeSlåOppEPS : KunneIkkeLeggeTilBosituasjongrunnlag()
+    data object EpsAlderErNull : KunneIkkeLeggeTilBosituasjongrunnlag()
     data class Konsistenssjekk(val feil: Konsistensproblem.Bosituasjon) : KunneIkkeLeggeTilBosituasjongrunnlag()
     data class KunneIkkeLeggeTilBosituasjon(val feil: no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjon) :
         KunneIkkeLeggeTilBosituasjongrunnlag()

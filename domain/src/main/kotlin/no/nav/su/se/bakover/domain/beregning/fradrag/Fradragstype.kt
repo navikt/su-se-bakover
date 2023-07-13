@@ -53,7 +53,7 @@ sealed class Fradragstype {
         UnderMinstenivå,
     }
 
-    object Alderspensjon : Fradragstype() {
+    data object Alderspensjon : Fradragstype() {
         override val kategori: Kategori = Kategori.Alderspensjon
         override val måJusteresManueltVedGEndring: Boolean = true
     }
@@ -63,132 +63,132 @@ sealed class Fradragstype {
         override val måJusteresManueltVedGEndring: Boolean = false
     }
 
-    object Arbeidsavklaringspenger : Fradragstype() {
+    data object Arbeidsavklaringspenger : Fradragstype() {
         override val kategori: Kategori = Kategori.Arbeidsavklaringspenger
         override val måJusteresManueltVedGEndring: Boolean = true
     }
 
-    object Arbeidsinntekt : Fradragstype() {
+    data object Arbeidsinntekt : Fradragstype() {
         override val kategori: Kategori = Kategori.Arbeidsinntekt
         override val måJusteresManueltVedGEndring: Boolean = false
     }
 
-    object AvtalefestetPensjon : Fradragstype() {
+    data object AvtalefestetPensjon : Fradragstype() {
         override val kategori: Kategori = Kategori.AvtalefestetPensjon
         override val måJusteresManueltVedGEndring: Boolean = true
     }
 
-    object AvtalefestetPensjonPrivat : Fradragstype() {
+    data object AvtalefestetPensjonPrivat : Fradragstype() {
         override val kategori: Kategori = Kategori.AvtalefestetPensjonPrivat
         override val måJusteresManueltVedGEndring: Boolean = true
     }
 
-    object BidragEtterEkteskapsloven : Fradragstype() {
+    data object BidragEtterEkteskapsloven : Fradragstype() {
         override val kategori: Kategori = Kategori.BidragEtterEkteskapsloven
         override val måJusteresManueltVedGEndring: Boolean = false
     }
 
-    object Dagpenger : Fradragstype() {
+    data object Dagpenger : Fradragstype() {
         override val kategori: Kategori = Kategori.Dagpenger
         override val måJusteresManueltVedGEndring: Boolean = true
     }
 
-    object Fosterhjemsgodtgjørelse : Fradragstype() {
+    data object Fosterhjemsgodtgjørelse : Fradragstype() {
         override val kategori: Kategori = Kategori.Fosterhjemsgodtgjørelse
         override val måJusteresManueltVedGEndring: Boolean = true
     }
 
-    object Gjenlevendepensjon : Fradragstype() {
+    data object Gjenlevendepensjon : Fradragstype() {
         override val kategori: Kategori = Kategori.Gjenlevendepensjon
         override val måJusteresManueltVedGEndring: Boolean = true
     }
 
-    object Introduksjonsstønad : Fradragstype() {
+    data object Introduksjonsstønad : Fradragstype() {
         override val kategori: Kategori = Kategori.Introduksjonsstønad
         override val måJusteresManueltVedGEndring: Boolean = true
     }
 
-    object Kapitalinntekt : Fradragstype() {
+    data object Kapitalinntekt : Fradragstype() {
         override val kategori: Kategori = Kategori.Kapitalinntekt
         override val måJusteresManueltVedGEndring: Boolean = false
     }
 
-    object Kontantstøtte : Fradragstype() {
+    data object Kontantstøtte : Fradragstype() {
         override val kategori: Kategori = Kategori.Kontantstøtte
         override val måJusteresManueltVedGEndring: Boolean = false
     }
 
-    object Kvalifiseringsstønad : Fradragstype() {
+    data object Kvalifiseringsstønad : Fradragstype() {
         override val kategori: Kategori = Kategori.Kvalifiseringsstønad
         override val måJusteresManueltVedGEndring: Boolean = true
     }
 
-    object NAVytelserTilLivsopphold : Fradragstype() {
+    data object NAVytelserTilLivsopphold : Fradragstype() {
         override val kategori: Kategori = Kategori.NAVytelserTilLivsopphold
         override val måJusteresManueltVedGEndring: Boolean = true
     }
 
-    object OffentligPensjon : Fradragstype() {
+    data object OffentligPensjon : Fradragstype() {
         override val kategori: Kategori = Kategori.OffentligPensjon
         override val måJusteresManueltVedGEndring: Boolean = true
     }
 
-    object PrivatPensjon : Fradragstype() {
+    data object PrivatPensjon : Fradragstype() {
         override val kategori: Kategori = Kategori.PrivatPensjon
         override val måJusteresManueltVedGEndring: Boolean = false
     }
 
-    object Sosialstønad : Fradragstype() {
+    data object Sosialstønad : Fradragstype() {
         override val kategori: Kategori = Kategori.Sosialstønad
         override val måJusteresManueltVedGEndring: Boolean = false
     }
 
-    object StatensLånekasse : Fradragstype() {
+    data object StatensLånekasse : Fradragstype() {
         override val kategori: Kategori = Kategori.StatensLånekasse
         override val måJusteresManueltVedGEndring: Boolean = false
     }
 
-    object SupplerendeStønad : Fradragstype() {
+    data object SupplerendeStønad : Fradragstype() {
         override val kategori: Kategori = Kategori.SupplerendeStønad
         override val måJusteresManueltVedGEndring: Boolean = true
     }
 
-    object Sykepenger : Fradragstype() {
+    data object Sykepenger : Fradragstype() {
         override val kategori: Kategori = Kategori.Sykepenger
         override val måJusteresManueltVedGEndring: Boolean = false
     }
 
-    object Tiltakspenger : Fradragstype() {
+    data object Tiltakspenger : Fradragstype() {
         override val kategori: Kategori = Kategori.Tiltakspenger
         override val måJusteresManueltVedGEndring: Boolean = true
     }
 
-    object Ventestønad : Fradragstype() {
+    data object Ventestønad : Fradragstype() {
         override val kategori: Kategori = Kategori.Ventestønad
         override val måJusteresManueltVedGEndring: Boolean = true
     }
 
-    object Uføretrygd : Fradragstype() {
+    data object Uføretrygd : Fradragstype() {
         override val kategori: Kategori = Kategori.Uføretrygd
         override val måJusteresManueltVedGEndring: Boolean = true
     }
 
-    object ForventetInntekt : Fradragstype() {
+    data object ForventetInntekt : Fradragstype() {
         override val kategori: Kategori = Kategori.ForventetInntekt
         override val måJusteresManueltVedGEndring: Boolean = true
     }
 
-    object AvkortingUtenlandsopphold : Fradragstype() {
+    data object AvkortingUtenlandsopphold : Fradragstype() {
         override val kategori: Kategori = Kategori.AvkortingUtenlandsopphold
         override val måJusteresManueltVedGEndring: Boolean = false
     }
 
-    object BeregnetFradragEPS : Fradragstype() {
+    data object BeregnetFradragEPS : Fradragstype() {
         override val kategori: Kategori = Kategori.BeregnetFradragEPS
         override val måJusteresManueltVedGEndring: Boolean = false
     }
 
-    object UnderMinstenivå : Fradragstype() {
+    data object UnderMinstenivå : Fradragstype() {
         override val kategori: Kategori = Kategori.UnderMinstenivå
         override val måJusteresManueltVedGEndring: Boolean = false
     }
@@ -221,9 +221,9 @@ sealed class Fradragstype {
         }
 
         sealed interface UgyldigFradragstype {
-            object UkjentFradragstype : UgyldigFradragstype
-            object UspesifisertKategoriUtenBeskrivelse : UgyldigFradragstype
-            object SpesifisertKategoriMedBeskrivelse : UgyldigFradragstype
+            data object UkjentFradragstype : UgyldigFradragstype
+            data object UspesifisertKategoriUtenBeskrivelse : UgyldigFradragstype
+            data object SpesifisertKategoriMedBeskrivelse : UgyldigFradragstype
         }
     }
 }

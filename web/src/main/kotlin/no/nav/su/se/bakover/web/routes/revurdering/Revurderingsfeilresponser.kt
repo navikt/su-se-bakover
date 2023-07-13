@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Bre
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.fantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.navneoppslagSaksbehandlerAttesttantFeilet
 
-internal object Revurderingsfeilresponser {
+internal data object Revurderingsfeilresponser {
 
     val fantIkkeRevurdering = NotFound.errorJson(
         "Fant ikke revurdering",
@@ -37,7 +37,7 @@ internal object Revurderingsfeilresponser {
         "fant_ikke_person_eller_saksbehandler_navn",
     )
 
-    object OpprettelseOgOppdateringAvRevurdering {
+    data object OpprettelseOgOppdateringAvRevurdering {
         val måVelgeInformasjonSomRevurderes = BadRequest.errorJson(
             "Må velge minst en ting som skal revurderes",
             "må_velge_informasjon_som_revurderes",
@@ -79,7 +79,7 @@ internal object Revurderingsfeilresponser {
         )
     }
 
-    object Brev {
+    data object Brev {
         val navneoppslagSaksbehandlerAttesttantFeilet = InternalServerError.errorJson(
             "Kunne ikke hente navn for saksbehandler eller attestant",
             "navneoppslag_feilet",

@@ -16,7 +16,7 @@ sealed interface AvkortingVedSøknadsbehandling {
      * Vi tar ikke stilling til om Søknadsbehandlingen skal avkortes før beregningsteget.
      * Dette kan ikke være siste tilstand.
      */
-    object IkkeVurdert : AvkortingVedSøknadsbehandling {
+    data object IkkeVurdert : AvkortingVedSøknadsbehandling {
         override fun toString() = this::class.simpleName!!
     }
 
@@ -40,7 +40,7 @@ sealed interface AvkortingVedSøknadsbehandling {
      * Ingen avkortingsvarsler som trengs håndteres.
      * Det kan enten bety at det ikke finnes et avkortingsvarsel, eller at det er et avslag.
      */
-    object IngenAvkorting : Ferdig, KlarTilIverksetting {
+    data object IngenAvkorting : Ferdig, KlarTilIverksetting {
         override fun toString() = this::class.simpleName!!
     }
 

@@ -24,7 +24,7 @@ sealed interface UføreVilkår : Vilkår {
 
     abstract override fun lagTidslinje(periode: Periode): UføreVilkår
 
-    object IkkeVurdert : UføreVilkår, IkkeVurdertVilkår {
+    data object IkkeVurdert : UføreVilkår, IkkeVurdertVilkår {
         override val grunnlag = emptyList<Grunnlag.Uføregrunnlag>()
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): IkkeVurdert = this
         override fun lagTidslinje(periode: Periode): IkkeVurdert = this
@@ -76,7 +76,7 @@ sealed interface UføreVilkår : Vilkår {
         }
 
         sealed interface UgyldigUførevilkår {
-            object OverlappendeVurderingsperioder : UgyldigUførevilkår
+            data object OverlappendeVurderingsperioder : UgyldigUførevilkår
         }
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vurdert {

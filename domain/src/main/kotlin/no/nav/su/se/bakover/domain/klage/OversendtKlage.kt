@@ -93,15 +93,15 @@ data class OversendtKlage(
 }
 
 sealed interface KunneIkkeOversendeKlage {
-    object FantIkkeKlage : KunneIkkeOversendeKlage
+    data object FantIkkeKlage : KunneIkkeOversendeKlage
     data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeOversendeKlage {
         val til = OversendtKlage::class
     }
 
-    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeOversendeKlage
+    data object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeOversendeKlage
     data class KunneIkkeLageBrev(val feil: KunneIkkeLageBrevForKlage) : KunneIkkeOversendeKlage
-    object FantIkkeJournalpostIdKnyttetTilVedtaket : KunneIkkeOversendeKlage
-    object KunneIkkeOversendeTilKlageinstans : KunneIkkeOversendeKlage
+    data object FantIkkeJournalpostIdKnyttetTilVedtaket : KunneIkkeOversendeKlage
+    data object KunneIkkeOversendeTilKlageinstans : KunneIkkeOversendeKlage
     data class KunneIkkeLageBrevRequest(
         val feil: KunneIkkeLageBrevRequestForKlage,
     ) : KunneIkkeOversendeKlage

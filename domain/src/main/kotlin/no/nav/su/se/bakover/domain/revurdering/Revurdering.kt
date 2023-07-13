@@ -247,7 +247,7 @@ sealed class Revurdering :
             val til: KClass<out Revurdering> = OpprettetRevurdering::class,
         ) : KunneIkkeLeggeTilOpplysningsplikt
 
-        object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilOpplysningsplikt
+        data object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilOpplysningsplikt
     }
 
     sealed interface KunneIkkeLeggeTilPensjonsVilkår {
@@ -256,8 +256,8 @@ sealed class Revurdering :
             val til: KClass<out Revurdering> = OpprettetRevurdering::class,
         ) : KunneIkkeLeggeTilPensjonsVilkår
 
-        object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilPensjonsVilkår
-        object VilkårKunRelevantForAlder : KunneIkkeLeggeTilPensjonsVilkår
+        data object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilPensjonsVilkår
+        data object VilkårKunRelevantForAlder : KunneIkkeLeggeTilPensjonsVilkår
     }
 
     sealed interface KunneIkkeLeggeTilFlyktningVilkår {
@@ -266,8 +266,8 @@ sealed class Revurdering :
             val til: KClass<out Revurdering> = OpprettetRevurdering::class,
         ) : KunneIkkeLeggeTilFlyktningVilkår
 
-        object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilFlyktningVilkår
-        object VilkårKunRelevantForUføre : KunneIkkeLeggeTilFlyktningVilkår
+        data object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilFlyktningVilkår
+        data object VilkårKunRelevantForUføre : KunneIkkeLeggeTilFlyktningVilkår
     }
 
     sealed interface KunneIkkeLeggeTilPersonligOppmøteVilkår {
@@ -276,7 +276,7 @@ sealed class Revurdering :
             val til: KClass<out Revurdering> = OpprettetRevurdering::class,
         ) : KunneIkkeLeggeTilPersonligOppmøteVilkår
 
-        object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilPersonligOppmøteVilkår
+        data object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilPersonligOppmøteVilkår
     }
 
     sealed interface KunneIkkeLeggeTilInstitusjonsoppholdVilkår {
@@ -285,7 +285,7 @@ sealed class Revurdering :
             val til: KClass<out Revurdering> = OpprettetRevurdering::class,
         ) : KunneIkkeLeggeTilInstitusjonsoppholdVilkår
 
-        object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilInstitusjonsoppholdVilkår
+        data object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilInstitusjonsoppholdVilkår
     }
 
     private fun oppdaterOpplysnigspliktInternal(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysningsplikt, OpprettetRevurdering> {
@@ -373,9 +373,9 @@ sealed class Revurdering :
         data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
             KunneIkkeLeggeTilUtenlandsopphold
 
-        object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUtenlandsopphold
-        object AlleVurderingsperioderMåHaSammeResultat : KunneIkkeLeggeTilUtenlandsopphold
-        object MåVurdereHelePerioden : KunneIkkeLeggeTilUtenlandsopphold
+        data object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUtenlandsopphold
+        data object AlleVurderingsperioderMåHaSammeResultat : KunneIkkeLeggeTilUtenlandsopphold
+        data object MåVurdereHelePerioden : KunneIkkeLeggeTilUtenlandsopphold
     }
 
     protected fun oppdaterUtenlandsoppholdOgMarkerSomVurdertInternal(
@@ -479,8 +479,8 @@ sealed class Revurdering :
             val til: KClass<out Revurdering> = OpprettetRevurdering::class,
         ) : KunneIkkeLeggeTilFastOppholdINorgeVilkår
 
-        object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilFastOppholdINorgeVilkår
-        object AlleVurderingsperioderMåHaSammeResultat : KunneIkkeLeggeTilFastOppholdINorgeVilkår
+        data object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilFastOppholdINorgeVilkår
+        data object AlleVurderingsperioderMåHaSammeResultat : KunneIkkeLeggeTilFastOppholdINorgeVilkår
     }
 
     protected fun oppdaterFastOppholdINorgeOgMarkerSomVurdertInternal(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {

@@ -5,7 +5,7 @@ import com.auth0.jwk.JwkProvider
 import no.nav.su.se.bakover.common.infrastructure.auth.AuthStubCommonConfig
 import java.util.Base64
 
-internal object JwkProviderStub : JwkProvider {
+internal data object JwkProviderStub : JwkProvider {
     override fun get(keyId: String?) = Jwk(
         AuthStubCommonConfig.keyId,
         "RSA",

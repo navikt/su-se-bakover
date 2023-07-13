@@ -149,7 +149,7 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
                 }
         }
 
-        object Validator {
+        data object Validator {
             fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> valider(elementer: Nel<T>) {
                 check(
                     !elementer.map { it.periode }.harOverlappende(),

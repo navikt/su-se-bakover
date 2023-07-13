@@ -64,7 +64,7 @@ sealed interface Hjemler : List<Hjemmel> {
         }
     }
 
-    object KunneIkkeLageHjemler
+    data object KunneIkkeLageHjemler
 }
 
 /**

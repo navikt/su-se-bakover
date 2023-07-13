@@ -6,5 +6,5 @@ interface AvstemmingPublisher {
     fun publish(grensesnittavstemming: Avstemming.Grensesnittavstemming): Either<KunneIkkeSendeAvstemming, Avstemming.Grensesnittavstemming>
     fun publish(konsistensavstemming: Avstemming.Konsistensavstemming.Ny): Either<KunneIkkeSendeAvstemming, Avstemming.Konsistensavstemming.Ny>
 
-    object KunneIkkeSendeAvstemming
+    data object KunneIkkeSendeAvstemming
 }

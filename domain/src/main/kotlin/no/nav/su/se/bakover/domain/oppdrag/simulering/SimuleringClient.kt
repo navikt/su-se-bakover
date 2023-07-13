@@ -6,10 +6,10 @@ interface SimuleringClient {
     fun simulerUtbetaling(request: SimulerUtbetalingRequest): Either<SimuleringFeilet, Simulering>
 }
 sealed interface SimuleringFeilet {
-    object UtenforÅpningstid : SimuleringFeilet
-    object PersonFinnesIkkeITPS : SimuleringFeilet
-    object FinnerIkkeKjøreplanForFraOgMed : SimuleringFeilet
-    object OppdragEksistererIkke : SimuleringFeilet
-    object FunksjonellFeil : SimuleringFeilet
-    object TekniskFeil : SimuleringFeilet
+    data object UtenforÅpningstid : SimuleringFeilet
+    data object PersonFinnesIkkeITPS : SimuleringFeilet
+    data object FinnerIkkeKjøreplanForFraOgMed : SimuleringFeilet
+    data object OppdragEksistererIkke : SimuleringFeilet
+    data object FunksjonellFeil : SimuleringFeilet
+    data object TekniskFeil : SimuleringFeilet
 }

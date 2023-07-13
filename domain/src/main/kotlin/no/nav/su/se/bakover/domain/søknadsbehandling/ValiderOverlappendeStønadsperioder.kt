@@ -58,7 +58,7 @@ private fun Sak.validerOpphørFørtTilAvkorting(
 }
 
 sealed interface StøtterIkkeOverlappendeStønadsperioder {
-    object StønadsperiodeOverlapperMedIkkeOpphørtStønadsperiode : StøtterIkkeOverlappendeStønadsperioder
-    object StønadsperiodeForSenerePeriodeEksisterer : StøtterIkkeOverlappendeStønadsperioder
-    object StønadsperiodeInneholderAvkortingPgaUtenlandsopphold : StøtterIkkeOverlappendeStønadsperioder
+    data object StønadsperiodeOverlapperMedIkkeOpphørtStønadsperiode : StøtterIkkeOverlappendeStønadsperioder
+    data object StønadsperiodeForSenerePeriodeEksisterer : StøtterIkkeOverlappendeStønadsperioder
+    data object StønadsperiodeInneholderAvkortingPgaUtenlandsopphold : StøtterIkkeOverlappendeStønadsperioder
 }

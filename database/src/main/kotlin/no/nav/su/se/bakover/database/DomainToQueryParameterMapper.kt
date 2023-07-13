@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import java.sql.PreparedStatement
 
-object DomainToQueryParameterMapper : QueryParameterMapper {
+data object DomainToQueryParameterMapper : QueryParameterMapper {
 
     override fun tryMap(
         idx: Int,

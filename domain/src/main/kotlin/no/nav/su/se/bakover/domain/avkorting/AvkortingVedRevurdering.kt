@@ -39,7 +39,7 @@ sealed class AvkortingVedRevurdering {
         /**
          * Det er ikke behov for håndtering av noen utestående avkortinger
          */
-        object IngenUtestående : Uhåndtert() {
+        data object IngenUtestående : Uhåndtert() {
             override fun håndter(): DelvisHåndtert.IngenUtestående {
                 return DelvisHåndtert.IngenUtestående
             }
@@ -110,7 +110,7 @@ sealed class AvkortingVedRevurdering {
             }
         }
 
-        object IngenUtestående : DelvisHåndtert() {
+        data object IngenUtestående : DelvisHåndtert() {
             override fun håndter(): Håndtert.IngenNyEllerUtestående {
                 return Håndtert.IngenNyEllerUtestående
             }
@@ -209,7 +209,7 @@ sealed class AvkortingVedRevurdering {
             }
         }
 
-        object IngenNyEllerUtestående : Håndtert() {
+        data object IngenNyEllerUtestående : Håndtert() {
             override fun uhåndtert(): Uhåndtert {
                 return Uhåndtert.IngenUtestående
             }
@@ -314,7 +314,7 @@ sealed class AvkortingVedRevurdering {
          * Ingen nye varsel er produsert som følge av denne revurderingen. Ei heller er det gjort noen håndtering av
          * utestående varsel.
          */
-        object IngenNyEllerUtestående : Iverksatt() {
+        data object IngenNyEllerUtestående : Iverksatt() {
             override fun toString() = this::class.simpleName!!
         }
 

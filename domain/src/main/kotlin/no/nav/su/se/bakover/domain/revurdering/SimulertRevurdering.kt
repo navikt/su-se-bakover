@@ -139,8 +139,8 @@ sealed class SimulertRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
     abstract fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling): SimulertRevurdering
 
     sealed interface KunneIkkeSendeInnvilgetRevurderingTilAttestering {
-        object TilbakekrevingsbehandlingErIkkeFullstendig : KunneIkkeSendeInnvilgetRevurderingTilAttestering
-        object BrevvalgMangler : KunneIkkeSendeInnvilgetRevurderingTilAttestering
+        data object TilbakekrevingsbehandlingErIkkeFullstendig : KunneIkkeSendeInnvilgetRevurderingTilAttestering
+        data object BrevvalgMangler : KunneIkkeSendeInnvilgetRevurderingTilAttestering
     }
 
     override fun oppdater(
@@ -303,9 +303,9 @@ sealed class SimulertRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
         }
 
         sealed interface KanIkkeSendeOpphørtRevurderingTilAttestering {
-            object KanIkkeSendeEnOpphørtGReguleringTilAttestering : KanIkkeSendeOpphørtRevurderingTilAttestering
-            object TilbakekrevingsbehandlingErIkkeFullstendig : KanIkkeSendeOpphørtRevurderingTilAttestering
-            object BrevvalgMangler : KanIkkeSendeOpphørtRevurderingTilAttestering
+            data object KanIkkeSendeEnOpphørtGReguleringTilAttestering : KanIkkeSendeOpphørtRevurderingTilAttestering
+            data object TilbakekrevingsbehandlingErIkkeFullstendig : KanIkkeSendeOpphørtRevurderingTilAttestering
+            data object BrevvalgMangler : KanIkkeSendeOpphørtRevurderingTilAttestering
         }
 
         fun tilAttestering(

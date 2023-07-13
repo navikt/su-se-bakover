@@ -75,7 +75,7 @@ data class Kjøretøy(
 )
 
 sealed interface FeilVedOpprettelseAvFormue {
-    object DepositumsbeløpetErIkkeutfylt : FeilVedOpprettelseAvFormue
-    object BorIBoligErIkkeUtfylt : FeilVedOpprettelseAvFormue
-    object BoligensVerdiEllerBeskrivelseErIkkeUtfylt : FeilVedOpprettelseAvFormue
+    data object DepositumsbeløpetErIkkeutfylt : FeilVedOpprettelseAvFormue
+    data object BorIBoligErIkkeUtfylt : FeilVedOpprettelseAvFormue
+    data object BoligensVerdiEllerBeskrivelseErIkkeUtfylt : FeilVedOpprettelseAvFormue
 }

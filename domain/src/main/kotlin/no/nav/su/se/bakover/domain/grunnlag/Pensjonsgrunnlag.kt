@@ -72,8 +72,8 @@ data class Pensjonsopplysninger(
         }
 
         sealed interface Svar {
-            object HarSøktPensjonFraFolketrygden : Svar
-            object HarIkkeSøktPensjonFraFolketrygden : Svar
+            data object HarSøktPensjonFraFolketrygden : Svar
+            data object HarIkkeSøktPensjonFraFolketrygden : Svar
         }
     }
 
@@ -95,9 +95,9 @@ data class Pensjonsopplysninger(
         }
 
         sealed interface Svar {
-            object HarSøktAndreNorskePensjonerEnnFolketrygden : Svar
-            object HarIkkeSøktAndreNorskePensjonerEnnFolketrygden : Svar
-            object IkkeAktuelt : Svar
+            data object HarSøktAndreNorskePensjonerEnnFolketrygden : Svar
+            data object HarIkkeSøktAndreNorskePensjonerEnnFolketrygden : Svar
+            data object IkkeAktuelt : Svar
         }
     }
 
@@ -119,9 +119,9 @@ data class Pensjonsopplysninger(
         }
 
         sealed interface Svar {
-            object HarSøktUtenlandskePensjoner : Svar
-            object HarIkkeSøktUtenlandskePensjoner : Svar
-            object IkkeAktuelt : Svar
+            data object HarSøktUtenlandskePensjoner : Svar
+            data object HarIkkeSøktUtenlandskePensjoner : Svar
+            data object IkkeAktuelt : Svar
         }
     }
 }

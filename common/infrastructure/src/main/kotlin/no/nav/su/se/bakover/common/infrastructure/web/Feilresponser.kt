@@ -6,7 +6,7 @@ import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import kotlin.reflect.KClass
 
-object Feilresponser {
+data object Feilresponser {
     val ugyldigTypeSak = BadRequest.errorJson(
         "Ugyldig type sak",
         "ugyldig_type_sak",
@@ -283,7 +283,7 @@ object Feilresponser {
         )
     }
 
-    object Uføre {
+    data object Uføre {
         val uføregradMåVæreMellomEnOgHundre = BadRequest.errorJson(
             message = "Uføregrad må være mellom en og hundre",
             code = "uføregrad_må_være_mellom_en_og_hundre",
@@ -328,7 +328,7 @@ object Feilresponser {
         code = "nye_overlappende_vedtak",
     )
 
-    object Brev {
+    data object Brev {
         val kunneIkkeGenerereBrev = InternalServerError.errorJson(
             "Kunne ikke generere brev",
             "kunne_ikke_generere_brev",

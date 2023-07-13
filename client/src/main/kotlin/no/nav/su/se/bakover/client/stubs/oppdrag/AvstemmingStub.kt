@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.client.oppdrag.avstemming.lagKonsistensavstemmingXml
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 
-object AvstemmingStub : AvstemmingPublisher {
+data object AvstemmingStub : AvstemmingPublisher {
     override fun publish(grensesnittavstemming: Avstemming.Grensesnittavstemming): Either<AvstemmingPublisher.KunneIkkeSendeAvstemming, Avstemming.Grensesnittavstemming> {
         return grensesnittavstemming.copy(avstemmingXmlRequest = lagGrensesnittavstemmingXml(grensesnittavstemming).toString())
             .right()

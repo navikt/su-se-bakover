@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import kotlin.reflect.KClass
 
 sealed class KunneIkkeLeggeTilFormuegrunnlag {
-    object FantIkkeRevurdering : KunneIkkeLeggeTilFormuegrunnlag()
+    data object FantIkkeRevurdering : KunneIkkeLeggeTilFormuegrunnlag()
     data class UgyldigTilstand(
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,

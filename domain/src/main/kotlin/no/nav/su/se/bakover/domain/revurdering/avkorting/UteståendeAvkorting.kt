@@ -153,7 +153,7 @@ fun Sak.sjekkForSamtidigeAvkortingsvarsler(
     return Unit.right()
 }
 
-object KanIkkeOpphørePgaUtenlandsoppholdMedUteståendeAvkortingPåSak
+data object KanIkkeOpphørePgaUtenlandsoppholdMedUteståendeAvkortingPåSak
 
 /**
  * Ref dokumentasjon til [Sak], [Sak.uteståendeAvkorting] er enten [Avkortingsvarsel.Ingen] eller [Avkortingsvarsel.Utenlandsopphold.SkalAvkortes]

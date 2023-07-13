@@ -49,7 +49,7 @@ sealed class VurderOpphørVedRevurdering {
 
 sealed class OpphørVedRevurdering {
     data class Ja(val opphørsgrunner: List<Opphørsgrunn>, val opphørsdato: LocalDate) : OpphørVedRevurdering()
-    object Nei : OpphørVedRevurdering()
+    data object Nei : OpphørVedRevurdering()
 }
 
 data class VurderOmVilkårGirOpphørVedRevurdering(

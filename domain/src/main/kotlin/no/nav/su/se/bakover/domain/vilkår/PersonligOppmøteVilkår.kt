@@ -20,7 +20,7 @@ sealed interface PersonligOppmøteVilkår : Vilkår {
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): PersonligOppmøteVilkår
     abstract override fun slåSammenLikePerioder(): PersonligOppmøteVilkår
 
-    object IkkeVurdert : PersonligOppmøteVilkår, IkkeVurdertVilkår {
+    data object IkkeVurdert : PersonligOppmøteVilkår, IkkeVurdertVilkår {
         override val grunnlag = emptyList<PersonligOppmøteGrunnlag>()
         override fun lagTidslinje(periode: Periode): PersonligOppmøteVilkår = this
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): IkkeVurdert = this

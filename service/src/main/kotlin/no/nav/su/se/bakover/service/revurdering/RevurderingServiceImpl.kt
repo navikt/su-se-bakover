@@ -1168,7 +1168,7 @@ class RevurderingServiceImpl(
     }
 
     sealed class KunneIkkeHenteRevurdering {
-        object IkkeInstansAvRevurdering : KunneIkkeHenteRevurdering()
-        object FantIkkeRevurdering : KunneIkkeHenteRevurdering()
+        data object IkkeInstansAvRevurdering : KunneIkkeHenteRevurdering()
+        data object FantIkkeRevurdering : KunneIkkeHenteRevurdering()
     }
 }

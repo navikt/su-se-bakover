@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-object OppgaveClientStub : OppgaveClient {
+data object OppgaveClientStub : OppgaveClient {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 

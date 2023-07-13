@@ -16,5 +16,5 @@ sealed interface KunneIkkeLeggeTilPersonligOppmøteVilkår {
     data class Revurdering(val feil: no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilPersonligOppmøteVilkår) :
         KunneIkkeLeggeTilPersonligOppmøteVilkår
 
-    object FantIkkeBehandling : KunneIkkeLeggeTilPersonligOppmøteVilkår
+    data object FantIkkeBehandling : KunneIkkeLeggeTilPersonligOppmøteVilkår
 }

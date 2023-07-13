@@ -4,12 +4,12 @@ import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import kotlin.reflect.KClass
 
 sealed class KunneIkkeLeggeTilUtenlandsopphold {
-    object FantIkkeBehandling : KunneIkkeLeggeTilUtenlandsopphold()
-    object OverlappendeVurderingsperioder : KunneIkkeLeggeTilUtenlandsopphold()
-    object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilUtenlandsopphold()
-    object AlleVurderingsperioderMåHaSammeResultat : KunneIkkeLeggeTilUtenlandsopphold()
-    object MåVurdereHelePerioden : KunneIkkeLeggeTilUtenlandsopphold()
-    object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUtenlandsopphold()
+    data object FantIkkeBehandling : KunneIkkeLeggeTilUtenlandsopphold()
+    data object OverlappendeVurderingsperioder : KunneIkkeLeggeTilUtenlandsopphold()
+    data object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilUtenlandsopphold()
+    data object AlleVurderingsperioderMåHaSammeResultat : KunneIkkeLeggeTilUtenlandsopphold()
+    data object MåVurdereHelePerioden : KunneIkkeLeggeTilUtenlandsopphold()
+    data object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUtenlandsopphold()
     data class UgyldigTilstand(
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,

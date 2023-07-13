@@ -10,8 +10,8 @@ import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import java.util.UUID
 
 sealed interface OpplysningspliktBeskrivelse {
-    object TilstrekkeligDokumentasjon : OpplysningspliktBeskrivelse
-    object UtilstrekkeligDokumentasjon : OpplysningspliktBeskrivelse
+    data object TilstrekkeligDokumentasjon : OpplysningspliktBeskrivelse
+    data object UtilstrekkeligDokumentasjon : OpplysningspliktBeskrivelse
 }
 
 data class Opplysningspliktgrunnlag(

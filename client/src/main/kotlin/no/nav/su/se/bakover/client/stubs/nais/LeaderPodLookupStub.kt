@@ -4,6 +4,6 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.nais.LeaderPodLookup
 import no.nav.su.se.bakover.common.nais.LeaderPodLookupFeil
 
-object LeaderPodLookupStub : LeaderPodLookup {
+data object LeaderPodLookupStub : LeaderPodLookup {
     override fun amITheLeader(localHostName: String): Either<LeaderPodLookupFeil, Boolean> = Either.Right(true)
 }

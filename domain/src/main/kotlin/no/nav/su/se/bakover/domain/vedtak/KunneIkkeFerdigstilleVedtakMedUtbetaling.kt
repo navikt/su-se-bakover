@@ -9,5 +9,5 @@ sealed interface KunneIkkeFerdigstilleVedtakMedUtbetaling {
 
 sealed interface KunneIkkeFerdigstilleVedtak : KunneIkkeFerdigstilleVedtakMedUtbetaling {
     data class KunneIkkeGenerereBrev(val underliggende: KunneIkkeLageDokument) : KunneIkkeFerdigstilleVedtak, KunneIkkeFerdigstilleVedtakMedUtbetaling
-    object KunneIkkeLukkeOppgave : KunneIkkeFerdigstilleVedtak, KunneIkkeFerdigstilleVedtakMedUtbetaling
+    data object KunneIkkeLukkeOppgave : KunneIkkeFerdigstilleVedtak, KunneIkkeFerdigstilleVedtakMedUtbetaling
 }

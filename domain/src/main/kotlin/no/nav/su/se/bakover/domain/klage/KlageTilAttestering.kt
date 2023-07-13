@@ -168,16 +168,16 @@ sealed interface KlageTilAttestering : Klage, KlageTilAttesteringFelter, KanGene
 }
 
 sealed interface KunneIkkeSendeTilAttestering {
-    object FantIkkeKlage : KunneIkkeSendeTilAttestering
-    object KunneIkkeOppretteOppgave : KunneIkkeSendeTilAttestering
+    data object FantIkkeKlage : KunneIkkeSendeTilAttestering
+    data object KunneIkkeOppretteOppgave : KunneIkkeSendeTilAttestering
     data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeSendeTilAttestering {
         val til = KlageTilAttestering::class
     }
 }
 
 sealed interface KunneIkkeUnderkjenne {
-    object FantIkkeKlage : KunneIkkeUnderkjenne
-    object KunneIkkeOppretteOppgave : KunneIkkeUnderkjenne
-    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeUnderkjenne
+    data object FantIkkeKlage : KunneIkkeUnderkjenne
+    data object KunneIkkeOppretteOppgave : KunneIkkeUnderkjenne
+    data object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeUnderkjenne
     data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeUnderkjenne
 }

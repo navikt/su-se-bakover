@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.domain.sak.Saksnummer
 import java.math.BigDecimal
 import java.time.LocalDate
 
-object TilbakekrevingsmeldingMapper {
+data object TilbakekrevingsmeldingMapper {
 
     private val xmlMapper = XmlMapper(JacksonXmlModule().apply { setDefaultUseWrapper(false) }).apply {
         registerModule(KotlinModule.Builder().build())

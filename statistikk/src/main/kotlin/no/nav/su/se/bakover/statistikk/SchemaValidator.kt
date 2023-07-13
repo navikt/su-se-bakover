@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.common.jsonNode
  * Generell skjemavaliderer.
  * Kan flyttes til common dersom flere moduler har behov for dette.
  */
-internal object SchemaValidator {
+internal data object SchemaValidator {
 
     fun validate(json: String, schema: JsonSchema): Either<Set<ValidationMessage>, String> {
         val validated: Set<ValidationMessage> = schema.validate(jsonNode(json))

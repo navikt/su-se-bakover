@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.web.søknadsbehandling
 
 import org.json.JSONObject
 
-object BehandlingJson {
+data object BehandlingJson {
     fun hentBehandlingId(søknadsbehandlingResponseJson: String): String {
         return JSONObject(søknadsbehandlingResponseJson).getString("id").toString()
     }
@@ -38,7 +38,7 @@ object BehandlingJson {
     fun hentEksterneGrunnlag(json: String): String = JSONObject(json).getJSONObject("eksterneGrunnlag").toString()
 }
 
-object RevurderingJson {
+data object RevurderingJson {
     fun hentRevurderingId(json: String): String {
         return JSONObject(json).getString("id").toString()
     }

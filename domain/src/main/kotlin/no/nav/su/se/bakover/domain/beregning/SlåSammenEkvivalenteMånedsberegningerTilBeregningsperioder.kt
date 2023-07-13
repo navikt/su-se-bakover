@@ -79,7 +79,7 @@ internal data class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
             tilOgMed = månedsberegninger.maxOf { it.periode.tilOgMed },
         )
 
-        object UtryggOperasjonException : RuntimeException(
+        data object UtryggOperasjonException : RuntimeException(
             """
                 Utrygg operasjon! Klassen wrapper månedsberegninger som potensielt spenner over flere måneder
                 og kan være misvisende dersom denne informasjonen brukes videre.

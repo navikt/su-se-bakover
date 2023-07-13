@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 
-object JournalpostFactory {
+data object JournalpostFactory {
     fun lagJournalpost(
         person: Person,
         saksnummer: Saksnummer,

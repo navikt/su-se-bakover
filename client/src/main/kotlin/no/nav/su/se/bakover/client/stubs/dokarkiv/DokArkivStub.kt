@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.common.journal.JournalpostId
 
-object DokArkivStub : DokArkiv {
+data object DokArkivStub : DokArkiv {
     override fun opprettJournalpost(
         dokumentInnhold: Journalpost,
     ): Either<ClientError, JournalpostId> = JournalpostId("1").right()

@@ -220,13 +220,13 @@ sealed class RevurderingTilAttestering : Revurdering() {
     ) = throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
 
     sealed class KunneIkkeIverksetteRevurdering {
-        object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteRevurdering()
+        data object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteRevurdering()
 
         /**
          * Bør ikke oppstå ofte, siden saksbehandler ikke bør/kan påvirke avkortingen.
          * Her bør saksbehandler oppdatere revurderingen for å hente ny vedtaksdata med blant annet avkortingsdata fra saken.
          */
-        object Avkortingsfeil : KunneIkkeIverksetteRevurdering()
+        data object Avkortingsfeil : KunneIkkeIverksetteRevurdering()
     }
 
     fun underkjenn(

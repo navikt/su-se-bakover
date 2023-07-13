@@ -261,9 +261,9 @@ internal class PersonhendelsePostgresRepo(
             }
         }
 
-        object BostedsadresseJson : HendelseJson()
+        data object BostedsadresseJson : HendelseJson()
 
-        object KontaktadresseJson : HendelseJson()
+        data object KontaktadresseJson : HendelseJson()
 
         fun toDomain(): Personhendelse.Hendelse = when (this) {
             is DødsfallJson -> Personhendelse.Hendelse.Dødsfall(dødsdato)

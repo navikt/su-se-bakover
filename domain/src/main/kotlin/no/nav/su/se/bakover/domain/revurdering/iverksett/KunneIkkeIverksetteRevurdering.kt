@@ -15,9 +15,9 @@ sealed interface KunneIkkeIverksetteRevurdering {
     sealed interface Saksfeil : KunneIkkeIverksetteRevurdering {
         data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : Saksfeil
         data class KontrollsimuleringFeilet(val feil: SimulerUtbetalingFeilet) : Saksfeil
-        object FantIkkeRevurdering : Saksfeil
+        data object FantIkkeRevurdering : Saksfeil
 
-        object SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving : Saksfeil
+        data object SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving : Saksfeil
 
         data class UgyldigTilstand(
             val fra: KClass<out AbstraktRevurdering>,
@@ -26,7 +26,7 @@ sealed interface KunneIkkeIverksetteRevurdering {
 
         data class Revurderingsfeil(val underliggende: RevurderingTilAttestering.KunneIkkeIverksetteRevurdering) : Saksfeil
 
-        object DetHarKommetNyeOverlappendeVedtak : Saksfeil
+        data object DetHarKommetNyeOverlappendeVedtak : Saksfeil
 
         data class KunneIkkeGenerereDokument(val feil: KunneIkkeLageDokument) : Saksfeil
     }

@@ -9,7 +9,7 @@ data class Revurderingsårsak(
     val årsak: Årsak,
     val begrunnelse: Begrunnelse,
 ) {
-    object UgyldigÅrsak
+    data object UgyldigÅrsak
     enum class Årsak {
         MELDING_FRA_BRUKER,
         INFORMASJON_FRA_KONTROLLSAMTALE,
@@ -32,8 +32,8 @@ data class Revurderingsårsak(
     }
 
     sealed class UgyldigRevurderingsårsak {
-        object UgyldigÅrsak : UgyldigRevurderingsårsak()
-        object UgyldigBegrunnelse : UgyldigRevurderingsårsak()
+        data object UgyldigÅrsak : UgyldigRevurderingsårsak()
+        data object UgyldigBegrunnelse : UgyldigRevurderingsårsak()
     }
 
     companion object {
@@ -63,7 +63,7 @@ data class Revurderingsårsak(
 
         override fun toString() = value
 
-        object KanIkkeVæreTom
+        data object KanIkkeVæreTom
 
         companion object {
             fun tryCreate(value: String): Either<KanIkkeVæreTom, Begrunnelse> {

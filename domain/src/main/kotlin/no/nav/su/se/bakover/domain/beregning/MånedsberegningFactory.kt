@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.sum
 import kotlin.math.roundToInt
 
-object MånedsberegningFactory {
+data object MånedsberegningFactory {
     /**
      * Beregner ytelsen for en spesifiskert måned i henhold til angitt strategi.
      *

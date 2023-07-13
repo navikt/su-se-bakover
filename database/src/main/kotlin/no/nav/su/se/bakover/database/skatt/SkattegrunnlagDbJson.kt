@@ -128,11 +128,11 @@ data class ÅrsgrunnlagDbJson(
 )
 sealed interface StadieJson {
     data class Grunnlag(val grunnlag: GrunnlagslisteJson, val oppgjørsdato: String?) : StadieJson
-    object FinnesIkke : StadieJson
-    object ManglerRettigheter : StadieJson
-    object Nettverksfeil : StadieJson
-    object Personfeil : StadieJson
-    object UkjentFeil : StadieJson
+    data object FinnesIkke : StadieJson
+    data object ManglerRettigheter : StadieJson
+    data object Nettverksfeil : StadieJson
+    data object Personfeil : StadieJson
+    data object UkjentFeil : StadieJson
 
     fun toDomain(): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag.SkattegrunnlagForÅr> {
         // Her må man ha is fordi objekt referanser vil endre seg når man henter ut fra db

@@ -51,11 +51,11 @@ sealed interface Stønadsvedtak : Vedtak, Visitable<VedtakVisitor> {
 }
 
 sealed interface KunneIkkeGenerereSkattedokument {
-    object IngenÅrsgrunnlag : KunneIkkeGenerereSkattedokument
+    data object IngenÅrsgrunnlag : KunneIkkeGenerereSkattedokument
 
-    object FeilVedGenereringAvDokument : KunneIkkeGenerereSkattedokument
+    data object FeilVedGenereringAvDokument : KunneIkkeGenerereSkattedokument
 
-    object SkattegrunnlagErIkkeHentetForÅGenereDokument : KunneIkkeGenerereSkattedokument
+    data object SkattegrunnlagErIkkeHentetForÅGenereDokument : KunneIkkeGenerereSkattedokument
 
-    object Feil : KunneIkkeGenerereSkattedokument
+    data object Feil : KunneIkkeGenerereSkattedokument
 }

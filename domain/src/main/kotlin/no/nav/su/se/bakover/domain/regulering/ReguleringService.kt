@@ -9,31 +9,31 @@ import no.nav.su.se.bakover.domain.sak.Saksnummer
 import java.util.UUID
 
 sealed class KunneIkkeFerdigstilleOgIverksette {
-    object KunneIkkeBeregne : KunneIkkeFerdigstilleOgIverksette()
-    object KunneIkkeSimulere : KunneIkkeFerdigstilleOgIverksette()
-    object KunneIkkeUtbetale : KunneIkkeFerdigstilleOgIverksette()
-    object KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling : KunneIkkeFerdigstilleOgIverksette()
+    data object KunneIkkeBeregne : KunneIkkeFerdigstilleOgIverksette()
+    data object KunneIkkeSimulere : KunneIkkeFerdigstilleOgIverksette()
+    data object KunneIkkeUtbetale : KunneIkkeFerdigstilleOgIverksette()
+    data object KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling : KunneIkkeFerdigstilleOgIverksette()
 }
 
 sealed class KunneIkkeRegulereManuelt {
-    object FantIkkeRegulering : KunneIkkeRegulereManuelt()
-    object SimuleringFeilet : KunneIkkeRegulereManuelt()
-    object BeregningFeilet : KunneIkkeRegulereManuelt()
-    object AlleredeFerdigstilt : KunneIkkeRegulereManuelt()
-    object FantIkkeSak : KunneIkkeRegulereManuelt()
-    object StansetYtelseMåStartesFørDenKanReguleres : KunneIkkeRegulereManuelt()
-    object AvventerKravgrunnlag : KunneIkkeRegulereManuelt()
-    object HarPågåendeEllerBehovForAvkorting : KunneIkkeRegulereManuelt()
+    data object FantIkkeRegulering : KunneIkkeRegulereManuelt()
+    data object SimuleringFeilet : KunneIkkeRegulereManuelt()
+    data object BeregningFeilet : KunneIkkeRegulereManuelt()
+    data object AlleredeFerdigstilt : KunneIkkeRegulereManuelt()
+    data object FantIkkeSak : KunneIkkeRegulereManuelt()
+    data object StansetYtelseMåStartesFørDenKanReguleres : KunneIkkeRegulereManuelt()
+    data object AvventerKravgrunnlag : KunneIkkeRegulereManuelt()
+    data object HarPågåendeEllerBehovForAvkorting : KunneIkkeRegulereManuelt()
     data class KunneIkkeFerdigstille(val feil: KunneIkkeFerdigstilleOgIverksette) : KunneIkkeRegulereManuelt()
 }
 
 sealed class BeregnOgSimulerFeilet {
-    object KunneIkkeSimulere : BeregnOgSimulerFeilet()
+    data object KunneIkkeSimulere : BeregnOgSimulerFeilet()
 }
 
 sealed interface KunneIkkeOppretteRegulering {
-    object FantIkkeSak : KunneIkkeOppretteRegulering
-    object FørerIkkeTilEnEndring : KunneIkkeOppretteRegulering
+    data object FantIkkeSak : KunneIkkeOppretteRegulering
+    data object FørerIkkeTilEnEndring : KunneIkkeOppretteRegulering
     data class KunneIkkeHenteEllerOppretteRegulering(
         val feil: Sak.KunneIkkeOppretteEllerOppdatereRegulering,
     ) : KunneIkkeOppretteRegulering
@@ -42,12 +42,12 @@ sealed interface KunneIkkeOppretteRegulering {
         val feil: KunneIkkeFerdigstilleOgIverksette,
     ) : KunneIkkeOppretteRegulering
 
-    object UkjentFeil : KunneIkkeOppretteRegulering
+    data object UkjentFeil : KunneIkkeOppretteRegulering
 }
 
 sealed class KunneIkkeAvslutte {
-    object FantIkkeRegulering : KunneIkkeAvslutte()
-    object UgyldigTilstand : KunneIkkeAvslutte()
+    data object FantIkkeRegulering : KunneIkkeAvslutte()
+    data object UgyldigTilstand : KunneIkkeAvslutte()
 }
 
 interface ReguleringService {

@@ -50,7 +50,7 @@ sealed interface Vilkårsvurderinger {
         is Søknadsbehandling.Uføre -> VilkårEksistererIkke.left()
     }
 
-    object VilkårEksistererIkke
+    data object VilkårEksistererIkke
 
     fun lovligOppholdVilkår(): LovligOppholdVilkår = lovligOpphold
 

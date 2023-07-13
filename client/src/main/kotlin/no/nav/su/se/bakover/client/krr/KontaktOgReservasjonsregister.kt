@@ -7,7 +7,7 @@ interface KontaktOgReservasjonsregister {
     fun hentKontaktinformasjon(fnr: Fnr): Either<KunneIkkeHenteKontaktinformasjon, Kontaktinformasjon>
 
     sealed interface KunneIkkeHenteKontaktinformasjon {
-        object BrukerErIkkeRegistrert : KunneIkkeHenteKontaktinformasjon
-        object FeilVedHenting : KunneIkkeHenteKontaktinformasjon
+        data object BrukerErIkkeRegistrert : KunneIkkeHenteKontaktinformasjon
+        data object FeilVedHenting : KunneIkkeHenteKontaktinformasjon
     }
 }

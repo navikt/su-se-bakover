@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 
 sealed interface KunneIkkeOppretteRevurdering {
 
-    object MåVelgeInformasjonSomSkalRevurderes : KunneIkkeOppretteRevurdering
+    data object MåVelgeInformasjonSomSkalRevurderes : KunneIkkeOppretteRevurdering
 
     data class VedtakInnenforValgtPeriodeKanIkkeRevurderes(
         val feil: Sak.GjeldendeVedtaksdataErUgyldigForRevurdering,

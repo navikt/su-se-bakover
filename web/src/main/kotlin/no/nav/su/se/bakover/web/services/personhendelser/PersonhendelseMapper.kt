@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.web.services.personhendelser.KunneIkkeMappePersonhen
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import no.nav.person.pdl.leesah.Personhendelse as EksternPersonhendelse
 
-internal object PersonhendelseMapper {
+internal data object PersonhendelseMapper {
     private enum class Opplysningstype(val value: String) {
         DØDSFALL("DOEDSFALL_V1"),
         UTFLYTTING_FRA_NORGE("UTFLYTTING_FRA_NORGE"),

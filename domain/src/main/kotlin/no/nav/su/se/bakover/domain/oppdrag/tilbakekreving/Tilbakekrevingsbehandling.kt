@@ -247,14 +247,14 @@ data class SendtTilbakekrevingsvedtak(
     override val tilbakekrevingsvedtakForsendelse: RåTilbakekrevingsvedtakForsendelse,
 ) : Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.SendtTilbakekrevingsvedtak
 
-object IkkeBehovForTilbakekrevingUnderBehandling :
+data object IkkeBehovForTilbakekrevingUnderBehandling :
     Tilbakekrevingsbehandling.UnderBehandling.IkkeBehovForTilbakekreving {
     override fun fullførBehandling(): Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving {
         return IkkeBehovForTilbakekrevingFerdigbehandlet
     }
 }
 
-object IkkeBehovForTilbakekrevingFerdigbehandlet :
+data object IkkeBehovForTilbakekrevingFerdigbehandlet :
     Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving
 
 sealed interface Tilbakekrevingsbehandling {

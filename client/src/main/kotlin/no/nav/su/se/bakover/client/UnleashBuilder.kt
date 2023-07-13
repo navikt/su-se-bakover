@@ -8,7 +8,7 @@ import io.getunleash.util.UnleashConfig
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import org.slf4j.LoggerFactory
 
-object UnleashBuilder {
+data object UnleashBuilder {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 

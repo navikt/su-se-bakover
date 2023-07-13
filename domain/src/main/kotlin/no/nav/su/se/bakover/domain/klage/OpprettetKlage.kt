@@ -97,9 +97,9 @@ data class OpprettetKlage(
 }
 
 sealed interface KunneIkkeOppretteKlage {
-    object FantIkkeSak : KunneIkkeOppretteKlage
-    object FinnesAlleredeEnÅpenKlage : KunneIkkeOppretteKlage
-    object KunneIkkeOppretteOppgave : KunneIkkeOppretteKlage
-    object UgyldigMottattDato : KunneIkkeOppretteKlage
+    data object FantIkkeSak : KunneIkkeOppretteKlage
+    data object FinnesAlleredeEnÅpenKlage : KunneIkkeOppretteKlage
+    data object KunneIkkeOppretteOppgave : KunneIkkeOppretteKlage
+    data object UgyldigMottattDato : KunneIkkeOppretteKlage
     data class FeilVedHentingAvJournalpost(val feil: KunneIkkeSjekkeTilknytningTilSak) : KunneIkkeOppretteKlage
 }

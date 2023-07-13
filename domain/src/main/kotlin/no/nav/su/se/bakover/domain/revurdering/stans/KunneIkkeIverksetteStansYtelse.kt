@@ -7,7 +7,7 @@ import kotlin.reflect.KClass
 
 sealed interface KunneIkkeIverksetteStansYtelse {
     data class KunneIkkeUtbetale(val feil: UtbetalStansFeil) : KunneIkkeIverksetteStansYtelse
-    object FantIkkeRevurdering : KunneIkkeIverksetteStansYtelse
+    data object FantIkkeRevurdering : KunneIkkeIverksetteStansYtelse
     data class UgyldigTilstand(
         val faktiskTilstand: KClass<out AbstraktRevurdering>,
     ) : KunneIkkeIverksetteStansYtelse {
@@ -15,7 +15,7 @@ sealed interface KunneIkkeIverksetteStansYtelse {
             StansAvYtelseRevurdering.IverksattStansAvYtelse::class
     }
 
-    object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteStansYtelse
+    data object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteStansYtelse
     data class UkjentFeil(val msg: String) : KunneIkkeIverksetteStansYtelse
-    object DetHarKommetNyeOverlappendeVedtak : KunneIkkeIverksetteStansYtelse
+    data object DetHarKommetNyeOverlappendeVedtak : KunneIkkeIverksetteStansYtelse
 }

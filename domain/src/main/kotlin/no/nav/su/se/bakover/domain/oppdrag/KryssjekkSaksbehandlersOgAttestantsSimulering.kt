@@ -70,10 +70,10 @@ private fun logErr(
 }
 
 sealed interface KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet {
-    object UlikGjelderId : KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
-    object UlikFeilutbetaling : KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
-    object UlikPeriode : KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
-    object UliktBeløp : KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
+    data object UlikGjelderId : KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
+    data object UlikFeilutbetaling : KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
+    data object UlikPeriode : KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
+    data object UliktBeløp : KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 
-    object FantIngenGjeldendeUtbetalingerForDato : KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
+    data object FantIngenGjeldendeUtbetalingerForDato : KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 }

@@ -80,7 +80,7 @@ data class Oppholdstillatelse private constructor(
 }
 
 sealed interface FeilVedOpprettelseAvOppholdstillatelse {
-    object OppholdstillatelseErIkkeUtfylt : FeilVedOpprettelseAvOppholdstillatelse
-    object TypeOppholdstillatelseErIkkeUtfylt : FeilVedOpprettelseAvOppholdstillatelse
-    object FritekstForStatsborgerskapErIkkeUtfylt : FeilVedOpprettelseAvOppholdstillatelse
+    data object OppholdstillatelseErIkkeUtfylt : FeilVedOpprettelseAvOppholdstillatelse
+    data object TypeOppholdstillatelseErIkkeUtfylt : FeilVedOpprettelseAvOppholdstillatelse
+    data object FritekstForStatsborgerskapErIkkeUtfylt : FeilVedOpprettelseAvOppholdstillatelse
 }

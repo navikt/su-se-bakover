@@ -5,7 +5,7 @@ import java.security.SecureRandom
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
 
-object AuthStubCommonConfig {
+data object AuthStubCommonConfig {
     private val keypair = generateKeypair()
     const val keyId = "key-1234"
     const val issuer = "localhost"

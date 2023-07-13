@@ -24,7 +24,7 @@ sealed interface PensjonsVilkår : Vilkår {
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): PensjonsVilkår
     abstract override fun slåSammenLikePerioder(): PensjonsVilkår
 
-    object IkkeVurdert : PensjonsVilkår, IkkeVurdertVilkår {
+    data object IkkeVurdert : PensjonsVilkår, IkkeVurdertVilkår {
         override val grunnlag = emptyList<Pensjonsgrunnlag>()
         override fun lagTidslinje(periode: Periode): PensjonsVilkår = this
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): IkkeVurdert = this
@@ -92,7 +92,7 @@ sealed interface PensjonsVilkår : Vilkår {
         }
 
         sealed interface UgyldigPensjonsVilkår {
-            object OverlappendeVurderingsperioder : UgyldigPensjonsVilkår
+            data object OverlappendeVurderingsperioder : UgyldigPensjonsVilkår
         }
     }
 }
@@ -172,8 +172,8 @@ data class VurderingsperiodePensjon private constructor(
 
 sealed interface KunneIkkeLagePensjonsVilkår {
     sealed interface Vurderingsperiode : KunneIkkeLagePensjonsVilkår {
-        object PeriodeForGrunnlagOgVurderingErForskjellig : Vurderingsperiode
+        data object PeriodeForGrunnlagOgVurderingErForskjellig : Vurderingsperiode
     }
 
-    object OverlappendeVurderingsperioder : KunneIkkeLagePensjonsVilkår
+    data object OverlappendeVurderingsperioder : KunneIkkeLagePensjonsVilkår
 }

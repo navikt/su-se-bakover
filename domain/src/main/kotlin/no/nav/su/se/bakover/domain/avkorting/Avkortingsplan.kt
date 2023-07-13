@@ -87,6 +87,6 @@ internal class Avkortingsplan(
     }
 
     sealed class KunneIkkeLageAvkortingsplan {
-        object AvkortingErUfullstendig : KunneIkkeLageAvkortingsplan()
+        data object AvkortingErUfullstendig : KunneIkkeLageAvkortingsplan()
     }
 }

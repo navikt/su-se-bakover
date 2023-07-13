@@ -98,8 +98,8 @@ private data class HentDokumentParameters(
         }
 
         sealed class UgyldigParameter {
-            object UgyldigUUID : UgyldigParameter()
-            object UgyldigType : UgyldigParameter()
+            data object UgyldigUUID : UgyldigParameter()
+            data object UgyldigType : UgyldigParameter()
         }
     }
 

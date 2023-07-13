@@ -23,7 +23,7 @@ sealed interface InstitusjonsoppholdVilkår : Vilkår {
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): InstitusjonsoppholdVilkår
     abstract override fun slåSammenLikePerioder(): InstitusjonsoppholdVilkår
 
-    object IkkeVurdert : InstitusjonsoppholdVilkår, IkkeVurdertVilkår {
+    data object IkkeVurdert : InstitusjonsoppholdVilkår, IkkeVurdertVilkår {
         override fun lagTidslinje(periode: Periode): InstitusjonsoppholdVilkår = this
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): IkkeVurdert = this
         override fun slåSammenLikePerioder(): InstitusjonsoppholdVilkår = this
@@ -80,7 +80,7 @@ sealed interface InstitusjonsoppholdVilkår : Vilkår {
         }
 
         sealed interface UgyldigInstitisjonsoppholdVilkår {
-            object OverlappendeVurderingsperioder : UgyldigInstitisjonsoppholdVilkår
+            data object OverlappendeVurderingsperioder : UgyldigInstitisjonsoppholdVilkår
         }
     }
 }

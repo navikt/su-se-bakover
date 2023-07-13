@@ -72,7 +72,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
         ): Boolean = søknadsbehandling.saksbehandler.navIdent != attestering.attestant.navIdent
     }
 
-    object SaksbehandlerOgAttestantKanIkkeVæreSammePerson
+    data object SaksbehandlerOgAttestantKanIkkeVæreSammePerson
 }
 
 fun <T> statusovergang(

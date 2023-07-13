@@ -157,17 +157,17 @@ sealed class UtbetalingFeilet {
     data class SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(val feil: KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet) :
         UtbetalingFeilet()
 
-    object Protokollfeil : UtbetalingFeilet() {
+    data object Protokollfeil : UtbetalingFeilet() {
         override fun toString() = this::class.simpleName!!
     }
 
     data class KunneIkkeSimulere(val simuleringFeilet: SimulerUtbetalingFeilet) : UtbetalingFeilet()
-    object FantIkkeSak : UtbetalingFeilet() {
+    data object FantIkkeSak : UtbetalingFeilet() {
         override fun toString() = this::class.simpleName!!
     }
 }
 
-object IngenUtbetalinger
+data object IngenUtbetalinger
 
 /**
  * @param utbetaling en simulert utbetaling med generert XML for publisering på kø mot oppdragssystemet (OS).

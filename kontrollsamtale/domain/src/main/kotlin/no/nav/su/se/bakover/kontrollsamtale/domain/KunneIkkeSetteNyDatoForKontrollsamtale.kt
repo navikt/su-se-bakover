@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.kontrollsamtale.domain
 
 sealed interface KunneIkkeSetteNyDatoForKontrollsamtale {
-    object FantIkkeSak : KunneIkkeSetteNyDatoForKontrollsamtale
-    object UgyldigStatusovergang : KunneIkkeSetteNyDatoForKontrollsamtale
-    object FantIkkeGjeldendeStønadsperiode : KunneIkkeSetteNyDatoForKontrollsamtale
+    data object FantIkkeSak : KunneIkkeSetteNyDatoForKontrollsamtale
+    data object UgyldigStatusovergang : KunneIkkeSetteNyDatoForKontrollsamtale
+    data object FantIkkeGjeldendeStønadsperiode : KunneIkkeSetteNyDatoForKontrollsamtale
 
-    object DatoIkkeFørsteIMåned : KunneIkkeSetteNyDatoForKontrollsamtale
+    data object DatoIkkeFørsteIMåned : KunneIkkeSetteNyDatoForKontrollsamtale
 }

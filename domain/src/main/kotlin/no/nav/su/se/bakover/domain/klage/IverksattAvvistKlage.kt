@@ -63,9 +63,9 @@ data class IverksattAvvistKlage(
 }
 
 sealed interface KunneIkkeIverksetteAvvistKlage {
-    object FantIkkeKlage : KunneIkkeIverksetteAvvistKlage
-    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteAvvistKlage
-    object FeilVedLagringAvDokumentOgKlage : KunneIkkeIverksetteAvvistKlage
+    data object FantIkkeKlage : KunneIkkeIverksetteAvvistKlage
+    data object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteAvvistKlage
+    data object FeilVedLagringAvDokumentOgKlage : KunneIkkeIverksetteAvvistKlage
     data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeIverksetteAvvistKlage {
         val til = IverksattAvvistKlage::class
     }

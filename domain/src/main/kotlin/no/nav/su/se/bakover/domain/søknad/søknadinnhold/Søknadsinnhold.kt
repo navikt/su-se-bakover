@@ -182,10 +182,10 @@ sealed interface FeilVedOpprettelseAvSøknadinnhold {
 }
 
 sealed interface FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder {
-    object EøsBorgerErIkkeutfylt : FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder
-    object FamiliegjenforeningErIkkeutfylt : FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder
+    data object EøsBorgerErIkkeutfylt : FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder
+    data object FamiliegjenforeningErIkkeutfylt : FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder
 }
 
 sealed interface FeilVedValideringAvBoforholdOgEktefelle {
-    object EktefelleErIkkeutfylt : FeilVedValideringAvBoforholdOgEktefelle
+    data object EktefelleErIkkeutfylt : FeilVedValideringAvBoforholdOgEktefelle
 }

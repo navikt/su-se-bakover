@@ -51,9 +51,9 @@ internal sealed class MerknadJson {
         ),
     )
     sealed class BeregningJson {
-        object SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySatsJson : MerknadJson.BeregningJson()
-        object AvkortingFørerTilBeløpLavereEnnToProsentAvHøySatsJson : MerknadJson.BeregningJson()
-        object BeløpMellomNullOgToProsentAvHøySatsJson : MerknadJson.BeregningJson()
-        object BeløpErNullJson : MerknadJson.BeregningJson()
+        data object SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySatsJson : MerknadJson.BeregningJson()
+        data object AvkortingFørerTilBeløpLavereEnnToProsentAvHøySatsJson : MerknadJson.BeregningJson()
+        data object BeløpMellomNullOgToProsentAvHøySatsJson : MerknadJson.BeregningJson()
+        data object BeløpErNullJson : MerknadJson.BeregningJson()
     }
 }

@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkKontrollnotatMottat
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkeTilknytningTilSak
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 
-object JournalpostClientStub : JournalpostClient {
+data object JournalpostClientStub : JournalpostClient {
     override suspend fun erTilknyttetSak(
         journalpostId: JournalpostId,
         saksnummer: Saksnummer,

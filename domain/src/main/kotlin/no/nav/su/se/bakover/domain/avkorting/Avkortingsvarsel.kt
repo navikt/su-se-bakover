@@ -105,7 +105,7 @@ sealed interface Avkortingsvarsel {
         ) : Utenlandsopphold by objekt
     }
 
-    object Ingen : Avkortingsvarsel
+    data object Ingen : Avkortingsvarsel
 }
 
 fun Sak.oppdaterUteståendeAvkortingVedIverksettelse(behandletAvkorting: AvkortingVedRevurdering.Iverksatt): Sak {

@@ -120,11 +120,11 @@ data class AvsluttetRevurdering private constructor(
 }
 
 sealed class KunneIkkeLageAvsluttetRevurdering {
-    object RevurderingErAlleredeAvsluttet : KunneIkkeLageAvsluttetRevurdering()
-    object RevurderingenErIverksatt : KunneIkkeLageAvsluttetRevurdering()
-    object RevurderingenErTilAttestering : KunneIkkeLageAvsluttetRevurdering()
-    object BrevvalgUtenForhåndsvarsel : KunneIkkeLageAvsluttetRevurdering()
-    object ManglerBrevvalgVedForhåndsvarsling : KunneIkkeLageAvsluttetRevurdering()
+    data object RevurderingErAlleredeAvsluttet : KunneIkkeLageAvsluttetRevurdering()
+    data object RevurderingenErIverksatt : KunneIkkeLageAvsluttetRevurdering()
+    data object RevurderingenErTilAttestering : KunneIkkeLageAvsluttetRevurdering()
+    data object BrevvalgUtenForhåndsvarsel : KunneIkkeLageAvsluttetRevurdering()
+    data object ManglerBrevvalgVedForhåndsvarsling : KunneIkkeLageAvsluttetRevurdering()
 }
 
 sealed class KunneIkkeAvslutteRevurdering {
@@ -140,8 +140,8 @@ sealed class KunneIkkeAvslutteRevurdering {
         val feil: StansAvYtelseRevurdering.KunneIkkeLageAvsluttetStansAvYtelse,
     ) : KunneIkkeAvslutteRevurdering()
 
-    object FantIkkeRevurdering : KunneIkkeAvslutteRevurdering()
-    object KunneIkkeLageDokument : KunneIkkeAvslutteRevurdering()
-    object FantIkkePersonEllerSaksbehandlerNavn : KunneIkkeAvslutteRevurdering()
-    object BrevvalgIkkeTillatt : KunneIkkeAvslutteRevurdering()
+    data object FantIkkeRevurdering : KunneIkkeAvslutteRevurdering()
+    data object KunneIkkeLageDokument : KunneIkkeAvslutteRevurdering()
+    data object FantIkkePersonEllerSaksbehandlerNavn : KunneIkkeAvslutteRevurdering()
+    data object BrevvalgIkkeTillatt : KunneIkkeAvslutteRevurdering()
 }

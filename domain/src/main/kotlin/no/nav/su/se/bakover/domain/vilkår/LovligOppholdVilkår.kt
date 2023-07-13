@@ -21,7 +21,7 @@ sealed interface LovligOppholdVilkår : Vilkår {
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): LovligOppholdVilkår
     abstract override fun slåSammenLikePerioder(): LovligOppholdVilkår
 
-    object IkkeVurdert : LovligOppholdVilkår, IkkeVurdertVilkår {
+    data object IkkeVurdert : LovligOppholdVilkår, IkkeVurdertVilkår {
         override val grunnlag = emptyList<LovligOppholdGrunnlag>()
         override fun lagTidslinje(periode: Periode): LovligOppholdVilkår = this
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): IkkeVurdert = this
@@ -82,8 +82,8 @@ sealed interface LovligOppholdVilkår : Vilkår {
 
 sealed interface KunneIkkeLageLovligOppholdVilkår {
     sealed interface Vurderingsperiode : KunneIkkeLageLovligOppholdVilkår {
-        object PeriodeForGrunnlagOgVurderingErForskjellig : Vurderingsperiode
+        data object PeriodeForGrunnlagOgVurderingErForskjellig : Vurderingsperiode
     }
 
-    object OverlappendeVurderingsperioder : KunneIkkeLageLovligOppholdVilkår
+    data object OverlappendeVurderingsperioder : KunneIkkeLageLovligOppholdVilkår
 }

@@ -24,7 +24,7 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdRepo
 import org.mockito.kotlin.mock
 
-object MockDatabaseBuilder {
+data object MockDatabaseBuilder {
     fun build(
         avstemming: AvstemmingRepo = mock(),
         utbetaling: UtbetalingRepo = mock(),

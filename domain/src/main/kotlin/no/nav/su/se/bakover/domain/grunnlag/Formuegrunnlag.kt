@@ -263,13 +263,13 @@ data class Formuegrunnlag private constructor(
 }
 
 sealed interface KunneIkkeLageFormueGrunnlag {
-    object FormuePeriodeErUtenforBehandlingsperioden : KunneIkkeLageFormueGrunnlag
+    data object FormuePeriodeErUtenforBehandlingsperioden : KunneIkkeLageFormueGrunnlag
     data class Konsistenssjekk(val feil: Konsistensproblem.BosituasjonOgFormue) : KunneIkkeLageFormueGrunnlag
 }
 
 sealed interface KunneIkkeLageFormueVerdier {
-    object DepositumErStørreEnnInnskudd : KunneIkkeLageFormueVerdier
-    object VerdierKanIkkeVæreNegativ : KunneIkkeLageFormueVerdier
+    data object DepositumErStørreEnnInnskudd : KunneIkkeLageFormueVerdier
+    data object VerdierKanIkkeVæreNegativ : KunneIkkeLageFormueVerdier
 }
 
 /**

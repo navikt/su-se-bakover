@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 
-internal object KabalRequestMapper {
+internal data object KabalRequestMapper {
     fun map(
         klage: OversendtKlage,
         journalpostIdForVedtak: JournalpostId,

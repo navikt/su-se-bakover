@@ -152,7 +152,7 @@ data class AvvistKlage(
 }
 
 sealed interface KunneIkkeLeggeTilFritekstForAvvist {
-    object FantIkkeKlage : KunneIkkeLeggeTilFritekstForAvvist
+    data object FantIkkeKlage : KunneIkkeLeggeTilFritekstForAvvist
     data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeLeggeTilFritekstForAvvist {
         val til = AvvistKlage::class
     }

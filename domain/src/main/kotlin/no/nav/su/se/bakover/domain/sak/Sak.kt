@@ -183,8 +183,8 @@ data class Sak(
     }
 
     sealed class KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak {
-        object FantIkkeVedtak : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak()
-        object IngenTidligereVedtak : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak()
+        data object FantIkkeVedtak : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak()
+        data object IngenTidligereVedtak : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak()
     }
 
     /**
@@ -296,16 +296,16 @@ data class Sak(
     } ?: false
 
     sealed interface KunneIkkeOppretteEllerOppdatereRegulering {
-        object FinnesIngenVedtakSomKanRevurderesForValgtPeriode : KunneIkkeOppretteEllerOppdatereRegulering
-        object StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig : KunneIkkeOppretteEllerOppdatereRegulering
-        object BleIkkeLagetReguleringDaDenneUansettMåRevurderes : KunneIkkeOppretteEllerOppdatereRegulering
+        data object FinnesIngenVedtakSomKanRevurderesForValgtPeriode : KunneIkkeOppretteEllerOppdatereRegulering
+        data object StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig : KunneIkkeOppretteEllerOppdatereRegulering
+        data object BleIkkeLagetReguleringDaDenneUansettMåRevurderes : KunneIkkeOppretteEllerOppdatereRegulering
     }
 
     fun hentSøknad(id: UUID): Either<FantIkkeSøknad, Søknad> {
         return søknader.singleOrNull { it.id == id }?.right() ?: FantIkkeSøknad.left()
     }
 
-    object FantIkkeSøknad {
+    data object FantIkkeSøknad {
         override fun toString() = this::class.simpleName!!
     }
 
@@ -325,10 +325,10 @@ data class Sak(
     }
 
     sealed interface KunneIkkeOppretteSøknadsbehandling {
-        object ErLukket : KunneIkkeOppretteSøknadsbehandling
-        object ManglerOppgave : KunneIkkeOppretteSøknadsbehandling
-        object FinnesAlleredeSøknadsehandlingForSøknad : KunneIkkeOppretteSøknadsbehandling
-        object HarÅpenSøknadsbehandling : KunneIkkeOppretteSøknadsbehandling
+        data object ErLukket : KunneIkkeOppretteSøknadsbehandling
+        data object ManglerOppgave : KunneIkkeOppretteSøknadsbehandling
+        data object FinnesAlleredeSøknadsehandlingForSøknad : KunneIkkeOppretteSøknadsbehandling
+        data object HarÅpenSøknadsbehandling : KunneIkkeOppretteSøknadsbehandling
     }
 
     internal fun hentGjeldendeVedtaksdataOgSjekkGyldighetForRevurderingsperiode(
@@ -349,8 +349,8 @@ data class Sak(
     }
 
     sealed interface GjeldendeVedtaksdataErUgyldigForRevurdering {
-        object FantIngenVedtakSomKanRevurderes : GjeldendeVedtaksdataErUgyldigForRevurdering
-        object HeleRevurderingsperiodenInneholderIkkeVedtak : GjeldendeVedtaksdataErUgyldigForRevurdering
+        data object FantIngenVedtakSomKanRevurderes : GjeldendeVedtaksdataErUgyldigForRevurdering
+        data object HeleRevurderingsperiodenInneholderIkkeVedtak : GjeldendeVedtaksdataErUgyldigForRevurdering
     }
 
     /**
@@ -381,8 +381,8 @@ data class Sak(
     }
 
     sealed interface OpphørtVilkårMåRevurderes {
-        object FormueSomFørerTilOpphørMåRevurderes : OpphørtVilkårMåRevurderes
-        object UtenlandsoppholdSomFørerTilOpphørMåRevurderes : OpphørtVilkårMåRevurderes
+        data object FormueSomFørerTilOpphørMåRevurderes : OpphørtVilkårMåRevurderes
+        data object UtenlandsoppholdSomFørerTilOpphørMåRevurderes : OpphørtVilkårMåRevurderes
     }
 
     /**
@@ -487,13 +487,13 @@ data class Sak(
             }
         }
 
-        object IkkeLagBrevRequest
+        data object IkkeLagBrevRequest
     }
 
-    object FantIkkeSøknadsbehandlingForSøknad
+    data object FantIkkeSøknadsbehandlingForSøknad
 
     sealed interface KunneIkkeOppdatereStønadsperiode {
-        object FantIkkeBehandling : KunneIkkeOppdatereStønadsperiode
+        data object FantIkkeBehandling : KunneIkkeOppdatereStønadsperiode
         data class AldersvurderingGirIkkeRettPåUføre(val vurdering: Aldersvurdering) : KunneIkkeOppdatereStønadsperiode
 
         data class KunneIkkeOppdatereGrunnlagsdata(

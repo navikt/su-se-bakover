@@ -33,40 +33,40 @@ data class Søknadsbehandlingshistorikk private constructor(
 }
 
 sealed interface SøknadsbehandlingsHandling : SaksbehandlingsHandling {
-    object StartetBehandling : SøknadsbehandlingsHandling {
+    data object StartetBehandling : SøknadsbehandlingsHandling {
         override fun toString(): String = this.javaClass.simpleName
     }
-    object OppdatertStønadsperiode : SøknadsbehandlingsHandling {
+    data object OppdatertStønadsperiode : SøknadsbehandlingsHandling {
         override fun toString(): String = this.javaClass.simpleName
     }
-    object OppdatertUførhet : SøknadsbehandlingsHandling {
+    data object OppdatertUførhet : SøknadsbehandlingsHandling {
         override fun toString(): String = this.javaClass.simpleName
     }
-    object OppdatertOpplysningsplikt : SøknadsbehandlingsHandling {
+    data object OppdatertOpplysningsplikt : SøknadsbehandlingsHandling {
         override fun toString(): String = this.javaClass.simpleName
     }
-    object OppdatertFlyktning : SøknadsbehandlingsHandling {
+    data object OppdatertFlyktning : SøknadsbehandlingsHandling {
         override fun toString(): String = this.javaClass.simpleName
     }
-    object OppdatertLovligOpphold : SøknadsbehandlingsHandling {
+    data object OppdatertLovligOpphold : SøknadsbehandlingsHandling {
         override fun toString(): String = this.javaClass.simpleName
     }
-    object OppdatertInstitusjonsopphold : SøknadsbehandlingsHandling {
+    data object OppdatertInstitusjonsopphold : SøknadsbehandlingsHandling {
         override fun toString(): String = this.javaClass.simpleName
     }
-    object OppdatertUtenlandsopphold : SøknadsbehandlingsHandling {
+    data object OppdatertUtenlandsopphold : SøknadsbehandlingsHandling {
         override fun toString(): String = this.javaClass.simpleName
     }
-    object OppdatertPersonligOppmøte : SøknadsbehandlingsHandling {
+    data object OppdatertPersonligOppmøte : SøknadsbehandlingsHandling {
         override fun toString(): String = this.javaClass.simpleName
     }
-    object OppdatertFastOppholdINorge : SøknadsbehandlingsHandling {
+    data object OppdatertFastOppholdINorge : SøknadsbehandlingsHandling {
         override fun toString(): String = this.javaClass.simpleName
     }
-    object OppdatertBosituasjon : SøknadsbehandlingsHandling {
+    data object OppdatertBosituasjon : SøknadsbehandlingsHandling {
         override fun toString(): String = this.javaClass.simpleName
     }
-    object OppdatertFormue : SøknadsbehandlingsHandling {
+    data object OppdatertFormue : SøknadsbehandlingsHandling {
         override fun toString(): String = this.javaClass.simpleName
     }
 
@@ -75,30 +75,30 @@ sealed interface SøknadsbehandlingsHandling : SaksbehandlingsHandling {
      *
      * Historisk (eller man har benyttet seg av leggTilBosituasjonEpsgrunnlag())
      */
-    object TattStillingTilEPS : SøknadsbehandlingsHandling {
+    data object TattStillingTilEPS : SøknadsbehandlingsHandling {
         override fun toString(): String = this.javaClass.simpleName
     }
 
     /**
      * Historisk (eller man har benyttet seg av fullførBosituasjongrunnlag())
      */
-    object FullførtBosituasjon : SøknadsbehandlingsHandling {
+    data object FullførtBosituasjon : SøknadsbehandlingsHandling {
         override fun toString(): String = this.javaClass.simpleName
     }
 
-    object OppdatertFradragsgrunnlag : SøknadsbehandlingsHandling {
+    data object OppdatertFradragsgrunnlag : SøknadsbehandlingsHandling {
         override fun toString(): String = this.javaClass.simpleName
     }
-    object Beregnet : SøknadsbehandlingsHandling {
+    data object Beregnet : SøknadsbehandlingsHandling {
         override fun toString(): String = this.javaClass.simpleName
     }
-    object Simulert : SøknadsbehandlingsHandling {
+    data object Simulert : SøknadsbehandlingsHandling {
         override fun toString(): String = this.javaClass.simpleName
     }
-    object SendtTilAttestering : SøknadsbehandlingsHandling {
+    data object SendtTilAttestering : SøknadsbehandlingsHandling {
         override fun toString(): String = this.javaClass.simpleName
     }
-    object Lukket : SøknadsbehandlingsHandling {
+    data object Lukket : SøknadsbehandlingsHandling {
         override fun toString(): String = this.javaClass.simpleName
     }
 }

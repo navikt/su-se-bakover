@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import java.util.UUID
 
-internal object SkattPostgresRepo {
+internal data object SkattPostgresRepo {
     fun hent(id: UUID, session: Session): Skattegrunnlag? =
         "SELECT * FROM skatt WHERE id = :id".hent(mapOf("id" to id), session) {
             it.toSkattegrunnlag()

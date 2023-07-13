@@ -28,22 +28,22 @@ interface JournalpostClient {
 data class KunneIkkeSjekkKontrollnotatMottatt(val feil: Any)
 
 sealed interface ErKontrollNotatMottatt {
-    object Nei : ErKontrollNotatMottatt
+    data object Nei : ErKontrollNotatMottatt
     data class Ja(val kontrollnotat: KontrollnotatMottattJournalpost) : ErKontrollNotatMottatt
 }
 sealed interface ErTilknyttetSak {
-    object Ja : ErTilknyttetSak
-    object Nei : ErTilknyttetSak
+    data object Ja : ErTilknyttetSak
+    data object Nei : ErTilknyttetSak
 }
 sealed interface KunneIkkeSjekkeTilknytningTilSak {
-    object Ukjent : KunneIkkeSjekkeTilknytningTilSak
-    object FantIkkeJournalpost : KunneIkkeSjekkeTilknytningTilSak
-    object IkkeTilgang : KunneIkkeSjekkeTilknytningTilSak
-    object TekniskFeil : KunneIkkeSjekkeTilknytningTilSak
-    object UgyldigInput : KunneIkkeSjekkeTilknytningTilSak
-    object JournalpostIkkeKnyttetTilSak : KunneIkkeSjekkeTilknytningTilSak
+    data object Ukjent : KunneIkkeSjekkeTilknytningTilSak
+    data object FantIkkeJournalpost : KunneIkkeSjekkeTilknytningTilSak
+    data object IkkeTilgang : KunneIkkeSjekkeTilknytningTilSak
+    data object TekniskFeil : KunneIkkeSjekkeTilknytningTilSak
+    data object UgyldigInput : KunneIkkeSjekkeTilknytningTilSak
+    data object JournalpostIkkeKnyttetTilSak : KunneIkkeSjekkeTilknytningTilSak
 }
 
 sealed interface KunneIkkeHenteJournalposter {
-    object ClientError : KunneIkkeHenteJournalposter
+    data object ClientError : KunneIkkeHenteJournalposter
 }

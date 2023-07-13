@@ -9,7 +9,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.okonomi.tilbakekrevingservice.TilbakekrevingsvedtakRequest
 import no.nav.okonomi.tilbakekrevingservice.TilbakekrevingsvedtakResponse
 
-internal object TilbakekrevingSoapClientMapper {
+internal data object TilbakekrevingSoapClientMapper {
 
     private val xmlMapper = XmlMapper(JacksonXmlModule().apply { setDefaultUseWrapper(false) }).apply {
         registerModule(KotlinModule.Builder().build())

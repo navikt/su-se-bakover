@@ -30,10 +30,10 @@ internal sealed class PersistertMerknad {
         ),
     )
     sealed class Beregning : PersistertMerknad() {
-        object AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats : Beregning()
-        object SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats : Beregning()
-        object BeløpMellomNullOgToProsentAvHøySats : Beregning()
-        object BeløpErNull : Beregning()
+        data object AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats : Beregning()
+        data object SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats : Beregning()
+        data object BeløpMellomNullOgToProsentAvHøySats : Beregning()
+        data object BeløpErNull : Beregning()
     }
 }
 

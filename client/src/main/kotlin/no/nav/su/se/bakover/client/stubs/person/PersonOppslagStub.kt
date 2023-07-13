@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.person.Telefonnummer
 
-object PersonOppslagStub :
+data object PersonOppslagStub :
     PersonOppslag {
 
     fun nyTestPerson(fnr: Fnr) = Person(

@@ -32,7 +32,7 @@ import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.web.services.Services
 import org.mockito.kotlin.mock
 
-object TestServicesBuilder {
+data object TestServicesBuilder {
     fun services(
         avstemming: AvstemmingService = mock(),
         utbetaling: UtbetalingService = mock(),

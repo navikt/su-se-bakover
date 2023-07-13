@@ -24,7 +24,7 @@ sealed interface FastOppholdINorgeVilkår : Vilkår {
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FastOppholdINorgeVilkår
     abstract override fun slåSammenLikePerioder(): FastOppholdINorgeVilkår
 
-    object IkkeVurdert : FastOppholdINorgeVilkår, IkkeVurdertVilkår {
+    data object IkkeVurdert : FastOppholdINorgeVilkår, IkkeVurdertVilkår {
         override val grunnlag = emptyList<FastOppholdINorgeGrunnlag>()
         override fun lagTidslinje(periode: Periode): FastOppholdINorgeVilkår = this
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): IkkeVurdert = this
@@ -78,7 +78,7 @@ sealed interface FastOppholdINorgeVilkår : Vilkår {
         }
 
         sealed interface UgyldigFastOppholdINorgeVikår {
-            object OverlappendeVurderingsperioder : UgyldigFastOppholdINorgeVikår
+            data object OverlappendeVurderingsperioder : UgyldigFastOppholdINorgeVikår
         }
     }
 }
@@ -156,6 +156,6 @@ data class VurderingsperiodeFastOppholdINorge private constructor(
     }
 
     sealed interface UgyldigVurderingsperiode {
-        object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigVurderingsperiode
+        data object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigVurderingsperiode
     }
 }

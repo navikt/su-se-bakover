@@ -82,8 +82,8 @@ data class Kontrollsamtale(
     }
 
     sealed interface KunneIkkeEndreDato {
-        object UgyldigStatusovergang : KunneIkkeEndreDato
-        object DatoErIkkeFørsteIMåned : KunneIkkeEndreDato
+        data object UgyldigStatusovergang : KunneIkkeEndreDato
+        data object DatoErIkkeFørsteIMåned : KunneIkkeEndreDato
     }
 
     companion object {
@@ -182,5 +182,5 @@ internal fun regnUtInnkallingsdatoOm4Mnd(stønadsslutt: LocalDate, fraDato: Loca
     return if (stønadsslutt.erMindreEnnEnMånedSenere(innkallingsdato.endOfMonth())) null else innkallingsdato
 }
 
-object UgyldigStatusovergang
-object SkalIkkeOppretteKontrollsamtale
+data object UgyldigStatusovergang
+data object SkalIkkeOppretteKontrollsamtale

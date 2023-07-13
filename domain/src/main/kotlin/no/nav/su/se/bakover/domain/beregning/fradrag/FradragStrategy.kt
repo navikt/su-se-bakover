@@ -49,7 +49,7 @@ sealed class FradragStrategy {
         private fun List<FradragForMåned>.`har nøyaktig en forventet inntekt for bruker`() =
             singleOrNull { it.tilhører == FradragTilhører.BRUKER && it.fradragstype == Fradragstype.ForventetInntekt } != null
 
-        object Enslig : Uføre() {
+        data object Enslig : Uføre() {
             override fun beregnFradrag(fradrag: Map<Måned, List<FradragForMåned>>): Map<Måned, List<FradragForMåned>> {
                 return fradrag.mapValues { it.value.filter { fradrag -> fradrag.tilhører == FradragTilhører.BRUKER } }
                     .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
@@ -98,7 +98,7 @@ sealed class FradragStrategy {
             }
         }
 
-        object EpsUnder67År : Uføre() {
+        data object EpsUnder67År : Uføre() {
             override fun beregnFradrag(fradrag: Map<Måned, List<FradragForMåned>>): Map<Måned, List<FradragForMåned>> =
                 fradrag
                     .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
@@ -142,7 +142,7 @@ sealed class FradragStrategy {
             return beregnFradrag(beregningsperiodeMedFradrag)
         }
 
-        object Enslig : Alder() {
+        data object Enslig : Alder() {
             override fun beregnFradrag(fradrag: Map<Måned, List<FradragForMåned>>): Map<Måned, List<FradragForMåned>> {
                 return fradrag.mapValues { it.value.filter { fradrag -> fradrag.tilhører == FradragTilhører.BRUKER } }
             }
@@ -186,7 +186,7 @@ sealed class FradragStrategy {
             }
         }
 
-        object EpsUnder67År : Alder() {
+        data object EpsUnder67År : Alder() {
             override fun beregnFradrag(fradrag: Map<Måned, List<FradragForMåned>>): Map<Måned, List<FradragForMåned>> {
                 return fradrag.`slå sammen eps sine fradrag til en og samme type`()
             }

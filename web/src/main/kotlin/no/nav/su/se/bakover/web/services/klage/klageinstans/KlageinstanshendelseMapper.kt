@@ -10,7 +10,7 @@ import org.json.JSONObject
 import java.time.Clock
 import java.util.UUID
 
-internal object KlageinstanshendelseMapper {
+internal data object KlageinstanshendelseMapper {
     fun map(
         message: ConsumerRecord<String, String>,
         topic: String,
@@ -44,6 +44,6 @@ internal object KlageinstanshendelseMapper {
 
 sealed interface KunneIkkeMappeKlageinstanshendelse {
     data class IkkeAktuellOpplysningstype(val kilde: String) : KunneIkkeMappeKlageinstanshendelse
-    object FantIkkeKilde : KunneIkkeMappeKlageinstanshendelse
-    object FantIkkeEventId : KunneIkkeMappeKlageinstanshendelse
+    data object FantIkkeKilde : KunneIkkeMappeKlageinstanshendelse
+    data object FantIkkeEventId : KunneIkkeMappeKlageinstanshendelse
 }

@@ -18,8 +18,8 @@ data class LeggTilFlereUtenlandsoppholdRequest(
     val request: Nel<LeggTilUtenlandsoppholdRequest>,
 ) {
     sealed interface UgyldigUtenlandsopphold {
-        object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigUtenlandsopphold
-        object OverlappendeVurderingsperioder : UgyldigUtenlandsopphold
+        data object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigUtenlandsopphold
+        data object OverlappendeVurderingsperioder : UgyldigUtenlandsopphold
     }
 
     fun tilVilkår(clock: Clock): Either<UgyldigUtenlandsopphold, UtenlandsoppholdVilkår.Vurdert> {
@@ -55,7 +55,7 @@ data class LeggTilUtenlandsoppholdRequest(
     val status: UtenlandsoppholdStatus,
 ) {
     sealed interface UgyldigUtenlandsopphold {
-        object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigUtenlandsopphold
+        data object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigUtenlandsopphold
     }
 
     fun tilVurderingsperiode(clock: Clock): Either<UgyldigUtenlandsopphold, VurderingsperiodeUtenlandsopphold> {

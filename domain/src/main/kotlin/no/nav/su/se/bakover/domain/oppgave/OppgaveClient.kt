@@ -13,10 +13,10 @@ interface OppgaveClient {
 
 // TODO jah: Høres usannsynlig ut at alt dette kan skje i hver av funksjonene.
 sealed interface OppgaveFeil {
-    object KunneIkkeOppretteOppgave : OppgaveFeil
-    object KunneIkkeLukkeOppgave : OppgaveFeil
-    object KunneIkkeOppdatereOppgave : OppgaveFeil
-    object KunneIkkeEndreOppgave : OppgaveFeil
-    object KunneIkkeSøkeEtterOppgave : OppgaveFeil
-    object KunneIkkeLageToken : OppgaveFeil
+    data object KunneIkkeOppretteOppgave : OppgaveFeil
+    data object KunneIkkeLukkeOppgave : OppgaveFeil
+    data object KunneIkkeOppdatereOppgave : OppgaveFeil
+    data object KunneIkkeEndreOppgave : OppgaveFeil
+    data object KunneIkkeSøkeEtterOppgave : OppgaveFeil
+    data object KunneIkkeLageToken : OppgaveFeil
 }

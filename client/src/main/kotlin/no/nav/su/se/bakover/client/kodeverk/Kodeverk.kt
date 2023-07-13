@@ -7,5 +7,5 @@ interface Kodeverk {
 
     fun hentKommunenavn(kommunenummer: String): Either<CouldNotGetKode, String?>
 
-    object CouldNotGetKode
+    data object CouldNotGetKode
 }

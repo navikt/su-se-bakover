@@ -76,5 +76,5 @@ sealed interface Regulering : Reguleringsfelter {
         }
     }
 
-    object LagerIkkeReguleringDaDenneUansettMåRevurderes
+    data object LagerIkkeReguleringDaDenneUansettMåRevurderes
 }

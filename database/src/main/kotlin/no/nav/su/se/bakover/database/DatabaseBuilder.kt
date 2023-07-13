@@ -60,7 +60,7 @@ import org.jetbrains.annotations.TestOnly
 import java.time.Clock
 import javax.sql.DataSource
 
-object DatabaseBuilder {
+data object DatabaseBuilder {
     fun build(
         databaseConfig: ApplicationConfig.DatabaseConfig,
         dbMetrics: DbMetrics,

@@ -64,7 +64,7 @@ import javax.sql.DataSource
  * TODO jah: Dette er foreløpig en kopi av TestEnvironment.kt og TestClientsBuilder.kt fra web/src/test (på sikt bør det meste av dette slettes derfra)
  * Vurder å trekk ut ting til test-common for de tingene som både web og web-regresjonstest trenger.
  */
-object SharedRegressionTestData {
+data object SharedRegressionTestData {
     internal val fnr: String = Fnr.generer().toString()
     internal val epsFnr: String = Fnr.generer().toString()
 
