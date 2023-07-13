@@ -38,7 +38,7 @@ internal class SimuleringTest {
 
     @Test
     fun `tolker etterbetaling av ordinære utbetalinger`() {
-        Sakstype.values()
+        Sakstype.entries
             .map { it.toYtelsekode() to it.toFeilkode() }
             .forEach { (ytelse, _) ->
                 Simulering(
@@ -94,7 +94,7 @@ internal class SimuleringTest {
 
     @Test
     fun `tolker fremtidige simulerte utbetalinger`() {
-        Sakstype.values()
+        Sakstype.entries
             .map { it.toYtelsekode() to it.toFeilkode() }
             .forEach { (ytelse, _) ->
                 Simulering(
@@ -145,7 +145,7 @@ internal class SimuleringTest {
 
     @Test
     fun `tolker simulerte feilutbetalinger med restbeløp til utbetaling`() {
-        Sakstype.values()
+        Sakstype.entries
             .map { it.toYtelsekode() to it.toFeilkode() }
             .forEach { (ytelse, feilkode) ->
                 Simulering(
@@ -344,7 +344,7 @@ internal class SimuleringTest {
 
     @Test
     fun `tolker simulerte etterbetalinger`() {
-        Sakstype.values()
+        Sakstype.entries
             .map { it.toYtelsekode() to it.toFeilkode() }
             .forEach { (ytelse, _) ->
                 Simulering(
@@ -446,7 +446,7 @@ internal class SimuleringTest {
 
     @Test
     fun `tolker simulerte utbetalinger uten endringer`() {
-        Sakstype.values()
+        Sakstype.entries
             .map { it.toYtelsekode() to it.toFeilkode() }
             .forEach { (ytelse, _) ->
                 Simulering(
@@ -547,7 +547,7 @@ internal class SimuleringTest {
 
     @Test
     fun `tolker simulering med tom utbetalingsliste - representerer ingen utbetaling`() {
-        Sakstype.values()
+        Sakstype.entries
             .map { it.toYtelsekode() to it.toFeilkode() }
             .forEach { (_, _) ->
                 Simulering(

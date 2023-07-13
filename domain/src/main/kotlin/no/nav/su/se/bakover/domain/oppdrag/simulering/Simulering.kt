@@ -210,7 +210,7 @@ enum class KlasseType {
         }
 
         fun contains(value: String): Boolean {
-            return values().map { it.name }.contains(value)
+            return entries.map { it.name }.contains(value)
         }
     }
 }
@@ -234,7 +234,7 @@ enum class KlasseKode {
         }
 
         fun contains(value: String): Boolean {
-            return values().map { it.name }.contains(value)
+            return entries.map { it.name }.contains(value)
         }
     }
 }

@@ -18,7 +18,7 @@ internal class IsAliveTest {
 
     @Test
     fun `Kun Drift har tilgang til isAlive-endepunktet`() {
-        Brukerrolle.values().filterNot { it == Brukerrolle.Drift }.forEach {
+        Brukerrolle.entries.filterNot { it == Brukerrolle.Drift }.forEach {
             testApplication {
                 application {
                     testSusebakoverWithMockedDb(services = services)

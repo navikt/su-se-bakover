@@ -49,7 +49,7 @@ internal class LeggTilFormueRevurderingRouteKtTest {
 
     @Test
     fun `ikke tillatte roller`() {
-        Brukerrolle.values().filterNot { it == Brukerrolle.Saksbehandler }.forEach { rolle ->
+        Brukerrolle.entries.filterNot { it == Brukerrolle.Saksbehandler }.forEach { rolle ->
             testApplication {
                 application {
                     testSusebakoverWithMockedDb()

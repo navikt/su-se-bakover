@@ -195,7 +195,7 @@ sealed class Fradragstype {
 
     companion object {
         fun tryParse(value: String, beskrivelse: String?): Either<UgyldigFradragstype, Fradragstype> {
-            return Kategori.values().firstOrNull { value == it.name }?.let { kategori ->
+            return Kategori.entries.firstOrNull { value == it.name }?.let { kategori ->
                 when {
                     kategori == Kategori.Annet && beskrivelse == null -> {
                         UgyldigFradragstype.UspesifisertKategoriUtenBeskrivelse.left()

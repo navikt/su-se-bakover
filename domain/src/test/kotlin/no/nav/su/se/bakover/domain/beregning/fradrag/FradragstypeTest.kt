@@ -20,7 +20,7 @@ internal class FradragstypeTest {
 
     @Test
     fun `godtar ikke beskrivelse for spesifisert`() {
-        Fradragstype.Kategori.values().filterNot {
+        Fradragstype.Kategori.entries.filterNot {
             it == Fradragstype.Kategori.Annet
         }.forEach {
             Fradragstype.tryParse(

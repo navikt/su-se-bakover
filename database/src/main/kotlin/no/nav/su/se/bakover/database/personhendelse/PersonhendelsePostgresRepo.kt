@@ -219,7 +219,7 @@ internal class PersonhendelsePostgresRepo(
 
         companion object {
             fun tryParse(value: String): PersonhendelseEndringstype {
-                return values()
+                return entries
                     .firstOrNull { it.value == value }
                     ?: throw IllegalStateException("Ukjent PersonhendelseEndringstype: $value")
             }
@@ -253,7 +253,7 @@ internal class PersonhendelsePostgresRepo(
 
                 companion object {
                     fun tryParse(value: String): Typer {
-                        return values()
+                        return entries
                             .firstOrNull { it.value == value }
                             ?: throw IllegalStateException("Ukjent sivilstandtype: $value")
                     }

@@ -222,7 +222,7 @@ internal class AvstemmingRoutesKtTest {
         testApplication {
             application { testSusebakoverWithMockedDb(services = services()) }
 
-            Brukerrolle.values()
+            Brukerrolle.entries
                 .filterNot { it == Brukerrolle.Drift }
                 .forEach { _ ->
                     defaultRequest(

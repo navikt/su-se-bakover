@@ -51,7 +51,7 @@ internal object Revurderingsfeilresponser {
             "begrunnelse_kan_ikke_være_tom",
         )
         val ugyldigÅrsak = BadRequest.errorJson(
-            "Ugyldig årsak, må være en av: ${Revurderingsårsak.Årsak.values()}",
+            "Ugyldig årsak, må være en av: ${Revurderingsårsak.Årsak.entries}",
             "ugyldig_årsak",
         )
         val formueSomFørerTilOpphørMåRevurderes = BadRequest.errorJson(

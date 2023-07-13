@@ -25,7 +25,7 @@ internal class ForhåndsvarslingRouteTest {
                 application {
                     testSusebakoverWithMockedDb()
                 }
-                Brukerrolle.values().toList().minus(Brukerrolle.Saksbehandler).forEach {
+                Brukerrolle.entries.toList().minus(Brukerrolle.Saksbehandler).forEach {
                     defaultRequest(
                         HttpMethod.Post,
                         "/saker/$sakId/revurderinger/$revurderingId/forhandsvarsel",

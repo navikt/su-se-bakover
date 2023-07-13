@@ -85,7 +85,7 @@ class TilbakekrevingSoapClient(
 
         companion object {
             fun fromString(string: String): Alvorlighetsgrad {
-                return values().first { it.value == string }
+                return entries.first { it.value == string }
             }
         }
     }

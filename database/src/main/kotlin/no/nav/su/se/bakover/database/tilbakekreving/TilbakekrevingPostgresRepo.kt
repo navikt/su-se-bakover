@@ -301,7 +301,7 @@ internal class TilbakekrevingPostgresRepo(
 
         companion object {
             fun fromValue(value: String): Avgjørelsestype {
-                return values().firstOrNull { it.value == value }
+                return entries.firstOrNull { it.value == value }
                     ?: throw IllegalStateException("Ukjent avgjørelsestype: $value")
             }
         }
@@ -318,7 +318,7 @@ internal class TilbakekrevingPostgresRepo(
 
         companion object {
             fun fromValue(value: String): Tilstand {
-                return values().firstOrNull { it.value == value }
+                return entries.firstOrNull { it.value == value }
                     ?: throw IllegalStateException("Ukjent tilstand: $value")
             }
         }

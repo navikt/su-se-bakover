@@ -67,7 +67,7 @@ internal fun Route.sakRoutes(
                     body.fnr != null -> {
                         Either.catch { Fnr(body.fnr) to Sakstype.from(body.type!!) }.fold(
                             ifLeft = {
-                                if (Sakstype.values().none { it.value == body.type }) {
+                                if (Sakstype.entries.none { it.value == body.type }) {
                                     return@authorize call.svar(Feilresponser.ugyldigTypeSak)
                                 } else {
                                     return@authorize call.svar(

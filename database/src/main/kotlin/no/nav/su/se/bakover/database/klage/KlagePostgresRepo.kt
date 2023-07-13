@@ -600,7 +600,7 @@ internal class KlagePostgresRepo(
             }
 
             fun fromString(value: String): Tilstand {
-                return values().find { it.verdi == value }
+                return entries.find { it.verdi == value }
                     ?: throw IllegalStateException("Ukjent tilstand i klage-tabellen: $value")
             }
         }
@@ -666,7 +666,7 @@ internal class KlagePostgresRepo(
                     }
 
                     fun fromString(value: String): Omgjøringsårsak {
-                        return values().find { it.verdi == value }
+                        return entries.find { it.verdi == value }
                             ?: throw IllegalStateException("Ukjent omgjøringsårsak i klage-tabellen: $value")
                     }
                 }
@@ -695,7 +695,7 @@ internal class KlagePostgresRepo(
                     }
 
                     fun fromString(value: String): Omgjøringsutfall {
-                        return values().find { it.verdi == value }
+                        return entries.find { it.verdi == value }
                             ?: throw IllegalStateException("Ukjent omgjøringsutfall i klage-tabellen: $value")
                     }
                 }
@@ -765,7 +765,7 @@ internal class KlagePostgresRepo(
                     }
 
                     fun fromString(value: String): Hjemmel {
-                        return values().find { it.verdi == value }
+                        return entries.find { it.verdi == value }
                             ?: throw IllegalStateException("Ukjent omgjøringsutfall i klage-tabellen: $value")
                     }
                 }

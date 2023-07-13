@@ -65,7 +65,7 @@ internal class OppdaterTilbakekrevingsbehandlingRouteKtTest {
 
     @Test
     fun `sjekker tilgang`() {
-        (Brukerrolle.values().toList() - Brukerrolle.Saksbehandler).forEach {
+        (Brukerrolle.entries.toList() - Brukerrolle.Saksbehandler).forEach {
             testApplication {
                 application {
                     testSusebakoverWithMockedDb()

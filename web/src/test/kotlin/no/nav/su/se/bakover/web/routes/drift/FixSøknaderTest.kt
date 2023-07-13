@@ -33,7 +33,7 @@ internal class FixSøknaderTest {
 
     @Test
     fun `Kun Drift har tilgang til fix-søknader-endepunktet`() {
-        Brukerrolle.values().filterNot { it == Brukerrolle.Drift }.forEach {
+        Brukerrolle.entries.filterNot { it == Brukerrolle.Drift }.forEach {
             testApplication {
                 application {
                     testSusebakoverWithMockedDb(services = services)

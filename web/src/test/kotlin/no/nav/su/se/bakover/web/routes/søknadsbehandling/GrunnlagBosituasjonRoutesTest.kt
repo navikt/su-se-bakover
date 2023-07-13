@@ -36,7 +36,7 @@ class GrunnlagBosituasjonRoutesTest {
 
     @Test
     fun `andre roller enn saksbehandler skal ikke ha tilgang til bosituasjon`() {
-        Brukerrolle.values().filterNot { it == Brukerrolle.Saksbehandler }.forEach { rolle ->
+        Brukerrolle.entries.filterNot { it == Brukerrolle.Saksbehandler }.forEach { rolle ->
             testApplication {
                 application {
                     testSusebakoverWithMockedDb()

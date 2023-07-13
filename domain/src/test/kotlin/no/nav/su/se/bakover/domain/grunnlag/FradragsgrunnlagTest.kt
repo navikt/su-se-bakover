@@ -71,7 +71,7 @@ internal class FradragsgrunnlagTest {
 
     @Test
     fun `kan lage gyldige fradragsgrunnlag`() {
-        Fradragstype.Kategori.values().filterNot {
+        Fradragstype.Kategori.entries.filterNot {
             listOf(
                 Fradragstype.Kategori.BeregnetFradragEPS,
                 Fradragstype.Kategori.ForventetInntekt,

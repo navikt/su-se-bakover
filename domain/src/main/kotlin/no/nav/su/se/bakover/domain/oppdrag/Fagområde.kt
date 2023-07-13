@@ -7,7 +7,7 @@ enum class Fagområde {
 
     companion object {
         fun valuesAsStrings(): List<String> {
-            return values().map { it.name }
+            return entries.map { it.name }
         }
     }
 }

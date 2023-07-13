@@ -71,7 +71,7 @@ internal class KonsistensavstemmingJob(
                                 .shouldRun()
                                 .ifTrue {
                                     withCorrelationId {
-                                        Fagområde.values().forEach { fagområde ->
+                                        Fagområde.entries.forEach { fagområde ->
                                             when (fagområde) {
                                                 Fagområde.SUALDER -> {
                                                     // TODO("simulering_utbetaling_alder legg til ALDER for konsistensavstemming")

@@ -29,7 +29,7 @@ internal class DokumentRoutesKtTest {
             application {
                 testSusebakoverWithMockedDb(services = TestServicesBuilder.services())
             }
-            Brukerrolle.values()
+            Brukerrolle.entries
                 .filterNot { it == Brukerrolle.Saksbehandler }
                 .forEach { rolle ->
                     defaultRequest(

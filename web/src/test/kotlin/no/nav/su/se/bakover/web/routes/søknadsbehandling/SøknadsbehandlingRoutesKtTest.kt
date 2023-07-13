@@ -44,7 +44,7 @@ internal class SøknadsbehandlingRoutesKtTest {
             testApplication {
                 application { testSusebakoverWithMockedDb() }
                 repeat(
-                    Brukerrolle.values().filterNot { it == Brukerrolle.Veileder || it == Brukerrolle.Drift }.size,
+                    Brukerrolle.entries.filterNot { it == Brukerrolle.Veileder || it == Brukerrolle.Drift }.size,
                 ) {
                     defaultRequest(
                         HttpMethod.Get,
@@ -73,7 +73,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     )
                 }
                 repeat(
-                    Brukerrolle.values().filterNot { it == Brukerrolle.Veileder || it == Brukerrolle.Drift }.size,
+                    Brukerrolle.entries.filterNot { it == Brukerrolle.Veileder || it == Brukerrolle.Drift }.size,
                 ) {
                     defaultRequest(
                         method = HttpMethod.Get,

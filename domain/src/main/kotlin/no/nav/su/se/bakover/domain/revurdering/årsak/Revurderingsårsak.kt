@@ -26,7 +26,7 @@ data class Revurderingsårsak(
 
         companion object {
             fun tryCreate(value: String): Either<UgyldigÅrsak, Årsak> {
-                return values().firstOrNull { it.name == value }?.right() ?: UgyldigÅrsak.left()
+                return entries.firstOrNull { it.name == value }?.right() ?: UgyldigÅrsak.left()
             }
         }
     }
