@@ -17,6 +17,28 @@ import java.time.Duration
 @Execution(value = ExecutionMode.SAME_THREAD)
 class ApplicationConfigTest {
 
+    private val sslConfig = mapOf(
+        "ssl.endpoint.identification.algorithm" to "",
+        "ssl.truststore.type" to "jks",
+        "ssl.keystore.type" to "PKCS12",
+        "ssl.truststore.location" to "truststorePath",
+        "ssl.truststore.password" to "credstorePwd",
+        "ssl.keystore.location" to "keystorePath",
+        "ssl.keystore.password" to "credstorePwd",
+        "ssl.key.password" to "credstorePwd",
+    )
+    private val kafkaConfig = sslConfig + mapOf(
+        "bootstrap.servers" to "brokers",
+        "security.protocol" to "SSL",
+        "group.id" to "su-se-bakover",
+        "client.id" to "hostname",
+        "enable.auto.commit" to "false",
+        "auto.offset.reset" to "earliest",
+        "key.deserializer" to StringDeserializer::class.java,
+        "value.deserializer" to StringDeserializer::class.java,
+        "max.poll.records" to 100,
+    )
+
     private val expectedApplicationConfig = ApplicationConfig(
         runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Nais,
         naisCluster = ApplicationConfig.NaisCluster.Prod,
@@ -101,17 +123,9 @@ class ApplicationConfigTest {
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(
-                mapOf(
+                sslConfig + mapOf(
                     "bootstrap.servers" to "brokers",
                     "security.protocol" to "SSL",
-                    "ssl.endpoint.identification.algorithm" to "",
-                    "ssl.truststore.type" to "jks",
-                    "ssl.keystore.type" to "PKCS12",
-                    "ssl.truststore.location" to "truststorePath",
-                    "ssl.truststore.password" to "credstorePwd",
-                    "ssl.keystore.location" to "keystorePath",
-                    "ssl.keystore.password" to "credstorePwd",
-                    "ssl.key.password" to "credstorePwd",
                     "acks" to "all",
                     "key.serializer" to StringSerializer::class.java,
                     "value.serializer" to StringSerializer::class.java,
@@ -119,76 +133,23 @@ class ApplicationConfigTest {
                 retryTaskInterval = Duration.ofSeconds(15),
             ),
             consumerCfg = ApplicationConfig.KafkaConfig.ConsumerCfg(
-                mapOf(
-                    "bootstrap.servers" to "brokers",
-                    "security.protocol" to "SSL",
-                    "ssl.endpoint.identification.algorithm" to "",
-                    "ssl.truststore.type" to "jks",
-                    "ssl.keystore.type" to "PKCS12",
-                    "ssl.truststore.location" to "truststorePath",
-                    "ssl.truststore.password" to "credstorePwd",
-                    "ssl.keystore.location" to "keystorePath",
-                    "ssl.keystore.password" to "credstorePwd",
-                    "ssl.key.password" to "credstorePwd",
-                    "auto.offset.reset" to "earliest",
-                    "specific.avro.reader" to true,
-                    "key.deserializer" to StringDeserializer::class.java,
+                kafkaConfig + mapOf(
                     "value.deserializer" to KafkaAvroDeserializer::class.java,
+                    "specific.avro.reader" to true,
+                    "schema.registry.url" to "some-schema-url",
                     "basic.auth.credentials.source" to "USER_INFO",
                     "basic.auth.user.info" to "usr:pwd",
-                    "group.id" to "su-se-bakover",
-                    "client.id" to "hostname",
-                    "enable.auto.commit" to "false",
-                    "max.poll.records" to 100,
-                    "schema.registry.url" to "some-schema-url",
                 ),
             ),
         ),
         unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover"),
         kabalKafkaConfig = ApplicationConfig.KabalKafkaConfig(
-            kafkaConfig = mapOf(
-                "bootstrap.servers" to "brokers",
-                "security.protocol" to "SSL",
-                "ssl.endpoint.identification.algorithm" to "",
-                "ssl.truststore.type" to "jks",
-                "ssl.keystore.type" to "PKCS12",
-                "ssl.truststore.location" to "truststorePath",
-                "ssl.truststore.password" to "credstorePwd",
-                "ssl.keystore.location" to "keystorePath",
-                "ssl.keystore.password" to "credstorePwd",
-                "ssl.key.password" to "credstorePwd",
-                "group.id" to "su-se-bakover",
-                "client.id" to "hostname",
-                "enable.auto.commit" to "false",
-                "auto.offset.reset" to "earliest",
-                "key.deserializer" to StringDeserializer::class.java,
-                "value.deserializer" to StringDeserializer::class.java,
-                "max.poll.records" to 100,
-            ),
+            kafkaConfig = kafkaConfig,
         ),
         institusjonsoppholdKafkaConfig = ApplicationConfig.InstitusjonsoppholdKafkaConfig(
-            kafkaConfig = mapOf(
-                "bootstrap.servers" to "brokers",
-                "security.protocol" to "SSL",
-                "ssl.endpoint.identification.algorithm" to "",
-                "ssl.truststore.type" to "jks",
-                "ssl.keystore.type" to "PKCS12",
-                "ssl.truststore.location" to "truststorePath",
-                "ssl.truststore.password" to "credstorePwd",
-                "ssl.keystore.location" to "keystorePath",
-                "ssl.keystore.password" to "credstorePwd",
-                "ssl.key.password" to "credstorePwd",
-                "group.id" to "su-se-bakover",
-                "client.id" to "hostname",
-                "enable.auto.commit" to "false",
-                "auto.offset.reset" to "earliest",
-                "key.deserializer" to StringDeserializer::class.java,
-                "value.deserializer" to StringDeserializer::class.java,
-                "max.poll.records" to 100,
-            ),
+            kafkaConfig = kafkaConfig,
             topicName = "INSTITUSJONSOPPHOLD_TOPIC",
         ),
-
     )
 
     @Test
@@ -332,7 +293,10 @@ class ApplicationConfigTest {
                 ),
                 unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover"),
                 kabalKafkaConfig = ApplicationConfig.KabalKafkaConfig(emptyMap()),
-                institusjonsoppholdKafkaConfig = ApplicationConfig.InstitusjonsoppholdKafkaConfig(emptyMap(), "INSTITUSJONSOPPHOLD_TOPIC"),
+                institusjonsoppholdKafkaConfig = ApplicationConfig.InstitusjonsoppholdKafkaConfig(
+                    emptyMap(),
+                    "INSTITUSJONSOPPHOLD_TOPIC",
+                ),
             )
         }
     }

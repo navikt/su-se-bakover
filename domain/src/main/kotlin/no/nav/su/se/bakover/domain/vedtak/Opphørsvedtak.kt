@@ -19,9 +19,9 @@ sealed interface Opphørsvedtak : VedtakSomKanRevurderes, Revurderingsvedtak {
     override val beregning: Beregning
     override val simulering: Simulering
 
-    fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> {
-        return behandling.utledOpphørsgrunner(clock)
-    }
+    override fun erInnvilget(): Boolean = false
+
+    fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> = behandling.utledOpphørsgrunner(clock)
 
     override fun harIdentifisertBehovForFremtidigAvkorting() =
         behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel

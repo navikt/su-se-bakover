@@ -75,6 +75,7 @@ data class VedtakInnvilgetRevurdering private constructor(
         )
     }
 
+    override fun erInnvilget(): Boolean = true
     override fun erOpphør(): Boolean = false
     override fun erStans(): Boolean = false
     override fun erGjenopptak(): Boolean = false

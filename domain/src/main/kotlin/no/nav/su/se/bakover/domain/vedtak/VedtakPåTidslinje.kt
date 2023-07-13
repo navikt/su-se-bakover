@@ -54,10 +54,9 @@ data class VedtakPåTidslinje private constructor(
     }
 
     /**
-     * Aktiv i denne sammenheng betyr at den ikke er opphørt eller stanset
+     * Reguleringer, og gjenopptak regnes som innvilgelser - I tillegg til Innvilget
      */
-    fun erAktiv(): Boolean = !erOpphør() && !erStans()
-
+    fun erInnvilget(): Boolean = originaltVedtak.erInnvilget()
     fun erOpphør(): Boolean = originaltVedtak.erOpphør()
     fun erStans(): Boolean = originaltVedtak.erStans()
     fun erGjenopptak(): Boolean = originaltVedtak.erGjenopptak()
@@ -131,10 +130,10 @@ data class VedtakPåTidslinje private constructor(
         }
 
         /**
-         * Se [erAktiv]
+         * Se [erInnvilget]
          * @return true dersom det finnes minst en innvilgelse i tidslinjen
          */
-        fun Tidslinje<VedtakPåTidslinje>?.harInnvilgelse(): Boolean = this != null && this.any { it.erAktiv() }
+        fun Tidslinje<VedtakPåTidslinje>?.harInnvilgelse(): Boolean = this != null && this.any { it.erInnvilget() }
     }
 }
 

@@ -154,17 +154,10 @@ sealed class OppgaveConfig {
             Sakstype.ALDER -> Behandlingstema.SU_ALDER
             Sakstype.UFØRE -> Behandlingstema.SU_UFØRE_FLYKTNING
         }
-
-        // TODO - skal mulig føre til en revurdering?
         override val behandlingstype = Behandlingstype.REVURDERING
-
-        // TODO - sjekk
         override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
-
         override val aktivDato: LocalDate = LocalDate.now(clock)
-
-        // TODO - skal det være noe frist?
-        override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(30)
+        override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(7)
     }
 
     sealed class Klage : OppgaveConfig() {
