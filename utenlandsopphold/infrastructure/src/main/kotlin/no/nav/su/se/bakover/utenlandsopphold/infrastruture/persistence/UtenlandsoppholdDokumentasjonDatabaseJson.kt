@@ -11,16 +11,16 @@ enum class UtenlandsoppholdDokumentasjonDatabaseJson {
     override fun toString() = this.name
 
     fun toDomain(): UtenlandsoppholdDokumentasjon = when (this) {
-        UtenlandsoppholdDokumentasjonDatabaseJson.Udokumentert -> UtenlandsoppholdDokumentasjon.Udokumentert
-        UtenlandsoppholdDokumentasjonDatabaseJson.Dokumentert -> UtenlandsoppholdDokumentasjon.Dokumentert
-        UtenlandsoppholdDokumentasjonDatabaseJson.Sannsynliggjort -> UtenlandsoppholdDokumentasjon.Sannsynliggjort
+        Udokumentert -> UtenlandsoppholdDokumentasjon.Udokumentert
+        Dokumentert -> UtenlandsoppholdDokumentasjon.Dokumentert
+        Sannsynliggjort -> UtenlandsoppholdDokumentasjon.Sannsynliggjort
     }
 
     companion object {
         fun UtenlandsoppholdDokumentasjon.toJson(): UtenlandsoppholdDokumentasjonDatabaseJson = when (this) {
-            UtenlandsoppholdDokumentasjon.Udokumentert -> UtenlandsoppholdDokumentasjonDatabaseJson.Udokumentert
-            UtenlandsoppholdDokumentasjon.Dokumentert -> UtenlandsoppholdDokumentasjonDatabaseJson.Dokumentert
-            UtenlandsoppholdDokumentasjon.Sannsynliggjort -> UtenlandsoppholdDokumentasjonDatabaseJson.Sannsynliggjort
+            UtenlandsoppholdDokumentasjon.Udokumentert -> Udokumentert
+            UtenlandsoppholdDokumentasjon.Dokumentert -> Dokumentert
+            UtenlandsoppholdDokumentasjon.Sannsynliggjort -> Sannsynliggjort
         }
     }
 }

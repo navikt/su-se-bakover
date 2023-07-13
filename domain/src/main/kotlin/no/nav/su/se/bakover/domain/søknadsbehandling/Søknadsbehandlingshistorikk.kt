@@ -33,72 +33,34 @@ data class Søknadsbehandlingshistorikk private constructor(
 }
 
 sealed interface SøknadsbehandlingsHandling : SaksbehandlingsHandling {
-    data object StartetBehandling : SøknadsbehandlingsHandling {
-        override fun toString(): String = this.javaClass.simpleName
-    }
-    data object OppdatertStønadsperiode : SøknadsbehandlingsHandling {
-        override fun toString(): String = this.javaClass.simpleName
-    }
-    data object OppdatertUførhet : SøknadsbehandlingsHandling {
-        override fun toString(): String = this.javaClass.simpleName
-    }
-    data object OppdatertOpplysningsplikt : SøknadsbehandlingsHandling {
-        override fun toString(): String = this.javaClass.simpleName
-    }
-    data object OppdatertFlyktning : SøknadsbehandlingsHandling {
-        override fun toString(): String = this.javaClass.simpleName
-    }
-    data object OppdatertLovligOpphold : SøknadsbehandlingsHandling {
-        override fun toString(): String = this.javaClass.simpleName
-    }
-    data object OppdatertInstitusjonsopphold : SøknadsbehandlingsHandling {
-        override fun toString(): String = this.javaClass.simpleName
-    }
-    data object OppdatertUtenlandsopphold : SøknadsbehandlingsHandling {
-        override fun toString(): String = this.javaClass.simpleName
-    }
-    data object OppdatertPersonligOppmøte : SøknadsbehandlingsHandling {
-        override fun toString(): String = this.javaClass.simpleName
-    }
-    data object OppdatertFastOppholdINorge : SøknadsbehandlingsHandling {
-        override fun toString(): String = this.javaClass.simpleName
-    }
-    data object OppdatertBosituasjon : SøknadsbehandlingsHandling {
-        override fun toString(): String = this.javaClass.simpleName
-    }
-    data object OppdatertFormue : SøknadsbehandlingsHandling {
-        override fun toString(): String = this.javaClass.simpleName
-    }
+    data object StartetBehandling : SøknadsbehandlingsHandling
+    data object OppdatertStønadsperiode : SøknadsbehandlingsHandling
+    data object OppdatertUførhet : SøknadsbehandlingsHandling
+    data object OppdatertOpplysningsplikt : SøknadsbehandlingsHandling
+    data object OppdatertFlyktning : SøknadsbehandlingsHandling
+    data object OppdatertLovligOpphold : SøknadsbehandlingsHandling
+    data object OppdatertInstitusjonsopphold : SøknadsbehandlingsHandling
+    data object OppdatertUtenlandsopphold : SøknadsbehandlingsHandling
+    data object OppdatertPersonligOppmøte : SøknadsbehandlingsHandling
+    data object OppdatertFastOppholdINorge : SøknadsbehandlingsHandling
+    data object OppdatertBosituasjon : SøknadsbehandlingsHandling
+    data object OppdatertFormue : SøknadsbehandlingsHandling
 
     /**
      * Bruker får ja/nei spørsmål ved Formue-steget i frontend
      *
      * Historisk (eller man har benyttet seg av leggTilBosituasjonEpsgrunnlag())
      */
-    data object TattStillingTilEPS : SøknadsbehandlingsHandling {
-        override fun toString(): String = this.javaClass.simpleName
-    }
+    data object TattStillingTilEPS : SøknadsbehandlingsHandling
 
     /**
      * Historisk (eller man har benyttet seg av fullførBosituasjongrunnlag())
      */
-    data object FullførtBosituasjon : SøknadsbehandlingsHandling {
-        override fun toString(): String = this.javaClass.simpleName
-    }
+    data object FullførtBosituasjon : SøknadsbehandlingsHandling
 
-    data object OppdatertFradragsgrunnlag : SøknadsbehandlingsHandling {
-        override fun toString(): String = this.javaClass.simpleName
-    }
-    data object Beregnet : SøknadsbehandlingsHandling {
-        override fun toString(): String = this.javaClass.simpleName
-    }
-    data object Simulert : SøknadsbehandlingsHandling {
-        override fun toString(): String = this.javaClass.simpleName
-    }
-    data object SendtTilAttestering : SøknadsbehandlingsHandling {
-        override fun toString(): String = this.javaClass.simpleName
-    }
-    data object Lukket : SøknadsbehandlingsHandling {
-        override fun toString(): String = this.javaClass.simpleName
-    }
+    data object OppdatertFradragsgrunnlag : SøknadsbehandlingsHandling
+    data object Beregnet : SøknadsbehandlingsHandling
+    data object Simulert : SøknadsbehandlingsHandling
+    data object SendtTilAttestering : SøknadsbehandlingsHandling
+    data object Lukket : SøknadsbehandlingsHandling
 }

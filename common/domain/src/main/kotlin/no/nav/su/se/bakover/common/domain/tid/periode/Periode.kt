@@ -151,17 +151,11 @@ open class Periode protected constructor(
     }
 
     sealed class UgyldigPeriode {
-        data object FraOgMedDatoMåVæreFørsteDagIMåneden : UgyldigPeriode() {
-            override fun toString(): String = this.javaClass.simpleName
-        }
+        data object FraOgMedDatoMåVæreFørsteDagIMåneden : UgyldigPeriode()
 
-        data object TilOgMedDatoMåVæreSisteDagIMåneden : UgyldigPeriode() {
-            override fun toString(): String = this.javaClass.simpleName
-        }
+        data object TilOgMedDatoMåVæreSisteDagIMåneden : UgyldigPeriode()
 
-        data object FraOgMedDatoMåVæreFørTilOgMedDato : UgyldigPeriode() {
-            override fun toString(): String = this.javaClass.simpleName
-        }
+        data object FraOgMedDatoMåVæreFørTilOgMedDato : UgyldigPeriode()
     }
 
     override fun equals(other: Any?) = other is Periode && fraOgMed == other.fraOgMed && tilOgMed == other.tilOgMed

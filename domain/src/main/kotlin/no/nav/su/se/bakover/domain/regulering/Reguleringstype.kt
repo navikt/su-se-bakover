@@ -4,13 +4,9 @@ import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 
 sealed interface Reguleringstype {
-    data object AUTOMATISK : Reguleringstype {
-        override fun toString() = "AUTOMATISK"
-    }
+    data object AUTOMATISK : Reguleringstype
 
-    data class MANUELL(val problemer: Set<ÅrsakTilManuellRegulering>) : Reguleringstype {
-        override fun toString() = "MANUELL"
-    }
+    data class MANUELL(val problemer: Set<ÅrsakTilManuellRegulering>) : Reguleringstype
 }
 
 fun GjeldendeVedtaksdata.utledReguleringstype(): Reguleringstype {

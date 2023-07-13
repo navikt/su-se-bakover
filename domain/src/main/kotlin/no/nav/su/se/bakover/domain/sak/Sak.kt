@@ -305,9 +305,7 @@ data class Sak(
         return søknader.singleOrNull { it.id == id }?.right() ?: FantIkkeSøknad.left()
     }
 
-    data object FantIkkeSøknad {
-        override fun toString() = this::class.simpleName!!
-    }
+    data object FantIkkeSøknad
 
     fun hentÅpneSøknadsbehandlinger(): List<Søknadsbehandling> = søknadsbehandlinger.filter { it.erÅpen() }
 

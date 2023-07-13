@@ -157,14 +157,10 @@ sealed class UtbetalingFeilet {
     data class SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(val feil: KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet) :
         UtbetalingFeilet()
 
-    data object Protokollfeil : UtbetalingFeilet() {
-        override fun toString() = this::class.simpleName!!
-    }
+    data object Protokollfeil : UtbetalingFeilet()
 
     data class KunneIkkeSimulere(val simuleringFeilet: SimulerUtbetalingFeilet) : UtbetalingFeilet()
-    data object FantIkkeSak : UtbetalingFeilet() {
-        override fun toString() = this::class.simpleName!!
-    }
+    data object FantIkkeSak : UtbetalingFeilet()
 }
 
 data object IngenUtbetalinger

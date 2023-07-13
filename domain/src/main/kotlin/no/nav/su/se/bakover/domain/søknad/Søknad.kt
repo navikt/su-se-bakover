@@ -233,9 +233,7 @@ sealed interface Søknad {
                     hentSaksnummer: () -> Saksnummer,
                 ): Either<KanIkkeLageBrevRequestForDenneTilstanden, LagBrevRequest>
 
-                data object KanIkkeLageBrevRequestForDenneTilstanden {
-                    override fun toString() = this::class.simpleName!!
-                }
+                data object KanIkkeLageBrevRequestForDenneTilstanden
 
                 /**
                  * Saksbehandler velger om det sendes brev eller ikke.

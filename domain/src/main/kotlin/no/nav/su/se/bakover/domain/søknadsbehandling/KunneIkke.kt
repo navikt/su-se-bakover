@@ -154,23 +154,15 @@ sealed interface KunneIkkeBeregne {
     data class UgyldigTilstandForEndringAvFradrag(val feil: KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag) :
         KunneIkkeBeregne
 
-    data object AvkortingErUfullstendig : KunneIkkeBeregne {
-        override fun toString() = this::class.simpleName!!
-    }
+    data object AvkortingErUfullstendig : KunneIkkeBeregne
 }
 
 sealed interface KunneIkkeLukkeSøknadsbehandling {
-    data object KanIkkeLukkeEnAlleredeLukketSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling {
-        override fun toString() = this::class.simpleName!!
-    }
+    data object KanIkkeLukkeEnAlleredeLukketSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling
 
-    data object KanIkkeLukkeEnIverksattSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling {
-        override fun toString() = this::class.simpleName!!
-    }
+    data object KanIkkeLukkeEnIverksattSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling
 
-    data object KanIkkeLukkeEnSøknadsbehandlingTilAttestering : KunneIkkeLukkeSøknadsbehandling {
-        override fun toString() = this::class.simpleName!!
-    }
+    data object KanIkkeLukkeEnSøknadsbehandlingTilAttestering : KunneIkkeLukkeSøknadsbehandling
 }
 
 sealed interface KunneIkkeSimulereBehandling {

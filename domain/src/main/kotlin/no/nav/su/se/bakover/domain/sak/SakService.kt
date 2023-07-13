@@ -52,9 +52,7 @@ interface SakService {
     fun hentAlleJournalposter(sakId: UUID): Either<KunneIkkeHenteJournalposter, List<Journalpost>>
 }
 
-data object FantIkkeSak {
-    override fun toString() = this::class.simpleName!!
-}
+data object FantIkkeSak
 
 sealed class KunneIkkeHenteGjeldendeVedtaksdata {
     data object FantIkkeSak : KunneIkkeHenteGjeldendeVedtaksdata()

@@ -53,9 +53,7 @@ interface LagBrevRequest {
         ).right()
     }
 
-    data object KunneIkkeGenererePdf {
-        override fun toString() = this::class.simpleName!!
-    }
+    data object KunneIkkeGenererePdf
 
     data class InnvilgetVedtak(
         override val person: Person,

@@ -55,9 +55,7 @@ fun Beregning.finnMånederMedMerknad(): Either<BeregningUtenMerknader, NonEmptyL
         .right()
 }
 
-data object BeregningUtenMerknader {
-    override fun toString(): String = javaClass.simpleName
-}
+data object BeregningUtenMerknader
 
 fun Beregning.finnMånederMedMerknadForAvslag(): Either<IngenMerknaderForAvslag, NonEmptyList<Pair<Månedsberegning, Merknad.Beregning>>> {
     return finnMånederMedMerknad()

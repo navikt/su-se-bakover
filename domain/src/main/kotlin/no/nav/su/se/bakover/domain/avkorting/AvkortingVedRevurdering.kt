@@ -314,9 +314,7 @@ sealed class AvkortingVedRevurdering {
          * Ingen nye varsel er produsert som følge av denne revurderingen. Ei heller er det gjort noen håndtering av
          * utestående varsel.
          */
-        data object IngenNyEllerUtestående : Iverksatt() {
-            override fun toString() = this::class.simpleName!!
-        }
+        data object IngenNyEllerUtestående : Iverksatt()
 
         /**
          * Revurderinger ikke i stand til å håndtere avkorting. Kan f.eks skyldes at revurdering selv er i en

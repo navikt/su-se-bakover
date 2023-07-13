@@ -17,9 +17,7 @@ interface SøknadService {
     fun opprettManglendeJournalpostOgOppgave(): OpprettManglendeJournalpostOgOppgaveResultat
 }
 
-data object FantIkkeSøknad {
-    override fun toString() = this::class.simpleName!!
-}
+data object FantIkkeSøknad
 
 sealed class KunneIkkeOppretteSøknad {
     data object FantIkkePerson : KunneIkkeOppretteSøknad()
