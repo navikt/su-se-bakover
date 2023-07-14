@@ -279,7 +279,7 @@ data object DatabaseBuilder {
             hendelseRepo = hendelseRepo,
             utenlandsoppholdRepo = utenlandsoppholdRepo,
             dokumentSkattRepo = DokumentSkattPostgresRepo(dbMetrics, sessionFactory, clock),
-            institusjonsoppholdHendelseRepo = InstitusjonsoppholdHendelsePostgresRepo(sessionFactory, dbMetrics, clock),
+            institusjonsoppholdHendelseRepo = InstitusjonsoppholdHendelsePostgresRepo(sessionFactory, dbMetrics, hendelseRepo, clock),
         )
     }
 }

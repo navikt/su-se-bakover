@@ -12,12 +12,14 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.nyInstitusjonsoppholdHendelseIkkeTilknyttetTilSak
-import no.nav.su.se.bakover.test.nyInstitusjonsoppholdHendelseKnyttetTilSakUtenOppgaveId
+import no.nav.su.se.bakover.test.nyEksternInstitusjonsoppholdHendelse
+import no.nav.su.se.bakover.test.nyInstitusjonsoppholdHendelseUtenOppgaveId
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
@@ -36,14 +38,11 @@ class InstitusjonsoppholdServiceTest {
     @Test
     fun `person har ikke sak blir prosessert men ingenting skjer`() {
         val fnrSomIkkeHarSak = Fnr.generer()
-        val sakRepo = mock<SakRepo> {
-            on { hentSaker(any()) } doReturn emptyList()
-        }
+        val sakRepo = mock<SakRepo> { on { harSak(any()) } doReturn false }
         val testMocks = mockedServices(sakRepo = sakRepo)
-        testMocks.institusjonsoppholdService().process(
-            nyInstitusjonsoppholdHendelseIkkeTilknyttetTilSak(norskIdent = fnrSomIkkeHarSak),
-        )
-        verify(sakRepo).hentSaker(argThat { it shouldBe fnrSomIkkeHarSak })
+        testMocks.institusjonsoppholdService()
+            .process(nyEksternInstitusjonsoppholdHendelse(norskIdent = fnrSomIkkeHarSak))
+        verify(sakRepo).harSak(argThat { it shouldBe fnrSomIkkeHarSak })
         testMocks.verifyNoMoreInteractions()
     }
 
@@ -53,17 +52,24 @@ class InstitusjonsoppholdServiceTest {
             doNothing().whenever(it).lagre(any())
         }
         val sak = søknadsbehandlingIverksattInnvilget().first
-        val sakRepo = mock<SakRepo> { on { hentSaker(any()) } doReturn listOf(sak) }
+        val sakRepo = mock<SakRepo> {
+            on { harSak(any()) } doReturn true
+            on { hentSaker(any()) } doReturn listOf(sak)
+        }
         val testMocks =
             mockedServices(sakRepo = sakRepo, institusjonsoppholdHendelseRepo = institusjonsoppholdHendelseRepo)
-        val hendelse = nyInstitusjonsoppholdHendelseIkkeTilknyttetTilSak()
+        val hendelse = nyEksternInstitusjonsoppholdHendelse()
         testMocks.institusjonsoppholdService().process(hendelse)
+        verify(sakRepo).harSak(argThat { it shouldBe fnr })
         verify(sakRepo).hentSaker(argThat { it shouldBe fnr })
         verify(institusjonsoppholdHendelseRepo).lagre(
             argThat {
-                it shouldBe InstitusjonsoppholdHendelse.KnyttetTilSak.UtenOppgaveId(
+                it shouldBe InstitusjonsoppholdHendelse.UtenOppgaveId(
                     sakId = sak.id,
-                    ikkeKnyttetTilSak = hendelse,
+                    hendelseId = it.hendelseId,
+                    versjon = Hendelsesversjon(1),
+                    eksterneHendelse = hendelse,
+                    hendelsestidspunkt = fixedTidspunkt,
                 )
             },
         )
@@ -71,7 +77,7 @@ class InstitusjonsoppholdServiceTest {
 
     @Test
     fun `kaster exception dersom vi ikke finner sak ved opprettelse av oppgave for hendelse - blir fanget opp`() {
-        val hendelse = nyInstitusjonsoppholdHendelseKnyttetTilSakUtenOppgaveId()
+        val hendelse = nyInstitusjonsoppholdHendelseUtenOppgaveId()
         val sakRepo = mock<SakRepo> { on { hentSak(any<UUID>()) } doReturn null }
         val institusjonsoppholdHendelseRepo = mock<InstitusjonsoppholdHendelseRepo> {
             on { hentHendelserUtenOppgaveId() } doReturn listOf(hendelse)
@@ -88,7 +94,7 @@ class InstitusjonsoppholdServiceTest {
     @Test
     fun `kaster exception dersom vi ikke finner person ved opprettelse av oppgave for hendelse - blir fanget opp`() {
         val sak = søknadsbehandlingIverksattInnvilget().first
-        val hendelse = nyInstitusjonsoppholdHendelseKnyttetTilSakUtenOppgaveId()
+        val hendelse = nyInstitusjonsoppholdHendelseUtenOppgaveId()
         val sakRepo = mock<SakRepo> { on { hentSak(any<UUID>()) } doReturn sak }
         val personService =
             mock<PersonService> { on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left() }
@@ -112,7 +118,7 @@ class InstitusjonsoppholdServiceTest {
         val person = person()
         val oppgaveId = OppgaveId("oppgaveid")
         val sak = søknadsbehandlingIverksattInnvilget().first
-        val hendelse = nyInstitusjonsoppholdHendelseKnyttetTilSakUtenOppgaveId()
+        val hendelse = nyInstitusjonsoppholdHendelseUtenOppgaveId()
         val sakRepo = mock<SakRepo> { on { hentSak(any<UUID>()) } doReturn sak }
         val personService = mock<PersonService> { on { hentPerson(any()) } doReturn person.right() }
         val institusjonsoppholdHendelseRepo = mock<InstitusjonsoppholdHendelseRepo> {
@@ -143,7 +149,17 @@ class InstitusjonsoppholdServiceTest {
             },
         )
         verify(institusjonsoppholdHendelseRepo).lagre(
-            InstitusjonsoppholdHendelse.KnyttetTilSak.MedOppgaveId(hendelse, oppgaveId),
+            argThat {
+                it shouldBe InstitusjonsoppholdHendelse.MedOppgaveId(
+                    hendelseId = it.hendelseId,
+                    oppgaveId = oppgaveId,
+                    hendelsestidspunkt = fixedTidspunkt,
+                    tidligereHendelseId = hendelse.hendelseId,
+                    versjon = Hendelsesversjon(2),
+                    sakId = sak.id,
+                    eksterneHendelse = nyEksternInstitusjonsoppholdHendelse(),
+                )
+            },
         )
         testMocks.verifyNoMoreInteractions()
     }

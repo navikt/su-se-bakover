@@ -127,6 +127,20 @@ class HendelsePostgresRepo(
         }
     }
 
+    fun hentSisteHendelseForAlleSakerPåTyper(typer: NonEmptyList<String>): List<PersistertHendelse>? =
+        dbMetrics.timeQuery("hentSisteHendelseForAlleSaker") {
+            // sikkerhets issues med denne type input - Ser ikke ut at det er så enkelt å parametisere den
+            sessionFactory.withSession { session ->
+                """
+                    select * from hendelse
+                    where type IN (${typer.map { "'$it'" }.joinToString(", ")})
+                    order by versjon desc
+                """.trimIndent()
+                    .hentListe(session = session) { toPersistertHendelse(it) }
+                    .ifEmpty { null }
+            }
+        }
+
     fun hentHendelserForSakIdOgTyper(
         sakId: UUID,
         typer: NonEmptyList<String>,

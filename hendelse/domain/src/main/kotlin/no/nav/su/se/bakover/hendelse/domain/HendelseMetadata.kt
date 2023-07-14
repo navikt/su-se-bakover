@@ -13,4 +13,8 @@ data class HendelseMetadata(
     val correlationId: CorrelationId?,
     val ident: NavIdentBruker?,
     val brukerroller: List<Brukerrolle>,
-)
+) {
+    companion object {
+        fun tom(): HendelseMetadata = HendelseMetadata(null, null, emptyList())
+    }
+}

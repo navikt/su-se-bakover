@@ -72,7 +72,7 @@ class InstitusjonsoppholdConsumer private constructor(
 
         run offsets@{
             messages.forEach { message ->
-                institusjonsoppholdService.process(message.value().toDomain(clock))
+                institusjonsoppholdService.process(message.value().toDomain())
                 offsets[TopicPartition(message.topic(), message.partition())] = OffsetAndMetadata(message.offset() + 1)
             }
             consumer.commitSync(offsets)

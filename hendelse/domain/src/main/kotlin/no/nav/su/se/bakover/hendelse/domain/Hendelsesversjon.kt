@@ -4,7 +4,7 @@ package no.nav.su.se.bakover.hendelse.domain
 value class Hendelsesversjon(val value: Long) : Comparable<Hendelsesversjon> {
 
     init {
-        require(value > 0L)
+        require(value > 0L) { "Versjonen må være større enn 0L" }
     }
 
     override fun compareTo(other: Hendelsesversjon): Int {
@@ -16,6 +16,8 @@ value class Hendelsesversjon(val value: Long) : Comparable<Hendelsesversjon> {
     override fun toString() = value.toString()
 
     companion object {
+        fun ny(): Hendelsesversjon = Hendelsesversjon(1)
+
         fun max(first: Hendelsesversjon, second: Hendelsesversjon): Hendelsesversjon =
             if (first > second) first else second
 

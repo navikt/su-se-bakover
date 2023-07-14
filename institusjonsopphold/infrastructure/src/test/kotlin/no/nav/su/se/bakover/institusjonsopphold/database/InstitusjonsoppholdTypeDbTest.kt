@@ -2,17 +2,17 @@ package no.nav.su.se.bakover.institusjonsopphold.database
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdType
-import no.nav.su.se.bakover.institusjonsopphold.database.InstitusjonsoppholdTypeDb.Companion.toDb
+import no.nav.su.se.bakover.institusjonsopphold.database.InstitusjonsoppholdTypeDb.Companion.toJson
 import org.junit.jupiter.api.Test
 
 class InstitusjonsoppholdTypeDbTest {
 
     @Test
     fun `mapper domenet type til riktig db type`() {
-        InstitusjonsoppholdType.OPPDATERING.toDb() shouldBe InstitusjonsoppholdTypeDb.OPPDATERING
-        InstitusjonsoppholdType.ANNULERING.toDb() shouldBe InstitusjonsoppholdTypeDb.ANNULERING
-        InstitusjonsoppholdType.INNMELDING.toDb() shouldBe InstitusjonsoppholdTypeDb.INNMELDING
-        InstitusjonsoppholdType.UTMELDING.toDb() shouldBe InstitusjonsoppholdTypeDb.UTMELDING
+        InstitusjonsoppholdType.OPPDATERING.toJson() shouldBe InstitusjonsoppholdTypeDb.OPPDATERING
+        InstitusjonsoppholdType.ANNULERING.toJson() shouldBe InstitusjonsoppholdTypeDb.ANNULERING
+        InstitusjonsoppholdType.INNMELDING.toJson() shouldBe InstitusjonsoppholdTypeDb.INNMELDING
+        InstitusjonsoppholdType.UTMELDING.toJson() shouldBe InstitusjonsoppholdTypeDb.UTMELDING
     }
 
     @Test

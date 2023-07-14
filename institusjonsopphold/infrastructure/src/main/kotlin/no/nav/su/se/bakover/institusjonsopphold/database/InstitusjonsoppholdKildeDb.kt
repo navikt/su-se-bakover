@@ -17,7 +17,7 @@ enum class InstitusjonsoppholdKildeDb {
     }
 
     companion object {
-        fun InstitusjonsoppholdKilde.toDb(): InstitusjonsoppholdKildeDb = when (this) {
+        fun InstitusjonsoppholdKilde.toJson(): InstitusjonsoppholdKildeDb = when (this) {
             InstitusjonsoppholdKilde.APPBRK -> APPBRK
             InstitusjonsoppholdKilde.INST -> INST
             InstitusjonsoppholdKilde.KDI -> KDI

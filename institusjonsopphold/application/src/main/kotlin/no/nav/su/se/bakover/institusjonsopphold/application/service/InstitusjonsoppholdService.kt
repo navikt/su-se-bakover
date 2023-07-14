@@ -3,13 +3,15 @@ package no.nav.su.se.bakover.institusjonsopphold.application.service
 import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelse
+import no.nav.su.se.bakover.domain.EksternInstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelseRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje.Companion.harInnvilgelse
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
 import java.time.Clock
 
@@ -22,13 +24,20 @@ class InstitusjonsoppholdService(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    fun process(hendelse: InstitusjonsoppholdHendelse.IkkeKnyttetTilSak) {
-        sakRepo.hentSaker(hendelse.eksternHendelse.norskident).ifEmpty {
+    fun process(hendelse: EksternInstitusjonsoppholdHendelse) {
+        if (!sakRepo.harSak(hendelse.norskident)) {
             return Unit.also {
-                sikkerLogg.debug("Forkaster institusjonsopphold hendelse ${hendelse.eksternHendelse.hendelseId} fordi den ikke er knyttet til sak")
+                sikkerLogg.debug("Forkaster institusjonsopphold hendelse ${hendelse.hendelseId} fordi den ikke er knyttet til sak")
             }
-        }.single { it.vedtakstidslinje(Måned.now(clock)).harInnvilgelse() }.let {
-            institusjonsoppholdHendelseRepo.lagre(hendelse.knyttTilSak(it.id))
+        }
+
+        sakRepo.hentSaker(hendelse.norskident).let {
+            it.forEach {
+                it.vedtakstidslinje(Måned.now(clock)).harInnvilgelse().ifTrue {
+                    val sisteVersjon = institusjonsoppholdHendelseRepo.hentSisteVersjonFor(it.id) ?: Hendelsesversjon.ny()
+                    institusjonsoppholdHendelseRepo.lagre(hendelse.nyHendelseMedSak(sakId = it.id, sisteVersjon, clock = clock))
+                }
+            }
         }
     }
 
@@ -51,7 +60,9 @@ class InstitusjonsoppholdService(
                 ).mapLeft {
                     log.error("Fikk ikke opprettet oppgave for institusjonsopphold hendelse ${hendelse.id} for sak ${sak.saksnummer}")
                 }.map {
-                    institusjonsoppholdHendelseRepo.lagre(hendelse.knyttTilOppgaveId(it))
+                    institusjonsoppholdHendelseRepo.lagre(
+                        hendelse.nyHendelseMedOppgaveId(oppgaveId = it, clock = clock),
+                    )
                 }
             } catch (e: Exception) {
                 log.error("Kunne ikke opprette oppgave for institusjonsopphold-hendelse ${hendelse.id}. Original feil $e")

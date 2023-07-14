@@ -155,6 +155,20 @@ internal class SakPostgresRepo(
         }
     }
 
+    override fun harSak(fnr: Fnr): Boolean {
+        return dbMetrics.timeQuery("harSak") {
+            sessionFactory.withSessionContext { sessionContext ->
+                sessionContext.withSession { session ->
+                    "select * from sak where fnr=:fnr".hent(
+                        mapOf("fnr" to fnr.toString()),
+                        session,
+                        // får vi minst en rad, så har personen en sak
+                    ) { it.underlying.first() } ?: false
+                }
+            }
+        }
+    }
+
     /***
      * @param personidenter Inneholder alle identer til brukeren, f.eks fnr og aktørid.
      */

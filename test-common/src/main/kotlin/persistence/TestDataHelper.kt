@@ -103,6 +103,7 @@ import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandling
 import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
 import no.nav.su.se.bakover.test.epsFnr
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
@@ -113,7 +114,7 @@ import no.nav.su.se.bakover.test.grunnlagsdataMedEpsMedFradrag
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
-import no.nav.su.se.bakover.test.nyInstitusjonsoppholdHendelseKnyttetTilSakUtenOppgaveId
+import no.nav.su.se.bakover.test.nyInstitusjonsoppholdHendelseUtenOppgaveId
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurdering
@@ -1584,20 +1585,18 @@ class TestDataHelper(
         }
     }
 
-    fun persisterInstitusjonsoppholdHendelseTilknyttetSakUtenOppgaveId(): InstitusjonsoppholdHendelse.KnyttetTilSak.UtenOppgaveId {
+    fun persisterInstitusjonsoppholdHendelseUtenOppgaveId(): InstitusjonsoppholdHendelse.UtenOppgaveId {
         return persisterSøknadsbehandlingIverksatt().let {
-            nyInstitusjonsoppholdHendelseKnyttetTilSakUtenOppgaveId(sakId = it.first.id).also {
+            nyInstitusjonsoppholdHendelseUtenOppgaveId(hendelseSakId = it.first.id).also {
                 institusjonsoppholdHendelseRepo.lagre(it)
             }
         }
     }
 
-    fun persisterInstitusjonsoppholdHendelseTilknyttetSakMedOppgaveId(): InstitusjonsoppholdHendelse.KnyttetTilSak.MedOppgaveId {
-        return persisterInstitusjonsoppholdHendelseTilknyttetSakUtenOppgaveId().let {
-            it.knyttTilOppgaveId(OppgaveId("tilknyttet oppgave id"))
-        }.also {
-            institusjonsoppholdHendelseRepo.lagre(it)
-        }
+    fun persisterInstitusjonsoppholdHendelseMedOppgaveId(): InstitusjonsoppholdHendelse.MedOppgaveId {
+        return persisterInstitusjonsoppholdHendelseUtenOppgaveId()
+            .nyHendelseMedOppgaveId(OppgaveId("tilknyttet oppgave id"), fixedClock)
+            .also { institusjonsoppholdHendelseRepo.lagre(it) }
     }
 
     companion object {

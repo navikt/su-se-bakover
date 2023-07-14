@@ -17,7 +17,7 @@ enum class InstitusjonsoppholdTypeDb {
     }
 
     companion object {
-        fun InstitusjonsoppholdType.toDb(): InstitusjonsoppholdTypeDb = when (this) {
+        fun InstitusjonsoppholdType.toJson(): InstitusjonsoppholdTypeDb = when (this) {
             InstitusjonsoppholdType.INNMELDING -> INNMELDING
             InstitusjonsoppholdType.OPPDATERING -> OPPDATERING
             InstitusjonsoppholdType.UTMELDING -> UTMELDING

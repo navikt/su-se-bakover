@@ -1,105 +1,144 @@
 package no.nav.su.se.bakover.institusjonsopphold.database
 
-import kotliquery.Row
+import arrow.core.nonEmptyListOf
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
-import no.nav.su.se.bakover.common.infrastructure.persistence.hent
-import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
-import no.nav.su.se.bakover.common.infrastructure.persistence.insert
-import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.EksternInstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelseRepo
-import no.nav.su.se.bakover.institusjonsopphold.database.InstitusjonsoppholdHendelseDb.Companion.toDb
+import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelserPåSak
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
+import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
+import no.nav.su.se.bakover.institusjonsopphold.database.InstitusjonsoppholdHendelseData.Companion.toStringifiedJson
 import java.lang.IllegalStateException
 import java.time.Clock
 import java.util.UUID
 
+private const val InstitusjonsoppholdHendelseUtenOppgaveId = "INSTITUSJONSOPPHOLD_UTEN_OPPGAVEID"
+private const val InstitusjonsoppholdHendelseMedOppgaveId = "INSTITUSJONSOPPHOLD_MED_OPPGAVEID"
+
+private val alleTyper =
+    nonEmptyListOf(InstitusjonsoppholdHendelseUtenOppgaveId, InstitusjonsoppholdHendelseMedOppgaveId)
+
 class InstitusjonsoppholdHendelsePostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
+    private val hendelseRepo: HendelsePostgresRepo,
     private val clock: Clock,
 ) : InstitusjonsoppholdHendelseRepo {
-    override fun lagre(hendelse: InstitusjonsoppholdHendelse.KnyttetTilSak) {
-        hendelse.toDb().let {
-            dbMetrics.timeQuery("lagreInstitusjonsoppholdHendelse") {
-                sessionFactory.withSession { session ->
-                    """
-                    INSERT INTO
-                        institusjonsopphold_hendelse
-                        (id, opprettet, sakId, hendelsesId, oppholdId, norskIdent, type, kilde, oppgaveId)
-                    VALUES 
-                        (:id, :opprettet, :sakId, :hendelsesId, :oppholdId, :norskIdent, :type, :kilde, :oppgaveId)
-                    ON CONFLICT 
-                        (id) do
-                    UPDATE SET
-                        oppgaveId=:oppgaveId
-                    """.trimIndent().insert(
-                        mapOf(
-                            "id" to it.id,
-                            "opprettet" to it.opprettet,
-                            "sakId" to it.sakId,
-                            "hendelsesId" to it.hendelseId,
-                            "oppholdId" to it.oppholdId,
-                            "norskIdent" to it.norskident,
-                            "type" to it.type.toString(),
-                            "kilde" to it.kilde.toString(),
-                            "oppgaveId" to it.oppgaveId,
-                        ),
-                        session,
-                    )
-                }
-            }
+    override fun lagre(hendelse: InstitusjonsoppholdHendelse) {
+        when (hendelse) {
+            is InstitusjonsoppholdHendelse.MedOppgaveId -> lagre(hendelse)
+            is InstitusjonsoppholdHendelse.UtenOppgaveId -> lagre(hendelse)
         }
     }
 
-    override fun hent(id: UUID): InstitusjonsoppholdHendelse.KnyttetTilSak? =
+    private fun lagre(hendelse: InstitusjonsoppholdHendelse.UtenOppgaveId) {
+        dbMetrics.timeQuery("lagreInstitusjonsoppholdHendelse-utenOppgaveId") {
+            hendelseRepo.persister(
+                hendelse = hendelse,
+                type = InstitusjonsoppholdHendelseUtenOppgaveId,
+                data = hendelse.toStringifiedJson(),
+            )
+        }
+    }
+
+    private fun lagre(hendelse: InstitusjonsoppholdHendelse.MedOppgaveId) {
+        dbMetrics.timeQuery("lagreInstitusjonsoppholdHendelse-medOppgaveId") {
+            hendelseRepo.persister(
+                hendelse = hendelse,
+                type = InstitusjonsoppholdHendelseMedOppgaveId,
+                data = hendelse.toStringifiedJson(),
+            )
+        }
+    }
+
+    override fun hentForSak(sakId: UUID): InstitusjonsoppholdHendelserPåSak =
         dbMetrics.timeQuery("hentInstitusjonsoppholdHendelse") {
-            sessionFactory.withSession { session ->
-                "SELECT * from institusjonsopphold_hendelse WHERE id = :id".hent(mapOf("id" to id), session) {
-                    it.toInstitusjonsoppholdHendelse()
-                }
-            }
+            hendelseRepo.hentHendelserForSakIdOgTyper(sakId, alleTyper).map {
+                it.toInstitusjonsoppholdhendelse()
+            }.toInstitusjonsoppholdHendelserPåSak()
         }
 
-    override fun hentHendelserUtenOppgaveId(): List<InstitusjonsoppholdHendelse.KnyttetTilSak> =
-        dbMetrics.timeQuery("hentInstitusjonsoppholdHendelserUtenOppgave") {
-            sessionFactory.withSession { session ->
-                "SELECT * FROM institusjonsopphold_hendelse WHERE oppgaveId is null".hentListe(mapOf(), session) {
-                    it.toInstitusjonsoppholdHendelse()
-                }
-            }
+    override fun hentSisteVersjonFor(sakId: UUID): Hendelsesversjon? =
+        hendelseRepo.hentSisteHendelseforSakIdOgTyper(sakId, alleTyper)?.versjon
+
+    override fun hentHendelserUtenOppgaveId(): List<InstitusjonsoppholdHendelse.UtenOppgaveId> {
+        return dbMetrics.timeQuery("hentInstitusjonsoppholdHendelserUtenOppgave") {
+            val hendelser = hendelseRepo.hentSisteHendelseForAlleSakerPåTyper(alleTyper) ?: return@timeQuery emptyList()
+
+            hendelser.map { it.toInstitusjonsoppholdhendelse() }
+                .groupBy { it.sakId }
+                .tilHendelserPåSak()
+                .flatMap { it.hentHendelserMedBehovForOppgaveId() }
+        }
+    }
+
+    private fun PersistertHendelse.toInstitusjonsoppholdhendelse(): InstitusjonsoppholdHendelse {
+        return when (this.type) {
+            InstitusjonsoppholdHendelseUtenOppgaveId -> this.toInstitusjonsoppholdhendelseUtenOppgaveId()
+            InstitusjonsoppholdHendelseMedOppgaveId -> this.toInstitusjonsoppholdhendelseMedOppgaveId()
+            else -> throw IllegalStateException("Ukjent institusjonsopphold hendelse type")
+        }
+    }
+
+    private fun PersistertHendelse.toInstitusjonsoppholdhendelseUtenOppgaveId(): InstitusjonsoppholdHendelse.UtenOppgaveId {
+        val data = deserialize<InstitusjonsoppholdHendelseData>(this.data)
+        require(data.oppgaveId == null) {
+            "Prøve å lage institusjonsoppholdUtenOppgaveId på en hendelse ${this.hendelseId} der oppgaveId fantes"
         }
 
-    private fun Row.toInstitusjonsoppholdHendelse(): InstitusjonsoppholdHendelse.KnyttetTilSak {
-        val id = uuid("id")
-        val opprettet = tidspunkt("opprettet")
-        val sakId = uuid("sakId")
-        val hendelsesId = long("hendelsesId")
-        val oppholdId = long("oppholdId")
-        val norskIdent = Fnr.tryCreate(string("norskIdent"))
-            ?: throw IllegalStateException("Kunne ikke lage fødselsnummer for norsk ident for institusjonsoppholdHendelse $id")
-        val type = InstitusjonsoppholdTypeDb.valueOf(string("type"))
-        val kilde = InstitusjonsoppholdKildeDb.valueOf(string("kilde"))
-        val oppgaveId = stringOrNull("oppgaveId")?.let { OppgaveId(it) }
-
-        val hendelse = InstitusjonsoppholdHendelse.KnyttetTilSak.UtenOppgaveId(
-            sakId = sakId,
-            ikkeKnyttetTilSak = InstitusjonsoppholdHendelse.IkkeKnyttetTilSak(
-                id = id,
-                opprettet = opprettet,
-                eksternHendelse = EksternInstitusjonsoppholdHendelse(
-                    hendelseId = hendelsesId,
-                    oppholdId = oppholdId,
-                    norskident = norskIdent,
-                    type = type.toDomain(),
-                    kilde = kilde.toDomain(),
-                ),
+        return InstitusjonsoppholdHendelse.UtenOppgaveId(
+            hendelseId = HendelseId.fromUUID(this.hendelseId),
+            sakId = this.sakId
+                ?: throw IllegalStateException("Institusjonsoppholdhendelse $hendelseId hadde sakId som null fra DB"),
+            hendelsestidspunkt = this.hendelsestidspunkt,
+            versjon = this.versjon,
+            eksterneHendelse = EksternInstitusjonsoppholdHendelse(
+                hendelseId = data.hendelseId,
+                oppholdId = data.oppholdId,
+                norskident = Fnr.tryCreate(data.norskident)
+                    ?: throw IllegalStateException("Kunne ikke lage Fnr for institusjonsoppholdhendelse $hendelseId"),
+                type = data.type.toDomain(),
+                kilde = data.kilde.toDomain(),
             ),
         )
-
-        return if (oppgaveId == null) hendelse else hendelse.knyttTilOppgaveId(oppgaveId)
     }
+
+    private fun PersistertHendelse.toInstitusjonsoppholdhendelseMedOppgaveId(): InstitusjonsoppholdHendelse.MedOppgaveId {
+        val data = deserialize<InstitusjonsoppholdHendelseData>(this.data)
+        require(data.oppgaveId != null) {
+            "Prøve å lage institusjonsoppholdMedOppgaveId på en hendelse ${this.hendelseId} der oppgaveId ikke fantes"
+        }
+
+        return InstitusjonsoppholdHendelse.MedOppgaveId(
+            hendelseId = HendelseId.fromUUID(this.hendelseId),
+            oppgaveId = OppgaveId(data.oppgaveId),
+            hendelsestidspunkt = this.hendelsestidspunkt,
+            tidligereHendelseId = HendelseId.fromUUID(this.tidligereHendelseId!!),
+            versjon = this.versjon,
+            sakId = this.sakId
+                ?: throw IllegalStateException("Institusjonsoppholdhendelse $hendelseId hadde sakId som null fra DB"),
+            eksterneHendelse = EksternInstitusjonsoppholdHendelse(
+                hendelseId = data.hendelseId,
+                oppholdId = data.oppholdId,
+                norskident = Fnr.tryCreate(data.norskident)
+                    ?: throw IllegalStateException("Kunne ikke lage Fnr for institusjonsoppholdhendelse $hendelseId"),
+                type = data.type.toDomain(),
+                kilde = data.kilde.toDomain(),
+            ),
+        )
+    }
+
+    private fun Map<UUID, List<InstitusjonsoppholdHendelse>>.tilHendelserPåSak(): List<InstitusjonsoppholdHendelserPåSak> =
+        this.entries.map { InstitusjonsoppholdHendelserPåSak(it.value.sorted().toNonEmptyList()) }
+
+    private fun List<InstitusjonsoppholdHendelse>.toInstitusjonsoppholdHendelserPåSak(): InstitusjonsoppholdHendelserPåSak =
+        InstitusjonsoppholdHendelserPåSak(hendelser = this.sorted().toNonEmptyList())
 }

@@ -3,7 +3,11 @@ package no.nav.su.se.bakover.domain
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import java.lang.IllegalStateException
+import no.nav.su.se.bakover.hendelse.domain.Hendelse
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
+import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import java.time.Clock
 import java.util.UUID
 
 data class EksternInstitusjonsoppholdHendelse(
@@ -12,51 +16,77 @@ data class EksternInstitusjonsoppholdHendelse(
     val norskident: Fnr,
     val type: InstitusjonsoppholdType,
     val kilde: InstitusjonsoppholdKilde,
-)
+) {
+    fun nyHendelseMedSak(
+        sakId: UUID,
+        versjon: Hendelsesversjon,
+        clock: Clock,
+    ): InstitusjonsoppholdHendelse.UtenOppgaveId =
+        InstitusjonsoppholdHendelse.UtenOppgaveId(
+            hendelseId = HendelseId.generer(),
+            sakId = sakId,
+            hendelsestidspunkt = Tidspunkt.now(clock),
+            eksterneHendelse = this,
+            versjon = versjon,
+        )
+}
 
-sealed interface InstitusjonsoppholdHendelse {
+sealed interface InstitusjonsoppholdHendelse : Hendelse {
+    val eksterneHendelse: EksternInstitusjonsoppholdHendelse
+    val oppgaveId: OppgaveId?
     val id: UUID
-    val opprettet: Tidspunkt
-    val eksternHendelse: EksternInstitusjonsoppholdHendelse
-    fun knyttTilSak(sakId: UUID): KnyttetTilSak
 
-    data class IkkeKnyttetTilSak(
-        override val id: UUID,
-        override val opprettet: Tidspunkt,
-        override val eksternHendelse: EksternInstitusjonsoppholdHendelse,
+    fun nyHendelseMedOppgaveId(oppgaveId: OppgaveId, clock: Clock): MedOppgaveId
+
+    data class UtenOppgaveId(
+        override val hendelseId: HendelseId,
+        override val sakId: UUID,
+        override val hendelsestidspunkt: Tidspunkt,
+        override val eksterneHendelse: EksternInstitusjonsoppholdHendelse,
+        override val versjon: Hendelsesversjon,
     ) : InstitusjonsoppholdHendelse {
-        override fun knyttTilSak(sakId: UUID): KnyttetTilSak =
-            KnyttetTilSak.UtenOppgaveId(sakId = sakId, ikkeKnyttetTilSak = this)
+        override val id: UUID = hendelseId.value
+        override val oppgaveId = null
+        override val entitetId: UUID = sakId
+        override val tidligereHendelseId: HendelseId? = null
+        override val meta: HendelseMetadata = HendelseMetadata.tom()
+
+        override fun nyHendelseMedOppgaveId(oppgaveId: OppgaveId, clock: Clock): MedOppgaveId =
+            MedOppgaveId(
+                hendelseId = HendelseId.generer(),
+                oppgaveId = oppgaveId,
+                hendelsestidspunkt = Tidspunkt.now(clock),
+                tidligereHendelseId = this.hendelseId,
+                sakId = this.sakId,
+                versjon = this.versjon.inc(),
+                eksterneHendelse = eksterneHendelse,
+            )
+
+        override fun compareTo(other: Hendelse): Int {
+            require(this.entitetId == other.entitetId && this.sakId == other.sakId) { "EntitetIdene eller sakIdene var ikke lik" }
+            return this.versjon.compareTo(other.versjon)
+        }
     }
 
-    sealed interface KnyttetTilSak : InstitusjonsoppholdHendelse {
-        val sakId: UUID
-        val oppgaveId: OppgaveId?
+    data class MedOppgaveId(
+        override val hendelseId: HendelseId,
+        override val oppgaveId: OppgaveId,
+        override val hendelsestidspunkt: Tidspunkt,
+        override val tidligereHendelseId: HendelseId,
+        override val versjon: Hendelsesversjon,
+        override val sakId: UUID,
+        override val eksterneHendelse: EksternInstitusjonsoppholdHendelse,
+    ) : InstitusjonsoppholdHendelse {
+        override val id: UUID = hendelseId.value
+        override val entitetId: UUID = sakId
+        override val meta: HendelseMetadata = HendelseMetadata.tom()
 
-        fun knyttTilOppgaveId(oppgaveId: OppgaveId): MedOppgaveId
+        override fun nyHendelseMedOppgaveId(oppgaveId: OppgaveId, clock: Clock) =
+            throw IllegalStateException("Kan ikke knytte til en annen oppgaveId")
 
-        data class UtenOppgaveId(
-            override val sakId: UUID,
-            val ikkeKnyttetTilSak: IkkeKnyttetTilSak,
-        ) : KnyttetTilSak, InstitusjonsoppholdHendelse by ikkeKnyttetTilSak {
-            override val oppgaveId = null
-
-            override fun knyttTilSak(sakId: UUID): KnyttetTilSak =
-                throw IllegalStateException("Kan ikke knytte til en annen sakId")
-
-            override fun knyttTilOppgaveId(oppgaveId: OppgaveId): MedOppgaveId =
-                MedOppgaveId(utenOppgaveId = this, oppgaveId = oppgaveId)
-        }
-
-        data class MedOppgaveId(
-            val utenOppgaveId: UtenOppgaveId,
-            override val oppgaveId: OppgaveId,
-        ) : KnyttetTilSak by utenOppgaveId {
-            override fun knyttTilSak(sakId: UUID): KnyttetTilSak =
-                throw IllegalStateException("Kan ikke knytte til en annen sakId")
-
-            override fun knyttTilOppgaveId(oppgaveId: OppgaveId) =
-                throw IllegalStateException("Kan ikke knytte til en annen oppgaveId")
+        override fun compareTo(other: Hendelse): Int {
+            require(this.entitetId == other.entitetId && this.sakId == other.sakId) { "EntitetIdene eller sakIdene var ikke lik" }
+            return this.versjon.compareTo(other.versjon)
         }
     }
 }
