@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.revurdering.iverksett
 
 import arrow.core.Either
-import arrow.core.continuations.either
 import arrow.core.left
+import arrow.core.raise.either
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
@@ -28,7 +28,7 @@ fun Sak.iverksettRevurdering(
     simuler: (utbetaling: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
     lagDokument: (visitable: Visitable<LagBrevRequestVisitor>) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
 ): Either<KunneIkkeIverksetteRevurdering.Saksfeil, IverksettRevurderingResponse<Revurderingsvedtak>> {
-    return either.eager {
+    return either {
         val revurdering = finnRevurderingOgValiderTilstand(revurderingId).bind()
         when (revurdering) {
             is RevurderingTilAttestering.Innvilget -> iverksettInnvilgetRevurdering(

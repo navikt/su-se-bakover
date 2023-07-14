@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt
 
 import arrow.core.Either
-import arrow.core.flatMap
-import arrow.core.sequence
+import arrow.core.getOrElse
+import arrow.core.left
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
@@ -29,7 +29,9 @@ internal data class VurderingsperiodeOpplysningspliktVilkårJson(
     val periode: PeriodeJson,
     val beskrivelse: OpplysningspliktBeskrivelseJson,
 ) {
-    fun toDomain(clock: Clock): Either<KunneIkkeLageOpplysningspliktVilkår.Vurderingsperiode, VurderingsperiodeOpplysningsplikt> {
+    fun toDomain(
+        clock: Clock,
+    ): Either<KunneIkkeLageOpplysningspliktVilkår.Vurderingsperiode, VurderingsperiodeOpplysningsplikt> {
         return VurderingsperiodeOpplysningsplikt.tryCreate(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
@@ -42,6 +44,7 @@ internal data class VurderingsperiodeOpplysningspliktVilkårJson(
                     OpplysningspliktBeskrivelseJson.TilstrekkeligDokumentasjon -> {
                         OpplysningspliktBeskrivelse.TilstrekkeligDokumentasjon
                     }
+
                     OpplysningspliktBeskrivelseJson.UtilstrekkeligDokumentasjon -> {
                         OpplysningspliktBeskrivelse.UtilstrekkeligDokumentasjon
                     }
@@ -51,16 +54,16 @@ internal data class VurderingsperiodeOpplysningspliktVilkårJson(
     }
 }
 
-internal fun List<VurderingsperiodeOpplysningspliktVilkårJson>.toDomain(clock: Clock): Either<KunneIkkeLeggeTilOpplysningsplikt, OpplysningspliktVilkår.Vurdert> {
-    return map { it.toDomain(clock) }.sequence()
-        .mapLeft { KunneIkkeLeggeTilOpplysningsplikt.UgyldigOpplysningspliktVilkår(it) }
-        .flatMap { vurderingsperioder ->
-            OpplysningspliktVilkår.Vurdert.tryCreate(
-                vurderingsperioder.toNonEmptyList(),
-
-            )
-                .mapLeft { KunneIkkeLeggeTilOpplysningsplikt.UgyldigOpplysningspliktVilkår(it) }
+internal fun List<VurderingsperiodeOpplysningspliktVilkårJson>.toDomain(
+    clock: Clock,
+): Either<KunneIkkeLeggeTilOpplysningsplikt, OpplysningspliktVilkår.Vurdert> {
+    val vurderingsperioder = this.map { json ->
+        json.toDomain(clock).getOrElse {
+            return KunneIkkeLeggeTilOpplysningsplikt.UgyldigOpplysningspliktVilkår(it).left()
         }
+    }
+    return OpplysningspliktVilkår.Vurdert.tryCreate(vurderingsperioder.toNonEmptyList())
+        .mapLeft { KunneIkkeLeggeTilOpplysningsplikt.UgyldigOpplysningspliktVilkår(it) }
 }
 
 internal fun OpplysningspliktVilkår.toJson(): OpplysningspliktVilkårJson? {
@@ -68,6 +71,7 @@ internal fun OpplysningspliktVilkår.toJson(): OpplysningspliktVilkårJson? {
         OpplysningspliktVilkår.IkkeVurdert -> {
             null
         }
+
         is OpplysningspliktVilkår.Vurdert -> {
             this.toJson()
         }
@@ -92,6 +96,7 @@ internal fun OpplysningspliktBeskrivelse.toJson(): OpplysningspliktBeskrivelseJs
         OpplysningspliktBeskrivelse.TilstrekkeligDokumentasjon -> {
             OpplysningspliktBeskrivelseJson.TilstrekkeligDokumentasjon
         }
+
         OpplysningspliktBeskrivelse.UtilstrekkeligDokumentasjon -> {
             OpplysningspliktBeskrivelseJson.UtilstrekkeligDokumentasjon
         }

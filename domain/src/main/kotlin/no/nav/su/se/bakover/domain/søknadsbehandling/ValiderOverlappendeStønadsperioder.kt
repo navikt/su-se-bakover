@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import arrow.core.Either
-import arrow.core.continuations.either
 import arrow.core.left
+import arrow.core.raise.either
 import arrow.core.right
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
@@ -18,7 +18,7 @@ internal fun Sak.validerOverlappendeStønadsperioder(
     periode: Periode,
     clock: Clock,
 ): Either<StøtterIkkeOverlappendeStønadsperioder, Unit> {
-    return either.eager {
+    return either {
         validerOverlappendeIkkeOpphørtePerioder(periode).bind()
         validerOpphørFørtTilAvkorting(periode, clock).bind()
     }

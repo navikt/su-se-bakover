@@ -4,8 +4,8 @@ import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.raise.either
 import arrow.core.right
-import arrow.core.sequence
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -188,7 +188,11 @@ sealed interface Grunnlag {
                 oppdatertPeriode: Periode,
                 clock: Clock,
             ): Either<UgyldigFradragsgrunnlag, List<Fradragsgrunnlag>> {
-                return this.map { it.oppdaterFradragsperiode(oppdatertPeriode, clock) }.sequence()
+                return either {
+                    this@oppdaterFradragsperiode.map {
+                        it.oppdaterFradragsperiode(oppdatertPeriode, clock).bind()
+                    }
+                }
             }
 
             fun List<Fradragsgrunnlag>.harEpsInntekt() = this.any { it.fradrag.tilhørerEps() }

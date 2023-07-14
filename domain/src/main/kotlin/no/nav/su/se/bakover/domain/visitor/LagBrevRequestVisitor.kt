@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.domain.visitor
 
 import arrow.core.Either
-import arrow.core.continuations.either
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.raise.either
 import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
@@ -352,7 +352,7 @@ class LagBrevRequestVisitor(
         saksbehandler: NavIdentBruker.Saksbehandler?,
         attestant: NavIdentBruker.Attestant?,
     ): Either<KunneIkkeLageBrevRequest, PersonOgNavn> {
-        return either.eager {
+        return either {
             val person = hentPerson(fnr).bind()
             val saksbehandlerNavn = saksbehandler?.let {
                 hentNavn(it).bind()

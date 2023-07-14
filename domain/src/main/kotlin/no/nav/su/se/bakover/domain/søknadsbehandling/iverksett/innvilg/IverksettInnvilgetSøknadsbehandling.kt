@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.innvilg
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import arrow.core.continuations.either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
+import arrow.core.raise.either
 import arrow.core.right
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -54,7 +54,7 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
 ): Either<KunneIkkeIverksetteSøknadsbehandling, IverksattInnvilgetSøknadsbehandlingResponse> {
     require(this.søknadsbehandlinger.any { it == søknadsbehandling })
 
-    either.eager {
+    either {
         validerKravgrunnlag().bind()
         validerAvkorting(søknadsbehandling).bind()
         validerFeilutbetalinger(søknadsbehandling).bind()
