@@ -43,7 +43,7 @@ internal class RevurderingLeggTilUtenlandsoppholdTest {
         val expected = opprettetRevurdering.copy(
             informasjonSomRevurderes = opprettetRevurdering.informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Utenlandsopphold),
             grunnlagsdataOgVilkårsvurderinger = opprettetRevurdering.grunnlagsdataOgVilkårsvurderinger.oppdaterVilkårsvurderinger(
-                opprettetRevurdering.vilkårsvurderinger.leggTil(
+                opprettetRevurdering.vilkårsvurderinger.oppdaterVilkår(
                     UtenlandsoppholdVilkår.Vurdert.tryCreate(
                         vurderingsperioder = nonEmptyListOf(
                             VurderingsperiodeUtenlandsopphold.tryCreate(

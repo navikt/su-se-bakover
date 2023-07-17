@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.common.tid.krympTilØvreGrense
 import no.nav.su.se.bakover.common.tid.toRange
@@ -38,11 +37,12 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanBeregnes
+import no.nav.su.se.bakover.domain.søknadsbehandling.KanOppdatereFradragsgrunnlag
+import no.nav.su.se.bakover.domain.søknadsbehandling.KanOppdaterePeriodeBosituasjonVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilSkattegrunnlag
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
@@ -55,7 +55,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.HentRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeBeregne
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkårService
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkårService.FantIkkeBehandling.tilKunneIkkeLeggeTilFamiliegjenforeningVilkårService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold
@@ -68,8 +67,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.UnderkjennRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.forsøkStatusovergang
@@ -77,6 +74,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.medFritekstTilBrev
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
@@ -86,11 +84,11 @@ import no.nav.su.se.bakover.domain.vilkår.flyktning.LeggTilFlyktningVilkårRequ
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.institusjonsopphold.KunneIkkeLeggeTilInstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.institusjonsopphold.LeggTilInstitusjonsoppholdVilkårRequest
-import no.nav.su.se.bakover.domain.vilkår.lovligopphold.KunneIkkeLeggetilLovligOppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.lovligopphold.KunneIkkeLeggetilLovligOppholdVilkårForSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.lovligopphold.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.opplysningsplikt.KunneIkkeLeggeTilOpplysningsplikt
 import no.nav.su.se.bakover.domain.vilkår.opplysningsplikt.LeggTilOpplysningspliktRequest
-import no.nav.su.se.bakover.domain.vilkår.oppmøte.KunneIkkeLeggeTilPersonligOppmøteVilkår
+import no.nav.su.se.bakover.domain.vilkår.oppmøte.KunneIkkeLeggeTilPersonligOppmøteVilkårForSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.oppmøte.LeggTilPersonligOppmøteVilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.pensjon.KunneIkkeLeggeTilPensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.pensjon.LeggTilPensjonsVilkårRequest
@@ -103,6 +101,7 @@ import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.Year
 import java.util.UUID
+import kotlin.reflect.KClass
 
 class SøknadsbehandlingServiceImpl(
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
@@ -251,9 +250,10 @@ class SøknadsbehandlingServiceImpl(
                 log.error("Søknadsbehandling send til attestering: Kunne ikke opprette Attesteringsoppgave for søknadsbehandling ${request.behandlingId}. Avbryter handlingen.")
                 return KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave.left()
             }
-
-            val søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev =
-                søknadsbehandling.nyOppgaveId(nyOppgaveId).medFritekstTilBrev(request.fritekstTilBrev)
+            check(søknadsbehandling.fritekstTilBrev == request.fritekstTilBrev) {
+                "Liten refaktoreringssafe-guard. Statusovergangen skal sette fritekst til brev på søknadsbehandlingen."
+            }
+            val søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev = søknadsbehandling.nyOppgaveId(nyOppgaveId)
 
             søknadsbehandlingRepo.lagre(søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev)
 
@@ -346,13 +346,13 @@ class SøknadsbehandlingServiceImpl(
     }
 
     override fun brev(request: BrevRequest): Either<KunneIkkeLageDokument, ByteArray> {
-        val behandling = when (request) {
+        val søknadsbehandling = when (request) {
             is BrevRequest.MedFritekst -> request.behandling.medFritekstTilBrev(request.fritekst)
 
             is BrevRequest.UtenFritekst -> request.behandling
         }
 
-        return brevService.lagDokument(behandling).map { it.generertDokument }
+        return brevService.lagDokument(søknadsbehandling).map { it.generertDokument }
     }
 
     override fun hent(request: HentRequest): Either<FantIkkeBehandling, Søknadsbehandling> {
@@ -388,8 +388,12 @@ class SøknadsbehandlingServiceImpl(
         request: LeggTilUførevurderingerRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeTilUføreVilkår, Søknadsbehandling> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeLeggeTilUføreVilkår.FantIkkeBehandling.left()
+        val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
+            søknadsbehandlingId = request.behandlingId,
+            søknadsbehandlingRepo = søknadsbehandlingRepo,
+            ugyldigTilstandError = { fra, til -> KunneIkkeLeggeTilUføreVilkår.UgyldigTilstand(fra, til) },
+            fantIkkeBehandlingError = { KunneIkkeLeggeTilUføreVilkår.FantIkkeBehandling },
+        ).getOrElse { return it.left() }
 
         val vilkår = request.toVilkår(
             behandlingsperiode = søknadsbehandling.periode,
@@ -398,16 +402,8 @@ class SøknadsbehandlingServiceImpl(
             return KunneIkkeLeggeTilUføreVilkår.UgyldigInput(it).left()
         }
 
-        val vilkårsvurdert = søknadsbehandling.leggTilUførevilkår(saksbehandler, vilkår, clock).getOrElse {
-            return when (it) {
-                is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.UgyldigTilstand -> {
-                    KunneIkkeLeggeTilUføreVilkår.UgyldigTilstand(fra = it.fra, til = it.til)
-                }
-
-                KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.VurderingsperiodeUtenforBehandlingsperiode -> {
-                    KunneIkkeLeggeTilUføreVilkår.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden
-                }
-            }.left()
+        val vilkårsvurdert = søknadsbehandling.leggTilUførevilkår(saksbehandler, vilkår).getOrElse {
+            return KunneIkkeLeggeTilUføreVilkår.Domenefeil(it).left()
         }
 
         søknadsbehandlingRepo.lagre(vilkårsvurdert)
@@ -417,20 +413,23 @@ class SøknadsbehandlingServiceImpl(
     override fun leggTilLovligOpphold(
         request: LeggTilLovligOppholdRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeLeggetilLovligOppholdVilkår, Søknadsbehandling> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeLeggetilLovligOppholdVilkår.FantIkkeBehandling.left()
+    ): Either<KunneIkkeLeggetilLovligOppholdVilkårForSøknadsbehandling, Søknadsbehandling> {
+        val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
+            søknadsbehandlingId = request.behandlingId,
+            søknadsbehandlingRepo = søknadsbehandlingRepo,
+            ugyldigTilstandError = { _, _ -> null }, // TODO jah: Mangler Left.
+            fantIkkeBehandlingError = { KunneIkkeLeggetilLovligOppholdVilkårForSøknadsbehandling.FantIkkeBehandling },
+        ).getOrElse { return it.left() }
 
         val vilkår = request.toVilkår(clock).getOrElse {
-            return KunneIkkeLeggetilLovligOppholdVilkår.UgyldigLovligOppholdVilkår(it).left()
+            return KunneIkkeLeggetilLovligOppholdVilkårForSøknadsbehandling.UgyldigLovligOppholdVilkår(it).left()
         }
 
         return søknadsbehandling.leggTilLovligOpphold(
             lovligOppholdVilkår = vilkår,
             saksbehandler = saksbehandler,
-            clock = clock,
         ).mapLeft {
-            KunneIkkeLeggetilLovligOppholdVilkår.FeilVedSøknadsbehandling(it)
+            KunneIkkeLeggetilLovligOppholdVilkårForSøknadsbehandling.FeilVedSøknadsbehandling(it)
         }.onRight {
             søknadsbehandlingRepo.lagre(it)
         }
@@ -440,8 +439,12 @@ class SøknadsbehandlingServiceImpl(
         request: LeggTilFamiliegjenforeningRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeTilFamiliegjenforeningVilkårService, Søknadsbehandling> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeLeggeTilFamiliegjenforeningVilkårService.FantIkkeBehandling.left()
+        val søknadsbehandling: KanOppdaterePeriodeBosituasjonVilkår = hentKanOppdaterePeriodeGrunnlagVilkår(
+            søknadsbehandlingId = request.behandlingId,
+            søknadsbehandlingRepo = søknadsbehandlingRepo,
+            ugyldigTilstandError = { fra, til -> KunneIkkeLeggeTilFamiliegjenforeningVilkårService.UgyldigTilstand(fra, til) },
+            fantIkkeBehandlingError = { KunneIkkeLeggeTilFamiliegjenforeningVilkårService.FantIkkeBehandling },
+        ).getOrElse { return it.left() }
 
         val familiegjenforeningVilkår = request.toVilkår(
             clock = clock,
@@ -452,10 +455,10 @@ class SøknadsbehandlingServiceImpl(
         familiegjenforeningVilkår.vurderingsperioder.single()
 
         return søknadsbehandling.leggTilFamiliegjenforeningvilkår(
-            familiegjenforening = familiegjenforeningVilkår,
+            vilkår = familiegjenforeningVilkår,
             saksbehandler = saksbehandler,
         ).mapLeft {
-            it.tilKunneIkkeLeggeTilFamiliegjenforeningVilkårService()
+            KunneIkkeLeggeTilFamiliegjenforeningVilkårService.Domenefeil(it)
         }.onRight {
             søknadsbehandlingRepo.lagre(it)
         }
@@ -465,15 +468,23 @@ class SøknadsbehandlingServiceImpl(
         request: LeggTilFradragsgrunnlagRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling> {
-        val behandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
+        val søknadsbehandling: KanOppdatereFradragsgrunnlag =
+            when (val s = søknadsbehandlingRepo.hent(request.behandlingId)) {
+                is Søknadsbehandling -> (s as? KanOppdatereFradragsgrunnlag)
+                    ?: return KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
+                        fra = s::class,
+                        til = VilkårsvurdertSøknadsbehandling.Innvilget::class,
+                    ).left()
+
+                null -> return KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
+            }
 
         /**
          *  I flere av funksjonene i denne fila bruker vi [Statusovergang] og [no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor] for å bestemme om det er en gyldig statusovergang, men i dette tilfellet bruker vi domenemodellen sin funksjon leggTilFradragsgrunnlag til dette.
          * Vi ønsker gradvis å gå over til sistenevnte måte å gjøre det på.
          */
         val oppdatertBehandling =
-            behandling.oppdaterFradragsgrunnlagForSaksbehandler(saksbehandler, request.fradragsgrunnlag, clock)
+            søknadsbehandling.oppdaterFradragsgrunnlag(saksbehandler, request.fradragsgrunnlag, clock)
                 .getOrElse {
                     return it.toService().left()
                 }
@@ -510,8 +521,12 @@ class SøknadsbehandlingServiceImpl(
         request: LeggTilFlereUtenlandsoppholdRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeTilUtenlandsopphold, VilkårsvurdertSøknadsbehandling> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling.left()
+        val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
+            søknadsbehandlingId = request.behandlingId,
+            søknadsbehandlingRepo = søknadsbehandlingRepo,
+            ugyldigTilstandError = { fra, til -> KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand(fra, til) },
+            fantIkkeBehandlingError = { KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling },
+        ).getOrElse { return it.left() }
 
         val vilkår = request.tilVilkår(clock).getOrElse {
             when (it) {
@@ -525,22 +540,27 @@ class SøknadsbehandlingServiceImpl(
             }
         }
 
-        val vilkårsvurdert = søknadsbehandling.leggTilUtenlandsopphold(saksbehandler, vilkår, clock).getOrElse {
-            return it.tilService().left()
+        val vilkårsvurdert = søknadsbehandling.leggTilUtenlandsopphold(saksbehandler, vilkår).getOrElse {
+            return KunneIkkeLeggeTilUtenlandsopphold.Domenefeil(it).left()
         }
 
         søknadsbehandlingRepo.lagre(vilkårsvurdert)
         return vilkårsvurdert.right()
     }
 
-    override fun leggTilOpplysningspliktVilkår(request: LeggTilOpplysningspliktRequest.Søknadsbehandling): Either<KunneIkkeLeggeTilOpplysningsplikt, VilkårsvurdertSøknadsbehandling> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeLeggeTilOpplysningsplikt.FantIkkeBehandling.left()
+    override fun leggTilOpplysningspliktVilkår(
+        request: LeggTilOpplysningspliktRequest.Søknadsbehandling,
+    ): Either<KunneIkkeLeggeTilOpplysningsplikt, VilkårsvurdertSøknadsbehandling> {
+        val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
+            søknadsbehandlingId = request.behandlingId,
+            søknadsbehandlingRepo = søknadsbehandlingRepo,
+            ugyldigTilstandError = { _, _ -> null }, // TODO jah: Mangler Left.
+            fantIkkeBehandlingError = { KunneIkkeLeggeTilOpplysningsplikt.FantIkkeBehandling },
+        ).getOrElse { return it.left() }
 
-        return søknadsbehandling.leggTilOpplysningspliktVilkårForSaksbehandler(
-            request.saksbehandler,
-            request.vilkår,
-            clock,
+        return søknadsbehandling.leggTilOpplysningspliktVilkår(
+            saksbehandler = request.saksbehandler,
+            vilkår = request.vilkår,
         ).mapLeft {
             KunneIkkeLeggeTilOpplysningsplikt.Søknadsbehandling(it)
         }.map {
@@ -553,8 +573,12 @@ class SøknadsbehandlingServiceImpl(
         request: LeggTilPensjonsVilkårRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeTilPensjonsVilkår, VilkårsvurdertSøknadsbehandling> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeLeggeTilPensjonsVilkår.FantIkkeBehandling.left()
+        val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
+            søknadsbehandlingId = request.behandlingId,
+            søknadsbehandlingRepo = søknadsbehandlingRepo,
+            ugyldigTilstandError = { _, _ -> null }, // TODO jah: Mangler Left.
+            fantIkkeBehandlingError = { KunneIkkeLeggeTilPensjonsVilkår.FantIkkeBehandling },
+        ).getOrElse { return it.left() }
 
         return søknadsbehandling.leggTilPensjonsVilkår(request.vilkår, saksbehandler).mapLeft {
             KunneIkkeLeggeTilPensjonsVilkår.Søknadsbehandling(it)
@@ -568,8 +592,12 @@ class SøknadsbehandlingServiceImpl(
         request: LeggTilFlyktningVilkårRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeTilFlyktningVilkår, VilkårsvurdertSøknadsbehandling> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeLeggeTilFlyktningVilkår.FantIkkeBehandling.left()
+        val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
+            søknadsbehandlingId = request.behandlingId,
+            søknadsbehandlingRepo = søknadsbehandlingRepo,
+            ugyldigTilstandError = { _, _ -> null }, // TODO jah: Mangler Left.
+            fantIkkeBehandlingError = { KunneIkkeLeggeTilFlyktningVilkår.FantIkkeBehandling },
+        ).getOrElse { return it.left() }
 
         return søknadsbehandling.leggTilFlyktningVilkår(saksbehandler, request.vilkår, clock).mapLeft {
             KunneIkkeLeggeTilFlyktningVilkår.Søknadsbehandling(it)
@@ -583,37 +611,47 @@ class SøknadsbehandlingServiceImpl(
         request: LeggTilFastOppholdINorgeRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeFastOppholdINorgeVilkår, VilkårsvurdertSøknadsbehandling> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeLeggeFastOppholdINorgeVilkår.FantIkkeBehandling.left()
+        val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
+            søknadsbehandlingId = request.behandlingId,
+            søknadsbehandlingRepo = søknadsbehandlingRepo,
+            ugyldigTilstandError = { _, _ -> null }, // TODO jah: Mangler Left.
+            fantIkkeBehandlingError = { KunneIkkeLeggeFastOppholdINorgeVilkår.FantIkkeBehandling },
+        ).getOrElse { return it.left() }
 
-        return søknadsbehandling.leggTilFastOppholdINorgeVilkår(saksbehandler, request.vilkår, clock).mapLeft {
+        return søknadsbehandling.leggTilFastOppholdINorgeVilkår(saksbehandler, request.vilkår).mapLeft {
             KunneIkkeLeggeFastOppholdINorgeVilkår.Søknadsbehandling(it)
-        }.map {
+        }.onRight {
             søknadsbehandlingRepo.lagre(it)
-            it
         }
     }
 
     override fun leggTilPersonligOppmøteVilkår(
         request: LeggTilPersonligOppmøteVilkårRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, VilkårsvurdertSøknadsbehandling> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeLeggeTilPersonligOppmøteVilkår.FantIkkeBehandling.left()
+    ): Either<KunneIkkeLeggeTilPersonligOppmøteVilkårForSøknadsbehandling, VilkårsvurdertSøknadsbehandling> {
+        val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
+            søknadsbehandlingId = request.behandlingId,
+            søknadsbehandlingRepo = søknadsbehandlingRepo,
+            ugyldigTilstandError = { _, _ -> null }, // TODO jah: Mangler Left.
+            fantIkkeBehandlingError = { KunneIkkeLeggeTilPersonligOppmøteVilkårForSøknadsbehandling.FantIkkeBehandling },
+        ).getOrElse { return it.left() }
 
-        return søknadsbehandling.leggTilPersonligOppmøteVilkår(saksbehandler, request.vilkår, clock).mapLeft {
-            KunneIkkeLeggeTilPersonligOppmøteVilkår.Søknadsbehandling(it)
-        }.map {
+        return søknadsbehandling.leggTilPersonligOppmøteVilkår(saksbehandler, request.vilkår).mapLeft {
+            KunneIkkeLeggeTilPersonligOppmøteVilkårForSøknadsbehandling.Underliggende(it)
+        }.onRight {
             søknadsbehandlingRepo.lagre(it)
-            it
         }
     }
 
     override fun leggTilFormuevilkår(
         request: LeggTilFormuevilkårRequest,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår, Søknadsbehandling> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: throw IllegalArgumentException("Fant ikke behandling med id ${request.behandlingId}")
+        val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
+            søknadsbehandlingId = request.behandlingId,
+            søknadsbehandlingRepo = søknadsbehandlingRepo,
+            ugyldigTilstandError = { fra, til -> KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår.UgyldigTilstand(fra, til) },
+            fantIkkeBehandlingError = { null }, // TODO jah: Mangler Left.
+        ).getOrElse { return it.left() }
 
         return søknadsbehandling.leggTilFormuegrunnlag(
             request = request,
@@ -627,10 +665,14 @@ class SøknadsbehandlingServiceImpl(
         request: LeggTilInstitusjonsoppholdVilkårRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, VilkårsvurdertSøknadsbehandling> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeLeggeTilInstitusjonsoppholdVilkår.FantIkkeBehandling.left()
+        val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
+            søknadsbehandlingId = request.behandlingId,
+            søknadsbehandlingRepo = søknadsbehandlingRepo,
+            ugyldigTilstandError = { _, _ -> null }, // TODO jah: Mangler Left.
+            fantIkkeBehandlingError = { KunneIkkeLeggeTilInstitusjonsoppholdVilkår.FantIkkeBehandling },
+        ).getOrElse { return it.left() }
 
-        return søknadsbehandling.leggTilInstitusjonsoppholdVilkår(saksbehandler, request.vilkår, clock).mapLeft {
+        return søknadsbehandling.leggTilInstitusjonsoppholdVilkår(saksbehandler, request.vilkår).mapLeft {
             KunneIkkeLeggeTilInstitusjonsoppholdVilkår.Søknadsbehandling(it)
         }.map {
             søknadsbehandlingRepo.lagre(it)
@@ -642,8 +684,20 @@ class SøknadsbehandlingServiceImpl(
         request: LeggTilBosituasjonerRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, VilkårsvurdertSøknadsbehandling> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeLeggeTilBosituasjongrunnlag.FantIkkeBehandling.left()
+        val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
+            søknadsbehandlingId = request.behandlingId,
+            søknadsbehandlingRepo = søknadsbehandlingRepo,
+            ugyldigTilstandError = { fra, _ ->
+                // TODO jah: Bruker Revurdering sin type. Burde lage en egen for søknadsbehandling. Kan service/domain bruke den samme?
+                KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeLeggeTilGrunnlag(
+                    KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
+                        fra = fra,
+                        til = VilkårsvurdertSøknadsbehandling::class,
+                    ),
+                )
+            },
+            fantIkkeBehandlingError = { KunneIkkeLeggeTilBosituasjongrunnlag.FantIkkeBehandling },
+        ).getOrElse { return it.left() }
 
         val bosituasjon =
             if (request.bosituasjoner.size > 1) {
@@ -656,11 +710,6 @@ class SøknadsbehandlingServiceImpl(
         return søknadsbehandling.oppdaterBosituasjon(
             saksbehandler = saksbehandler,
             bosituasjon = bosituasjon,
-            hendelse = Søknadsbehandlingshendelse(
-                tidspunkt = Tidspunkt.now(clock),
-                saksbehandler = saksbehandler,
-                handling = SøknadsbehandlingsHandling.OppdatertBosituasjon,
-            ),
         ).mapLeft {
             KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeLeggeTilGrunnlag(it)
         }.map {
@@ -694,6 +743,29 @@ class SøknadsbehandlingServiceImpl(
         ).onRight { søknadsbehandlingRepo.lagre(it) }
     }
 
+    private inline fun <reified T> hentKanOppdaterePeriodeGrunnlagVilkår(
+        søknadsbehandlingRepo: SøknadsbehandlingRepo,
+        søknadsbehandlingId: UUID,
+        ugyldigTilstandError: (KClass<out Søknadsbehandling>, KClass<KanOppdaterePeriodeBosituasjonVilkår>) -> T?,
+        fantIkkeBehandlingError: () -> T?,
+    ): Either<T, KanOppdaterePeriodeBosituasjonVilkår> {
+        return when (val s = søknadsbehandlingRepo.hent(søknadsbehandlingId)) {
+            is Søknadsbehandling -> when (val k = (s as? KanOppdaterePeriodeBosituasjonVilkår)) {
+                null -> ugyldigTilstandError(s::class, KanOppdaterePeriodeBosituasjonVilkår::class).let {
+                    it
+                        ?: throw IllegalStateException("Kan ikke legge til lovlig opphold for behandling $søknadsbehandlingId, siden den er i feil tilstand: ${s::class.simpleName}")
+                }.left()
+
+                else -> k.right()
+            }
+
+            null -> fantIkkeBehandlingError().let {
+                it
+                    ?: throw IllegalArgumentException("Kan ikke legge til lovlig opphold for behandling $søknadsbehandlingId; fant ikke behandlingen.")
+            }.left()
+        }
+    }
+
     private fun Søknadsbehandling.hentSkattegrunnlagForSøker(
         saksbehandler: NavIdentBruker.Saksbehandler,
         samletSkattegrunnlag: (Fnr, NavIdentBruker.Saksbehandler, YearRange) -> Skattegrunnlag,
@@ -719,22 +791,4 @@ class SøknadsbehandlingServiceImpl(
             stønadsperiode?.toYearRange()?.krympTilØvreGrense(it) ?: it.toRange()
         }
     }
-
-    private fun KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.tilService(): KunneIkkeLeggeTilUtenlandsopphold =
-        when (this) {
-            is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen ->
-                KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand(fra = this.fra, til = this.til)
-
-            KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode ->
-                KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode
-
-            KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat ->
-                KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat
-
-            KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.MåInneholdeKunEnVurderingsperiode ->
-                KunneIkkeLeggeTilUtenlandsopphold.MåInneholdeKunEnVurderingsperiode
-
-            KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden ->
-                KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden
-        }
 }

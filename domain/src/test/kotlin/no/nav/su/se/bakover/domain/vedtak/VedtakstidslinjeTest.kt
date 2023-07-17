@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.mai
+import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -84,23 +85,21 @@ internal class VedtakstidslinjeTest {
             periode = periode,
         )
 
-        val f1 = lagFradragsgrunnlag(
+        val fradragKontantstøtteEpsJanFeb = lagFradragsgrunnlag(
             type = Fradragstype.Kontantstøtte,
             månedsbeløp = 5000.0,
-            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 28.februar(2021)),
-            utenlandskInntekt = null,
+            periode = januar(2021)..februar(2021),
             tilhører = FradragTilhører.EPS,
         )
 
-        val f2 = lagFradragsgrunnlag(
+        val fradragArbeidsinntektBrukerJanTomOkt = lagFradragsgrunnlag(
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 1000.0,
-            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.oktober(2021)),
-            utenlandskInntekt = null,
+            periode = januar(2021)..oktober(2021),
             tilhører = FradragTilhører.BRUKER,
         )
 
-        val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
+        val bosituasjonMedEps = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
             fnr = Fnr.generer(),
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
@@ -109,15 +108,15 @@ internal class VedtakstidslinjeTest {
 
         val formuevilkår = innvilgetFormueVilkår(
             periode = periode,
-            bosituasjon = bosituasjon,
+            bosituasjon = bosituasjonMedEps,
         )
 
         val (sak, _, vedtak) = iverksattSøknadsbehandlingUføre(
             stønadsperiode = Stønadsperiode.create(periode),
             customGrunnlag = listOf(
-                bosituasjon,
-                f1,
-                f2,
+                bosituasjonMedEps,
+                fradragKontantstøtteEpsJanFeb,
+                fradragArbeidsinntektBrukerJanTomOkt,
             ),
             customVilkår = listOf(
                 UføreVilkår.Vurdert.create(
@@ -127,7 +126,6 @@ internal class VedtakstidslinjeTest {
                 ),
                 formuevilkår,
                 utenlandsoppholdInnvilget(periode = periode),
-                tilstrekkeligDokumentert(periode = periode),
                 lovligOppholdVilkårInnvilget(),
             ),
         )
@@ -214,8 +212,8 @@ internal class VedtakstidslinjeTest {
                             )
                         }
 
-                    kopi.grunnlagsdata.fradragsgrunnlag.first().fradrag shouldBe f1.fradrag
-                    kopi.grunnlagsdata.fradragsgrunnlag.last().fradrag shouldBe f2.fradrag
+                    kopi.grunnlagsdata.fradragsgrunnlag.first().fradrag shouldBe fradragKontantstøtteEpsJanFeb.fradrag
+                    kopi.grunnlagsdata.fradragsgrunnlag.last().fradrag shouldBe fradragArbeidsinntektBrukerJanTomOkt.fradrag
                     kopi.originaltVedtak shouldBe vedtak
                 }
             }

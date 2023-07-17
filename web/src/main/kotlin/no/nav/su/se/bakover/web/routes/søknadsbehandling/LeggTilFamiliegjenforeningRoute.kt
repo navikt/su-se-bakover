@@ -17,17 +17,19 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.UgyldigFamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningVurderinger
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningvilkårStatus
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkår.tilResultat
 import java.util.UUID
 
 internal fun Route.leggTilFamiliegjenforeningRoute(
     søknadsbehandlingService: SøknadsbehandlingService,
     satsFactory: SatsFactory,
 ) {
-    post("$behandlingPath/{behandlingId}/familiegjenforening") {
+    post("$søknadsbehandlingPath/{behandlingId}/familiegjenforening") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 call.withBody<FamiliegjenforeningBody> { body ->
@@ -68,8 +70,17 @@ private fun SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkå
         this.til,
     )
     is SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkårService.UgyldigFamiliegjenforeningVilkårService -> feil.tilResultat()
+    is SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkårService.Domenefeil -> underliggende.tilResultat()
 }
 
-private fun UgyldigFamiliegjenforeningVilkår.tilResultat() = when (this) {
-    UgyldigFamiliegjenforeningVilkår.OverlappendeVurderingsperioder -> Feilresponser.overlappendeVurderingsperioder
+private fun UgyldigFamiliegjenforeningVilkår.tilResultat(): Resultat {
+    return when (this) {
+        UgyldigFamiliegjenforeningVilkår.OverlappendeVurderingsperioder -> Feilresponser.overlappendeVurderingsperioder
+    }
+}
+
+fun KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.tilResultat(): Resultat {
+    return when (this) {
+        is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.Vilkårsfeil -> this.underliggende.tilResultat()
+    }
 }

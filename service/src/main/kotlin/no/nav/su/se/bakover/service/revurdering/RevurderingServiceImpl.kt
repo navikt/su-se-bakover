@@ -95,11 +95,11 @@ import no.nav.su.se.bakover.domain.vilkår.flyktning.LeggTilFlyktningVilkårRequ
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.institusjonsopphold.KunneIkkeLeggeTilInstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.institusjonsopphold.LeggTilInstitusjonsoppholdVilkårRequest
-import no.nav.su.se.bakover.domain.vilkår.lovligopphold.KunneIkkeLeggetilLovligOppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.lovligopphold.KunneIkkeLeggetilLovligOppholdVilkårForRevurdering
 import no.nav.su.se.bakover.domain.vilkår.lovligopphold.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.opplysningsplikt.KunneIkkeLeggeTilOpplysningsplikt
 import no.nav.su.se.bakover.domain.vilkår.opplysningsplikt.LeggTilOpplysningspliktRequest
-import no.nav.su.se.bakover.domain.vilkår.oppmøte.KunneIkkeLeggeTilPersonligOppmøteVilkår
+import no.nav.su.se.bakover.domain.vilkår.oppmøte.KunneIkkeLeggeTilPersonligOppmøteVilkårForRevurdering
 import no.nav.su.se.bakover.domain.vilkår.oppmøte.LeggTilPersonligOppmøteVilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.pensjon.KunneIkkeLeggeTilPensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.pensjon.LeggTilPensjonsVilkårRequest
@@ -267,15 +267,17 @@ class RevurderingServiceImpl(
         }
     }
 
-    override fun leggTilLovligOppholdVilkår(request: LeggTilLovligOppholdRequest): Either<KunneIkkeLeggetilLovligOppholdVilkår, RevurderingOgFeilmeldingerResponse> {
+    override fun leggTilLovligOppholdVilkår(
+        request: LeggTilLovligOppholdRequest,
+    ): Either<KunneIkkeLeggetilLovligOppholdVilkårForRevurdering, RevurderingOgFeilmeldingerResponse> {
         val revurdering =
-            hent(request.behandlingId).getOrElse { return KunneIkkeLeggetilLovligOppholdVilkår.FantIkkeBehandling.left() }
+            hent(request.behandlingId).getOrElse { return KunneIkkeLeggetilLovligOppholdVilkårForRevurdering.FantIkkeBehandling.left() }
 
         val vilkår = request.toVilkår(clock)
-            .getOrElse { return KunneIkkeLeggetilLovligOppholdVilkår.UgyldigLovligOppholdVilkår(it).left() }
+            .getOrElse { return KunneIkkeLeggetilLovligOppholdVilkårForRevurdering.UgyldigLovligOppholdVilkår(it).left() }
 
         return revurdering.oppdaterLovligOppholdOgMarkerSomVurdert(vilkår).mapLeft {
-            KunneIkkeLeggetilLovligOppholdVilkår.FeilVedSøknadsbehandling(it)
+            KunneIkkeLeggetilLovligOppholdVilkårForRevurdering.Domenefeil(it)
         }.map {
             revurderingRepo.lagre(it)
             identifiserFeilOgLagResponse(it)
@@ -329,12 +331,12 @@ class RevurderingServiceImpl(
         }
     }
 
-    override fun leggTilPersonligOppmøteVilkår(request: LeggTilPersonligOppmøteVilkårRequest): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, RevurderingOgFeilmeldingerResponse> {
+    override fun leggTilPersonligOppmøteVilkår(request: LeggTilPersonligOppmøteVilkårRequest): Either<KunneIkkeLeggeTilPersonligOppmøteVilkårForRevurdering, RevurderingOgFeilmeldingerResponse> {
         return hent(request.behandlingId).mapLeft {
-            KunneIkkeLeggeTilPersonligOppmøteVilkår.FantIkkeBehandling
+            KunneIkkeLeggeTilPersonligOppmøteVilkårForRevurdering.FantIkkeBehandling
         }.flatMap { revurdering ->
             revurdering.oppdaterPersonligOppmøtevilkårOgMarkerSomVurdert(request.vilkår).mapLeft {
-                KunneIkkeLeggeTilPersonligOppmøteVilkår.Revurdering(it)
+                KunneIkkeLeggeTilPersonligOppmøteVilkårForRevurdering.Underliggende(it)
             }.map {
                 revurderingRepo.lagre(it)
                 identifiserFeilOgLagResponse(it)

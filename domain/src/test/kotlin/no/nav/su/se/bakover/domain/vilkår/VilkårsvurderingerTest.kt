@@ -199,7 +199,7 @@ internal class VilkårsvurderingerTest {
                 OpplysningspliktVilkår.IkkeVurdert,
             )
 
-            val uavklartMedUføre = uavklart.leggTil(innvilget.uføre)
+            val uavklartMedUføre = uavklart.oppdaterVilkår(innvilget.uføre)
 
             uavklartMedUføre.vilkår shouldBe setOf(
                 innvilget.uføre,
@@ -213,7 +213,7 @@ internal class VilkårsvurderingerTest {
                 OpplysningspliktVilkår.IkkeVurdert,
             )
 
-            val uavklartUtenUføreIgjen = uavklartMedUføre.leggTil(uavklart.uføre)
+            val uavklartUtenUføreIgjen = uavklartMedUføre.oppdaterVilkår(uavklart.uføre)
 
             uavklartUtenUføreIgjen.vilkår shouldBe setOf(
                 UføreVilkår.IkkeVurdert,

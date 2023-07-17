@@ -99,7 +99,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 argThat {
                     it shouldBe opprettetRevurdering.copy(
                         grunnlagsdataOgVilkårsvurderinger = opprettetRevurdering.grunnlagsdataOgVilkårsvurderinger.oppdaterVilkårsvurderinger(
-                            opprettetRevurdering.vilkårsvurderinger.leggTil(
+                            opprettetRevurdering.vilkårsvurderinger.oppdaterVilkår(
                                 innvilgetUførevilkår(
                                     vurderingsperiodeId = (
                                         it.vilkårsvurderinger.uføreVilkår()

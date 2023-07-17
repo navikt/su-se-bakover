@@ -131,6 +131,11 @@ data object Feilresponser {
         "hele_behandlingsperioden_må_ha_vurderinger",
     )
 
+    val vurderingsperioderKanIkkeVæreUtenforBehandlingsperiode = BadRequest.errorJson(
+        "Vurderingserioder kan ikke være utenfor behandlingsperioden",
+        "vurderingsperioder_kan_ikke_være_utenfor_behandlingsperioden",
+    )
+
     val alleResultaterMåVæreLike = BadRequest.errorJson(
         "Vurderingsperioden(e) kan ikke inneholde forskjellige resultater",
         "vurderingsperiode_kan_ikke_inneholde_forskjellige_resultater",

@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.vilkår.flyktning
 
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
+import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import java.util.UUID
 

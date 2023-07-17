@@ -37,13 +37,16 @@ import java.util.UUID
 
 sealed interface BeregnetSøknadsbehandling :
     Søknadsbehandling,
-    KanOppdaterePeriodeGrunnlagVilkår,
-    KanBeregnes {
+    KanOppdaterePeriodeBosituasjonVilkår,
+    KanBeregnes,
+    KanOppdatereFradragsgrunnlag {
     abstract override val beregning: Beregning
     abstract override val stønadsperiode: Stønadsperiode
     abstract override val aldersvurdering: Aldersvurdering
     abstract override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting
     abstract override val saksbehandler: NavIdentBruker.Saksbehandler
+
+    abstract override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, BeregnetSøknadsbehandling>
 
     override fun simuler(
         saksbehandler: NavIdentBruker.Saksbehandler,
@@ -93,15 +96,6 @@ sealed interface BeregnetSøknadsbehandling :
         }
     }
 
-    override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> =
-        when (this.eksterneGrunnlag.skatt) {
-            is EksterneGrunnlagSkatt.Hentet -> this.copyInternal(
-                grunnlagsdataOgVilkårsvurderinger = this.grunnlagsdataOgVilkårsvurderinger.leggTilSkatt(skatt),
-            ).right()
-
-            EksterneGrunnlagSkatt.IkkeHentet -> KunneIkkeLeggeTilSkattegrunnlag.KanIkkeLeggeTilSkattForTilstandUtenAtDenHarBlittHentetFør.left()
-        }
-
     data class Innvilget(
         override val id: UUID,
         override val opprettet: Tidspunkt,
@@ -122,6 +116,16 @@ sealed interface BeregnetSøknadsbehandling :
     ) : BeregnetSøknadsbehandling {
         override val periode: Periode = aldersvurdering.stønadsperiode.periode
         override val simulering: Simulering? = null
+
+        override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Innvilget> {
+            return when (this.eksterneGrunnlag.skatt) {
+                is EksterneGrunnlagSkatt.Hentet -> this.copy(
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilSkatt(skatt),
+                ).right()
+
+                EksterneGrunnlagSkatt.IkkeHentet -> KunneIkkeLeggeTilSkattegrunnlag.KanIkkeLeggeTilSkattForTilstandUtenAtDenHarBlittHentetFør.left()
+            }
+        }
 
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
@@ -173,6 +177,16 @@ sealed interface BeregnetSøknadsbehandling :
         override val periode: Periode = aldersvurdering.stønadsperiode.periode
 
         override val simulering: Simulering? = null
+
+        override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Avslag> {
+            return when (this.eksterneGrunnlag.skatt) {
+                is EksterneGrunnlagSkatt.Hentet -> this.copy(
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilSkatt(skatt),
+                ).right()
+
+                EksterneGrunnlagSkatt.IkkeHentet -> KunneIkkeLeggeTilSkattegrunnlag.KanIkkeLeggeTilSkattForTilstandUtenAtDenHarBlittHentetFør.left()
+            }
+        }
 
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 

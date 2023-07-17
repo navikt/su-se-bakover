@@ -8,7 +8,6 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
@@ -20,13 +19,13 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.routes.grunnlag.LeggTilUførervurderingerBody
-import no.nav.su.se.bakover.web.routes.revurdering.tilResultat
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkår.tilResultat
 
 internal fun Route.leggTilUføregrunnlagRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
     satsFactory: SatsFactory,
 ) {
-    post("$behandlingPath/{behandlingId}/uføregrunnlag") {
+    post("$søknadsbehandlingPath/{behandlingId}/uføregrunnlag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 call.withBody<LeggTilUførervurderingerBody> { body ->
@@ -46,23 +45,6 @@ internal fun Route.leggTilUføregrunnlagRoutes(
                     )
                 }
             }
-        }
-    }
-}
-
-private fun SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår.tilResultat(): Resultat {
-    return when (this) {
-        SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår.FantIkkeBehandling -> {
-            Feilresponser.fantIkkeBehandling
-        }
-
-        is SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår.UgyldigInput -> this.originalFeil.tilResultat()
-        is SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår.UgyldigTilstand -> {
-            Feilresponser.ugyldigTilstand(fra = fra, til = til)
-        }
-
-        SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> {
-            Feilresponser.utenforBehandlingsperioden
         }
     }
 }

@@ -71,7 +71,7 @@ import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
 
-internal const val behandlingPath = "$sakPath/{sakId}/behandlinger"
+internal const val søknadsbehandlingPath = "$sakPath/{sakId}/behandlinger"
 
 internal fun Route.søknadsbehandlingRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
@@ -116,7 +116,7 @@ internal fun Route.søknadsbehandlingRoutes(
         }
     }
 
-    post("$behandlingPath/{behandlingId}/stønadsperiode") {
+    post("$søknadsbehandlingPath/{behandlingId}/stønadsperiode") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
@@ -153,7 +153,7 @@ internal fun Route.søknadsbehandlingRoutes(
         }
     }
 
-    get("$behandlingPath/{behandlingId}") {
+    get("$søknadsbehandlingPath/{behandlingId}") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withBehandlingId { behandlingId ->
                 søknadsbehandlingService.hent(HentRequest(behandlingId)).mapLeft {
@@ -172,7 +172,7 @@ internal fun Route.søknadsbehandlingRoutes(
         }
     }
 
-    post("$behandlingPath/{behandlingId}/beregn") {
+    post("$søknadsbehandlingPath/{behandlingId}/beregn") {
         authorize(Brukerrolle.Saksbehandler) {
             data class Body(
                 val begrunnelse: String?,
@@ -241,7 +241,7 @@ internal fun Route.søknadsbehandlingRoutes(
         },
     )
 
-    post("$behandlingPath/{behandlingId}/vedtaksutkast") {
+    post("$søknadsbehandlingPath/{behandlingId}/vedtaksutkast") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withBehandlingId { behandlingId ->
                 call.withBody<WithFritekstBody> { body ->
@@ -254,7 +254,7 @@ internal fun Route.søknadsbehandlingRoutes(
         }
     }
 
-    get("$behandlingPath/{behandlingId}/vedtaksutkast") {
+    get("$søknadsbehandlingPath/{behandlingId}/vedtaksutkast") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withBehandlingId { behandlingId ->
                 søknadsbehandlingService.hent(HentRequest(behandlingId)).fold(
@@ -265,7 +265,7 @@ internal fun Route.søknadsbehandlingRoutes(
         }
     }
 
-    post("$behandlingPath/{behandlingId}/simuler") {
+    post("$søknadsbehandlingPath/{behandlingId}/simuler") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 søknadsbehandlingService.simuler(
@@ -287,7 +287,7 @@ internal fun Route.søknadsbehandlingRoutes(
         }
     }
 
-    post("$behandlingPath/{behandlingId}/tilAttestering") {
+    post("$søknadsbehandlingPath/{behandlingId}/tilAttestering") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 call.withSakId {
@@ -333,7 +333,7 @@ internal fun Route.søknadsbehandlingRoutes(
         fun valid() = enumContains<Attestering.Underkjent.Grunn>(grunn) && kommentar.isNotBlank()
     }
 
-    patch("$behandlingPath/{behandlingId}/underkjenn") {
+    patch("$søknadsbehandlingPath/{behandlingId}/underkjenn") {
         authorize(Brukerrolle.Attestant) {
             val navIdent = call.suUserContext.navIdent
 

@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBositu
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
@@ -59,7 +58,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         val expected = uavklart.copy(
             grunnlagsdataOgVilkårsvurderinger = uavklart.grunnlagsdataOgVilkårsvurderinger.copy(
                 grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjon)),
-                vilkårsvurderinger = uavklart.vilkårsvurderinger.leggTil(tilstrekkeligDokumentert()),
+                vilkårsvurderinger = uavklart.vilkårsvurderinger.oppdaterVilkår(tilstrekkeligDokumentert()),
             ),
         )
 
@@ -152,7 +151,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             ),
         ) shouldBe KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeLeggeTilGrunnlag(
             KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
-                fra = SøknadsbehandlingTilAttestering.Avslag.UtenBeregning::class,
+                fra = tilAttestering::class,
                 til = VilkårsvurdertSøknadsbehandling::class,
             ),
         ).left()
@@ -172,7 +171,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                 grunnlagsdata = Grunnlagsdata.create(
                     bosituasjon = listOf(bosituasjon),
                 ),
-                vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger.leggTil(tilstrekkeligDokumentert()),
+                vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger.oppdaterVilkår(tilstrekkeligDokumentert()),
             ),
         )
 

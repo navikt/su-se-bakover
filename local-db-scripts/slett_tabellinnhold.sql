@@ -10,6 +10,8 @@ truncate
     kontrollsamtale,
     dokument_distribusjon,
     dokument,
+    dokument_skatt,
+    skatt,
     utbetalingslinje,
     utbetaling,
     vedtak,

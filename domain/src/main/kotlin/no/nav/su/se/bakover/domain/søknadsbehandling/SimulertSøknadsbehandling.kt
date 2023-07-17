@@ -47,8 +47,8 @@ data class SimulertSøknadsbehandling(
     override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting,
     override val sakstype: Sakstype,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
-) : Søknadsbehandling, KanOppdaterePeriodeGrunnlagVilkår, KanBeregnes {
-    // TODO jah: Den må enten arve bergnet sin periode, eller definere denne selv. Også må init sjekke at aldersperioden har samme.
+) : Søknadsbehandling, KanOppdaterePeriodeBosituasjonVilkår, KanBeregnes, KanOppdatereFradragsgrunnlag {
+    // TODO jah: Den må enten arve bergnet sin periode, eller definere denne selv (vi kan ikke la aldersvurdering eie den). Også må init sjekke at aldersperioden har samme periode.
     override val periode: Periode = aldersvurdering.stønadsperiode.periode
     override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
@@ -171,12 +171,15 @@ data class SimulertSøknadsbehandling(
         ).right()
     }
 
-    override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> =
-        when (this.eksterneGrunnlag.skatt) {
-            is EksterneGrunnlagSkatt.Hentet -> this.copyInternal(
-                grunnlagsdataOgVilkårsvurderinger = this.grunnlagsdataOgVilkårsvurderinger.leggTilSkatt(skatt),
+    override fun leggTilSkatt(
+        skatt: EksterneGrunnlagSkatt,
+    ): Either<KunneIkkeLeggeTilSkattegrunnlag, SimulertSøknadsbehandling> {
+        return when (this.eksterneGrunnlag.skatt) {
+            is EksterneGrunnlagSkatt.Hentet -> this.copy(
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilSkatt(skatt),
             ).right()
 
             EksterneGrunnlagSkatt.IkkeHentet -> KunneIkkeLeggeTilSkattegrunnlag.KanIkkeLeggeTilSkattForTilstandUtenAtDenHarBlittHentetFør.left()
         }
+    }
 }

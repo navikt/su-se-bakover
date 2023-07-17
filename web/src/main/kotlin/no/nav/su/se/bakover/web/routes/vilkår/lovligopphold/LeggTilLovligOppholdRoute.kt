@@ -18,17 +18,19 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
+import no.nav.su.se.bakover.domain.revurdering.vilkår.opphold.KunneIkkeOppdatereLovligOppholdOgMarkereSomVurdert
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageLovligOppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.lovligopphold.KunneIkkeLeggetilLovligOppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.lovligopphold.KunneIkkeLeggetilLovligOppholdVilkårForRevurdering
+import no.nav.su.se.bakover.domain.vilkår.lovligopphold.KunneIkkeLeggetilLovligOppholdVilkårForSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.lovligopphold.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.lovligopphold.LovligOppholdVilkårStatus
 import no.nav.su.se.bakover.domain.vilkår.lovligopphold.LovligOppholdVurderinger
 import no.nav.su.se.bakover.web.routes.revurdering.revurderingPath
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.behandlingPath
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.søknadsbehandlingPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import java.util.UUID
 
@@ -36,11 +38,14 @@ internal fun Route.leggTilLovligOppholdRoute(
     søknadsbehandlingService: SøknadsbehandlingService,
     satsFactory: SatsFactory,
 ) {
-    post("$behandlingPath/{behandlingId}/lovligopphold") {
+    post("$søknadsbehandlingPath/{behandlingId}/lovligopphold") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 call.withBody<LovligOppholdBody> { body ->
-                    søknadsbehandlingService.leggTilLovligOpphold(body.toLovligOppholdRequest(behandlingId), saksbehandler = call.suUserContext.saksbehandler).fold(
+                    søknadsbehandlingService.leggTilLovligOpphold(
+                        body.toLovligOppholdRequest(behandlingId),
+                        saksbehandler = call.suUserContext.saksbehandler,
+                    ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
@@ -88,26 +93,36 @@ internal data class LovligOppholdVurderingBody(
     val status: LovligOppholdVilkårStatus,
 )
 
-internal fun KunneIkkeLeggetilLovligOppholdVilkår.tilResultat() = when (this) {
-    KunneIkkeLeggetilLovligOppholdVilkår.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
-    is KunneIkkeLeggetilLovligOppholdVilkår.FeilVedSøknadsbehandling -> this.feil.tilResultat()
-    is KunneIkkeLeggetilLovligOppholdVilkår.UgyldigLovligOppholdVilkår -> this.feil.tilResultat()
+internal fun KunneIkkeLeggetilLovligOppholdVilkårForSøknadsbehandling.tilResultat(): Resultat {
+    return when (this) {
+        KunneIkkeLeggetilLovligOppholdVilkårForSøknadsbehandling.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
+        is KunneIkkeLeggetilLovligOppholdVilkårForSøknadsbehandling.FeilVedSøknadsbehandling -> this.feil.tilResultat()
+        is KunneIkkeLeggetilLovligOppholdVilkårForSøknadsbehandling.UgyldigLovligOppholdVilkår -> this.feil.tilResultat()
+    }
 }
 
-internal fun KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold.tilResultat() = when (this) {
-    is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold.UgyldigTilstand -> when (this) {
-        is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold.UgyldigTilstand.Revurdering -> Feilresponser.ugyldigTilstand(
-            this.fra,
-            this.til,
-        )
+internal fun KunneIkkeLeggetilLovligOppholdVilkårForRevurdering.tilResultat(): Resultat {
+    return when (this) {
+        is KunneIkkeLeggetilLovligOppholdVilkårForRevurdering.Domenefeil -> this.underliggende.tilResultat()
+        KunneIkkeLeggetilLovligOppholdVilkårForRevurdering.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
+        is KunneIkkeLeggetilLovligOppholdVilkårForRevurdering.UgyldigLovligOppholdVilkår -> this.underliggende.tilResultat()
+    }
+}
 
-        is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold.UgyldigTilstand.Søknadsbehandling -> Feilresponser.ugyldigTilstand(
+internal fun KunneIkkeOppdatereLovligOppholdOgMarkereSomVurdert.tilResultat(): Resultat {
+    return when (this) {
+        is KunneIkkeOppdatereLovligOppholdOgMarkereSomVurdert.HeleBehandlingsperiodenErIkkeVurdert -> Feilresponser.måVurdereHelePerioden
+        is KunneIkkeOppdatereLovligOppholdOgMarkereSomVurdert.UgyldigTilstand -> Feilresponser.ugyldigTilstand(
             this.fra,
             this.til,
         )
     }
+}
 
-    KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold.HeleBehandlingsperiodenErIkkeVurdert -> Feilresponser.heleBehandlingsperiodenMåHaVurderinger
+internal fun KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold.tilResultat(): Resultat {
+    return when (this) {
+        is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold.Vilkårsfeil -> Feilresponser.heleBehandlingsperiodenMåHaVurderinger
+    }
 }
 
 internal fun KunneIkkeLageLovligOppholdVilkår.tilResultat() = when (this) {

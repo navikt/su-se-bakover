@@ -161,7 +161,7 @@ sealed interface Vilkårsvurderinger {
 
     fun lagTidslinje(periode: Periode): Vilkårsvurderinger
 
-    fun leggTil(vilkår: Vilkår): Vilkårsvurderinger
+    fun oppdaterVilkår(vilkår: Vilkår): Vilkårsvurderinger
 
     fun tilVilkårsvurderingerRevurdering(): Revurdering
     fun tilVilkårsvurderingerSøknadsbehandling(): Søknadsbehandling
@@ -176,7 +176,7 @@ sealed interface Vilkårsvurderinger {
         abstract override val utenlandsopphold: UtenlandsoppholdVilkår
         abstract override val opplysningsplikt: OpplysningspliktVilkår
 
-        abstract override fun leggTil(vilkår: Vilkår): Søknadsbehandling
+        abstract override fun oppdaterVilkår(vilkår: Vilkår): Søknadsbehandling
 
         fun oppdaterStønadsperiode(
             stønadsperiode: Stønadsperiode,
@@ -227,7 +227,7 @@ sealed interface Vilkårsvurderinger {
                 )
             }
 
-            override fun leggTil(vilkår: Vilkår): Uføre {
+            override fun oppdaterVilkår(vilkår: Vilkår): Uføre {
                 return when (vilkår) {
                     is FastOppholdINorgeVilkår -> copy(fastOpphold = vilkår)
                     is FlyktningVilkår -> copy(flyktning = vilkår)
@@ -345,7 +345,7 @@ sealed interface Vilkårsvurderinger {
                 )
             }
 
-            override fun leggTil(vilkår: Vilkår): Alder {
+            override fun oppdaterVilkår(vilkår: Vilkår): Alder {
                 return when (vilkår) {
                     is FastOppholdINorgeVilkår -> copy(fastOpphold = vilkår)
                     is FormueVilkår -> copy(formue = vilkår)
@@ -421,7 +421,7 @@ sealed interface Vilkårsvurderinger {
         abstract override val fastOpphold: FastOppholdINorgeVilkår
         abstract override val institusjonsopphold: InstitusjonsoppholdVilkår
 
-        abstract override fun leggTil(vilkår: Vilkår): Revurdering
+        abstract override fun oppdaterVilkår(vilkår: Vilkår): Revurdering
 
         data class Uføre(
             val uføre: UføreVilkår,
@@ -451,7 +451,7 @@ sealed interface Vilkårsvurderinger {
                 kastHvisPerioderErUlike()
             }
 
-            override fun leggTil(vilkår: Vilkår): Uføre {
+            override fun oppdaterVilkår(vilkår: Vilkår): Uføre {
                 return when (vilkår) {
                     is FormueVilkår -> copy(formue = vilkår)
                     is UføreVilkår -> copy(uføre = vilkår)
@@ -581,7 +581,7 @@ sealed interface Vilkårsvurderinger {
                 )
             }
 
-            override fun leggTil(vilkår: Vilkår): Alder {
+            override fun oppdaterVilkår(vilkår: Vilkår): Alder {
                 return when (vilkår) {
                     is FormueVilkår -> copy(formue = vilkår)
                     is UtenlandsoppholdVilkår -> copy(utenlandsopphold = vilkår)

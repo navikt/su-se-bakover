@@ -68,6 +68,10 @@ enum class SøknadsbehandlingHandlingDb {
     Simulert,
     SendtTilAttestering,
     Lukket,
+
+    // Unike for alder
+    OppdatertPensjonsvilkår,
+    OppdatertFamiliegjenforening,
     ;
 
     fun toSøknadsbehandlingsHandling() = when (this) {
@@ -101,6 +105,8 @@ enum class SøknadsbehandlingHandlingDb {
         Lukket -> SøknadsbehandlingsHandling.Lukket
         OppdatertOpplysningsplikt -> SøknadsbehandlingsHandling.OppdatertOpplysningsplikt
         OppdatertBosituasjon -> SøknadsbehandlingsHandling.OppdatertBosituasjon
+        OppdatertPensjonsvilkår -> SøknadsbehandlingsHandling.OppdatertPensjonsvilkår
+        OppdatertFamiliegjenforening -> SøknadsbehandlingsHandling.OppdatertFamiliegjenforening
     }
 
     companion object {
@@ -124,6 +130,8 @@ enum class SøknadsbehandlingHandlingDb {
             SøknadsbehandlingsHandling.OppdatertUførhet -> OppdatertUførhet
             SøknadsbehandlingsHandling.OppdatertUtenlandsopphold -> OppdatertUtenlandsopphold
             SøknadsbehandlingsHandling.OppdatertBosituasjon -> OppdatertBosituasjon
+            SøknadsbehandlingsHandling.OppdatertFamiliegjenforening -> OppdatertFamiliegjenforening
+            SøknadsbehandlingsHandling.OppdatertPensjonsvilkår -> OppdatertPensjonsvilkår
         }
     }
 }

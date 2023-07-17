@@ -73,7 +73,7 @@ internal class StatistikkSøknadsbehandlingTest {
             behandlingStatusBeskrivelse = "Saksbehandler har sendt behandlingen videre til beslutter/attestant/saksbehandler2 som må velge og enten underkjenne(sendes tilbake til saksbehandler) eller iverksette (ferdigbehandler) den.",
             resultat = "AVSLÅTT",
             resultatBeskrivelse = "Gjelder kun søknadsbehandling: I henhold til lov om supplerende stønad blir en søknad avslått. Tilsvarende resultat for revurdering er opphørt.",
-            resultatBegrunnelse = "UFØRHET,FORMUE,FLYKTNING,OPPHOLDSTILLATELSE,BOR_OG_OPPHOLDER_SEG_I_NORGE,INNLAGT_PÅ_INSTITUSJON,UTENLANDSOPPHOLD_OVER_90_DAGER,PERSONLIG_OPPMØTE,MANGLENDE_DOKUMENTASJON",
+            resultatBegrunnelse = "INNLAGT_PÅ_INSTITUSJON",
             funksjonellTid = fixedTidspunkt,
         )
     }
@@ -115,7 +115,7 @@ internal class StatistikkSøknadsbehandlingTest {
             behandlingStatusBeskrivelse = "beslutter/attestant/saksbehandler2 har sendt saken tilbake til saksbehandler.",
             resultat = "AVSLÅTT",
             resultatBeskrivelse = "Gjelder kun søknadsbehandling: I henhold til lov om supplerende stønad blir en søknad avslått. Tilsvarende resultat for revurdering er opphørt.",
-            resultatBegrunnelse = "UFØRHET,FORMUE,FLYKTNING,OPPHOLDSTILLATELSE,BOR_OG_OPPHOLDER_SEG_I_NORGE,INNLAGT_PÅ_INSTITUSJON,UTENLANDSOPPHOLD_OVER_90_DAGER,PERSONLIG_OPPMØTE,MANGLENDE_DOKUMENTASJON",
+            resultatBegrunnelse = "INNLAGT_PÅ_INSTITUSJON",
             funksjonellTid = fixedTidspunkt,
             beslutter = "attestant",
         )
@@ -161,7 +161,7 @@ internal class StatistikkSøknadsbehandlingTest {
             behandlingStatusBeskrivelse = "Behandlingen har blitt iverksatt.",
             resultat = "AVSLÅTT",
             resultatBeskrivelse = "Gjelder kun søknadsbehandling: I henhold til lov om supplerende stønad blir en søknad avslått. Tilsvarende resultat for revurdering er opphørt.",
-            resultatBegrunnelse = "UFØRHET,FORMUE,FLYKTNING,OPPHOLDSTILLATELSE,BOR_OG_OPPHOLDER_SEG_I_NORGE,INNLAGT_PÅ_INSTITUSJON,UTENLANDSOPPHOLD_OVER_90_DAGER,PERSONLIG_OPPMØTE,MANGLENDE_DOKUMENTASJON",
+            resultatBegrunnelse = "INNLAGT_PÅ_INSTITUSJON",
             avsluttet = true,
             funksjonellTid = vedtak.opprettet,
             beslutter = "attestant",

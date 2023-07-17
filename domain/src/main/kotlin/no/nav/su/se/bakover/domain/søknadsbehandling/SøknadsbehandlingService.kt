@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.KunneIkkeLegg
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.SaksbehandlersAvgjørelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
+import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.UgyldigFamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
@@ -21,11 +22,11 @@ import no.nav.su.se.bakover.domain.vilkår.flyktning.LeggTilFlyktningVilkårRequ
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.institusjonsopphold.KunneIkkeLeggeTilInstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.institusjonsopphold.LeggTilInstitusjonsoppholdVilkårRequest
-import no.nav.su.se.bakover.domain.vilkår.lovligopphold.KunneIkkeLeggetilLovligOppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.lovligopphold.KunneIkkeLeggetilLovligOppholdVilkårForSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.lovligopphold.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.opplysningsplikt.KunneIkkeLeggeTilOpplysningsplikt
 import no.nav.su.se.bakover.domain.vilkår.opplysningsplikt.LeggTilOpplysningspliktRequest
-import no.nav.su.se.bakover.domain.vilkår.oppmøte.KunneIkkeLeggeTilPersonligOppmøteVilkår
+import no.nav.su.se.bakover.domain.vilkår.oppmøte.KunneIkkeLeggeTilPersonligOppmøteVilkårForSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.oppmøte.LeggTilPersonligOppmøteVilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.pensjon.KunneIkkeLeggeTilPensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.pensjon.LeggTilPensjonsVilkårRequest
@@ -60,7 +61,7 @@ interface SøknadsbehandlingService {
     fun leggTilLovligOpphold(
         request: LeggTilLovligOppholdRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeLeggetilLovligOppholdVilkår, Søknadsbehandling>
+    ): Either<KunneIkkeLeggetilLovligOppholdVilkårForSøknadsbehandling, Søknadsbehandling>
 
     fun leggTilFamiliegjenforeningvilkår(
         request: LeggTilFamiliegjenforeningRequest,
@@ -103,7 +104,7 @@ interface SøknadsbehandlingService {
     fun leggTilPersonligOppmøteVilkår(
         request: LeggTilPersonligOppmøteVilkårRequest,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, VilkårsvurdertSøknadsbehandling>
+    ): Either<KunneIkkeLeggeTilPersonligOppmøteVilkårForSøknadsbehandling, VilkårsvurdertSøknadsbehandling>
 
     fun leggTilInstitusjonsoppholdVilkår(
         request: LeggTilInstitusjonsoppholdVilkårRequest,
@@ -185,7 +186,7 @@ interface SøknadsbehandlingService {
     }
 
     sealed interface BrevRequest {
-        abstract val behandling: Søknadsbehandling
+        val behandling: Søknadsbehandling
 
         data class MedFritekst(
             override val behandling: Søknadsbehandling,
@@ -195,13 +196,6 @@ interface SøknadsbehandlingService {
         data class UtenFritekst(
             override val behandling: Søknadsbehandling,
         ) : BrevRequest
-    }
-
-    sealed interface KunneIkkeLageBrev {
-        data object KunneIkkeLagePDF : KunneIkkeLageBrev
-        data object FantIkkePerson : KunneIkkeLageBrev
-        data object FikkIkkeHentetSaksbehandlerEllerAttestant : KunneIkkeLageBrev
-        data object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeLageBrev
     }
 
     data class HentRequest(
@@ -220,15 +214,15 @@ interface SøknadsbehandlingService {
 
     sealed interface KunneIkkeLeggeTilUføreVilkår {
         data object FantIkkeBehandling : KunneIkkeLeggeTilUføreVilkår
-        data object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : KunneIkkeLeggeTilUføreVilkår
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out Søknadsbehandling>,
         ) : KunneIkkeLeggeTilUføreVilkår
 
         data class UgyldigInput(
-            val originalFeil: LeggTilUførevurderingerRequest.UgyldigUførevurdering,
+            val underliggende: LeggTilUførevurderingerRequest.UgyldigUførevurdering,
         ) : KunneIkkeLeggeTilUføreVilkår
+        data class Domenefeil(val underliggende: KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår) : KunneIkkeLeggeTilUføreVilkår
     }
 
     sealed interface KunneIkkeLeggeTilFamiliegjenforeningVilkårService {
@@ -238,25 +232,11 @@ interface SøknadsbehandlingService {
             val til: KClass<out Søknadsbehandling>,
         ) : KunneIkkeLeggeTilFamiliegjenforeningVilkårService
 
-        data class UgyldigFamiliegjenforeningVilkårService(val feil: UgyldigFamiliegjenforeningVilkår) :
-            KunneIkkeLeggeTilFamiliegjenforeningVilkårService
+        data class UgyldigFamiliegjenforeningVilkårService(
+            val feil: UgyldigFamiliegjenforeningVilkår,
+        ) : KunneIkkeLeggeTilFamiliegjenforeningVilkårService
 
-        fun KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.tilKunneIkkeLeggeTilFamiliegjenforeningVilkårService() =
-            when (this) {
-                is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand -> UgyldigTilstand(
-                    fra = this.fra,
-                    til = this.til,
-                )
-            }
-    }
-
-    sealed interface KunneIkkeFullføreBosituasjonGrunnlag {
-        data object FantIkkeBehandling : KunneIkkeFullføreBosituasjonGrunnlag
-
-        data object KlarteIkkeLagreBosituasjon : KunneIkkeFullføreBosituasjonGrunnlag
-        data object KlarteIkkeHentePersonIPdl : KunneIkkeFullføreBosituasjonGrunnlag
-        data class KunneIkkeEndreBosituasjongrunnlag(val feil: KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon) :
-            KunneIkkeFullføreBosituasjonGrunnlag
+        data class Domenefeil(val underliggende: KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår) : KunneIkkeLeggeTilFamiliegjenforeningVilkårService
     }
 
     sealed interface KunneIkkeLeggeTilFradragsgrunnlag {
@@ -273,13 +253,12 @@ interface SøknadsbehandlingService {
 
     sealed interface KunneIkkeLeggeTilUtenlandsopphold {
         data object FantIkkeBehandling : KunneIkkeLeggeTilUtenlandsopphold
-        data object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUtenlandsopphold
-        data object AlleVurderingsperioderMåHaSammeResultat : KunneIkkeLeggeTilUtenlandsopphold
-        data object MåInneholdeKunEnVurderingsperiode : KunneIkkeLeggeTilUtenlandsopphold
-        data object MåVurdereHelePerioden : KunneIkkeLeggeTilUtenlandsopphold
+
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out Søknadsbehandling>,
         ) : KunneIkkeLeggeTilUtenlandsopphold
+
+        data class Domenefeil(val underliggende: KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold) : KunneIkkeLeggeTilUtenlandsopphold
     }
 }

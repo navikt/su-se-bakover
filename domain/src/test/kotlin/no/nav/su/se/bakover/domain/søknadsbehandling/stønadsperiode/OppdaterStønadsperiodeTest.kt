@@ -187,7 +187,8 @@ internal class OppdaterStønadsperiodeTest {
         )
 
         val nySøknadsbehandlingMedOpplysningsplikt = nySøknadsbehandling.leggTilOpplysningspliktVilkår(
-            opplysningspliktVilkår = tilstrekkeligDokumentert(periode = nyPeriode),
+            vilkår = tilstrekkeligDokumentert(periode = nyPeriode),
+            saksbehandler = saksbehandler,
         ).getOrFail() as VilkårsvurdertSøknadsbehandling.Uavklart
 
         sakMedRevurderingOgSøknadVedtak.nySøknadsbehandling(nySøknadsbehandling).let { sak ->

@@ -3,8 +3,6 @@ package no.nav.su.se.bakover.domain.vilkår.lovligopphold
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
-import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageLovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeLovligOpphold
@@ -48,14 +46,4 @@ data class LeggTilLovligOppholdRequest(
             vurderingsperiode = it.periode,
         )
     }
-}
-
-sealed interface KunneIkkeLeggetilLovligOppholdVilkår {
-    data object FantIkkeBehandling : KunneIkkeLeggetilLovligOppholdVilkår
-
-    data class UgyldigLovligOppholdVilkår(val feil: KunneIkkeLageLovligOppholdVilkår) :
-        KunneIkkeLeggetilLovligOppholdVilkår
-
-    data class FeilVedSøknadsbehandling(val feil: KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold) :
-        KunneIkkeLeggetilLovligOppholdVilkår
 }

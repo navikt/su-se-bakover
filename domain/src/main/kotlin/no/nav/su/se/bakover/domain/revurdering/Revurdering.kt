@@ -39,13 +39,13 @@ import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOpphørVedRevurderi
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
+import no.nav.su.se.bakover.domain.revurdering.vilkår.opphold.KunneIkkeOppdatereLovligOppholdOgMarkereSomVurdert
 import no.nav.su.se.bakover.domain.revurdering.visitors.RevurderingVisitor
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
@@ -225,8 +225,10 @@ sealed class Revurdering :
         return KunneIkkeLeggeTilPersonligOppmøteVilkår.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
     }
 
-    open fun oppdaterLovligOppholdOgMarkerSomVurdert(lovligOppholdVilkår: LovligOppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold, OpprettetRevurdering> {
-        return KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold.UgyldigTilstand.Revurdering(
+    open fun oppdaterLovligOppholdOgMarkerSomVurdert(
+        lovligOppholdVilkår: LovligOppholdVilkår.Vurdert,
+    ): Either<KunneIkkeOppdatereLovligOppholdOgMarkereSomVurdert, OpprettetRevurdering> {
+        return KunneIkkeOppdatereLovligOppholdOgMarkereSomVurdert.UgyldigTilstand(
             this::class,
             OpprettetRevurdering::class,
         ).left()
@@ -292,7 +294,7 @@ sealed class Revurdering :
         if (!periode.fullstendigOverlapp(opplysningspliktVilkår.minsteAntallSammenhengendePerioder())) {
             return KunneIkkeLeggeTilOpplysningsplikt.HeleBehandlingsperiodenErIkkeVurdert.left()
         }
-        return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.leggTil(opplysningspliktVilkår)).right()
+        return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(opplysningspliktVilkår)).right()
     }
 
     protected fun oppdaterOpplysnigspliktOgMarkerSomVurdertInternal(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysningsplikt, OpprettetRevurdering> {
@@ -313,7 +315,7 @@ sealed class Revurdering :
         if (Sakstype.ALDER != sakstype) {
             return KunneIkkeLeggeTilPensjonsVilkår.VilkårKunRelevantForAlder.left()
         }
-        return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår)).right()
+        return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(vilkår)).right()
     }
 
     protected fun oppdaterFlyktningVilkårOgMarkerSomVurdertInternal(vilkår: FlyktningVilkår.Vurdert): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
@@ -328,21 +330,26 @@ sealed class Revurdering :
         if (Sakstype.UFØRE != sakstype) {
             return KunneIkkeLeggeTilFlyktningVilkår.VilkårKunRelevantForUføre.left()
         }
-        return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår)).right()
+        return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(vilkår)).right()
     }
 
-    private fun oppdaterLovligOpphold(lovligOppholdVilkår: LovligOppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold, OpprettetRevurdering> {
+    private fun oppdaterLovligOpphold(
+        lovligOppholdVilkår: LovligOppholdVilkår.Vurdert,
+    ): Either<KunneIkkeOppdatereLovligOppholdOgMarkereSomVurdert, OpprettetRevurdering> {
         if (!periode.fullstendigOverlapp(lovligOppholdVilkår.minsteAntallSammenhengendePerioder())) {
-            return KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold.HeleBehandlingsperiodenErIkkeVurdert.left()
+            return KunneIkkeOppdatereLovligOppholdOgMarkereSomVurdert.HeleBehandlingsperiodenErIkkeVurdert.left()
         }
 
-        return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.leggTil(lovligOppholdVilkår)).right()
+        return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(lovligOppholdVilkår)).right()
     }
 
-    protected fun oppdaterLovligOppholdOgMarkerSomVurdertInternal(lovligOppholdVilkår: LovligOppholdVilkår.Vurdert) =
-        oppdaterLovligOpphold(lovligOppholdVilkår).map {
+    protected fun oppdaterLovligOppholdOgMarkerSomVurdertInternal(
+        lovligOppholdVilkår: LovligOppholdVilkår.Vurdert,
+    ): Either<KunneIkkeOppdatereLovligOppholdOgMarkereSomVurdert, OpprettetRevurdering> {
+        return oppdaterLovligOpphold(lovligOppholdVilkår).map {
             it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Oppholdstillatelse))
         }
+    }
 
     open fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> =
         KunneIkkeLeggeTilBosituasjon.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
@@ -351,7 +358,7 @@ sealed class Revurdering :
         uføre: UføreVilkår.Vurdert,
     ): Either<UgyldigTilstand, OpprettetRevurdering> {
         return oppdaterVilkårsvurderinger(
-            vilkårsvurderinger = vilkårsvurderinger.leggTil(uføre),
+            vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(uføre),
         ).oppdaterInformasjonSomRevurderes(
             informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Uførhet),
         ).right()
@@ -366,7 +373,7 @@ sealed class Revurdering :
         if (!periode.fullstendigOverlapp(vilkår.perioder)) {
             return KunneIkkeLeggeTilPersonligOppmøteVilkår.HeleBehandlingsperiodenErIkkeVurdert.left()
         }
-        return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår)).right()
+        return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(vilkår)).right()
     }
 
     sealed interface KunneIkkeLeggeTilUtenlandsopphold {
@@ -383,7 +390,7 @@ sealed class Revurdering :
     ): Either<KunneIkkeLeggeTilUtenlandsopphold, OpprettetRevurdering> {
         return valider(vilkår).map {
             oppdaterVilkårsvurderinger(
-                vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår),
+                vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(vilkår),
             ).oppdaterInformasjonSomRevurderes(
                 informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Utenlandsopphold),
             )
@@ -422,7 +429,7 @@ sealed class Revurdering :
         ).resultat.mapLeft {
             KunneIkkeLeggeTilFormue.Konsistenssjekk(it.first())
         }.map {
-            oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.leggTil(formue))
+            oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(formue))
         }
     }
 
@@ -498,7 +505,7 @@ sealed class Revurdering :
         ) {
             return KunneIkkeLeggeTilFastOppholdINorgeVilkår.AlleVurderingsperioderMåHaSammeResultat.left()
         }
-        return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår)).right()
+        return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(vilkår)).right()
     }
 
     protected fun oppdaterInstitusjonsoppholdOgMarkerSomVurdertInternal(
@@ -509,7 +516,7 @@ sealed class Revurdering :
             return KunneIkkeLeggeTilInstitusjonsoppholdVilkår.HeleBehandlingsperiodenErIkkeVurdert.left()
         }
         return oppdaterVilkårsvurderinger(
-            vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår),
+            vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(vilkår),
         ).oppdaterInformasjonSomRevurderes(
             informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Institusjonsopphold),
         ).right()

@@ -84,7 +84,7 @@ data class OpprettetRegulering(
         return this.copy(
             grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
                 grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger.leggTil(
+                vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(
                     UføreVilkår.Vurdert.tryCreate(
                         uføregrunnlag.map {
                             VurderingsperiodeUføre.tryCreate(

@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.KanOppdaterePeriodeBosituasjonVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.validerOverlappendeStønadsperioder
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
@@ -39,9 +39,11 @@ fun Sak.oppdaterStønadsperiodeForSøknadsbehandling(
     hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
     saksbehandlersAvgjørelse: SaksbehandlersAvgjørelse?,
 ): Either<Sak.KunneIkkeOppdatereStønadsperiode, Pair<Sak, VilkårsvurdertSøknadsbehandling>> {
-    val søknadsbehandling = søknadsbehandlinger.singleOrNull {
-        it.id == søknadsbehandlingId
-    } ?: return Sak.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
+    val søknadsbehandling = (
+        søknadsbehandlinger.singleOrNull {
+            it.id == søknadsbehandlingId
+        } ?: return Sak.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
+        ) as KanOppdaterePeriodeBosituasjonVilkår
 
     validerOverlappendeStønadsperioder(stønadsperiode.periode, clock).onLeft {
         return Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode(it).left()
@@ -69,13 +71,13 @@ fun Sak.oppdaterStønadsperiodeForSøknadsbehandling(
 }
 
 private fun Sak.internalOppdater(
-    søknadsbehandling: Søknadsbehandling,
+    søknadsbehandling: KanOppdaterePeriodeBosituasjonVilkår,
     formuegrenserFactory: FormuegrenserFactory,
     saksbehandler: NavIdentBruker.Saksbehandler,
     vurdering: Aldersvurdering.Vurdert,
     clock: Clock,
 ): Either<Sak.KunneIkkeOppdatereStønadsperiode, Pair<Sak, VilkårsvurdertSøknadsbehandling>> {
-    søknadsbehandling.oppdaterStønadsperiodeForSaksbehandler(
+    søknadsbehandling.oppdaterStønadsperiode(
         aldersvurdering = vurdering,
         formuegrenserFactory = formuegrenserFactory,
         clock = clock,

@@ -10,6 +10,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
@@ -55,7 +56,10 @@ internal class LeggTilFamiliegjenforeningRoutesTest {
     @Test
     fun `ok request`() {
         val vilkårsvurdert =
-            søknadsbehandlingVilkårsvurdertInnvilget(customVilkår = vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder().vilkår.toList()).second
+            søknadsbehandlingVilkårsvurdertInnvilget(
+                customVilkår = vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder().vilkår.toList()
+                    .filterNot { it is OpplysningspliktVilkår },
+            ).second
         testApplication {
             application {
                 testSusebakoverWithMockedDb(

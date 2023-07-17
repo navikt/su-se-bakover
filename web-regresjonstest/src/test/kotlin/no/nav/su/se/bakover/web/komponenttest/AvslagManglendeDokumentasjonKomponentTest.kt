@@ -156,7 +156,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
                         avslag.vilkårsvurderinger.opplysningspliktVilkår()
                             .shouldBeType<OpplysningspliktVilkår.Vurdert>()
                             .let { actualVilkår ->
-                                avslag.vilkårsvurderinger shouldBe avslag.vilkårsvurderinger.leggTil(
+                                avslag.vilkårsvurderinger shouldBe avslag.vilkårsvurderinger.oppdaterVilkår(
                                     OpplysningspliktVilkår.Vurdert.tryCreate(
                                         vurderingsperioder = nonEmptyListOf(
                                             VurderingsperiodeOpplysningsplikt.create(

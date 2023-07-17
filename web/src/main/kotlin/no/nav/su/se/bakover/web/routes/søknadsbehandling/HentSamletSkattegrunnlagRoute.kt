@@ -23,7 +23,7 @@ internal fun Route.hentSamletSkattegrunnlagRoute(
     satsFactory: SatsFactory,
     toggleClient: ToggleClient,
 ) {
-    get("$behandlingPath/{behandlingId}/samletSkattegrunnlag") {
+    get("$søknadsbehandlingPath/{behandlingId}/samletSkattegrunnlag") {
         authorize(Brukerrolle.Saksbehandler) {
             if (!toggleClient.isEnabled("supstonad.skattemelding")) {
                 call.respond(HttpStatusCode.NotFound)

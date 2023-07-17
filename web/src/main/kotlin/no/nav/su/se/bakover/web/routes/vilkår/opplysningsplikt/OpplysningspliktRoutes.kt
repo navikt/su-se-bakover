@@ -20,13 +20,14 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageOpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.opplysningsplikt.KunneIkkeLeggeTilOpplysningsplikt
 import no.nav.su.se.bakover.domain.vilkår.opplysningsplikt.LeggTilOpplysningspliktRequest
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkår.tilResultat
 import java.time.Clock
 import java.util.UUID
 
@@ -80,15 +81,7 @@ internal fun KunneIkkeLeggeTilOpplysningsplikt.tilResultat(): Resultat {
         }
 
         is KunneIkkeLeggeTilOpplysningsplikt.UgyldigOpplysningspliktVilkår -> {
-            when (this.feil) {
-                KunneIkkeLageOpplysningspliktVilkår.OverlappendeVurderingsperioder -> {
-                    Feilresponser.overlappendeVurderingsperioder
-                }
-
-                KunneIkkeLageOpplysningspliktVilkår.Vurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig -> {
-                    Feilresponser.periodeForGrunnlagOgVurderingErForskjellig
-                }
-            }
+            this.feil.tilResultat()
         }
 
         is KunneIkkeLeggeTilOpplysningsplikt.Revurdering -> {
@@ -105,14 +98,20 @@ internal fun KunneIkkeLeggeTilOpplysningsplikt.tilResultat(): Resultat {
 
         is KunneIkkeLeggeTilOpplysningsplikt.Søknadsbehandling -> {
             when (val feil = this.feil) {
-                KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt.HeleBehandlingsperiodenErIkkeVurdert -> {
-                    Feilresponser.vilkårMåVurderesForHeleBehandlingsperioden
-                }
-
-                is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt.UgyldigTilstand -> {
-                    Feilresponser.ugyldigTilstand(feil.fra, feil.til)
-                }
+                is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt.Vilkårsfeil -> feil.underliggende.tilResultat()
             }
+        }
+    }
+}
+
+internal fun KunneIkkeLageOpplysningspliktVilkår.tilResultat(): Resultat {
+    return when (this) {
+        KunneIkkeLageOpplysningspliktVilkår.OverlappendeVurderingsperioder -> {
+            Feilresponser.overlappendeVurderingsperioder
+        }
+
+        KunneIkkeLageOpplysningspliktVilkår.Vurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig -> {
+            Feilresponser.periodeForGrunnlagOgVurderingErForskjellig
         }
     }
 }

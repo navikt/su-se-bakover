@@ -41,6 +41,7 @@ import no.nav.su.se.bakover.test.simulering.simulerGjenopptak
 import no.nav.su.se.bakover.test.simulering.simulerStans
 import no.nav.su.se.bakover.test.utbetaling.kvittering
 import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingMedKvittering
+import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import java.time.Clock
 import java.time.LocalDate
@@ -148,7 +149,7 @@ fun vedtakSøknadsbehandlingIverksattAvslagUtenBeregning(
         clock = clock,
     ),
     customGrunnlag: List<Grunnlag> = emptyList(),
-    customVilkår: List<Vilkår> = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode).vilkår.toList(),
+    customVilkår: List<Vilkår> = listOf(institusjonsoppholdvilkårAvslag()),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     attestering: Attestering.Iverksatt = attesteringIverksatt(clock),
     fritekstTilBrev: String = "",
