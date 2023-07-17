@@ -666,7 +666,7 @@ class RevurderingServiceImpl(
                                 revurderingId = revurdering.id,
                                 oppgaveId = revurdering.oppgaveId,
                             ).onLeft {
-                                throw KunneIkkeOppdatereOppgave()
+                                log.info("Hopper over å oppdatere oppgave for revurdering ${revurdering.id}. Dette vil uansett dukke opp som en journalpost i Gosys.")
                             }
                             log.info("Forhåndsvarsel sendt for revurdering ${revurdering.id}")
                             revurdering
