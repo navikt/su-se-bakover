@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nåtidForSimuleringStub
 import no.nav.su.se.bakover.test.simulering.simulerGjenopptak
-import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
+import no.nav.su.se.bakover.test.simulertGjenopptakAvYtelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.utbetaling.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import org.junit.jupiter.api.Test
@@ -72,7 +72,7 @@ internal class GjenopptaUtbetalingerServiceTest {
     fun `Utbetaling feilet`() {
         val tikkendeKlokke = TikkendeKlokke(nåtidForSimuleringStub)
 
-        val (sak, simulertGjenopptak) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
+        val (sak, simulertGjenopptak) = simulertGjenopptakAvYtelseFraVedtakStansAvYtelse(
             clock = tikkendeKlokke,
         )
 

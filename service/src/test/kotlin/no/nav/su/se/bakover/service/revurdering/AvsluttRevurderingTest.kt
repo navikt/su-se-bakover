@@ -39,7 +39,7 @@ import no.nav.su.se.bakover.test.iverksattStansAvYtelseFraIverksattSøknadsbehan
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
-import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
+import no.nav.su.se.bakover.test.simulertGjenopptakAvYtelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import org.junit.jupiter.api.Test
@@ -239,7 +239,7 @@ internal class AvsluttRevurderingTest {
 
     @Test
     fun `avslutter en gjenoppta-revurdering`() {
-        val gjenopptaYtelse = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse().second
+        val gjenopptaYtelse = simulertGjenopptakAvYtelseFraVedtakStansAvYtelse().second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn gjenopptaYtelse

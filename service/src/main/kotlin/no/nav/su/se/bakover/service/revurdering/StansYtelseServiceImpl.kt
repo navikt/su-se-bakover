@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerStansFeilet
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg
@@ -66,13 +67,13 @@ class StansYtelseServiceImpl(
         request: StansYtelseRequest,
         transactionContext: TransactionContext,
     ): StansAvYtelseITransaksjonResponse {
+        val sak = sakService.hentSak(
+            sakId = request.sakId,
+            sessionContext = transactionContext,
+        ).getOrElse { throw KunneIkkeStanseYtelse.FantIkkeSak.exception() }
+
         val simulertRevurdering = when (request) {
             is StansYtelseRequest.Oppdater -> {
-                val sak = sakService.hentSak(
-                    sakId = request.sakId,
-                    sessionContext = transactionContext,
-                ).getOrElse { throw KunneIkkeStanseYtelse.FantIkkeSak.exception() }
-
                 val eksisterende = sak.hentRevurdering(request.revurderingId)
                     .getOrElse { throw KunneIkkeStanseYtelse.FantIkkeRevurdering.exception() }
 
@@ -85,11 +86,14 @@ class StansYtelseServiceImpl(
 
                         val simulertUtbetaling = simulerStans(
                             sak = sak,
-                            stans = null,
+                            kontrollerMotTidligereSimulering = null,
                             stansdato = request.fraOgMed,
                             behandler = request.saksbehandler,
                         ).getOrElse {
                             throw KunneIkkeStanseYtelse.SimuleringAvStansFeilet(it).exception()
+                        }
+                        if (simulertUtbetaling.simulering.harFeilutbetalinger()) {
+                            throw KunneIkkeStanseYtelse.SimuleringInneholderFeilutbetaling.exception()
                         }
 
                         eksisterende.copy(
@@ -109,11 +113,6 @@ class StansYtelseServiceImpl(
             }
 
             is StansYtelseRequest.Opprett -> {
-                val sak = sakService.hentSak(
-                    sakId = request.sakId,
-                    sessionContext = transactionContext,
-                ).getOrElse { throw KunneIkkeStanseYtelse.FantIkkeSak.exception() }
-
                 if (sak.harÅpenStansbehandling()) {
                     throw KunneIkkeStanseYtelse.FinnesÅpenStansbehandling.exception()
                 }
@@ -124,13 +123,15 @@ class StansYtelseServiceImpl(
 
                 val simulertUtbetaling = simulerStans(
                     sak = sak,
-                    stans = null,
+                    kontrollerMotTidligereSimulering = null,
                     stansdato = request.fraOgMed,
                     behandler = request.saksbehandler,
                 ).getOrElse {
                     throw KunneIkkeStanseYtelse.SimuleringAvStansFeilet(it).exception()
                 }
-
+                if (simulertUtbetaling.simulering.harFeilutbetalinger()) {
+                    throw KunneIkkeStanseYtelse.SimuleringInneholderFeilutbetaling.exception()
+                }
                 StansAvYtelseRevurdering.SimulertStansAvYtelse(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(clock),
@@ -264,7 +265,7 @@ class StansYtelseServiceImpl(
 
                 val simulertUtbetaling = simulerStans(
                     sak = sak,
-                    stans = iverksattRevurdering,
+                    kontrollerMotTidligereSimulering = iverksattRevurdering.simulering,
                     stansdato = iverksattRevurdering.periode.fraOgMed,
                     behandler = iverksattRevurdering.attesteringer.hentSisteAttestering().attestant,
                 ).getOrElse {
@@ -315,7 +316,7 @@ class StansYtelseServiceImpl(
 
     private fun simulerStans(
         sak: Sak,
-        stans: StansAvYtelseRevurdering?,
+        kontrollerMotTidligereSimulering: Simulering?,
         stansdato: LocalDate,
         behandler: NavIdentBruker,
     ): Either<SimulerStansFeilet, Utbetaling.SimulertUtbetaling> {
@@ -333,7 +334,7 @@ class StansYtelseServiceImpl(
                     utbetaling.senesteDato(),
                 ),
                 simuler = utbetalingService::simulerUtbetaling,
-                kontrollerMotTidligereSimulering = stans?.simulering,
+                kontrollerMotTidligereSimulering = kontrollerMotTidligereSimulering,
             ).mapLeft {
                 SimulerStansFeilet.KunneIkkeSimulere(it)
             }

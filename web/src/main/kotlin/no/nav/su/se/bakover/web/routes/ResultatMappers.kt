@@ -135,19 +135,6 @@ internal fun KryssjekkAvTidslinjeOgSimuleringFeilet.tilResultat(): Resultat {
                 is KryssjekkFeil.SimulertBeløpOgTidslinjeBeløpErForskjellig -> {
                     Feilresponser.kryssjekkTidslinjeSimuleringFeilet
                 }
-                is KryssjekkFeil.StansMedFeilutbetaling -> {
-                    HttpStatusCode.BadRequest.errorJson(
-                        "Stans vil føre til feilutbetalinger",
-                        "stans_fører_til_feilutbetaling",
-                    )
-                }
-
-                is KryssjekkFeil.GjenopptakMedFeilutbetaling -> {
-                    HttpStatusCode.InternalServerError.errorJson(
-                        "Gjenopptat fører til feilutbetaling",
-                        "gjenopptak_fører_til_feilutbetaling",
-                    )
-                }
             }
         }
         KryssjekkAvTidslinjeOgSimuleringFeilet.RekonstruertUtbetalingsperiodeErUlikOpprinnelig -> {

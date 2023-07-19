@@ -297,6 +297,11 @@ class SimuleringStub(
                         }
 
                         is UtbetalingslinjePåTidslinje.Reaktivering -> {
+                            val diff = nyLinje.beløp - utbetaltLinje.beløp
+                            val feilutbetaling = diff < 0 && erIFortiden(måned)
+                            if (feilutbetaling) {
+                                throw IllegalStateException("Feilutbetaling ved reaktivering er ikke støttet og skal vel strengt tatt ikke være mulig.")
+                            }
                             måned to SimulertUtbetaling(
                                 fagSystemId = utbetaling.saksnummer.toString(),
                                 utbetalesTilId = utbetaling.fnr,
@@ -327,8 +332,7 @@ class SimuleringStub(
                                     forfall = LocalDate.now(clock),
                                     feilkonto = true,
                                     detaljer = listOf(
-                                        // TODO jah: Tviler på at vi har en ordinær her
-                                        createOrdinær(
+                                        createTidligereUtbetaltKredit(
                                             fraOgMed = måned.fraOgMed,
                                             tilOgMed = måned.tilOgMed,
                                             beløp = abs(diff),
@@ -353,7 +357,6 @@ class SimuleringStub(
                                         ),
                                     ),
                                 )
-                                throw IllegalStateException("TODO jah: Finn en stans/gjenoppta og legg inn eksempel xml fra preprod.")
                             } else {
                                 måned to null
                             }

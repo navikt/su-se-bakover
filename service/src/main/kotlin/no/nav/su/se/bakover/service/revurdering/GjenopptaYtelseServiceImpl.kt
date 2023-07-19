@@ -85,6 +85,9 @@ class GjenopptaYtelseServiceImpl(
                     ).getOrElse {
                         return KunneIkkeSimulereGjenopptakAvYtelse.KunneIkkeSimulere(it).left()
                     }
+                    if (simulertUtbetaling.simulering.harFeilutbetalinger()) {
+                        throw IllegalStateException("Simulering av gjenopptak av ytelse skal ikke ha feilutbetalinger")
+                    }
 
                     when (update) {
                         is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> {
@@ -123,6 +126,9 @@ class GjenopptaYtelseServiceImpl(
                         behandler = request.saksbehandler,
                     ).getOrElse {
                         return KunneIkkeSimulereGjenopptakAvYtelse.KunneIkkeSimulere(it).left()
+                    }
+                    if (simulertUtbetaling.simulering.harFeilutbetalinger()) {
+                        throw IllegalStateException("Simulering av gjenopptak av ytelse skal ikke ha feilutbetalinger")
                     }
 
                     GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(

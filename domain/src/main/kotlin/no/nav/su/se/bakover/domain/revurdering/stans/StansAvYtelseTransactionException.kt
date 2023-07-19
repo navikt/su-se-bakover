@@ -7,16 +7,16 @@ data class StansAvYtelseTransactionException(
     companion object {
         fun KunneIkkeStanseYtelse.exception(): StansAvYtelseTransactionException {
             return when (this) {
-                KunneIkkeStanseYtelse.FantIkkeSak -> {
+                is KunneIkkeStanseYtelse.FantIkkeSak -> {
                     StansAvYtelseTransactionException(this::class.java.toString(), this)
                 }
-                KunneIkkeStanseYtelse.FantIkkeRevurdering -> {
+                is KunneIkkeStanseYtelse.FantIkkeRevurdering -> {
                     StansAvYtelseTransactionException(this::class.java.toString(), this)
                 }
-                KunneIkkeStanseYtelse.FinnesÅpenStansbehandling -> {
+                is KunneIkkeStanseYtelse.FinnesÅpenStansbehandling -> {
                     StansAvYtelseTransactionException(this::class.java.toString(), this)
                 }
-                KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering -> {
+                is KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering -> {
                     StansAvYtelseTransactionException(this::class.java.toString(), this)
                 }
                 is KunneIkkeStanseYtelse.SimuleringAvStansFeilet -> {
@@ -27,6 +27,9 @@ data class StansAvYtelseTransactionException(
                 }
                 is KunneIkkeStanseYtelse.UkjentFeil -> {
                     StansAvYtelseTransactionException(this.msg, this)
+                }
+                is KunneIkkeStanseYtelse.SimuleringInneholderFeilutbetaling -> {
+                    StansAvYtelseTransactionException(this::class.java.toString(), this)
                 }
             }
         }

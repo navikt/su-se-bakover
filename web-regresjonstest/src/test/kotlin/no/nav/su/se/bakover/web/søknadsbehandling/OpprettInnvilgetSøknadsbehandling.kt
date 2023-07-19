@@ -25,7 +25,7 @@ import no.nav.su.se.bakover.web.søknadsbehandling.personligoppmøte.leggTilPers
 import no.nav.su.se.bakover.web.søknadsbehandling.sendTilAttestering.sendTilAttestering
 import no.nav.su.se.bakover.web.søknadsbehandling.simulering.simuler
 import no.nav.su.se.bakover.web.søknadsbehandling.uførhet.leggTilUføregrunnlag
-import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilVirkningstidspunkt
+import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilStønadsperiode
 
 internal val SKIP_STEP = "SKIP_STEP" // verdi som signaliserer at kallet skal hoppes over
 
@@ -40,8 +40,8 @@ internal fun opprettInnvilgetSøknadsbehandling(
     tilOgMed: String = fixedLocalDate.startOfMonth().plusMonths(11).endOfMonth().toString(),
     client: HttpClient,
     appComponents: AppComponents?,
-    leggTilVirkningstidspunkt: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
-        leggTilVirkningstidspunkt(
+    leggTilStønadsperiode: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
+        leggTilStønadsperiode(
             sakId = sakId,
             behandlingId = behandlingId,
             fraOgMed = fraOgMed,
@@ -182,7 +182,7 @@ internal fun opprettInnvilgetSøknadsbehandling(
     val behandlingId = BehandlingJson.hentBehandlingId(nySøknadsbehandlingResponseJson)
 
     return listOf(
-        leggTilVirkningstidspunkt(sakId, behandlingId),
+        leggTilStønadsperiode(sakId, behandlingId),
         leggTilOpplysningsplikt(behandlingId),
         leggTilUføregrunnlag(sakId, behandlingId),
         leggTilFlyktningVilkår(sakId, behandlingId),

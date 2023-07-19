@@ -64,7 +64,8 @@ data class Simulering(
     }
 
     /**
-     * Beløpet som til slutt vil/burde være utbetalt. Beløpet reduseres tilsvarende [hentFeilutbetalteBeløp] ved iverksettelse av behandling.
+     * Beløpet som til slutt vil/burde være utbetalt.
+     * Beløpet reduseres tilsvarende [hentFeilutbetalteBeløp] ved iverksettelse av behandling.
      */
     fun hentTotalUtbetaling(): Månedsbeløp {
         return tolkning.hentTotalUtbetaling()
@@ -173,6 +174,10 @@ data class SimulertUtbetaling(
 
     internal fun tolk(): TolketUtbetaling {
         return TolketUtbetaling(detaljer = detaljer.mapNotNull { it.tolk() }, forfall = forfall)
+    }
+
+    fun harFeilutbetalinger(): Boolean {
+        return feilkonto
     }
 }
 

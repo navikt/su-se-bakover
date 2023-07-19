@@ -24,6 +24,7 @@ internal fun opprettStans(
     revurderingsårsak: String = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
     begrunnelse: String = "Begrunnelse",
     client: HttpClient,
+    expectedStatusCode: HttpStatusCode = HttpStatusCode.Created,
 ): String {
     return runBlocking {
         defaultRequest(
@@ -44,7 +45,7 @@ internal fun opprettStans(
             )
         }.apply {
             withClue("opprettStans feilet med status: $status og body: ${this.bodyAsText()}") {
-                status shouldBe HttpStatusCode.Created
+                status shouldBe expectedStatusCode
                 contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
             }
         }.bodyAsText()

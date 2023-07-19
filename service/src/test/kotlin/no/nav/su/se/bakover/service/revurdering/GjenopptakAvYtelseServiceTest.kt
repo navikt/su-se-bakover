@@ -6,7 +6,6 @@ import arrow.core.right
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
-import no.nav.su.se.bakover.common.extensions.april
 import no.nav.su.se.bakover.common.extensions.endOfMonth
 import no.nav.su.se.bakover.common.extensions.fixedClock
 import no.nav.su.se.bakover.common.extensions.januar
@@ -16,10 +15,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.februar
-import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvTidslinjeOgSimuleringFeilet
-import no.nav.su.se.bakover.domain.oppdrag.KryssjekkFeil
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
@@ -52,8 +48,8 @@ import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulering.simulerGjenopptak
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
-import no.nav.su.se.bakover.test.simulering.simuleringFeilutbetaling
-import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
+import no.nav.su.se.bakover.test.simulering.simulertUtbetaling
+import no.nav.su.se.bakover.test.simulertGjenopptakAvYtelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.utbetaling.utbetalingsRequest
@@ -158,7 +154,8 @@ internal class GjenopptakAvYtelseServiceTest {
             clock = tikkendeKlokke,
         )
 
-        val response = serviceAndMocks.revurderingService.gjenopptaYtelse(defaultOpprettRequest(sakId = sak.id)).getOrFail()
+        val response =
+            serviceAndMocks.revurderingService.gjenopptaYtelse(defaultOpprettRequest(sakId = sak.id)).getOrFail()
 
         response.saksbehandler shouldBe saksbehandler
         response.periode shouldBe vedtak.periode
@@ -195,7 +192,7 @@ internal class GjenopptakAvYtelseServiceTest {
             tilOgMed = år(2021).tilOgMed,
         )
         val clock = tikkendeFixedClock()
-        val (sak, revurderingGjenopptak) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
+        val (sak, revurderingGjenopptak) = simulertGjenopptakAvYtelseFraVedtakStansAvYtelse(
             periodeForStans = periode,
             clock = clock,
         )
@@ -265,7 +262,7 @@ internal class GjenopptakAvYtelseServiceTest {
             fraOgMed = LocalDate.now(tikkendeKlokke).plusMonths(1).startOfMonth(),
             tilOgMed = LocalDate.now(tikkendeKlokke).plusMonths(2).endOfMonth(),
         )
-        val (sak, revurdering) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
+        val (sak, revurdering) = simulertGjenopptakAvYtelseFraVedtakStansAvYtelse(
             periodeForStans = periode,
             clock = tikkendeKlokke,
         )
@@ -326,57 +323,10 @@ internal class GjenopptakAvYtelseServiceTest {
     }
 
     @Test
-    fun `får ikke iverksatt dersom simulering indikerer feilutbetaling`() {
-        val clock = TikkendeKlokke(1.april(2021).fixedClock())
-        val (sak, eksisterende) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
-            clock = clock,
-            periodeForStans = mai(2021),
-            utbetalingerKjørtTilOgMed = { 1.april(2021) },
-        )
-
-        val mockSimulering = mock<Utbetaling.SimulertUtbetaling> {
-            on { simulering } doReturn simuleringFeilutbetaling(*eksisterende.periode.måneder().toTypedArray())
-        }
-
-        ServiceMocks(
-            sakService = mock {
-                on { hentSakForRevurdering(any()) } doReturn sak
-            },
-            utbetalingService = mock {
-                on { simulerUtbetaling(any(), any()) } doReturn mockSimulering.right()
-            },
-            clock = clock,
-        ).let {
-            val response = it.revurderingService.iverksettGjenopptakAvYtelse(
-                revurderingId = eksisterende.id,
-                attestant = attestant,
-            )
-            response shouldBe KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KunneIkkeUtbetale(
-                UtbetalGjenopptakFeil.KunneIkkeSimulere(
-                    SimulerGjenopptakFeil.KunneIkkeSimulere(
-                        SimulerUtbetalingFeilet.FeilVedKryssjekkAvTidslinjeOgSimulering(
-                            KryssjekkAvTidslinjeOgSimuleringFeilet.KryssjekkFeilet(
-                                KryssjekkFeil.GjenopptakMedFeilutbetaling(mai(2021)),
-                            ),
-                        ),
-                    ),
-                ),
-            ).left()
-
-            verify(it.sakService).hentSakForRevurdering(eksisterende.id)
-            verify(it.utbetalingService, times(2)).simulerUtbetaling(
-                utbetaling = any(),
-                simuleringsperiode = any(),
-            )
-            it.verifyNoMoreInteractions()
-        }
-    }
-
-    @Test
     fun `happy path for iverksettelse`() {
         val periode = februar(2021)..desember(2021)
         val clock = tikkendeFixedClock()
-        val (sak, simulertGjenopptak) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
+        val (sak, simulertGjenopptak) = simulertGjenopptakAvYtelseFraVedtakStansAvYtelse(
             periodeForStans = periode,
             clock = clock,
         )

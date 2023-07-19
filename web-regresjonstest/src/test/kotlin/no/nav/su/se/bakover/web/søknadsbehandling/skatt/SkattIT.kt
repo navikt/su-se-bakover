@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.bosituasjon.leggTilBosituasjon
 import no.nav.su.se.bakover.web.søknadsbehandling.ny.nySøknadsbehandling
-import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilVirkningstidspunkt
+import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilStønadsperiode
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
@@ -29,7 +29,7 @@ class SkattIT {
                 client = client,
             )
             val behandlingId = BehandlingJson.hentBehandlingId(nySøknadsbehandlingResponseJson)
-            leggTilVirkningstidspunkt(
+            leggTilStønadsperiode(
                 sakId = sakId,
                 behandlingId = behandlingId,
                 client = client,

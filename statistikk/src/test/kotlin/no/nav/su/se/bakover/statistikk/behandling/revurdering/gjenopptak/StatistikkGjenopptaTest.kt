@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.avsluttetGjenopptakelseAvYtelseeFraIverksattSøknadsbehandlignsvedtak
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
+import no.nav.su.se.bakover.test.simulertGjenopptakAvYtelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.vedtakIverksattGjenopptakAvYtelseFraIverksattStans
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
@@ -23,7 +23,7 @@ internal class StatistikkGjenopptaTest {
 
     @Test
     fun `simulert gjenopptak`() {
-        val gjenopptak = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse().second
+        val gjenopptak = simulertGjenopptakAvYtelseFraVedtakStansAvYtelse().second
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Gjenoppta.Opprettet(gjenopptak),
             behandlingStatus = "REGISTRERT",

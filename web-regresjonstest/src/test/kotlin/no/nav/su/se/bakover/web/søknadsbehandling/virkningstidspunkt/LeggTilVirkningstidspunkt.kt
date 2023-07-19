@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
  * Legger til virkningstidspunkt (stønadsperiode); start (fra og med) og slutt (til og med) på en søknadsbehanding.
  * Kan kalles flere ganger. Nyeste data vil overskrive de gamle.
  */
-internal fun leggTilVirkningstidspunkt(
+internal fun leggTilStønadsperiode(
     sakId: String,
     behandlingId: String,
     fraOgMed: String = "2021-01-01",

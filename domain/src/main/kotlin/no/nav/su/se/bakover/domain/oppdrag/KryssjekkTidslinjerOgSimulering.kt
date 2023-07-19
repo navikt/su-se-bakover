@@ -95,26 +95,6 @@ sealed interface KryssjekkAvTidslinjeOgSimuleringFeilet {
     data object KunneIkkeGenerereTidslinje : KryssjekkAvTidslinjeOgSimuleringFeilet
 }
 
-sealed class KryssjekkFeil(val prioritet: Int) : Comparable<KryssjekkFeil> {
-    data class StansMedFeilutbetaling(val måned: Måned) : KryssjekkFeil(prioritet = 1)
-    data class GjenopptakMedFeilutbetaling(val måned: Måned) : KryssjekkFeil(prioritet = 1)
-    data class KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
-        val måned: Måned,
-        val simulertType: String,
-        val tidslinjeType: String,
-    ) : KryssjekkFeil(prioritet = 2)
-
-    data class SimulertBeløpOgTidslinjeBeløpErForskjellig(
-        val måned: Måned,
-        val simulertBeløp: Int,
-        val tidslinjeBeløp: Int,
-    ) : KryssjekkFeil(prioritet = 2)
-
-    override fun compareTo(other: KryssjekkFeil): Int {
-        return this.prioritet.compareTo(other.prioritet)
-    }
-}
-
 private fun sjekkTidslinjeMotSimulering(
     tidslinjeEksisterendeOgUnderArbeid: TidslinjeForUtbetalinger,
     simulering: Simulering,
@@ -143,20 +123,6 @@ private fun sjekkTidslinjeMotSimulering(
             }
         }
     } else {
-        simulering.månederMedSimuleringsresultat().forEach { måned ->
-            val utbetaling = tidslinjeEksisterendeOgUnderArbeid.gjeldendeForMåned(måned)!!
-            if (utbetaling is UtbetalingslinjePåTidslinje.Stans && simulering.harFeilutbetalinger()) {
-                feil.add(KryssjekkFeil.StansMedFeilutbetaling(måned))
-            }
-        }
-
-        simulering.månederMedSimuleringsresultat().forEach { måned ->
-            val utbetaling = tidslinjeEksisterendeOgUnderArbeid.gjeldendeForMåned(måned)!!
-            if (utbetaling is UtbetalingslinjePåTidslinje.Reaktivering && simulering.harFeilutbetalinger()) {
-                feil.add(KryssjekkFeil.GjenopptakMedFeilutbetaling(måned))
-            }
-        }
-
         simulering.hentTotalUtbetaling().forEach { månedsbeløp ->
             kryssjekkBeløp(
                 måned = månedsbeløp.periode,

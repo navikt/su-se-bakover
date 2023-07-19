@@ -9,6 +9,7 @@ import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.detHarKommetNyeOverlappendeVedtak
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ukjentFeil
@@ -139,9 +140,9 @@ internal class StansUtbetalingBody(
 
 private fun KunneIkkeStanseYtelse.tilResultat(): Resultat {
     return when (this) {
-        KunneIkkeStanseYtelse.FantIkkeRevurdering -> fantIkkeRevurdering
+        is KunneIkkeStanseYtelse.FantIkkeRevurdering -> fantIkkeRevurdering
 
-        KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering -> {
+        is KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering -> {
             HttpStatusCode.InternalServerError.errorJson(
                 message = "Kunne ikke opprette revurdering for stans",
                 code = "kunne_ikke_opprette_revurdering_for_stans",
@@ -157,16 +158,18 @@ private fun KunneIkkeStanseYtelse.tilResultat(): Resultat {
             )
         }
 
-        KunneIkkeStanseYtelse.FantIkkeSak -> fantIkkeSak
+        is KunneIkkeStanseYtelse.FantIkkeSak -> fantIkkeSak
 
         is KunneIkkeStanseYtelse.UkjentFeil -> ukjentFeil
 
-        KunneIkkeStanseYtelse.FinnesÅpenStansbehandling -> {
+        is KunneIkkeStanseYtelse.FinnesÅpenStansbehandling -> {
             HttpStatusCode.BadRequest.errorJson(
                 message = "Finnes allerede en åpen stansbehandling.",
                 code = "finnes_åpen_stansbehandling",
             )
         }
+
+        is KunneIkkeStanseYtelse.SimuleringInneholderFeilutbetaling -> Feilresponser.simuleringFørerTilFeilutbetaling
     }
 }
 
