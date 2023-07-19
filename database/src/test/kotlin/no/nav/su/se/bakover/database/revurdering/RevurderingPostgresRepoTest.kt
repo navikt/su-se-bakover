@@ -154,7 +154,7 @@ internal class RevurderingPostgresRepoTest {
                     vilkårOverrides = listOf(
                         utenlandsoppholdAvslag(),
                     ),
-                    utbetalingerKjørtTilOgMed = 30.april(2021),
+                    utbetalingerKjørtTilOgMed = { 30.april(2021) },
                     clock = tdh.clock,
                 ).second.shouldBeType<SimulertRevurdering.Opphørt>()
                 tdh.revurderingRepo.lagre(simulertOpphørt).also {
@@ -180,7 +180,7 @@ internal class RevurderingPostgresRepoTest {
                     vilkårOverrides = listOf(
                         utenlandsoppholdAvslag(),
                     ),
-                    utbetalingerKjørtTilOgMed = 30.april(2021),
+                    utbetalingerKjørtTilOgMed = { 30.april(2021) },
                     clock = tdh.clock,
                 ).second.shouldBeType<RevurderingTilAttestering.Opphørt>()
                 tdh.revurderingRepo.lagre(tilAttesteringOpphørt).also {
@@ -206,7 +206,7 @@ internal class RevurderingPostgresRepoTest {
                     vilkårOverrides = listOf(
                         utenlandsoppholdAvslag(),
                     ),
-                    utbetalingerKjørtTilOgMed = 30.april(2021),
+                    utbetalingerKjørtTilOgMed = { 30.april(2021) },
                     clock = tdh.clock,
                 ).second.shouldBeType<UnderkjentRevurdering.Opphørt>()
                 tdh.revurderingRepo.lagre(underkjentOpphørt).also {
@@ -232,7 +232,7 @@ internal class RevurderingPostgresRepoTest {
                     vilkårOverrides = listOf(
                         utenlandsoppholdAvslag(),
                     ),
-                    utbetalingerKjørtTilOgMed = 30.april(2021),
+                    utbetalingerKjørtTilOgMed = { 30.april(2021) },
                     clock = tdh.clock,
                 ).second.shouldBeType<IverksattRevurdering.Opphørt>()
                 tdh.revurderingRepo.lagre(iverksattOpphørt).also {

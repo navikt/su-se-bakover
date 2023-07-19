@@ -172,7 +172,7 @@ internal class OppdaterStønadsperiodeTest {
                     periode = revurderingsperiode,
                 ),
             ),
-            utbetalingerKjørtTilOgMed = 1.juli(2021),
+            utbetalingerKjørtTilOgMed = { 1.juli(2021) },
         )
 
         val nyPeriode = år(2022)
@@ -255,7 +255,7 @@ internal class OppdaterStønadsperiodeTest {
                 ),
             ),
             // Genererer feiltutbetaling for mai og juni.
-            utbetalingerKjørtTilOgMed = 1.juli(2021),
+            utbetalingerKjørtTilOgMed = { 1.juli(2021) },
         )
 
         val nyPeriode = år(2022)

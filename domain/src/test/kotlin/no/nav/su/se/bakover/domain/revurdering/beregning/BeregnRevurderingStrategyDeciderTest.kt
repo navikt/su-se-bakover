@@ -90,7 +90,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 clock = clock,
                 stønadsperiode = stønadsperiode2021,
                 revurderingsperiode = stønadsperiode2021.periode,
-                utbetalingerKjørtTilOgMed = 1.mai(2021), // feilutbetaling for jan-apr
+                utbetalingerKjørtTilOgMed = { 1.mai(2021) }, // feilutbetaling for jan-apr
             )
 
             val (medNyStønadsperiode, _, nyStønadsperiode) = iverksattSøknadsbehandling(
@@ -147,7 +147,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
                     ),
                 ),
-                utbetalingerKjørtTilOgMed = 1.juli(2021),
+                utbetalingerKjørtTilOgMed = { 1.juli(2021) },
             ).let {
                 sak = it.first
                 it.second
@@ -215,7 +215,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                     periode = Periode.create(1.mai(2021), 31.desember(2021)),
                 ),
             ),
-            utbetalingerKjørtTilOgMed = 1.juli(2021),
+            utbetalingerKjørtTilOgMed = { 1.juli(2021) },
         ).let {
             sak = it.first
             it.second
@@ -280,7 +280,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
                     ),
                 ),
-                utbetalingerKjørtTilOgMed = 1.juli(2021),
+                utbetalingerKjørtTilOgMed = { 1.juli(2021) },
             )
 
             assertThrows<IllegalStateException> {
@@ -317,7 +317,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
                     ),
                 ),
-                utbetalingerKjørtTilOgMed = 1.juli(2021),
+                utbetalingerKjørtTilOgMed = { 1.juli(2021) },
             )
 
             assertThrows<IllegalStateException> {
@@ -388,7 +388,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
                     ),
                 ),
-                utbetalingerKjørtTilOgMed = 1.juli(2021),
+                utbetalingerKjørtTilOgMed = { 1.juli(2021) },
             )
 
             assertThrows<IllegalStateException> {
@@ -433,7 +433,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
                     ),
                 ),
-                utbetalingerKjørtTilOgMed = 1.juli(2021),
+                utbetalingerKjørtTilOgMed = { 1.juli(2021) },
             )
             val (sak2, revurdering) = opprettetRevurdering(
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
@@ -486,7 +486,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
                     ),
                 ),
-                utbetalingerKjørtTilOgMed = 1.juli(2021),
+                utbetalingerKjørtTilOgMed = { 1.juli(2021) },
             ).let {
                 sak = it.first
                 it.second
@@ -521,7 +521,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 clock = clock,
                 stønadsperiode = Stønadsperiode.create(januar(2021)..mars(2021)),
                 revurderingsperiode = januar(2021)..februar(2021),
-                utbetalingerKjørtTilOgMed = 1.februar(2021),
+                utbetalingerKjørtTilOgMed = { 1.februar(2021) },
             )
             val (sak, revurdering) = opprettetRevurdering(
                 revurderingsperiode = mars(2021),
@@ -550,7 +550,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
             // juli-desember 2021 blir bare opphørt siden den er "frem i tid".
             val (sakMedUteståendeAvkorting, _) = sakMedUteståendeAvkorting(
                 clock = clock,
-                utbetalingerKjørtTilOgMed = 31.juli(2021),
+                utbetalingerKjørtTilOgMed = { 31.juli(2021) },
             )
 
             // Ny stønadsperiode året etter. Dvs. vi får avkortingsfradrag for jan-jun 21 og utbetaling for resten.
@@ -580,7 +580,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         opprettet = Tidspunkt.now(clock),
                     ),
                 ),
-                utbetalingerKjørtTilOgMed = 1.august(2022),
+                utbetalingerKjørtTilOgMed = { 1.august(2022) },
             )
 
             // val (sakMedOpphørAvSep22, revurderingOpphørSep22) = vedtakRevurdering(
@@ -644,7 +644,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
             // juli-desember 2021 blir bare opphørt siden den er "frem i tid".
             val (sakMedUteståendeAvkorting, _) = sakMedUteståendeAvkorting(
                 clock = clock,
-                utbetalingerKjørtTilOgMed = 31.juli(2021),
+                utbetalingerKjørtTilOgMed = { 31.juli(2021) },
             )
 
             // Ny stønadsperiode året etter. Dvs. vi får avkortingsfradrag for jan-jun 21 og utbetaling for resten.
@@ -674,7 +674,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         opprettet = Tidspunkt.now(clock),
                     ),
                 ),
-                utbetalingerKjørtTilOgMed = 31.desember(2022),
+                utbetalingerKjørtTilOgMed = { 31.desember(2022) },
             )
 
             // Revurderer begge stønadsperiodene uten endringer og forventer videreføring og at saken har utestående for andre periode
@@ -716,7 +716,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
             // juli-desember 2021 blir bare opphørt siden den er "frem i tid".
             val (sakMedUteståendeAvkorting, _) = sakMedUteståendeAvkorting(
                 clock = clock,
-                utbetalingerKjørtTilOgMed = 31.juli(2021),
+                utbetalingerKjørtTilOgMed = { 31.juli(2021) },
             )
 
             // Ny stønadsperiode året etter. Dvs. vi får avkortingsfradrag for jan-jun 21 og utbetaling for resten.
@@ -746,7 +746,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         opprettet = Tidspunkt.now(clock),
                     ),
                 ),
-                utbetalingerKjørtTilOgMed = 1.august(2022),
+                utbetalingerKjørtTilOgMed = { 1.august(2022) },
             )
 
             // Revurderer den delen av siste stønadsperiode som er innvilget, slik at vi får en ny innvilgelse.

@@ -28,7 +28,7 @@ internal class TilbakekrevingsbehandlingTest {
                     arbeidsinntekt = 12500.0,
                 ),
             ),
-            utbetalingerKjørtTilOgMed = 1.juli(2021),
+            utbetalingerKjørtTilOgMed = { 1.juli(2021) },
         )
         val kravgrunnlag = matchendeKravgrunnlag(
             revurdering = revurdering,
@@ -176,7 +176,7 @@ internal class TilbakekrevingsbehandlingTest {
                     arbeidsinntekt = 12500.0,
                 ),
             ),
-            utbetalingerKjørtTilOgMed = 1.juli(2021),
+            utbetalingerKjørtTilOgMed = { 1.juli(2021) },
         )
         val kravgrunnlag = matchendeKravgrunnlag(
             revurdering = revurdering,

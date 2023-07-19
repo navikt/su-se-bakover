@@ -926,7 +926,7 @@ fun simulertSøknadsbehandling(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
-    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
+    utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     søknadsbehandling: BeregnetSøknadsbehandling? = null,
 ): Pair<Sak, SimulertSøknadsbehandling> {

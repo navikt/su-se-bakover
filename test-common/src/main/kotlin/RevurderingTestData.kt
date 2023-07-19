@@ -255,7 +255,7 @@ fun simulertRevurdering(
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
+    utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
     skalTilbakekreve: Boolean = true,
 ): Pair<Sak, SimulertRevurdering> {
@@ -329,7 +329,7 @@ fun revurderingTilAttestering(
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
-    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
+    utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
     skalTilbakekreve: Boolean = true,
 ): Pair<Sak, RevurderingTilAttestering> {
@@ -381,7 +381,7 @@ fun revurderingUnderkjent(
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
     attestering: Attestering.Underkjent = attesteringUnderkjent(clock),
-    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
+    utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
 ): Pair<Sak, UnderkjentRevurdering> {
     return revurderingTilAttestering(
         saksnummer = saksnummer,
@@ -457,7 +457,7 @@ fun iverksattRevurdering(
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
-    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
+    utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
     skalTilbakekreve: Boolean = true,
     kvittering: Kvittering? = kvittering(clock = clock),
@@ -558,7 +558,7 @@ fun vedtakRevurdering(
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
-    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
+    utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
 ): Pair<Sak, VedtakSomKanRevurderes> {
     return iverksattRevurdering(
@@ -632,7 +632,7 @@ fun simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         stønadsperiode = Stønadsperiode.create(periode),
         clock = clock,
     ),
-    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
+    utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
 ): Pair<Sak, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
     return sakOgVedtakSomKanRevurderes.let { (sak, vedtak) ->
         val gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(periode.fraOgMed, clock).getOrFail()
@@ -675,7 +675,7 @@ fun iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         clock = clock,
     ),
     attestering: Attestering = attesteringIverksatt(clock),
-    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
+    utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
 ): Pair<Sak, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
     return simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode = periode,
@@ -710,7 +710,7 @@ fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
         fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
         tilOgMed = LocalDate.now(clock).plusMonths(11).endOfMonth(),
     ),
-    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
+    utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode = periodeForStans,
         clock = clock,

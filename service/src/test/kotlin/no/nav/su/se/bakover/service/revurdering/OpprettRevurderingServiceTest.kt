@@ -466,7 +466,7 @@ internal class OpprettRevurderingServiceTest {
                 ),
             ),
             // Kun juni og juli som får avkorting, resten av månene får da et opphør frem i tid.
-            utbetalingerKjørtTilOgMed = 1.august(2021),
+            utbetalingerKjørtTilOgMed = { 1.august(2021) },
         )
         // Vi får lov til å revurdere august-desember, siden vi da kun overskriver opphør frem i tid.
         // Det er også lov å revurdere hele den utestående avkortingen (juni-juli)

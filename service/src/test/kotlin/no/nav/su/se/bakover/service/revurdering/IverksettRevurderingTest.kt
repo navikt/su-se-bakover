@@ -638,7 +638,7 @@ internal class IverksettRevurderingTest {
                     arbeidsinntekt = 5000.0,
                 ),
             ),
-            utbetalingerKjørtTilOgMed = 1.november(2021),
+            utbetalingerKjørtTilOgMed = { 1.november(2021) },
         )
 
         val (sakMedTilAttestering, revurderingTilAttestering) = revurderingTilAttestering(

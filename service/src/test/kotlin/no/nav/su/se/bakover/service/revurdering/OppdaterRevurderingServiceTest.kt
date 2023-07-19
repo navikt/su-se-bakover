@@ -414,7 +414,7 @@ internal class OppdaterRevurderingServiceTest {
                 ),
             ),
             // Det vil si vi får avkorting for juni og juli.
-            utbetalingerKjørtTilOgMed = 1.august(2021),
+            utbetalingerKjørtTilOgMed = { 1.august(2021) },
         )
         // Dersom vi revurderer over juli, må vi og revurdere over juni, hvis ikke skal vi få en feilmelding.
         val nyRevurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021))

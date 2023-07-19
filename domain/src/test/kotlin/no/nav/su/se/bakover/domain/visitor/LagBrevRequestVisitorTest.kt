@@ -1104,7 +1104,7 @@ internal class LagBrevRequestVisitorTest {
                     arbeidsinntekt = 5000.0,
                 ),
             ),
-            utbetalingerKjørtTilOgMed = 1.juli(2021),
+            utbetalingerKjørtTilOgMed = { 1.juli(2021) },
         ).second.shouldBeType<VedtakInnvilgetRevurdering>()
 
         val brevRevurdering = LagBrevRequestVisitor(
@@ -1155,7 +1155,7 @@ internal class LagBrevRequestVisitorTest {
                     periode = juni(2021)..(desember(2021)),
                 ),
             ),
-            utbetalingerKjørtTilOgMed = 1.juli(2021),
+            utbetalingerKjørtTilOgMed = { 1.juli(2021) },
         ).second.shouldBeType<VedtakOpphørMedUtbetaling>()
 
         val brevRevurdering = LagBrevRequestVisitor(

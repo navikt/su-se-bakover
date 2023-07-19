@@ -115,7 +115,7 @@ fun simulerUtbetaling(
     utbetaling: Utbetaling.UtbetalingForSimulering,
     simuleringsperiode: Periode = Periode.create(utbetaling.tidligsteDato(), utbetaling.senesteDato()),
     clock: Clock = nåtidForSimuleringStub,
-    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
+    utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
 ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
     return SimuleringStub(
         clock = clock,
@@ -164,7 +164,7 @@ fun simulerUtbetaling(
     simuleringsperiode: Periode = revurdering.periode,
     behandler: NavIdentBruker = saksbehandler,
     clock: Clock = tikkendeFixedClock(),
-    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
+    utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     strict: Boolean = true,
 ): Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
     return simulerNyUtbetaling(
@@ -190,7 +190,7 @@ fun simulerUtbetaling(
     simuleringsperiode: Periode = regulering.periode,
     behandler: NavIdentBruker = saksbehandler,
     clock: Clock = tikkendeFixedClock(),
-    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
+    utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     strict: Boolean = true,
 ): Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
     return simulerNyUtbetaling(
@@ -212,7 +212,7 @@ fun simulerGjenopptak(
     gjenopptak: GjenopptaYtelseRevurdering?,
     behandler: NavIdentBruker = saksbehandler,
     clock: Clock = tikkendeFixedClock(),
-    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
+    utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     strict: Boolean = true,
 ): Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
     return sak.lagUtbetalingForGjenopptak(
@@ -238,7 +238,7 @@ fun simulerStans(
     stansDato: LocalDate,
     behandler: NavIdentBruker = saksbehandler,
     clock: Clock = tikkendeFixedClock(),
-    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
+    utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     strict: Boolean = true,
 ): Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
     return sak.lagUtbetalingForStans(
@@ -267,7 +267,7 @@ fun simulerNyUtbetaling(
     simuleringsperiode: Periode = beregning.periode,
     behandler: NavIdentBruker = saksbehandler,
     clock: Clock = tikkendeFixedClock(),
-    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
+    utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     strict: Boolean = true,
 ): Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
     return sak.lagNyUtbetaling(
@@ -298,7 +298,7 @@ fun simulerOpphør(
     simuleringsperiode: Periode = revurdering.periode,
     behandler: NavIdentBruker = saksbehandler,
     clock: Clock = tikkendeFixedClock(),
-    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
+    utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     strict: Boolean = true,
 ): Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
     return sak.lagUtbetalingForOpphør(
@@ -325,7 +325,7 @@ fun simuler(
     kontrollerMotSimulering: Simulering?,
     clock: Clock,
     strict: Boolean,
-    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
+    utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
 ): Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
     return if (strict) {
         sak.simulerUtbetaling(

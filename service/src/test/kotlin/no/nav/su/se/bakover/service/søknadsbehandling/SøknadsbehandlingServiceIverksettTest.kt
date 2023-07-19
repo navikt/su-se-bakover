@@ -628,7 +628,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 50000.0),
             ),
-            utbetalingerKjørtTilOgMed = 31.desember(2021),
+            utbetalingerKjørtTilOgMed = { 31.desember(2021) },
         ).let { (sak, _) ->
             tilAttesteringSøknadsbehandling(
                 clock = clock,

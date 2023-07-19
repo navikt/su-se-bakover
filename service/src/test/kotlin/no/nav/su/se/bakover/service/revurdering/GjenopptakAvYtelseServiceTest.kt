@@ -331,7 +331,7 @@ internal class GjenopptakAvYtelseServiceTest {
         val (sak, eksisterende) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
             clock = clock,
             periodeForStans = mai(2021),
-            utbetalingerKjørtTilOgMed = 1.april(2021),
+            utbetalingerKjørtTilOgMed = { 1.april(2021) },
         )
 
         val mockSimulering = mock<Utbetaling.SimulertUtbetaling> {

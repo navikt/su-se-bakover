@@ -195,7 +195,7 @@ fun vedtakRevurderingIverksattInnvilget(
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
-    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
+    utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
     skalTilbakekreve: Boolean = true,
 ): Pair<Sak, VedtakInnvilgetRevurdering> {
@@ -273,7 +273,7 @@ fun vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         clock = clock,
     ),
     attestering: Attestering = attesteringIverksatt(clock = clock),
-    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
+    utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     kvittering: Kvittering? = kvittering(clock = clock),
 ): Triple<Sak, VedtakStansAvYtelse, Utbetaling.OversendtUtbetaling> {
     return iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(

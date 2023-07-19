@@ -27,7 +27,7 @@ import kotlin.math.roundToInt
 
 class SimuleringStub(
     val clock: Clock,
-    val utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
+    val utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     val utbetalingRepo: UtbetalingRepo,
 ) : SimuleringClient {
 
@@ -395,7 +395,7 @@ class SimuleringStub(
             }
     }
 
-    private fun erIFortiden(måned: Måned) = måned.tilOgMed < utbetalingerKjørtTilOgMed
+    private fun erIFortiden(måned: Måned) = måned.tilOgMed < utbetalingerKjørtTilOgMed(clock)
 }
 
 /**

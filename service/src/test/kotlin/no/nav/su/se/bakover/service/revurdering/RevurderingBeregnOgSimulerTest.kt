@@ -441,7 +441,7 @@ internal class RevurderingBeregnOgSimulerTest {
                     periode = revurderingsperiode1,
                 ),
             ),
-            utbetalingerKjørtTilOgMed = 1.juli(2021),
+            utbetalingerKjørtTilOgMed = { 1.juli(2021) },
         )
 
         revurdering1.harPågåendeAvkorting() shouldBe false

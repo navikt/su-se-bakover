@@ -103,7 +103,7 @@ fun sakMedUteståendeAvkorting(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = stønadsperiode.periode,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
-    utbetalingerKjørtTilOgMed: LocalDate = revurderingsperiode.tilOgMed,
+    utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { revurderingsperiode.tilOgMed },
 ): Triple<Sak, VedtakInnvilgetSøknadsbehandling, VedtakOpphørMedUtbetaling> {
     val sakOgVedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,

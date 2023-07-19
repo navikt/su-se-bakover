@@ -54,7 +54,7 @@ class BrevForTilbakekrevingTest {
             fradragsgrunnlagArbeidsinntekt(periode = år(2021), arbeidsinntekt = 5000.0),
         ),
         clock = TikkendeKlokke(1.august(2021).fixedClock()),
-        utbetalingerKjørtTilOgMed = 1.juli(2021),
+        utbetalingerKjørtTilOgMed = { 1.juli(2021) },
     ).let {
         requireType(it)
     }
@@ -69,7 +69,7 @@ class BrevForTilbakekrevingTest {
             ),
         ),
         clock = TikkendeKlokke(1.august(2021).fixedClock()),
-        utbetalingerKjørtTilOgMed = 1.juli(2021),
+        utbetalingerKjørtTilOgMed = { 1.juli(2021) },
     ).let {
         requireType(it)
     }
@@ -280,7 +280,7 @@ class BrevForTilbakekrevingTest {
                 grunnlagsdataOverrides = listOf(
                     fradragsgrunnlagArbeidsinntekt(periode = år(2021), arbeidsinntekt = 5000.0),
                 ),
-                utbetalingerKjørtTilOgMed = 1.juli(2021),
+                utbetalingerKjørtTilOgMed = { 1.juli(2021) },
             ).also { (sak, vedtak) ->
                 requireType<Pair<Sak, VedtakInnvilgetRevurdering>>(sak to vedtak)
                 val bruttobrev = requireType<LagBrevRequest.TilbakekrevingAvPenger>(

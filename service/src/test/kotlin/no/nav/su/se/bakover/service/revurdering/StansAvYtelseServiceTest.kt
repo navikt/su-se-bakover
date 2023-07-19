@@ -359,7 +359,7 @@ internal class StansAvYtelseServiceTest {
         val clock = TikkendeKlokke(1.februar(2021).fixedClock())
         val (sak, eksisterende) = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             clock = clock,
-            utbetalingerKjørtTilOgMed = 1.januar(2021),
+            utbetalingerKjørtTilOgMed = { 1.januar(2021) },
         )
 
         ServiceMocks(

@@ -45,7 +45,8 @@ internal class TilbakekrevingConsumerTest {
             clock = fixedClock,
         ).let {
             assertThrows<IllegalStateException> {
-                it.onMessage(javaClass.getResource("/tilbakekreving/kravgrunnlag_opphør.xml").readText())
+                val xml = javaClass.getResource("/tilbakekreving/kravgrunnlag_opphør.xml")!!
+                it.onMessage(xml.readText())
             }.also {
                 it.message shouldContain "Forventet å finne 1 tilbakekrevingsbehandling som avventer kravgrunnlag for utbetalingId"
             }
@@ -59,7 +60,7 @@ internal class TilbakekrevingConsumerTest {
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt1000(periode = år(2021)),
             ),
-            utbetalingerKjørtTilOgMed = 1.juli(2021),
+            utbetalingerKjørtTilOgMed = { 1.juli(2021) },
         ).let {
             requireType<Pair<Sak, VedtakInnvilgetRevurdering>>(it)
         }
@@ -74,7 +75,7 @@ internal class TilbakekrevingConsumerTest {
             clock = fixedClock,
         ).let {
             assertThrows<IllegalStateException> {
-                it.onMessage(javaClass.getResource("/tilbakekreving/kravgrunnlag_opphør.xml").readText())
+                it.onMessage(javaClass.getResource("/tilbakekreving/kravgrunnlag_opphør.xml")!!.readText())
             }.also {
                 it.message shouldContain "Ikke samsvar mellom perioder og beløp"
             }
@@ -88,7 +89,7 @@ internal class TilbakekrevingConsumerTest {
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt1000(periode = år(2021)),
             ),
-            utbetalingerKjørtTilOgMed = 1.juli(2021),
+            utbetalingerKjørtTilOgMed = { 1.juli(2021) },
         ).let {
             requireType<Pair<Sak, VedtakInnvilgetRevurdering>>(it)
         }
@@ -101,17 +102,15 @@ internal class TilbakekrevingConsumerTest {
                 on { hentRevurdering(any()) } doReturn vedtak.behandling
             },
             clock = fixedClock,
-        ).let {
-            it.onMessage(
-                TilbakekrevingsmeldingMapper.toXml(
-                    matchendeKravgrunnlagDto(
-                        revurdering = vedtak.behandling,
-                        simulering = vedtak.simulering,
-                        utbetalingId = vedtak.utbetalingId,
-                        clock = fixedClock,
-                    ),
-                ).getOrFail(),
-            )
-        }
+        ).onMessage(
+            TilbakekrevingsmeldingMapper.toXml(
+                matchendeKravgrunnlagDto(
+                    revurdering = vedtak.behandling,
+                    simulering = vedtak.simulering,
+                    utbetalingId = vedtak.utbetalingId,
+                    clock = fixedClock,
+                ),
+            ).getOrFail(),
+        )
     }
 }

@@ -46,7 +46,7 @@ internal class OpphørsperiodeForUtbetalingerTest {
         val simulert = simulertRevurdering(
             vilkårOverrides = listOf(utenlandsoppholdAvslag()),
             clock = TikkendeKlokke(1.august(2021).fixedClock()),
-            utbetalingerKjørtTilOgMed = tidligsteFraOgMedSomIkkeErUtbetalt,
+            utbetalingerKjørtTilOgMed = { tidligsteFraOgMedSomIkkeErUtbetalt },
         ).second as SimulertRevurdering.Opphørt
         OpphørsperiodeForUtbetalinger(simulert).getOrFail().value shouldBe Periode.create(
             tidligsteFraOgMedSomIkkeErUtbetalt,
@@ -69,7 +69,7 @@ internal class OpphørsperiodeForUtbetalingerTest {
                 ),
             ),
             clock = clock,
-            utbetalingerKjørtTilOgMed = 1.juli(2021),
+            utbetalingerKjørtTilOgMed = { 1.juli(2021) },
         ).second.shouldBeInstanceOf<SimulertRevurdering.Opphørt>().also {
             OpphørsperiodeForUtbetalinger(it).shouldBeLeft()
         }

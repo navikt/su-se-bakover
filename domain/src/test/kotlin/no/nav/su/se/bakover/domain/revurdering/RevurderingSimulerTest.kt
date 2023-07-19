@@ -33,7 +33,7 @@ class RevurderingSimulerTest {
         simulertRevurdering(
             vilkårOverrides = listOf(utenlandsoppholdAvslag()),
             clock = TikkendeKlokke(1.august(2021).fixedClock()),
-            utbetalingerKjørtTilOgMed = 1.juli(2021),
+            utbetalingerKjørtTilOgMed = { 1.juli(2021) },
         ).let { (_, revurdering) ->
             revurdering.simulering.harFeilutbetalinger() shouldBe false
             revurdering.avkorting.let {
@@ -86,7 +86,7 @@ class RevurderingSimulerTest {
         simulertRevurdering(
             vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
             clock = TikkendeKlokke(1.august(2021).fixedClock()),
-            utbetalingerKjørtTilOgMed = 1.juli(2021),
+            utbetalingerKjørtTilOgMed = { 1.juli(2021) },
         ).let { (_, revurdering) ->
             revurdering.simulering.harFeilutbetalinger() shouldBe true
             revurdering.shouldBeType<SimulertRevurdering.Opphørt>().also {
@@ -109,7 +109,7 @@ class RevurderingSimulerTest {
                 ),
             ),
             clock = TikkendeKlokke(1.august(2021).fixedClock()),
-            utbetalingerKjørtTilOgMed = 1.juli(2021),
+            utbetalingerKjørtTilOgMed = { 1.juli(2021) },
         ).let { (_, revurdering) ->
             revurdering.simulering.harFeilutbetalinger() shouldBe false
             revurdering.shouldBeType<SimulertRevurdering.Opphørt>().also {

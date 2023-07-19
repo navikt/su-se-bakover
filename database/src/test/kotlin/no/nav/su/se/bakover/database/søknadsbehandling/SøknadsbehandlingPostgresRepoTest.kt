@@ -453,7 +453,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                                 opprettet = Tidspunkt.now(testDataHelper.clock),
                             ),
                         ),
-                        utbetalingerKjørtTilOgMed = år(2021).tilOgMed,
+                        utbetalingerKjørtTilOgMed = { år(2021).tilOgMed },
                         clock = testDataHelper.clock,
                     )
                 },
@@ -507,7 +507,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                                 opprettet = Tidspunkt.now(testDataHelper.clock),
                             ),
                         ),
-                        utbetalingerKjørtTilOgMed = februar(2021).tilOgMed,
+                        utbetalingerKjørtTilOgMed = { februar(2021).tilOgMed },
                         clock = testDataHelper.clock,
                     )
                 },

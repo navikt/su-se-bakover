@@ -136,7 +136,7 @@ class StønadsvedtakTest {
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(periode = mai(2021)..desember(2021), arbeidsinntekt = 5000.0),
             ),
-            utbetalingerKjørtTilOgMed = 1.juli(2021),
+            utbetalingerKjørtTilOgMed = { 1.juli(2021) },
         ).mapSecond { it as VedtakInnvilgetRevurdering }.also {
             it.second.behandling.tilbakekrevingsbehandling.skalTilbakekreve().shouldBeRight()
             it.first.avventerKravgrunnlag().shouldBeTrue()

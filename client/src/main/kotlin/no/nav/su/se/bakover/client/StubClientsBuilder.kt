@@ -78,7 +78,7 @@ class StubClientsBuilder(
             kodeverk = KodeverkHttpClient(applicationConfig.clientsConfig.kodeverkUrl, suSeBakoverConsumerId),
             simuleringClient = SimuleringStub(
                 clock = clock,
-                utbetalingerKjørtTilOgMed = LocalDate.now(clock),
+                utbetalingerKjørtTilOgMed = { LocalDate.now(clock) },
                 utbetalingRepo = databaseRepos.utbetaling,
             ).also { log.warn("********** Using stub for ${SimuleringClient::class.java} **********") },
             utbetalingPublisher = UtbetalingStub.also { log.warn("********** Using stub for ${UtbetalingPublisher::class.java} **********") },

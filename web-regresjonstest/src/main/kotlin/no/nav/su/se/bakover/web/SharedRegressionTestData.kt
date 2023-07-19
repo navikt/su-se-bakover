@@ -129,6 +129,7 @@ data object SharedRegressionTestData {
 
     internal fun withTestApplicationAndEmbeddedDb(
         clock: Clock = fixedClock,
+        utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
         test: ApplicationTestBuilder.(appComponents: AppComponents) -> Unit,
     ) {
         withMigratedDb { dataSource ->
@@ -143,7 +144,11 @@ data object SharedRegressionTestData {
                     )
                 },
                 clientBuilder = { db, clock ->
-                    TestClientsBuilder(clock, db).build(applicationConfig)
+                    TestClientsBuilder(
+                        clock = clock,
+                        utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+                        databaseRepos = db,
+                    ).build(applicationConfig)
                 },
                 serviceBuilder = { databaseRepos, clients, clock, satsFactory, unleash ->
                     ServiceBuilder.build(
@@ -173,12 +178,17 @@ data object SharedRegressionTestData {
 
     fun Application.testSusebakover(
         clock: Clock = fixedClock,
+        utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
         satsFactory: SatsFactoryForSupplerendeStønad = satsFactoryTest,
         databaseRepos: DatabaseRepos = databaseRepos(
             clock = clock,
             satsFactory = satsFactory,
         ),
-        clients: Clients = TestClientsBuilder(clock, databaseRepos).build(applicationConfig),
+        clients: Clients = TestClientsBuilder(
+            clock = clock,
+            utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+            databaseRepos = databaseRepos,
+        ).build(applicationConfig),
         unleash: Unleash = FakeUnleash().apply { enableAll() },
         services: Services = ServiceBuilder.build(
             databaseRepos = databaseRepos,
@@ -228,6 +238,7 @@ data object SharedRegressionTestData {
 
 data class TestClientsBuilder(
     val clock: Clock,
+    val utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     val databaseRepos: DatabaseRepos,
 ) : ClientsBuilder {
     private val testClients = Clients(
@@ -240,7 +251,7 @@ data class TestClientsBuilder(
         kodeverk = mock(),
         simuleringClient = SimuleringStub(
             clock = clock,
-            utbetalingerKjørtTilOgMed = LocalDate.now(clock),
+            utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
             utbetalingRepo = databaseRepos.utbetaling,
         ),
         utbetalingPublisher = UtbetalingStub,

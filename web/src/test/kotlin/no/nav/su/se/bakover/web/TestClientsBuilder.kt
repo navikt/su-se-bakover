@@ -41,7 +41,7 @@ data class TestClientsBuilder(
         kodeverk = mock(),
         simuleringClient = SimuleringStub(
             clock = clock,
-            utbetalingerKjørtTilOgMed = LocalDate.now(clock),
+            utbetalingerKjørtTilOgMed = { LocalDate.now(clock) },
             utbetalingRepo = databaseRepos.utbetaling,
         ),
         utbetalingPublisher = UtbetalingStub,

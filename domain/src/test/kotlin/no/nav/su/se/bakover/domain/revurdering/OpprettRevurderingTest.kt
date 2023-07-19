@@ -108,7 +108,7 @@ internal class OpprettRevurderingTest {
                     periode = mai(2021)..desember(2021),
                 ),
             ),
-            utbetalingerKjørtTilOgMed = oktober(2021).fraOgMed,
+            utbetalingerKjørtTilOgMed = { oktober(2021).fraOgMed },
             clock = clock,
         ).shouldBeType<Pair<Sak, VedtakOpphørMedUtbetaling>>().also {
             it.second.behandling.avkorting.shouldBeType<AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel>()

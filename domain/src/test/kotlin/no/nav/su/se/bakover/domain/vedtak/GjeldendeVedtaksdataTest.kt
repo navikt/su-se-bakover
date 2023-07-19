@@ -162,7 +162,7 @@ internal class GjeldendeVedtaksdataTest {
                     periode = år(2021),
                 ),
             ),
-            utbetalingerKjørtTilOgMed = 1.juli(2021),
+            utbetalingerKjørtTilOgMed = { 1.juli(2021) },
         )
 
         GjeldendeVedtaksdata(
