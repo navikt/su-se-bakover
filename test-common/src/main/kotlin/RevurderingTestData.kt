@@ -619,7 +619,7 @@ fun avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
 }
 
 /**
- * @param clock Defaulter til 2021-01-01
+ * @param clock Defaulter til 2021-01-01 (TODO jah: den defaulter vel til måneden etter? why?)
  * @param periode Defaulter til 11 måneder, fra måneden etter clock.
  */
 fun simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
@@ -704,7 +704,7 @@ fun avsluttetStansAvYtelseFraIverksattSøknadsbehandlignsvedtak(
     }
 }
 
-fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
+fun simulertGjenopptakAvYtelseFraVedtakStansAvYtelse(
     clock: Clock = tikkendeFixedClock(),
     periodeForStans: Periode = Periode.create(
         fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
@@ -779,7 +779,7 @@ fun iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse(
     ).let { it.first to it.second },
     attestering: Attestering = attesteringIverksatt(clock),
 ): Pair<Sak, GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse> {
-    return simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
+    return simulertGjenopptakAvYtelseFraVedtakStansAvYtelse(
         periodeForStans = periode,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         clock = clock,
@@ -794,7 +794,7 @@ fun avsluttetGjenopptakelseAvYtelseeFraIverksattSøknadsbehandlignsvedtak(
     begrunnelse: String = "begrunnelse for å avslutte stans av ytelse",
     tidspunktAvsluttet: Tidspunkt = Tidspunkt.now(fixedClock),
 ): Pair<Sak, GjenopptaYtelseRevurdering.AvsluttetGjenoppta> {
-    return simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse().let { (sak, simulert) ->
+    return simulertGjenopptakAvYtelseFraVedtakStansAvYtelse().let { (sak, simulert) ->
         val avsluttet = simulert.avslutt(
             begrunnelse = begrunnelse,
             tidspunktAvsluttet = tidspunktAvsluttet,

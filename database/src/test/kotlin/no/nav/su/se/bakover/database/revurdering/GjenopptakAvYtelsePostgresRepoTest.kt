@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulering.simulering
-import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
+import no.nav.su.se.bakover.test.simulertGjenopptakAvYtelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -32,7 +32,7 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
 
             val (sakEtterStans, stansVedtak) = testDataHelper.persisterIverksattStansOgVedtak()
 
-            val (_, simulertRevurdering) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
+            val (_, simulertRevurdering) = simulertGjenopptakAvYtelseFraVedtakStansAvYtelse(
                 sakOgVedtakSomKanRevurderes = sakEtterStans to stansVedtak,
                 clock = testDataHelper.clock,
             )

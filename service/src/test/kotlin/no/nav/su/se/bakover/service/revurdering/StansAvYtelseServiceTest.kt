@@ -21,8 +21,6 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvTidslinjeOgSimuleringFeilet
-import no.nav.su.se.bakover.domain.oppdrag.KryssjekkFeil
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
@@ -57,7 +55,6 @@ import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
-import no.nav.su.se.bakover.test.simulering.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.test.tikkendeFixedClock
@@ -421,56 +418,6 @@ internal class StansAvYtelseServiceTest {
                 transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
             )
             serviceAndMocks.verifyNoMoreInteractions()
-        }
-    }
-
-    @Test
-    fun `får ikke iverksatt dersom simulering indikerer feilutbetaling`() {
-        val tikkendeKlokke = TikkendeKlokke(1.januar(2022).fixedClock())
-        val (sak, eksisterende) = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-            clock = tikkendeKlokke,
-        )
-        val mockSimulering = mock<Utbetaling.SimulertUtbetaling> {
-            on { simulering } doReturn simuleringFeilutbetaling(*eksisterende.periode.måneder().toTypedArray())
-        }
-
-        ServiceMocks(
-            sakService = mock {
-                on { hentSakForRevurdering(any(), any()) } doReturn sak
-            },
-            utbetalingService = mock {
-                on { simulerUtbetaling(any(), any()) } doReturn mockSimulering.right()
-            },
-            clock = tikkendeKlokke,
-        ).let {
-            val response = it.stansYtelseService.iverksettStansAvYtelse(
-                revurderingId = eksisterende.id,
-                attestant = attestant,
-            )
-
-            response shouldBe KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(
-                UtbetalStansFeil.KunneIkkeSimulere(
-                    SimulerStansFeilet.KunneIkkeSimulere(
-                        SimulerUtbetalingFeilet.FeilVedKryssjekkAvTidslinjeOgSimulering(
-                            KryssjekkAvTidslinjeOgSimuleringFeilet.KryssjekkFeilet(
-                                KryssjekkFeil.StansMedFeilutbetaling(
-                                    // Algoritmen velger den første feilen i en sortert, prioritert liste.
-                                    februar(2022),
-                                ),
-                            ),
-                        ),
-                    ),
-                ),
-            ).left()
-            verify(it.sakService).hentSakForRevurdering(
-                revurderingId = eksisterende.id,
-                sessionContext = TestSessionFactory.transactionContext,
-            )
-            verify(it.utbetalingService, times(2)).simulerUtbetaling(
-                utbetaling = any(),
-                simuleringsperiode = any(),
-            )
-            it.verifyNoMoreInteractions()
         }
     }
 

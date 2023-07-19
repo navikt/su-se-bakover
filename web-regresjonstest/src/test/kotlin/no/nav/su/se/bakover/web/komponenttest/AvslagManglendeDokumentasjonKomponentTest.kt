@@ -33,7 +33,7 @@ import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.ny.nySøknadsbehandling
 import no.nav.su.se.bakover.web.søknadsbehandling.uførhet.leggTilUføregrunnlag
-import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilVirkningstidspunkt
+import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilStønadsperiode
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -117,7 +117,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
             val fraOgMed = 1.mai(2021)
             val tilOgMed = 30.april(2022)
 
-            leggTilVirkningstidspunkt(
+            leggTilStønadsperiode(
                 sakId = sakId,
                 behandlingId = behandlingId,
                 fraOgMed = fraOgMed.toString(),

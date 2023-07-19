@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.web.søknadsbehandling.bosituasjon.leggTilBosituasjo
 import no.nav.su.se.bakover.web.søknadsbehandling.hent.hentFormueVilkår
 import no.nav.su.se.bakover.web.søknadsbehandling.hent.hentSøknadsbehandling
 import no.nav.su.se.bakover.web.søknadsbehandling.ny.nySøknadsbehandling
-import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilVirkningstidspunkt
+import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilStønadsperiode
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
@@ -36,7 +36,7 @@ internal class MåInnhenteMerInformasjonOmFormueIT {
             )
             val behandlingId = BehandlingJson.hentBehandlingId(nySøknadsbehandlingResponseJson)
 
-            leggTilVirkningstidspunkt(
+            leggTilStønadsperiode(
                 sakId = sakId,
                 behandlingId = behandlingId,
                 fraOgMed = fraOgMed,

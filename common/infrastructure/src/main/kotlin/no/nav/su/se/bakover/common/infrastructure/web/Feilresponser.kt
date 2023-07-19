@@ -230,6 +230,11 @@ data object Feilresponser {
         "kunne_ikke_simulere",
     )
 
+    val simuleringFørerTilFeilutbetaling = BadRequest.errorJson(
+        message = "Simulering fører til feilutbetaling.",
+        code = "simulering_fører_til_feilutbetaling",
+    )
+
     val avkortingErUfullstendig = InternalServerError.errorJson(
         "Hele det utestående beløpet som skal avkortes pga. utenlandsopphold kunne ikke trekkes fra i valgt stønadsperiode. Det er ikke støtte for å overføre restbeløp til neste stønadsperiode",
         "avkorting_er_ufullstendig",

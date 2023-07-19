@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.web.søknadsbehandling.iverksett.iverksett
 import no.nav.su.se.bakover.web.søknadsbehandling.ny.nySøknadsbehandling
 import no.nav.su.se.bakover.web.søknadsbehandling.sendTilAttestering.sendTilAttestering
 import no.nav.su.se.bakover.web.søknadsbehandling.uførhet.leggTilUføregrunnlag
-import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilVirkningstidspunkt
+import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilStønadsperiode
 
 /**
  * Oppretter en ny søknad med søknadbehandling.
@@ -58,7 +58,7 @@ internal fun opprettAvslåttSøknadsbehandling(
     )
     val behandlingId = BehandlingJson.hentBehandlingId(nySøknadsbehandlingResponseJson)
 
-    leggTilVirkningstidspunkt(
+    leggTilStønadsperiode(
         sakId = sakId,
         behandlingId = behandlingId,
         fraOgMed = fraOgMed,

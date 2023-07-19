@@ -24,7 +24,7 @@ import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeSimulereGjeno
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.beregnetRevurdering
-import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
+import no.nav.su.se.bakover.test.simulertGjenopptakAvYtelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
@@ -41,7 +41,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
 
     @Test
     fun `svarer med 201 ved påbegynt gjenopptak av utbetaling`() {
-        val enRevurdering = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse().second
+        val enRevurdering = simulertGjenopptakAvYtelseFraVedtakStansAvYtelse().second
         testApplication {
             application {
                 testSusebakoverWithMockedDb(
@@ -145,7 +145,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
 
     @Test
     fun `svarer med 200 ved oppdatering av eksisterende revurdering`() {
-        val eksisterende = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
+        val eksisterende = simulertGjenopptakAvYtelseFraVedtakStansAvYtelse(
             clock = TikkendeKlokke(1.juli(2021).fixedClock()),
         )
         val simulertRevurdering = eksisterende.second
@@ -195,7 +195,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
 
     @Test
     fun `svarer med 400 ved ugyldig input`() {
-        val enRevurdering = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse()
+        val enRevurdering = simulertGjenopptakAvYtelseFraVedtakStansAvYtelse()
             .second
         testApplication {
             application {

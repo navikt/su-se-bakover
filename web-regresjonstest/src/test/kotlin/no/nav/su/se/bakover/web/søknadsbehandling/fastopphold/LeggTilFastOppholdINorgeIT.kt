@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.ny.nySøknadsbehandling
-import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilVirkningstidspunkt
+import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilStønadsperiode
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -31,7 +31,7 @@ internal class LeggTilFastOppholdINorgeIT {
                     val fraOgMed: String = 1.januar(2022).toString()
                     val tilOgMed: String = 31.desember(2022).toString()
 
-                    leggTilVirkningstidspunkt(
+                    leggTilStønadsperiode(
                         sakId = sakId,
                         behandlingId = behandlingId,
                         fraOgMed = fraOgMed,
