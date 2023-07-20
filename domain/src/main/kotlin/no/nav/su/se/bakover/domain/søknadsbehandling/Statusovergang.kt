@@ -31,15 +31,15 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
         }
 
         override fun visit(søknadsbehandling: UnderkjentSøknadsbehandling.Avslag.UtenBeregning) {
-            result = søknadsbehandling.tilAttestering(saksbehandler, clock)
+            result = søknadsbehandling.tilAttestering(saksbehandler, fritekstTilBrev, clock)
         }
 
         override fun visit(søknadsbehandling: UnderkjentSøknadsbehandling.Avslag.MedBeregning) {
-            result = søknadsbehandling.tilAttestering(saksbehandler, clock)
+            result = søknadsbehandling.tilAttestering(saksbehandler, fritekstTilBrev, clock)
         }
 
         override fun visit(søknadsbehandling: UnderkjentSøknadsbehandling.Innvilget) {
-            result = søknadsbehandling.tilAttestering(saksbehandler, clock)
+            result = søknadsbehandling.tilAttestering(saksbehandler, fritekstTilBrev, clock)
         }
     }
 

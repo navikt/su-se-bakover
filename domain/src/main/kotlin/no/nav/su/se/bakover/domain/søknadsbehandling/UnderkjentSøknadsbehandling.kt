@@ -168,6 +168,7 @@ sealed interface UnderkjentSøknadsbehandling :
 
         fun tilAttestering(
             saksbehandler: NavIdentBruker.Saksbehandler,
+            fritekstTilBrev: String,
             clock: Clock,
         ): Either<ValideringsfeilAttestering, SøknadsbehandlingTilAttestering.Innvilget> {
             if (grunnlagsdata.bosituasjon.inneholderUfullstendigeBosituasjoner()) {
@@ -282,6 +283,7 @@ sealed interface UnderkjentSøknadsbehandling :
 
             fun tilAttestering(
                 saksbehandler: NavIdentBruker.Saksbehandler,
+                fritekstTilBrev: String,
                 clock: Clock,
             ): Either<ValideringsfeilAttestering, SøknadsbehandlingTilAttestering.Avslag.MedBeregning> {
                 if (grunnlagsdata.bosituasjon.inneholderUfullstendigeBosituasjoner()) {
@@ -385,6 +387,7 @@ sealed interface UnderkjentSøknadsbehandling :
 
             fun tilAttestering(
                 saksbehandler: NavIdentBruker.Saksbehandler,
+                fritekstTilBrev: String,
                 clock: Clock,
             ): Either<ValideringsfeilAttestering, SøknadsbehandlingTilAttestering.Avslag.UtenBeregning> {
                 if (grunnlagsdata.bosituasjon.inneholderUfullstendigeBosituasjoner()) {
