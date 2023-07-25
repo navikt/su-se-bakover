@@ -69,20 +69,6 @@ sealed interface Søknadsbehandling :
         søknadsbehandlingSomSkalLukkes = this,
         lukkSøknadCommand = lukkSøknadCommand,
     )
-
-    /**
-     * *protected* skal kun kalles fra typer som arver [Søknadsbehandling]
-     *
-     * Eksponerer deler av subklassenes copy-konstruktør slik at vi kan eliminere behovet for duplikate implementasjoner i hver subklasse.
-     *
-     * TODO jah: Skal helst fjernes helt på sikt. Midlertidig løsning kan være å flytte ut av interfacet.
-     */
-//    fun copyInternal(
-//        stønadsperiode: Stønadsperiode = this.stønadsperiode!!,
-//        grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling = this.grunnlagsdataOgVilkårsvurderinger,
-//        søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk,
-//        aldersvurdering: Aldersvurdering = this.aldersvurdering!!,
-//    ): Søknadsbehandling
 }
 
 // Her trikses det litt for å få til at funksjonen returnerer den samme konkrete typen som den kalles på.
