@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
-import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
+import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenneKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
@@ -58,7 +58,7 @@ internal class UnderkjennKlageTest {
             grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
             kommentar = "underkjennelseskommentar",
         )
-        mocks.service.underkjenn(request) shouldBe KunneIkkeUnderkjenne.FantIkkeKlage.left()
+        mocks.service.underkjenn(request) shouldBe KunneIkkeUnderkjenneKlage.FantIkkeKlage.left()
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
         mocks.verifyNoMoreInteractions()
     }
@@ -83,7 +83,7 @@ internal class UnderkjennKlageTest {
                 grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                 kommentar = "",
             ),
-        ) shouldBe KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave.left()
+        ) shouldBe KunneIkkeUnderkjenneKlage.KunneIkkeOppretteOppgave.left()
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe klage.fnr })
         mocks.verifyNoMoreInteractions()
@@ -112,7 +112,7 @@ internal class UnderkjennKlageTest {
                 grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                 kommentar = "",
             ),
-        ) shouldBe KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave.left()
+        ) shouldBe KunneIkkeUnderkjenneKlage.KunneIkkeOppretteOppgave.left()
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.oppgaveService).opprettOppgave(
             argThat {
@@ -145,7 +145,7 @@ internal class UnderkjennKlageTest {
                 grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                 kommentar = "",
             ),
-        ) shouldBe KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+        ) shouldBe KunneIkkeUnderkjenneKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         mocks.verifyNoMoreInteractions()
     }
@@ -247,7 +247,7 @@ internal class UnderkjennKlageTest {
             grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
             kommentar = "underkjennelseskommentar",
         )
-        mocks.service.underkjenn(request) shouldBe KunneIkkeUnderkjenne.UgyldigTilstand(
+        mocks.service.underkjenn(request) shouldBe KunneIkkeUnderkjenneKlage.UgyldigTilstand(
             klage::class,
             VurdertKlage.Bekreftet::class,
         ).left()

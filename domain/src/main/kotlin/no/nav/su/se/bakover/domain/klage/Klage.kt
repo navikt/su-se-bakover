@@ -86,18 +86,18 @@ sealed interface Klage : Klagefelter {
     /** @return [KlageTilAttestering] */
     fun sendTilAttestering(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        opprettOppgave: () -> Either<KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave, OppgaveId>,
-    ): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering> {
-        return KunneIkkeSendeTilAttestering.UgyldigTilstand(this::class).left()
+        opprettOppgave: () -> Either<KunneIkkeSendeKlageTilAttestering.KunneIkkeOppretteOppgave, OppgaveId>,
+    ): Either<KunneIkkeSendeKlageTilAttestering, KlageTilAttestering> {
+        return KunneIkkeSendeKlageTilAttestering.UgyldigTilstand(this::class).left()
     }
 
     /** @return [VurdertKlage.Bekreftet] eller [AvvistKlage] */
     fun underkjenn(
         underkjentAttestering: Attestering.Underkjent,
-        opprettOppgave: () -> Either<KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave, OppgaveId>,
-    ): Either<KunneIkkeUnderkjenne, Klage> {
+        opprettOppgave: () -> Either<KunneIkkeUnderkjenneKlage.KunneIkkeOppretteOppgave, OppgaveId>,
+    ): Either<KunneIkkeUnderkjenneKlage, Klage> {
         // TODO jah: Man kan også underkjenne til Avvist, så til vil variere basert på nåværende tilstand.
-        return KunneIkkeUnderkjenne.UgyldigTilstand(this::class, VurdertKlage.Bekreftet::class).left()
+        return KunneIkkeUnderkjenneKlage.UgyldigTilstand(this::class, VurdertKlage.Bekreftet::class).left()
     }
 
     /**

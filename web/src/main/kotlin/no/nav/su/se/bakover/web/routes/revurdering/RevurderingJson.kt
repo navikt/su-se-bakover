@@ -19,10 +19,10 @@ import no.nav.su.se.bakover.domain.revurdering.steg.Vurderingstatus
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
 import no.nav.su.se.bakover.web.routes.sak.toJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.AttesteringJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.AttesteringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.AttesteringJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.AttesteringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.BeregningJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import java.time.format.DateTimeFormatter

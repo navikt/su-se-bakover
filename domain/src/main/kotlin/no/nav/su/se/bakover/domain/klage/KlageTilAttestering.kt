@@ -65,10 +65,10 @@ sealed interface KlageTilAttestering : Klage, KlageTilAttesteringFelter, KanGene
 
         override fun underkjenn(
             underkjentAttestering: Attestering.Underkjent,
-            opprettOppgave: () -> Either<KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave, OppgaveId>,
-        ): Either<KunneIkkeUnderkjenne, AvvistKlage> {
+            opprettOppgave: () -> Either<KunneIkkeUnderkjenneKlage.KunneIkkeOppretteOppgave, OppgaveId>,
+        ): Either<KunneIkkeUnderkjenneKlage, AvvistKlage> {
             if (underkjentAttestering.attestant.navIdent == saksbehandler.navIdent) {
-                return KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+                return KunneIkkeUnderkjenneKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
             return opprettOppgave().map { oppgaveId ->
                 // I dette tilfellet gir det mening å bare legge til manglende parametre på forrige steg, da vi bare skal ett steg tilbake.
@@ -120,10 +120,10 @@ sealed interface KlageTilAttestering : Klage, KlageTilAttesteringFelter, KanGene
 
         override fun underkjenn(
             underkjentAttestering: Attestering.Underkjent,
-            opprettOppgave: () -> Either<KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave, OppgaveId>,
-        ): Either<KunneIkkeUnderkjenne, VurdertKlage.Bekreftet> {
+            opprettOppgave: () -> Either<KunneIkkeUnderkjenneKlage.KunneIkkeOppretteOppgave, OppgaveId>,
+        ): Either<KunneIkkeUnderkjenneKlage, VurdertKlage.Bekreftet> {
             if (underkjentAttestering.attestant.navIdent == saksbehandler.navIdent) {
-                return KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+                return KunneIkkeUnderkjenneKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
             return opprettOppgave().map { oppgaveId ->
                 // I dette tilfellet gir det mening å bare legge til manglende parametre på forrige steg, da vi bare skal ett steg tilbake.
@@ -167,17 +167,17 @@ sealed interface KlageTilAttestering : Klage, KlageTilAttesteringFelter, KanGene
     }
 }
 
-sealed interface KunneIkkeSendeTilAttestering {
-    data object FantIkkeKlage : KunneIkkeSendeTilAttestering
-    data object KunneIkkeOppretteOppgave : KunneIkkeSendeTilAttestering
-    data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeSendeTilAttestering {
+sealed interface KunneIkkeSendeKlageTilAttestering {
+    data object FantIkkeKlage : KunneIkkeSendeKlageTilAttestering
+    data object KunneIkkeOppretteOppgave : KunneIkkeSendeKlageTilAttestering
+    data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeSendeKlageTilAttestering {
         val til = KlageTilAttestering::class
     }
 }
 
-sealed interface KunneIkkeUnderkjenne {
-    data object FantIkkeKlage : KunneIkkeUnderkjenne
-    data object KunneIkkeOppretteOppgave : KunneIkkeUnderkjenne
-    data object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeUnderkjenne
-    data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeUnderkjenne
+sealed interface KunneIkkeUnderkjenneKlage {
+    data object FantIkkeKlage : KunneIkkeUnderkjenneKlage
+    data object KunneIkkeOppretteOppgave : KunneIkkeUnderkjenneKlage
+    data object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeUnderkjenneKlage
+    data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeUnderkjenneKlage
 }

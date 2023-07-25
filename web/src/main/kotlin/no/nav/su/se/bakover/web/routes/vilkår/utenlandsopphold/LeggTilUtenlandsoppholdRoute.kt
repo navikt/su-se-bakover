@@ -37,7 +37,7 @@ import no.nav.su.se.bakover.web.routes.revurdering.revurderingPath
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.søknadsbehandlingPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkår.tilResultat
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.tilResultat
 import java.util.UUID
 
 internal fun Route.leggTilUtenlandsopphold(

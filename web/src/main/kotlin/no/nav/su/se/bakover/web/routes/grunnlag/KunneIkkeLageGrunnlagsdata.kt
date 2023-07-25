@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.Behandlingsfeilresponser
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.Behandlingsfeilresponser
 
 internal fun KunneIkkeLageGrunnlagsdata.tilResultat(): Resultat {
     return when (this) {

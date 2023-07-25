@@ -27,7 +27,7 @@ import no.nav.su.se.bakover.domain.vilkår.opplysningsplikt.KunneIkkeLeggeTilOpp
 import no.nav.su.se.bakover.domain.vilkår.opplysningsplikt.LeggTilOpplysningspliktRequest
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkår.tilResultat
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.tilResultat
 import java.time.Clock
 import java.util.UUID
 

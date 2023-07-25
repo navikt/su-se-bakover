@@ -24,8 +24,10 @@ import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.søknad.Søknad
+import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
+import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSendeSøknadsbehandlingTilAttestering
 import java.time.Clock
 import java.util.UUID
 
@@ -47,7 +49,7 @@ data class SimulertSøknadsbehandling(
     override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting,
     override val sakstype: Sakstype,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
-) : Søknadsbehandling, KanOppdaterePeriodeBosituasjonVilkår, KanBeregnes, KanOppdatereFradragsgrunnlag {
+) : Søknadsbehandling, KanOppdaterePeriodeBosituasjonVilkår, KanBeregnes, KanSimuleres, KanSendesTilAttestering, KanOppdatereFradragsgrunnlag {
     // TODO jah: Den må enten arve bergnet sin periode, eller definere denne selv (vi kan ikke la aldersvurdering eie den). Også må init sjekke at aldersperioden har samme periode.
     override val periode: Periode = aldersvurdering.stønadsperiode.periode
     override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
@@ -63,19 +65,6 @@ data class SimulertSøknadsbehandling(
 
     override fun accept(visitor: SøknadsbehandlingVisitor) {
         visitor.visit(this)
-    }
-
-    override fun copyInternal(
-        stønadsperiode: Stønadsperiode,
-        grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-        søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
-        aldersvurdering: Aldersvurdering,
-    ): SimulertSøknadsbehandling {
-        return copy(
-            aldersvurdering = aldersvurdering,
-            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-            søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
-        )
     }
 
     override fun simuler(
@@ -127,13 +116,13 @@ data class SimulertSøknadsbehandling(
         }
     }
 
-    fun tilAttestering(
+    override fun tilAttestering(
         saksbehandler: NavIdentBruker.Saksbehandler,
         fritekstTilBrev: String,
         clock: Clock,
-    ): Either<ValideringsfeilAttestering, SøknadsbehandlingTilAttestering.Innvilget> {
+    ): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, SøknadsbehandlingTilAttestering.Innvilget> {
         if (grunnlagsdata.bosituasjon.inneholderUfullstendigeBosituasjoner()) {
-            return ValideringsfeilAttestering.InneholderUfullstendigBosituasjon.left()
+            return KunneIkkeSendeSøknadsbehandlingTilAttestering.InneholderUfullstendigBosituasjon.left()
         }
 
         if (simulering.harFeilutbetalinger()) {

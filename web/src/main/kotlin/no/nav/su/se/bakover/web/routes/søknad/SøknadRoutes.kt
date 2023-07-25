@@ -38,8 +38,6 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvS�
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedValideringAvBoforholdOgEktefelle
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.ForNav
-import no.nav.su.se.bakover.domain.søknadsbehandling.ValideringsfeilAttestering
-import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
@@ -52,6 +50,7 @@ import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FeilVedOpprettelseAvEktefelleJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.KunneIkkeLageSøknadinnhold
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.iverksett.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.opprett.tilResultat
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.tilResultat
@@ -345,10 +344,10 @@ private fun FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder.tilRe
 internal fun KunneIkkeAvslåSøknad.tilResultat(): Resultat = when (this) {
     is KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling -> this.underliggendeFeil.tilResultat()
     is KunneIkkeAvslåSøknad.KunneIkkeIverksetteSøknadsbehandling -> this.underliggendeFeil.tilResultat()
-    is KunneIkkeAvslåSøknad.HarValideringsfeil -> this.feil.tilResultat()
+    is KunneIkkeAvslåSøknad.Attesteringsfeil -> this.feil.tilResultat()
     is KunneIkkeAvslåSøknad.Periodefeil -> this.underliggende.tilResultat()
 }
 
-private fun ValideringsfeilAttestering.tilResultat(): Resultat = when (this) {
+/*private fun KunneIkkeSendeSøknadsbehandlingTilAttestering.tilResultat(): Resultat = when (this) {
     ValideringsfeilAttestering.InneholderUfullstendigBosituasjon -> Feilresponser.inneholderUfullstendigeBosituasjoner
-}
+}*/

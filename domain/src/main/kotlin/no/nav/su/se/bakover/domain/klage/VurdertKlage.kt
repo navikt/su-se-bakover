@@ -257,8 +257,8 @@ sealed interface VurdertKlage : Klage, VurdertKlageFelter, KanGenerereBrevutkast
 
         override fun sendTilAttestering(
             saksbehandler: NavIdentBruker.Saksbehandler,
-            opprettOppgave: () -> Either<KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave, OppgaveId>,
-        ): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering> {
+            opprettOppgave: () -> Either<KunneIkkeSendeKlageTilAttestering.KunneIkkeOppretteOppgave, OppgaveId>,
+        ): Either<KunneIkkeSendeKlageTilAttestering, KlageTilAttestering> {
             return opprettOppgave().map { oppgaveId ->
                 KlageTilAttestering.Vurdert(
                     forrigeSteg = this,

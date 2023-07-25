@@ -39,13 +39,14 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanBeregnes
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanOppdatereFradragsgrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanOppdaterePeriodeBosituasjonVilkår
+import no.nav.su.se.bakover.domain.søknadsbehandling.KanSendesTilAttestering
+import no.nav.su.se.bakover.domain.søknadsbehandling.KanSimuleres
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
@@ -58,9 +59,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeSendeTilAttestering
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeSimulereBehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.OppdaterStønadsperiodeRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.OpprettRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
@@ -69,11 +67,12 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.forsøkStatusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.medFritekstTilBrev
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
+import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSendeSøknadsbehandlingTilAttestering
+import no.nav.su.se.bakover.domain.søknadsbehandling.underkjenn.KunneIkkeUnderkjenneSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
@@ -95,7 +94,6 @@ import no.nav.su.se.bakover.domain.vilkår.pensjon.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.skatt.SkatteService
-import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -112,7 +110,6 @@ class SøknadsbehandlingServiceImpl(
     private val brevService: BrevService,
     private val clock: Clock,
     private val sakService: SakService,
-    private val tilbakekrevingService: TilbakekrevingService,
     private val formuegrenserFactory: FormuegrenserFactory,
     private val satsFactory: SatsFactory,
     private val skatteService: SkatteService,
@@ -187,10 +184,13 @@ class SøknadsbehandlingServiceImpl(
     }
 
     override fun simuler(request: SimulerRequest): Either<KunneIkkeSimulereBehandling, SimulertSøknadsbehandling> {
-        val sak = sakService.hentSakForSøknadsbehandling(request.behandlingId)
+        val behandlingId = request.behandlingId
+        val sak = sakService.hentSakForSøknadsbehandling(behandlingId)
 
-        val søknadsbehandling = sak.hentSøknadsbehandling(request.behandlingId)
-            .getOrElse { return KunneIkkeSimulereBehandling.FantIkkeBehandling.left() }
+        val søknadsbehandling = sak.hentSøknadsbehandling(behandlingId)
+            .getOrElse { throw IllegalArgumentException("Fant ikke Søknadsbehandling med id $behandlingId") }.let {
+                it as? KanSimuleres ?: return KunneIkkeSimulereBehandling.UgyldigTilstand(it::class).left()
+            }
 
         return søknadsbehandling.simuler(
             saksbehandler = request.saksbehandler,
@@ -212,55 +212,58 @@ class SøknadsbehandlingServiceImpl(
             }.map { simulertUtbetaling ->
                 simulertUtbetaling.simulering
             }
-        }.mapLeft {
-            KunneIkkeSimulereBehandling.KunneIkkeSimulere(it)
-        }.map {
+        }.onRight {
             søknadsbehandlingRepo.lagre(it)
-            it
         }
     }
 
-    override fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeTilAttestering, SøknadsbehandlingTilAttestering> {
-        val søknadsbehandlingFraBasenFørStatusovergang = søknadsbehandlingRepo.hent(request.behandlingId)?.let {
-            statusovergang(
-                søknadsbehandling = it,
-                statusovergang = Statusovergang.TilAttestering(request.saksbehandler, request.fritekstTilBrev, clock),
-            )
-        }
-            ?: throw IllegalArgumentException("Søknadsbehandling send til attestering: Fant ikke søknadsbehandling ${request.behandlingId}")
-        søknadsbehandlingFraBasenFørStatusovergang.getOrElse {
-            return KunneIkkeSendeTilAttestering.HarValideringsfeil(it).left()
-        }.let { søknadsbehandling ->
-            val aktørId = personService.hentAktørId(søknadsbehandling.fnr).getOrElse {
-                log.error("Søknadsbehandling send til attestering: Fant ikke aktør-id knyttet til fødselsnummer for søknadsbehandling ${request.behandlingId}")
-                return KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId.left()
+    override fun sendTilAttestering(
+        request: SendTilAttesteringRequest,
+    ): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, SøknadsbehandlingTilAttestering> {
+        val behandlingId = request.behandlingId
+        val søknadsbehandlingSomKanSendesTilAttestering: KanSendesTilAttestering =
+            (
+                søknadsbehandlingRepo.hent(behandlingId)
+                    ?: throw IllegalArgumentException("Søknadsbehandling send til attestering: Fant ikke søknadsbehandling med id $behandlingId. Avbryter handlingen.")
+                ).let {
+                it as? KanSendesTilAttestering ?: return KunneIkkeSendeSøknadsbehandlingTilAttestering.UgyldigTilstand(
+                    it::class,
+                ).left()
             }
-            val eksisterendeOppgaveId: OppgaveId = søknadsbehandling.oppgaveId
+        return søknadsbehandlingSomKanSendesTilAttestering.tilAttestering(
+            saksbehandler = request.saksbehandler,
+            fritekstTilBrev = request.fritekstTilBrev,
+            clock = clock,
+        ).map { søknadsbehandlingTilAttestering ->
+            val aktørId = personService.hentAktørId(søknadsbehandlingTilAttestering.fnr).getOrElse {
+                log.error("Søknadsbehandling send til attestering: Fant ikke aktør-id knyttet til fødselsnummer for søknadsbehandling $behandlingId. Avbryter handlingen.")
+                return KunneIkkeSendeSøknadsbehandlingTilAttestering.KunneIkkeFinneAktørId.left()
+            }
+            val eksisterendeOppgaveId: OppgaveId = søknadsbehandlingTilAttestering.oppgaveId
 
-            val tilordnetRessurs: NavIdentBruker.Attestant? = søknadsbehandling.attesteringer.lastOrNull()?.attestant
+            val tilordnetRessurs: NavIdentBruker.Attestant? =
+                søknadsbehandlingTilAttestering.attesteringer.lastOrNull()?.attestant
 
             val nyOppgaveId: OppgaveId = oppgaveService.opprettOppgave(
                 OppgaveConfig.AttesterSøknadsbehandling(
-                    søknadId = søknadsbehandling.søknad.id,
+                    søknadId = søknadsbehandlingTilAttestering.søknad.id,
                     aktørId = aktørId,
                     tilordnetRessurs = tilordnetRessurs,
                     clock = clock,
                 ),
             ).getOrElse {
-                log.error("Søknadsbehandling send til attestering: Kunne ikke opprette Attesteringsoppgave for søknadsbehandling ${request.behandlingId}. Avbryter handlingen.")
-                return KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave.left()
+                log.error("Søknadsbehandling send til attestering: Kunne ikke opprette Attesteringsoppgave for søknadsbehandling $behandlingId. Avbryter handlingen.")
+                return KunneIkkeSendeSøknadsbehandlingTilAttestering.KunneIkkeOppretteOppgave.left()
             }
-            check(søknadsbehandling.fritekstTilBrev == request.fritekstTilBrev) {
-                "Liten refaktoreringssafe-guard. Statusovergangen skal sette fritekst til brev på søknadsbehandlingen."
-            }
-            val søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev = søknadsbehandling.nyOppgaveId(nyOppgaveId)
+            val søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev =
+                søknadsbehandlingTilAttestering.nyOppgaveId(nyOppgaveId)
 
             søknadsbehandlingRepo.lagre(søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev)
 
             oppgaveService.lukkOppgave(eksisterendeOppgaveId).map {
                 behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.LUKKET_OPPGAVE)
             }.mapLeft {
-                log.error("Søknadsbehandling send til attestering: Klarte ikke å lukke oppgave ${søknadsbehandling.oppgaveId} for søknadsbehandling ${request.behandlingId}.")
+                log.error("Søknadsbehandling send til attestering: Klarte ikke å lukke oppgave $eksisterendeOppgaveId for søknadsbehandling $behandlingId. Dette er kun best-effort og oppgaven må lukkes manuelt.")
             }
             behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.PERSISTERT)
             behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.OPPRETTET_OPPGAVE)
@@ -281,19 +284,21 @@ class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun underkjenn(request: UnderkjennRequest): Either<KunneIkkeUnderkjenne, UnderkjentSøknadsbehandling> {
-        val søknadsbehandling =
-            søknadsbehandlingRepo.hent(request.behandlingId) ?: return KunneIkkeUnderkjenne.FantIkkeBehandling.left()
-
-        return forsøkStatusovergang(
-            søknadsbehandling = søknadsbehandling,
-            statusovergang = Statusovergang.TilUnderkjent(request.attestering),
-        ).mapLeft {
-            KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
-        }.map { underkjent ->
+    override fun underkjenn(
+        request: UnderkjennRequest,
+    ): Either<KunneIkkeUnderkjenneSøknadsbehandling, UnderkjentSøknadsbehandling> {
+        val søknadsbehandling = (
+            søknadsbehandlingRepo.hent(request.behandlingId)
+                ?: return KunneIkkeUnderkjenneSøknadsbehandling.FantIkkeBehandling.left()
+            ).let {
+            it as? SøknadsbehandlingTilAttestering ?: return KunneIkkeUnderkjenneSøknadsbehandling.UgyldigTilstand(
+                it::class,
+            ).left()
+        }
+        return søknadsbehandling.tilUnderkjent(request.attestering).map { underkjent ->
             val aktørId = personService.hentAktørId(underkjent.fnr).getOrElse {
                 log.error("Fant ikke aktør-id for sak: ${underkjent.id}")
-                return KunneIkkeUnderkjenne.FantIkkeAktørId.left()
+                return KunneIkkeUnderkjenneSøknadsbehandling.FantIkkeAktørId.left()
             }
 
             val journalpostId: JournalpostId = underkjent.søknad.journalpostId
@@ -310,7 +315,7 @@ class SøknadsbehandlingServiceImpl(
                 ),
             ).getOrElse {
                 log.error("Behandling ${underkjent.id} ble ikke underkjent. Klarte ikke opprette behandlingsoppgave")
-                return@underkjenn KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave.left()
+                return@underkjenn KunneIkkeUnderkjenneSøknadsbehandling.KunneIkkeOppretteOppgave.left()
             }.also {
                 behandlingMetrics.incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.OPPRETTET_OPPGAVE)
             }
@@ -442,7 +447,12 @@ class SøknadsbehandlingServiceImpl(
         val søknadsbehandling: KanOppdaterePeriodeBosituasjonVilkår = hentKanOppdaterePeriodeGrunnlagVilkår(
             søknadsbehandlingId = request.behandlingId,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
-            ugyldigTilstandError = { fra, til -> KunneIkkeLeggeTilFamiliegjenforeningVilkårService.UgyldigTilstand(fra, til) },
+            ugyldigTilstandError = { fra, til ->
+                KunneIkkeLeggeTilFamiliegjenforeningVilkårService.UgyldigTilstand(
+                    fra,
+                    til,
+                )
+            },
             fantIkkeBehandlingError = { KunneIkkeLeggeTilFamiliegjenforeningVilkårService.FantIkkeBehandling },
         ).getOrElse { return it.left() }
 
@@ -479,10 +489,6 @@ class SøknadsbehandlingServiceImpl(
                 null -> return KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
             }
 
-        /**
-         *  I flere av funksjonene i denne fila bruker vi [Statusovergang] og [no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor] for å bestemme om det er en gyldig statusovergang, men i dette tilfellet bruker vi domenemodellen sin funksjon leggTilFradragsgrunnlag til dette.
-         * Vi ønsker gradvis å gå over til sistenevnte måte å gjøre det på.
-         */
         val oppdatertBehandling =
             søknadsbehandling.oppdaterFradragsgrunnlag(saksbehandler, request.fradragsgrunnlag, clock)
                 .getOrElse {
@@ -649,7 +655,12 @@ class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
             søknadsbehandlingId = request.behandlingId,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
-            ugyldigTilstandError = { fra, til -> KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår.UgyldigTilstand(fra, til) },
+            ugyldigTilstandError = { fra, til ->
+                KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår.UgyldigTilstand(
+                    fra,
+                    til,
+                )
+            },
             fantIkkeBehandlingError = { null }, // TODO jah: Mangler Left.
         ).getOrElse { return it.left() }
 

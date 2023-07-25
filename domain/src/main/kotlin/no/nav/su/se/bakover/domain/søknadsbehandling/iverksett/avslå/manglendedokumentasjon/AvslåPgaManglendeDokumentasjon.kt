@@ -105,10 +105,10 @@ private fun avslå(
             tidspunkt = Tidspunkt.now(clock),
         ).getOrElse {
             return KunneIkkeAvslåSøknad.Periodefeil(it).left()
-        }.tilAttestering(fritekstTilBrev = request.fritekstTilBrev).let { søknadsbehandlingTilAttestering ->
+        }.tilAttesteringForSystembruker(fritekstTilBrev = request.fritekstTilBrev).let { søknadsbehandlingTilAttestering ->
 
             søknadsbehandlingTilAttestering.getOrElse {
-                return KunneIkkeAvslåSøknad.HarValideringsfeil(it).left()
+                return KunneIkkeAvslåSøknad.Attesteringsfeil(it).left()
             }.let { søknadsbehandlingTilAttesteringUtenFeil ->
                 Pair(
                     sak.oppdaterSøknadsbehandling(søknadsbehandlingTilAttesteringUtenFeil),

@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
-import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
+import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeKlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
@@ -55,7 +55,7 @@ internal class SendKlageTilAttesteringTest {
         mocks.service.sendTilAttestering(
             klageId = klageId,
             saksbehandler = saksbehandler,
-        ) shouldBe KunneIkkeSendeTilAttestering.FantIkkeKlage.left()
+        ) shouldBe KunneIkkeSendeKlageTilAttestering.FantIkkeKlage.left()
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
         mocks.verifyNoMoreInteractions()
     }
@@ -76,7 +76,7 @@ internal class SendKlageTilAttesteringTest {
         mocks.service.sendTilAttestering(
             klageId = klage.id,
             saksbehandler = saksbehandler,
-        ) shouldBe KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave.left()
+        ) shouldBe KunneIkkeSendeKlageTilAttestering.KunneIkkeOppretteOppgave.left()
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe klage.fnr })
         mocks.verifyNoMoreInteractions()
@@ -101,7 +101,7 @@ internal class SendKlageTilAttesteringTest {
         mocks.service.sendTilAttestering(
             klageId = klage.id,
             saksbehandler = saksbehandler,
-        ) shouldBe KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave.left()
+        ) shouldBe KunneIkkeSendeKlageTilAttestering.KunneIkkeOppretteOppgave.left()
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.oppgaveService).opprettOppgave(
             argThat {
@@ -213,7 +213,7 @@ internal class SendKlageTilAttesteringTest {
         mocks.service.sendTilAttestering(
             klageId = klage.id,
             saksbehandler = klage.saksbehandler,
-        ) shouldBe KunneIkkeSendeTilAttestering.UgyldigTilstand(klage::class).left()
+        ) shouldBe KunneIkkeSendeKlageTilAttestering.UgyldigTilstand(klage::class).left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         mocks.verifyNoMoreInteractions()

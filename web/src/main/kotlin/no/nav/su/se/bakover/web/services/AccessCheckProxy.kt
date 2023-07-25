@@ -40,9 +40,9 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
-import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
+import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeKlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeTolkeKlageinstanshendelse
-import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
+import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenneKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
@@ -152,6 +152,9 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverkse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrollsamtaleVedNyStønadsperiodeService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.KunneIkkeAvslåSøknad
+import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSendeSøknadsbehandlingTilAttestering
+import no.nav.su.se.bakover.domain.søknadsbehandling.underkjenn.KunneIkkeUnderkjenneSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
@@ -535,17 +538,17 @@ open class AccessCheckProxy(
                         return service.beregn(request)
                     }
 
-                    override fun simuler(request: SøknadsbehandlingService.SimulerRequest): Either<SøknadsbehandlingService.KunneIkkeSimulereBehandling, SimulertSøknadsbehandling> {
+                    override fun simuler(request: SøknadsbehandlingService.SimulerRequest): Either<KunneIkkeSimulereBehandling, SimulertSøknadsbehandling> {
                         assertHarTilgangTilBehandling(request.behandlingId)
                         return service.simuler(request)
                     }
 
-                    override fun sendTilAttestering(request: SøknadsbehandlingService.SendTilAttesteringRequest): Either<SøknadsbehandlingService.KunneIkkeSendeTilAttestering, SøknadsbehandlingTilAttestering> {
+                    override fun sendTilAttestering(request: SøknadsbehandlingService.SendTilAttesteringRequest): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, SøknadsbehandlingTilAttestering> {
                         assertHarTilgangTilBehandling(request.behandlingId)
                         return service.sendTilAttestering(request)
                     }
 
-                    override fun underkjenn(request: SøknadsbehandlingService.UnderkjennRequest): Either<SøknadsbehandlingService.KunneIkkeUnderkjenne, UnderkjentSøknadsbehandling> {
+                    override fun underkjenn(request: SøknadsbehandlingService.UnderkjennRequest): Either<KunneIkkeUnderkjenneSøknadsbehandling, UnderkjentSøknadsbehandling> {
                         assertHarTilgangTilBehandling(request.behandlingId)
                         return service.underkjenn(request)
                     }
@@ -1006,12 +1009,12 @@ open class AccessCheckProxy(
                 override fun sendTilAttestering(
                     klageId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering> {
+                ): Either<KunneIkkeSendeKlageTilAttestering, KlageTilAttestering> {
                     assertHarTilgangTilKlage(klageId)
                     return services.klageService.sendTilAttestering(klageId, saksbehandler)
                 }
 
-                override fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenne, Klage> {
+                override fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenneKlage, Klage> {
                     assertHarTilgangTilKlage(request.klageId)
                     return services.klageService.underkjenn(request)
                 }

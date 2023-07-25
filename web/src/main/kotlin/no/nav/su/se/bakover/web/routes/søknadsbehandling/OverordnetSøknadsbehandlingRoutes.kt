@@ -6,6 +6,17 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.iverksett.iverksettSøknadsbehandlingRoute
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.fastOppholdVilkårRoutes
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.flyktningVilkårRoutes
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.hentSamletSkattegrunnlagRoute
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.institusjonsoppholdRoutes
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.leggTilFamiliegjenforeningRoute
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.leggTilFormueForSøknadsbehandlingRoute
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.leggTilGrunnlagBosituasjonRoutes
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.leggTilGrunnlagFradrag
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.leggTilUføregrunnlagRoutes
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.pensjonsVilkårRoutes
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.personligOppmøteVilkårRoutes
 import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.leggTilLovligOppholdRoute
 import no.nav.su.se.bakover.web.routes.vilkår.utenlandsopphold.leggTilUtenlandsopphold
 import java.time.Clock

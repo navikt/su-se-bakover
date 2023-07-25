@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjon
 import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.tilResultat
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.tilResultat
 import java.util.UUID
 
 data class LeggTilBosituasjonJsonRequest(

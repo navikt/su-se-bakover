@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.sakPath
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SøknadsbehandlingJson
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -53,7 +53,7 @@ internal class BeregnRoutesKtTest {
                 setBody("{}")
             }.apply {
                 status shouldBe HttpStatusCode.Created
-                val behandlingJson = deserialize<BehandlingJson>(body())
+                val behandlingJson = deserialize<SøknadsbehandlingJson>(body())
                 behandlingJson.beregning!!.fraOgMed shouldBe stønadsperiode2021.periode.fraOgMed.toString()
                 behandlingJson.beregning.tilOgMed shouldBe stønadsperiode2021.periode.tilOgMed.toString()
                 behandlingJson.beregning.månedsberegninger shouldHaveSize 12

@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.web.routes.klage.KlageJson.Avsluttet.Companion.utled
 import no.nav.su.se.bakover.web.routes.klage.KlageJson.VedtaksvurderingJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.klage.UtfallJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.klage.ÅrsakJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.AttesteringJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.AttesteringJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.AttesteringJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.AttesteringJson.Companion.toJson
 
 internal data class KlageJson(
     val id: String,

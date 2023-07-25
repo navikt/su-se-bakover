@@ -2,12 +2,13 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.left
 import arrow.core.right
+import io.kotest.assertions.throwables.shouldThrowWithMessage
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandlingUføre
@@ -71,10 +72,12 @@ internal class SøknadsbehandlingServiceSimuleringTest {
                 on { hentSakForSøknadsbehandling(any()) } doReturn nySakUføre().first
             },
         ).also {
-            val response = it.søknadsbehandlingService.simuler(
-                SøknadsbehandlingService.SimulerRequest(UUID.randomUUID(), saksbehandler),
-            )
-            response shouldBe SøknadsbehandlingService.KunneIkkeSimulereBehandling.FantIkkeBehandling.left()
+            val behandlingId = UUID.randomUUID()
+            shouldThrowWithMessage<IllegalArgumentException>("Fant ikke Søknadsbehandling med id $behandlingId") {
+                it.søknadsbehandlingService.simuler(
+                    SøknadsbehandlingService.SimulerRequest(behandlingId, saksbehandler),
+                )
+            }
 
             verify(it.sakService).hentSakForSøknadsbehandling(any())
             it.verifyNoMoreInteractions()
@@ -97,8 +100,8 @@ internal class SøknadsbehandlingServiceSimuleringTest {
                 SøknadsbehandlingService.SimulerRequest(beregnet.id, saksbehandler),
             )
 
-            response shouldBe SøknadsbehandlingService.KunneIkkeSimulereBehandling.KunneIkkeSimulere(
-                KunneIkkeSimulereBehandling.KunneIkkeSimulere(SimulerUtbetalingFeilet.FeilVedSimulering(SimuleringFeilet.TekniskFeil)),
+            response shouldBe KunneIkkeSimulereBehandling.KunneIkkeSimulere(
+                SimulerUtbetalingFeilet.FeilVedSimulering(SimuleringFeilet.TekniskFeil),
             ).left()
 
             verify(it.sakService).hentSakForSøknadsbehandling(argThat { it shouldBe beregnet.id })

@@ -11,7 +11,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
+import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenneKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.service.klage.KlageService
@@ -102,7 +102,7 @@ internal class UnderkjennKlageTest {
     @Test
     fun `fant ikke klage`() {
         verifiserFeilkode(
-            feilkode = KunneIkkeUnderkjenne.FantIkkeKlage,
+            feilkode = KunneIkkeUnderkjenneKlage.FantIkkeKlage,
             status = HttpStatusCode.NotFound,
             body = "{\"message\":\"Fant ikke klage\",\"code\":\"fant_ikke_klage\"}",
         )
@@ -111,14 +111,14 @@ internal class UnderkjennKlageTest {
     @Test
     fun `ugyldig tilstand`() {
         verifiserFeilkode(
-            feilkode = KunneIkkeUnderkjenne.UgyldigTilstand(OpprettetKlage::class, OversendtKlage::class),
+            feilkode = KunneIkkeUnderkjenneKlage.UgyldigTilstand(OpprettetKlage::class, OversendtKlage::class),
             status = HttpStatusCode.BadRequest,
             body = "{\"message\":\"Kan ikke gå fra tilstanden OpprettetKlage til tilstanden OversendtKlage\",\"code\":\"ugyldig_tilstand\"}",
         )
     }
 
     private fun verifiserFeilkode(
-        feilkode: KunneIkkeUnderkjenne,
+        feilkode: KunneIkkeUnderkjenneKlage,
         status: HttpStatusCode,
         body: String,
     ) {

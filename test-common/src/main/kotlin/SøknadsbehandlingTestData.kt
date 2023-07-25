@@ -583,6 +583,7 @@ fun nySøknadsbehandlingMedStønadsperiode(
                 type = Sakstype.ALDER,
             ),
         )
+
         Sakstype.UFØRE -> nySakUføre(
             clock = clock,
             sakInfo = SakInfo(
@@ -673,7 +674,7 @@ fun underkjentSøknadsbehandling(
         fritekstTilBrev = fritekstTilBrev,
         saksbehandler = saksbehandler,
     ).let { (sak, tilAttestering) ->
-        val underkjent = tilAttestering.tilUnderkjent(attestering = attesteringUnderkjent(clock))
+        val underkjent = tilAttestering.tilUnderkjent(attestering = attesteringUnderkjent(clock)).getOrFail()
         sak.oppdaterSøknadsbehandling(underkjent) to underkjent
     }
 }
@@ -836,7 +837,7 @@ fun tilAttesteringSøknadsbehandling(
         when (vilkårsvurdert) {
             // avslag for vilkår går rett til attestering
             is VilkårsvurdertSøknadsbehandling.Avslag -> {
-                vilkårsvurdert.tilAttesteringForSaksbehandler(
+                vilkårsvurdert.tilAttestering(
                     saksbehandler = saksbehandler,
                     fritekstTilBrev = fritekstTilBrev,
                     clock = clock,
@@ -928,7 +929,7 @@ fun simulertSøknadsbehandling(
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-    søknadsbehandling: BeregnetSøknadsbehandling? = null,
+    søknadsbehandling: BeregnetSøknadsbehandling.Innvilget? = null,
 ): Pair<Sak, SimulertSøknadsbehandling> {
     return (
         søknadsbehandling?.let {
@@ -944,7 +945,7 @@ fun simulertSøknadsbehandling(
             customVilkår = customVilkår,
             eksterneGrunnlag = eksterneGrunnlag,
             saksbehandler = saksbehandler,
-        )
+        ).mapSecond { it as BeregnetSøknadsbehandling.Innvilget }
         ).let { (sak, beregnet) ->
         beregnet.simuler(
             saksbehandler = saksbehandler,
@@ -1235,7 +1236,9 @@ fun vilkårsvurdertSøknadsbehandling(
             }
         }
 
-        val medFradrag = if (customGrunnlag.customOrDefault { defaultGrunnlagsdata.fradragsgrunnlag }.isNotEmpty() && vilkårsvurdert is VilkårsvurdertSøknadsbehandling.Innvilget) {
+        val medFradrag = if (customGrunnlag.customOrDefault { defaultGrunnlagsdata.fradragsgrunnlag }
+                .isNotEmpty() && vilkårsvurdert is VilkårsvurdertSøknadsbehandling.Innvilget
+        ) {
             vilkårsvurdert.oppdaterFradragsgrunnlag(
                 saksbehandler = saksbehandler,
                 fradragsgrunnlag = customGrunnlag.customOrDefault { defaultGrunnlagsdata.fradragsgrunnlag },

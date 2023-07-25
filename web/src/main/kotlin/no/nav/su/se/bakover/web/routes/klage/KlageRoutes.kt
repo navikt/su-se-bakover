@@ -50,8 +50,8 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequestForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
-import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
-import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
+import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeKlageTilAttestering
+import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenneKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
@@ -336,9 +336,9 @@ internal fun Route.klageRoutes(
                 }.mapLeft {
                     call.svar(
                         when (it) {
-                            KunneIkkeSendeTilAttestering.FantIkkeKlage -> fantIkkeKlage
-                            is KunneIkkeSendeTilAttestering.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
-                            KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
+                            KunneIkkeSendeKlageTilAttestering.FantIkkeKlage -> fantIkkeKlage
+                            is KunneIkkeSendeKlageTilAttestering.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                            KunneIkkeSendeKlageTilAttestering.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
                         },
                     )
                 }
@@ -383,10 +383,10 @@ internal fun Route.klageRoutes(
                         }.mapLeft { error ->
                             call.svar(
                                 when (error) {
-                                    KunneIkkeUnderkjenne.FantIkkeKlage -> fantIkkeKlage
-                                    is KunneIkkeUnderkjenne.UgyldigTilstand -> ugyldigTilstand(error.fra, error.til)
-                                    KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
-                                    KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
+                                    KunneIkkeUnderkjenneKlage.FantIkkeKlage -> fantIkkeKlage
+                                    is KunneIkkeUnderkjenneKlage.UgyldigTilstand -> ugyldigTilstand(error.fra, error.til)
+                                    KunneIkkeUnderkjenneKlage.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
+                                    KunneIkkeUnderkjenneKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
                                 },
                             )
                         }

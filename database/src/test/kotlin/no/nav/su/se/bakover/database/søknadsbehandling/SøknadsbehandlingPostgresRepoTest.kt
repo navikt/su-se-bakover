@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
@@ -206,7 +207,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                         }
                     }
                 }
-
+            beregnet as BeregnetSøknadsbehandling.Innvilget
             val simulert = beregnet.simuler(
                 saksbehandler = saksbehandler,
                 clock = fixedClock,

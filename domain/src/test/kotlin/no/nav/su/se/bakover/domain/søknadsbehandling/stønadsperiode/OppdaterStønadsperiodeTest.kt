@@ -38,6 +38,15 @@ import no.nav.su.se.bakover.domain.sak.nySøknadsbehandling
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.StøtterIkkeOverlappendeStønadsperioder
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.beregnetAvslag
+import no.nav.su.se.bakover.domain.søknadsbehandling.beregnetInnvilget
+import no.nav.su.se.bakover.domain.søknadsbehandling.opprettet
+import no.nav.su.se.bakover.domain.søknadsbehandling.simulert
+import no.nav.su.se.bakover.domain.søknadsbehandling.underkjentAvslagBeregning
+import no.nav.su.se.bakover.domain.søknadsbehandling.underkjentAvslagVilkår
+import no.nav.su.se.bakover.domain.søknadsbehandling.underkjentInnvilget
+import no.nav.su.se.bakover.domain.søknadsbehandling.vilkårsvurdertAvslag
+import no.nav.su.se.bakover.domain.søknadsbehandling.vilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
@@ -59,6 +68,40 @@ import org.junit.jupiter.api.Test
 import java.time.Year
 
 internal class OppdaterStønadsperiodeTest {
+
+    private val aldersvurdering = Aldersvurdering.Vurdert(
+        maskinellVurdering = MaskinellAldersvurderingMedGrunnlagsdata.avgjørBasertPåFødselsdatoEllerFødselsår(
+            stønadsperiode2021,
+            person().fødsel,
+        ),
+        saksbehandlersAvgjørelse = null,
+        aldersinformasjon = Aldersinformasjon.createAldersinformasjon(
+            person(),
+            fixedClock,
+        ),
+    )
+
+    @Test
+    fun `lovlige overganger`() {
+        listOf(
+            opprettet,
+            vilkårsvurdertInnvilget,
+            vilkårsvurdertAvslag,
+            beregnetInnvilget,
+            beregnetAvslag,
+            simulert,
+            underkjentAvslagVilkår,
+            underkjentAvslagBeregning,
+            underkjentInnvilget,
+        ).forEach {
+            it.oppdaterStønadsperiode(
+                aldersvurdering = aldersvurdering,
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                clock = fixedClock,
+                saksbehandler = saksbehandler,
+            ).shouldBeRight()
+        }
+    }
 
     @Test
     fun `oppdaterer perioden riktig`() {

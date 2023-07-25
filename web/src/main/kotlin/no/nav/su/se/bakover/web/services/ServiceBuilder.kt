@@ -205,7 +205,6 @@ data object ServiceBuilder {
             brevService = brevService,
             clock = clock,
             sakService = sakService,
-            tilbakekrevingService = tilbakekrevingService,
             formuegrenserFactory = satsFactory.formuegrenserFactory,
             satsFactory = satsFactory,
             sessionFactory = databaseRepos.sessionFactory,
