@@ -58,7 +58,10 @@ internal fun Regulering.toJson(satsFactory: SatsFactory) = ReguleringJson(
     saksnummer = saksnummer,
     beregning = beregning?.toJson(),
     simulering = simulering?.toJson(),
-    reguleringstype = reguleringstype.toString(),
+    reguleringstype = when (reguleringstype) {
+        is Reguleringstype.AUTOMATISK -> "AUTOMATISK"
+        is Reguleringstype.MANUELL -> "MANUELL"
+    },
     årsakForManuell = when (val type = reguleringstype) {
         Reguleringstype.AUTOMATISK -> null
         is Reguleringstype.MANUELL -> type.problemer.toJson()
