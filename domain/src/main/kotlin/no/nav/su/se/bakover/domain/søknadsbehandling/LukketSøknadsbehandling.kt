@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Avsluttet
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
@@ -96,13 +95,6 @@ data class LukketSøknadsbehandling private constructor(
         is VilkårsvurdertSøknadsbehandling.Innvilget -> null
         is VilkårsvurdertSøknadsbehandling.Uavklart -> null
     }
-
-    override fun copyInternal(
-        stønadsperiode: Stønadsperiode,
-        grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-        søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
-        aldersvurdering: Aldersvurdering,
-    ) = throw UnsupportedOperationException("Kan ikke kalle copyInternal på en lukket søknadsbehandling.")
 
     init {
         kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()

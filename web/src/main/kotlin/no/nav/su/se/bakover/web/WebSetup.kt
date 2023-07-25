@@ -31,7 +31,6 @@ import no.nav.su.se.bakover.common.person.UgyldigFnrException
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.naisPaths
 import no.nav.su.se.bakover.web.routes.naisRoutes
@@ -139,15 +138,6 @@ private fun Application.setupKtorExceptionHandling(
                 BadRequest.errorJson(
                     message = cause.message ?: "Ugyldig fødselsnummer",
                     code = "ugyldig_fødselsnummer",
-                ),
-            )
-        }
-        exception<StatusovergangVisitor.UgyldigStatusovergangException> { call, cause ->
-            log.info("Got ${StatusovergangVisitor.UgyldigStatusovergangException::class.simpleName} with message=${cause.msg}")
-            call.svar(
-                BadRequest.errorJson(
-                    message = cause.msg,
-                    code = "ugyldig_statusovergang",
                 ),
             )
         }

@@ -37,8 +37,8 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequestForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
-import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
-import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
+import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeKlageTilAttestering
+import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenneKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage.FantIkkeKlage
@@ -237,8 +237,8 @@ class KlageServiceImpl(
     override fun sendTilAttestering(
         klageId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering> {
-        val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeSendeTilAttestering.FantIkkeKlage.left()
+    ): Either<KunneIkkeSendeKlageTilAttestering, KlageTilAttestering> {
+        val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeSendeKlageTilAttestering.FantIkkeKlage.left()
         val oppgaveIdSomSkalLukkes = klage.oppgaveId
         return klage.sendTilAttestering(saksbehandler) {
             personService.hentAktørId(klage.fnr).flatMap { aktørId ->
@@ -260,7 +260,7 @@ class KlageServiceImpl(
                     ),
                 )
             }.mapLeft {
-                KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave
+                KunneIkkeSendeKlageTilAttestering.KunneIkkeOppretteOppgave
             }
         }.onRight {
             klageRepo.lagre(it)
@@ -268,8 +268,8 @@ class KlageServiceImpl(
         }
     }
 
-    override fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenne, Klage> {
-        val klage = klageRepo.hentKlage(request.klageId) ?: return KunneIkkeUnderkjenne.FantIkkeKlage.left()
+    override fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenneKlage, Klage> {
+        val klage = klageRepo.hentKlage(request.klageId) ?: return KunneIkkeUnderkjenneKlage.FantIkkeKlage.left()
         val oppgaveIdSomSkalLukkes = klage.oppgaveId
         return klage.underkjenn(
             underkjentAttestering = Attestering.Underkjent(
@@ -290,7 +290,7 @@ class KlageServiceImpl(
                     ),
                 )
             }.mapLeft {
-                KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave
+                KunneIkkeUnderkjenneKlage.KunneIkkeOppretteOppgave
             }
         }.onRight {
             klageRepo.lagre(it)

@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import arrow.core.Either
-import arrow.core.NonEmptyList
-import arrow.core.left
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -11,17 +9,14 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.MedSaksbehandlerHistorikk
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.Visitable
-import java.time.Clock
 
 sealed interface Søknadsbehandling :
     BehandlingMedOppgave,
@@ -82,20 +77,12 @@ sealed interface Søknadsbehandling :
      *
      * TODO jah: Skal helst fjernes helt på sikt. Midlertidig løsning kan være å flytte ut av interfacet.
      */
-    fun copyInternal(
-        stønadsperiode: Stønadsperiode = this.stønadsperiode!!,
-        grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling = this.grunnlagsdataOgVilkårsvurderinger,
-        søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk,
-        aldersvurdering: Aldersvurdering = this.aldersvurdering!!,
-    ): Søknadsbehandling
-
-    fun simuler(
-        saksbehandler: NavIdentBruker.Saksbehandler,
-        clock: Clock,
-        simuler: (beregning: Beregning, uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>?) -> Either<SimulerUtbetalingFeilet, Simulering>,
-    ): Either<KunneIkkeSimulereBehandling, SimulertSøknadsbehandling> {
-        return KunneIkkeSimulereBehandling.UgyldigTilstand(this::class).left()
-    }
+//    fun copyInternal(
+//        stønadsperiode: Stønadsperiode = this.stønadsperiode!!,
+//        grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling = this.grunnlagsdataOgVilkårsvurderinger,
+//        søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk,
+//        aldersvurdering: Aldersvurdering = this.aldersvurdering!!,
+//    ): Søknadsbehandling
 }
 
 // Her trikses det litt for å få til at funksjonen returnerer den samme konkrete typen som den kalles på.

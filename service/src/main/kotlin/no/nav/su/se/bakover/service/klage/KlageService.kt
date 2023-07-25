@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequestForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
-import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
-import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
+import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeKlageTilAttestering
+import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenneKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
@@ -50,9 +50,9 @@ interface KlageService {
     fun sendTilAttestering(
         klageId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering>
+    ): Either<KunneIkkeSendeKlageTilAttestering, KlageTilAttestering>
 
-    fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenne, Klage>
+    fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenneKlage, Klage>
 
     fun oversend(klageId: UUID, attestant: NavIdentBruker.Attestant): Either<KunneIkkeOversendeKlage, OversendtKlage>
 

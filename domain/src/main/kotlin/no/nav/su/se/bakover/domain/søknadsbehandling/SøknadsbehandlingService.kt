@@ -10,8 +10,11 @@ import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
+import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.SaksbehandlersAvgjørelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
+import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSendeSøknadsbehandlingTilAttestering
+import no.nav.su.se.bakover.domain.søknadsbehandling.underkjenn.KunneIkkeUnderkjenneSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.UgyldigFamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
@@ -43,8 +46,8 @@ interface SøknadsbehandlingService {
 
     fun beregn(request: BeregnRequest): Either<KunneIkkeBeregne, BeregnetSøknadsbehandling>
     fun simuler(request: SimulerRequest): Either<KunneIkkeSimulereBehandling, SimulertSøknadsbehandling>
-    fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeTilAttestering, SøknadsbehandlingTilAttestering>
-    fun underkjenn(request: UnderkjennRequest): Either<KunneIkkeUnderkjenne, UnderkjentSøknadsbehandling>
+    fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, SøknadsbehandlingTilAttestering>
+    fun underkjenn(request: UnderkjennRequest): Either<KunneIkkeUnderkjenneSøknadsbehandling, UnderkjentSøknadsbehandling>
 
     fun brev(request: BrevRequest): Either<KunneIkkeLageDokument, ByteArray>
     fun hent(request: HentRequest): Either<FantIkkeBehandling, Søknadsbehandling>
@@ -154,36 +157,16 @@ interface SøknadsbehandlingService {
         val saksbehandler: NavIdentBruker.Saksbehandler,
     )
 
-    sealed interface KunneIkkeSimulereBehandling {
-        data class KunneIkkeSimulere(val feil: no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeSimulereBehandling) :
-            KunneIkkeSimulereBehandling
-
-        data object FantIkkeBehandling : KunneIkkeSimulereBehandling
-    }
-
     data class SendTilAttesteringRequest(
         val behandlingId: UUID,
         val saksbehandler: NavIdentBruker.Saksbehandler,
         val fritekstTilBrev: String,
     )
 
-    sealed interface KunneIkkeSendeTilAttestering {
-        data object KunneIkkeFinneAktørId : KunneIkkeSendeTilAttestering
-        data object KunneIkkeOppretteOppgave : KunneIkkeSendeTilAttestering
-        data class HarValideringsfeil(val feil: ValideringsfeilAttestering) : KunneIkkeSendeTilAttestering
-    }
-
     data class UnderkjennRequest(
         val behandlingId: UUID,
         val attestering: Attestering.Underkjent,
     )
-
-    sealed interface KunneIkkeUnderkjenne {
-        data object FantIkkeBehandling : KunneIkkeUnderkjenne
-        data object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeUnderkjenne
-        data object KunneIkkeOppretteOppgave : KunneIkkeUnderkjenne
-        data object FantIkkeAktørId : KunneIkkeUnderkjenne
-    }
 
     sealed interface BrevRequest {
         val behandling: Søknadsbehandling

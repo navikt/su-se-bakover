@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.web.routes.revurdering.RevurderingJson
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SøknadsbehandlingJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.UtbetalingJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import no.nav.su.se.bakover.web.routes.toJson
@@ -31,7 +31,7 @@ internal data class SakJson(
     val saksnummer: Long,
     val fnr: String,
     val søknader: List<SøknadJson>,
-    val behandlinger: List<BehandlingJson>,
+    val behandlinger: List<SøknadsbehandlingJson>,
     val utbetalinger: List<UtbetalingJson>,
     val utbetalingerKanStansesEllerGjenopptas: KanStansesEllerGjenopptas,
     val revurderinger: List<RevurderingJson>,

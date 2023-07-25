@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
+import arrow.core.Either
 import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
@@ -23,13 +25,17 @@ import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
+import no.nav.su.se.bakover.domain.søknadsbehandling.underkjenn.KunneIkkeUnderkjenneSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import java.util.UUID
 
 sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling {
     abstract override val saksbehandler: NavIdentBruker.Saksbehandler
     fun nyOppgaveId(nyOppgaveId: OppgaveId): SøknadsbehandlingTilAttestering
-    fun tilUnderkjent(attestering: Attestering): UnderkjentSøknadsbehandling
+    fun tilUnderkjent(
+        attestering: Attestering.Underkjent,
+    ): Either<KunneIkkeUnderkjenneSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson, UnderkjentSøknadsbehandling>
+
     abstract override val aldersvurdering: Aldersvurdering
     abstract override val attesteringer: Attesteringshistorikk
     abstract override val avkorting: AvkortingVedSøknadsbehandling.Vurdert
@@ -55,20 +61,8 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling {
         override val sakstype: Sakstype,
         override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting,
     ) : SøknadsbehandlingTilAttestering {
-        override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
-        override fun copyInternal(
-            stønadsperiode: Stønadsperiode,
-            grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-            søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
-            aldersvurdering: Aldersvurdering,
-        ): SøknadsbehandlingTilAttestering {
-            return copy(
-                aldersvurdering = aldersvurdering,
-                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-                søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
-            )
-        }
+        override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
         override fun skalSendeVedtaksbrev(): Boolean {
             return true
@@ -89,7 +83,10 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling {
             return this.copy(oppgaveId = nyOppgaveId)
         }
 
-        override fun tilUnderkjent(attestering: Attestering): UnderkjentSøknadsbehandling.Innvilget {
+        override fun tilUnderkjent(
+            attestering: Attestering.Underkjent,
+        ): Either<KunneIkkeUnderkjenneSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson, UnderkjentSøknadsbehandling.Innvilget> {
+            if (attestering.attestant.navIdent == saksbehandler.navIdent) return KunneIkkeUnderkjenneSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             return UnderkjentSøknadsbehandling.Innvilget(
                 id = id,
                 opprettet = opprettet,
@@ -106,10 +103,9 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling {
                 fritekstTilBrev = fritekstTilBrev,
                 aldersvurdering = aldersvurdering,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-
                 avkorting = avkorting,
                 sakstype = sakstype,
-            )
+            ).right()
         }
 
         fun tilIverksatt(attestering: Attestering): IverksattSøknadsbehandling.Innvilget {
@@ -199,7 +195,12 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling {
                 return this.copy(oppgaveId = nyOppgaveId)
             }
 
-            override fun tilUnderkjent(attestering: Attestering): UnderkjentSøknadsbehandling.Avslag.UtenBeregning {
+            override fun tilUnderkjent(
+                attestering: Attestering.Underkjent,
+            ): Either<KunneIkkeUnderkjenneSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson, UnderkjentSøknadsbehandling.Avslag.UtenBeregning> {
+                if (attestering.attestant.navIdent == saksbehandler.navIdent) {
+                    return KunneIkkeUnderkjenneSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+                }
                 return UnderkjentSøknadsbehandling.Avslag.UtenBeregning(
                     id = id,
                     opprettet = opprettet,
@@ -216,21 +217,7 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling {
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
 
                     sakstype = sakstype,
-                )
-            }
-
-            override fun copyInternal(
-                stønadsperiode: Stønadsperiode,
-                grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-                søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
-                aldersvurdering: Aldersvurdering,
-            ): UtenBeregning {
-                return copy(
-                    aldersvurdering = aldersvurdering,
-                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-
-                    søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
-                )
+                ).right()
             }
 
             fun tilIverksatt(
@@ -307,7 +294,11 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling {
                 return this.copy(oppgaveId = nyOppgaveId)
             }
 
-            override fun tilUnderkjent(attestering: Attestering): UnderkjentSøknadsbehandling.Avslag.MedBeregning {
+            override fun tilUnderkjent(
+                attestering: Attestering.Underkjent,
+            ): Either<KunneIkkeUnderkjenneSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson, UnderkjentSøknadsbehandling.Avslag.MedBeregning> {
+                if (attestering.attestant.navIdent == saksbehandler.navIdent) return KunneIkkeUnderkjenneSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+
                 return UnderkjentSøknadsbehandling.Avslag.MedBeregning(
                     id = id,
                     opprettet = opprettet,
@@ -323,23 +314,8 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling {
                     fritekstTilBrev = fritekstTilBrev,
                     aldersvurdering = aldersvurdering,
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-
                     sakstype = sakstype,
-                )
-            }
-
-            override fun copyInternal(
-                stønadsperiode: Stønadsperiode,
-                grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-                søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
-                aldersvurdering: Aldersvurdering,
-            ): MedBeregning {
-                return copy(
-                    aldersvurdering = aldersvurdering,
-                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-
-                    søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
-                )
+                ).right()
             }
 
             internal fun tilIverksatt(

@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
@@ -28,15 +29,18 @@ import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
+import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
+import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSendeSøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import java.time.Clock
 import java.util.UUID
 
 sealed interface UnderkjentSøknadsbehandling :
     Søknadsbehandling,
-    KanOppdaterePeriodeBosituasjonVilkår {
+    KanOppdaterePeriodeBosituasjonVilkår,
+    KanSendesTilAttestering {
     abstract override val id: UUID
     abstract override val opprettet: Tidspunkt
     abstract override val sakId: UUID
@@ -71,7 +75,7 @@ sealed interface UnderkjentSøknadsbehandling :
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
         override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting,
         override val sakstype: Sakstype,
-    ) : UnderkjentSøknadsbehandling, KanBeregnes, KanOppdatereFradragsgrunnlag {
+    ) : UnderkjentSøknadsbehandling, KanBeregnes, KanSimuleres, KanOppdatereFradragsgrunnlag {
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
         override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Innvilget> {
@@ -93,20 +97,6 @@ sealed interface UnderkjentSøknadsbehandling :
 
         override fun nyOppgaveId(nyOppgaveId: OppgaveId): Innvilget {
             return this.copy(oppgaveId = nyOppgaveId)
-        }
-
-        override fun copyInternal(
-            stønadsperiode: Stønadsperiode,
-            grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-            søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
-            aldersvurdering: Aldersvurdering,
-        ): Innvilget {
-            return copy(
-                aldersvurdering = aldersvurdering,
-                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-
-                søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
-            )
         }
 
         override fun accept(visitor: SøknadsbehandlingVisitor) {
@@ -166,19 +156,21 @@ sealed interface UnderkjentSøknadsbehandling :
             }
         }
 
-        fun tilAttestering(
+        override fun tilAttestering(
             saksbehandler: NavIdentBruker.Saksbehandler,
             fritekstTilBrev: String,
             clock: Clock,
-        ): Either<ValideringsfeilAttestering, SøknadsbehandlingTilAttestering.Innvilget> {
+        ): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, SøknadsbehandlingTilAttestering.Innvilget> {
             if (grunnlagsdata.bosituasjon.inneholderUfullstendigeBosituasjoner()) {
-                return ValideringsfeilAttestering.InneholderUfullstendigBosituasjon.left()
+                return KunneIkkeSendeSøknadsbehandlingTilAttestering.InneholderUfullstendigBosituasjon.left()
             }
             if (simulering.harFeilutbetalinger()) {
                 /**
                  * Kun en nødbrems for tilfeller som i utgangspunktet skal være håndtert og forhindret av andre mekanismer.
                  */
-                throw IllegalStateException("Simulering inneholder feilutbetalinger")
+
+                sikkerLogg.error("Simulering inneholder feilutbetalinger (se vanlig log for stacktrace): $simulering")
+                throw IllegalStateException("Simulering inneholder feilutbetalinger. Se sikkerlogg for detaljer.")
             }
             return SøknadsbehandlingTilAttestering.Innvilget(
                 id = id,
@@ -194,7 +186,6 @@ sealed interface UnderkjentSøknadsbehandling :
                 fritekstTilBrev = fritekstTilBrev,
                 aldersvurdering = aldersvurdering,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk.leggTilNyHendelse(
                     saksbehandlingsHendelse = Søknadsbehandlingshendelse(
@@ -229,7 +220,8 @@ sealed interface UnderkjentSøknadsbehandling :
             override val aldersvurdering: Aldersvurdering,
             override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             override val sakstype: Sakstype,
-        ) : Avslag, KanBeregnes, KanOppdatereFradragsgrunnlag {
+        ) : Avslag, KanBeregnes, KanSendesTilAttestering, KanOppdatereFradragsgrunnlag {
+
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
             override val simulering: Simulering? = null
 
@@ -244,6 +236,7 @@ sealed interface UnderkjentSøknadsbehandling :
             }
 
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
+
             private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                 when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
                     is AvslagGrunnetBeregning.Ja -> listOf(vurdering.grunn.toAvslagsgrunn())
@@ -259,20 +252,6 @@ sealed interface UnderkjentSøknadsbehandling :
                 return true
             }
 
-            override fun copyInternal(
-                stønadsperiode: Stønadsperiode,
-                grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-                søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
-                aldersvurdering: Aldersvurdering,
-            ): MedBeregning {
-                return copy(
-                    aldersvurdering = aldersvurdering,
-                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-
-                    søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
-                )
-            }
-
             override fun nyOppgaveId(nyOppgaveId: OppgaveId): MedBeregning {
                 return this.copy(oppgaveId = nyOppgaveId)
             }
@@ -281,13 +260,13 @@ sealed interface UnderkjentSøknadsbehandling :
                 visitor.visit(this)
             }
 
-            fun tilAttestering(
+            override fun tilAttestering(
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 fritekstTilBrev: String,
                 clock: Clock,
-            ): Either<ValideringsfeilAttestering, SøknadsbehandlingTilAttestering.Avslag.MedBeregning> {
+            ): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, SøknadsbehandlingTilAttestering.Avslag.MedBeregning> {
                 if (grunnlagsdata.bosituasjon.inneholderUfullstendigeBosituasjoner()) {
-                    return ValideringsfeilAttestering.InneholderUfullstendigBosituasjon.left()
+                    return KunneIkkeSendeSøknadsbehandlingTilAttestering.InneholderUfullstendigBosituasjon.left()
                 }
                 return SøknadsbehandlingTilAttestering.Avslag.MedBeregning(
                     id = id,
@@ -302,7 +281,6 @@ sealed interface UnderkjentSøknadsbehandling :
                     fritekstTilBrev = fritekstTilBrev,
                     aldersvurdering = aldersvurdering,
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-
                     attesteringer = attesteringer,
                     søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk.leggTilNyHendelse(
                         saksbehandlingsHendelse = Søknadsbehandlingshendelse(
@@ -353,20 +331,6 @@ sealed interface UnderkjentSøknadsbehandling :
                 }
             }
 
-            override fun copyInternal(
-                stønadsperiode: Stønadsperiode,
-                grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-                søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
-                aldersvurdering: Aldersvurdering,
-            ): UtenBeregning {
-                return copy(
-                    aldersvurdering = aldersvurdering,
-                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-
-                    søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
-                )
-            }
-
             override fun skalSendeVedtaksbrev(): Boolean {
                 return true
             }
@@ -385,13 +349,13 @@ sealed interface UnderkjentSøknadsbehandling :
                 visitor.visit(this)
             }
 
-            fun tilAttestering(
+            override fun tilAttestering(
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 fritekstTilBrev: String,
                 clock: Clock,
-            ): Either<ValideringsfeilAttestering, SøknadsbehandlingTilAttestering.Avslag.UtenBeregning> {
+            ): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, SøknadsbehandlingTilAttestering.Avslag.UtenBeregning> {
                 if (grunnlagsdata.bosituasjon.inneholderUfullstendigeBosituasjoner()) {
-                    return ValideringsfeilAttestering.InneholderUfullstendigBosituasjon.left()
+                    return KunneIkkeSendeSøknadsbehandlingTilAttestering.InneholderUfullstendigBosituasjon.left()
                 }
                 return SøknadsbehandlingTilAttestering.Avslag.UtenBeregning(
                     id = id,
@@ -405,7 +369,6 @@ sealed interface UnderkjentSøknadsbehandling :
                     fritekstTilBrev = fritekstTilBrev,
                     aldersvurdering = aldersvurdering,
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-
                     attesteringer = attesteringer,
                     søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk.leggTilNyHendelse(
                         saksbehandlingsHendelse = Søknadsbehandlingshendelse(

@@ -29,8 +29,10 @@ import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
+import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
+import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSendeSøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import java.time.Clock
 import java.util.UUID
@@ -47,54 +49,6 @@ sealed interface BeregnetSøknadsbehandling :
     abstract override val saksbehandler: NavIdentBruker.Saksbehandler
 
     abstract override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, BeregnetSøknadsbehandling>
-
-    override fun simuler(
-        saksbehandler: NavIdentBruker.Saksbehandler,
-        clock: Clock,
-        simuler: (beregning: Beregning, uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>?) -> Either<SimulerUtbetalingFeilet, Simulering>,
-    ): Either<KunneIkkeSimulereBehandling, SimulertSøknadsbehandling> {
-        return simuler(
-            beregning,
-            when (sakstype) {
-                Sakstype.ALDER -> {
-                    null
-                }
-
-                Sakstype.UFØRE -> {
-                    vilkårsvurderinger.uføreVilkår()
-                        .getOrElse { throw IllegalStateException("Søknadsbehandling uføre: $id mangler uføregrunnlag") }.grunnlag.toNonEmptyList()
-                }
-            },
-        ).mapLeft {
-            KunneIkkeSimulereBehandling.KunneIkkeSimulere(it)
-        }.map { simulering ->
-            SimulertSøknadsbehandling(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                søknad = søknad,
-                oppgaveId = oppgaveId,
-                fnr = fnr,
-                beregning = beregning,
-                simulering = simulering,
-                fritekstTilBrev = fritekstTilBrev,
-                aldersvurdering = aldersvurdering,
-                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-                attesteringer = attesteringer,
-                søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk.leggTilNyHendelse(
-                    saksbehandlingsHendelse = Søknadsbehandlingshendelse(
-                        tidspunkt = Tidspunkt.now(clock),
-                        saksbehandler = saksbehandler,
-                        handling = SøknadsbehandlingsHandling.Simulert,
-                    ),
-                ),
-                avkorting = avkorting,
-                sakstype = sakstype,
-                saksbehandler = saksbehandler,
-            )
-        }
-    }
 
     data class Innvilget(
         override val id: UUID,
@@ -113,9 +67,57 @@ sealed interface BeregnetSøknadsbehandling :
         override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting,
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
-    ) : BeregnetSøknadsbehandling {
+    ) : BeregnetSøknadsbehandling, KanSimuleres {
         override val periode: Periode = aldersvurdering.stønadsperiode.periode
         override val simulering: Simulering? = null
+
+        override fun simuler(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+            clock: Clock,
+            simuler: (beregning: Beregning, uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>?) -> Either<SimulerUtbetalingFeilet, Simulering>,
+        ): Either<KunneIkkeSimulereBehandling, SimulertSøknadsbehandling> {
+            return simuler(
+                beregning,
+                when (sakstype) {
+                    Sakstype.ALDER -> {
+                        null
+                    }
+
+                    Sakstype.UFØRE -> {
+                        vilkårsvurderinger.uføreVilkår()
+                            .getOrElse { throw IllegalStateException("Søknadsbehandling uføre: $id mangler uføregrunnlag") }.grunnlag.toNonEmptyList()
+                    }
+                },
+            ).mapLeft {
+                KunneIkkeSimulereBehandling.KunneIkkeSimulere(it)
+            }.map { simulering ->
+                SimulertSøknadsbehandling(
+                    id = id,
+                    opprettet = opprettet,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    søknad = søknad,
+                    oppgaveId = oppgaveId,
+                    fnr = fnr,
+                    beregning = beregning,
+                    simulering = simulering,
+                    fritekstTilBrev = fritekstTilBrev,
+                    aldersvurdering = aldersvurdering,
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+                    attesteringer = attesteringer,
+                    søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk.leggTilNyHendelse(
+                        saksbehandlingsHendelse = Søknadsbehandlingshendelse(
+                            tidspunkt = Tidspunkt.now(clock),
+                            saksbehandler = saksbehandler,
+                            handling = SøknadsbehandlingsHandling.Simulert,
+                        ),
+                    ),
+                    avkorting = avkorting,
+                    sakstype = sakstype,
+                    saksbehandler = saksbehandler,
+                )
+            }
+        }
 
         override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Innvilget> {
             return when (this.eksterneGrunnlag.skatt) {
@@ -141,19 +143,6 @@ sealed interface BeregnetSøknadsbehandling :
         override fun accept(visitor: SøknadsbehandlingVisitor) {
             visitor.visit(this)
         }
-
-        override fun copyInternal(
-            stønadsperiode: Stønadsperiode,
-            grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-            søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
-            aldersvurdering: Aldersvurdering,
-        ): Innvilget {
-            return copy(
-                aldersvurdering = aldersvurdering,
-                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-                søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
-            )
-        }
     }
 
     data class Avslag(
@@ -172,7 +161,7 @@ sealed interface BeregnetSøknadsbehandling :
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
-    ) : BeregnetSøknadsbehandling, ErAvslag {
+    ) : BeregnetSøknadsbehandling, ErAvslag, KanSendesTilAttestering {
 
         override val periode: Periode = aldersvurdering.stønadsperiode.periode
 
@@ -208,30 +197,17 @@ sealed interface BeregnetSøknadsbehandling :
             return true
         }
 
-        override fun copyInternal(
-            stønadsperiode: Stønadsperiode,
-            grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-            søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
-            aldersvurdering: Aldersvurdering,
-        ): Avslag {
-            return copy(
-                aldersvurdering = aldersvurdering,
-                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-                søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
-            )
-        }
-
         override fun accept(visitor: SøknadsbehandlingVisitor) {
             visitor.visit(this)
         }
 
-        fun tilAttestering(
+        override fun tilAttestering(
             saksbehandler: NavIdentBruker.Saksbehandler,
             fritekstTilBrev: String,
             clock: Clock,
-        ): Either<ValideringsfeilAttestering, SøknadsbehandlingTilAttestering.Avslag.MedBeregning> {
+        ): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, SøknadsbehandlingTilAttestering.Avslag.MedBeregning> {
             if (grunnlagsdata.bosituasjon.inneholderUfullstendigeBosituasjoner()) {
-                return ValideringsfeilAttestering.InneholderUfullstendigBosituasjon.left()
+                return KunneIkkeSendeSøknadsbehandlingTilAttestering.InneholderUfullstendigBosituasjon.left()
             }
             return SøknadsbehandlingTilAttestering.Avslag.MedBeregning(
                 id = id,

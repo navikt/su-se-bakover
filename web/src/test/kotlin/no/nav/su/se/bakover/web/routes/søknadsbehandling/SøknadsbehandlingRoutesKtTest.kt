@@ -14,7 +14,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSendeSøknadsbehandlingTilAttestering
+import no.nav.su.se.bakover.domain.søknadsbehandling.underkjenn.KunneIkkeUnderkjenneSøknadsbehandling
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.jwt.asBearerToken
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
@@ -95,7 +96,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     services = TestServicesBuilder.services(
                         søknadsbehandling = SøknadsbehandlingServices(
                             søknadsbehandlingService = mock {
-                                on { sendTilAttestering(any()) } doReturn SøknadsbehandlingService.KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave.left()
+                                on { sendTilAttestering(any()) } doReturn KunneIkkeSendeSøknadsbehandlingTilAttestering.KunneIkkeOppretteOppgave.left()
                             },
                             iverksettSøknadsbehandlingService = mock(),
                         ),
@@ -182,7 +183,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                         services = TestServicesBuilder.services(
                             søknadsbehandling = SøknadsbehandlingServices(
                                 søknadsbehandlingService = mock {
-                                    on { underkjenn(any()) } doReturn SøknadsbehandlingService.KunneIkkeUnderkjenne.FantIkkeBehandling.left()
+                                    on { underkjenn(any()) } doReturn KunneIkkeUnderkjenneSøknadsbehandling.FantIkkeBehandling.left()
                                 },
                                 iverksettSøknadsbehandlingService = mock(),
                             ),
@@ -233,7 +234,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     testSusebakoverWithMockedDb(
                         services = TestServicesBuilder.services(
                             søknadsbehandling = SøknadsbehandlingServices(
-                                søknadsbehandlingService = mock { on { underkjenn(any()) } doReturn SøknadsbehandlingService.KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left() },
+                                søknadsbehandlingService = mock { on { underkjenn(any()) } doReturn KunneIkkeUnderkjenneSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left() },
                                 iverksettSøknadsbehandlingService = mock(),
                             ),
                         ),
@@ -285,7 +286,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     setBody("""{"kommentar":"kommentar", "grunn": "BEREGNINGEN_ER_FEIL" }""")
                 }.apply {
                     status shouldBe HttpStatusCode.OK
-                    deserialize<BehandlingJson>(bodyAsText()).let {
+                    deserialize<SøknadsbehandlingJson>(bodyAsText()).let {
                         it.status shouldBe "UNDERKJENT_INNVILGET"
                     }
                 }

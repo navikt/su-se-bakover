@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.suSeBakoverConsumerId
 /**
  * TODO jah: Bør lage en Json-versjon, domenetyper skal ikke serialiseres/deserialiseres direkte.
  */
-sealed class NavIdentBruker {
+sealed class NavIdentBruker : Comparable<NavIdentBruker> {
 
     @get:JsonValue
     abstract val navIdent: String
@@ -14,6 +14,8 @@ sealed class NavIdentBruker {
     override fun toString(): String = navIdent
 
     override fun equals(other: Any?) = other is NavIdentBruker && navIdent == other.navIdent
+
+    override fun compareTo(other: NavIdentBruker) = navIdent.compareTo(other.navIdent)
 
     override fun hashCode() = navIdent.hashCode()
 

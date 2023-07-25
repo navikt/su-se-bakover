@@ -542,7 +542,7 @@ internal class SøknadsbehandlingJsonTest {
             }
         """.trimIndent()
         JSONAssert.assertEquals(expected, serialize(søknadsbehandling.toJson(satsFactoryTestPåDato())), true)
-        deserialize<BehandlingJson>(expected) shouldBe søknadsbehandling.toJson(satsFactoryTestPåDato())
+        deserialize<SøknadsbehandlingJson>(expected) shouldBe søknadsbehandling.toJson(satsFactoryTestPåDato())
     }
 
     @Test
@@ -749,6 +749,6 @@ internal class SøknadsbehandlingJsonTest {
         """.trimIndent()
 
         JSONAssert.assertEquals(expected, serialize(søknadsbehandling.toJson(satsFactoryTestPåDato())), true)
-        deserialize<BehandlingJson>(expected) shouldBe søknadsbehandling.toJson(satsFactoryTestPåDato())
+        deserialize<SøknadsbehandlingJson>(expected) shouldBe søknadsbehandling.toJson(satsFactoryTestPåDato())
     }
 }

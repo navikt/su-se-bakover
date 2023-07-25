@@ -54,18 +54,18 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.BrevRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.HentRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeBeregne
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeSendeTilAttestering
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.OpprettRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.UnderkjennRequest
-import no.nav.su.se.bakover.domain.søknadsbehandling.ValideringsfeilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.MaskinellAldersvurderingMedGrunnlagsdata
+import no.nav.su.se.bakover.domain.søknadsbehandling.underkjenn.KunneIkkeUnderkjenneSøknadsbehandling
 import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.OppdaterStønadsperiodeRequest
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.opprett.tilResultat
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.tilResultat
 import no.nav.su.se.bakover.web.routes.tilResultat
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -301,18 +301,7 @@ internal fun Route.søknadsbehandlingRoutes(
                             ),
                         ).fold(
                             {
-                                val resultat = when (it) {
-                                    KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave -> {
-                                        Feilresponser.kunneIkkeOppretteOppgave
-                                    }
-
-                                    KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId -> {
-                                        Feilresponser.fantIkkeAktørId
-                                    }
-
-                                    is KunneIkkeSendeTilAttestering.HarValideringsfeil -> it.feil.tilResultat()
-                                }
-                                call.svar(resultat)
+                                call.svar(it.tilResultat())
                             },
                             {
                                 call.sikkerlogg("Sendte behandling med id $behandlingId til attestering")
@@ -358,10 +347,14 @@ internal fun Route.søknadsbehandlingRoutes(
                             ).fold(
                                 ifLeft = {
                                     val resultat = when (it) {
-                                        KunneIkkeUnderkjenne.FantIkkeBehandling -> fantIkkeBehandling
-                                        KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
-                                        KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave -> Feilresponser.kunneIkkeOppretteOppgave
-                                        KunneIkkeUnderkjenne.FantIkkeAktørId -> Feilresponser.fantIkkeAktørId
+                                        KunneIkkeUnderkjenneSøknadsbehandling.FantIkkeBehandling -> fantIkkeBehandling
+                                        KunneIkkeUnderkjenneSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
+                                        KunneIkkeUnderkjenneSøknadsbehandling.KunneIkkeOppretteOppgave -> Feilresponser.kunneIkkeOppretteOppgave
+                                        KunneIkkeUnderkjenneSøknadsbehandling.FantIkkeAktørId -> Feilresponser.fantIkkeAktørId
+                                        is KunneIkkeUnderkjenneSøknadsbehandling.UgyldigTilstand -> ugyldigTilstand(
+                                            it.fra,
+                                            it.til,
+                                        )
                                     }
                                     call.svar(resultat)
                                 },
@@ -384,10 +377,6 @@ internal fun Route.søknadsbehandlingRoutes(
             }
         }
     }
-}
-
-private fun ValideringsfeilAttestering.tilResultat(): Resultat = when (this) {
-    ValideringsfeilAttestering.InneholderUfullstendigBosituasjon -> Feilresponser.inneholderUfullstendigeBosituasjoner
 }
 
 internal fun Sak.KunneIkkeOppdatereStønadsperiode.tilResultat(): Resultat {

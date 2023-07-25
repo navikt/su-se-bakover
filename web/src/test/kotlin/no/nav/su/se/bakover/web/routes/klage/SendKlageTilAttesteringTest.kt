@@ -10,7 +10,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
+import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeKlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.test.vurdertKlageTilAttestering
@@ -74,7 +74,7 @@ internal class SendKlageTilAttesteringTest {
     @Test
     fun `fant ikke klage`() {
         verifiserFeilkode(
-            feilkode = KunneIkkeSendeTilAttestering.FantIkkeKlage,
+            feilkode = KunneIkkeSendeKlageTilAttestering.FantIkkeKlage,
             status = HttpStatusCode.NotFound,
             body = "{\"message\":\"Fant ikke klage\",\"code\":\"fant_ikke_klage\"}",
         )
@@ -83,14 +83,14 @@ internal class SendKlageTilAttesteringTest {
     @Test
     fun `ugyldig tilstand`() {
         verifiserFeilkode(
-            feilkode = KunneIkkeSendeTilAttestering.UgyldigTilstand(OpprettetKlage::class),
+            feilkode = KunneIkkeSendeKlageTilAttestering.UgyldigTilstand(OpprettetKlage::class),
             status = HttpStatusCode.BadRequest,
             body = "{\"message\":\"Kan ikke gå fra tilstanden OpprettetKlage til tilstanden KlageTilAttestering\",\"code\":\"ugyldig_tilstand\"}",
         )
     }
 
     private fun verifiserFeilkode(
-        feilkode: KunneIkkeSendeTilAttestering,
+        feilkode: KunneIkkeSendeKlageTilAttestering,
         status: HttpStatusCode,
         body: String,
     ) {

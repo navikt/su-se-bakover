@@ -2,9 +2,7 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.left
 import arrow.core.right
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.AktørId
@@ -26,12 +24,12 @@ import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
+import no.nav.su.se.bakover.domain.søknadsbehandling.underkjenn.KunneIkkeUnderkjenneSøknadsbehandling
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -102,7 +100,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             ),
         )
 
-        actual shouldBe SøknadsbehandlingService.KunneIkkeUnderkjenne.FantIkkeBehandling.left()
+        actual shouldBe KunneIkkeUnderkjenneSøknadsbehandling.FantIkkeBehandling.left()
 
         inOrder(søknadsbehandlingRepoMock) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
@@ -128,19 +126,19 @@ class SøknadsbehandlingServiceUnderkjennTest {
         val oppgaveServiceMock = mock<OppgaveService>()
         val behandlingMetricsMock = mock<BehandlingMetrics>()
 
-        shouldThrow<StatusovergangVisitor.UgyldigStatusovergangException> {
-            createSøknadsbehandlingService(
-                søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-                oppgaveService = oppgaveServiceMock,
-                personService = personServiceMock,
-                behandlingMetrics = behandlingMetricsMock,
-            ).underkjenn(
-                SøknadsbehandlingService.UnderkjennRequest(
-                    behandlingId = behandling.id,
-                    attestering = underkjentAttestering,
-                ),
-            )
-        }.msg shouldContain "Ugyldig statusovergang"
+        createSøknadsbehandlingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
+            oppgaveService = oppgaveServiceMock,
+            personService = personServiceMock,
+            behandlingMetrics = behandlingMetricsMock,
+        ).underkjenn(
+            SøknadsbehandlingService.UnderkjennRequest(
+                behandlingId = behandling.id,
+                attestering = underkjentAttestering,
+            ),
+        ) shouldBe KunneIkkeUnderkjenneSøknadsbehandling.UgyldigTilstand(
+            fra = behandling::class,
+        ).left()
 
         inOrder(søknadsbehandlingRepoMock) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandling.id })
@@ -186,7 +184,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             ),
         )
 
-        actual shouldBe SøknadsbehandlingService.KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+        actual shouldBe KunneIkkeUnderkjenneSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
 
         inOrder(søknadsbehandlingRepoMock) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
@@ -225,7 +223,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             ),
         )
 
-        actual shouldBe SøknadsbehandlingService.KunneIkkeUnderkjenne.FantIkkeAktørId.left()
+        actual shouldBe KunneIkkeUnderkjenneSøknadsbehandling.FantIkkeAktørId.left()
 
         inOrder(søknadsbehandlingRepoMock, personServiceMock) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
@@ -266,7 +264,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             ),
         )
 
-        actual shouldBe SøknadsbehandlingService.KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave.left()
+        actual shouldBe KunneIkkeUnderkjenneSøknadsbehandling.KunneIkkeOppretteOppgave.left()
 
         inOrder(søknadsbehandlingRepoMock, personServiceMock, oppgaveServiceMock) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })

@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
+import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSendeSøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
@@ -193,20 +194,6 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         override fun accept(visitor: SøknadsbehandlingVisitor) {
             visitor.visit(this)
         }
-
-        override fun copyInternal(
-            stønadsperiode: Stønadsperiode,
-            grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-            søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
-            aldersvurdering: Aldersvurdering,
-        ): VilkårsvurdertSøknadsbehandling {
-            return copy(
-                aldersvurdering = aldersvurdering,
-                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-
-                søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
-            )
-        }
     }
 
     data class Avslag(
@@ -219,6 +206,7 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         override val fritekstTilBrev: String,
     ) : VilkårsvurdertSøknadsbehandling,
         KanOppdaterePeriodeBosituasjonVilkår,
+        KanSendesTilAttestering,
         Søknadsbehandling by forrigeTilstand,
         ErAvslag {
 
@@ -243,20 +231,6 @@ sealed interface VilkårsvurdertSøknadsbehandling :
             return true
         }
 
-        override fun copyInternal(
-            stønadsperiode: Stønadsperiode,
-            grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-            søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
-            aldersvurdering: Aldersvurdering,
-        ): Avslag {
-            return copy(
-                aldersvurdering = aldersvurdering,
-                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-
-                søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
-            )
-        }
-
         override val periode: Periode = aldersvurdering.stønadsperiode.periode
 
         init {
@@ -271,11 +245,11 @@ sealed interface VilkårsvurdertSøknadsbehandling :
          * Til bruk der systemet har behov for å gjøre handling
          * Se eksempel: [no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.avslåSøknadPgaManglendeDokumentasjon]
          */
-        fun tilAttestering(
+        fun tilAttesteringForSystembruker(
             fritekstTilBrev: String,
-        ): Either<ValideringsfeilAttestering, SøknadsbehandlingTilAttestering.Avslag.UtenBeregning> {
+        ): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, SøknadsbehandlingTilAttestering.Avslag.UtenBeregning> {
             if (grunnlagsdata.bosituasjon.inneholderUfullstendigeBosituasjoner()) {
-                return ValideringsfeilAttestering.InneholderUfullstendigBosituasjon.left()
+                return KunneIkkeSendeSøknadsbehandlingTilAttestering.InneholderUfullstendigBosituasjon.left()
             }
             return SøknadsbehandlingTilAttestering.Avslag.UtenBeregning(
                 id = id,
@@ -289,20 +263,19 @@ sealed interface VilkårsvurdertSøknadsbehandling :
                 fritekstTilBrev = fritekstTilBrev,
                 aldersvurdering = aldersvurdering,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = this.søknadsbehandlingsHistorikk,
                 sakstype = sakstype,
             ).right()
         }
 
-        fun tilAttesteringForSaksbehandler(
+        override fun tilAttestering(
             saksbehandler: NavIdentBruker.Saksbehandler,
             fritekstTilBrev: String,
             clock: Clock,
-        ): Either<ValideringsfeilAttestering, SøknadsbehandlingTilAttestering.Avslag.UtenBeregning> {
+        ): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, SøknadsbehandlingTilAttestering.Avslag.UtenBeregning> {
             if (grunnlagsdata.bosituasjon.inneholderUfullstendigeBosituasjoner()) {
-                return ValideringsfeilAttestering.InneholderUfullstendigBosituasjon.left()
+                return KunneIkkeSendeSøknadsbehandlingTilAttestering.InneholderUfullstendigBosituasjon.left()
             }
             return SøknadsbehandlingTilAttestering.Avslag.UtenBeregning(
                 id = id,
@@ -316,7 +289,6 @@ sealed interface VilkårsvurdertSøknadsbehandling :
                 fritekstTilBrev = fritekstTilBrev,
                 aldersvurdering = aldersvurdering,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk.leggTilNyHendelse(
                     saksbehandlingsHendelse = Søknadsbehandlingshendelse(
@@ -354,38 +326,23 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
     ) : VilkårsvurdertSøknadsbehandling {
+
         override val stønadsperiode: Stønadsperiode? = aldersvurdering?.stønadsperiode
         override val beregning = null
         override val simulering: Simulering? = null
+        override val avkorting: AvkortingVedSøknadsbehandling.IkkeVurdert = AvkortingVedSøknadsbehandling.IkkeVurdert
+        override val periode: Periode
+            get() = stønadsperiode?.periode ?: throw StønadsperiodeIkkeDefinertException(id)
+
+        override fun skalSendeVedtaksbrev(): Boolean {
+            return true
+        }
 
         override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Uavklart> {
             return this.copy(
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilSkatt(skatt),
             ).right()
         }
-
-        override val avkorting: AvkortingVedSøknadsbehandling.IkkeVurdert = AvkortingVedSøknadsbehandling.IkkeVurdert
-
-        override fun skalSendeVedtaksbrev(): Boolean {
-            return true
-        }
-
-        override fun copyInternal(
-            stønadsperiode: Stønadsperiode,
-            grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-            søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
-            aldersvurdering: Aldersvurdering,
-        ): Uavklart {
-            return copy(
-                aldersvurdering = aldersvurdering,
-                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-
-                søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
-            )
-        }
-
-        override val periode: Periode
-            get() = stønadsperiode?.periode ?: throw StønadsperiodeIkkeDefinertException(id)
 
         init {
             kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()

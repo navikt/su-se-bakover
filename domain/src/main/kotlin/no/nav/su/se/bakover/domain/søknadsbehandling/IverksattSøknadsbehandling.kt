@@ -40,13 +40,6 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling {
     abstract override val aldersvurdering: Aldersvurdering
     abstract override val avkorting: AvkortingVedSøknadsbehandling.Vurdert
 
-    override fun copyInternal(
-        stønadsperiode: Stønadsperiode,
-        grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
-        søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
-        aldersvurdering: Aldersvurdering,
-    ) = throw UnsupportedOperationException("Kan ikke kalle copyInternal på en iverksatt søknadsbehandling.")
-
     override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt) = KunneIkkeLeggeTilSkattegrunnlag.UgyldigTilstand.left()
 
     data class Innvilget(

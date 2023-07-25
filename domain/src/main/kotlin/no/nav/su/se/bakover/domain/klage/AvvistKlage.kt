@@ -126,8 +126,8 @@ data class AvvistKlage(
 
     override fun sendTilAttestering(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        opprettOppgave: () -> Either<KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave, OppgaveId>,
-    ): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering.Avvist> {
+        opprettOppgave: () -> Either<KunneIkkeSendeKlageTilAttestering.KunneIkkeOppretteOppgave, OppgaveId>,
+    ): Either<KunneIkkeSendeKlageTilAttestering, KlageTilAttestering.Avvist> {
         return opprettOppgave().map { oppgaveId ->
             KlageTilAttestering.Avvist(
                 forrigeSteg = this,
