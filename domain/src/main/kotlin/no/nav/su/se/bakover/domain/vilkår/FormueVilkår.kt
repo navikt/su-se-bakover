@@ -8,7 +8,9 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
+import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.firstOrThrowIfMultipleOrEmpty
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.lagTidslinje
 
@@ -143,5 +145,15 @@ sealed interface FormueVilkår : Vilkår {
         sealed interface UgyldigFormuevilkår {
             data object OverlappendeVurderingsperioder : UgyldigFormuevilkår
         }
+    }
+}
+
+fun FormueVilkår.hentFormueGrunnlagForSøknadsbehandling(
+    avslagsgrunner: List<Avslagsgrunn>,
+): Formuegrunnlag? {
+    return when (this) {
+        is FormueVilkår.IkkeVurdert -> null
+        // TODO(satsfactory_formue) jah: jeg har ikke endret funksjonaliteten i Sats-omskrivningsrunden, men hvorfor sjekker vi avslagsgrunn for å avgjøre dette? De burde jo uansett henge sammen.
+        is FormueVilkår.Vurdert -> if (avslagsgrunner.contains(Avslagsgrunn.FORMUE)) this.grunnlag.firstOrThrowIfMultipleOrEmpty() else null
     }
 }

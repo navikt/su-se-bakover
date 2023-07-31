@@ -10,6 +10,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.test.avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
@@ -66,7 +67,7 @@ internal class AvsluttRevurderingRouteTest {
         val revurderingServiceMock = mock<RevurderingService> {
             on { lagBrevutkastForAvslutting(any(), anyOrNull()) } doReturn Pair(
                 Fnr.generer(),
-                "byteArray".toByteArray(),
+                PdfA("byteArray".toByteArray()),
             ).right()
         }
 

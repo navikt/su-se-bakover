@@ -14,18 +14,16 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.behandling.Avbrutt
 import no.nav.su.se.bakover.domain.behandling.Avsluttet
 import no.nav.su.se.bakover.domain.brev.Brevvalg
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
-import no.nav.su.se.bakover.domain.brev.søknad.lukk.AvvistSøknadBrevRequest
-import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
+import no.nav.su.se.bakover.domain.brev.command.AvvistSøknadDokumentCommand
+import no.nav.su.se.bakover.domain.brev.command.GenererDokumentCommand
+import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
 import no.nav.su.se.bakover.domain.dokument.Dokumenttilstand
-import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.ForNav
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdAlder
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
-import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -192,15 +190,9 @@ sealed interface Søknad {
                  */
                 fun toBrevRequest(
                     lukkSøknadCommand: LukkSøknadCommand,
-                    hentPerson: () -> Person,
-                    clock: Clock,
-                    hentSaksbehandlerNavn: (lukketAv: Saksbehandler) -> String,
                     hentSaksnummer: () -> Saksnummer,
-                ): Either<Lukket.KanIkkeLageBrevRequestForDenneTilstanden, LagBrevRequest> =
-                    this.lukk(lukkSøknadCommand).toBrevRequest(
-                        hentPerson = hentPerson,
-                        clock = clock,
-                        hentSaksbehandlerNavn = hentSaksbehandlerNavn,
+                ): Either<Lukket.KanIkkeLageBrevRequestForDenneTilstanden, GenererDokumentCommand> =
+                    this.lukk(lukkSøknadCommand).lagGenererDokumentKommando(
                         hentSaksnummer = hentSaksnummer,
                     )
             }
@@ -226,12 +218,9 @@ sealed interface Søknad {
                 /**
                  * @return null dersom det ikke skal kunne lages brev.
                  */
-                fun toBrevRequest(
-                    hentPerson: () -> Person,
-                    clock: Clock,
-                    hentSaksbehandlerNavn: (lukketAv: Saksbehandler) -> String,
+                fun lagGenererDokumentKommando(
                     hentSaksnummer: () -> Saksnummer,
-                ): Either<KanIkkeLageBrevRequestForDenneTilstanden, LagBrevRequest>
+                ): Either<KanIkkeLageBrevRequestForDenneTilstanden, GenererDokumentCommand>
 
                 data object KanIkkeLageBrevRequestForDenneTilstanden
 
@@ -253,6 +242,7 @@ sealed interface Søknad {
                     override val dokumenttilstand: Dokumenttilstand = brevvalg.tilDokumenttilstand(),
                 ) : Lukket {
                     override val avsluttetTidspunkt: Tidspunkt = lukketTidspunkt
+
                     init {
                         when (brevvalg) {
                             is Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev -> require(true)
@@ -263,20 +253,16 @@ sealed interface Søknad {
                         require(lukketTidspunkt >= opprettet)
                     }
 
-                    override fun toBrevRequest(
-                        hentPerson: () -> Person,
-                        clock: Clock,
-                        hentSaksbehandlerNavn: (lukketAv: Saksbehandler) -> String,
+                    override fun lagGenererDokumentKommando(
                         hentSaksnummer: () -> Saksnummer,
-                    ): Either<KanIkkeLageBrevRequestForDenneTilstanden, LagBrevRequest> {
+                    ): Either<KanIkkeLageBrevRequestForDenneTilstanden, GenererDokumentCommand> {
                         return when (brevvalg) {
                             is Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev -> KanIkkeLageBrevRequestForDenneTilstanden.left()
-                            is Brevvalg.SaksbehandlersValg.SkalSendeBrev -> AvvistSøknadBrevRequest(
-                                person = hentPerson(),
-                                brevvalg = brevvalg,
-                                saksbehandlerNavn = hentSaksbehandlerNavn(lukketAv),
-                                dagensDato = LocalDate.now(clock),
+                            is Brevvalg.SaksbehandlersValg.SkalSendeBrev -> AvvistSøknadDokumentCommand(
+                                fødselsnummer = fnr,
                                 saksnummer = hentSaksnummer(),
+                                brevvalg = brevvalg,
+                                saksbehandler = lukketAv,
                             ).right()
                         }
                     }
@@ -318,19 +304,16 @@ sealed interface Søknad {
                         }
                     }
 
-                    override fun toBrevRequest(
-                        hentPerson: () -> Person,
-                        clock: Clock,
-                        hentSaksbehandlerNavn: (lukketAv: Saksbehandler) -> String,
+                    override fun lagGenererDokumentKommando(
                         hentSaksnummer: () -> Saksnummer,
-                    ): Either<KanIkkeLageBrevRequestForDenneTilstanden, LagBrevRequest> = TrukketSøknadBrevRequest(
-                        person = hentPerson(),
-                        søknadOpprettet = opprettet,
-                        trukketDato = trukketDato,
-                        saksbehandlerNavn = hentSaksbehandlerNavn(lukketAv),
-                        dagensDato = LocalDate.now(clock),
-                        saksnummer = hentSaksnummer(),
-                    ).right()
+                    ): Either<KanIkkeLageBrevRequestForDenneTilstanden, GenererDokumentCommand> =
+                        TrukketSøknadDokumentCommand(
+                            søknadOpprettet = opprettet,
+                            trukketDato = trukketDato,
+                            saksbehandler = lukketAv,
+                            fødselsnummer = fnr,
+                            saksnummer = hentSaksnummer(),
+                        ).right()
                 }
 
                 /**
@@ -352,12 +335,9 @@ sealed interface Søknad {
                         Brevvalg.SkalIkkeSendeBrev("Saksbehandler får ikke per tidspunkt gjøre noen brevvalg dersom søknaden bortfaller.")
                     override val dokumenttilstand: Dokumenttilstand = Dokumenttilstand.SKAL_IKKE_GENERERE
 
-                    override fun toBrevRequest(
-                        hentPerson: () -> Person,
-                        clock: Clock,
-                        hentSaksbehandlerNavn: (lukketAv: Saksbehandler) -> String,
+                    override fun lagGenererDokumentKommando(
                         hentSaksnummer: () -> Saksnummer,
-                    ): Either<KanIkkeLageBrevRequestForDenneTilstanden, LagBrevRequest> =
+                    ): Either<KanIkkeLageBrevRequestForDenneTilstanden, GenererDokumentCommand> =
                         KanIkkeLageBrevRequestForDenneTilstanden.left()
 
                     init {

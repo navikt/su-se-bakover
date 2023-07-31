@@ -29,7 +29,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.underkjenn.KunneIkkeUnderk
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import java.util.UUID
 
-sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling {
+sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling, KanGenerereBrev {
     abstract override val saksbehandler: NavIdentBruker.Saksbehandler
     fun nyOppgaveId(nyOppgaveId: OppgaveId): SøknadsbehandlingTilAttestering
     fun tilUnderkjent(
@@ -60,7 +60,7 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling {
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val sakstype: Sakstype,
         override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting,
-    ) : SøknadsbehandlingTilAttestering {
+    ) : SøknadsbehandlingTilAttestering, KanGenerereInnvilgelsesbrev {
 
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
@@ -73,10 +73,6 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling {
         init {
             kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
             grunnlagsdata.kastHvisIkkeAlleBosituasjonerErFullstendig()
-        }
-
-        override fun accept(visitor: SøknadsbehandlingVisitor) {
-            visitor.visit(this)
         }
 
         override fun nyOppgaveId(nyOppgaveId: OppgaveId): Innvilget {
@@ -135,8 +131,8 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling {
         }
     }
 
-    sealed interface Avslag : SøknadsbehandlingTilAttestering, ErAvslag {
-
+    sealed interface Avslag : SøknadsbehandlingTilAttestering, ErAvslag, KanGenerereAvslagsbrev {
+        override val beregning: Beregning?
         abstract override val aldersvurdering: Aldersvurdering
 
         /** Ingenting og avkorte ved avslag. */
@@ -165,6 +161,7 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling {
             override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
             override val sakstype: Sakstype,
         ) : Avslag {
+            override val beregning: Beregning? = null
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
             // TODO fiks typing/gyldig tilstand/vilkår fradrag?
@@ -175,8 +172,6 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling {
             }
 
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
-
-            override val beregning = null
             override val simulering: Simulering? = null
 
             init {
@@ -185,10 +180,6 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling {
 
             override fun skalSendeVedtaksbrev(): Boolean {
                 return true
-            }
-
-            override fun accept(visitor: SøknadsbehandlingVisitor) {
-                visitor.visit(this)
             }
 
             override fun nyOppgaveId(nyOppgaveId: OppgaveId): UtenBeregning {
@@ -284,10 +275,6 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling {
 
             override fun skalSendeVedtaksbrev(): Boolean {
                 return true
-            }
-
-            override fun accept(visitor: SøknadsbehandlingVisitor) {
-                visitor.visit(this)
             }
 
             override fun nyOppgaveId(nyOppgaveId: OppgaveId): MedBeregning {

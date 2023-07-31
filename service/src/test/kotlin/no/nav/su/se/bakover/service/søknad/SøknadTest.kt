@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
@@ -60,7 +61,7 @@ class SøknadTest {
         uteståendeAvkorting = Avkortingsvarsel.Ingen,
         versjon = Hendelsesversjon(1),
     )
-    private val pdf = "pdf-data".toByteArray()
+    private val pdf = PdfA("pdf-data".toByteArray())
     private val journalpostId = JournalpostId("1")
     private val oppgaveId = OppgaveId("2")
     private val innsender = NavIdentBruker.Veileder("navIdent")

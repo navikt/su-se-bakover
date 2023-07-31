@@ -22,14 +22,9 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.common.ident.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.Brev.kanIkkeSendeBrevIDenneTilstanden
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.avkortingErUfullstendig
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeBehandling
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeGjeldendeUtbetaling
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkePerson
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSaksbehandlerEllerAttestant
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.feilVedGenereringAvDokument
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
@@ -47,20 +42,21 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.BrevRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.HentRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeBeregne
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.OpprettRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.UnderkjennRequest
+import no.nav.su.se.bakover.domain.søknadsbehandling.brev.utkast.BrevutkastForSøknadsbehandlingCommand
+import no.nav.su.se.bakover.domain.søknadsbehandling.brev.utkast.KunneIkkeGenerereBrevutkastForSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.MaskinellAldersvurderingMedGrunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.underkjenn.KunneIkkeUnderkjenneSøknadsbehandling
+import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.OppdaterStønadsperiodeRequest
@@ -222,44 +218,54 @@ internal fun Route.søknadsbehandlingRoutes(
         }
     }
 
-    suspend fun lagBrevutkast(call: ApplicationCall, req: BrevRequest) = søknadsbehandlingService.brev(req).fold(
-        {
-            call.svar(
-                when (it) {
-                    KunneIkkeLageDokument.DetSkalIkkeSendesBrev -> kanIkkeSendeBrevIDenneTilstanden
-                    KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> fantIkkeGjeldendeUtbetaling
-                    KunneIkkeLageDokument.KunneIkkeGenererePDF -> feilVedGenereringAvDokument
-                    KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> fantIkkeSaksbehandlerEllerAttestant
-                    KunneIkkeLageDokument.KunneIkkeHentePerson -> fantIkkePerson
-                },
-            )
-        },
-        {
-            call.sikkerlogg("Hentet brev for behandling med id ${req.behandling.id}")
-            call.audit(req.behandling.fnr, AuditLogEvent.Action.ACCESS, req.behandling.id)
-            call.respondBytes(it, ContentType.Application.Pdf)
-        },
-    )
+    suspend fun lagBrevutkast(call: ApplicationCall, req: BrevutkastForSøknadsbehandlingCommand) =
+        søknadsbehandlingService.genererBrevutkast(req).fold(
+            {
+                call.svar(
+                    when (it) {
+                        is KunneIkkeGenerereBrevutkastForSøknadsbehandling.UgyldigTilstand -> ugyldigTilstand(
+                            fra = it.fra,
+                            til = it.til,
+                        )
 
+                        is KunneIkkeGenerereBrevutkastForSøknadsbehandling.UnderliggendeFeil -> it.underliggende.tilResultat()
+                    },
+                )
+            },
+            {
+                call.sikkerlogg("Hentet brev for behandling med id ${req.søknadsbehandlingId}")
+                call.audit(it.second, AuditLogEvent.Action.ACCESS, req.søknadsbehandlingId)
+                call.respondBytes(it.first.getContent(), ContentType.Application.Pdf)
+            },
+        )
+
+    // Brukes av saksbehandler før hen sen sender til attestering.
     post("$søknadsbehandlingPath/{behandlingId}/vedtaksutkast") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withBehandlingId { behandlingId ->
                 call.withBody<WithFritekstBody> { body ->
-                    søknadsbehandlingService.hent(HentRequest(behandlingId)).fold(
-                        { call.svar(fantIkkeBehandling) },
-                        { lagBrevutkast(call, BrevRequest.MedFritekst(it, body.fritekst)) },
+                    lagBrevutkast(
+                        call,
+                        BrevutkastForSøknadsbehandlingCommand.ForSaksbehandler(
+                            søknadsbehandlingId = behandlingId,
+                            utførtAv = Saksbehandler(call.suUserContext.navIdent),
+                            fritekst = body.fritekst,
+                        ),
                     )
                 }
             }
         }
     }
-
+    // Brukes av attestant når hen skal se på et vedtaksutkast.
     get("$søknadsbehandlingPath/{behandlingId}/vedtaksutkast") {
-        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+        authorize(Brukerrolle.Attestant) {
             call.withBehandlingId { behandlingId ->
-                søknadsbehandlingService.hent(HentRequest(behandlingId)).fold(
-                    { call.svar(fantIkkeBehandling) },
-                    { lagBrevutkast(call, BrevRequest.UtenFritekst(it)) },
+                lagBrevutkast(
+                    call,
+                    BrevutkastForSøknadsbehandlingCommand.ForAttestant(
+                        søknadsbehandlingId = behandlingId,
+                        utførtAv = Attestant(call.suUserContext.navIdent),
+                    ),
                 )
             }
         }

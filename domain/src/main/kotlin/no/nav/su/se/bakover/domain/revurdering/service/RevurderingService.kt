@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering.service
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
@@ -74,15 +75,15 @@ interface RevurderingService {
 
     fun lagreOgSendForhåndsvarsel(
         revurderingId: UUID,
-        saksbehandler: NavIdentBruker.Saksbehandler,
+        utførtAv: NavIdentBruker.Saksbehandler,
         fritekst: String,
     ): Either<KunneIkkeForhåndsvarsle, Revurdering>
 
     fun lagBrevutkastForForhåndsvarsling(
         revurderingId: UUID,
-        saksbehandler: NavIdentBruker.Saksbehandler,
+        utførtAv: NavIdentBruker.Saksbehandler,
         fritekst: String,
-    ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray>
+    ): Either<KunneIkkeLageBrevutkastForRevurdering, PdfA>
 
     fun sendTilAttestering(
         request: SendTilAttesteringRequest,
@@ -99,7 +100,7 @@ interface RevurderingService {
     fun lagBrevutkastForRevurdering(
         revurderingId: UUID,
         fritekst: String?,
-    ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray>
+    ): Either<KunneIkkeLageBrevutkastForRevurdering, PdfA>
 
     fun iverksett(
         revurderingId: UUID,
@@ -134,7 +135,7 @@ interface RevurderingService {
     fun lagBrevutkastForAvslutting(
         revurderingId: UUID,
         fritekst: String,
-    ): Either<KunneIkkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, ByteArray>>
+    ): Either<KunneIkkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, PdfA>>
 
     fun avsluttRevurdering(
         revurderingId: UUID,

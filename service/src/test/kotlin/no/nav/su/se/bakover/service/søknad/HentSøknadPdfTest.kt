@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.ClientError
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
@@ -121,7 +122,7 @@ class HentSøknadPdfTest {
 
     @Test
     fun `henter PDF`() {
-        val pdf = "".toByteArray(StandardCharsets.UTF_8)
+        val pdf = PdfA("".toByteArray(StandardCharsets.UTF_8))
 
         SøknadServiceOgMocks(
             søknadRepo = mock {

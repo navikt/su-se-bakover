@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
-import no.nav.su.se.bakover.domain.revurdering.visitors.RevurderingVisitor
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import java.time.Clock
@@ -44,8 +43,6 @@ sealed class IverksattRevurdering : Revurdering() {
     }
 
     override fun skalTilbakekreve() = tilbakekrevingsbehandling.skalTilbakekreve().isRight()
-
-    abstract override fun accept(visitor: RevurderingVisitor)
 
     override fun skalSendeVedtaksbrev() = brevvalgRevurdering.skalSendeBrev().isRight()
 
@@ -74,9 +71,7 @@ sealed class IverksattRevurdering : Revurdering() {
 
         override val erOpphørt = false
 
-        override fun accept(visitor: RevurderingVisitor) {
-            visitor.visit(this)
-        }
+        override fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> = emptyList()
     }
 
     data class Opphørt(
@@ -102,11 +97,7 @@ sealed class IverksattRevurdering : Revurdering() {
 
         override val erOpphørt = true
 
-        override fun accept(visitor: RevurderingVisitor) {
-            visitor.visit(this)
-        }
-
-        fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> {
+        override fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> {
             val opphør = VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
                 vilkårsvurderinger = vilkårsvurderinger,
                 beregning = beregning,

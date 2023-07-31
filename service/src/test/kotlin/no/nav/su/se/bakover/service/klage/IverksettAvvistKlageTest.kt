@@ -3,11 +3,12 @@ package no.nav.su.se.bakover.service.klage
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.Dokumenttilstand
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
@@ -22,14 +23,13 @@ import no.nav.su.se.bakover.test.avvistKlageTilAttestering
 import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
+import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattAvvistKlage
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
-import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
 import no.nav.su.se.bakover.test.underkjentAvvistKlage
@@ -40,11 +40,9 @@ import no.nav.su.se.bakover.test.utfyltVurdertKlage
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.any
-import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.util.UUID
@@ -231,9 +229,9 @@ internal class IverksettAvvistKlageTest {
     fun `kan iverksette en klage som er til attestering avvist`() {
         val (_, klage) = avvistKlageTilAttestering(fritekstTilBrev = "dette er min fritekst")
         val attestant = NavIdentBruker.Attestant("attestant")
-        val person = person(fnr = klage.fnr)
-        val dokument = "myDoc".toByteArray()
+        val pdfA = PdfA("myDoc".toByteArray())
         val observerMock: StatistikkEventObserver = mock { on { handle(any()) }.then {} }
+        val dokumentUtenMetadataVedtak = dokumentUtenMetadataVedtak(pdf = pdfA)
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
@@ -241,13 +239,7 @@ internal class IverksettAvvistKlageTest {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
             brevServiceMock = mock {
-                on { lagBrev(any()) } doReturn dokument.right()
-            },
-            identClient = mock {
-                on { hentNavnForNavIdent(any()) }.thenReturn("Johnny".right(), "Johhny attestanten".right())
-            },
-            personServiceMock = mock {
-                on { hentPerson(any()) } doReturn person.right()
+                on { lagDokument(any()) } doReturn dokumentUtenMetadataVedtak.right()
             },
             oppgaveService = mock {
                 on { lukkOppgave(any()) } doReturn Unit.right()
@@ -275,19 +267,12 @@ internal class IverksettAvvistKlageTest {
         actual shouldBe expected
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        argumentCaptor<NavIdentBruker>().apply {
-            verify(mocks.identClient, times(2)).hentNavnForNavIdent(capture())
-            this.firstValue shouldBe klage.saksbehandler
-            this.lastValue shouldBe attestant
-        }
-        verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe klage.fnr })
-        verify(mocks.brevServiceMock).lagBrev(
+        verify(mocks.brevServiceMock).lagDokument(
             argThat {
-                it shouldBe LagBrevRequest.Klage.Avvist(
-                    person = person,
-                    dagensDato = fixedLocalDate,
-                    saksbehandlerNavn = "Johnny",
-                    attestantNavn = "Johhny attestanten",
+                it shouldBe KlageDokumentCommand.Avvist(
+                    fødselsnummer = klage.fnr,
+                    saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
+                    attestant = NavIdentBruker.Attestant("attestant"),
                     fritekst = "dette er min fritekst",
                     saksnummer = klage.saksnummer,
                 )
@@ -311,13 +296,7 @@ internal class IverksettAvvistKlageTest {
         verify(mocks.brevServiceMock).lagreDokument(
             argThat {
                 it shouldBe Dokument.MedMetadata.Vedtak(
-                    utenMetadata = Dokument.UtenMetadata.Vedtak(
-                        id = it.id,
-                        opprettet = it.opprettet,
-                        tittel = "Avvist klage",
-                        generertDokument = dokument,
-                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${klage.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\",\"saksnummer\":${klage.saksnummer}},\"saksbehandlerNavn\":\"Johnny\",\"attestantNavn\":\"Johhny attestanten\",\"fritekst\":\"dette er min fritekst\",\"saksnummer\":${klage.saksnummer},\"erAldersbrev\":false}",
-                    ),
+                    utenMetadata = dokumentUtenMetadataVedtak,
                     metadata = Dokument.Metadata(
                         sakId = klage.sakId,
                         klageId = klage.id,

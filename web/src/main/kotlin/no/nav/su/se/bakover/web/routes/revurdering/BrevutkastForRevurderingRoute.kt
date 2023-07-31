@@ -35,7 +35,7 @@ internal fun Route.brevutkastForRevurdering(
                         ifRight = {
                             call.sikkerlogg("Laget brevutkast for revurdering med id $revurderingId")
                             call.audit(revurdering.fnr, AuditLogEvent.Action.ACCESS, revurderingId)
-                            call.respondBytes(it, ContentType.Application.Pdf)
+                            call.respondBytes(it.getContent(), ContentType.Application.Pdf)
                         },
                     )
                 }

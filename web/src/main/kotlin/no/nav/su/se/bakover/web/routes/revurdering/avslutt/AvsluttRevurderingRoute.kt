@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForAv
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeLageAvsluttetGjenopptaAvYtelse
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.brevvalgIkkeTillatt
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.manglerBrevvalg
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkePersonEllerSaksbehandlerNavn
@@ -75,7 +76,7 @@ internal fun Route.avsluttRevurderingRoute(
                         ifRight = {
                             call.sikkerlogg("Laget brevutkast for revurdering med id $revurderingId")
                             call.audit(it.first, AuditLogEvent.Action.ACCESS, revurderingId)
-                            call.respondBytes(it.second, ContentType.Application.Pdf)
+                            call.respondBytes(it.second.getContent(), ContentType.Application.Pdf)
                         },
                     )
                 }
@@ -99,17 +100,8 @@ private fun KunneIkkeAvslutteRevurdering.tilResultat(): Resultat {
 private fun KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.tilResultat(): Resultat {
     return when (this) {
         KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.FantIkkeRevurdering -> fantIkkeRevurdering
-        KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeLageBrevutkast -> Feilresponser.Brev.kunneIkkeLageBrevutkast
-        KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.RevurderingenErIkkeForhåndsvarslet -> HttpStatusCode.BadRequest.errorJson(
-            "Revurderingen er ikke forhåndsvarslet for å vise brev",
-            "revurdering_er_ikke_forhåndsvarslet_for_å_vise_brev",
-        )
-
-        KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.FantIkkePerson -> Feilresponser.fantIkkePerson
-        KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeFinneGjeldendeUtbetaling -> Feilresponser.fantIkkeGjeldendeUtbetaling
-        KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeGenererePDF -> Feilresponser.Brev.kunneIkkeGenerereBrev
-        KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> fantIkkePersonEllerSaksbehandlerNavn
-        KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.DetSkalIkkeSendesBrev -> brevvalgIkkeTillatt
+        is KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeLageDokument -> this.underliggende.tilResultat()
+        is KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeAvslutteRevurdering -> this.underliggende.tilResultat()
     }
 }
 

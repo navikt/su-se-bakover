@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.service.sak
 
 import arrow.core.Either
 import arrow.core.flatMap
-import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -13,14 +12,12 @@ import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.BegrensetSakinfo
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.BrevService
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.journalpost.Journalpost
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalposter
-import no.nav.su.se.bakover.domain.person.IdentClient
-import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
@@ -38,9 +35,7 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import org.slf4j.LoggerFactory
-import java.lang.IllegalArgumentException
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 
 class SakServiceImpl(
@@ -48,8 +43,6 @@ class SakServiceImpl(
     private val clock: Clock,
     private val dokumentRepo: DokumentRepo,
     private val brevService: BrevService,
-    private val personService: PersonService,
-    private val identClient: IdentClient,
     private val journalpostClient: JournalpostClient,
 ) : SakService {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -138,22 +131,13 @@ class SakServiceImpl(
         val sak = sakRepo.hentSak(request.sakId)
             ?: throw IllegalStateException("Fant ikke sak ved opprettFritekstDokument. sakid ${request.sakId}")
 
-        val person = personService.hentPerson(sak.fnr).getOrElse {
-            throw IllegalStateException("Fant ikke person ved opprettFritekstDokument. sakid ${request.sakId}, fnr ${sak.fnr}")
-        }
-
-        val saksbehandlerNavn = identClient.hentNavnForNavIdent(request.saksbehandler).getOrElse {
-            return KunneIkkeOppretteDokument.FeilVedHentingAvSaksbehandlernavn(it).left()
-        }
-
         return brevService.lagDokument(
-            LagBrevRequest.Fritekst(
-                person = person,
-                dagensDato = LocalDate.now(clock),
+            FritekstDokumentCommand(
+                fødselsnummer = sak.fnr,
                 saksnummer = sak.saksnummer,
-                saksbehandlerNavn = saksbehandlerNavn,
                 brevTittel = request.tittel,
                 fritekst = request.fritekst,
+                saksbehandler = request.saksbehandler,
             ),
         ).mapLeft {
             KunneIkkeOppretteDokument.KunneIkkeLageDokument(it)

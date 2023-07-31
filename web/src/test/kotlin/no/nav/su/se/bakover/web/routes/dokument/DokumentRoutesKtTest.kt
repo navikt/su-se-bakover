@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.test.pdfATom
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
@@ -96,7 +97,7 @@ internal class DokumentRoutesKtTest {
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.EPOCH,
                         tittel = "en fin tittel",
-                        generertDokument = "".toByteArray(),
+                        generertDokument = pdfATom(),
                         generertDokumentJson = "",
                     ),
                 )

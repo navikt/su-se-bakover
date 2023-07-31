@@ -5,7 +5,8 @@ import arrow.core.right
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.pdf.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
-import no.nav.su.se.bakover.domain.brev.PdfInnhold
+import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.domain.brev.jsonRequest.PdfInnhold
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 
 data object PdfGeneratorStub : PdfGenerator {
@@ -25,11 +26,11 @@ data object PdfGeneratorStub : PdfGenerator {
                 %EOF
         """.trimIndent()
 
-    override fun genererPdf(søknadPdfInnhold: SøknadPdfInnhold): Either<ClientError, ByteArray> {
-        return pdf.toByteArray().right()
+    override fun genererPdf(søknadPdfInnhold: SøknadPdfInnhold): Either<ClientError, PdfA> {
+        return PdfA(pdf.toByteArray()).right()
     }
 
-    override fun genererPdf(pdfInnhold: PdfInnhold): Either<KunneIkkeGenererePdf, ByteArray> {
-        return pdf.toByteArray().right()
+    override fun genererPdf(pdfInnhold: PdfInnhold): Either<KunneIkkeGenererePdf, PdfA> {
+        return PdfA(pdf.toByteArray()).right()
     }
 }

@@ -27,7 +27,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadspe
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import java.util.UUID
 
-sealed interface IverksattSøknadsbehandling : Søknadsbehandling {
+sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBrev {
     abstract override val id: UUID
     abstract override val opprettet: Tidspunkt
     abstract override val sakId: UUID
@@ -60,7 +60,7 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling {
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
         override val avkorting: AvkortingVedSøknadsbehandling.Ferdig,
         override val sakstype: Sakstype,
-    ) : IverksattSøknadsbehandling {
+    ) : IverksattSøknadsbehandling, KanGenerereInnvilgelsesbrev {
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
         override val periode: Periode = aldersvurdering.stønadsperiode.periode
 
@@ -70,16 +70,12 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling {
             grunnlagsdata.kastHvisIkkeAlleBosituasjonerErFullstendig()
         }
 
-        override fun accept(visitor: SøknadsbehandlingVisitor) {
-            visitor.visit(this)
-        }
-
         override fun skalSendeVedtaksbrev(): Boolean {
             return true
         }
     }
 
-    sealed interface Avslag : IverksattSøknadsbehandling, ErAvslag {
+    sealed interface Avslag : IverksattSøknadsbehandling, ErAvslag, KanGenerereAvslagsbrev {
 
         /** Ingenting og avkorte ved avslag. */
         override val avkorting: AvkortingVedSøknadsbehandling.IngenAvkorting get() = AvkortingVedSøknadsbehandling.IngenAvkorting
@@ -113,10 +109,6 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling {
 
             override fun skalSendeVedtaksbrev(): Boolean {
                 return true
-            }
-
-            override fun accept(visitor: SøknadsbehandlingVisitor) {
-                visitor.visit(this)
             }
 
             private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
@@ -161,10 +153,6 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling {
 
             override fun skalSendeVedtaksbrev(): Boolean {
                 return true
-            }
-
-            override fun accept(visitor: SøknadsbehandlingVisitor) {
-                visitor.visit(this)
             }
 
             // TODO fiks typing/gyldig tilstand/vilkår fradrag?

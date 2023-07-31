@@ -16,12 +16,10 @@ import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.domain.visitor.Visitable
 
 sealed interface Søknadsbehandling :
     BehandlingMedOppgave,
     BehandlingMedAttestering,
-    Visitable<SøknadsbehandlingVisitor>,
     MedSaksbehandlerHistorikk<Søknadsbehandlingshendelse> {
     val søknad: Søknad.Journalført.MedOppgave
 

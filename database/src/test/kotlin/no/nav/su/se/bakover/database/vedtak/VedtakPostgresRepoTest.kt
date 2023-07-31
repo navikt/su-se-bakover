@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.pdfATom
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
@@ -258,7 +259,7 @@ internal class VedtakPostgresRepoTest {
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,
                     tittel = "tittel",
-                    generertDokument = "".toByteArray(),
+                    generertDokument = pdfATom(),
                     generertDokumentJson = """{"some": "json"}""",
                     metadata = Dokument.Metadata(
                         sakId = sak.id,

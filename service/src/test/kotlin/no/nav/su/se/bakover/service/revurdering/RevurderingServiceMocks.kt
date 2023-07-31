@@ -50,7 +50,6 @@ internal data class RevurderingServiceMocks(
         revurderingRepo = revurderingRepo,
         oppgaveService = oppgaveService,
         personService = personService,
-        identClient = identClient,
         brevService = brevService,
         clock = clock,
         vedtakRepo = vedtakRepo,

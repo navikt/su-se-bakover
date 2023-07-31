@@ -12,8 +12,6 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.brev.BrevService
-import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrev
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.journalpost.ErTilknyttetSak
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
@@ -22,7 +20,6 @@ import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KanBekrefteKlagevurdering
-import no.nav.su.se.bakover.domain.klage.KanGenerereBrevutkast
 import no.nav.su.se.bakover.domain.klage.KanLeggeTilFritekstTilAvvistBrev
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageClient
@@ -32,8 +29,6 @@ import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
-import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
-import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequestForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
@@ -46,9 +41,10 @@ import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
+import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
+import no.nav.su.se.bakover.domain.klage.brev.genererBrevutkastForKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
-import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
@@ -66,7 +62,6 @@ class KlageServiceImpl(
     private val vedtakService: VedtakService,
     private val brevService: BrevService,
     private val personService: PersonService,
-    private val identClient: IdentClient,
     private val klageClient: KlageClient,
     private val sessionFactory: SessionFactory,
     private val oppgaveService: OppgaveService,
@@ -312,30 +307,19 @@ class KlageServiceImpl(
                 .getOrElse { return it.left() }
 
         val dokument = oversendtKlage.genererOversendelsesbrev(
-            hentNavnForNavIdent = identClient::hentNavnForNavIdent,
             hentVedtaksbrevDato = { klageRepo.hentVedtaksbrevDatoSomDetKlagesPå(klage.id) },
-            hentPerson = { personService.hentPerson(klage.fnr) },
-            clock = clock,
-        ).mapLeft {
+        ).getOrElse {
             return KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest(it).left()
-        }.flatMap {
-            it.tilDokument(clock) { brevRequest ->
-                brevService.lagBrev(brevRequest).mapLeft {
-                    LagBrevRequest.KunneIkkeGenererePdf
-                }
-            }.mapLeft {
-                KunneIkkeLageBrevForKlage.KunneIkkeGenererePDF
-            }.map { dokumentUtenMetadata ->
-                dokumentUtenMetadata.leggTilMetadata(
-                    Dokument.Metadata(
-                        klageId = klage.id,
-                        sakId = klage.sakId,
-                    ),
-                )
+        }.let {
+            brevService.lagDokument(it).getOrElse {
+                return KunneIkkeOversendeKlage.KunneIkkeLageDokument(it).left()
             }
-        }.getOrElse {
-            return KunneIkkeOversendeKlage.KunneIkkeLageBrev(it).left()
-        }
+        }.leggTilMetadata(
+            Dokument.Metadata(
+                klageId = klage.id,
+                sakId = klage.sakId,
+            ),
+        )
 
         val journalpostIdForVedtak = vedtakService.hentJournalpostId(oversendtKlage.vilkårsvurderinger.vedtakId)
             ?: return KunneIkkeOversendeKlage.FantIkkeJournalpostIdKnyttetTilVedtaket.left().onLeft {
@@ -383,32 +367,19 @@ class KlageServiceImpl(
         }
 
         val vedtak = Klagevedtak.Avvist.fromIverksattAvvistKlage(avvistKlage, clock)
-        val dokument = avvistKlage.genererAvvistVedtaksbrev(
-            hentNavnForNavIdent = identClient::hentNavnForNavIdent,
-            hentPerson = { personService.hentPerson(klage.fnr) },
-            clock = clock,
-        ).mapLeft {
+        val dokument = avvistKlage.lagAvvistVedtaksbrevKommando().getOrElse {
             return KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrevRequest(it).left()
-        }.flatMap {
-            it.tilDokument(clock) { brevRequest ->
-                brevService.lagBrev(brevRequest).mapLeft {
-                    LagBrevRequest.KunneIkkeGenererePdf
-                }
-            }.mapLeft {
-                KunneIkkeLageBrevForKlage.KunneIkkeGenererePDF
-            }.map { dokumentUtenMetadata ->
-                dokumentUtenMetadata.leggTilMetadata(
-                    Dokument.Metadata(
-                        klageId = klage.id,
-                        sakId = klage.sakId,
-                        vedtakId = vedtak.id,
-                    ),
-                )
+        }.let { command ->
+            brevService.lagDokument(command).getOrElse {
+                return KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrev(it).left()
             }
-        }.getOrElse {
-            return KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrev(it).left()
-        }
-
+        }.leggTilMetadata(
+            Dokument.Metadata(
+                klageId = klage.id,
+                sakId = klage.sakId,
+                vedtakId = vedtak.id,
+            ),
+        )
         try {
             sessionFactory.withTransactionContext {
                 klageRepo.lagre(avvistKlage, it)
@@ -428,36 +399,15 @@ class KlageServiceImpl(
         klageId: UUID,
         ident: NavIdentBruker,
     ): Either<KunneIkkeLageBrevutkast, PdfA> {
-        val klage: KanGenerereBrevutkast = when (val k = klageRepo.hentKlage(klageId)) {
-            null -> return KunneIkkeLageBrevutkast.FantIkkeKlage.left()
-            else -> {
-                (k as? KanGenerereBrevutkast) ?: return KunneIkkeLageBrevutkast.FeilVedBrevRequest(
-                    KunneIkkeLageBrevRequestForKlage.UgyldigTilstand(fra = k::class),
-                ).left()
-            }
-        }
-
-        return klage.lagBrevRequest(
-            utførtAv = ident,
-            hentNavnForNavIdent = { identClient.hentNavnForNavIdent(klage.saksbehandler) },
-            hentVedtaksbrevDato = { klageRepo.hentVedtaksbrevDatoSomDetKlagesPå(klage.id) },
-            hentPerson = { personService.hentPerson(klage.fnr) },
-            clock = clock,
-        ).mapLeft {
-            KunneIkkeLageBrevutkast.FeilVedBrevRequest(it)
-        }.flatMap {
-            brevService.lagBrev(it).mapLeft { kunneIkkeLageBrev ->
-                when (kunneIkkeLageBrev) {
-                    KunneIkkeLageBrev.FantIkkePerson -> KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(
-                        KunneIkkeLageBrevForKlage.FantIkkePerson,
-                    )
-
-                    KunneIkkeLageBrev.KunneIkkeGenererePDF -> KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(
-                        KunneIkkeLageBrevForKlage.KunneIkkeGenererePDF,
-                    )
-                }
-            }.map { PdfA(it) }
-        }
+        return genererBrevutkastForKlage(
+            klageId = klageId,
+            ident = ident,
+            hentKlage = { klageRepo.hentKlage(klageId) },
+            hentVedtaksbrevDato = { klageRepo.hentVedtaksbrevDatoSomDetKlagesPå(klageId) },
+            genererPdf = {
+                brevService.lagDokument(it).map { it.generertDokument }
+            },
+        )
     }
 
     override fun avslutt(

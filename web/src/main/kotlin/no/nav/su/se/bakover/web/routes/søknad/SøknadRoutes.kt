@@ -129,7 +129,7 @@ internal fun Route.søknadRoutes(
                     },
                     {
                         // TODO jah: audit?
-                        call.respondBytes(it, ContentType.Application.Pdf)
+                        call.respondBytes(it.getContent(), ContentType.Application.Pdf)
                     },
                 )
             }
@@ -206,7 +206,7 @@ internal fun Route.søknadRoutes(
                         call.svar(it.tilResultat())
                     }.map {
                         call.audit(it.first, AuditLogEvent.Action.ACCESS, søknadId)
-                        call.respondBytes(it.second, ContentType.Application.Pdf)
+                        call.respondBytes(it.second.getContent(), ContentType.Application.Pdf)
                     }
                 }
             }
@@ -233,7 +233,7 @@ internal fun Route.søknadRoutes(
                             // TODO jah: Det kan hende vi også finnes en søknadsbehandling (som også kan bli lukket), men vi mangler søknadsbehandlings id i denne konteksten.
                             behandlingId = søknadId,
                         )
-                        call.respondBytes(it.second, ContentType.Application.Pdf)
+                        call.respondBytes(it.second.getContent(), ContentType.Application.Pdf)
                     }
                 }
             }

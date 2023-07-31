@@ -83,7 +83,7 @@ internal class DokArkivClientTest : WiremockBase {
                           "dokumentvarianter": [
                             {
                               "filtype": "PDFA",
-                              "fysiskDokument": "${Base64.getEncoder().encodeToString(pdf)}",
+                              "fysiskDokument": "${Base64.getEncoder().encodeToString(pdf.getContent())}",
                               "variantformat": "ARKIV"
                             },
                             {
@@ -130,7 +130,7 @@ internal class DokArkivClientTest : WiremockBase {
                           "dokumentvarianter": [
                             {
                               "filtype": "PDFA",
-                              "fysiskDokument": "${Base64.getEncoder().encodeToString(pdf)}",
+                              "fysiskDokument": "${Base64.getEncoder().encodeToString(pdf.getContent())}",
                               "variantformat": "ARKIV"
                             },
                             {

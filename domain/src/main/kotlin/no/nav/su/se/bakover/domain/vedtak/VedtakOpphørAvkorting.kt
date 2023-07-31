@@ -43,6 +43,9 @@ data class VedtakOpphørAvkorting(
         require(behandling.avkorting.periode() == periode) {
             "Avkortingsvarselsperiode ${behandling.avkorting.periode()} må være lik vedtaket sin $periode"
         }
+        require(!behandling.skalTilbakekreve()) {
+            "Dette er et rent avkortingsvedtak som ikke skal føre til utbetalingslinjer. Det kan ikke kombineres med en tilbakekrevingsbehandling. Saksnummer $saksnummer. Revurderingid: ${behandling.id}"
+        }
     }
 
     override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
@@ -50,6 +53,7 @@ data class VedtakOpphørAvkorting(
             Dokumenttilstand.SKAL_IKKE_GENERERE -> false.also {
                 require(!behandling.skalSendeVedtaksbrev())
             }
+
             Dokumenttilstand.IKKE_GENERERT_ENDA -> true.also {
                 require(behandling.skalSendeVedtaksbrev())
             }
@@ -99,9 +103,5 @@ data class VedtakOpphørAvkorting(
             simulering = simulering,
             dokumenttilstand = dokumenttilstand.setDokumentTilstandBasertPåBehandlingHvisNull(behandling),
         )
-    }
-
-    override fun accept(visitor: VedtakVisitor) {
-        visitor.visit(this)
     }
 }

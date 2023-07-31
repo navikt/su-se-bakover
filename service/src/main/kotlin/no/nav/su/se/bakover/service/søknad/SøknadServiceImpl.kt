@@ -8,6 +8,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.featuretoggle.ToggleClient
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -180,7 +181,7 @@ class SøknadServiceImpl(
         søknad: Søknad.Ny,
         person: Person,
     ): Either<KunneIkkeOppretteJournalpost, Søknad.Journalført.UtenOppgave> {
-        val pdfByteArray = pdfGenerator.genererPdf(
+        val pdf = pdfGenerator.genererPdf(
             SøknadPdfInnhold.create(
                 saksnummer = saksnummer,
                 søknadsId = søknad.id,
@@ -198,7 +199,7 @@ class SøknadServiceImpl(
         val journalpostId = dokArkiv.opprettJournalpost(
             Journalpost.Søknadspost.from(
                 søknadInnhold = søknad.søknadInnhold,
-                pdf = pdfByteArray,
+                pdf = pdf,
                 saksnummer = saksnummer,
                 person = person,
             ),
@@ -242,7 +243,7 @@ class SøknadServiceImpl(
         return søknadRepo.hentSøknad(søknadId)?.right() ?: FantIkkeSøknad.left()
     }
 
-    override fun hentSøknadPdf(søknadId: UUID): Either<KunneIkkeLageSøknadPdf, ByteArray> {
+    override fun hentSøknadPdf(søknadId: UUID): Either<KunneIkkeLageSøknadPdf, PdfA> {
         return hentSøknad(søknadId).mapLeft {
             log.error("Hent søknad-PDF: Fant ikke søknad")
             return KunneIkkeLageSøknadPdf.FantIkkeSøknad.left()

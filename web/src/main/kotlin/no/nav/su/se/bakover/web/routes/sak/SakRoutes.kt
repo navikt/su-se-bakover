@@ -29,7 +29,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteDokument
@@ -38,6 +37,7 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.dokument.toJson
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
 import no.nav.su.se.bakover.web.routes.grunnlag.toJson
@@ -275,7 +275,7 @@ internal fun Route.sakRoutes(
                     )
                     res.fold(
                         { call.svar(it.tilResultat()) },
-                        { call.respondBytes(it.generertDokument, ContentType.Application.Pdf) },
+                        { call.respondBytes(it.generertDokument.getContent(), ContentType.Application.Pdf) },
                     )
                 }
             }
@@ -297,14 +297,6 @@ internal fun Route.sakRoutes(
 fun KunneIkkeOppretteDokument.tilResultat(): Resultat = when (this) {
     is KunneIkkeOppretteDokument.KunneIkkeLageDokument -> this.feil.tilResultat()
     is KunneIkkeOppretteDokument.FeilVedHentingAvSaksbehandlernavn -> this.feil.tilResultat()
-}
-
-fun KunneIkkeLageDokument.tilResultat(): Resultat = when (this) {
-    KunneIkkeLageDokument.DetSkalIkkeSendesBrev -> Feilresponser.skalIkkeSendesBrev
-    KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> Feilresponser.fantIkkeGjeldendeUtbetaling
-    KunneIkkeLageDokument.KunneIkkeGenererePDF -> Feilresponser.feilVedGenereringAvDokument
-    KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> Feilresponser.feilVedHentingAvSaksbehandlerNavn
-    KunneIkkeLageDokument.KunneIkkeHentePerson -> Feilresponser.fantIkkePerson
 }
 
 // frontend bryr seg kanskje ikke så veldig om de tekniske feilene? Dem blir logget i client

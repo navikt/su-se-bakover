@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
-import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.stønadsperiode.SendPåminnelseNyStønadsperiodeJobRepo
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
@@ -19,7 +18,6 @@ class SendPåminnelserOmNyStønadsperiodeServiceImpl(
     private val sakRepo: SakRepo,
     private val sessionFactory: SessionFactory,
     private val brevService: BrevService,
-    private val personService: PersonService,
     private val sendPåminnelseNyStønadsperiodeJobRepo: SendPåminnelseNyStønadsperiodeJobRepo,
     private val formuegrenserFactory: FormuegrenserFactory,
 ) : SendPåminnelserOmNyStønadsperiodeService {
@@ -42,10 +40,6 @@ class SendPåminnelserOmNyStønadsperiodeServiceImpl(
                     context.håndter(
                         sak = sak,
                         clock = clock,
-                        hentPerson = { fnr ->
-                            personService.hentPersonMedSystembruker(fnr)
-                                .mapLeft { SendPåminnelseNyStønadsperiodeContext.KunneIkkeSendePåminnelse.FantIkkePerson }
-                        },
                         sessionFactory = sessionFactory,
                         lagDokument = { request ->
                             brevService.lagDokument(request)

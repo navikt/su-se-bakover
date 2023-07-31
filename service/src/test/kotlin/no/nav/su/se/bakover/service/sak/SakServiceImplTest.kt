@@ -4,15 +4,12 @@ import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.BrevService
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.brev.command.GenererDokumentCommand
 import no.nav.su.se.bakover.domain.journalpost.Journalpost
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
-import no.nav.su.se.bakover.domain.person.IdentClient
-import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakInfo
@@ -21,15 +18,13 @@ import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.test.argThat
-import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjon
+import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonAnnet
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.opprettetRevurdering
-import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.revurderingUnderkjent
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.saksbehandlerNavn
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
@@ -45,7 +40,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
-import java.lang.IllegalArgumentException
 import java.util.UUID
 
 internal class SakServiceImplTest {
@@ -62,7 +56,7 @@ internal class SakServiceImplTest {
 
         val observer: StatistikkEventObserver = mock()
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock(), mock())
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock())
         sakService.addObserver(observer)
         sakService.opprettSak(mock { on { id } doReturn sakId })
 
@@ -79,7 +73,7 @@ internal class SakServiceImplTest {
 
         val observer: StatistikkEventObserver = mock()
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock(), mock())
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock())
         sakService.addObserver(observer)
         assertThrows<RuntimeException> {
             sakService.opprettSak(mock())
@@ -105,7 +99,7 @@ internal class SakServiceImplTest {
             )
         }
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock(), mock())
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock())
         val sakMedÅpenSøknad = sakService.hentÅpneBehandlingerForAlleSaker()
 
         sakMedÅpenSøknad shouldBe listOf(
@@ -158,7 +152,7 @@ internal class SakServiceImplTest {
             )
         }
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock(), mock())
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock())
         val sakerMedÅpneBehandlinger = sakService.hentÅpneBehandlingerForAlleSaker()
 
         sakerMedÅpneBehandlinger shouldBe listOf(
@@ -253,7 +247,7 @@ internal class SakServiceImplTest {
             )
         }
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock(), mock())
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock())
         val sakerMedÅpneRevurderinger = sakService.hentÅpneBehandlingerForAlleSaker()
 
         sakerMedÅpneRevurderinger shouldBe listOf(
@@ -299,17 +293,10 @@ internal class SakServiceImplTest {
             on { hentSak(any<UUID>()) } doReturn sak
         }
         val brevService = mock<BrevService> {
-            on { lagDokument(any<LagBrevRequest>()) } doReturn dokumentUtenMetadataInformasjon().right()
+            on { lagDokument(any<GenererDokumentCommand>()) } doReturn dokumentUtenMetadataInformasjonAnnet(tittel = "test-dokument-informasjon-annet").right()
         }
 
-        val personService = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person(sak.fnr, AktørId("aktørId")).right()
-        }
-        val identClient = mock<IdentClient> {
-            on { hentNavnForNavIdent(any()) } doReturn saksbehandlerNavn.right()
-        }
-
-        SakServiceImpl(sakRepo, fixedClock, mock(), brevService, personService, identClient, mock())
+        SakServiceImpl(sakRepo, fixedClock, mock(), brevService, mock())
             .opprettFritekstDokument(
                 request = OpprettDokumentRequest(
                     sakId = sak.id,
@@ -331,7 +318,7 @@ internal class SakServiceImplTest {
                 Journalpost(JournalpostId("journalpostId"), "journalpost tittel"),
             ).right()
         }
-        SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock(), journalpostClient)
+        SakServiceImpl(sakRepo, fixedClock, mock(), mock(), journalpostClient)
             .hentAlleJournalposter(sak.id).shouldBeRight()
 
         verify(sakRepo).hentSakInfo(argThat { it shouldBe sak.id })
@@ -346,7 +333,7 @@ internal class SakServiceImplTest {
         }
 
         assertThrows<IllegalArgumentException> {
-            SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock(), mock())
+            SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock())
                 .hentAlleJournalposter(sak.id)
         }
         verify(sakRepo).hentSakInfo(argThat { it shouldBe sak.id })

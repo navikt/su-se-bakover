@@ -3,11 +3,15 @@ package no.nav.su.se.bakover.service.vedtak
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.beOfType
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.brev.BrevService
+import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
+import no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -15,17 +19,17 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtakMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
-import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
-import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.ikkeSendBrev
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingMedKvittering
@@ -41,6 +45,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import java.time.Clock
+import java.time.LocalDate
 
 internal class FerdigstillVedtakServiceImplTest {
 
@@ -101,7 +106,8 @@ internal class FerdigstillVedtakServiceImplTest {
                 (sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
             val feil =
                 service.ferdigstillVedtakEtterUtbetaling(utbetaling)
-            feil shouldBe KunneIkkeFerdigstilleVedtakMedUtbetaling.FantIkkeVedtakForUtbetalingId(vedtak.utbetalingId).left()
+            feil shouldBe KunneIkkeFerdigstilleVedtakMedUtbetaling.FantIkkeVedtakForUtbetalingId(vedtak.utbetalingId)
+                .left()
 
             verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
         }
@@ -116,17 +122,26 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { hentForUtbetaling(any()) } doReturn vedtak
             },
             brevService = mock {
-                on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeHentePerson.left()
+                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
+                    FeilVedHentingAvInformasjon.KunneIkkeHentePerson(
+                        KunneIkkeHentePerson.FantIkkePerson,
+                    ),
+                ).left()
             },
         ) {
             val utbetaling = sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering
             val feil =
                 service.ferdigstillVedtakEtterUtbetaling(utbetaling)
-            feil shouldBe KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev(KunneIkkeLageDokument.KunneIkkeHentePerson)
-                .left()
+            feil shouldBe KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev(
+                KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
+                    FeilVedHentingAvInformasjon.KunneIkkeHentePerson(
+                        KunneIkkeHentePerson.FantIkkePerson,
+                    ),
+                ),
+            ).left()
 
             verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
-            verify(brevService).lagDokument(vedtak)
+            verify(brevService).lagDokument(vedtak.behandling.lagBrevCommand(satsFactoryTestPåDato()))
         }
     }
 
@@ -134,26 +149,28 @@ internal class FerdigstillVedtakServiceImplTest {
     fun `ferdigstillelse etter utbetaling kaster feil hvis generering av brev feiler`() {
         val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
 
+        val underliggendeFeil = KunneIkkeLageDokument.FeilVedGenereringAvPdf
         FerdigstillVedtakServiceMocks(
             vedtakRepo = mock {
                 on { hentForUtbetaling(any()) } doReturn vedtak
             },
             brevService = mock {
-                on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
+                on { lagDokument(any()) } doReturn underliggendeFeil.left()
             },
         ) {
             val utbetaling =
                 (sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
             val feil =
                 service.ferdigstillVedtakEtterUtbetaling(utbetaling)
-            feil shouldBe KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev(KunneIkkeLageDokument.KunneIkkeGenererePDF)
-                .left()
+            feil shouldBe KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev(
+                underliggendeFeil,
+            ).left()
 
             inOrder(
                 *all(),
             ) {
                 verify(vedtakRepo).hentForUtbetaling(argThat { it shouldBe vedtak.utbetalingId })
-                verify(brevService).lagDokument(argThat<Visitable<LagBrevRequestVisitor>> { it shouldBe vedtak })
+                verify(brevService).lagDokument(argThat { it shouldBe beOfType<IverksettSøknadsbehandlingDokumentCommand.Innvilgelse>() })
             }
         }
     }
@@ -162,6 +179,7 @@ internal class FerdigstillVedtakServiceImplTest {
     fun `ferdigstill NY etter utbetaling går fint`() {
         val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
 
+        val pdf = PdfA("brev".toByteArray())
         FerdigstillVedtakServiceMocks(
             oppgaveService = mock {
                 on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
@@ -170,10 +188,10 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { hentForUtbetaling(any()) } doReturn vedtak
             },
             brevService = mock {
-                on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn Dokument.UtenMetadata.Vedtak(
+                on { lagDokument(any()) } doReturn Dokument.UtenMetadata.Vedtak(
                     opprettet = fixedTidspunkt,
                     tittel = "tittel1",
-                    generertDokument = "brev".toByteArray(),
+                    generertDokument = pdf,
                     generertDokumentJson = "brev",
                 ).right()
             },
@@ -186,10 +204,10 @@ internal class FerdigstillVedtakServiceImplTest {
                 *all(),
             ) {
                 verify(vedtakRepo).hentForUtbetaling(argThat { it shouldBe vedtak.utbetalingId })
-                verify(brevService).lagDokument(argThat<Visitable<LagBrevRequestVisitor>> { it shouldBe vedtak })
+                verify(brevService).lagDokument(argThat { it shouldBe beOfType<IverksettSøknadsbehandlingDokumentCommand.Innvilgelse>() })
                 verify(brevService).lagreDokument(
                     argThat {
-                        it.generertDokument contentEquals "brev".toByteArray()
+                        it.generertDokument shouldBe pdf
                         it.metadata shouldBe Dokument.Metadata(sakId = sak.id, vedtakId = vedtak.id)
                     },
                 )
@@ -270,6 +288,8 @@ internal class FerdigstillVedtakServiceImplTest {
             oppgaveService = oppgaveService,
             vedtakRepo = vedtakRepo,
             behandlingMetrics = behandlingMetrics,
+            clock = clock,
+            satsFactory = satsFactoryTestPåDato(LocalDate.now(clock)),
         )
 
         init {

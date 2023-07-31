@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdf
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagForPdf
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagMedFnr
-import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.person.PersonOppslag
@@ -69,7 +68,7 @@ class SkattDokumentServiceImpl(
                 vedtakid = vedtak.id,
                 generertDokument = pdfGenerator.genererPdf(skattemeldingsPdf).getOrElse {
                     return KunneIkkeGenerereSkattedokument.FeilVedGenereringAvDokument.left()
-                }.let { PdfA(it) },
+                },
                 dokumentJson = skattemeldingsPdf.toJson(),
                 skattedataHentet = hentetSkatt.søkers.hentetTidspunkt,
             ).right()

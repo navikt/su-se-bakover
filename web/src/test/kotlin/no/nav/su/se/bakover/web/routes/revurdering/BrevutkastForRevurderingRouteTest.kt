@@ -12,6 +12,11 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon
+import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
+import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForRevurdering
@@ -65,7 +70,7 @@ internal class BrevutkastForRevurderingRouteTest {
             on { fnr } doReturn mock()
         }
         val revurderingServiceMock = mock<RevurderingService> {
-            on { lagBrevutkastForRevurdering(any(), any()) } doReturn pdfAsBytes.right()
+            on { lagBrevutkastForRevurdering(any(), any()) } doReturn PdfA(pdfAsBytes).right()
             on { hentRevurdering(any()) } doReturn revurderingMock
         }
 
@@ -103,12 +108,14 @@ internal class BrevutkastForRevurderingRouteTest {
     @Test
     fun `kunne ikke lage brevutkast`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast,
+            error = KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(
+                KunneIkkeLageDokument.FeilVedGenereringAvPdf,
+            ),
             expectedStatusCode = HttpStatusCode.InternalServerError,
             expectedJsonResponse = """
                 {
-                    "message":"Kunne ikke lage brevutkast",
-                    "code":"kunne_ikke_lage_brevutkast"
+                    "message":"Feil ved generering av dokument",
+                    "code":"feil_ved_generering_av_dokument"
                 }
             """.trimIndent(),
 
@@ -118,8 +125,14 @@ internal class BrevutkastForRevurderingRouteTest {
     @Test
     fun `fant ikke person`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson,
-            expectedStatusCode = HttpStatusCode.NotFound,
+            error = KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(
+                KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
+                    FeilVedHentingAvInformasjon.KunneIkkeHentePerson(
+                        KunneIkkeHentePerson.FantIkkePerson,
+                    ),
+                ),
+            ),
+            expectedStatusCode = HttpStatusCode.InternalServerError,
             expectedJsonResponse = """
                 {
                     "message":"Fant ikke person",
@@ -133,12 +146,18 @@ internal class BrevutkastForRevurderingRouteTest {
     @Test
     fun `kunne ikke hente navn for saksbehandler eller attestant`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant,
+            error = KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(
+                KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
+                    FeilVedHentingAvInformasjon.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(
+                        KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent,
+                    ),
+                ),
+            ),
             expectedStatusCode = HttpStatusCode.InternalServerError,
             expectedJsonResponse = """
                 {
-                    "message":"Kunne ikke hente navn for saksbehandler eller attestant",
-                    "code":"navneoppslag_feilet"
+                    "message":"Fant ikke saksbehandler eller attestant",
+                    "code":"fant_ikke_saksbehandler_eller_attestant"
                 }
             """.trimIndent(),
 

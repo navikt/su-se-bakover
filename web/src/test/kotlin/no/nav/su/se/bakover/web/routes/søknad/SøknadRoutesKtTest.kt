@@ -12,6 +12,7 @@ import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.fnr
@@ -117,7 +118,7 @@ internal class SøknadRoutesKtTest {
                 testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         lukkSøknad = mock {
-                            on { lagBrevutkast(any()) } doReturn Pair(fnr, "".toByteArray())
+                            on { lagBrevutkast(any()) } doReturn Pair(fnr, PdfA("".toByteArray()))
                         },
                     ),
                 )

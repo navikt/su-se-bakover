@@ -104,8 +104,4 @@ data class VedtakOpphørMedUtbetaling private constructor(
             -> false
         }
     }
-
-    override fun accept(visitor: VedtakVisitor) {
-        visitor.visit(this)
-    }
 }

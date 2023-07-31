@@ -8,8 +8,8 @@ import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.BrevService
-import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleServiceImpl
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
+import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonViktig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedLocalDate
@@ -93,8 +94,9 @@ internal class KontrollsamtaleServiceImplTest {
 
     @Test
     fun `feiler hvis vi ikke klarer å lage brev`() {
+        val underliggendeFeil = KunneIkkeLageDokument.FeilVedGenereringAvPdf
         val brevService = mock<BrevService> {
-            on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
+            on { lagDokument(any()) } doReturn underliggendeFeil.left()
         }
 
         ServiceOgMocks(
@@ -109,7 +111,9 @@ internal class KontrollsamtaleServiceImplTest {
         ).kontrollsamtaleService.kallInn(
             sakId = sak.id,
             kontrollsamtale = kontrollsamtale,
-        ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeGenerereDokument.left()
+        ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeGenerereDokument(
+            underliggendeFeil,
+        ).left()
     }
 
     @Test
@@ -126,7 +130,7 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentPersonMedSystembruker(any()) } doReturn person.right()
             },
             brevService = mock {
-                on { lagBrev(any()) } doReturn ByteArray(1).right()
+                on { lagDokument(any()) } doReturn dokumentUtenMetadataInformasjonViktig().right()
             },
             oppgaveService = oppgaveService,
             sessionFactory = TestSessionFactory(),
@@ -147,7 +151,7 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentPersonMedSystembruker(any()) } doReturn person.right()
             },
             brevService = mock {
-                on { lagBrev(any()) } doReturn pdf.right()
+                on { lagDokument(any()) } doReturn dokumentUtenMetadataInformasjonViktig().right()
             },
             oppgaveService = mock {
                 on { opprettOppgaveMedSystembruker(any()) } doReturn OppgaveId("oppgaveId").right()
@@ -173,7 +177,7 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentPersonMedSystembruker(any()) } doReturn person.right()
             },
             brevService = mock {
-                on { lagBrev(any()) } doReturn pdf.right()
+                on { lagDokument(any()) } doReturn dokumentUtenMetadataInformasjonViktig().right()
             },
             oppgaveService = mock {
                 on { opprettOppgaveMedSystembruker(any()) } doReturn OppgaveId("oppgaveId").right()

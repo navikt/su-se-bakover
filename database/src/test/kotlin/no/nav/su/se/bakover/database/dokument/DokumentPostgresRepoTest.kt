@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.oppgaveIdKlage
+import no.nav.su.se.bakover.test.pdfATom
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import org.junit.jupiter.api.Test
@@ -37,7 +38,7 @@ internal class DokumentPostgresRepoTest {
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 tittel = "tittel",
-                generertDokument = "".toByteArray(),
+                generertDokument = pdfATom(),
                 generertDokumentJson = """{"some": "json"}""",
                 metadata = Dokument.Metadata(
                     sakId = sak.id,
@@ -56,7 +57,7 @@ internal class DokumentPostgresRepoTest {
                 original::generertDokument,
             )
 
-            hentet.generertDokument contentEquals original.generertDokument
+            hentet.generertDokument shouldBe original.generertDokument
 
             dokumentRepo.hentForSak(sak.id) shouldHaveSize 1
             dokumentRepo.hentForSøknad(sak.søknader.first().id) shouldHaveSize 1
@@ -76,7 +77,7 @@ internal class DokumentPostgresRepoTest {
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 tittel = "tittel",
-                generertDokument = "".toByteArray(),
+                generertDokument = pdfATom(),
                 generertDokumentJson = """{"some":"json"}""",
                 metadata = Dokument.Metadata(sakId = sak.id, søknadId = sak.søknad.id),
             )
@@ -126,7 +127,7 @@ internal class DokumentPostgresRepoTest {
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 tittel = "tittel",
-                generertDokument = "".toByteArray(),
+                generertDokument = pdfATom(),
                 generertDokumentJson = """{"some":"json"}""",
                 metadata = Dokument.Metadata(sakId = sak.id, søknadId = sak.søknad.id),
             )

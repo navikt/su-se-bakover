@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.service.dokument.JournalførDokumentService
 import no.nav.su.se.bakover.service.skatt.JournalførSkattDokumentService
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.pdfATom
 import no.nav.su.se.bakover.test.sakinfo
 import no.nav.su.se.bakover.test.skatt.nySkattedokumentGenerert
 import org.junit.jupiter.api.Test
@@ -127,7 +128,7 @@ private fun dokumentdistribusjon(): Dokumentdistribusjon = Dokumentdistribusjon(
         id = UUID.randomUUID(),
         opprettet = fixedTidspunkt,
         tittel = "tittel",
-        generertDokument = "".toByteArray(),
+        generertDokument = pdfATom(),
         generertDokumentJson = "{}",
         metadata = Dokument.Metadata(sakId = sakinfo.sakId),
     ),

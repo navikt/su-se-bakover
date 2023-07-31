@@ -6,14 +6,12 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.brev.BrevService
-import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrev
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.brev.command.InnkallingTilKontrollsamtaleDokumentCommand
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
-import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.Saksnummer
@@ -62,9 +60,9 @@ class KontrollsamtaleServiceImpl(
             return KunneIkkeKalleInnTilKontrollsamtale.FantIkkePerson.left()
         }
 
-        val dokument = lagDokument(person, sakId, sak.saksnummer).getOrElse {
+        val dokument = lagDokument(fødselsnummer = sak.fnr, sakId = sakId, saksnummer = sak.saksnummer).getOrElse {
             log.error("Klarte ikke lage dokument for innkalling til kontrollsamtale på sakId $sakId")
-            return KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeGenerereDokument.left()
+            return it.left()
         }
 
         return Either.catch {
@@ -164,25 +162,23 @@ class KontrollsamtaleServiceImpl(
     }
 
     private fun lagDokument(
-        person: Person,
+        fødselsnummer: Fnr,
         sakId: UUID,
         saksnummer: Saksnummer,
-    ): Either<KunneIkkeLageBrev, Dokument.MedMetadata.Informasjon> {
-        val brevRequest = LagBrevRequest.InnkallingTilKontrollsamtale(
-            person = person,
-            dagensDato = LocalDate.now(clock),
+    ): Either<KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeGenerereDokument, Dokument.MedMetadata> {
+        val brevCommand = InnkallingTilKontrollsamtaleDokumentCommand(
+            fødselsnummer = fødselsnummer,
             saksnummer = saksnummer,
         )
-        return brevService.lagBrev(brevRequest).map {
-            Dokument.UtenMetadata.Informasjon.Viktig(
-                opprettet = Tidspunkt.now(clock),
-                tittel = brevRequest.pdfInnhold.pdfTemplate.tittel(),
-                generertDokument = it,
-                generertDokumentJson = brevRequest.pdfInnhold.toJson(),
-            ).leggTilMetadata(
-                metadata = Dokument.Metadata(sakId = sakId),
-            )
-        }
+        return brevService.lagDokument(brevCommand)
+            .mapLeft {
+                KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeGenerereDokument(it)
+            }
+            .map {
+                it.leggTilMetadata(
+                    metadata = Dokument.Metadata(sakId = sakId),
+                )
+            }
     }
 
     override fun defaultSessionContext(): SessionContext = sessionFactory.newSessionContext()

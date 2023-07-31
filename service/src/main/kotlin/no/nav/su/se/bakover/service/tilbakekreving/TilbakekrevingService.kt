@@ -5,8 +5,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.BrevService
-import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrevRequest
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Kravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåTilbakekrevingsvedtakForsendelse
@@ -14,6 +13,9 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingClient
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingRepo
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
+import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.revurdering.brev.lagDokumentKommando
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import org.slf4j.LoggerFactory
@@ -43,6 +45,7 @@ class TilbakekrevingServiceImpl(
     private val brevService: BrevService,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
+    private val satsFactory: SatsFactory,
 ) : TilbakekrevingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -54,57 +57,46 @@ class TilbakekrevingServiceImpl(
     /**
      * Ved å ta inn en mapper gjør det at vi slipper lagre den serialiserte versjonen i databasen samtidig som vi i større grad skiller domenet fra infrastruktur.
      */
-    override fun sendTilbakekrevingsvedtak(mapper: (RåttKravgrunnlag) -> Kravgrunnlag) {
+    override fun sendTilbakekrevingsvedtak(
+        mapper: (RåttKravgrunnlag) -> Kravgrunnlag,
+    ) {
         tilbakekrevingRepo.hentMottattKravgrunnlag()
             .forEach { tilbakekrevingsbehandling ->
                 val tilbakekrevingsvedtak = tilbakekrevingsbehandling.lagTilbakekrevingsvedtak(mapper)
                 val vedtak =
                     vedtakService.hentForRevurderingId(tilbakekrevingsbehandling.avgjort.revurderingId)!! as Stønadsvedtak
 
-                val dokument = brevService.lagBrevRequest(vedtak).fold(
-                    {
-                        when (it) {
-                            is KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling,
-                            is KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant,
-                            is KunneIkkeLageBrevRequest.KunneIkkeHentePerson,
-                            -> {
-                                throw RuntimeException("Kunne ikke lage brev, feil: $it")
+                val dokument: Dokument.MedMetadata? = if (!vedtak.skalGenerereDokumentVedFerdigstillelse()) {
+                    null
+                } else {
+                    val revurdering = vedtak.behandling as Revurdering
+                    revurdering.lagDokumentKommando(satsFactory = satsFactory, clock = clock).let {
+                        if (tilbakekrevingsbehandling.skalTilbakekreve().isRight()) {
+                            check(it is IverksettRevurderingDokumentCommand.TilbakekrevingAvPenger) {
+                                "Generert tilbakekrevingsbrev for vedtak:${vedtak.id} er ikke et tilbakekrevingsbrev! Var: ${it::class.simpleName}}"
                             }
-
-                            is KunneIkkeLageBrevRequest.SkalIkkeSendeBrev -> {
-                                log.info("Det er valgt å ikke sende ut brev for vedtak: ${vedtak.id}, hopper over.")
-                                null
-                            }
+                            it.erstattBruttoMedNettoFeilutbetaling(tilbakekrevingsvedtak.netto())
+                        } else {
+                            it
                         }
-                    },
-                    { brevRequest ->
-                        tilbakekrevingsbehandling.skalTilbakekreve().fold(
-                            {
-                                brevRequest
-                            },
-                            {
-                                check(brevRequest is LagBrevRequest.TilbakekrevingAvPenger) { "Generert tilbakekrevingsbrev for vedtak:${vedtak.id} er ikke et tilbakekrevingsbrev!" }
-                                brevRequest.erstattBruttoMedNettoFeilutbetaling(tilbakekrevingsvedtak.netto())
-                            },
-                        ).let { brevRequestMedNettoHvisTilbakekreving ->
-                            brevService.lagDokument(brevRequestMedNettoHvisTilbakekreving)
-                                .fold(
-                                    {
-                                        throw RuntimeException("Kunne ikke lage dokument, feil: $it")
-                                    },
-                                    {
-                                        it.leggTilMetadata(
-                                            Dokument.Metadata(
-                                                sakId = vedtak.behandling.sakId,
-                                                vedtakId = vedtak.id,
-                                                revurderingId = vedtak.behandling.id,
-                                            ),
-                                        )
-                                    },
-                                )
-                        }
-                    },
-                )
+                    }.let { brevRequestMedNettoHvisTilbakekreving ->
+                        brevService.lagDokument(brevRequestMedNettoHvisTilbakekreving)
+                            .fold(
+                                {
+                                    throw RuntimeException("Kunne ikke lage dokument, feil: $it")
+                                },
+                                {
+                                    it.leggTilMetadata(
+                                        Dokument.Metadata(
+                                            sakId = vedtak.behandling.sakId,
+                                            vedtakId = vedtak.id,
+                                            revurderingId = vedtak.behandling.id,
+                                        ),
+                                    )
+                                },
+                            )
+                    }
+                }
 
                 /**
                  * Litt underlig logikk for lagring for å sikre at vi ikke havner i utakt, både mot økonomi og internt.

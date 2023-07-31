@@ -11,8 +11,6 @@ import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
-import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
-import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequestForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
@@ -24,6 +22,7 @@ import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
+import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
 import java.util.UUID
 
 interface KlageService {
@@ -68,10 +67,4 @@ interface KlageService {
         saksbehandler: NavIdentBruker.Saksbehandler,
         begrunnelse: String,
     ): Either<KunneIkkeAvslutteKlage, AvsluttetKlage>
-}
-
-sealed class KunneIkkeLageBrevutkast {
-    data object FantIkkeKlage : KunneIkkeLageBrevutkast()
-    data class FeilVedBrevRequest(val feil: KunneIkkeLageBrevRequestForKlage) : KunneIkkeLageBrevutkast()
-    data class GenereringAvBrevFeilet(val feil: KunneIkkeLageBrevForKlage) : KunneIkkeLageBrevutkast()
 }

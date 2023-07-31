@@ -6,15 +6,9 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
-import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.person.Person
-import java.lang.IllegalStateException
-import java.time.Clock
+import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -30,9 +24,10 @@ sealed interface VurdertKlage : Klage, VurdertKlageFelter, KanGenerereBrevutkast
     /**
      * @throws IllegalStateException - dersom saksbehandler ikke har lagt til fritekst enda.
      */
-    override val fritekstTilVedtaksbrev get() = getFritekstTilBrev().getOrElse {
-        throw IllegalStateException("Vi har ikke fått lagret fritekst for klage $id")
-    }
+    override val fritekstTilVedtaksbrev
+        get() = getFritekstTilBrev().getOrElse {
+            throw IllegalStateException("Vi har ikke fått lagret fritekst for klage $id")
+        }
 
     override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
         return vurderinger.fritekstTilOversendelsesbrev.orEmpty().right()
@@ -43,12 +38,12 @@ sealed interface VurdertKlage : Klage, VurdertKlageFelter, KanGenerereBrevutkast
      */
     override fun lagBrevRequest(
         utførtAv: NavIdentBruker,
-        hentNavnForNavIdent: (saksbehandler: NavIdentBruker) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
         hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
-        hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
-        clock: Clock,
-    ): Either<KunneIkkeLageBrevRequestForKlage, LagBrevRequest.Klage> {
-        return genererOversendelsesBrev(null, hentNavnForNavIdent, hentVedtaksbrevDato, hentPerson, clock)
+    ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
+        return genererOversendelsesBrev(
+            attestant = null,
+            hentVedtaksbrevDato = hentVedtaksbrevDato,
+        )
     }
 
     override fun vilkårsvurder(

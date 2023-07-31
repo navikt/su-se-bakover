@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.søknad
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.BrevService
@@ -27,24 +28,24 @@ class AvslåSøknadManglendeDokumentasjonServiceImpl(
     override fun avslå(
         command: AvslåManglendeDokumentasjonCommand,
     ): Either<KunneIkkeAvslåSøknad, Sak> {
-        return lagAvslg(command).map {
+        return lagAvslag(command).map {
             iverksettSøknadsbehandlingService.iverksett(it)
             it.sak
         }
     }
 
-    override fun genererBrevForhåndsvisning(command: AvslåManglendeDokumentasjonCommand): Either<KunneIkkeAvslåSøknad, Pair<Fnr, ByteArray>> {
-        return lagAvslg(command).map { it.sak.fnr to it.dokument.generertDokument }
+    override fun genererBrevForhåndsvisning(command: AvslåManglendeDokumentasjonCommand): Either<KunneIkkeAvslåSøknad, Pair<Fnr, PdfA>> {
+        return lagAvslag(command).map { it.sak.fnr to it.dokument.generertDokument }
     }
 
-    private fun lagAvslg(command: AvslåManglendeDokumentasjonCommand): Either<KunneIkkeAvslåSøknad, IverksattAvslåttSøknadsbehandlingResponse> {
+    private fun lagAvslag(command: AvslåManglendeDokumentasjonCommand): Either<KunneIkkeAvslåSøknad, IverksattAvslåttSøknadsbehandlingResponse> {
         return sakService.hentSakForSøknad(command.søknadId)
             .getOrElse { throw IllegalArgumentException("Fant ikke søknad ${command.søknadId}. Kan ikke avslå søknad pga. manglende dokumentasjon.") }
             .avslåSøknadPgaManglendeDokumentasjon(
                 command = command,
                 clock = clock,
                 satsFactory = satsFactory,
-                lagDokument = brevService::lagDokument,
+                genererPdf = brevService::lagDokument,
                 simulerUtbetaling = utbetalingService::simulerUtbetaling,
             )
     }

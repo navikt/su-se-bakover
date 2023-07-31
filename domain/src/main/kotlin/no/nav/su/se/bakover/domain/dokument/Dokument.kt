@@ -1,22 +1,23 @@
 package no.nav.su.se.bakover.domain.dokument
 
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.Distribusjonstidspunkt
 import no.nav.su.se.bakover.domain.brev.Distribusjonstype
 import java.util.UUID
 
-sealed class Dokument {
-    abstract val id: UUID
-    abstract val opprettet: Tidspunkt
-    abstract val tittel: String
-    abstract val generertDokument: ByteArray
+sealed interface Dokument {
+    val id: UUID
+    val opprettet: Tidspunkt
+    val tittel: String
+    val generertDokument: PdfA
 
     /**
      * Json-representasjon av data som ble benyttet for opprettelsen av [generertDokument]
      */
-    abstract val generertDokumentJson: String
+    val generertDokumentJson: String
 
-    sealed class UtenMetadata : Dokument() {
+    sealed class UtenMetadata : Dokument {
 
         abstract fun leggTilMetadata(metadata: Metadata): MedMetadata
 
@@ -24,7 +25,7 @@ sealed class Dokument {
             override val id: UUID = UUID.randomUUID(),
             override val opprettet: Tidspunkt,
             override val tittel: String,
-            override val generertDokument: ByteArray,
+            override val generertDokument: PdfA,
             override val generertDokumentJson: String,
         ) : UtenMetadata() {
             override fun leggTilMetadata(metadata: Metadata): MedMetadata.Vedtak {
@@ -37,7 +38,7 @@ sealed class Dokument {
                 override val id: UUID = UUID.randomUUID(),
                 override val opprettet: Tidspunkt,
                 override val tittel: String,
-                override val generertDokument: ByteArray,
+                override val generertDokument: PdfA,
                 override val generertDokumentJson: String,
             ) : Informasjon() {
                 override fun leggTilMetadata(metadata: Metadata): MedMetadata.Informasjon.Viktig {
@@ -49,7 +50,7 @@ sealed class Dokument {
                 override val id: UUID = UUID.randomUUID(),
                 override val opprettet: Tidspunkt,
                 override val tittel: String,
-                override val generertDokument: ByteArray,
+                override val generertDokument: PdfA,
                 override val generertDokumentJson: String,
             ) : Informasjon() {
                 override fun leggTilMetadata(metadata: Metadata): MedMetadata.Informasjon.Annet {
@@ -59,7 +60,7 @@ sealed class Dokument {
         }
     }
 
-    sealed class MedMetadata : Dokument() {
+    sealed class MedMetadata : Dokument {
         abstract val metadata: Metadata
         abstract val distribusjonstype: Distribusjonstype
         val distribusjonstidspunkt = Distribusjonstidspunkt.KJERNETID
@@ -68,7 +69,7 @@ sealed class Dokument {
             override val id: UUID = UUID.randomUUID(),
             override val opprettet: Tidspunkt,
             override val tittel: String,
-            override val generertDokument: ByteArray,
+            override val generertDokument: PdfA,
             override val generertDokumentJson: String,
             override val metadata: Metadata,
         ) : MedMetadata() {
@@ -92,7 +93,7 @@ sealed class Dokument {
                 override val id: UUID = UUID.randomUUID(),
                 override val opprettet: Tidspunkt,
                 override val tittel: String,
-                override val generertDokument: ByteArray,
+                override val generertDokument: PdfA,
                 override val generertDokumentJson: String,
                 override val metadata: Metadata,
             ) : Informasjon() {
@@ -112,7 +113,7 @@ sealed class Dokument {
                 override val id: UUID = UUID.randomUUID(),
                 override val opprettet: Tidspunkt,
                 override val tittel: String,
-                override val generertDokument: ByteArray,
+                override val generertDokument: PdfA,
                 override val generertDokumentJson: String,
                 override val metadata: Metadata,
             ) : Informasjon() {

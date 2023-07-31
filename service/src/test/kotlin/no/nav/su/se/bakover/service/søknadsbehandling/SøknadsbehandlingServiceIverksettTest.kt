@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.brev.BrevService
+import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
@@ -40,8 +41,6 @@ import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagBeregning
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
-import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
-import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.skatt.SkattDokumentService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
@@ -57,6 +56,7 @@ import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nySøknadsbehandlingshistorikkSendtTilAttesteringAvslåttBeregning
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.søknad.personopplysninger
@@ -211,6 +211,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         @Test
         fun `svarer med feil dersom generering av vedtaksbrev feiler`() {
             val (sak, avslagTilAttestering) = søknadsbehandlingTilAttesteringAvslagMedBeregning()
+            val underliggendeFeil = KunneIkkeLageDokument.FeilVedGenereringAvPdf
             val serviceAndMocks = ServiceAndMocks(
                 sakOgSøknadsbehandling = Pair(sak, avslagTilAttestering),
                 sakService = mock {
@@ -220,7 +221,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     on { hent(any()) } doReturn avslagTilAttestering
                 },
                 brevService = mock {
-                    on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeHentePerson.left()
+                    on { lagDokument(any()) } doReturn underliggendeFeil.left()
                 },
             )
             val response = serviceAndMocks.service.iverksett(
@@ -229,8 +230,9 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
                 ),
             )
-            response shouldBe KunneIkkeIverksetteSøknadsbehandling.KunneIkkeGenerereVedtaksbrev(KunneIkkeLageDokument.KunneIkkeHentePerson)
-                .left()
+            response shouldBe KunneIkkeIverksetteSøknadsbehandling.KunneIkkeGenerereVedtaksbrev(
+                underliggendeFeil,
+            ).left()
         }
 
         @Test
@@ -269,7 +271,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             ).getOrFail().second shouldBe expectedAvslag
 
             verify(serviceAndMocks.sakService).hentSakForSøknadsbehandling(avslagTilAttestering.id)
-            verify(serviceAndMocks.brevService).lagDokument(argThat<Visitable<LagBrevRequestVisitor>> { it shouldBe beOfType<VedtakAvslagBeregning>() })
+            verify(serviceAndMocks.brevService).lagDokument(argThat { it shouldBe beOfType<IverksettSøknadsbehandlingDokumentCommand.Avslag>() })
             verify(serviceAndMocks.søknadsbehandlingRepo).lagre(eq(expectedAvslag), anyOrNull())
             verify(serviceAndMocks.vedtakRepo).lagreITransaksjon(
                 argThat { it is VedtakAvslagBeregning },
@@ -351,7 +353,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             val serviceAndMocks = ServiceAndMocks(
                 sakOgSøknadsbehandling = Pair(sak, innvilgetTilAttestering),
                 brevService = mock {
-                    on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn dokumentUtenMetadataVedtak().right()
+                    on { lagDokument(any()) } doReturn dokumentUtenMetadataVedtak().right()
                     doThrow(RuntimeException("kastet fra testen.")).whenever(it).lagreDokument(any(), anyOrNull())
                 },
             )
@@ -716,7 +718,7 @@ private data class ServiceAndMocks(
     },
     val observer: StatistikkEventObserver = mock(),
     val brevService: BrevService = mock {
-        on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn dokumentUtenMetadataVedtak().right()
+        on { lagDokument(any()) } doReturn dokumentUtenMetadataVedtak().right()
     },
     val vedtakRepo: VedtakRepo = mock {
         doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
@@ -749,6 +751,7 @@ private data class ServiceAndMocks(
         ferdigstillVedtakService = ferdigstillVedtakService,
         brevService = brevService,
         skattDokumentService = skattDokumentService,
+        satsFactory = satsFactoryTestPåDato(),
     ).apply { addObserver(observer) }
 
     fun allMocks(): Array<Any> {

@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.person.Person
@@ -40,7 +41,7 @@ internal class PdfClientTest : WiremockBase {
         )
         val client = PdfClient(wireMockServer.baseUrl())
         client.genererPdf(søknadPdfInnhold)
-            .map { String(it) } shouldBe String("pdf-byte-array-here".toByteArray()).right()
+            .map { it } shouldBe PdfA("pdf-byte-array-here".toByteArray()).right()
     }
 
     @Test

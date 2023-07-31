@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.extensions.august
 import no.nav.su.se.bakover.common.extensions.desember
 import no.nav.su.se.bakover.common.extensions.januar
@@ -17,8 +18,9 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.brev.BrevService
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.PdfTemplateMedDokumentNavn
+import no.nav.su.se.bakover.domain.brev.command.GenererDokumentCommand
+import no.nav.su.se.bakover.domain.brev.command.PåminnelseNyStønadsperiodeDokumentCommand
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.jobcontext.NameAndYearMonthId
@@ -91,13 +93,13 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             },
             sessionFactory = TestSessionFactory(),
             brevService = mock {
-                on { lagDokument(any<LagBrevRequest>()) } doReturnConsecutively listOf(
-                    KunneIkkeLageDokument.KunneIkkeGenererePDF.left(),
+                on { lagDokument(any<GenererDokumentCommand>()) } doReturnConsecutively listOf(
+                    KunneIkkeLageDokument.FeilVedGenereringAvPdf.left(),
                     Dokument.UtenMetadata.Informasjon.Viktig(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(desemberClock),
                         tittel = PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel(),
-                        generertDokument = "pdf".toByteArray(),
+                        generertDokument = PdfA("pdf".toByteArray()),
                         generertDokumentJson = "{}",
                     ).right(),
                 )
@@ -138,15 +140,14 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
 
             serviceAndMocks.service.sendPåminnelser() shouldBe expectedContext
 
-            val captor = argumentCaptor<LagBrevRequest>()
+            val captor = argumentCaptor<GenererDokumentCommand>()
             verify(serviceAndMocks.brevService, times(2)).lagDokument(captor.capture())
 
-            captor.lastValue shouldBe LagBrevRequest.PåminnelseNyStønadsperiode(
-                person = person(),
-                dagensDato = LocalDate.of(2021, Month.DECEMBER, 11),
+            captor.lastValue shouldBe PåminnelseNyStønadsperiodeDokumentCommand(
                 saksnummer = Saksnummer(3001),
                 utløpsdato = LocalDate.of(2021, Month.DECEMBER, 31),
                 halvtGrunnbeløp = 50676,
+                fødselsnummer = sak2.fnr,
             )
 
             verify(serviceAndMocks.brevService).lagreDokument(
@@ -193,12 +194,12 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             },
             sessionFactory = TestSessionFactory(),
             brevService = mock {
-                on { lagDokument(any<LagBrevRequest>()) } doReturnConsecutively listOf(
+                on { lagDokument(any<GenererDokumentCommand>()) } doReturnConsecutively listOf(
                     Dokument.UtenMetadata.Informasjon.Viktig(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(desemberClock),
                         tittel = PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel(),
-                        generertDokument = "pdf".toByteArray(),
+                        generertDokument = PdfA("pdf".toByteArray()),
                         generertDokumentJson = "{}",
                     ).right(),
                 )
@@ -318,12 +319,12 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             },
             sessionFactory = TestSessionFactory(),
             brevService = mock {
-                on { lagDokument(any<LagBrevRequest>()) } doReturnConsecutively listOf(
+                on { lagDokument(any<GenererDokumentCommand>()) } doReturnConsecutively listOf(
                     Dokument.UtenMetadata.Informasjon.Viktig(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(juliClock),
                         tittel = PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel(),
-                        generertDokument = "pdf".toByteArray(),
+                        generertDokument = PdfA("pdf".toByteArray()),
                         generertDokumentJson = "{}",
                     ).right(),
                 )
@@ -445,7 +446,6 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             sakRepo = sakRepo,
             sessionFactory = sessionFactory,
             brevService = brevService,
-            personService = personService,
             sendPåminnelseNyStønadsperiodeJobRepo = sendPåminnelseNyStønadsperiodeJobRepo,
             formuegrenserFactory = formuegrenserFactory,
         )

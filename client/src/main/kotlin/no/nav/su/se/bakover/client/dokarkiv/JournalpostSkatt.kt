@@ -35,7 +35,7 @@ data class JournalpostSkatt(
             tittel = this.dokumentTittel,
             dokumenter = lagDokumenterForJournalpost(
                 tittel = this.dokumentTittel,
-                pdf = this.generertDokument.getContent(),
+                pdf = this.generertDokument,
                 originalJson = this.dokumentJson,
             ),
             datoDokument = this.skattedataHentet.toLocalDate(zoneIdOslo),

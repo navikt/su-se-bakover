@@ -6,6 +6,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.domain.grunnlag.FastOppholdINorgeGrunnlag.Companion.equals
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFastOppholdINorge.Companion.equals
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFlyktning.Companion.equals
@@ -634,5 +635,17 @@ internal fun Vilkårsvurderinger.kastHvisPerioderErUlike() {
                 "Periodene til Vilkårsvurderinger er ulike. $a vs $b."
             }
         }
+    }
+}
+
+/**
+ * @throws NotImplementedError for alder
+ */
+fun Vilkårsvurderinger.hentUføregrunnlag(): List<Grunnlag.Uføregrunnlag> {
+    return when (this) {
+        is Vilkårsvurderinger.Revurdering.Uføre -> this.uføre.grunnlag
+        is Vilkårsvurderinger.Søknadsbehandling.Uføre -> this.uføre.grunnlag
+        is Vilkårsvurderinger.Revurdering.Alder -> TODO("vilkårsvurdering_alder brev for alder ikke implementert enda")
+        is Vilkårsvurderinger.Søknadsbehandling.Alder -> emptyList() // TODO("vilkårsvurdering_alder brev for alder ikke implementert enda")
     }
 }

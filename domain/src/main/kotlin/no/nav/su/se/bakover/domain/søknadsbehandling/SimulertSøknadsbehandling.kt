@@ -49,9 +49,10 @@ data class SimulertSøknadsbehandling(
     override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting,
     override val sakstype: Sakstype,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
-) : Søknadsbehandling, KanOppdaterePeriodeBosituasjonVilkår, KanBeregnes, KanSimuleres, KanSendesTilAttestering, KanOppdatereFradragsgrunnlag {
+) : Søknadsbehandling, KanOppdaterePeriodeBosituasjonVilkår, KanBeregnes, KanSimuleres, KanSendesTilAttestering, KanGenerereInnvilgelsesbrev, KanOppdatereFradragsgrunnlag {
     // TODO jah: Den må enten arve bergnet sin periode, eller definere denne selv (vi kan ikke la aldersvurdering eie den). Også må init sjekke at aldersperioden har samme periode.
     override val periode: Periode = aldersvurdering.stønadsperiode.periode
+
     override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
     init {
@@ -61,10 +62,6 @@ data class SimulertSøknadsbehandling(
 
     override fun skalSendeVedtaksbrev(): Boolean {
         return true
-    }
-
-    override fun accept(visitor: SøknadsbehandlingVisitor) {
-        visitor.visit(this)
     }
 
     override fun simuler(

@@ -12,7 +12,7 @@ internal fun Dokument.toJson(): DokumentJson {
         id = id.toString(),
         tittel = tittel,
         opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-        dokument = generertDokument,
+        dokument = generertDokument.getContent(),
         journalført = (this is Dokument.MedMetadata && metadata.journalpostId.isNotNullOrEmpty()),
         brevErBestilt = (this is Dokument.MedMetadata && metadata.brevbestillingId.isNotNullOrEmpty()),
     )

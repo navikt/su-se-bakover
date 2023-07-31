@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
@@ -16,7 +17,6 @@ import no.nav.su.se.bakover.common.tid.toRange
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.brev.BrevService
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harEPS
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
@@ -51,7 +51,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.BrevRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.FantIkkeBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.HentRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeBeregne
@@ -67,7 +66,9 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.medFritekstTilBrev
+import no.nav.su.se.bakover.domain.søknadsbehandling.brev.utkast.BrevutkastForSøknadsbehandlingCommand
+import no.nav.su.se.bakover.domain.søknadsbehandling.brev.utkast.KunneIkkeGenerereBrevutkastForSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.brev.utkast.genererBrevutkastForSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
@@ -226,9 +227,10 @@ class SøknadsbehandlingServiceImpl(
                 søknadsbehandlingRepo.hent(behandlingId)
                     ?: throw IllegalArgumentException("Søknadsbehandling send til attestering: Fant ikke søknadsbehandling med id $behandlingId. Avbryter handlingen.")
                 ).let {
-                it as? KanSendesTilAttestering ?: return KunneIkkeSendeSøknadsbehandlingTilAttestering.UgyldigTilstand(
-                    it::class,
-                ).left()
+                it as? KanSendesTilAttestering
+                    ?: return KunneIkkeSendeSøknadsbehandlingTilAttestering.UgyldigTilstand(
+                        it::class,
+                    ).left()
             }
         return søknadsbehandlingSomKanSendesTilAttestering.tilAttestering(
             saksbehandler = request.saksbehandler,
@@ -350,14 +352,15 @@ class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun brev(request: BrevRequest): Either<KunneIkkeLageDokument, ByteArray> {
-        val søknadsbehandling = when (request) {
-            is BrevRequest.MedFritekst -> request.behandling.medFritekstTilBrev(request.fritekst)
-
-            is BrevRequest.UtenFritekst -> request.behandling
-        }
-
-        return brevService.lagDokument(søknadsbehandling).map { it.generertDokument }
+    override fun genererBrevutkast(
+        command: BrevutkastForSøknadsbehandlingCommand,
+    ): Either<KunneIkkeGenerereBrevutkastForSøknadsbehandling, Pair<PdfA, Fnr>> {
+        return genererBrevutkastForSøknadsbehandling(
+            command = command,
+            hentSøknadsbehandling = søknadsbehandlingRepo::hent,
+            lagDokument = brevService::lagDokument,
+            satsFactory = satsFactory,
+        )
     }
 
     override fun hent(request: HentRequest): Either<FantIkkeBehandling, Søknadsbehandling> {

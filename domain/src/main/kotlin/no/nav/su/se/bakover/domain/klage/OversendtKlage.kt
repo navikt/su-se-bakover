@@ -1,19 +1,13 @@
 package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
-import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
-import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.person.Person
-import java.time.Clock
+import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -35,26 +29,18 @@ data class OversendtKlage(
     }
 
     fun genererOversendelsesbrev(
-        hentNavnForNavIdent: (saksbehandler: NavIdentBruker) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
+        // TODO jah: Hadde vært fint å sluppet IO i det laget her. Kan vi flytte til en funksjonell service-funksjon?
         hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
-        hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
-        clock: Clock,
-    ): Either<KunneIkkeLageBrevRequestForKlage, LagBrevRequest.Klage> {
-        return LagBrevRequest.Klage.Oppretthold(
-            person = hentPerson(this.fnr).getOrElse {
-                return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvPerson(it).left()
-            },
-            dagensDato = LocalDate.now(clock),
-            saksbehandlerNavn = hentNavnForNavIdent(this.saksbehandler).getOrElse {
-                return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvSaksbehandlernavn(it).left()
-            },
-            attestantNavn = this.attesteringer.hentSisteAttestering().attestant.let { hentNavnForNavIdent(it) }
-                .getOrElse { return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvAttestantnavn(it).left() },
-            fritekst = this.vurderinger.fritekstTilOversendelsesbrev,
+    ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
+        return KlageDokumentCommand.Oppretthold(
+            fødselsnummer = this.fnr,
             saksnummer = this.saksnummer,
+            saksbehandler = this.saksbehandler,
+            attestant = this.attesteringer.hentSisteAttestering().attestant,
+            fritekst = this.vurderinger.fritekstTilOversendelsesbrev,
             klageDato = this.datoKlageMottatt,
             vedtaksbrevDato = hentVedtaksbrevDato(this.id)
-                ?: return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvVedtaksbrevDato.left(),
+                ?: return KunneIkkeLageBrevKommandoForKlage.FeilVedHentingAvVedtaksbrevDato.left(),
         ).right()
     }
 
@@ -99,10 +85,13 @@ sealed interface KunneIkkeOversendeKlage {
     }
 
     data object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeOversendeKlage
-    data class KunneIkkeLageBrev(val feil: KunneIkkeLageBrevForKlage) : KunneIkkeOversendeKlage
     data object FantIkkeJournalpostIdKnyttetTilVedtaket : KunneIkkeOversendeKlage
     data object KunneIkkeOversendeTilKlageinstans : KunneIkkeOversendeKlage
     data class KunneIkkeLageBrevRequest(
-        val feil: KunneIkkeLageBrevRequestForKlage,
+        val feil: KunneIkkeLageBrevKommandoForKlage,
+    ) : KunneIkkeOversendeKlage
+
+    data class KunneIkkeLageDokument(
+        val feil: no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument,
     ) : KunneIkkeOversendeKlage
 }

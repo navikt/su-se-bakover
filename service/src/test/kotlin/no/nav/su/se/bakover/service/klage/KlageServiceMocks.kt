@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
-import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -22,7 +21,6 @@ internal data class KlageServiceMocks(
     val vedtakServiceMock: VedtakService = defaultMock(),
     val brevServiceMock: BrevService = defaultMock(),
     val personServiceMock: PersonService = defaultMock(),
-    val identClient: IdentClient = defaultMock(),
     val klageClient: KlageClient = defaultMock(),
     val sessionFactory: SessionFactory = TestSessionFactory(),
     val oppgaveService: OppgaveService = defaultMock(),
@@ -36,7 +34,6 @@ internal data class KlageServiceMocks(
         vedtakService = vedtakServiceMock,
         brevService = brevServiceMock,
         personService = personServiceMock,
-        identClient = identClient,
         klageClient = klageClient,
         sessionFactory = sessionFactory,
         oppgaveService = oppgaveService,
@@ -52,7 +49,6 @@ internal data class KlageServiceMocks(
         vedtakServiceMock,
         brevServiceMock,
         personServiceMock,
-        identClient,
         klageClient,
         oppgaveService,
         journalpostClient,

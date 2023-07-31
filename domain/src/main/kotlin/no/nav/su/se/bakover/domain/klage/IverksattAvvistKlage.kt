@@ -1,19 +1,13 @@
 package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
-import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
-import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.person.Person
-import java.time.Clock
-import java.time.LocalDate
+import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
+import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import kotlin.reflect.KClass
 
 data class IverksattAvvistKlage(
@@ -34,23 +28,13 @@ data class IverksattAvvistKlage(
         return true
     }
 
-    fun genererAvvistVedtaksbrev(
-        hentNavnForNavIdent: (saksbehandler: NavIdentBruker) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
-        hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
-        clock: Clock,
-    ): Either<KunneIkkeLageBrevRequestForKlage, LagBrevRequest.Klage> {
-        return LagBrevRequest.Klage.Avvist(
-            person = hentPerson(this.fnr).getOrElse {
-                return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvPerson(it).left()
-            },
-            dagensDato = LocalDate.now(clock),
-            saksbehandlerNavn = hentNavnForNavIdent(this.saksbehandler).getOrElse {
-                return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvSaksbehandlernavn(it).left()
-            },
-            attestantNavn = this.attesteringer.hentSisteAttestering().attestant.let { hentNavnForNavIdent(it) }
-                .getOrElse { return KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvAttestantnavn(it).left() },
-            fritekst = this.fritekstTilVedtaksbrev,
+    fun lagAvvistVedtaksbrevKommando(): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
+        return KlageDokumentCommand.Avvist(
+            fødselsnummer = this.fnr,
             saksnummer = this.saksnummer,
+            saksbehandler = this.saksbehandler,
+            attestant = this.attesteringer.hentSisteAttestering().attestant,
+            fritekst = this.fritekstTilVedtaksbrev,
         ).right()
     }
 
@@ -70,7 +54,11 @@ sealed interface KunneIkkeIverksetteAvvistKlage {
         val til = IverksattAvvistKlage::class
     }
 
-    data class KunneIkkeLageBrev(val feil: KunneIkkeLageBrevForKlage) : KunneIkkeIverksetteAvvistKlage
-    data class KunneIkkeLageBrevRequest(val feil: no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequestForKlage) :
-        KunneIkkeIverksetteAvvistKlage
+    data class KunneIkkeLageBrev(
+        val feil: KunneIkkeLageDokument,
+    ) : KunneIkkeIverksetteAvvistKlage
+
+    data class KunneIkkeLageBrevRequest(
+        val feil: KunneIkkeLageBrevKommandoForKlage,
+    ) : KunneIkkeIverksetteAvvistKlage
 }

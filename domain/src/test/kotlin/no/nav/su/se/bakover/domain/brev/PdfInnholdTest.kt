@@ -1,10 +1,8 @@
 package no.nav.su.se.bakover.domain.brev
 
+import arrow.core.right
 import no.nav.su.se.bakover.common.Beløp
 import no.nav.su.se.bakover.common.MånedBeløp
-import no.nav.su.se.bakover.common.extensions.februar
-import no.nav.su.se.bakover.common.extensions.januar
-import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
@@ -12,36 +10,29 @@ import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
 import no.nav.su.se.bakover.domain.brev.beregning.Fradrag
 import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
-import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadPdfInnhold
+import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
+import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselTilbakekrevingDokumentCommand
+import no.nav.su.se.bakover.domain.brev.jsonRequest.InnvilgetSøknadsbehandlingPdfInnhold
+import no.nav.su.se.bakover.domain.brev.jsonRequest.OpphørsvedtakPdfInnhold
+import no.nav.su.se.bakover.domain.brev.jsonRequest.tilPdfInnhold
 import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.test.brev.pdfInnholdPersonalia
+import no.nav.su.se.bakover.test.brev.pdfInnholdTrukketSøknad
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.person
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
-import java.time.LocalDate
 import kotlin.text.Typography.nbsp
 
 internal class PdfInnholdTest {
-    private val personalia = PdfInnhold.Personalia(
-        dato = "01.01.2020",
-        fødselsnummer = Fnr("12345678901"),
-        fornavn = "Tore",
-        etternavn = "Strømøy",
-        saksnummer = 2021,
-    )
-
-    private val trukketSøknad = TrukketSøknadPdfInnhold(
-        personalia,
-        1.januar(2020),
-        1.februar(2020),
-        "saksbehandler",
-    )
 
     @Test
     fun `jsonformat for personalia stemmer overens med det som forventes av pdfgenerator`() {
-        val actualJson = serialize(personalia)
+        val actualJson = serialize(pdfInnholdPersonalia())
         //language=json
         val expectedJson = """
             {
@@ -57,8 +48,8 @@ internal class PdfInnholdTest {
 
     @Test
     fun `jsonformat for innvilget vedtak stemmer overens med det som forventes av pdfgenerator`() {
-        val innvilgetVedtak = PdfInnhold.InnvilgetVedtak(
-            personalia = personalia,
+        val innvilgetVedtak = InnvilgetSøknadsbehandlingPdfInnhold(
+            personalia = pdfInnholdPersonalia(),
             fradato = "01.01.2020",
             tildato = "01.01.2020",
             forventetInntektStørreEnn0 = true,
@@ -161,7 +152,7 @@ internal class PdfInnholdTest {
 
     @Test
     fun `jsonformat for trukket søknad stemmer overens med det som forventes av pdfgenerator`() {
-        val actualJson = serialize(trukketSøknad)
+        val actualJson = serialize(pdfInnholdTrukketSøknad())
         //language=json
         val expectedJson = """
             {
@@ -183,8 +174,8 @@ internal class PdfInnholdTest {
 
     @Test
     fun `jsonformat for opphørsvedtak stemmer overens med det som forventes av pdfgenerator`() {
-        val opphørsvedtak = PdfInnhold.Opphørsvedtak(
-            personalia = personalia,
+        val opphørsvedtak = OpphørsvedtakPdfInnhold(
+            personalia = pdfInnholdPersonalia(),
             opphørsgrunner = listOf(Opphørsgrunn.FOR_HØY_INNTEKT),
             avslagsparagrafer = listOf(1),
             harEktefelle = true,
@@ -283,12 +274,11 @@ internal class PdfInnholdTest {
 
     @Test
     fun `brev for forhåndsvarsel ingen tilbakekreving`() {
-        val forhåndsvarsel = LagBrevRequest.Forhåndsvarsel(
-            person = person(),
-            saksbehandlerNavn = "saks",
+        val forhåndsvarsel = ForhåndsvarselDokumentCommand(
             fritekst = "fri",
-            dagensDato = LocalDate.now(fixedClock),
             saksnummer = saksnummer,
+            fødselsnummer = fnr,
+            saksbehandler = saksbehandler,
         )
 
         val expected = """
@@ -306,17 +296,27 @@ internal class PdfInnholdTest {
             }
         """.trimIndent()
 
-        JSONAssert.assertEquals(expected, serialize(forhåndsvarsel.pdfInnhold), true)
+        val actual: String = serialize(
+            forhåndsvarsel.tilPdfInnhold(
+                clock = fixedClock,
+                hentPerson = { person().right() },
+                hentNavnForIdent = { "saks".right() },
+            ).getOrFail(),
+        )
+        JSONAssert.assertEquals(
+            expected,
+            actual,
+            true,
+        )
     }
 
     @Test
     fun `brev for forhåndsvarsel med tilbakekreving`() {
-        val forhåndsvarsel = LagBrevRequest.ForhåndsvarselTilbakekreving(
-            person = person(),
-            saksbehandlerNavn = "saks",
+        val forhåndsvarsel = ForhåndsvarselTilbakekrevingDokumentCommand(
             fritekst = "fri",
-            dagensDato = LocalDate.now(fixedClock),
             saksnummer = saksnummer,
+            fødselsnummer = fnr,
+            saksbehandler = saksbehandler,
             bruttoTilbakekreving = 5000000,
             tilbakekreving = Tilbakekreving(listOf(MånedBeløp(januar(2021), Beløp.invoke(1000)))),
         )
@@ -341,6 +341,16 @@ internal class PdfInnholdTest {
             }
         """.trimIndent()
 
-        JSONAssert.assertEquals(expected, serialize(forhåndsvarsel.pdfInnhold), true)
+        JSONAssert.assertEquals(
+            expected,
+            serialize(
+                forhåndsvarsel.tilPdfInnhold(
+                    clock = fixedClock,
+                    hentPerson = { person().right() },
+                    hentNavnForIdent = { "saks".right() },
+                ).getOrFail(),
+            ),
+            true,
+        )
     }
 }

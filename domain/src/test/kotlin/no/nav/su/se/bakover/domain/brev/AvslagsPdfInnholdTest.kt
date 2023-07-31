@@ -1,51 +1,18 @@
 package no.nav.su.se.bakover.domain.brev
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.getDistinkteParagrafer
-import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.test.brev.pdfInnholdAvslag
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
 class AvslagsPdfInnholdTest {
-    private val personalia = PdfInnhold.Personalia(
-        dato = "01.01.2020",
-        fødselsnummer = Fnr("12345678901"),
-        fornavn = "Tore",
-        etternavn = "Strømøy",
-        saksnummer = 2021,
-    )
-
-    private val avslagsvedtak = PdfInnhold.AvslagsPdfInnhold(
-        personalia = personalia,
-        avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING),
-        harEktefelle = false,
-        halvGrunnbeløp = 10,
-        beregningsperioder = emptyList(),
-        saksbehandlerNavn = "Sak Sakesen",
-        attestantNavn = "Att Attestantsen",
-        fritekst = "Fritekst til brevet",
-        forventetInntektStørreEnn0 = false,
-        formueVerdier = null,
-        satsoversikt = Satsoversikt(
-            perioder = listOf(
-                Satsoversikt.Satsperiode(
-                    fraOgMed = "01.01.2020",
-                    tilOgMed = "31.01.2020",
-                    sats = "høy",
-                    satsBeløp = 1000,
-                    satsGrunn = "ENSLIG",
-                ),
-            ),
-        ),
-        sakstype = Sakstype.UFØRE,
-    )
 
     @Test
     fun `jsonformat for avslagsvedtak stemmer overens med det som forventes av pdfgenerator`() {
-        val actualJson = serialize(avslagsvedtak)
+        val actualJson = serialize(pdfInnholdAvslag())
         //language=json
         val expectedJson = """
             {
@@ -118,7 +85,7 @@ class AvslagsPdfInnholdTest {
 
     @Test
     fun `jsonformat for avslagsvedtak pga formue stemmer med pdfgen`() {
-        val annetVedtak = avslagsvedtak.copy(
+        val annetVedtak = pdfInnholdAvslag().copy(
             avslagsgrunner = listOf(Avslagsgrunn.FORMUE),
             formueVerdier = FormueForBrev(
                 søkersFormue = FormueVerdierForBrev(
@@ -188,7 +155,7 @@ class AvslagsPdfInnholdTest {
 
     @Test
     fun `jsonformat for avslagsvedtak pga formue med EPS stemmer med pdfgen`() {
-        val annetVedtak = avslagsvedtak.copy(
+        val annetVedtak = pdfInnholdAvslag().copy(
             avslagsgrunner = listOf(Avslagsgrunn.FORMUE),
             formueVerdier = FormueForBrev(
                 søkersFormue = FormueVerdierForBrev(

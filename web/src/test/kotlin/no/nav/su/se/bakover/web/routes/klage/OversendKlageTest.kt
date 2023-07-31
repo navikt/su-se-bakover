@@ -11,9 +11,12 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
+import no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon
+import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevKommandoForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
+import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -110,7 +113,13 @@ internal class OversendKlageTest {
     @Test
     fun `fant ikke person`() {
         verifiserFeilkode(
-            feilkode = KunneIkkeOversendeKlage.KunneIkkeLageBrev(KunneIkkeLageBrevForKlage.FantIkkePerson),
+            feilkode = KunneIkkeOversendeKlage.KunneIkkeLageDokument(
+                no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
+                    FeilVedHentingAvInformasjon.KunneIkkeHentePerson(
+                        KunneIkkeHentePerson.FantIkkePerson,
+                    ),
+                ),
+            ),
             status = HttpStatusCode.InternalServerError,
             body = "{\"message\":\"Fant ikke person\",\"code\":\"fant_ikke_person\"}",
         )
@@ -119,7 +128,13 @@ internal class OversendKlageTest {
     @Test
     fun `fant ikke saksbehandler`() {
         verifiserFeilkode(
-            feilkode = KunneIkkeOversendeKlage.KunneIkkeLageBrev(KunneIkkeLageBrevForKlage.FantIkkeSaksbehandler),
+            feilkode = KunneIkkeOversendeKlage.KunneIkkeLageDokument(
+                no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
+                    FeilVedHentingAvInformasjon.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(
+                        KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent,
+                    ),
+                ),
+            ),
             status = HttpStatusCode.InternalServerError,
             body = "{\"message\":\"Fant ikke saksbehandler eller attestant\",\"code\":\"fant_ikke_saksbehandler_eller_attestant\"}",
         )
@@ -128,18 +143,22 @@ internal class OversendKlageTest {
     @Test
     fun `kunne ikke generere PDF`() {
         verifiserFeilkode(
-            feilkode = KunneIkkeOversendeKlage.KunneIkkeLageBrev(KunneIkkeLageBrevForKlage.KunneIkkeGenererePDF),
+            feilkode = KunneIkkeOversendeKlage.KunneIkkeLageDokument(
+                no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument.FeilVedGenereringAvPdf,
+            ),
             status = HttpStatusCode.InternalServerError,
-            body = "{\"message\":\"Kunne ikke generere brev\",\"code\":\"kunne_ikke_generere_brev\"}",
+            body = "{\"message\":\"Feil ved generering av dokument\",\"code\":\"feil_ved_generering_av_dokument\"}",
         )
     }
 
     @Test
     fun `fant ikke vedtak knyttet til klagen`() {
         verifiserFeilkode(
-            feilkode = KunneIkkeOversendeKlage.KunneIkkeLageBrev(KunneIkkeLageBrevForKlage.FantIkkeVedtakKnyttetTilKlagen),
+            feilkode = KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest(
+                KunneIkkeLageBrevKommandoForKlage.FeilVedHentingAvVedtaksbrevDato,
+            ),
             status = HttpStatusCode.InternalServerError,
-            body = "{\"message\":\"Fant ikke vedtak\",\"code\":\"fant_ikke_vedtak\"}",
+            body = "{\"message\":\"Feil ved henting av vedtak dato\",\"code\":\"feil_ved_henting_av_vedtak_dato\"}",
         )
     }
 

@@ -34,7 +34,6 @@ import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOpphørVedRevurderi
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.vilkår.opphold.KunneIkkeOppdatereLovligOppholdOgMarkereSomVurdert
-import no.nav.su.se.bakover.domain.revurdering.visitors.RevurderingVisitor
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Sakstype
@@ -157,12 +156,10 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
     ) : BeregnetRevurdering() {
-        override val erOpphørt = false
-        override val simulering: Simulering? = null
 
-        override fun accept(visitor: RevurderingVisitor) {
-            visitor.visit(this)
-        }
+        override val erOpphørt = false
+
+        override val simulering: Simulering? = null
 
         fun simuler(
             saksbehandler: NavIdentBruker.Saksbehandler,
@@ -224,6 +221,8 @@ sealed class BeregnetRevurdering : Revurdering() {
                 )
             }
         }
+
+        override fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> = emptyList()
     }
 
     data class Opphørt(
@@ -440,7 +439,7 @@ sealed class BeregnetRevurdering : Revurdering() {
             }
         }
 
-        fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> {
+        override fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> {
             return when (
                 val opphør = VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
                     vilkårsvurderinger = vilkårsvurderinger,
@@ -451,10 +450,6 @@ sealed class BeregnetRevurdering : Revurdering() {
                 is OpphørVedRevurdering.Ja -> opphør.opphørsgrunner
                 OpphørVedRevurdering.Nei -> emptyList()
             }
-        }
-
-        override fun accept(visitor: RevurderingVisitor) {
-            visitor.visit(this)
         }
 
         fun opphørSkyldesVilkår(): Boolean {

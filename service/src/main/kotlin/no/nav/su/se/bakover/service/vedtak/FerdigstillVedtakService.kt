@@ -13,12 +13,15 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtakMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.brev.lagDokumentKommando
 import org.slf4j.LoggerFactory
+import java.time.Clock
 import java.util.UUID
 
 interface FerdigstillVedtakService {
@@ -40,6 +43,8 @@ class FerdigstillVedtakServiceImpl(
     private val oppgaveService: OppgaveService,
     private val vedtakRepo: VedtakRepo,
     private val behandlingMetrics: BehandlingMetrics,
+    private val clock: Clock,
+    private val satsFactory: SatsFactory,
 ) : FerdigstillVedtakService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -102,7 +107,7 @@ class FerdigstillVedtakServiceImpl(
     }
 
     private fun lagreDokument(vedtak: VedtakSomKanRevurderes): Either<KunneIkkeFerdigstilleVedtak, VedtakSomKanRevurderes> {
-        return brevService.lagDokument(vedtak).mapLeft {
+        return brevService.lagDokument(vedtak.lagDokumentKommando(clock, satsFactory)).mapLeft {
             KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev(it)
         }.map {
             brevService.lagreDokument(
