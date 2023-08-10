@@ -42,7 +42,7 @@ subprojects {
         implementation("org.slf4j:jul-to-slf4j:$slf4jVersion")
         implementation("org.slf4j:jcl-over-slf4j:$slf4jVersion")
         implementation("org.slf4j:log4j-over-slf4j:$slf4jVersion")
-        implementation("ch.qos.logback:logback-classic:1.4.9")
+        implementation("ch.qos.logback:logback-classic:1.4.11")
         implementation("net.logstash.logback:logstash-logback-encoder:7.4")
         implementation("com.papertrailapp", "logback-syslog4j", "1.0.0")
 
