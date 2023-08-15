@@ -26,5 +26,4 @@ interface SakRepo {
     fun hentSakforSøknadsbehandling(søknadsbehandlingId: UUID): Sak
     fun hentSakForSøknad(søknadId: UUID): Sak?
     fun hentSakForVedtak(vedtakId: UUID): Sak?
-    fun harSak(fnr: Fnr): Boolean
 }

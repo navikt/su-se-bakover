@@ -38,11 +38,11 @@ class InstitusjonsoppholdServiceTest {
     @Test
     fun `person har ikke sak blir prosessert men ingenting skjer`() {
         val fnrSomIkkeHarSak = Fnr.generer()
-        val sakRepo = mock<SakRepo> { on { harSak(any()) } doReturn false }
+        val sakRepo = mock<SakRepo> { on { hentSaker(any()) } doReturn emptyList() }
         val testMocks = mockedServices(sakRepo = sakRepo)
         testMocks.institusjonsoppholdService()
             .process(nyEksternInstitusjonsoppholdHendelse(norskIdent = fnrSomIkkeHarSak))
-        verify(sakRepo).harSak(argThat { it shouldBe fnrSomIkkeHarSak })
+        verify(sakRepo).hentSaker(argThat { it shouldBe fnrSomIkkeHarSak })
         testMocks.verifyNoMoreInteractions()
     }
 
@@ -53,14 +53,12 @@ class InstitusjonsoppholdServiceTest {
         }
         val sak = søknadsbehandlingIverksattInnvilget().first
         val sakRepo = mock<SakRepo> {
-            on { harSak(any()) } doReturn true
             on { hentSaker(any()) } doReturn listOf(sak)
         }
         val testMocks =
             mockedServices(sakRepo = sakRepo, institusjonsoppholdHendelseRepo = institusjonsoppholdHendelseRepo)
         val hendelse = nyEksternInstitusjonsoppholdHendelse()
         testMocks.institusjonsoppholdService().process(hendelse)
-        verify(sakRepo).harSak(argThat { it shouldBe fnr })
         verify(sakRepo).hentSaker(argThat { it shouldBe fnr })
         verify(institusjonsoppholdHendelseRepo).lagre(
             argThat {

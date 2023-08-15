@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.institusjonsopphold.application.service
 
 import arrow.core.getOrElse
-import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.EksternInstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelseRepo
@@ -11,6 +10,7 @@ import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje.Companion.harInnvilgelse
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -25,17 +25,12 @@ class InstitusjonsoppholdService(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun process(hendelse: EksternInstitusjonsoppholdHendelse) {
-        if (!sakRepo.harSak(hendelse.norskident)) {
-            return Unit.also {
-                sikkerLogg.debug("Forkaster institusjonsopphold hendelse ${hendelse.hendelseId} fordi den ikke er knyttet til sak")
-            }
-        }
-
-        sakRepo.hentSaker(hendelse.norskident).let {
-            it.forEach {
+        sakRepo.hentSaker(hendelse.norskident).ifNotEmpty {
+            this.forEach {
                 it.vedtakstidslinje(Måned.now(clock)).harInnvilgelse().ifTrue {
-                    val sisteVersjon = institusjonsoppholdHendelseRepo.hentSisteVersjonFor(it.id) ?: Hendelsesversjon.ny()
-                    institusjonsoppholdHendelseRepo.lagre(hendelse.nyHendelseMedSak(sakId = it.id, sisteVersjon, clock = clock))
+                    val sisteVersjon =
+                        institusjonsoppholdHendelseRepo.hentSisteVersjonFor(it.id) ?: Hendelsesversjon.ny()
+                    institusjonsoppholdHendelseRepo.lagre(hendelse.nyHendelseMedSak(it.id, sisteVersjon, clock))
                 }
             }
         }
