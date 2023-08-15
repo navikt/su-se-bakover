@@ -1,13 +1,15 @@
 package no.nav.su.se.bakover.institusjonsopphold.database
 
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.EksternInstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelse
+import no.nav.su.se.bakover.hendelse.domain.Hendelse
 import no.nav.su.se.bakover.institusjonsopphold.database.InstitusjonsoppholdKildeDb.Companion.toJson
 import no.nav.su.se.bakover.institusjonsopphold.database.InstitusjonsoppholdTypeDb.Companion.toJson
 
 data class InstitusjonsoppholdHendelseData(
     /**
-     * Referer til det eksterne hendelsesId'en - Se [EksternInstitusjonsoppholdHendelse]
+     * Referer til det eksterne hendelsesId'en, og ikke vår hendelsesId som er definert i [Hendelse] - Se [EksternInstitusjonsoppholdHendelse]
      */
     val hendelseId: Long,
     val oppholdId: Long,

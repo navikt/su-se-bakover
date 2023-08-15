@@ -13,9 +13,9 @@ enum class EksternInstitusjonsoppholdKildeJson {
     ;
 
     fun toDomain(): InstitusjonsoppholdKilde = when (this) {
-        APPBRK -> InstitusjonsoppholdKilde.APPBRK
-        INST -> InstitusjonsoppholdKilde.INST
-        KDI -> InstitusjonsoppholdKilde.KDI
-        IT -> InstitusjonsoppholdKilde.IT
+        APPBRK -> InstitusjonsoppholdKilde.Applikasjonsbruker
+        INST -> InstitusjonsoppholdKilde.Institusjon
+        KDI -> InstitusjonsoppholdKilde.Kriminalomsorgsdirektoratet
+        IT -> InstitusjonsoppholdKilde.Infotrygd
     }
 }

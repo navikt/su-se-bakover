@@ -16,7 +16,7 @@ fun nyEksternInstitusjonsoppholdHendelse(
     oppholdId: Long = 2,
     norskIdent: Fnr = fnr,
     type: InstitusjonsoppholdType = InstitusjonsoppholdType.INNMELDING,
-    kilde: InstitusjonsoppholdKilde = InstitusjonsoppholdKilde.INST,
+    kilde: InstitusjonsoppholdKilde = InstitusjonsoppholdKilde.Institusjon,
 ): EksternInstitusjonsoppholdHendelse = EksternInstitusjonsoppholdHendelse(
     hendelseId = hendelseId,
     oppholdId = oppholdId,

@@ -10,6 +10,9 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import java.time.Clock
 import java.util.UUID
 
+/**
+ * https://github.com/navikt/institusjon/blob/main/apps/institusjon-opphold-hendelser/src/main/java/no/nav/opphold/hendelser/producer/domain/KafkaOppholdHendelse.java
+ */
 data class EksternInstitusjonsoppholdHendelse(
     val hendelseId: Long,
     val oppholdId: Long,

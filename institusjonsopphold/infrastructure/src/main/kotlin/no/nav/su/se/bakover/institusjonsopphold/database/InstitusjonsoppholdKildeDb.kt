@@ -10,18 +10,18 @@ enum class InstitusjonsoppholdKildeDb {
     ;
 
     fun toDomain(): InstitusjonsoppholdKilde = when (this) {
-        APPBRK -> InstitusjonsoppholdKilde.APPBRK
-        INST -> InstitusjonsoppholdKilde.INST
-        KDI -> InstitusjonsoppholdKilde.KDI
-        IT -> InstitusjonsoppholdKilde.IT
+        APPBRK -> InstitusjonsoppholdKilde.Applikasjonsbruker
+        INST -> InstitusjonsoppholdKilde.Institusjon
+        KDI -> InstitusjonsoppholdKilde.Kriminalomsorgsdirektoratet
+        IT -> InstitusjonsoppholdKilde.Infotrygd
     }
 
     companion object {
         fun InstitusjonsoppholdKilde.toJson(): InstitusjonsoppholdKildeDb = when (this) {
-            InstitusjonsoppholdKilde.APPBRK -> APPBRK
-            InstitusjonsoppholdKilde.INST -> INST
-            InstitusjonsoppholdKilde.KDI -> KDI
-            InstitusjonsoppholdKilde.IT -> IT
+            InstitusjonsoppholdKilde.Applikasjonsbruker -> APPBRK
+            InstitusjonsoppholdKilde.Institusjon -> INST
+            InstitusjonsoppholdKilde.Kriminalomsorgsdirektoratet -> KDI
+            InstitusjonsoppholdKilde.Infotrygd -> IT
         }
     }
 }

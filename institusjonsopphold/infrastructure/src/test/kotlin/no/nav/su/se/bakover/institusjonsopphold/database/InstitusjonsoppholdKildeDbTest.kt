@@ -9,17 +9,17 @@ class InstitusjonsoppholdKildeDbTest {
 
     @Test
     fun `mapper domenet type til riktig db type`() {
-        InstitusjonsoppholdKilde.INST.toJson() shouldBe InstitusjonsoppholdKildeDb.INST
-        InstitusjonsoppholdKilde.IT.toJson() shouldBe InstitusjonsoppholdKildeDb.IT
-        InstitusjonsoppholdKilde.KDI.toJson() shouldBe InstitusjonsoppholdKildeDb.KDI
-        InstitusjonsoppholdKilde.APPBRK.toJson() shouldBe InstitusjonsoppholdKildeDb.APPBRK
+        InstitusjonsoppholdKilde.Institusjon.toJson() shouldBe InstitusjonsoppholdKildeDb.INST
+        InstitusjonsoppholdKilde.Infotrygd.toJson() shouldBe InstitusjonsoppholdKildeDb.IT
+        InstitusjonsoppholdKilde.Kriminalomsorgsdirektoratet.toJson() shouldBe InstitusjonsoppholdKildeDb.KDI
+        InstitusjonsoppholdKilde.Applikasjonsbruker.toJson() shouldBe InstitusjonsoppholdKildeDb.APPBRK
     }
 
     @Test
     fun `mapper db type til riktig domene type`() {
-        InstitusjonsoppholdKildeDb.INST.toDomain() shouldBe InstitusjonsoppholdKilde.INST
-        InstitusjonsoppholdKildeDb.IT.toDomain() shouldBe InstitusjonsoppholdKilde.IT
-        InstitusjonsoppholdKildeDb.KDI.toDomain() shouldBe InstitusjonsoppholdKilde.KDI
-        InstitusjonsoppholdKildeDb.APPBRK.toDomain() shouldBe InstitusjonsoppholdKilde.APPBRK
+        InstitusjonsoppholdKildeDb.INST.toDomain() shouldBe InstitusjonsoppholdKilde.Institusjon
+        InstitusjonsoppholdKildeDb.IT.toDomain() shouldBe InstitusjonsoppholdKilde.Infotrygd
+        InstitusjonsoppholdKildeDb.KDI.toDomain() shouldBe InstitusjonsoppholdKilde.Kriminalomsorgsdirektoratet
+        InstitusjonsoppholdKildeDb.APPBRK.toDomain() shouldBe InstitusjonsoppholdKilde.Applikasjonsbruker
     }
 }
