@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.vedtak
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.avslag.ErAvslag
-import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 
 /**
@@ -13,7 +12,7 @@ import java.time.Clock
  * [GjeldendeVedtaksdata] tar ikke hensyn til avslagsvedtak per tidspunkt, siden de ikke påvirker selve ytelsen.
  * Så hvis vi på et tidspunkt skal kunne revurdere/omgjøre disse vedtakene, så kan man ikke blindt arve [VedtakSomKanRevurderes].
  */
-sealed interface Avslagsvedtak : VedtakIverksattSøknadsbehandling, Visitable<VedtakVisitor>, ErAvslag {
+sealed interface Avslagsvedtak : VedtakIverksattSøknadsbehandling, ErAvslag {
     override val periode: Periode
     override val behandling: IverksattSøknadsbehandling.Avslag
 

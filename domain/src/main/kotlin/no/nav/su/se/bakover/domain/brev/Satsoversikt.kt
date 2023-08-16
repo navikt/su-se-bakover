@@ -28,6 +28,7 @@ data class Satsoversikt(
         val satsGrunn: String,
     ) {
         private val periode = Periode.create(
+            // TODO jah: Vi har det først som en LocalDate, formaterer til en string, for deretter og formatere det på nytt!?
             fraOgMed = LocalDate.parse(fraOgMed, ddMMyyyyFormatter),
             tilOgMed = LocalDate.parse(tilOgMed, ddMMyyyyFormatter),
         )

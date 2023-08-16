@@ -496,9 +496,6 @@ fun søknadsbehandlingTrukket(
                 saksbehandler = saksbehandlerSomLukket,
                 lukketTidspunkt = fixedTidspunkt.plus(1, ChronoUnit.SECONDS),
             ),
-            hentPerson = { person().right() },
-            clock = clock,
-            hentSaksbehandlerNavn = { "Saksbehandlers Navn".right() },
             saksbehandler = saksbehandler,
         )
     }.let {
@@ -740,11 +737,11 @@ fun iverksattSøknadsbehandling(
                 behandlingId = tilAttestering.id,
                 attestering = attestering,
             ),
-            lagDokument = {
+            genererPdf = {
                 Dokument.UtenMetadata.Vedtak(
                     opprettet = Tidspunkt.now(clock),
                     tittel = "TODO: BrevRequesten bør lages i domenet",
-                    generertDokument = "".toByteArray(),
+                    generertDokument = pdfATom(),
                     generertDokumentJson = "{}",
                 ).right()
             },
@@ -757,6 +754,7 @@ fun iverksattSøknadsbehandling(
                 ).getOrFail().right()
             },
             clock = clock,
+            satsFactory = satsFactoryTestPåDato(),
         ).getOrFail().let { response ->
             /**
              * TODO

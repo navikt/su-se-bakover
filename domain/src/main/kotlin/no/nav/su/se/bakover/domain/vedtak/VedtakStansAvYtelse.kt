@@ -79,10 +79,6 @@ data class VedtakStansAvYtelse private constructor(
 
     override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
-    override fun accept(visitor: VedtakVisitor) {
-        visitor.visit(this)
-    }
-
     override fun erOpphør(): Boolean = false
     override fun erStans(): Boolean = true
     override fun erGjenopptak(): Boolean = false

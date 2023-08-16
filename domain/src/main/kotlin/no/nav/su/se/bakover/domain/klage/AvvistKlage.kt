@@ -4,14 +4,9 @@ import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
-import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.person.Person
-import java.time.Clock
+import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -35,7 +30,11 @@ data class AvvistKlage(
     override val fritekstTilVedtaksbrev: String,
     override val oppgaveId: OppgaveId = forrigeSteg.oppgaveId,
     override val attesteringer: Attesteringshistorikk = forrigeSteg.attesteringer,
-) : Klage, AvvistKlageFelter, KanLeggeTilFritekstTilAvvistBrev, VilkårsvurdertKlage.BekreftetFelter by forrigeSteg, KanGenerereBrevutkast {
+) : Klage,
+    AvvistKlageFelter,
+    KanLeggeTilFritekstTilAvvistBrev,
+    VilkårsvurdertKlage.BekreftetFelter by forrigeSteg,
+    KanGenerereBrevutkast {
 
     /**
      * @param utførtAv brukes kun i attesteringsstegene
@@ -43,12 +42,9 @@ data class AvvistKlage(
      */
     override fun lagBrevRequest(
         utførtAv: NavIdentBruker,
-        hentNavnForNavIdent: (saksbehandler: NavIdentBruker) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
         hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
-        hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
-        clock: Clock,
-    ): Either<KunneIkkeLageBrevRequestForKlage, LagBrevRequest.Klage> {
-        return genererAvvistVedtaksbrev(null, hentNavnForNavIdent, hentPerson, clock)
+    ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
+        return lagAvvistVedtaksbrevKommando(attestant = null)
     }
 
     override fun erÅpen() = true
@@ -93,6 +89,7 @@ data class AvvistKlage(
                 klageinstanshendelser = Klageinstanshendelser.empty(),
                 fritekstTilAvvistVedtaksbrev = fritekstTilVedtaksbrev,
             )
+
             is VilkårsvurderingerTilKlage.Påbegynt -> VilkårsvurdertKlage.Påbegynt(
                 id = id,
                 opprettet = opprettet,

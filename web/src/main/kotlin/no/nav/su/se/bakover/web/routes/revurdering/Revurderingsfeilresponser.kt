@@ -3,9 +3,7 @@ package no.nav.su.se.bakover.web.routes.revurdering
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.Brev.kunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkePerson
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.feilVedGenereringAvDokument
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
@@ -16,9 +14,9 @@ import no.nav.su.se.bakover.domain.revurdering.avkorting.KanIkkeRevurderePgaAvko
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.brevvalgIkkeTillatt
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.fantIkkeGjeldendeUtbetaling
+import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.navneoppslagSaksbehandlerAttesttantFeilet
+import no.nav.su.se.bakover.web.routes.sak.tilResultat
 
 internal data object Revurderingsfeilresponser {
 
@@ -115,23 +113,20 @@ internal data object Revurderingsfeilresponser {
             "ugyldig_tilstand",
         )
 
-        is KunneIkkeForhåndsvarsle.Attestering -> this.subError.tilResultat()
+        is KunneIkkeForhåndsvarsle.Attestering -> this.underliggende.tilResultat()
         is KunneIkkeForhåndsvarsle.KunneIkkeHenteNavnForSaksbehandler -> navneoppslagSaksbehandlerAttesttantFeilet
-        KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument -> feilVedGenereringAvDokument
+        is KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument -> this.underliggende.tilResultat()
     }
 
     fun KunneIkkeLageBrevutkastForRevurdering.tilResultat(): Resultat {
         return when (this) {
             is KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering -> fantIkkeRevurdering
-            KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast -> kunneIkkeLageBrevutkast
-            KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson -> fantIkkePerson
-            KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> navneoppslagSaksbehandlerAttesttantFeilet
-            KunneIkkeLageBrevutkastForRevurdering.KunneIkkeFinneGjeldendeUtbetaling -> fantIkkeGjeldendeUtbetaling
-            KunneIkkeLageBrevutkastForRevurdering.DetSkalIkkeSendesBrev -> brevvalgIkkeTillatt
             KunneIkkeLageBrevutkastForRevurdering.UgyldigTilstand -> BadRequest.errorJson(
                 "Ugyldig tilstand",
                 "ugyldig_tilstand",
             )
+
+            is KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf -> this.underliggende.tilResultat()
         }
     }
 

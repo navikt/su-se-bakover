@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.brev
 
+// TODO jah: Flytt disse til de respektive plassene.
 sealed class PdfTemplateMedDokumentNavn(
     private val pdfTemplate: PdfTemplate,
     /**

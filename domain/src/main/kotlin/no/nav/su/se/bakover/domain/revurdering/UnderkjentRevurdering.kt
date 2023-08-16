@@ -12,13 +12,14 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
+import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
+import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselTilbakekrevingDokumentCommand
+import no.nav.su.se.bakover.domain.brev.command.GenererDokumentCommand
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
-import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
@@ -26,7 +27,6 @@ import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOpphørVedRevurderi
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.vilkår.opphold.KunneIkkeOppdatereLovligOppholdOgMarkereSomVurdert
-import no.nav.su.se.bakover.domain.revurdering.visitors.RevurderingVisitor
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
@@ -40,7 +40,6 @@ import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 
 sealed class UnderkjentRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
@@ -49,9 +48,8 @@ sealed class UnderkjentRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
     val attestering: Attestering.Underkjent
         get() = attesteringer.hentSisteAttestering() as Attestering.Underkjent
     abstract override val brevvalgRevurdering: BrevvalgRevurdering.Valgt
-    abstract val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling
 
-    abstract override fun accept(visitor: RevurderingVisitor)
+    abstract val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling
 
     override fun erÅpen() = true
 
@@ -162,10 +160,6 @@ sealed class UnderkjentRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
     ) : UnderkjentRevurdering() {
         override val erOpphørt = false
 
-        override fun accept(visitor: RevurderingVisitor) {
-            visitor.visit(this)
-        }
-
         override fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling): Innvilget {
             return copy(tilbakekrevingsbehandling = tilbakekrevingsbehandling)
         }
@@ -195,28 +189,25 @@ sealed class UnderkjentRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
         )
 
         override fun lagForhåndsvarsel(
-            person: Person,
-            saksbehandlerNavn: String,
+            utførtAv: NavIdentBruker.Saksbehandler,
             fritekst: String,
-            clock: Clock,
-        ): Either<UgyldigTilstand, LagBrevRequest> {
+        ): Either<UgyldigTilstand, GenererDokumentCommand> {
             return tilbakekrevingsbehandling.skalTilbakekreve().fold(
                 {
-                    LagBrevRequest.Forhåndsvarsel(
-                        person = person,
-                        saksbehandlerNavn = saksbehandlerNavn,
-                        fritekst = fritekst,
-                        dagensDato = LocalDate.now(clock),
+                    ForhåndsvarselDokumentCommand(
+                        fødselsnummer = fnr,
                         saksnummer = saksnummer,
+                        saksbehandler = utførtAv,
+                        fritekst = fritekst,
+
                     )
                 },
                 {
-                    LagBrevRequest.ForhåndsvarselTilbakekreving(
-                        person = person,
-                        saksbehandlerNavn = saksbehandlerNavn,
-                        fritekst = fritekst,
-                        dagensDato = LocalDate.now(clock),
+                    ForhåndsvarselTilbakekrevingDokumentCommand(
+                        fødselsnummer = fnr,
                         saksnummer = saksnummer,
+                        saksbehandler = utførtAv,
+                        fritekst = fritekst,
                         bruttoTilbakekreving = simulering.hentFeilutbetalteBeløp().sum(),
                         tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp().månedbeløp),
                     )
@@ -235,6 +226,8 @@ sealed class UnderkjentRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
                 },
             )
         }
+
+        override fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> = emptyList()
     }
 
     data class Opphørt(
@@ -259,15 +252,11 @@ sealed class UnderkjentRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
     ) : UnderkjentRevurdering() {
         override val erOpphørt = true
 
-        override fun accept(visitor: RevurderingVisitor) {
-            visitor.visit(this)
-        }
-
         override fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling): Opphørt {
             return copy(tilbakekrevingsbehandling = tilbakekrevingsbehandling)
         }
 
-        fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> {
+        override fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> {
             return when (
                 val opphør = VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
                     vilkårsvurderinger = vilkårsvurderinger,
@@ -281,28 +270,24 @@ sealed class UnderkjentRevurdering : Revurdering(), LeggTilVedtaksbrevvalg {
         }
 
         override fun lagForhåndsvarsel(
-            person: Person,
-            saksbehandlerNavn: String,
+            utførtAv: NavIdentBruker.Saksbehandler,
             fritekst: String,
-            clock: Clock,
-        ): Either<UgyldigTilstand, LagBrevRequest> {
+        ): Either<UgyldigTilstand, GenererDokumentCommand> {
             return tilbakekrevingsbehandling.skalTilbakekreve().fold(
                 {
-                    LagBrevRequest.Forhåndsvarsel(
-                        person = person,
-                        saksbehandlerNavn = saksbehandlerNavn,
-                        fritekst = fritekst,
-                        dagensDato = LocalDate.now(clock),
+                    ForhåndsvarselDokumentCommand(
+                        fødselsnummer = fnr,
                         saksnummer = saksnummer,
+                        saksbehandler = utførtAv,
+                        fritekst = fritekst,
                     )
                 },
                 {
-                    LagBrevRequest.ForhåndsvarselTilbakekreving(
-                        person = person,
-                        saksbehandlerNavn = saksbehandlerNavn,
-                        fritekst = fritekst,
-                        dagensDato = LocalDate.now(clock),
+                    ForhåndsvarselTilbakekrevingDokumentCommand(
+                        fødselsnummer = fnr,
                         saksnummer = saksnummer,
+                        saksbehandler = utførtAv,
+                        fritekst = fritekst,
                         bruttoTilbakekreving = simulering.hentFeilutbetalteBeløp().sum(),
                         tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp().månedbeløp),
                     )

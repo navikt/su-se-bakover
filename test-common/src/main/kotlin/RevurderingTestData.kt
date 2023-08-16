@@ -495,10 +495,11 @@ fun iverksattRevurdering(
                 Dokument.UtenMetadata.Vedtak(
                     opprettet = Tidspunkt.now(clock),
                     tittel = "TODO: BrevRequesten bør lages i domenet",
-                    generertDokument = "".toByteArray(),
+                    generertDokument = pdfATom(),
                     generertDokumentJson = "{}",
                 ).right()
             },
+            satsFactory = satsFactoryTestPåDato(),
         ).getOrFail().let { response ->
             /**
              * TODO: se om vi får til noe som oppfører seg som [IverksettRevurderingResponse.ferdigstillIverksettelseITransaksjon]?

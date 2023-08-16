@@ -169,6 +169,4 @@ data class LukketSøknadsbehandling private constructor(
             return Unit.right()
         }
     }
-
-    override fun accept(visitor: SøknadsbehandlingVisitor) = visitor.visit(this)
 }

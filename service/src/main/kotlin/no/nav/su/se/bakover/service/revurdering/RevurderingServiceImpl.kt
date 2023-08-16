@@ -5,6 +5,7 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -17,17 +18,13 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.Brevvalg
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
-import no.nav.su.se.bakover.domain.person.IdentClient
-import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
@@ -52,6 +49,7 @@ import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForAvsluttingAvRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.LeggTilBrevvalgRequest
+import no.nav.su.se.bakover.domain.revurdering.brev.lagDokumentKommando
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.iverksettRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
@@ -63,7 +61,6 @@ import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurder
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
-import no.nav.su.se.bakover.domain.revurdering.service.KunneIkkeHentePersonEllerSaksbehandlerNavn
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.tilbakekreving.KunneIkkeOppdatereTilbakekrevingsbehandling
@@ -119,7 +116,6 @@ class RevurderingServiceImpl(
     private val revurderingRepo: RevurderingRepo,
     private val oppgaveService: OppgaveService,
     private val personService: PersonService,
-    private val identClient: IdentClient,
     private val brevService: BrevService,
     private val clock: Clock,
     private val vedtakRepo: VedtakRepo,
@@ -274,7 +270,9 @@ class RevurderingServiceImpl(
             hent(request.behandlingId).getOrElse { return KunneIkkeLeggetilLovligOppholdVilkårForRevurdering.FantIkkeBehandling.left() }
 
         val vilkår = request.toVilkår(clock)
-            .getOrElse { return KunneIkkeLeggetilLovligOppholdVilkårForRevurdering.UgyldigLovligOppholdVilkår(it).left() }
+            .getOrElse {
+                return KunneIkkeLeggetilLovligOppholdVilkårForRevurdering.UgyldigLovligOppholdVilkår(it).left()
+            }
 
         return revurdering.oppdaterLovligOppholdOgMarkerSomVurdert(vilkår).mapLeft {
             KunneIkkeLeggetilLovligOppholdVilkårForRevurdering.Domenefeil(it)
@@ -613,73 +611,52 @@ class RevurderingServiceImpl(
 
     override fun lagreOgSendForhåndsvarsel(
         revurderingId: UUID,
-        saksbehandler: NavIdentBruker.Saksbehandler,
+        utførtAv: NavIdentBruker.Saksbehandler,
         fritekst: String,
     ): Either<KunneIkkeForhåndsvarsle, Revurdering> {
         val revurdering = hent(revurderingId).getOrElse { return KunneIkkeForhåndsvarsle.FantIkkeRevurdering.left() }
         kanSendesTilAttestering(revurdering).getOrElse {
             return KunneIkkeForhåndsvarsle.Attestering(it).left()
         }
-        return hentPersonOgSaksbehandlerNavn(
-            fnr = revurdering.fnr,
-            saksbehandler = saksbehandler,
+        return revurdering.lagForhåndsvarsel(
+            fritekst = fritekst,
+            utførtAv = utførtAv,
         ).mapLeft {
-            when (it) {
-                KunneIkkeHentePersonEllerSaksbehandlerNavn.FantIkkePerson -> {
-                    KunneIkkeForhåndsvarsle.FantIkkePerson
-                }
-
-                KunneIkkeHentePersonEllerSaksbehandlerNavn.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> {
-                    KunneIkkeForhåndsvarsle.KunneIkkeHenteNavnForSaksbehandler
-                }
+            KunneIkkeForhåndsvarsle.UgyldigTilstand
+        }.flatMap { brevCommand ->
+            brevService.lagDokument(brevCommand).mapLeft {
+                KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument(it)
             }
-        }.flatMap { (person, saksbehandlerNavn) ->
-            revurdering.lagForhåndsvarsel(
-                person = person,
-                saksbehandlerNavn = saksbehandlerNavn,
-                fritekst = fritekst,
-                clock = clock,
-            ).mapLeft {
-                KunneIkkeForhåndsvarsle.UgyldigTilstand
-            }.flatMap { forhåndsvarselBrev ->
-                forhåndsvarselBrev.tilDokument(clock) {
-                    brevService.lagBrev(it).mapLeft {
-                        LagBrevRequest.KunneIkkeGenererePdf
-                    }
-                }.mapLeft {
-                    KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument
-                }.flatMap { dokumentUtenMetadata ->
-                    Either.catch {
-                        sessionFactory.withTransactionContext { tx ->
-                            brevService.lagreDokument(
-                                dokument = dokumentUtenMetadata.leggTilMetadata(
-                                    Dokument.Metadata(
-                                        sakId = revurdering.sakId,
-                                        revurderingId = revurdering.id,
-                                    ),
-                                ),
-                                transactionContext = tx,
-                            )
-                            revurderingRepo.lagre(
-                                revurdering = revurdering,
-                                transactionContext = tx,
-                            )
-                            prøvÅOppdatereOppgaveEtterViHarSendtForhåndsvarsel(
+        }.flatMap { dokumentUtenMetadata ->
+            Either.catch {
+                sessionFactory.withTransactionContext { tx ->
+                    brevService.lagreDokument(
+                        dokument = dokumentUtenMetadata.leggTilMetadata(
+                            Dokument.Metadata(
+                                sakId = revurdering.sakId,
                                 revurderingId = revurdering.id,
-                                oppgaveId = revurdering.oppgaveId,
-                            ).onLeft {
-                                log.info("Hopper over å oppdatere oppgave for revurdering ${revurdering.id}. Dette vil uansett dukke opp som en journalpost i Gosys.")
-                            }
-                            log.info("Forhåndsvarsel sendt for revurdering ${revurdering.id}")
-                            revurdering
-                        }
-                    }.mapLeft {
-                        if (it is KunneIkkeOppdatereOppgave) {
-                            KunneIkkeForhåndsvarsle.KunneIkkeOppdatereOppgave
-                        } else {
-                            throw it
-                        }
+                            ),
+                        ),
+                        transactionContext = tx,
+                    )
+                    revurderingRepo.lagre(
+                        revurdering = revurdering,
+                        transactionContext = tx,
+                    )
+                    prøvÅOppdatereOppgaveEtterViHarSendtForhåndsvarsel(
+                        revurderingId = revurdering.id,
+                        oppgaveId = revurdering.oppgaveId,
+                    ).onLeft {
+                        log.info("Hopper over å oppdatere oppgave for revurdering ${revurdering.id}. Dette vil uansett dukke opp som en journalpost i Gosys.")
                     }
+                    log.info("Forhåndsvarsel sendt for revurdering ${revurdering.id}")
+                    revurdering
+                }
+            }.mapLeft {
+                if (it is KunneIkkeOppdatereOppgave) {
+                    KunneIkkeForhåndsvarsle.KunneIkkeOppdatereOppgave
+                } else {
+                    throw it
                 }
             }
         }
@@ -703,39 +680,21 @@ class RevurderingServiceImpl(
 
     override fun lagBrevutkastForForhåndsvarsling(
         revurderingId: UUID,
-        saksbehandler: NavIdentBruker.Saksbehandler,
+        utførtAv: NavIdentBruker.Saksbehandler,
         fritekst: String,
-    ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
+    ): Either<KunneIkkeLageBrevutkastForRevurdering, PdfA> {
         return hent(revurderingId).mapLeft {
             KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering
         }.flatMap { revurdering ->
-
-            hentPersonOgSaksbehandlerNavn(
-                fnr = revurdering.fnr,
-                saksbehandler = saksbehandler,
+            revurdering.lagForhåndsvarsel(
+                utførtAv = utførtAv,
+                fritekst = fritekst,
             ).mapLeft {
-                when (it) {
-                    KunneIkkeHentePersonEllerSaksbehandlerNavn.FantIkkePerson -> {
-                        KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson
-                    }
-
-                    KunneIkkeHentePersonEllerSaksbehandlerNavn.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> {
-                        KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
-                    }
-                }
-            }.flatMap { (person, saksbehandlerNavn) ->
-                revurdering.lagForhåndsvarsel(
-                    person = person,
-                    saksbehandlerNavn = saksbehandlerNavn,
-                    fritekst = fritekst,
-                    clock = clock,
-                ).mapLeft {
-                    KunneIkkeLageBrevutkastForRevurdering.UgyldigTilstand
-                }.flatMap {
-                    brevService.lagBrev(it).mapLeft {
-                        KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast
-                    }
-                }
+                KunneIkkeLageBrevutkastForRevurdering.UgyldigTilstand
+            }.flatMap {
+                brevService.lagDokument(it).mapLeft {
+                    KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(it)
+                }.map { it.generertDokument }
             }
         }
     }
@@ -911,19 +870,13 @@ class RevurderingServiceImpl(
     override fun lagBrevutkastForRevurdering(
         revurderingId: UUID,
         fritekst: String?,
-    ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
+    ): Either<KunneIkkeLageBrevutkastForRevurdering, PdfA> {
         return hent(revurderingId)
             .mapLeft { KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering }
             .flatMap { revurdering ->
-                brevService.lagDokument(revurdering)
+                brevService.lagDokument(revurdering.lagDokumentKommando(satsFactory = satsFactory, clock = clock))
                     .mapLeft {
-                        when (it) {
-                            KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeFinneGjeldendeUtbetaling
-                            KunneIkkeLageDokument.KunneIkkeGenererePDF -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast
-                            KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
-                            KunneIkkeLageDokument.KunneIkkeHentePerson -> KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson
-                            KunneIkkeLageDokument.DetSkalIkkeSendesBrev -> KunneIkkeLageBrevutkastForRevurdering.DetSkalIkkeSendesBrev
-                        }
+                        KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(it)
                     }
                     .map { it.generertDokument }
             }
@@ -939,6 +892,7 @@ class RevurderingServiceImpl(
             clock = clock,
             simuler = utbetalingService::simulerUtbetaling,
             lagDokument = brevService::lagDokument,
+            satsFactory = satsFactory,
         ).flatMap {
             it.ferdigstillIverksettelseITransaksjon(
                 sessionFactory = sessionFactory,
@@ -1079,20 +1033,21 @@ class RevurderingServiceImpl(
         }
 
         val resultat = if (avsluttetRevurdering is Revurdering && skalSendeAvslutningsbrev) {
-            brevService.lagDokument(avsluttetRevurdering).mapLeft {
-                return KunneIkkeAvslutteRevurdering.KunneIkkeLageDokument.left()
-            }.map { dokument ->
-                val dokumentMedMetaData = dokument.leggTilMetadata(
-                    metadata = Dokument.Metadata(
-                        sakId = revurdering.sakId,
-                        revurderingId = revurdering.id,
-                    ),
-                )
-                sessionFactory.withTransactionContext {
-                    brevService.lagreDokument(dokumentMedMetaData, it)
-                    revurderingRepo.lagre(avsluttetRevurdering, it)
+            brevService.lagDokument(avsluttetRevurdering.lagDokumentKommando(satsFactory = satsFactory, clock = clock))
+                .mapLeft {
+                    return KunneIkkeAvslutteRevurdering.KunneIkkeLageDokument.left()
+                }.map { dokument ->
+                    val dokumentMedMetaData = dokument.leggTilMetadata(
+                        metadata = Dokument.Metadata(
+                            sakId = revurdering.sakId,
+                            revurderingId = revurdering.id,
+                        ),
+                    )
+                    sessionFactory.withTransactionContext {
+                        brevService.lagreDokument(dokumentMedMetaData, it)
+                        revurderingRepo.lagre(avsluttetRevurdering, it)
+                    }
                 }
-            }
             avsluttetRevurdering.right()
         } else {
             revurderingRepo.lagre(avsluttetRevurdering)
@@ -1116,7 +1071,7 @@ class RevurderingServiceImpl(
     override fun lagBrevutkastForAvslutting(
         revurderingId: UUID,
         fritekst: String,
-    ): Either<KunneIkkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, ByteArray>> {
+    ): Either<KunneIkkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, PdfA>> {
         val revurdering = hent(revurderingId)
             .getOrElse { return KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.FantIkkeRevurdering.left() }
 
@@ -1126,37 +1081,14 @@ class RevurderingServiceImpl(
             brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst(fritekst),
             tidspunktAvsluttet = Tidspunkt.now(clock),
         ).getOrElse {
-            return KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeLageBrevutkast.left()
+            return KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeAvslutteRevurdering(it).left()
         }
 
-        return brevService.lagDokument(avsluttetRevurdering).mapLeft {
-            when (it) {
-                KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeFinneGjeldendeUtbetaling
-                KunneIkkeLageDokument.KunneIkkeGenererePDF -> KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeGenererePDF
-                KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
-                KunneIkkeLageDokument.KunneIkkeHentePerson -> KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.FantIkkePerson
-                KunneIkkeLageDokument.DetSkalIkkeSendesBrev -> KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.DetSkalIkkeSendesBrev
-            }
+        return brevService.lagDokument(avsluttetRevurdering.lagDokumentKommando(satsFactory, clock)).mapLeft {
+            KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeLageDokument(it)
         }.map {
             Pair(avsluttetRevurdering.fnr, it.generertDokument)
         }
-    }
-
-    private fun hentPersonOgSaksbehandlerNavn(
-        fnr: Fnr,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeHentePersonEllerSaksbehandlerNavn, Pair<Person, String>> {
-        val person = personService.hentPerson(fnr).getOrElse {
-            log.error("Fant ikke person for fnr: $fnr")
-            return KunneIkkeHentePersonEllerSaksbehandlerNavn.FantIkkePerson.left()
-        }
-
-        val saksbehandlerNavn = identClient.hentNavnForNavIdent(saksbehandler).getOrElse {
-            log.error("Fant ikke saksbehandlernavn for saksbehandler: $saksbehandler")
-            return KunneIkkeHentePersonEllerSaksbehandlerNavn.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
-        }
-
-        return Pair(person, saksbehandlerNavn).right()
     }
 
     private fun hentEllerKast(id: UUID): Revurdering {

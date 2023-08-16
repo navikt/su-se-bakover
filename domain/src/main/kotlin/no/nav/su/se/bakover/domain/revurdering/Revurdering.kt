@@ -14,11 +14,12 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
+import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.Brevvalg
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.brev.command.GenererDokumentCommand
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -28,7 +29,6 @@ import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
-import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.revurdering.beregning.BeregnRevurderingStrategyDecider
 import no.nav.su.se.bakover.domain.revurdering.beregning.KunneIkkeBeregneRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
@@ -40,7 +40,6 @@ import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMå
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.vilkår.opphold.KunneIkkeOppdatereLovligOppholdOgMarkereSomVurdert
-import no.nav.su.se.bakover.domain.revurdering.visitors.RevurderingVisitor
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
@@ -61,7 +60,6 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjon
 import no.nav.su.se.bakover.domain.vilkår.inneholderAlle
-import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -72,8 +70,7 @@ import kotlin.reflect.KClass
 sealed class Revurdering :
     AbstraktRevurdering,
     BehandlingMedOppgave,
-    BehandlingMedAttestering,
-    Visitable<RevurderingVisitor> {
+    BehandlingMedAttestering {
 
     abstract val saksbehandler: Saksbehandler
     abstract val revurderingsårsak: Revurderingsårsak
@@ -99,11 +96,9 @@ sealed class Revurdering :
     abstract fun skalTilbakekreve(): Boolean
 
     open fun lagForhåndsvarsel(
-        person: Person,
-        saksbehandlerNavn: String,
+        utførtAv: Saksbehandler,
         fritekst: String,
-        clock: Clock,
-    ): Either<UgyldigTilstand, LagBrevRequest> {
+    ): Either<UgyldigTilstand, GenererDokumentCommand> {
         return UgyldigTilstand(this::class, this::class).left()
     }
 
@@ -710,4 +705,6 @@ sealed class Revurdering :
     }
 
     abstract override fun skalSendeVedtaksbrev(): Boolean
+
+    abstract fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn>
 }

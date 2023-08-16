@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -24,8 +25,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.iverksettSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
-import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
-import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 
 /**
@@ -35,7 +34,7 @@ fun Sak.avslåSøknadPgaManglendeDokumentasjon(
     command: AvslåManglendeDokumentasjonCommand,
     clock: Clock,
     satsFactory: SatsFactory,
-    lagDokument: (visitable: Visitable<LagBrevRequestVisitor>) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
+    genererPdf: (IverksettSøknadsbehandlingDokumentCommand.Avslag) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
     simulerUtbetaling: (utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
 ): Either<KunneIkkeAvslåSøknad, IverksattAvslåttSøknadsbehandlingResponse> {
     val søknadId = command.søknadId
@@ -77,9 +76,10 @@ fun Sak.avslåSøknadPgaManglendeDokumentasjon(
                     // For avslag pga. manglende dokumentasjon vil saksbehandler og attestant være den samme.
                     saksbehandlerOgAttestantKanIkkeVæreDenSamme = false,
                 ),
-                lagDokument = lagDokument,
+                genererPdf = { genererPdf(it as IverksettSøknadsbehandlingDokumentCommand.Avslag) },
                 simulerUtbetaling = simulerUtbetaling,
                 clock = clock,
+                satsFactory = satsFactory,
             ).map {
                 it as IverksattAvslåttSøknadsbehandlingResponse
             }.mapLeft { KunneIkkeAvslåSøknad.KunneIkkeIverksetteSøknadsbehandling(it) }
@@ -105,7 +105,8 @@ private fun avslå(
             tidspunkt = Tidspunkt.now(clock),
         ).getOrElse {
             return KunneIkkeAvslåSøknad.Periodefeil(it).left()
-        }.tilAttesteringForSystembruker(fritekstTilBrev = request.fritekstTilBrev).let { søknadsbehandlingTilAttestering ->
+        }.tilAttesteringForSystembruker(fritekstTilBrev = request.fritekstTilBrev)
+        .let { søknadsbehandlingTilAttestering ->
 
             søknadsbehandlingTilAttestering.getOrElse {
                 return KunneIkkeAvslåSøknad.Attesteringsfeil(it).left()

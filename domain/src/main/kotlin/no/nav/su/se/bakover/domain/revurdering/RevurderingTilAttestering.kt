@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørsperiodeForUtbetal
 import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
-import no.nav.su.se.bakover.domain.revurdering.visitors.RevurderingVisitor
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.satser.SatsFactory
@@ -39,7 +38,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
     abstract override val beregning: Beregning
     abstract override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering
 
-    abstract override fun accept(visitor: RevurderingVisitor)
     abstract override val avkorting: AvkortingVedRevurdering.Håndtert
     abstract override val brevvalgRevurdering: BrevvalgRevurdering.Valgt
     abstract val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling
@@ -76,10 +74,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
     ) : RevurderingTilAttestering() {
 
         override val erOpphørt = false
-
-        override fun accept(visitor: RevurderingVisitor) {
-            visitor.visit(this)
-        }
 
         override fun skalTilbakekreve() = tilbakekrevingsbehandling.skalTilbakekreve().isRight()
 
@@ -119,6 +113,8 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 brevvalgRevurdering = brevvalgRevurdering,
             )
         }
+
+        override fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> = emptyList()
     }
 
     data class Opphørt(
@@ -143,16 +139,12 @@ sealed class RevurderingTilAttestering : Revurdering() {
     ) : RevurderingTilAttestering() {
         override val erOpphørt = true
 
-        override fun accept(visitor: RevurderingVisitor) {
-            visitor.visit(this)
-        }
-
         override fun skalTilbakekreve() = tilbakekrevingsbehandling.skalTilbakekreve().isRight()
 
         val opphørsperiodeForUtbetalinger: Either<AvkortingsopphørUtenUtbetalingslinjer, Periode> =
             OpphørsperiodeForUtbetalinger(this).map { it.value }
 
-        fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> {
+        override fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> {
             return when (
                 val opphør = VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
                     vilkårsvurderinger = vilkårsvurderinger,

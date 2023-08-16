@@ -10,13 +10,14 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Avbrutt
+import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
-import no.nav.su.se.bakover.domain.revurdering.visitors.RevurderingVisitor
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakInfo
+import java.time.Clock
 import java.util.UUID
 
 data class AvsluttetRevurdering private constructor(
@@ -25,7 +26,9 @@ data class AvsluttetRevurdering private constructor(
     /** Denne er ikke låst til [Brevvalg.SaksbehandlersValg] siden det avhenger av om det er forhåndsvarslet eller ikke. Dette ble også migrert på et tidspunkt, tidligere ble det alltid sendt brev dersom det var forhåndsvarslet. */
     val brevvalg: Brevvalg,
     override val avsluttetTidspunkt: Tidspunkt,
-) : Revurdering(), Avbrutt {
+) : Revurdering(),
+    Avbrutt {
+
     override val id: UUID = underliggendeRevurdering.id
     override val opprettet: Tidspunkt = underliggendeRevurdering.opprettet
     override val oppdatert: Tidspunkt = underliggendeRevurdering.oppdatert
@@ -41,7 +44,8 @@ data class AvsluttetRevurdering private constructor(
     override val saksbehandler: NavIdentBruker.Saksbehandler = underliggendeRevurdering.saksbehandler
     override val revurderingsårsak: Revurderingsårsak = underliggendeRevurdering.revurderingsårsak
     override val informasjonSomRevurderes: InformasjonSomRevurderes = underliggendeRevurdering.informasjonSomRevurderes
-    override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis = underliggendeRevurdering.vedtakSomRevurderesMånedsvis
+    override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis =
+        underliggendeRevurdering.vedtakSomRevurderesMånedsvis
     override val oppgaveId: OppgaveId = underliggendeRevurdering.oppgaveId
     override val attesteringer: Attesteringshistorikk = underliggendeRevurdering.attesteringer
     override val erOpphørt: Boolean = underliggendeRevurdering.erOpphørt
@@ -75,10 +79,6 @@ data class AvsluttetRevurdering private constructor(
      */
     override fun skalSendeVedtaksbrev(): Boolean {
         return skalSendeAvslutningsbrev()
-    }
-
-    override fun accept(visitor: RevurderingVisitor) {
-        visitor.visit(this)
     }
 
     override fun erÅpen() = false
@@ -117,6 +117,8 @@ data class AvsluttetRevurdering private constructor(
             }
         }
     }
+
+    override fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> = emptyList()
 }
 
 sealed class KunneIkkeLageAvsluttetRevurdering {

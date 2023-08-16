@@ -107,10 +107,10 @@ sealed interface Brevvalg {
                 }
             }
 
-            sealed class Vedtaksbrev {
+            sealed interface Vedtaksbrev : SkalSendeBrev {
                 data class UtenFritekst(
                     override val begrunnelse: String? = null,
-                ) : SkalSendeBrev {
+                ) : Vedtaksbrev {
                     override val fritekst = null
 
                     override fun toString(): String {
@@ -122,7 +122,7 @@ sealed interface Brevvalg {
                 data class MedFritekst(
                     override val begrunnelse: String? = null,
                     override val fritekst: String,
-                ) : SkalSendeBrev {
+                ) : Vedtaksbrev {
 
                     override fun toString(): String {
                         // Vi ønsker ikke logge fritekst eller begrunnelse i tilfelle den inneholder sensitiv informasjon.

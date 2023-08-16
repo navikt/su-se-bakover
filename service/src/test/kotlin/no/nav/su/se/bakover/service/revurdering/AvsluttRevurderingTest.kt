@@ -7,9 +7,9 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.Brevvalg
+import no.nav.su.se.bakover.domain.brev.command.AvsluttRevurderingDokumentCommand
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
-import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -19,10 +19,9 @@ import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeLageAvsluttet
 import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVedOpphørService
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
-import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
-import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
@@ -122,7 +121,7 @@ internal class AvsluttRevurderingTest {
             on { hent(any()) } doReturn simulert
         }
         val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
+            on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
         }
         val oppgaveServiceMock = mock<OppgaveService> {
             on { lukkOppgave(any()) } doReturn Unit.right()
@@ -144,13 +143,8 @@ internal class AvsluttRevurderingTest {
         verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe simulert.oppgaveId })
         verify(revurderingRepoMock).hent(argThat { it shouldBe simulert.id })
         verify(brevServiceMock).lagDokument(
-            argThat<Visitable<LagBrevRequestVisitor>> {
-                it shouldBe AvsluttetRevurdering.tryCreate(
-                    underliggendeRevurdering = simulert,
-                    begrunnelse = "begrunnelse",
-                    brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst("medFritekst"),
-                    tidspunktAvsluttet = fixedTidspunkt,
-                ).getOrFail()
+            argThat {
+                it shouldBe AvsluttRevurderingDokumentCommand(fødselsnummer = simulert.fnr, saksnummer = Saksnummer(12345676), saksbehandler = saksbehandler, fritekst = "medFritekst")
             },
         )
         verifyNoMoreInteractions(revurderingRepoMock, brevServiceMock, oppgaveServiceMock)
@@ -327,7 +321,6 @@ internal class AvsluttRevurderingTest {
         revurderingRepo: RevurderingRepo = mock(),
         oppgaveService: OppgaveService = mock(),
         personService: PersonService = mock(),
-        identClient: IdentClient = mock(),
         brevService: BrevService = mock(),
         clock: Clock = fixedClock,
         vedtakRepo: VedtakRepo = mock(),
@@ -343,7 +336,6 @@ internal class AvsluttRevurderingTest {
             revurderingRepo = revurderingRepo,
             oppgaveService = oppgaveService,
             personService = personService,
-            identClient = identClient,
             brevService = brevService,
             clock = clock,
             vedtakRepo = vedtakRepo,

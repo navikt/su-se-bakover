@@ -6,9 +6,10 @@ import arrow.core.right
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.common.CorrelationIdHeader
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.brev.PdfInnhold
+import no.nav.su.se.bakover.domain.brev.jsonRequest.PdfInnhold
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -20,16 +21,16 @@ internal class PdfClient(private val baseUrl: String) : PdfGenerator {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-    override fun genererPdf(søknadPdfInnhold: SøknadPdfInnhold): Either<ClientError, ByteArray> {
+    override fun genererPdf(søknadPdfInnhold: SøknadPdfInnhold): Either<ClientError, PdfA> {
         return genererPdf(serialize(søknadPdfInnhold), SOKNAD_TEMPLATE)
     }
 
-    override fun genererPdf(pdfInnhold: PdfInnhold): Either<KunneIkkeGenererePdf, ByteArray> {
+    override fun genererPdf(pdfInnhold: PdfInnhold): Either<KunneIkkeGenererePdf, PdfA> {
         return genererPdf(pdfInnhold.toJson(), pdfInnhold.pdfTemplate.template())
             .mapLeft { KunneIkkeGenererePdf }
     }
 
-    private fun genererPdf(input: String, template: String): Either<ClientError, ByteArray> {
+    private fun genererPdf(input: String, template: String): Either<ClientError, PdfA> {
         val (_, response, result) = "$baseUrl$suPdfGenPath/$template".httpPost()
             .header("Content-Type", "application/json")
             .header(CorrelationIdHeader, getOrCreateCorrelationIdFromThreadLocal())
@@ -37,7 +38,7 @@ internal class PdfClient(private val baseUrl: String) : PdfGenerator {
 
         return result.fold(
             {
-                it.right()
+                PdfA(it).right()
             },
             {
                 log.error("Kall mot PdfClient feilet", it)

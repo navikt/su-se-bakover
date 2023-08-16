@@ -7,19 +7,14 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.HentDokumenterForIdType
-import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrev
-import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrevRequest
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
-import no.nav.su.se.bakover.domain.brev.PdfInnhold
+import no.nav.su.se.bakover.domain.brev.command.GenererDokumentCommand
+import no.nav.su.se.bakover.domain.brev.dokumentMapper.tilDokument
+import no.nav.su.se.bakover.domain.brev.jsonRequest.tilPdfInnhold
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.PersonService
-import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
-import no.nav.su.se.bakover.domain.visitor.Visitable
-import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import java.time.Clock
 
 /**
@@ -31,24 +26,32 @@ class BrevServiceImpl(
     private val dokumentRepo: DokumentRepo,
     private val personService: PersonService,
     private val sessionFactory: SessionFactory,
-    private val microsoftGraphApiOppslag: IdentClient,
-    private val utbetalingService: UtbetalingService,
+    private val identClient: IdentClient,
     private val clock: Clock,
-    private val satsFactory: SatsFactory,
 ) : BrevService {
 
-    override fun lagBrev(request: LagBrevRequest): Either<KunneIkkeLageBrev, ByteArray> {
-        return lagPdf(request.pdfInnhold)
-    }
-
-    override fun lagDokument(request: LagBrevRequest): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
-        return request.tilDokument(clock) {
-            lagBrev(it).mapLeft {
-                LagBrevRequest.KunneIkkeGenererePdf
+    override fun lagDokument(
+        command: GenererDokumentCommand,
+    ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
+        return command.tilPdfInnhold(
+            clock = clock,
+            // TODO jah: Både saksbehandlere/attestanter/systemet må kunne generere dokumenter. Skal vi holde oss til systembruker her? Eller bør vi lage en egen funksjon for å hente person uten systembruker?
+            hentPerson = { personService.hentPersonMedSystembruker(command.fødselsnummer) },
+            hentNavnForIdent = identClient::hentNavnForNavIdent,
+        ).mapLeft { KunneIkkeLageDokument.FeilVedHentingAvInformasjon(it) }
+            .flatMap { pdfInnhold ->
+                pdfGenerator.genererPdf(pdfInnhold).mapLeft { KunneIkkeLageDokument.FeilVedGenereringAvPdf }
+                    .map { pdfA ->
+                        Pair(pdfA, pdfInnhold)
+                    }
             }
-        }.mapLeft {
-            KunneIkkeLageDokument.KunneIkkeGenererePDF
-        }
+            .map { (pdfA, pdfInnhold) ->
+                pdfA.tilDokument(
+                    pdfInnhold = pdfInnhold,
+                    command = command,
+                    clock = clock,
+                )
+            }
     }
 
     override fun lagreDokument(dokument: Dokument.MedMetadata) {
@@ -65,50 +68,12 @@ class BrevServiceImpl(
         return when (hentDokumenterForIdType) {
             is HentDokumenterForIdType.HentDokumenterForSak -> dokumentRepo.hentForSak(hentDokumenterForIdType.id)
             is HentDokumenterForIdType.HentDokumenterForSøknad -> dokumentRepo.hentForSøknad(hentDokumenterForIdType.id)
-            is HentDokumenterForIdType.HentDokumenterForRevurdering -> dokumentRepo.hentForRevurdering(hentDokumenterForIdType.id)
+            is HentDokumenterForIdType.HentDokumenterForRevurdering -> dokumentRepo.hentForRevurdering(
+                hentDokumenterForIdType.id,
+            )
+
             is HentDokumenterForIdType.HentDokumenterForVedtak -> dokumentRepo.hentForVedtak(hentDokumenterForIdType.id)
             is HentDokumenterForIdType.HentDokumenterForKlage -> dokumentRepo.hentForKlage(hentDokumenterForIdType.id)
         }
     }
-
-    private fun lagPdf(pdfInnhold: PdfInnhold): Either<KunneIkkeLageBrev, ByteArray> {
-        return pdfGenerator.genererPdf(pdfInnhold).mapLeft { KunneIkkeLageBrev.KunneIkkeGenererePDF }.map { it }
-    }
-
-    override fun lagDokument(visitable: Visitable<LagBrevRequestVisitor>): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
-        return lagBrevRequest(visitable).mapLeft {
-            when (it) {
-                is KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling
-                is KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
-                is KunneIkkeLageBrevRequest.KunneIkkeHentePerson -> KunneIkkeLageDokument.KunneIkkeHentePerson
-                is KunneIkkeLageBrevRequest.SkalIkkeSendeBrev -> KunneIkkeLageDokument.DetSkalIkkeSendesBrev
-            }
-        }.flatMap { lagBrevRequest ->
-            lagDokument(lagBrevRequest)
-        }
-    }
-
-    override fun lagBrevRequest(visitable: Visitable<LagBrevRequestVisitor>): Either<KunneIkkeLageBrevRequest, LagBrevRequest> {
-        return lagBrevRequestVisitor().apply {
-            visitable.accept(this)
-        }.brevRequest
-    }
-
-    private fun lagBrevRequestVisitor() = LagBrevRequestVisitor(
-        hentPerson = { fnr ->
-            /** [no.nav.su.se.bakover.web.services.AccessCheckProxy] bør allerede ha sjekket om vi har tilgang til personen */
-            personService.hentPersonMedSystembruker(fnr).mapLeft { KunneIkkeLageBrevRequest.KunneIkkeHentePerson }
-        },
-        hentNavn = { ident ->
-            microsoftGraphApiOppslag.hentNavnForNavIdent(ident)
-                .mapLeft { KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(it) }
-        },
-        hentGjeldendeUtbetaling = { sakId, forDato ->
-            utbetalingService.hentGjeldendeUtbetaling(sakId, forDato)
-                .map { it.beløp }
-                .mapLeft { KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling }
-        },
-        clock = clock,
-        satsFactory = satsFactory,
-    )
 }

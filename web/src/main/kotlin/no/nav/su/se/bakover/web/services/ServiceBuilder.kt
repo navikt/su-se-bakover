@@ -73,18 +73,14 @@ data object ServiceBuilder {
             dokumentRepo = databaseRepos.dokumentRepo,
             personService = personService,
             sessionFactory = databaseRepos.sessionFactory,
-            microsoftGraphApiOppslag = clients.identClient,
-            utbetalingService = utbetalingService,
+            identClient = clients.identClient,
             clock = clock,
-            satsFactory = satsFactory,
         )
         val sakService = SakServiceImpl(
             sakRepo = databaseRepos.sak,
             clock = clock,
             dokumentRepo = databaseRepos.dokumentRepo,
             brevService = brevService,
-            personService = personService,
-            identClient = clients.identClient,
             clients.journalpostClient,
         ).apply { addObserver(statistikkEventObserver) }
 
@@ -110,6 +106,8 @@ data object ServiceBuilder {
             oppgaveService = oppgaveService,
             vedtakRepo = databaseRepos.vedtakRepo,
             behandlingMetrics = behandlingMetrics,
+            clock = clock,
+            satsFactory = satsFactory,
         )
 
         val vedtakService = VedtakServiceImpl(
@@ -123,6 +121,7 @@ data object ServiceBuilder {
             brevService = brevService,
             sessionFactory = databaseRepos.sessionFactory,
             clock = clock,
+            satsFactory = satsFactory,
         )
 
         val skatteServiceImpl = SkatteServiceImpl(
@@ -161,7 +160,6 @@ data object ServiceBuilder {
             revurderingRepo = databaseRepos.revurderingRepo,
             oppgaveService = oppgaveService,
             personService = personService,
-            identClient = clients.identClient,
             brevService = brevService,
             clock = clock,
             vedtakRepo = databaseRepos.vedtakRepo,
@@ -218,7 +216,6 @@ data object ServiceBuilder {
             vedtakService = vedtakService,
             brevService = brevService,
             personService = personService,
-            identClient = clients.identClient,
             klageClient = clients.klageClient,
             sessionFactory = databaseRepos.sessionFactory,
             oppgaveService = oppgaveService,
@@ -249,6 +246,7 @@ data object ServiceBuilder {
                 dokumentSkattRepo = databaseRepos.dokumentSkattRepo,
                 clock = clock,
             ),
+            satsFactory = satsFactory,
         ).apply { addObserver(statistikkEventObserver) }
         return Services(
             avstemming = AvstemmingServiceImpl(
@@ -264,11 +262,8 @@ data object ServiceBuilder {
                 søknadService = søknadService,
                 brevService = brevService,
                 oppgaveService = oppgaveService,
-                personService = personService,
                 søknadsbehandlingService = søknadsbehandlingService,
-                identClient = clients.identClient,
                 sakService = sakService,
-                clock = clock,
                 sessionFactory = databaseRepos.sessionFactory,
             ).apply {
                 addObserver(statistikkEventObserver)
@@ -301,7 +296,6 @@ data object ServiceBuilder {
                 sakRepo = databaseRepos.sak,
                 sessionFactory = databaseRepos.sessionFactory,
                 brevService = brevService,
-                personService = personService,
                 sendPåminnelseNyStønadsperiodeJobRepo = databaseRepos.sendPåminnelseNyStønadsperiodeJobRepo,
                 formuegrenserFactory = satsFactory.formuegrenserFactory,
             ),

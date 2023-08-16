@@ -1,9 +1,16 @@
 package no.nav.su.se.bakover.domain.dokument
 
-sealed class KunneIkkeLageDokument {
-    data object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeLageDokument()
-    data object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeLageDokument()
-    data object KunneIkkeHentePerson : KunneIkkeLageDokument()
-    data object KunneIkkeGenererePDF : KunneIkkeLageDokument()
-    data object DetSkalIkkeSendesBrev : KunneIkkeLageDokument()
+sealed interface KunneIkkeLageDokument {
+
+    /**
+     * Dette er steget før vi genererer PDFen / dokumentet.
+     */
+    data class FeilVedHentingAvInformasjon(
+        val underliggende: no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon,
+    ) : KunneIkkeLageDokument
+
+    /**
+     * Vi klarte innhente nødvendig informasjon, men noe feil skjedde under genereringa av PDFen.
+     */
+    data object FeilVedGenereringAvPdf : KunneIkkeLageDokument
 }

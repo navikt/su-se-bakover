@@ -5,22 +5,21 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.extensions.januar
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrev
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
-import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
-import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequestForKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevKommandoForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeTilKlageinstans
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
-import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -29,12 +28,12 @@ import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
-import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonAnnet
+import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.iverksattAvvistKlage
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
-import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
 import no.nav.su.se.bakover.test.underkjentAvvistKlage
@@ -44,11 +43,9 @@ import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.utfyltVurdertKlage
 import no.nav.su.se.bakover.test.vurdertKlageTilAttestering
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
-import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
@@ -101,76 +98,55 @@ internal class OversendKlageTest {
     @Test
     fun `kunne ikke lage brevrequest`() {
         val klage = vurdertKlageTilAttestering().second
-        val person = person(fnr = klage.fnr)
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
-            },
-            personServiceMock = mock {
-                on { hentPerson(any()) } doReturn person.right()
-            },
-            identClient = mock {
-                on { hentNavnForNavIdent(any()) } doReturn KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent.left()
+                on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn null
             },
         )
-
         val attestant = NavIdentBruker.Attestant("s2")
         mocks.service.oversend(
             klageId = klage.id,
             attestant = attestant,
-        ) shouldBe
-            KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest(
-                KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvSaksbehandlernavn(
-                    KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent,
-                ),
-            ).left()
+        ) shouldBe KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest(
+            KunneIkkeLageBrevKommandoForKlage.FeilVedHentingAvVedtaksbrevDato,
+        ).left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe klage.fnr })
-        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
+        verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(any())
         mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `Dokumentgenerering feilet`() {
         val (sak, klage) = vurdertKlageTilAttestering()
-        val person = person(fnr = sak.fnr)
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
                 on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2021)
             },
-            identClient = mock {
-                on { hentNavnForNavIdent(any()) }.thenReturn("Some name".right(), "attestant".right())
-            },
-            personServiceMock = mock {
-                on { hentPerson(any()) } doReturn person.right()
-            },
+
             brevServiceMock = mock {
-                on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
+                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
             },
         )
         val attestant = NavIdentBruker.Attestant("s2")
         mocks.service.oversend(
             klageId = klage.id,
             attestant = attestant,
-        ) shouldBe KunneIkkeOversendeKlage.KunneIkkeLageBrev(KunneIkkeLageBrevForKlage.KunneIkkeGenererePDF).left()
+        ) shouldBe KunneIkkeOversendeKlage.KunneIkkeLageDokument(
+            KunneIkkeLageDokument.FeilVedGenereringAvPdf,
+        ).left()
 
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        val captor = argumentCaptor<NavIdentBruker>()
-        verify(mocks.identClient, times(2)).hentNavnForNavIdent(captor.capture())
-        captor.firstValue shouldBe klage.saksbehandler
-        captor.lastValue shouldBe attestant
 
-        verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
-        verify(mocks.brevServiceMock).lagBrev(
+        verify(mocks.brevServiceMock).lagDokument(
             argThat {
-                it shouldBe LagBrevRequest.Klage.Oppretthold(
-                    person = person,
-                    dagensDato = fixedLocalDate,
-                    saksbehandlerNavn = "Some name",
-                    attestantNavn = "attestant",
+                it shouldBe KlageDokumentCommand.Oppretthold(
+                    fødselsnummer = sak.fnr,
+                    saksbehandler = klage.saksbehandler,
+                    attestant = attestant,
                     fritekst = klage.vurderinger.fritekstTilOversendelsesbrev,
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
@@ -184,20 +160,15 @@ internal class OversendKlageTest {
     @Test
     fun `Fant ikke journalpost-id knyttet til vedtaket`() {
         val (sak, klage) = vurdertKlageTilAttestering()
-        val person = person(fnr = sak.fnr)
+
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
                 on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2021)
             },
-            identClient = mock {
-                on { hentNavnForNavIdent(any()) }.thenReturn("Some name".right(), "attestant".right())
-            },
-            personServiceMock = mock {
-                on { hentPerson(any()) } doReturn person.right()
-            },
+
             brevServiceMock = mock {
-                on { lagBrev(any()) } doReturn "brevbytes".toByteArray().right()
+                on { lagDokument(any()) } doReturn dokumentUtenMetadataVedtak(pdf = PdfA("brevbytes".toByteArray())).right()
             },
             vedtakServiceMock = mock {
                 on { hentJournalpostId(any()) } doReturn null
@@ -211,18 +182,12 @@ internal class OversendKlageTest {
 
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        val captor = argumentCaptor<NavIdentBruker>()
-        verify(mocks.identClient, times(2)).hentNavnForNavIdent(captor.capture())
-        captor.firstValue shouldBe klage.saksbehandler
-        captor.lastValue shouldBe attestant
-        verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
-        verify(mocks.brevServiceMock).lagBrev(
+        verify(mocks.brevServiceMock).lagDokument(
             argThat {
-                it shouldBe LagBrevRequest.Klage.Oppretthold(
-                    person = person,
-                    dagensDato = fixedLocalDate,
-                    saksbehandlerNavn = "Some name",
-                    attestantNavn = "attestant",
+                it shouldBe KlageDokumentCommand.Oppretthold(
+                    fødselsnummer = sak.fnr,
+                    saksbehandler = klage.saksbehandler,
+                    attestant = attestant,
                     fritekst = klage.vurderinger.fritekstTilOversendelsesbrev,
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
@@ -237,22 +202,19 @@ internal class OversendKlageTest {
     @Test
     fun `Kunne ikke oversende til klageinstans (client feil)`() {
         val (sak, klage) = vurdertKlageTilAttestering()
-        val person = person(fnr = sak.fnr)
         val journalpostIdKnyttetTilVedtakDetKlagePå = JournalpostId("journalpostIdKnyttetTilVedtakDetKlagePå")
-        val pdfAsBytes = "brevbytes".toByteArray()
+        val pdf = PdfA("brevbytes".toByteArray())
+        val dokumentUtenMetadataVedtak = dokumentUtenMetadataInformasjonAnnet(
+            pdf = pdf,
+            tittel = "test-dokument-informasjon-annet",
+        )
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
                 on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2021)
             },
-            identClient = mock {
-                on { hentNavnForNavIdent(any()) }.thenReturn("Some name".right(), "attestant".right())
-            },
-            personServiceMock = mock {
-                on { hentPerson(any()) } doReturn person.right()
-            },
             brevServiceMock = mock {
-                on { lagBrev(any()) } doReturn pdfAsBytes.right()
+                on { lagDokument(any()) } doReturn dokumentUtenMetadataVedtak.right()
             },
             vedtakServiceMock = mock {
                 on { hentJournalpostId(any()) } doReturn journalpostIdKnyttetTilVedtakDetKlagePå
@@ -269,18 +231,12 @@ internal class OversendKlageTest {
 
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        val captor = argumentCaptor<NavIdentBruker>()
-        verify(mocks.identClient, times(2)).hentNavnForNavIdent(captor.capture())
-        captor.firstValue shouldBe klage.saksbehandler
-        captor.lastValue shouldBe attestant
-        verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
-        verify(mocks.brevServiceMock).lagBrev(
+        verify(mocks.brevServiceMock).lagDokument(
             argThat {
-                it shouldBe LagBrevRequest.Klage.Oppretthold(
-                    person = person,
-                    dagensDato = fixedLocalDate,
-                    saksbehandlerNavn = "Some name",
-                    attestantNavn = "attestant",
+                it shouldBe KlageDokumentCommand.Oppretthold(
+                    fødselsnummer = sak.fnr,
+                    saksbehandler = klage.saksbehandler,
+                    attestant = attestant,
                     fritekst = klage.vurderinger.fritekstTilOversendelsesbrev,
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
@@ -304,13 +260,7 @@ internal class OversendKlageTest {
         verify(mocks.brevServiceMock).lagreDokument(
             argThat {
                 it shouldBe Dokument.MedMetadata.Informasjon.Annet(
-                    utenMetadata = Dokument.UtenMetadata.Informasjon.Annet(
-                        id = it.id,
-                        opprettet = it.opprettet,
-                        tittel = "Oversendelsesbrev til klager",
-                        generertDokument = pdfAsBytes,
-                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${sak.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\",\"saksnummer\":12345676},\"saksbehandlerNavn\":\"Some name\",\"attestantNavn\":\"attestant\",\"fritekst\":\"fritekstTilBrev\",\"klageDato\":\"15.01.2021\",\"vedtakDato\":\"01.01.2021\",\"saksnummer\":12345676,\"erAldersbrev\":false}",
-                    ),
+                    utenMetadata = dokumentUtenMetadataVedtak,
                     metadata = Dokument.Metadata(
                         sakId = sak.id,
                         søknadId = null,
@@ -463,9 +413,12 @@ internal class OversendKlageTest {
     fun `Skal kunne oversende en klage som er til attestering`() {
         val (sak, klage) = vurdertKlageTilAttestering()
         val journalpostIdForVedtak = JournalpostId(UUID.randomUUID().toString())
-        val person = person(fnr = sak.fnr)
-        val pdfAsBytes = "brevbytes".toByteArray()
         val observerMock: StatistikkEventObserver = mock { on { handle(any()) }.then {} }
+        val pdf = PdfA("brevbytes".toByteArray())
+        val dokumentUtenMetadata = dokumentUtenMetadataInformasjonAnnet(
+            pdf = pdf,
+            tittel = "test-dokument-informasjon-annet",
+        )
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
@@ -475,14 +428,9 @@ internal class OversendKlageTest {
             vedtakServiceMock = mock {
                 on { hentJournalpostId(any()) } doReturn journalpostIdForVedtak
             },
-            identClient = mock {
-                on { hentNavnForNavIdent(any()) }.thenReturn("Some name".right(), "attestant".right())
-            },
-            personServiceMock = mock {
-                on { hentPerson(any()) } doReturn person.right()
-            },
+
             brevServiceMock = mock {
-                on { lagBrev(any()) } doReturn pdfAsBytes.right()
+                on { lagDokument(any()) } doReturn dokumentUtenMetadata.right()
             },
             klageClient = mock {
                 on { sendTilKlageinstans(any(), any()) } doReturn Unit.right()
@@ -512,19 +460,12 @@ internal class OversendKlageTest {
 
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        val captor = argumentCaptor<NavIdentBruker>()
-        verify(mocks.identClient, times(2)).hentNavnForNavIdent(captor.capture())
-        captor.firstValue shouldBe expectedKlage!!.saksbehandler
-        captor.lastValue shouldBe expectedKlage!!.attesteringer.hentSisteAttestering().attestant
-
-        verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
-        verify(mocks.brevServiceMock).lagBrev(
+        verify(mocks.brevServiceMock).lagDokument(
             argThat {
-                it shouldBe LagBrevRequest.Klage.Oppretthold(
-                    person = person,
-                    dagensDato = fixedLocalDate,
-                    saksbehandlerNavn = "Some name",
-                    attestantNavn = "attestant",
+                it shouldBe KlageDokumentCommand.Oppretthold(
+                    fødselsnummer = sak.fnr,
+                    saksbehandler = klage.saksbehandler,
+                    attestant = attestant,
                     fritekst = klage.vurderinger.fritekstTilOversendelsesbrev,
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
@@ -540,13 +481,7 @@ internal class OversendKlageTest {
         verify(mocks.brevServiceMock).lagreDokument(
             argThat {
                 it shouldBe Dokument.MedMetadata.Informasjon.Annet(
-                    utenMetadata = Dokument.UtenMetadata.Informasjon.Annet(
-                        id = it.id,
-                        opprettet = it.opprettet,
-                        tittel = "Oversendelsesbrev til klager",
-                        generertDokument = pdfAsBytes,
-                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${sak.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\",\"saksnummer\":12345676},\"saksbehandlerNavn\":\"Some name\",\"attestantNavn\":\"attestant\",\"fritekst\":\"fritekstTilBrev\",\"klageDato\":\"15.01.2021\",\"vedtakDato\":\"01.01.2021\",\"saksnummer\":12345676,\"erAldersbrev\":false}",
-                    ),
+                    utenMetadata = dokumentUtenMetadata,
                     metadata = Dokument.Metadata(
                         sakId = sak.id,
                         søknadId = null,

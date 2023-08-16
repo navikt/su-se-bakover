@@ -21,14 +21,11 @@ import no.nav.su.se.bakover.domain.behandling.Behandlinger
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.brev.command.GenererDokumentCommand
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingslinjePåTidslinje
-import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -392,9 +389,6 @@ data class Sak(
      */
     fun lukkSøknadOgSøknadsbehandling(
         lukkSøknadCommand: LukkSøknadCommand,
-        clock: Clock,
-        hentPerson: () -> Either<KunneIkkeHentePerson, Person>,
-        hentSaksbehandlerNavn: (saksbehandler: NavIdentBruker.Saksbehandler) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): LukkSøknadOgSøknadsbehandlingResponse {
         val søknadId = lukkSøknadCommand.søknadId
@@ -436,19 +430,7 @@ data class Sak(
                 }
             },
         ).let { (sak, søknad, søknadsbehandling, statistikkhendelse) ->
-            val lagBrevRequest = søknad.toBrevRequest(
-                hentPerson = {
-                    hentPerson().getOrElse {
-                        throw IllegalStateException("Kunne ikke lukke søknad ${lukkSøknadCommand.søknadId} og søknadsbehandling. Underliggende grunn: $it")
-                    }
-                },
-                clock = clock,
-                hentSaksbehandlerNavn = {
-                    hentSaksbehandlerNavn(it).getOrElse {
-                        throw IllegalStateException("Kunne ikke lukke søknad ${lukkSøknadCommand.søknadId} og søknadsbehandling. Underliggende grunn: $it")
-                    }
-                },
-            ) { sak.saksnummer }
+            val lagBrevRequest = søknad.lagGenererDokumentKommando { sak.saksnummer }
             LukkSøknadOgSøknadsbehandlingResponse(
                 sak = sak,
                 søknad = søknad,
@@ -468,7 +450,7 @@ data class Sak(
         val søknad: Søknad.Journalført.MedOppgave.Lukket,
         val søknadsbehandling: LukketSøknadsbehandling?,
         val hendelse: StatistikkEvent,
-        val lagBrevRequest: Either<IkkeLagBrevRequest, LagBrevRequest>,
+        val lagBrevRequest: Either<IkkeLagBrevRequest, GenererDokumentCommand>,
     ) {
         init {
             // Guards spesielt med tanke på testdatasett.

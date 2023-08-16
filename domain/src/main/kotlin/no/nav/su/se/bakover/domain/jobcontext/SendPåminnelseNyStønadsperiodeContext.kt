@@ -1,17 +1,14 @@
 package no.nav.su.se.bakover.domain.jobcontext
 
 import arrow.core.Either
-import arrow.core.flatMap
 import arrow.core.right
 import no.nav.su.se.bakover.common.extensions.avrund
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.brev.command.PåminnelseNyStønadsperiodeDokumentCommand
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
@@ -115,34 +112,30 @@ data class SendPåminnelseNyStønadsperiodeContext(
     fun håndter(
         sak: Sak,
         clock: Clock,
-        hentPerson: (fnr: Fnr) -> Either<KunneIkkeSendePåminnelse.FantIkkePerson, Person>,
         sessionFactory: SessionFactory,
-        lagDokument: (request: LagBrevRequest.PåminnelseNyStønadsperiode) -> Either<KunneIkkeSendePåminnelse.KunneIkkeLageBrev, Dokument.UtenMetadata>,
+        lagDokument: (request: PåminnelseNyStønadsperiodeDokumentCommand) -> Either<KunneIkkeSendePåminnelse.KunneIkkeLageBrev, Dokument.UtenMetadata>,
         lagreDokument: (dokument: Dokument.MedMetadata, tx: TransactionContext) -> Unit,
         lagreContext: (context: SendPåminnelseNyStønadsperiodeContext, tx: TransactionContext) -> Unit,
         formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeSendePåminnelse, SendPåminnelseNyStønadsperiodeContext> {
         return if (skalSendePåminnelse(sak)) {
-            hentPerson(sak.fnr)
-                .flatMap { person ->
-                    val dagensDato = LocalDate.now(clock)
-                    lagDokument(
-                        LagBrevRequest.PåminnelseNyStønadsperiode(
-                            person = person,
-                            dagensDato = dagensDato,
-                            saksnummer = sak.saksnummer,
-                            utløpsdato = id().yearMonth.atEndOfMonth(),
-                            halvtGrunnbeløp = formuegrenserFactory.forDato(dagensDato).formuegrense.avrund(),
-                        ),
-                    )
-                }.map { dokument ->
-                    sessionFactory.withTransactionContext { tx ->
-                        lagreDokument(dokument.leggTilMetadata(metadata = Dokument.Metadata(sakId = sak.id)), tx)
-                        sendt(sak.saksnummer, clock).also {
-                            lagreContext(it, tx)
-                        }
+            val dagensDato = LocalDate.now(clock)
+            lagDokument(
+                PåminnelseNyStønadsperiodeDokumentCommand(
+                    fødselsnummer = sak.fnr,
+                    saksnummer = sak.saksnummer,
+                    utløpsdato = id().yearMonth.atEndOfMonth(),
+                    // TODO jah: halvtGrunnbeløp er ikke knyttet til saken i dette tilfellet og kan heller utledes av BrevService.
+                    halvtGrunnbeløp = formuegrenserFactory.forDato(dagensDato).formuegrense.avrund(),
+                ),
+            ).map { dokument ->
+                sessionFactory.withTransactionContext { tx ->
+                    lagreDokument(dokument.leggTilMetadata(metadata = Dokument.Metadata(sakId = sak.id)), tx)
+                    sendt(sak.saksnummer, clock).also {
+                        lagreContext(it, tx)
                     }
                 }
+            }
         } else {
             sessionFactory.withTransactionContext { tx ->
                 prosessert(sak.saksnummer, clock).also {

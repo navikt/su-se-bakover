@@ -5,15 +5,13 @@ import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrev
-import no.nav.su.se.bakover.domain.person.IdentClient
+import no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon
+import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForRevurdering
-import no.nav.su.se.bakover.test.aktørId
-import no.nav.su.se.bakover.test.argThat
-import no.nav.su.se.bakover.test.fnr
-import no.nav.su.se.bakover.test.person
+import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulertRevurdering
 import org.junit.jupiter.api.Test
@@ -29,20 +27,13 @@ class LagBrevutkastForForhåndsvarslingTest {
     fun `lager brevutkast for forhåndsvarsel - saksbehandler som lager utkastet, er ikke den som har gjort behandlingen`() {
         val simulertRevurdering = simulertRevurdering().second
         val saksbehandlerSomLagerBrev = NavIdentBruker.Saksbehandler("saksbehandlerSomLagerBrevet")
-        val identClientMock = mock<IdentClient> {
-            on { hentNavnForNavIdent(any()) } doReturn saksbehandlerSomLagerBrev.navIdent.right()
-        }
         RevurderingServiceMocks(
             revurderingRepo = mock {
                 on { hent(any()) } doReturn simulertRevurdering
             },
-            personService = mock {
-                on { hentPerson(any()) } doReturn person(fnr, aktørId).right()
-            },
             brevService = mock {
-                on { lagBrev(any()) } doReturn "".toByteArray().right()
+                on { lagDokument(any()) } doReturn dokumentUtenMetadataVedtak(pdf = PdfA("brevbytes".toByteArray())).right()
             },
-            identClient = identClientMock,
         ).let {
             simulertRevurdering.saksbehandler shouldNotBe saksbehandlerSomLagerBrev
             it.revurderingService.lagBrevutkastForForhåndsvarsling(
@@ -50,9 +41,10 @@ class LagBrevutkastForForhåndsvarslingTest {
                 saksbehandlerSomLagerBrev,
                 "saksbehandler og saksbehandler som lager brev er ikke de samme",
             ).shouldBeRight()
+            verify(it.revurderingRepo).hent(simulertRevurdering.id)
+            verify(it.brevService).lagDokument(any())
+            it.verifyNoMoreInteractions()
         }
-
-        verify(identClientMock).hentNavnForNavIdent(argThat { it shouldBe saksbehandlerSomLagerBrev })
     }
 
     @Test
@@ -76,15 +68,25 @@ class LagBrevutkastForForhåndsvarslingTest {
             revurderingRepo = mock {
                 on { hent(any()) } doReturn simulertRevurdering().second
             },
-            personService = mock {
-                on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+            brevService = mock {
+                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
+                    FeilVedHentingAvInformasjon.KunneIkkeHentePerson(
+                        KunneIkkeHentePerson.FantIkkePerson,
+                    ),
+                ).left()
             },
         ).let {
             it.revurderingService.lagBrevutkastForForhåndsvarsling(
                 UUID.randomUUID(),
                 saksbehandler,
                 "fritekst til forhåndsvarsling",
-            ) shouldBe KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson.left()
+            ) shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(
+                KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
+                    FeilVedHentingAvInformasjon.KunneIkkeHentePerson(
+                        KunneIkkeHentePerson.FantIkkePerson,
+                    ),
+                ),
+            ).left()
         }
     }
 
@@ -94,11 +96,9 @@ class LagBrevutkastForForhåndsvarslingTest {
             revurderingRepo = mock {
                 on { hent(any()) } doReturn simulertRevurdering().second
             },
-            personService = mock {
-                on { hentPerson(any()) } doReturn person(fnr, aktørId).right()
-            },
+
             brevService = mock {
-                on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
+                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
             },
             identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
@@ -108,7 +108,9 @@ class LagBrevutkastForForhåndsvarslingTest {
                 UUID.randomUUID(),
                 saksbehandler,
                 "fritekst til forhåndsvarsling",
-            ) shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast.left()
+            ) shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(
+                KunneIkkeLageDokument.FeilVedGenereringAvPdf,
+            ).left()
         }
     }
 }

@@ -190,10 +190,6 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         override fun skalSendeVedtaksbrev(): Boolean {
             return true
         }
-
-        override fun accept(visitor: SøknadsbehandlingVisitor) {
-            visitor.visit(this)
-        }
     }
 
     data class Avslag(
@@ -202,11 +198,11 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         override val aldersvurdering: Aldersvurdering,
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
-        // TODO jah: Eksisterer kun slik at vi kan lage brevutkast. Fjern når vi ikke trenger det.
         override val fritekstTilBrev: String,
     ) : VilkårsvurdertSøknadsbehandling,
         KanOppdaterePeriodeBosituasjonVilkår,
         KanSendesTilAttestering,
+        KanGenerereAvslagsbrev,
         Søknadsbehandling by forrigeTilstand,
         ErAvslag {
 
@@ -235,10 +231,6 @@ sealed interface VilkårsvurdertSøknadsbehandling :
 
         init {
             kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
-        }
-
-        override fun accept(visitor: SøknadsbehandlingVisitor) {
-            visitor.visit(this)
         }
 
         /**
@@ -346,10 +338,6 @@ sealed interface VilkårsvurdertSøknadsbehandling :
 
         init {
             kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
-        }
-
-        override fun accept(visitor: SøknadsbehandlingVisitor) {
-            visitor.visit(this)
         }
 
         data class StønadsperiodeIkkeDefinertException(

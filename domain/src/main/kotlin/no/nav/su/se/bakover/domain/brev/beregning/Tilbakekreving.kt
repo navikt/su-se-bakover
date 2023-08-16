@@ -12,6 +12,8 @@ data class BrevTilbakekrevingInfo(
 )
 
 data class Tilbakekreving(
+    // TODO jah: Dersom man bruker periodeStart/periodeSlutt får man en NoSuchElementException elements exceptions
+    //  Kan vi bytte til NEL?
     private val månedBeløp: List<MånedBeløp>,
 ) {
     val tilbakekrevingavdrag = månedBeløp.map {
@@ -21,8 +23,11 @@ data class Tilbakekreving(
             tilbakekrevingsgrad = "100%",
         )
     }
+
+    // TODO jah: Flytt formateringen nærmere PdfInnhold? Kanskje pdfgen har denne funksjonaliteten? ref. https://github.com/navikt/pdfgen/blob/master/src/main/kotlin/no/nav/pdfgen/template/Helpers.kt
     val periodeStart = månedBeløp.sorterPåPeriode().first().periode.fraOgMed.toBrevformat()
     val periodeSlutt = månedBeløp.sorterPåPeriode().last().periode.tilOgMed.toBrevformat()
 }
 
+// TODO jah: Flytt formateringen nærmere PdfInnhold? ref. https://github.com/navikt/pdfgen/blob/master/src/main/kotlin/no/nav/pdfgen/template/Helpers.kt
 private fun Periode.toBrevPeriode(): String = this.fraOgMed.toBrevformat() + " - " + this.tilOgMed.toBrevformat()

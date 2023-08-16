@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.service.brev
 
-import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
@@ -12,10 +11,12 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.HentDokumenterForIdType
-import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrev
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
-import no.nav.su.se.bakover.domain.brev.PdfInnhold
 import no.nav.su.se.bakover.domain.brev.PdfTemplateMedDokumentNavn
+import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
+import no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon
+import no.nav.su.se.bakover.domain.brev.jsonRequest.FritekstPdfInnhold
+import no.nav.su.se.bakover.domain.brev.jsonRequest.PdfInnhold
+import no.nav.su.se.bakover.domain.brev.jsonRequest.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
@@ -24,10 +25,14 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.PersonService
-import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import no.nav.su.se.bakover.test.fixedLocalDate
-import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.argThat
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.pdfATom
+import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattAvslagMedBeregning
 import org.junit.jupiter.api.Test
@@ -57,33 +62,88 @@ internal class BrevServiceImplTest {
     }
 
     @Test
-    fun `lager brev`() {
-        val pdf = "".toByteArray()
+    fun `happy case`() {
+        val pdf = pdfATom()
 
         val pdfGeneratorMock = mock<PdfGenerator> {
             on { genererPdf(any<PdfInnhold>()) } doReturn pdf.right()
         }
 
-        ServiceOgMocks(
+        val personServiceMock = mock<PersonService> {
+            on { hentPersonMedSystembruker(any()) } doReturn person.right()
+        }
+        val identClientMock = mock<IdentClient> {
+            on { hentNavnForNavIdent(any()) } doReturn "testname".right()
+        }
+
+        val dokumentCommand = fritekstDokumentCommand()
+        val serviceOgMocks = ServiceOgMocks(
             pdfGenerator = pdfGeneratorMock,
-        ).brevService.lagBrev(DummyRequest) shouldBe pdf.right()
+            personService = personServiceMock,
+            identClient = identClientMock,
+        )
+        val actual = serviceOgMocks.brevService.lagDokument(dokumentCommand)
+            .getOrFail() as Dokument.UtenMetadata.Informasjon.Annet
+        actual.generertDokument shouldBe pdf
+        actual.tittel shouldBe dokumentCommand.brevTittel
+        actual.generertDokumentJson shouldBe """{"personalia":{"dato":"01.01.2021","fødselsnummer":"${dokumentCommand.fødselsnummer}","fornavn":"Tore","etternavn":"Strømøy","saksnummer":12345676},"saksbehandlerNavn":"testname","tittel":"En tittel","fritekst":"Litt fritekst","erAldersbrev":false}"""
 
-        verify(pdfGeneratorMock).genererPdf(DummyPdfInnhold)
+        verify(pdfGeneratorMock).genererPdf(
+            argThat<PdfInnhold> {
+                it shouldBe FritekstPdfInnhold(
+                    personalia = PersonaliaPdfInnhold(
+                        dato = "01.01.2021",
+                        fødselsnummer = dokumentCommand.fødselsnummer.toString(),
+                        fornavn = person.navn.fornavn,
+                        etternavn = person.navn.etternavn,
+                        saksnummer = dokumentCommand.saksnummer.nummer,
+                    ),
+                    saksbehandlerNavn = "testname",
+                    tittel = dokumentCommand.brevTittel,
+                    fritekst = dokumentCommand.fritekst,
+                )
+            },
+        )
+        verify(personServiceMock).hentPersonMedSystembruker(dokumentCommand.fødselsnummer)
+        verify(identClientMock).hentNavnForNavIdent(saksbehandler)
 
-        verifyNoMoreInteractions(pdfGeneratorMock)
+        serviceOgMocks.verifyNoMoreInteraction()
     }
+
+    private fun fritekstDokumentCommand() = FritekstDokumentCommand(
+        fødselsnummer = Fnr.generer(),
+        saksnummer = saksnummer,
+        saksbehandler = saksbehandler,
+        brevTittel = "En tittel",
+        fritekst = "Litt fritekst",
+    )
 
     @Test
     fun `lager ikke brev når pdf-generator kall failer`() {
         val pdfGeneratorMock = mock<PdfGenerator> {
-            on { genererPdf(DummyPdfInnhold) } doReturn KunneIkkeGenererePdf.left()
+            on { genererPdf(any<PdfInnhold>()) } doReturn KunneIkkeGenererePdf.left()
         }
 
+        val personServiceMock = mock<PersonService> {
+            on { hentPersonMedSystembruker(any()) } doReturn person.right()
+        }
+        val identClientMock = mock<IdentClient> {
+            on { hentNavnForNavIdent(any()) } doReturn "testname".right()
+        }
+
+        val dokumentCommand = fritekstDokumentCommand()
         ServiceOgMocks(
             pdfGenerator = pdfGeneratorMock,
-        ).brevService.lagBrev(DummyRequest) shouldBe KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
-        verify(pdfGeneratorMock).genererPdf(DummyPdfInnhold)
-        verifyNoMoreInteractions(pdfGeneratorMock)
+            personService = personServiceMock,
+            identClient = identClientMock,
+        ).let {
+            it.brevService.lagDokument(dokumentCommand) shouldBe KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
+            // Disse testes i happy case
+            verify(pdfGeneratorMock).genererPdf(any<PdfInnhold>())
+            verify(personServiceMock).hentPersonMedSystembruker(any())
+            verify(identClientMock).hentNavnForNavIdent(any())
+            it.verifyNoMoreInteraction()
+        }
     }
 
     @Test
@@ -142,16 +202,23 @@ internal class BrevServiceImplTest {
         val personServiceMock = mock<PersonService> {
             on { hentPersonMedSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
         }
-
         ServiceOgMocks(
             personService = personServiceMock,
         ).let {
-            it.brevService.lagDokument(vedtak) shouldBe KunneIkkeLageDokument.KunneIkkeHentePerson.left()
+            it.brevService.lagDokument(
+                vedtak.behandling.lagBrevCommand(
+                    satsFactory = satsFactoryTestPåDato(),
+                ),
+            ) shouldBe KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
+                FeilVedHentingAvInformasjon.KunneIkkeHentePerson(
+                    KunneIkkeHentePerson.FantIkkePerson,
+                ),
+            ).left()
         }
     }
 
     @Test
-    fun `microsoftGraphApiOppslag klarer ikke hente navnet`() {
+    fun `identClient klarer ikke hente navnet`() {
         val vedtak = vedtakSøknadsbehandlingIverksattAvslagMedBeregning().second
         val personServiceMock = mock<PersonService> {
             on { hentPersonMedSystembruker(any()) } doReturn person.right()
@@ -165,7 +232,15 @@ internal class BrevServiceImplTest {
             personService = personServiceMock,
             identClient = microsoftGraphApiOppslagMock,
         ).let {
-            it.brevService.lagDokument(vedtak) shouldBe KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
+            it.brevService.lagDokument(
+                vedtak.behandling.lagBrevCommand(
+                    satsFactory = satsFactoryTestPåDato(),
+                ),
+            ) shouldBe KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
+                FeilVedHentingAvInformasjon.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(
+                    KunneIkkeHenteNavnForNavIdent.KallTilMicrosoftGraphApiFeilet,
+                ),
+            ).left()
             verify(it.personService).hentPersonMedSystembruker(vedtak.behandling.fnr)
             verify(it.identClient).hentNavnForNavIdent(vedtak.behandling.saksbehandler)
             it.verifyNoMoreInteraction()
@@ -177,32 +252,10 @@ internal class BrevServiceImplTest {
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.EPOCH,
             tittel = "tittel",
-            generertDokument = "".toByteArray(),
+            generertDokument = pdfATom(),
             generertDokumentJson = "{}",
         )
         return utenMetadata.leggTilMetadata(metadata)
-    }
-
-    data object DummyRequest : LagBrevRequest {
-        override val person: Person = BrevServiceImplTest.person
-        override val pdfInnhold: PdfInnhold = DummyPdfInnhold
-        override val saksnummer: Saksnummer = Saksnummer(2021)
-        override fun tilDokument(
-            clock: Clock,
-            genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<LagBrevRequest.KunneIkkeGenererePdf, ByteArray>,
-        ): Either<LagBrevRequest.KunneIkkeGenererePdf, Dokument.UtenMetadata> {
-            return genererDokument(clock, genererPdf).map {
-                Dokument.UtenMetadata.Vedtak(
-                    id = UUID.randomUUID(),
-                    opprettet = fixedTidspunkt,
-                    tittel = it.first,
-                    generertDokument = it.second,
-                    generertDokumentJson = it.third,
-                )
-            }
-        }
-
-        override val dagensDato = fixedLocalDate
     }
 
     data object DummyPdfInnhold : PdfInnhold() {
@@ -216,17 +269,15 @@ internal class BrevServiceImplTest {
         val sessionFactory: SessionFactory = mock(),
         val identClient: IdentClient = mock(),
         val utbetalingService: UtbetalingService = mock(),
-        val clock: Clock = mock(),
+        val clock: Clock = fixedClock,
     ) {
         val brevService = BrevServiceImpl(
             pdfGenerator = pdfGenerator,
             dokumentRepo = dokumentRepo,
             personService = personService,
             sessionFactory = sessionFactory,
-            microsoftGraphApiOppslag = identClient,
-            utbetalingService = utbetalingService,
+            identClient = identClient,
             clock = clock,
-            satsFactory = satsFactoryTestPåDato(),
         )
 
         fun verifyNoMoreInteraction() {

@@ -6,15 +6,9 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
-import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.person.Person
-import java.lang.IllegalStateException
-import java.time.Clock
+import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -38,17 +32,15 @@ sealed interface KlageTilAttestering : Klage, KlageTilAttesteringFelter, KanGene
         }
 
         /**
+         * @param utførtAv forventes at denne er en attestant
          * @param hentVedtaksbrevDato brukes ikke for [Avvist]
          */
         override fun lagBrevRequest(
             utførtAv: NavIdentBruker,
-            hentNavnForNavIdent: (saksbehandler: NavIdentBruker) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
             hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
-            hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
-            clock: Clock,
-        ): Either<KunneIkkeLageBrevRequestForKlage, LagBrevRequest.Klage> {
+        ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
             utførtAv as NavIdentBruker.Attestant
-            return genererAvvistVedtaksbrev(utførtAv, hentNavnForNavIdent, hentPerson, clock)
+            return lagAvvistVedtaksbrevKommando(attestant = utførtAv)
         }
 
         fun iverksett(
@@ -96,26 +88,27 @@ sealed interface KlageTilAttestering : Klage, KlageTilAttesteringFelter, KanGene
         /**
          * @throws IllegalStateException - dersom saksbehandler ikke har lagt til fritekst enda.
          */
-        override val fritekstTilVedtaksbrev get() = getFritekstTilBrev().getOrElse {
-            throw IllegalStateException("Vi har ikke fått lagret fritekst for klage $id")
-        }
+        override val fritekstTilVedtaksbrev
+            get() = getFritekstTilBrev().getOrElse {
+                throw IllegalStateException("Vi har ikke fått lagret fritekst for klage $id")
+            }
 
         override fun erÅpen() = true
 
         override fun getFritekstTilBrev() = vurderinger.fritekstTilOversendelsesbrev.right()
 
         /**
-         * @param attestant kaster IllegalArgumentException dersom denne er null.
+         * @param utførtAv forventes at denne er NavIdentBruker.Attestant
          */
         override fun lagBrevRequest(
             utførtAv: NavIdentBruker,
-            hentNavnForNavIdent: (saksbehandler: NavIdentBruker) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
             hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
-            hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
-            clock: Clock,
-        ): Either<KunneIkkeLageBrevRequestForKlage, LagBrevRequest.Klage> {
+        ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
             utførtAv as NavIdentBruker.Attestant
-            return genererOversendelsesBrev(utførtAv, hentNavnForNavIdent, hentVedtaksbrevDato, hentPerson, clock)
+            return genererOversendelsesBrev(
+                attestant = utførtAv,
+                hentVedtaksbrevDato = hentVedtaksbrevDato,
+            )
         }
 
         override fun underkjenn(

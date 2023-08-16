@@ -6,14 +6,13 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.visitor.Visitable
 
 /**
  * Vedtak som er knyttet til:
  * - en stønadsperiode (søknadsbehandlinger)
  * - en periode som kan være deler av en stønadsperiode eller på tvers av stønadsperioder (revurdering)
  */
-sealed interface Stønadsvedtak : Vedtak, Visitable<VedtakVisitor> {
+sealed interface Stønadsvedtak : Vedtak {
     val periode: Periode
     val behandling: Behandling
     val beregning: Beregning? get() = behandling.beregning

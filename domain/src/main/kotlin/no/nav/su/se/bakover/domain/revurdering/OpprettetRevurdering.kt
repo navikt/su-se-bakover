@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
+import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
@@ -16,7 +17,6 @@ import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurd
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.vilkår.opphold.KunneIkkeOppdatereLovligOppholdOgMarkereSomVurdert
-import no.nav.su.se.bakover.domain.revurdering.visitors.RevurderingVisitor
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
@@ -52,10 +52,6 @@ data class OpprettetRevurdering(
     override val erOpphørt = false
     override val beregning: Beregning? = null
     override val simulering: Simulering? = null
-
-    override fun accept(visitor: RevurderingVisitor) {
-        visitor.visit(this)
-    }
 
     override fun erÅpen() = true
 
@@ -157,4 +153,6 @@ data class OpprettetRevurdering(
             saksbehandler = saksbehandler,
         )
     }
+
+    override fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> = emptyList()
 }

@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.extensions.endOfMonth
 import no.nav.su.se.bakover.common.extensions.startOfMonth
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -37,8 +38,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadspe
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
-import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
-import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
@@ -77,7 +76,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         val mockedDokument = Dokument.UtenMetadata.Vedtak(
             opprettet = fixedTidspunkt,
             tittel = "testTittel",
-            generertDokument = "testData".toByteArray(),
+            generertDokument = PdfA("testData".toByteArray()),
             generertDokumentJson = """{"test":"data"}""",
         )
         AvslåSøknadServiceAndMocks(
@@ -95,7 +94,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 }.whenever(it).simulerUtbetaling(any(), any())
             },
             brevService = mock {
-                on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn mockedDokument.right()
+                on { lagDokument(any()) } doReturn mockedDokument.right()
             },
         ).let { serviceAndMocks ->
             val actualSak = serviceAndMocks.service.avslå(
@@ -224,7 +223,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         val mockedDokument = Dokument.UtenMetadata.Vedtak(
             opprettet = fixedTidspunkt,
             tittel = "testTittel",
-            generertDokument = "testData".toByteArray(),
+            generertDokument = PdfA("testData".toByteArray()),
             generertDokumentJson = """{"test":"data"}""",
         )
 
@@ -243,7 +242,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 }.whenever(it).simulerUtbetaling(any(), any())
             },
             brevService = mock {
-                on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn mockedDokument.right()
+                on { lagDokument(any()) } doReturn mockedDokument.right()
             },
         ).let { serviceAndMocks ->
 

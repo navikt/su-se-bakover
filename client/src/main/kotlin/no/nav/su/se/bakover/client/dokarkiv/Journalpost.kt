@@ -1,10 +1,11 @@
 package no.nav.su.se.bakover.client.dokarkiv
 
 import no.nav.su.se.bakover.client.dokarkiv.JournalpostDokument.Companion.lagDokumenterForJournalpost
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Behandlingstema
 import no.nav.su.se.bakover.domain.Tema
-import no.nav.su.se.bakover.domain.brev.PdfInnhold
+import no.nav.su.se.bakover.domain.brev.jsonRequest.PdfInnhold
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.SakInfo
@@ -66,7 +67,7 @@ sealed class Journalpost {
                 person: Person,
                 saksnummer: Saksnummer,
                 søknadInnhold: SøknadInnhold,
-                pdf: ByteArray,
+                pdf: PdfA,
             ): Søknadspost = Søknadspost(
                 person = person,
                 saksnummer = saksnummer,
@@ -102,7 +103,7 @@ sealed class Journalpost {
                 person: Person,
                 saksnummer: Saksnummer,
                 pdfInnhold: PdfInnhold,
-                pdf: ByteArray,
+                pdf: PdfA,
                 sakstype: Sakstype,
             ) = Vedtakspost(
                 person = person,
@@ -158,7 +159,7 @@ sealed class Journalpost {
                 sakInfo: SakInfo,
                 person: Person,
                 tittel: String,
-                pdf: ByteArray,
+                pdf: PdfA,
                 originalDokumentJson: String,
             ) = Info(
                 person = person,
@@ -176,7 +177,7 @@ sealed class Journalpost {
                 person: Person,
                 saksnummer: Saksnummer,
                 pdfInnhold: PdfInnhold,
-                pdf: ByteArray,
+                pdf: PdfA,
                 sakstype: Sakstype,
             ) = Info(
                 person = person,
@@ -247,7 +248,7 @@ data class JournalpostDokument(
 ) {
     companion object {
         internal fun lagDokumenterForJournalpost(
-            pdf: ByteArray,
+            pdf: PdfA,
             søknadInnhold: SøknadInnhold,
         ): List<JournalpostDokument> = lagDokumenterForJournalpost(
             tittel = Journalpost.Søknadspost.lagTittel(søknadInnhold.type()),
@@ -257,14 +258,14 @@ data class JournalpostDokument(
 
         internal fun lagDokumenterForJournalpost(
             tittel: String,
-            pdf: ByteArray,
+            pdf: PdfA,
             originalJson: String,
         ): List<JournalpostDokument> =
             listOf(
                 JournalpostDokument(
                     tittel = tittel,
                     dokumentvarianter = listOf(
-                        DokumentVariant.ArkivPDF(Base64.getEncoder().encodeToString(pdf)),
+                        DokumentVariant.ArkivPDF(Base64.getEncoder().encodeToString(pdf.getContent())),
                         DokumentVariant.OriginalJson(Base64.getEncoder().encodeToString(originalJson.toByteArray())),
                     ),
                 ),

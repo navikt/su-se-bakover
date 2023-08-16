@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.dokument
 
 import kotliquery.Row
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresTransactionContext.Companion.withTransaction
@@ -43,7 +44,7 @@ internal class DokumentPostgresRepo(
                             "id" to dokument.id,
                             "opprettet" to dokument.opprettet,
                             "sakId" to dokument.metadata.sakId,
-                            "generertDokument" to dokument.generertDokument,
+                            "generertDokument" to dokument.generertDokument.getContent(),
                             // Dette er allerede gyldig json lagret som en String.
                             "generertDokumentJson" to dokument.generertDokumentJson,
                             "type" to when (dokument) {
@@ -259,7 +260,7 @@ internal class DokumentPostgresRepo(
         val type = DokumentKategori.valueOf(string("type"))
         val id = uuid("id")
         val opprettet = tidspunkt("opprettet")
-        val innhold = bytes("generertDokument")
+        val innhold = PdfA(bytes("generertDokument"))
         val request = string("generertDokumentJson")
         val sakId = uuid("sakid")
         val søknadId = uuidOrNull("søknadId")

@@ -24,8 +24,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkePers
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSaksbehandlerEllerAttestant
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeVedtak
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.feilVedHentingAvAttestantNavn
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.feilVedHentingAvSaksbehandlerNavn
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.feilVedHentingAvVedtakDato
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstand
@@ -45,8 +43,7 @@ import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkeTilknytningTilSak
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
-import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
-import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequestForKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevKommandoForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
@@ -55,13 +52,14 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenneKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
+import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevForKlage
+import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
-import no.nav.su.se.bakover.service.klage.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
-import no.nav.su.se.bakover.web.routes.person.tilResultat
+import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import java.time.Clock
 import java.time.LocalDate
@@ -252,18 +250,22 @@ internal fun Route.klageRoutes(
                         "Kan ikke velge både omgjør og oppretthold.",
                         "kan_ikke_velge_både_omgjør_og_oppretthold",
                     )
+
                     KunneIkkeVurdereKlage.UgyldigOmgjøringsutfall -> BadRequest.errorJson(
                         "Ugyldig omgjøringsutfall",
                         "ugyldig_omgjøringsutfall",
                     )
+
                     KunneIkkeVurdereKlage.UgyldigOmgjøringsårsak -> BadRequest.errorJson(
                         "Ugyldig omgjøringsårsak",
                         "ugyldig_omgjøringsårsak",
                     )
+
                     KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler -> BadRequest.errorJson(
                         "Ugyldig opprettholdelseshjemler",
                         "ugyldig_opprettholdelseshjemler",
                     )
+
                     is KunneIkkeVurdereKlage.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
                 }
             }
@@ -384,7 +386,11 @@ internal fun Route.klageRoutes(
                             call.svar(
                                 when (error) {
                                     KunneIkkeUnderkjenneKlage.FantIkkeKlage -> fantIkkeKlage
-                                    is KunneIkkeUnderkjenneKlage.UgyldigTilstand -> ugyldigTilstand(error.fra, error.til)
+                                    is KunneIkkeUnderkjenneKlage.UgyldigTilstand -> ugyldigTilstand(
+                                        error.fra,
+                                        error.til,
+                                    )
+
                                     KunneIkkeUnderkjenneKlage.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
                                     KunneIkkeUnderkjenneKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
                                 },
@@ -415,16 +421,18 @@ internal fun Route.klageRoutes(
                             KunneIkkeOversendeKlage.FantIkkeKlage -> fantIkkeKlage
                             is KunneIkkeOversendeKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
                             KunneIkkeOversendeKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
-                            is KunneIkkeOversendeKlage.KunneIkkeLageBrev -> it.feil.toErrorJson()
                             KunneIkkeOversendeKlage.FantIkkeJournalpostIdKnyttetTilVedtaket -> InternalServerError.errorJson(
                                 "Fant ikke journalpost-id knyttet til vedtaket. Utviklingsteamet ønsker og bli informert dersom dette oppstår.",
                                 "fant_ikke_journalpostid_knyttet_til_vedtaket",
                             )
+
                             KunneIkkeOversendeKlage.KunneIkkeOversendeTilKlageinstans -> InternalServerError.errorJson(
                                 "Kunne ikke oversende til klageinstans",
                                 "kunne_ikke_oversende_til_klageinstans",
                             )
+
                             is KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest -> it.feil.toErrorJson()
+                            is KunneIkkeOversendeKlage.KunneIkkeLageDokument -> it.feil.tilResultat()
                         },
                     )
                 }
@@ -448,7 +456,7 @@ internal fun Route.klageRoutes(
                     val resultat = when (it) {
                         KunneIkkeIverksetteAvvistKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
                         KunneIkkeIverksetteAvvistKlage.FantIkkeKlage -> fantIkkeKlage
-                        is KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrev -> it.feil.toErrorJson()
+                        is KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrev -> it.feil.tilResultat()
                         is KunneIkkeIverksetteAvvistKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
                         KunneIkkeIverksetteAvvistKlage.FeilVedLagringAvDokumentOgKlage -> InternalServerError.errorJson(
                             "Feil ved lagrinng av brev/klagen",
@@ -492,7 +500,7 @@ internal fun Route.klageRoutes(
 /**
  * Klienten er ikke skyld i FantIkkePerson, FantIkkeSaksbehandler, FantIkkeVedtakKnyttetTilKlagen og KunneIkkeGenererePDF (det er ikke knyttet til input klienten sender inn) derfor mappes de til InternalServerError.
  */
-private fun KunneIkkeLageBrevForKlage.toErrorJson(): Resultat {
+fun KunneIkkeLageBrevForKlage.toErrorJson(): Resultat {
     return when (this) {
         KunneIkkeLageBrevForKlage.FantIkkePerson -> fantIkkePerson.copy(httpCode = InternalServerError)
         KunneIkkeLageBrevForKlage.FantIkkeSaksbehandler -> fantIkkeSaksbehandlerEllerAttestant.copy(httpCode = InternalServerError)
@@ -502,55 +510,58 @@ private fun KunneIkkeLageBrevForKlage.toErrorJson(): Resultat {
             "Kan ikke lagre brevutkast for tilstanden ${fra.simpleName}",
             "genererer_brev_fra_ugyldig_tilstand",
         )
+
         is KunneIkkeLageBrevForKlage.FeilVedBrevRequest -> this.feil.toErrorJson()
     }
 }
 
-private fun KunneIkkeLageBrevRequestForKlage.toErrorJson(): Resultat {
+fun KunneIkkeLageBrevKommandoForKlage.toErrorJson(): Resultat {
     return when (this) {
-        is KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvPerson -> this.personFeil.tilResultat()
-        is KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvSaksbehandlernavn -> feilVedHentingAvSaksbehandlerNavn
-        KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvVedtaksbrevDato,
+        KunneIkkeLageBrevKommandoForKlage.FeilVedHentingAvVedtaksbrevDato,
         -> feilVedHentingAvVedtakDato
-        is KunneIkkeLageBrevRequestForKlage.UgyldigTilstand -> BadRequest.errorJson(
+
+        is KunneIkkeLageBrevKommandoForKlage.UgyldigTilstand -> BadRequest.errorJson(
             "Kan ikke gå fra tilstanden ${fra.simpleName}",
             "ugyldig_tilstand",
         )
-
-        is KunneIkkeLageBrevRequestForKlage.FeilVedHentingAvAttestantnavn -> feilVedHentingAvAttestantNavn
     }
 }
 
-private fun KunneIkkeLageBrevutkast.toErrorJson(): Resultat {
+fun KunneIkkeLageBrevutkast.toErrorJson(): Resultat {
     return when (this) {
         KunneIkkeLageBrevutkast.FantIkkeKlage -> fantIkkeKlage
         is KunneIkkeLageBrevutkast.FeilVedBrevRequest -> this.feil.toErrorJson()
-        is KunneIkkeLageBrevutkast.GenereringAvBrevFeilet -> this.feil.toErrorJson()
+        is KunneIkkeLageBrevutkast.KunneIkkeGenererePdf -> this.feil.tilResultat()
     }
 }
 
-private fun KunneIkkeSjekkeTilknytningTilSak.toErrorJson(): Resultat {
+fun KunneIkkeSjekkeTilknytningTilSak.toErrorJson(): Resultat {
     return when (this) {
         KunneIkkeSjekkeTilknytningTilSak.FantIkkeJournalpost -> BadRequest.errorJson(
             "Fant ikke journalpost",
             "fant_ikke_journalpost",
         )
+
         KunneIkkeSjekkeTilknytningTilSak.IkkeTilgang -> Unauthorized.errorJson(
             "Ikke tilgang til Journalpost",
             "ikke_tilgang_til_journalpost",
         )
+
         KunneIkkeSjekkeTilknytningTilSak.TekniskFeil -> InternalServerError.errorJson(
             "Teknisk feil ved henting av journalpost",
             "teknisk_feil_ved_henting_av_journalpost",
         )
+
         KunneIkkeSjekkeTilknytningTilSak.Ukjent -> InternalServerError.errorJson(
             "Ukjent feil ved henting av journalpost",
             "ukjent_feil_ved_henting_av_journalpost",
         )
+
         KunneIkkeSjekkeTilknytningTilSak.UgyldigInput -> BadRequest.errorJson(
             "Ugyldig journalpostId",
             "ugyldig_journalpostId",
         )
+
         KunneIkkeSjekkeTilknytningTilSak.JournalpostIkkeKnyttetTilSak -> BadRequest.errorJson(
             "Journalposten er ikke knyttet til saken",
             "journalpost_ikke_knyttet_til_sak",

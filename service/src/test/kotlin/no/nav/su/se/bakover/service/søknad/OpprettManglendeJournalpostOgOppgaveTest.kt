@@ -5,6 +5,7 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.AktørId
@@ -234,7 +235,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
     @Test
     fun `happy case`() {
         val oppgaveId = OppgaveId("1")
-        val pdf = "pdf-data".toByteArray()
+        val pdf = PdfA("pdf-data".toByteArray())
 
         SøknadServiceOgMocks(
             søknadRepo = mock {

@@ -3,16 +3,19 @@ package no.nav.su.se.bakover.service.revurdering
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.beOfType
+import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
+import no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
+import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForRevurdering
-import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
-import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.opprettetRevurdering
+import no.nav.su.se.bakover.test.pdfATom
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.tikkendeFixedClock
@@ -24,13 +27,12 @@ import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import java.lang.IllegalArgumentException
 
 internal class LagBrevutkastForRevurderingTest {
 
     @Test
     fun `lagBrevutkast - kan lage brev`() {
-        val brevPdf = "".toByteArray()
-
         val simulertRevurdering = simulertRevurdering().second
 
         RevurderingServiceMocks(
@@ -38,10 +40,10 @@ internal class LagBrevutkastForRevurderingTest {
                 on { hent(revurderingId) } doReturn simulertRevurdering
             },
             brevService = mock {
-                on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn Dokument.UtenMetadata.Vedtak(
+                on { lagDokument(any()) } doReturn Dokument.UtenMetadata.Vedtak(
                     opprettet = fixedTidspunkt,
                     tittel = "tittel1",
-                    generertDokument = brevPdf,
+                    generertDokument = pdfATom(),
                     generertDokumentJson = "brev",
                 ).right()
             },
@@ -49,13 +51,13 @@ internal class LagBrevutkastForRevurderingTest {
             it.revurderingService.lagBrevutkastForRevurdering(
                 revurderingId = revurderingId,
                 fritekst = "",
-            ) shouldBe brevPdf.right()
+            ) shouldBe pdfATom().right()
 
             inOrder(
                 *it.all(),
             ) {
                 verify(it.revurderingRepo).hent(argThat { it shouldBe revurderingId })
-                verify(it.brevService).lagDokument(argThat<Visitable<LagBrevRequestVisitor>> { it shouldBe simulertRevurdering })
+                verify(it.brevService).lagDokument(argThat { it shouldBe beOfType<IverksettRevurderingDokumentCommand.Inntekt>() })
                 it.verifyNoMoreInteractions()
             }
         }
@@ -69,19 +71,29 @@ internal class LagBrevutkastForRevurderingTest {
                 on { hent(revurderingId) } doReturn revurdering
             },
             brevService = mock {
-                on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeHentePerson.left()
+                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
+                    FeilVedHentingAvInformasjon.KunneIkkeHentePerson(
+                        no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.FantIkkePerson,
+                    ),
+                ).left()
             },
         ).let {
             it.revurderingService.lagBrevutkastForRevurdering(
                 revurderingId = revurderingId,
                 fritekst = "",
-            ) shouldBe KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson.left()
+            ) shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(
+                KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
+                    FeilVedHentingAvInformasjon.KunneIkkeHentePerson(
+                        no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.FantIkkePerson,
+                    ),
+                ),
+            ).left()
 
             inOrder(
                 *it.all(),
             ) {
                 verify(it.revurderingRepo).hent(argThat { it shouldBe revurderingId })
-                verify(it.brevService).lagDokument(argThat<Visitable<LagBrevRequestVisitor>> { it shouldBe revurdering })
+                verify(it.brevService).lagDokument(any())
                 it.verifyNoMoreInteractions()
             }
         }
@@ -95,19 +107,30 @@ internal class LagBrevutkastForRevurderingTest {
                 on { hent(revurderingId) } doReturn revurdering
             },
             brevService = mock {
-                on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
+                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
+                    FeilVedHentingAvInformasjon.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(
+                        KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent,
+
+                    ),
+                ).left()
             },
         ).let {
             it.revurderingService.lagBrevutkastForRevurdering(
                 revurderingId = revurderingId,
                 fritekst = "",
-            ) shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
+            ) shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(
+                KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
+                    FeilVedHentingAvInformasjon.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(
+                        KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent,
+                    ),
+                ),
+            ).left()
 
             inOrder(
                 *it.all(),
             ) {
                 verify(it.revurderingRepo).hent(argThat { it shouldBe revurderingId })
-                verify(it.brevService).lagDokument(argThat<Visitable<LagBrevRequestVisitor>> { it shouldBe revurdering })
+                verify(it.brevService).lagDokument(any())
                 it.verifyNoMoreInteractions()
             }
         }
@@ -121,19 +144,21 @@ internal class LagBrevutkastForRevurderingTest {
                 on { hent(revurderingId) } doReturn revurdering
             },
             brevService = mock {
-                on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
+                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
             },
         ).let {
             it.revurderingService.lagBrevutkastForRevurdering(
                 revurderingId = revurderingId,
                 fritekst = "",
-            ) shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast.left()
+            ) shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(
+                KunneIkkeLageDokument.FeilVedGenereringAvPdf,
+            ).left()
 
             inOrder(
                 *it.all(),
             ) {
                 verify(it.revurderingRepo).hent(argThat { it shouldBe revurderingId })
-                verify(it.brevService).lagDokument(argThat<Visitable<LagBrevRequestVisitor>> { it shouldBe revurdering })
+                verify(it.brevService).lagDokument(any())
                 it.verifyNoMoreInteractions()
             }
         }
@@ -143,15 +168,13 @@ internal class LagBrevutkastForRevurderingTest {
     fun `kan ikke lage brev med status opprettet`() {
         val (_, opprettetRevurdering) = opprettetRevurdering()
 
-        assertThrows<LagBrevRequestVisitor.KanIkkeLageBrevrequestForInstans> {
+        assertThrows<IllegalArgumentException> {
             RevurderingServiceMocks(
                 revurderingRepo = mock {
                     on { hent(any()) } doReturn opprettetRevurdering
                 },
                 brevService = mock {
-                    on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doThrow LagBrevRequestVisitor.KanIkkeLageBrevrequestForInstans(
-                        opprettetRevurdering::class,
-                    )
+                    on { lagDokument(any()) } doThrow IllegalArgumentException("fra en test")
                 },
             ).let {
                 it.revurderingService.lagBrevutkastForRevurdering(
@@ -172,15 +195,13 @@ internal class LagBrevutkastForRevurderingTest {
             clock = clock,
         ).second
 
-        assertThrows<LagBrevRequestVisitor.KanIkkeLageBrevrequestForInstans> {
+        assertThrows<IllegalArgumentException> {
             RevurderingServiceMocks(
                 revurderingRepo = mock {
                     on { hent(any()) } doReturn beregnget
                 },
                 brevService = mock {
-                    on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doThrow LagBrevRequestVisitor.KanIkkeLageBrevrequestForInstans(
-                        beregnget::class,
-                    )
+                    on { lagDokument(any()) } doThrow IllegalArgumentException("fra en test")
                 },
             ).revurderingService.lagBrevutkastForRevurdering(
                 revurderingId = revurderingId,

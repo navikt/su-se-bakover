@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.pdfATom
 import no.nav.su.se.bakover.test.sakinfo
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -184,7 +185,7 @@ internal class DistribuerDokumentServiceTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             tittel = "tittel",
-            generertDokument = "".toByteArray(),
+            generertDokument = pdfATom(),
             generertDokumentJson = "{}",
             metadata = Dokument.Metadata(sakId = sakinfo.sakId),
         ),

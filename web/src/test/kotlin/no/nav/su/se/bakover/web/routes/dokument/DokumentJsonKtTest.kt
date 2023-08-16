@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.dokument
 
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.dokument.Dokument
@@ -25,7 +26,7 @@ internal class DokumentJsonKtTest {
             id = UUID.fromString("5ea19f74-7363-47ee-a8d7-5abf3a261817"),
             opprettet = Tidspunkt.EPOCH,
             tittel = "vedtak om json",
-            generertDokument = "dokumentet".toByteArray(),
+            generertDokument = PdfA("dokumentet".toByteArray()),
             generertDokumentJson = "{}",
         )
 
@@ -51,7 +52,7 @@ internal class DokumentJsonKtTest {
             id = UUID.fromString("5ea19f74-7363-47ee-a8d7-5abf3a261817"),
             opprettet = Tidspunkt.EPOCH,
             tittel = "vedtak om json",
-            generertDokument = "dokumentet".toByteArray(),
+            generertDokument = PdfA("dokumentet".toByteArray()),
             generertDokumentJson = "{}",
         )
 

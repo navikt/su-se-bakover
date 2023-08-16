@@ -6,6 +6,7 @@ import arrow.core.raise.either
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -15,9 +16,8 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.innvilg.iverksettInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.opphør.medUtbetaling.iverksettOpphørtRevurderingMedUtbetaling
 import no.nav.su.se.bakover.domain.revurdering.iverksett.opphør.utenUtbetaling.iverksettOpphørtRevurderingUtenUtbetaling
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.Revurderingsvedtak
-import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
-import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 import java.util.UUID
 
@@ -25,8 +25,9 @@ fun Sak.iverksettRevurdering(
     revurderingId: UUID,
     attestant: NavIdentBruker.Attestant,
     clock: Clock,
+    satsFactory: SatsFactory,
     simuler: (utbetaling: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
-    lagDokument: (visitable: Visitable<LagBrevRequestVisitor>) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
+    lagDokument: (command: IverksettRevurderingDokumentCommand) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
 ): Either<KunneIkkeIverksetteRevurdering.Saksfeil, IverksettRevurderingResponse<Revurderingsvedtak>> {
     return either {
         val revurdering = finnRevurderingOgValiderTilstand(revurderingId).bind()
@@ -46,6 +47,7 @@ fun Sak.iverksettRevurdering(
                         clock = clock,
                         simuler = simuler,
                         lagDokument = lagDokument,
+                        satsFactory = satsFactory,
                     )
                 } else {
                     iverksettOpphørtRevurderingMedUtbetaling(

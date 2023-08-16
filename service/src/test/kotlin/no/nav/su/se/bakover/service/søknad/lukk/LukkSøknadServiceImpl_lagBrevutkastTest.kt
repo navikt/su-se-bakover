@@ -5,18 +5,15 @@ import arrow.core.right
 import io.kotest.assertions.fail
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.extensions.januar
+import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.BrevService
-import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrev
-import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
+import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
+import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
-import no.nav.su.se.bakover.domain.person.IdentClient
-import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -30,10 +27,8 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.bortfallSøknad
-import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedLocalDate
-import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.person
+import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
+import no.nav.su.se.bakover.test.pdfATom
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.trekkSøknad
 import org.junit.jupiter.api.Test
@@ -43,11 +38,7 @@ import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
-import java.time.Clock
 import java.util.UUID
-
-private val pdf = "".toByteArray()
-private const val saksbehandlernavn = "Testbruker, Lokal"
 
 internal class LukkSøknadServiceImpl_lagBrevutkastTest {
 
@@ -88,31 +79,6 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
     }
 
     @Test
-    fun `fant ikke person`() {
-        val (sak, søknad) = nySakMedjournalførtSøknadOgOppgave()
-
-        ServiceOgMocks(
-            sak = sak,
-            søknad = søknad,
-            lukkSøknadCommand = trekkSøknad(søknad.id),
-            personService = mock {
-                on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
-            },
-        ).let { serviceAndMocks ->
-            shouldThrow<RuntimeException> {
-                serviceAndMocks.lagBrevutkast()
-            }.message shouldBe "Kunne ikke lage brevutkast for lukk søknad med søknadId ${søknad.id} - fant ikke person. Underliggende feil: FantIkkePerson"
-            inOrder(
-                *serviceAndMocks.allMocks,
-            ) {
-                serviceAndMocks.verifyHentSøknad()
-                serviceAndMocks.verifyHentPerson()
-            }
-            serviceAndMocks.verifyNoMoreInteractions()
-        }
-    }
-
-    @Test
     fun `fant ikke saksnummer`() {
         val (sak, søknad) = nySakMedjournalførtSøknadOgOppgave()
 
@@ -131,8 +97,6 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
                 *serviceAndMocks.allMocks,
             ) {
                 serviceAndMocks.verifyHentSøknad()
-                serviceAndMocks.verifyHentPerson()
-                serviceAndMocks.verifyHentNavnForNavIdent()
                 serviceAndMocks.verifyHentSakIdOgSaksnummer()
             }
             serviceAndMocks.verifyNoMoreInteractions()
@@ -148,20 +112,18 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
             søknad = søknad,
             lukkSøknadCommand = trekkSøknad(søknad.id),
             brevService = mock {
-                on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
+                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
             },
 
         ).let { serviceAndMocks ->
 
             shouldThrow<IllegalArgumentException> {
                 serviceAndMocks.lagBrevutkast()
-            }.message shouldBe "Kunne ikke lage brevutkast for lukk søknad med søknadId ${søknad.id} - feil ved generering av brev. Underliggende feil: KunneIkkeGenererePDF"
+            }.message shouldBe "Kunne ikke lage brevutkast for lukk søknad med søknadId ${søknad.id} - feil ved generering av brev. Underliggende feil: FeilVedGenereringAvPdf"
             inOrder(
                 *serviceAndMocks.allMocks,
             ) {
                 serviceAndMocks.verifyHentSøknad()
-                serviceAndMocks.verifyHentPerson()
-                serviceAndMocks.verifyHentNavnForNavIdent()
                 serviceAndMocks.verifyHentSakIdOgSaksnummer()
                 serviceAndMocks.verifyLagBrev()
             }
@@ -177,20 +139,15 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
             sak = sak,
             søknad = søknad,
             lukkSøknadCommand = trekkSøknad(søknad.id),
-            identClient = mock {
-                on { hentNavnForNavIdent(any()) } doReturn KunneIkkeHenteNavnForNavIdent.FeilVedHentingAvOnBehalfOfToken.left()
-            },
         ).let { serviceAndMocks ->
-            serviceAndMocks.lagBrevutkast() shouldBe Pair(sak.fnr, pdf)
+            serviceAndMocks.lagBrevutkast() shouldBe Pair(sak.fnr, pdfATom())
 
             inOrder(
                 *serviceAndMocks.allMocks,
             ) {
                 serviceAndMocks.verifyHentSøknad()
-                serviceAndMocks.verifyHentPerson()
-                serviceAndMocks.verifyHentNavnForNavIdent()
                 serviceAndMocks.verifyHentSakIdOgSaksnummer()
-                serviceAndMocks.verifyLagBrev(saksbehandlerNavn = "")
+                serviceAndMocks.verifyLagBrev() // saksbehandlerNavn = ""
             }
             serviceAndMocks.verifyNoMoreInteractions()
         }
@@ -205,15 +162,13 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
             søknad = søknad,
             lukkSøknadCommand = trekkSøknad(søknad.id),
         ).let { serviceAndMocks ->
-            serviceAndMocks.lagBrevutkast() shouldBe Pair(sak.fnr, pdf)
+            serviceAndMocks.lagBrevutkast() shouldBe Pair(sak.fnr, pdfATom())
 
             inOrder(
                 *serviceAndMocks.allMocks,
             ) {
                 serviceAndMocks.verifyHentSøknad()
-                serviceAndMocks.verifyHentPerson()
                 serviceAndMocks.verifyLagBrev()
-                serviceAndMocks.verifyHentNavnForNavIdent()
                 serviceAndMocks.verifyHentSakIdOgSaksnummer()
                 serviceAndMocks.verifyLagBrev()
             }
@@ -242,17 +197,8 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
             }
         },
         private val brevService: BrevService = mock {
-            on { lagBrev(any()) } doReturn pdf.right()
+            on { lagDokument(any()) } doReturn dokumentUtenMetadataVedtak().right()
         },
-        private val personService: PersonService = mock {
-            if (sak != null) {
-                on { hentPerson(any()) } doReturn person(sak.fnr).right()
-            }
-        },
-        private val identClient: IdentClient = mock {
-            on { hentNavnForNavIdent(any()) } doReturn saksbehandlernavn.right()
-        },
-        clock: Clock = fixedClock,
         sessionFactory: SessionFactory = TestSessionFactory(),
         private val lukkSøknadServiceObserver: StatistikkEventObserver = mock(),
     ) {
@@ -272,10 +218,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
             sakService = sakService,
             brevService = brevService,
             oppgaveService = oppgaveService,
-            personService = personService,
             søknadsbehandlingService = søknadsbehandlingService,
-            identClient = identClient,
-            clock = clock,
             sessionFactory = sessionFactory,
         ).apply { addObserver(lukkSøknadServiceObserver) }
 
@@ -284,13 +227,11 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
             sakService,
             brevService,
             oppgaveService,
-            personService,
             søknadsbehandlingService,
-            identClient,
             lukkSøknadServiceObserver,
         ).toTypedArray()
 
-        fun lagBrevutkast(): Pair<Fnr, ByteArray> = lukkSøknadService.lagBrevutkast(
+        fun lagBrevutkast(): Pair<Fnr, PdfA> = lukkSøknadService.lagBrevutkast(
             lukkSøknadCommand,
         )
 
@@ -298,30 +239,21 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
             verify(søknadService).hentSøknad(argThat { it shouldBe søknadId })
         }
 
-        fun verifyHentNavnForNavIdent() {
-            verify(identClient).hentNavnForNavIdent(argThat { it shouldBe lukkSøknadCommand.saksbehandler })
-        }
-
-        fun verifyHentPerson() {
-            verify(personService).hentPerson(argThat { it shouldBe sak!!.fnr })
-        }
-
         fun verifyHentSakIdOgSaksnummer() {
             verify(sakService).hentSakidOgSaksnummer(argThat { it shouldBe sak!!.fnr })
         }
 
         fun verifyLagBrev(
-            saksbehandlerNavn: String = saksbehandlernavn,
+            // saksbehandlerNavn: String = saksbehandlernavn,
         ) {
-            verify(brevService).lagBrev(
+            verify(brevService).lagDokument(
                 argThat {
-                    it shouldBe TrukketSøknadBrevRequest(
-                        person = person(fnr = sak!!.fnr),
-                        trukketDato = 1.januar(2021),
-                        saksbehandlerNavn = saksbehandlerNavn,
-                        dagensDato = fixedLocalDate,
+                    it shouldBe TrukketSøknadDokumentCommand(
+                        fødselsnummer = sak!!.fnr,
                         saksnummer = sak.saksnummer,
-                        søknadOpprettet = fixedTidspunkt,
+                        saksbehandler = lukkSøknadCommand.saksbehandler,
+                        trukketDato = lukkSøknadCommand.lukketTidspunkt.toLocalDate(zoneIdOslo),
+                        søknadOpprettet = søknad!!.opprettet,
                     )
                 },
             )

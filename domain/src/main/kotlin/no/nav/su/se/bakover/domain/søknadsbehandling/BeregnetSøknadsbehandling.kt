@@ -139,10 +139,6 @@ sealed interface BeregnetSøknadsbehandling :
             kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
             grunnlagsdata.kastHvisIkkeAlleBosituasjonerErFullstendig()
         }
-
-        override fun accept(visitor: SøknadsbehandlingVisitor) {
-            visitor.visit(this)
-        }
     }
 
     data class Avslag(
@@ -161,7 +157,7 @@ sealed interface BeregnetSøknadsbehandling :
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
-    ) : BeregnetSøknadsbehandling, ErAvslag, KanSendesTilAttestering {
+    ) : BeregnetSøknadsbehandling, ErAvslag, KanSendesTilAttestering, KanGenerereAvslagsbrev {
 
         override val periode: Periode = aldersvurdering.stønadsperiode.periode
 
@@ -195,10 +191,6 @@ sealed interface BeregnetSøknadsbehandling :
 
         override fun skalSendeVedtaksbrev(): Boolean {
             return true
-        }
-
-        override fun accept(visitor: SøknadsbehandlingVisitor) {
-            visitor.visit(this)
         }
 
         override fun tilAttestering(

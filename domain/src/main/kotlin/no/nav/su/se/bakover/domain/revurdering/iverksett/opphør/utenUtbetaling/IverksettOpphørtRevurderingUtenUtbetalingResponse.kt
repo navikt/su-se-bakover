@@ -25,10 +25,13 @@ import java.util.UUID
 
 private val log = LoggerFactory.getLogger("IverksettOpphørtRevurderingResponse")
 
+/**
+ * @param dokument dersom null, skal det ikke genereres/sendes brev.
+ */
 data class IverksettOpphørtRevurderingUtenUtbetalingResponse(
     override val sak: Sak,
     override val vedtak: VedtakOpphørAvkorting,
-    val dokument: Dokument.MedMetadata,
+    val dokument: Dokument.MedMetadata?,
 ) : IverksettRevurderingResponse<Opphørsvedtak> {
 
     override val utbetaling: Utbetaling.SimulertUtbetaling? = null
@@ -59,7 +62,9 @@ data class IverksettOpphørtRevurderingUtenUtbetalingResponse(
                 lagreVedtak(vedtak, tx)
                 annullerKontrollsamtale(sak.id, tx)
                 lagreRevurdering(vedtak.behandling, tx)
-                lagreDokument(dokument, tx)
+                if (dokument != null) {
+                    lagreDokument(dokument, tx)
+                }
                 vedtak.behandling
             }
         }.onRight { revurdering ->

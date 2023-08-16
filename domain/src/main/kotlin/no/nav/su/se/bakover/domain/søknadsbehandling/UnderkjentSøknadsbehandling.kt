@@ -40,7 +40,8 @@ import java.util.UUID
 sealed interface UnderkjentSøknadsbehandling :
     Søknadsbehandling,
     KanOppdaterePeriodeBosituasjonVilkår,
-    KanSendesTilAttestering {
+    KanSendesTilAttestering,
+    KanGenerereBrev {
     abstract override val id: UUID
     abstract override val opprettet: Tidspunkt
     abstract override val sakId: UUID
@@ -75,7 +76,11 @@ sealed interface UnderkjentSøknadsbehandling :
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
         override val avkorting: AvkortingVedSøknadsbehandling.KlarTilIverksetting,
         override val sakstype: Sakstype,
-    ) : UnderkjentSøknadsbehandling, KanBeregnes, KanSimuleres, KanOppdatereFradragsgrunnlag {
+    ) : UnderkjentSøknadsbehandling,
+        KanBeregnes,
+        KanSimuleres,
+        KanOppdatereFradragsgrunnlag,
+        KanGenerereInnvilgelsesbrev {
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
         override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, Innvilget> {
@@ -97,10 +102,6 @@ sealed interface UnderkjentSøknadsbehandling :
 
         override fun nyOppgaveId(nyOppgaveId: OppgaveId): Innvilget {
             return this.copy(oppgaveId = nyOppgaveId)
-        }
-
-        override fun accept(visitor: SøknadsbehandlingVisitor) {
-            visitor.visit(this)
         }
 
         override fun skalSendeVedtaksbrev(): Boolean {
@@ -200,7 +201,7 @@ sealed interface UnderkjentSøknadsbehandling :
         }
     }
 
-    sealed interface Avslag : UnderkjentSøknadsbehandling, ErAvslag {
+    sealed interface Avslag : UnderkjentSøknadsbehandling, ErAvslag, KanGenerereAvslagsbrev {
 
         override val avkorting: AvkortingVedSøknadsbehandling.IngenAvkorting get() = AvkortingVedSøknadsbehandling.IngenAvkorting
 
@@ -220,7 +221,7 @@ sealed interface UnderkjentSøknadsbehandling :
             override val aldersvurdering: Aldersvurdering,
             override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             override val sakstype: Sakstype,
-        ) : Avslag, KanBeregnes, KanSendesTilAttestering, KanOppdatereFradragsgrunnlag {
+        ) : Avslag, KanBeregnes, KanSendesTilAttestering, KanOppdatereFradragsgrunnlag, KanGenerereAvslagsbrev {
 
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
             override val simulering: Simulering? = null
@@ -254,10 +255,6 @@ sealed interface UnderkjentSøknadsbehandling :
 
             override fun nyOppgaveId(nyOppgaveId: OppgaveId): MedBeregning {
                 return this.copy(oppgaveId = nyOppgaveId)
-            }
-
-            override fun accept(visitor: SøknadsbehandlingVisitor) {
-                visitor.visit(this)
             }
 
             override fun tilAttestering(
@@ -343,10 +340,6 @@ sealed interface UnderkjentSøknadsbehandling :
 
             override fun nyOppgaveId(nyOppgaveId: OppgaveId): UtenBeregning {
                 return this.copy(oppgaveId = nyOppgaveId)
-            }
-
-            override fun accept(visitor: SøknadsbehandlingVisitor) {
-                visitor.visit(this)
             }
 
             override fun tilAttestering(

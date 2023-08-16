@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.pdfATom
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -24,7 +25,6 @@ internal class JournalpostFactoryTest {
         on { navn } doReturn Person.Navn("fornavn", "mellomnavn", "etternavn")
     }
     private val saksnummer = Saksnummer(Random.nextLong(2021, Long.MAX_VALUE))
-    private val pdf = "".toByteArray()
 
     @Test
     fun `lager vedtakspost for vedtak dokumentkategori vedtak`() {
@@ -32,7 +32,7 @@ internal class JournalpostFactoryTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             tittel = "tittel",
-            generertDokument = "".toByteArray(),
+            generertDokument = pdfATom(),
             generertDokumentJson = """{"k":"v"}""",
             metadata = Dokument.Metadata(sakId = UUID.randomUUID()),
         )
@@ -49,7 +49,7 @@ internal class JournalpostFactoryTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             tittel = "tittel",
-            generertDokument = "".toByteArray(),
+            generertDokument = pdfATom(),
             generertDokumentJson = """{"k":"v"}""",
             metadata = Dokument.Metadata(sakId = UUID.randomUUID()),
         )
@@ -84,7 +84,7 @@ internal class JournalpostFactoryTest {
             JournalpostDokument(
                 tittel = tittel,
                 dokumentvarianter = listOf(
-                    DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
+                    DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdfATom().getContent())),
                     DokumentVariant.OriginalJson(
                         fysiskDokument = Base64.getEncoder().encodeToString(originalJson.toByteArray()),
                     ),

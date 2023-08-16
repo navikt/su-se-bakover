@@ -21,7 +21,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.brev.HentDokumenterForIdType
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.brev.command.GenererDokumentCommand
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -51,6 +51,7 @@ import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
+import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
 import no.nav.su.se.bakover.domain.oppdrag.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -145,6 +146,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.brev.utkast.BrevutkastForSøknadsbehandlingCommand
+import no.nav.su.se.bakover.domain.søknadsbehandling.brev.utkast.KunneIkkeGenerereBrevutkastForSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
@@ -181,8 +184,6 @@ import no.nav.su.se.bakover.domain.vilkår.pensjon.KunneIkkeLeggeTilPensjonsVilk
 import no.nav.su.se.bakover.domain.vilkår.pensjon.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
-import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
-import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeHenteKontrollsamtale
@@ -195,7 +196,6 @@ import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
-import no.nav.su.se.bakover.service.klage.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
@@ -406,7 +406,7 @@ open class AccessCheckProxy(
                     return services.søknad.hentSøknad(søknadId)
                 }
 
-                override fun hentSøknadPdf(søknadId: UUID): Either<KunneIkkeLageSøknadPdf, ByteArray> {
+                override fun hentSøknadPdf(søknadId: UUID): Either<KunneIkkeLageSøknadPdf, PdfA> {
                     assertHarTilgangTilSøknad(søknadId)
 
                     return services.søknad.hentSøknadPdf(søknadId)
@@ -419,9 +419,8 @@ open class AccessCheckProxy(
                 }
             },
             brev = object : BrevService {
-                override fun lagBrev(request: LagBrevRequest) = kastKanKunKallesFraAnnenService()
 
-                override fun lagDokument(request: LagBrevRequest): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
+                override fun lagDokument(command: GenererDokumentCommand): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
                     kastKanKunKallesFraAnnenService()
                 }
 
@@ -457,14 +456,6 @@ open class AccessCheckProxy(
                         return services.brev.hentDokumenterFor(hentDokumenterForIdType)
                     }
                 }
-
-                override fun lagDokument(
-                    visitable: Visitable<LagBrevRequestVisitor>,
-                ) = kastKanKunKallesFraAnnenService()
-
-                override fun lagBrevRequest(
-                    visitable: Visitable<LagBrevRequestVisitor>,
-                ) = kastKanKunKallesFraAnnenService()
             },
             lukkSøknad = object : LukkSøknadService {
                 override fun lukkSøknad(command: LukkSøknadCommand): Sak {
@@ -475,7 +466,7 @@ open class AccessCheckProxy(
 
                 override fun lagBrevutkast(
                     command: LukkSøknadCommand,
-                ): Pair<Fnr, ByteArray> {
+                ): Pair<Fnr, PdfA> {
                     assertHarTilgangTilSøknad(command.søknadId)
 
                     return services.lukkSøknad.lagBrevutkast(command)
@@ -553,9 +544,11 @@ open class AccessCheckProxy(
                         return service.underkjenn(request)
                     }
 
-                    override fun brev(request: SøknadsbehandlingService.BrevRequest): Either<KunneIkkeLageDokument, ByteArray> {
-                        assertHarTilgangTilBehandling(request.behandling.id)
-                        return service.brev(request)
+                    override fun genererBrevutkast(
+                        command: BrevutkastForSøknadsbehandlingCommand,
+                    ): Either<KunneIkkeGenerereBrevutkastForSøknadsbehandling, Pair<PdfA, Fnr>> {
+                        assertHarTilgangTilBehandling(command.søknadsbehandlingId)
+                        return service.genererBrevutkast(command)
                     }
 
                     override fun hent(request: SøknadsbehandlingService.HentRequest): Either<SøknadsbehandlingService.FantIkkeBehandling, Søknadsbehandling> {
@@ -729,24 +722,24 @@ open class AccessCheckProxy(
 
                 override fun lagreOgSendForhåndsvarsel(
                     revurderingId: UUID,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
+                    utførtAv: NavIdentBruker.Saksbehandler,
                     fritekst: String,
                 ): Either<KunneIkkeForhåndsvarsle, Revurdering> {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.lagreOgSendForhåndsvarsel(
                         revurderingId,
-                        saksbehandler,
+                        utførtAv,
                         fritekst,
                     )
                 }
 
                 override fun lagBrevutkastForForhåndsvarsling(
                     revurderingId: UUID,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
+                    utførtAv: NavIdentBruker.Saksbehandler,
                     fritekst: String,
-                ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
+                ): Either<KunneIkkeLageBrevutkastForRevurdering, PdfA> {
                     assertHarTilgangTilRevurdering(revurderingId)
-                    return services.revurdering.lagBrevutkastForForhåndsvarsling(revurderingId, saksbehandler, fritekst)
+                    return services.revurdering.lagBrevutkastForForhåndsvarsling(revurderingId, utførtAv, fritekst)
                 }
 
                 override fun sendTilAttestering(
@@ -769,7 +762,7 @@ open class AccessCheckProxy(
                 override fun lagBrevutkastForRevurdering(
                     revurderingId: UUID,
                     fritekst: String?,
-                ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
+                ): Either<KunneIkkeLageBrevutkastForRevurdering, PdfA> {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.lagBrevutkastForRevurdering(revurderingId, fritekst)
                 }
@@ -877,7 +870,7 @@ open class AccessCheckProxy(
                 override fun lagBrevutkastForAvslutting(
                     revurderingId: UUID,
                     fritekst: String,
-                ): Either<KunneIkkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, ByteArray>> {
+                ): Either<KunneIkkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, PdfA>> {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.lagBrevutkastForAvslutting(revurderingId, fritekst)
                 }
@@ -960,7 +953,7 @@ open class AccessCheckProxy(
                     return services.avslåSøknadManglendeDokumentasjonService.avslå(command)
                 }
 
-                override fun genererBrevForhåndsvisning(command: AvslåManglendeDokumentasjonCommand): Either<KunneIkkeAvslåSøknad, Pair<Fnr, ByteArray>> {
+                override fun genererBrevForhåndsvisning(command: AvslåManglendeDokumentasjonCommand): Either<KunneIkkeAvslåSøknad, Pair<Fnr, PdfA>> {
                     assertHarTilgangTilSøknad(command.søknadId)
                     return services.avslåSøknadManglendeDokumentasjonService.genererBrevForhåndsvisning(command)
                 }

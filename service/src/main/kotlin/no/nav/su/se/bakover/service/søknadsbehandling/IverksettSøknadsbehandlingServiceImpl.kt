@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
@@ -32,6 +33,7 @@ class IverksettSøknadsbehandlingServiceImpl(
     private val ferdigstillVedtakService: FerdigstillVedtakService,
     private val brevService: BrevService,
     private val skattDokumentService: SkattDokumentService,
+    private val satsFactory: SatsFactory,
 ) : IverksettSøknadsbehandlingService {
 
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
@@ -46,9 +48,10 @@ class IverksettSøknadsbehandlingServiceImpl(
         return sakService.hentSakForSøknadsbehandling(command.behandlingId)
             .iverksettSøknadsbehandling(
                 command = command,
-                lagDokument = brevService::lagDokument,
+                genererPdf = brevService::lagDokument,
                 clock = clock,
                 simulerUtbetaling = utbetalingService::simulerUtbetaling,
+                satsFactory = satsFactory,
             )
             .map {
                 iverksett(it)

@@ -101,8 +101,4 @@ data class VedtakInnvilgetRevurdering private constructor(
 
     override fun harIdentifisertBehovForFremtidigAvkorting() =
         behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel
-
-    override fun accept(visitor: VedtakVisitor) {
-        visitor.visit(this)
-    }
 }

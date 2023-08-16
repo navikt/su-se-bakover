@@ -27,8 +27,8 @@ import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIv
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
-import no.nav.su.se.bakover.web.routes.sak.tilResultat
 import no.nav.su.se.bakover.web.routes.tilResultat
 
 internal fun Route.iverksettRevurderingRoute(

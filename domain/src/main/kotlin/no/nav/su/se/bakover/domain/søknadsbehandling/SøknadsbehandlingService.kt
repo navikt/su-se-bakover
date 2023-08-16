@@ -1,15 +1,18 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
 import no.nav.su.se.bakover.domain.revurdering.vilkår.bosituasjon.LeggTilBosituasjonerRequest
+import no.nav.su.se.bakover.domain.søknadsbehandling.brev.utkast.BrevutkastForSøknadsbehandlingCommand
+import no.nav.su.se.bakover.domain.søknadsbehandling.brev.utkast.KunneIkkeGenerereBrevutkastForSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.SaksbehandlersAvgjørelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Stønadsperiode
@@ -49,7 +52,9 @@ interface SøknadsbehandlingService {
     fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, SøknadsbehandlingTilAttestering>
     fun underkjenn(request: UnderkjennRequest): Either<KunneIkkeUnderkjenneSøknadsbehandling, UnderkjentSøknadsbehandling>
 
-    fun brev(request: BrevRequest): Either<KunneIkkeLageDokument, ByteArray>
+    fun genererBrevutkast(
+        command: BrevutkastForSøknadsbehandlingCommand,
+    ): Either<KunneIkkeGenerereBrevutkastForSøknadsbehandling, Pair<PdfA, Fnr>>
     fun hent(request: HentRequest): Either<FantIkkeBehandling, Søknadsbehandling>
 
     /**
@@ -167,19 +172,6 @@ interface SøknadsbehandlingService {
         val behandlingId: UUID,
         val attestering: Attestering.Underkjent,
     )
-
-    sealed interface BrevRequest {
-        val behandling: Søknadsbehandling
-
-        data class MedFritekst(
-            override val behandling: Søknadsbehandling,
-            val fritekst: String,
-        ) : BrevRequest
-
-        data class UtenFritekst(
-            override val behandling: Søknadsbehandling,
-        ) : BrevRequest
-    }
 
     data class HentRequest(
         val behandlingId: UUID,
