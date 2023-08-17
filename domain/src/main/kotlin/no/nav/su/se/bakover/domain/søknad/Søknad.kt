@@ -245,10 +245,11 @@ sealed interface Søknad {
 
                     init {
                         when (brevvalg) {
-                            is Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev -> require(true)
-                            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst -> require(true)
-                            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst -> require(true)
-                            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.UtenFritekst -> require(false)
+                            is Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev,
+                            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst,
+                            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst,
+                            -> Unit
+                            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.UtenFritekst -> throw IllegalStateException("Saksbehandler kan ikke velge å sende vedtaksbrev uten fritekst.")
                         }
                         require(lukketTidspunkt >= opprettet)
                     }
