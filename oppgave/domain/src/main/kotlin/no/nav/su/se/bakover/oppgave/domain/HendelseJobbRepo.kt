@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.hendelse.domain.oppgave
+package no.nav.su.se.bakover.oppgave.domain
 
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.hendelse.domain.HendelseId

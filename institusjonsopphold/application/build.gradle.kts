@@ -3,6 +3,7 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":hendelse:domain"))
     implementation(project(":hendelse:infrastructure"))
+    implementation(project(":oppgave:domain"))
     implementation(project(":institusjonsopphold:domain"))
     implementation(project(":institusjonsopphold:infrastructure"))
 

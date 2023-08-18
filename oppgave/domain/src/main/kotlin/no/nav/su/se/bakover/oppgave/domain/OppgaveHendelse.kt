@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.hendelse.domain.oppgave
+package no.nav.su.se.bakover.oppgave.domain
 
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -24,6 +24,7 @@ data class OppgaveHendelse(
     override val entitetId: UUID = sakId
 
     override fun compareTo(other: Hendelse): Int {
-        TODO("Not yet implemented")
+        require(this.entitetId == other.entitetId && this.sakId == other.sakId) { "EntitetIdene eller sakIdene var ikke lik" }
+        return this.versjon.compareTo(other.versjon)
     }
 }

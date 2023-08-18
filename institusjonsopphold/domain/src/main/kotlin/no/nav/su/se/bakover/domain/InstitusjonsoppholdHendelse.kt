@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelse
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import no.nav.su.se.bakover.hendelse.domain.oppgave.OppgaveHendelse
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
 import java.time.Clock
 import java.util.UUID
 
