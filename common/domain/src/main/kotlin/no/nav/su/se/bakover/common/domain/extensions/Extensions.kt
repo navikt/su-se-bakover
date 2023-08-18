@@ -80,3 +80,7 @@ fun LocalDate.sisteIForrigeMåned(): LocalDate {
 }
 
 infix fun Year.erI(yearRange: YearRange): Boolean = yearRange.any { it == this }
+
+fun <T : List<Any>, R> T.whenever(isEmpty: () -> R, isNotEmpty: (T) -> R): R {
+    return if (this.isEmpty()) isEmpty() else isNotEmpty(this)
+}

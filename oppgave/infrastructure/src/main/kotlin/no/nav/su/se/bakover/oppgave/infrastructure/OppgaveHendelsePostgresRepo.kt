@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.hendelse.infrastructure.persistence.oppgave
+package no.nav.su.se.bakover.oppgave.infrastructure
 
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.deserialize
@@ -7,11 +7,11 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFac
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import no.nav.su.se.bakover.hendelse.domain.oppgave.OppgaveHendelse
-import no.nav.su.se.bakover.hendelse.domain.oppgave.OppgaveHendelseRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
-import no.nav.su.se.bakover.hendelse.infrastructure.persistence.oppgave.OppgaveHendelseData.Companion.toStringifiedJson
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
+import no.nav.su.se.bakover.oppgave.infrastructure.OppgaveHendelseData.Companion.toStringifiedJson
 import java.time.Clock
 import java.util.UUID
 

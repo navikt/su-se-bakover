@@ -17,4 +17,6 @@ data class InstitusjonsoppholdHendelserPåSak(
             require(it.distinct() == it) { "Krever at hendelser ikke kan peke til samme tidligere hendelse" }
         }
     }
+
+    fun sisteHendelse(): InstitusjonsoppholdHendelse = this.last()
 }

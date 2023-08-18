@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.institusjonsopphold.application.service
 
 import arrow.core.getOrElse
+import no.nav.su.se.bakover.common.extensions.whenever
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.AktørId
@@ -9,6 +10,7 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.EksternInstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelseRepo
+import no.nav.su.se.bakover.domain.hentSisteHendelse
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.PersonService
@@ -37,13 +39,29 @@ class InstitusjonsoppholdService(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    // TODO - Må ta høyde for andre typer eksterne hendelses når det kommer til tidligereHendelse
-
     fun process(hendelse: EksternInstitusjonsoppholdHendelse) {
         sakRepo.hentSaker(hendelse.norskident).ifNotEmpty {
-            this.forEach {
-                it.vedtakstidslinje(Måned.now(clock)).harInnvilgelse().ifTrue {
-                    institusjonsoppholdHendelseRepo.lagre(hendelse.nyHendelseMedSak(it.id, it.versjon.inc(), clock))
+            this.forEach { sak ->
+                sak.vedtakstidslinje(Måned.now(clock)).harInnvilgelse().ifTrue {
+                    institusjonsoppholdHendelseRepo.hentTidligereOpphold(hendelse.oppholdId).whenever(
+                        isEmpty = {
+                            institusjonsoppholdHendelseRepo
+                                .lagre(hendelse.nyHendelsePåSak(sak.id, sak.versjon.inc(), clock))
+                        },
+                        isNotEmpty = {
+                            val sisteHendelsesVersjon =
+                                hendelseRepo.hentSisteVersjonFraEntitetId(sak.id)
+                                    ?: throw IllegalStateException("Fant ikke siste hendelses versjon for sak ${sak.id} ved eksterne inst hendelse ${hendelse.hendelseId}")
+                            institusjonsoppholdHendelseRepo
+                                .lagre(
+                                    hendelse.nyHendelsePåSakLenketTilEksisterendeHendelse(
+                                        it.hentSisteHendelse(),
+                                        sisteHendelsesVersjon.inc(),
+                                        clock,
+                                    ),
+                                )
+                        },
+                    )
                 }
             }
         }

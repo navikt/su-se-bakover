@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.oppgave.OppgaveHendelse
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
 
 fun nyOppgaveHendelse(
     triggetAv: InstitusjonsoppholdHendelse = nyInstitusjonsoppholdHendelse(),

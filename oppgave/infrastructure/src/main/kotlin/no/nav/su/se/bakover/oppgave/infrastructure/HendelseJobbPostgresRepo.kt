@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.hendelse.infrastructure.persistence.oppgave
+package no.nav.su.se.bakover.oppgave.infrastructure
 
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.oppgave.HendelseJobbRepo
+import no.nav.su.se.bakover.oppgave.domain.HendelseJobbRepo
 import java.util.UUID
 
 class HendelseJobbPostgresRepo(

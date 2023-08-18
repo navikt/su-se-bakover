@@ -1,7 +1,7 @@
-package no.nav.su.se.bakover.hendelse.infrastructure.persistence.oppgave
+package no.nav.su.se.bakover.oppgave.infrastructure
 
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.hendelse.domain.oppgave.OppgaveHendelse
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
 
 data class OppgaveHendelseData(
     val oppgaveId: String,

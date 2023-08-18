@@ -1,6 +1,7 @@
 // Contains shared test-data, functions and extension funcions to be used across modules
 val ktorVersion: String by project
 dependencies {
+    implementation(project(mapOf("path" to ":oppgave:domain")))
     val kotestVersion = "5.6.2"
 
     implementation(project(":common:domain"))
@@ -14,6 +15,7 @@ dependencies {
     implementation(project(":kontrollsamtale:domain"))
     implementation(project(":institusjonsopphold:domain"))
     implementation(project(":institusjonsopphold:presentation"))
+    implementation(project(":oppgave:domain"))
     implementation(project(":økonomi:domain"))
 
     compileOnly("io.kotest:kotest-assertions-core:$kotestVersion")

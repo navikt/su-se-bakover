@@ -27,6 +27,8 @@ dependencies {
     implementation(project(":institusjonsopphold:application"))
     implementation(project(":institusjonsopphold:domain"))
     implementation(project(":institusjonsopphold:presentation"))
+    implementation(project(":oppgave:infrastructure"))
+    implementation(project(":oppgave:domain"))
     implementation(project(":økonomi:domain"))
     implementation(project(":økonomi:infrastructure"))
 

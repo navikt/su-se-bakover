@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.Hendelse
@@ -16,12 +17,12 @@ import java.util.UUID
  */
 data class EksternInstitusjonsoppholdHendelse(
     val hendelseId: Long,
-    val oppholdId: Long,
+    val oppholdId: OppholdId,
     val norskident: Fnr,
     val type: InstitusjonsoppholdType,
     val kilde: InstitusjonsoppholdKilde,
 ) {
-    fun nyHendelseMedSak(
+    fun nyHendelsePåSak(
         sakId: UUID,
         versjon: Hendelsesversjon,
         clock: Clock,
@@ -32,7 +33,22 @@ data class EksternInstitusjonsoppholdHendelse(
         eksterneHendelse = this,
         versjon = versjon,
     )
+
+    fun nyHendelsePåSakLenketTilEksisterendeHendelse(
+        tidligereHendelse: InstitusjonsoppholdHendelse,
+        versjon: Hendelsesversjon,
+        clock: Clock,
+    ): InstitusjonsoppholdHendelse = InstitusjonsoppholdHendelse(
+        hendelseId = HendelseId.generer(),
+        sakId = tidligereHendelse.sakId,
+        versjon = versjon,
+        hendelsestidspunkt = Tidspunkt.now(clock),
+        tidligereHendelseId = tidligereHendelse.hendelseId,
+        eksterneHendelse = this,
+    )
 }
+
+data class OppholdId(val value: Long)
 
 data class InstitusjonsoppholdHendelse(
     override val hendelseId: HendelseId,
@@ -61,4 +77,8 @@ data class InstitusjonsoppholdHendelse(
             triggetAv = this.hendelseId,
             oppgaveId = oppgaveId,
         )
+}
+
+fun List<InstitusjonsoppholdHendelse>.hentSisteHendelse(): InstitusjonsoppholdHendelse {
+    return InstitusjonsoppholdHendelserPåSak(this.toNonEmptyList()).sisteHendelse()
 }

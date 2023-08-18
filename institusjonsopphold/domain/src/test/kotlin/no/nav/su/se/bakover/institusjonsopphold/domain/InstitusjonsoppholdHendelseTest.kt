@@ -19,7 +19,7 @@ internal class InstitusjonsoppholdHendelseTest {
         fun `kan knytte til en sak`() {
             val expectedSakId = UUID.randomUUID()
             val eksternHendelse = nyEksternInstitusjonsoppholdHendelse()
-            eksternHendelse.nyHendelseMedSak(
+            eksternHendelse.nyHendelsePåSak(
                 expectedSakId,
                 Hendelsesversjon.ny(),
                 fixedClock,

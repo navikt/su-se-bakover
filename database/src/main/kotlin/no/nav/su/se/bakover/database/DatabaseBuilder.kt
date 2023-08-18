@@ -55,9 +55,9 @@ import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
-import no.nav.su.se.bakover.hendelse.infrastructure.persistence.oppgave.HendelseJobbPostgresRepo
-import no.nav.su.se.bakover.hendelse.infrastructure.persistence.oppgave.OppgaveHendelsePostgresRepo
 import no.nav.su.se.bakover.institusjonsopphold.database.InstitusjonsoppholdHendelsePostgresRepo
+import no.nav.su.se.bakover.oppgave.infrastructure.HendelseJobbPostgresRepo
+import no.nav.su.se.bakover.oppgave.infrastructure.OppgaveHendelsePostgresRepo
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.UtenlandsoppholdPostgresRepo
 import org.jetbrains.annotations.TestOnly
 import java.time.Clock
