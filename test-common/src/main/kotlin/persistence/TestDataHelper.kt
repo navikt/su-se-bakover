@@ -97,6 +97,8 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.hendelse.domain.oppgave.OppgaveHendelse
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.beregnetRevurdering
@@ -114,7 +116,7 @@ import no.nav.su.se.bakover.test.grunnlagsdataMedEpsMedFradrag
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
-import no.nav.su.se.bakover.test.nyInstitusjonsoppholdHendelseUtenOppgaveId
+import no.nav.su.se.bakover.test.nyInstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurdering
@@ -187,6 +189,8 @@ class TestDataHelper(
     val søknadsbehandlingRepo = databaseRepos.søknadsbehandling
     val utbetalingRepo = databaseRepos.utbetaling
     val institusjonsoppholdHendelseRepo = databaseRepos.institusjonsoppholdHendelseRepo
+    val oppgaveHendelseRepo = databaseRepos.oppgaveHendelseRepo
+    val hendelseJobbRepo = databaseRepos.hendelseJobbRepo
 
     /**
      * Oppretter og persisterer en ny sak (dersom den ikke finnes fra før) med søknad med tomt søknadsinnhold.
@@ -1585,18 +1589,50 @@ class TestDataHelper(
         }
     }
 
-    fun persisterInstitusjonsoppholdHendelseUtenOppgaveId(): InstitusjonsoppholdHendelse.UtenOppgaveId {
+    fun persisterInstitusjonsoppholdHendelse(): InstitusjonsoppholdHendelse {
         return persisterSøknadsbehandlingIverksatt().let {
-            nyInstitusjonsoppholdHendelseUtenOppgaveId(hendelseSakId = it.first.id).also {
+            nyInstitusjonsoppholdHendelse(sakId = it.first.id).also {
                 institusjonsoppholdHendelseRepo.lagre(it)
             }
         }
     }
 
-    fun persisterInstitusjonsoppholdHendelseMedOppgaveId(): InstitusjonsoppholdHendelse.MedOppgaveId {
-        return persisterInstitusjonsoppholdHendelseUtenOppgaveId()
-            .nyHendelseMedOppgaveId(OppgaveId("tilknyttet oppgave id"), fixedClock)
-            .also { institusjonsoppholdHendelseRepo.lagre(it) }
+    fun persisterOppgaveHendelse(): OppgaveHendelse {
+        return persisterInstitusjonsoppholdHendelse().let {
+            it.nyOppgaveHendelse(oppgaveId = OppgaveId("oppgaveId"), versjon = it.versjon.inc(), clock = fixedClock)
+                .also { oppgaveHendelse ->
+                    sessionFactory.withSessionContext {
+                        oppgaveHendelseRepo.lagre(oppgaveHendelse, it)
+                    }
+                }
+        }
+    }
+
+    fun persisterInstJobbHendelse(): InstitusjonsoppholdHendelse {
+        return persisterInstitusjonsoppholdHendelse().let { hendelse ->
+            hendelse.also {
+                sessionFactory.withSessionContext { tx ->
+                    hendelseJobbRepo.lagre(hendelse.hendelseId, "INSTITUSJON", tx)
+                }
+            }
+        }
+    }
+
+    fun persisterFlereInstJobbHendelser(): List<InstitusjonsoppholdHendelse> {
+        return persisterSøknadsbehandlingIverksatt().let {
+            sessionFactory.withSessionContext { tx ->
+                val første = nyInstitusjonsoppholdHendelse(sakId = it.first.id).also {
+                    institusjonsoppholdHendelseRepo.lagre(it)
+                }
+                val andre = nyInstitusjonsoppholdHendelse(sakId = it.first.id, versjon = Hendelsesversjon(3)).also {
+                    institusjonsoppholdHendelseRepo.lagre(it)
+                }
+
+                listOf(første, andre).also {
+                    hendelseJobbRepo.lagre(listOf(første.hendelseId, andre.hendelseId), "INSTITUSJON", tx)
+                }
+            }
+        }
     }
 
     companion object {

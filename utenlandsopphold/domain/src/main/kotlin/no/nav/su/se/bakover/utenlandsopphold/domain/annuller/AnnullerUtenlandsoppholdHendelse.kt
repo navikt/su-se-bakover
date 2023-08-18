@@ -29,6 +29,7 @@ data class AnnullerUtenlandsoppholdHendelse private constructor(
     override val versjon: Hendelsesversjon,
     override val meta: HendelseMetadata,
 ) : UtenlandsoppholdHendelse {
+    override val triggetAv: HendelseId? = null
 
     override val triggetAv: HendelseId? = null
 

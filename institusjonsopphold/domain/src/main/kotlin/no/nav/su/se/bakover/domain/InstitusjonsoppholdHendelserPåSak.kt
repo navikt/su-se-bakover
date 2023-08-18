@@ -17,13 +17,4 @@ data class InstitusjonsoppholdHendelserPåSak(
             require(it.distinct() == it) { "Krever at hendelser ikke kan peke til samme tidligere hendelse" }
         }
     }
-
-    fun hentHendelserMedBehovForOppgaveId(): List<InstitusjonsoppholdHendelse.UtenOppgaveId> {
-        val hendelserMedOppgaveId = hendelser.filterIsInstance<InstitusjonsoppholdHendelse.MedOppgaveId>()
-        val tidligereHendelsesIderSomHarFåttOppgave = hendelserMedOppgaveId.map { it.tidligereHendelseId }
-
-        return hendelser
-            .filterIsInstance<InstitusjonsoppholdHendelse.UtenOppgaveId>()
-            .filter { it.hendelseId !in tidligereHendelsesIderSomHarFåttOppgave }
-    }
 }

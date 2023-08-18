@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.test
 
-import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.EksternInstitusjonsoppholdHendelse
@@ -25,34 +24,18 @@ fun nyEksternInstitusjonsoppholdHendelse(
     kilde = kilde,
 )
 
-fun nyInstitusjonsoppholdHendelseUtenOppgaveId(
+fun nyInstitusjonsoppholdHendelse(
     id: HendelseId = HendelseId.generer(),
-    hendelseSakId: UUID = sakId,
+    sakId: UUID = no.nav.su.se.bakover.test.sakId,
     hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
     eksternHendelse: EksternInstitusjonsoppholdHendelse = nyEksternInstitusjonsoppholdHendelse(),
     versjon: Hendelsesversjon = Hendelsesversjon.ny(),
-): InstitusjonsoppholdHendelse.UtenOppgaveId = InstitusjonsoppholdHendelse.UtenOppgaveId(
-    sakId = hendelseSakId,
+    tidligereHendelse: HendelseId? = null,
+): InstitusjonsoppholdHendelse = InstitusjonsoppholdHendelse(
     hendelseId = id,
-    hendelsestidspunkt = hendelsesTidspunkt,
-    eksterneHendelse = eksternHendelse,
-    versjon = versjon,
-)
-
-fun nyInstitusjonsoppholdHendelseMedOppgaveId(
-    tidligereHendelse: InstitusjonsoppholdHendelse.UtenOppgaveId = nyInstitusjonsoppholdHendelseUtenOppgaveId(),
-    id: HendelseId = HendelseId.generer(),
-    sakId: UUID = tidligereHendelse.sakId,
-    hendelsesTidspunkt: Tidspunkt = enUkeEtterFixedTidspunkt,
-    eksternHendelse: EksternInstitusjonsoppholdHendelse = tidligereHendelse.eksterneHendelse,
-    versjon: Hendelsesversjon = tidligereHendelse.versjon.inc(),
-    oppgaveId: OppgaveId = OppgaveId("oppgaveId"),
-): InstitusjonsoppholdHendelse.MedOppgaveId = InstitusjonsoppholdHendelse.MedOppgaveId(
     sakId = sakId,
-    hendelseId = id,
     hendelsestidspunkt = hendelsesTidspunkt,
+    tidligereHendelseId = tidligereHendelse,
     eksterneHendelse = eksternHendelse,
     versjon = versjon,
-    oppgaveId = oppgaveId,
-    tidligereHendelseId = tidligereHendelse.hendelseId,
 )

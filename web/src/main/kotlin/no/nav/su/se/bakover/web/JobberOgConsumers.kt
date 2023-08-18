@@ -126,8 +126,12 @@ fun startJobberOgConsumers(
                 oppgaveService = services.oppgave,
                 personService = services.person,
                 institusjonsoppholdHendelseRepo = databaseRepos.institusjonsoppholdHendelseRepo,
+                oppgaveHendelseRepo = databaseRepos.oppgaveHendelseRepo,
+                hendelseJobbRepo = databaseRepos.hendelseJobbRepo,
+                hendelseRepo = databaseRepos.hendelseRepo,
                 sakRepo = databaseRepos.sak,
                 clock = clock,
+                sessionFactory = databaseRepos.sessionFactory,
             )
             InstitusjonsoppholdConsumer(
                 config = applicationConfig.institusjonsoppholdKafkaConfig,

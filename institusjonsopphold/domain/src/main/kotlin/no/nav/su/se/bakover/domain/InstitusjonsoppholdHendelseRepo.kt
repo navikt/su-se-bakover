@@ -7,5 +7,4 @@ interface InstitusjonsoppholdHendelseRepo {
     fun lagre(hendelse: InstitusjonsoppholdHendelse)
     fun hentForSak(sakId: UUID): InstitusjonsoppholdHendelserPåSak?
     fun hentSisteVersjonFor(sakId: UUID): Hendelsesversjon?
-    fun hentHendelserUtenOppgaveId(): List<InstitusjonsoppholdHendelse.UtenOppgaveId>
 }

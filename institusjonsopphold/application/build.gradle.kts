@@ -2,6 +2,7 @@ dependencies {
     implementation(project(":common:domain"))
     implementation(project(":domain"))
     implementation(project(":hendelse:domain"))
+    implementation(project(":hendelse:infrastructure"))
     implementation(project(":institusjonsopphold:domain"))
     implementation(project(":institusjonsopphold:infrastructure"))
 

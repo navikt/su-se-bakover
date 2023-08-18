@@ -20,6 +20,8 @@ import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
+import no.nav.su.se.bakover.hendelse.domain.oppgave.HendelseJobbRepo
+import no.nav.su.se.bakover.hendelse.domain.oppgave.OppgaveHendelseRepo
 import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdRepo
 
 data class DatabaseRepos(
@@ -45,4 +47,6 @@ data class DatabaseRepos(
     val utenlandsoppholdRepo: UtenlandsoppholdRepo,
     val dokumentSkattRepo: DokumentSkattRepo,
     val institusjonsoppholdHendelseRepo: InstitusjonsoppholdHendelseRepo,
+    val oppgaveHendelseRepo: OppgaveHendelseRepo,
+    val hendelseJobbRepo: HendelseJobbRepo,
 )

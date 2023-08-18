@@ -38,6 +38,7 @@ data class RegistrerUtenlandsoppholdHendelse private constructor(
     override val triggetAv: HendelseId? = null
 
     override val tidligereHendelseId: HendelseId? = null
+    override val triggetAv: HendelseId? = null
 
     override val entitetId: UUID
         get() = sakId

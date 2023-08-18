@@ -55,6 +55,8 @@ import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
+import no.nav.su.se.bakover.hendelse.infrastructure.persistence.oppgave.HendelseJobbPostgresRepo
+import no.nav.su.se.bakover.hendelse.infrastructure.persistence.oppgave.OppgaveHendelsePostgresRepo
 import no.nav.su.se.bakover.institusjonsopphold.database.InstitusjonsoppholdHendelsePostgresRepo
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.UtenlandsoppholdPostgresRepo
 import org.jetbrains.annotations.TestOnly
@@ -280,6 +282,9 @@ data object DatabaseBuilder {
             utenlandsoppholdRepo = utenlandsoppholdRepo,
             dokumentSkattRepo = DokumentSkattPostgresRepo(dbMetrics, sessionFactory, clock),
             institusjonsoppholdHendelseRepo = InstitusjonsoppholdHendelsePostgresRepo(sessionFactory, dbMetrics, hendelseRepo, clock),
+            oppgaveHendelseRepo = OppgaveHendelsePostgresRepo(sessionFactory, dbMetrics, hendelseRepo, clock),
+            hendelseJobbRepo = HendelseJobbPostgresRepo(sessionFactory),
+
         )
     }
 }

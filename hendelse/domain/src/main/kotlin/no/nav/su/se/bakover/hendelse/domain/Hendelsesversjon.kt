@@ -16,7 +16,10 @@ value class Hendelsesversjon(val value: Long) : Comparable<Hendelsesversjon> {
     override fun toString() = value.toString()
 
     companion object {
-        fun ny(): Hendelsesversjon = Hendelsesversjon(1)
+        /**
+         * nr 1 er reservert for ny sak (se versjon i SakPostgresRepo)
+         */
+        fun ny(): Hendelsesversjon = Hendelsesversjon(2)
 
         fun max(first: Hendelsesversjon, second: Hendelsesversjon): Hendelsesversjon =
             if (first > second) first else second

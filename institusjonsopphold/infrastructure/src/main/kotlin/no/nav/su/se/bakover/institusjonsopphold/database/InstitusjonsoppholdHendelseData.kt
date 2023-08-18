@@ -16,28 +16,15 @@ data class InstitusjonsoppholdHendelseData(
     val norskident: String,
     val type: InstitusjonsoppholdTypeDb,
     val kilde: InstitusjonsoppholdKildeDb,
-    val oppgaveId: String?,
 ) {
     companion object {
-        fun InstitusjonsoppholdHendelse.toJson(): InstitusjonsoppholdHendelseData = when (this) {
-            is InstitusjonsoppholdHendelse.UtenOppgaveId -> InstitusjonsoppholdHendelseData(
-                hendelseId = this.eksterneHendelse.hendelseId,
-                oppholdId = this.eksterneHendelse.oppholdId,
-                norskident = this.eksterneHendelse.norskident.toString(),
-                type = this.eksterneHendelse.type.toJson(),
-                kilde = this.eksterneHendelse.kilde.toJson(),
-                oppgaveId = null,
-            )
-
-            is InstitusjonsoppholdHendelse.MedOppgaveId -> InstitusjonsoppholdHendelseData(
-                hendelseId = this.eksterneHendelse.hendelseId,
-                oppholdId = this.eksterneHendelse.oppholdId,
-                norskident = this.eksterneHendelse.norskident.toString(),
-                type = this.eksterneHendelse.type.toJson(),
-                kilde = this.eksterneHendelse.kilde.toJson(),
-                oppgaveId = this.oppgaveId.toString(),
-            )
-        }
+        fun InstitusjonsoppholdHendelse.toJson(): InstitusjonsoppholdHendelseData = InstitusjonsoppholdHendelseData(
+            hendelseId = this.eksterneHendelse.hendelseId,
+            oppholdId = this.eksterneHendelse.oppholdId,
+            norskident = this.eksterneHendelse.norskident.toString(),
+            type = this.eksterneHendelse.type.toJson(),
+            kilde = this.eksterneHendelse.kilde.toJson(),
+        )
 
         fun InstitusjonsoppholdHendelse.toStringifiedJson(): String = serialize(this.toJson())
     }

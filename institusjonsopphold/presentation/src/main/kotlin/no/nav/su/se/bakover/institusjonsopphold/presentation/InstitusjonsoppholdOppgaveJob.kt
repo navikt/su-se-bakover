@@ -31,7 +31,7 @@ class InstitusjonsoppholdOppgaveJob(
             Either.catch {
                 listOf(runCheckFactory.leaderPod())
                     .shouldRun()
-                    .ifTrue { withCorrelationId { institusjonsoppholdService.opprettOppgaveForHendelser() } }
+                    .ifTrue { withCorrelationId { institusjonsoppholdService.opprettOppgaveForHendelser(jobName) } }
             }.mapLeft { log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it) }
         }
     }
