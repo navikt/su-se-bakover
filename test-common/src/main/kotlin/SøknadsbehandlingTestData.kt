@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -78,6 +77,7 @@ import no.nav.su.se.bakover.test.utbetaling.kvittering
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
+import økonomi.domain.kvittering.Kvittering
 import java.time.Clock
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit

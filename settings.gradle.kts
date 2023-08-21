@@ -43,3 +43,5 @@ include("datapakker:søknad")
 include("kontrollsamtale:infrastructure")
 include("kontrollsamtale:application")
 include("kontrollsamtale:domain")
+
+include("økonomi:domain")

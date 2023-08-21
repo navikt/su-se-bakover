@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
+import økonomi.domain.kvittering.Kvittering
 import java.util.UUID
 
 sealed interface Utbetaling : Comparable<Utbetaling> {

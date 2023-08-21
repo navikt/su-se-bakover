@@ -11,12 +11,13 @@ import java.util.UUID
  * @property triggetAv hvilken hendelse førte til at denne hendelsen ble opprettet - merk at denne er kun for interne hendelser
  * @property meta metadata knyttet til hendelsen for auditing/tracing/debug-formål.
  */
-interface Hendelse<T : Hendelse<T>> : Comparable<T> {
-    val hendelseId: HendelseId
-    val tidligereHendelseId: HendelseId?
-    val entitetId: UUID
-    val versjon: Hendelsesversjon
-    val hendelsestidspunkt: Tidspunkt
-    val triggetAv: HendelseId?
-    val meta: HendelseMetadata
+interface Sakshendelse : Hendelse<Sakshendelse> {
+    override val hendelseId: HendelseId
+    override val tidligereHendelseId: HendelseId?
+    override val entitetId: UUID
+    override val versjon: Hendelsesversjon
+    override val hendelsestidspunkt: Tidspunkt
+    override val meta: HendelseMetadata
+    override val triggetAv: HendelseId?
+    val sakId: UUID
 }

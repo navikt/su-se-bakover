@@ -23,6 +23,7 @@ dependencies {
     implementation(project(":kontrollsamtale:infrastructure"))
     implementation(project(":kontrollsamtale:application"))
     implementation(project(":kontrollsamtale:domain"))
+    implementation(project(":økonomi:domain"))
 
     testImplementation(project(":test-common"))
     testImplementation("org.awaitility:awaitility:4.2.0")

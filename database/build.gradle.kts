@@ -6,6 +6,7 @@ dependencies {
     implementation(project(":hendelse:infrastructure"))
     implementation(project(":utenlandsopphold:domain"))
     implementation(project(":utenlandsopphold:infrastructure"))
+    implementation(project(":økonomi:domain"))
 
     testImplementation(project(":test-common"))
 }
