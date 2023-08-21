@@ -1,8 +1,10 @@
-package no.nav.su.se.bakover.web.services.utbetaling.kvittering
+package økonomi.infrastructure.kvittering
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
+import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse.Companion.toKvitteringResponse
 import org.junit.jupiter.api.Test
 
@@ -10,7 +12,9 @@ internal class UtbetalingKvitteringResponseTest {
 
     @Test
     fun `deserialiserer KvitteringRespons`() {
-        kvitteringXml(UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9")).toKvitteringResponse(UtbetalingKvitteringConsumer.xmlMapper) shouldBe UtbetalingKvitteringResponse(
+        kvitteringXml(UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9")).toKvitteringResponse(
+            UtbetalingKvitteringConsumer.xmlMapper,
+        ) shouldBe UtbetalingKvitteringResponse(
             mmel = UtbetalingKvitteringResponse.Mmel(
                 systemId = "231-OPPD",
                 kodeMelding = null,

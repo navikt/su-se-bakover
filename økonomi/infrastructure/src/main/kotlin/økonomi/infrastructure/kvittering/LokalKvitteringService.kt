@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory
  * Only to be used when running locally.
  * Runs a regular job, looking for utbetalinger without kvittering and `ferdigstiller utbetaling`
  */
-internal class LokalKvitteringService(
+class LokalKvitteringService(
     private val utbetalingRepo: UtbetalingRepo,
     private val utbetalingKvitteringConsumer: UtbetalingKvitteringConsumer,
 ) {

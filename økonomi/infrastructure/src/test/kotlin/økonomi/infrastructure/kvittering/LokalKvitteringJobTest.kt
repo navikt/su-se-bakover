@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.services.utbetaling.kvittering
+package økonomi.infrastructure.kvittering
 
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -23,10 +23,12 @@ import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
+import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.web.argThat
+import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringService
+import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -40,7 +42,7 @@ import java.util.UUID
 internal class LokalKvitteringJobTest {
 
     private val tidspunkt = fixedTidspunkt
-    val fnr = Fnr.generer()
+    private val fnr = Fnr.generer()
 
     private val utbetaling = Utbetaling.UtbetalingForSimulering(
         id = UUID30.randomUUID(),

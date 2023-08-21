@@ -10,7 +10,7 @@ import kotlin.concurrent.fixedRateTimer
  * Only to be used when running locally.
  * Runs a regular job, looking for utbetalinger without kvittering and `ferdigstiller utbetaling`
  */
-internal class LokalKvitteringJob(
+class LokalKvitteringJob(
     private val lokalKvitteringService: LokalKvitteringService,
     private val periode: Duration,
     private val initialDelay: Duration,

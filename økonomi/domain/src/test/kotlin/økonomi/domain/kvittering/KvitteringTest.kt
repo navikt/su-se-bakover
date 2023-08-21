@@ -1,9 +1,8 @@
-package no.nav.su.se.bakover.domain.oppdrag
+package økonomi.domain.kvittering
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
-import økonomi.domain.kvittering.Kvittering
 
 internal class KvitteringTest {
     @Test

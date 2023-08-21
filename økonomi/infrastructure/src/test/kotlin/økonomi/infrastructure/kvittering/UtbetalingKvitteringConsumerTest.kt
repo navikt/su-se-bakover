@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.services.utbetaling.kvittering
+package økonomi.infrastructure.kvittering
 
 import arrow.core.left
 import arrow.core.right
@@ -11,11 +11,12 @@ import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtakMedUtbetali
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
+import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingMedKvittering
-import no.nav.su.se.bakover.web.argThat
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponseTest.Companion.kvitteringXml
+import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
+import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.internal.verification.Times
@@ -24,6 +25,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import økonomi.domain.kvittering.Kvittering
+import økonomi.infrastructure.kvittering.UtbetalingKvitteringResponseTest.Companion.kvitteringXml
 
 internal class UtbetalingKvitteringConsumerTest {
     @Test

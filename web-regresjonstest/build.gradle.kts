@@ -13,6 +13,8 @@ dependencies {
     implementation(project(":kontrollsamtale:domain"))
     implementation(project(":kontrollsamtale:application"))
     implementation(project(":kontrollsamtale:infrastructure"))
+    implementation(project(":økonomi:infrastructure"))
+    implementation(project(":økonomi:domain"))
 
     implementation("io.ktor:ktor-client-java:$ktorVersion")
     implementation("io.ktor:ktor-server-test-host:$ktorVersion") {
