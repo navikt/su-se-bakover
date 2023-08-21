@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.tid.periode.november
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -44,6 +43,7 @@ import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeNy
 import org.junit.jupiter.api.Test
+import økonomi.domain.kvittering.Kvittering
 import java.time.Clock
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit

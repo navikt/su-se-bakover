@@ -4,5 +4,6 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":client"))
 
+    testImplementation(project(":økonomi:domain"))
     testImplementation(project(":test-common"))
 }

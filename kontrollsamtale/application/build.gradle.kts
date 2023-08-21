@@ -6,6 +6,7 @@ dependencies {
     // Mockito
     testImplementation(project(":utenlandsopphold:domain"))
     testImplementation(project(":hendelse:domain"))
+    testImplementation(project(":økonomi:domain"))
 }
 
 tasks.named<Jar>("jar") {

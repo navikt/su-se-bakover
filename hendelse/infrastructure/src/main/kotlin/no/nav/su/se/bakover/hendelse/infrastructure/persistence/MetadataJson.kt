@@ -8,8 +8,8 @@ import no.nav.su.se.bakover.common.infrastructure.ident.IdentJson.Companion.toId
 import no.nav.su.se.bakover.common.infrastructure.ident.toBrukerroller
 import no.nav.su.se.bakover.common.infrastructure.ident.toBrukerrollerJson
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.hendelse.domain.Hendelse
 import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
+import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
 
 internal data class MetadataJson(
     val correlationId: String?,
@@ -17,7 +17,7 @@ internal data class MetadataJson(
     val roller: List<BrukerrolleJson>,
 ) {
     companion object {
-        fun Hendelse.toMeta(): String {
+        fun Sakshendelse.toMeta(): String {
             return serialize(
                 MetadataJson(
                     correlationId = this.meta.correlationId?.toString(),

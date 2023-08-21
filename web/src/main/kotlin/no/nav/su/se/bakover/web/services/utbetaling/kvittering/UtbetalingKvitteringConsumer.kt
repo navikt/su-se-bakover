@@ -10,13 +10,13 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
-import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtakMedUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse.Companion.toKvitteringResponse
 import org.slf4j.LoggerFactory
+import økonomi.domain.kvittering.Kvittering
 import java.time.Clock
 
 class UtbetalingKvitteringConsumer(
