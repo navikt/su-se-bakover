@@ -48,7 +48,7 @@ internal data class KorrigerUtenlandsoppholdJson(
                     hendelsestidspunkt = this.hendelsestidspunkt,
                     versjon = this.versjon,
                     hendelseMetadata = this.hendelseMetadata,
-                    entitetId = this.enitetId,
+                    entitetId = this.entitetId,
                 )
             }
         }

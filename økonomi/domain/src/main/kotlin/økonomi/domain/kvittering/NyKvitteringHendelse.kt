@@ -29,4 +29,29 @@ data class NyKvitteringHendelse(
         require(this.entitetId == other.entitetId)
         return this.versjon.compareTo(other.versjon)
     }
+
+    companion object {
+        fun fraPersistert(
+            hendelseId: HendelseId,
+            hendelsestidspunkt: Tidspunkt,
+            hendelseMetadata: HendelseMetadata,
+            forrigeVersjon: Hendelsesversjon,
+            entitetId: UUID,
+            rawXml: String,
+        ): NyKvitteringHendelse {
+            return NyKvitteringHendelse(
+                hendelseId = hendelseId,
+                hendelsestidspunkt = hendelsestidspunkt,
+                meta = hendelseMetadata,
+                rawXml = rawXml,
+            ).also {
+                require(it.entitetId == entitetId) {
+                    "Den persistert entitetId var ulik den utleda fra domenet:${it.entitetId} vs. $entitetId. "
+                }
+                require(forrigeVersjon == Hendelsesversjon(1L)) {
+                    "Den persistert versjon var ulik den utleda fra domenet:$forrigeVersjon vs. ${Hendelsesversjon(1L)}. "
+                }
+            }
+        }
+    }
 }

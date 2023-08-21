@@ -46,7 +46,7 @@ internal data class RegistrertUtenlandsoppholdJson(
                     hendelsestidspunkt = this.hendelsestidspunkt,
                     hendelseMetadata = this.hendelseMetadata,
                     forrigeVersjon = this.versjon,
-                    entitetId = this.enitetId,
+                    entitetId = this.entitetId,
                 )
             }
         }

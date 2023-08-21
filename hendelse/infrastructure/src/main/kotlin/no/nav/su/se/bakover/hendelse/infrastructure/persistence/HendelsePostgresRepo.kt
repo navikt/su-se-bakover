@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.hendelse.domain.Hendelse
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
@@ -22,6 +23,7 @@ class HendelsePostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
 ) : HendelseRepo {
+
     /**
      * @param sessionContext Støtter både [SessionContext] (dersom hendelsen er master data/eneste data) og [no.nav.su.se.bakover.common.persistence.TransactionContext] (i tilfellene hendelsen ikke er master data/eneste data).
      */
@@ -29,6 +31,43 @@ class HendelsePostgresRepo(
         hendelse: Sakshendelse,
         type: String,
         data: String,
+        sessionContext: SessionContext = sessionFactory.newSessionContext(),
+    ) {
+        persister(
+            hendelse = hendelse,
+            type = type,
+            data = data,
+            sakId = hendelse.sakId,
+            sessionContext = sessionContext,
+        )
+    }
+
+    /**
+     * @param sessionContext Støtter både [SessionContext] (dersom hendelsen er master data/eneste data) og [no.nav.su.se.bakover.common.persistence.TransactionContext] (i tilfellene hendelsen ikke er master data/eneste data).
+     */
+    fun persister(
+        hendelse: Hendelse<*>,
+        type: String,
+        data: String,
+        sessionContext: SessionContext = sessionFactory.newSessionContext(),
+    ) {
+        persister(
+            hendelse = hendelse,
+            type = type,
+            data = data,
+            sakId = null,
+            sessionContext = sessionContext,
+        )
+    }
+
+    /**
+     * @param sessionContext Støtter både [SessionContext] (dersom hendelsen er master data/eneste data) og [no.nav.su.se.bakover.common.persistence.TransactionContext] (i tilfellene hendelsen ikke er master data/eneste data).
+     */
+    private fun persister(
+        hendelse: Hendelse<*>,
+        type: String,
+        data: String,
+        sakId: UUID?,
         sessionContext: SessionContext = sessionFactory.newSessionContext(),
     ) {
         dbMetrics.timeQuery("persisterHendelse") {
@@ -50,7 +89,7 @@ class HendelsePostgresRepo(
                     params = mapOf(
                         "hendelseId" to hendelse.hendelseId.value,
                         "tidligereHendelseId" to hendelse.tidligereHendelseId?.value,
-                        "sakId" to hendelse.sakId,
+                        "sakId" to sakId,
                         "type" to type,
                         "data" to data,
                         "meta" to hendelse.toMeta(),
@@ -170,7 +209,7 @@ class HendelsePostgresRepo(
             hendelseId = it.uuid("hendelseId"),
             tidligereHendelseId = it.uuidOrNull("tidligereHendelseId"),
             hendelseMetadata = MetadataJson.toDomain(it.string("meta")),
-            enitetId = it.uuid("entitetId"),
+            entitetId = it.uuid("entitetId"),
         )
     }
 }

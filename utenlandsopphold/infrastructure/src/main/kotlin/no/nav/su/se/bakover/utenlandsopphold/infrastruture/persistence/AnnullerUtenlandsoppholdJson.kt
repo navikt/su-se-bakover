@@ -32,7 +32,7 @@ internal data class AnnullerUtenlandsoppholdJson(
                     hendelsestidspunkt = this.hendelsestidspunkt,
                     versjon = this.versjon,
                     meta = this.hendelseMetadata,
-                    entitetId = this.enitetId,
+                    entitetId = this.entitetId,
                 )
             }
         }
