@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.services.tilbakekreving
 import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -48,7 +49,8 @@ class TilbakekrevingConsumer(
 
                 is KravgrunnlagStatusendringRootDto -> {
                     mottattMelding.endringKravOgVedtakstatus.let {
-                        log.error("Mottok melding om endring i kravgrunnlag for tilbakekrevingsvedtak: ${it.vedtakId}, saksnummer:${it.fagsystemId} - prosessering av endringsmeldinger er ikke definert.")
+                        log.error("Mottok melding om endring i kravgrunnlag for tilbakekrevingsvedtak: ${it.vedtakId}, saksnummer:${it.fagsystemId} - prosessering av endringsmeldinger er ikke definert. Se sikkerlogg for hele meldingen.")
+                        sikkerLogg.error("Mottok melding om endring i kravgrunnlag for tilbakekrevingsvedtak: $xmlMessage - prosessering av endringsmeldinger er ikke definert.")
                     }
                 }
             }
