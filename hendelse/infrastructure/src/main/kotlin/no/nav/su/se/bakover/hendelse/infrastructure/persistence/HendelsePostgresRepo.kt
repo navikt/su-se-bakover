@@ -210,6 +210,7 @@ class HendelsePostgresRepo(
             tidligereHendelseId = it.uuidOrNull("tidligereHendelseId"),
             hendelseMetadata = MetadataJson.toDomain(it.string("meta")),
             entitetId = it.uuid("entitetId"),
+            triggetAv = it.uuidOrNull("triggetAv"),
         )
     }
 }

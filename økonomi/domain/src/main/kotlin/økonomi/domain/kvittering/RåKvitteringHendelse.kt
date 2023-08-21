@@ -14,18 +14,18 @@ import java.util.UUID
  * Dette er en litt spesiell hendelse hvor vi i praksis ikke har noen entitetId og alltid har versjon 1.
  * Dvs. alle kvitteringer er unike og kan ikke sammenlignes med hverandre.
  */
-data class NyKvitteringHendelse(
+data class RåKvitteringHendelse(
     override val hendelseId: HendelseId,
     override val hendelsestidspunkt: Tidspunkt,
     override val meta: HendelseMetadata,
-    val rawXml: String,
-) : Hendelse<NyKvitteringHendelse> {
+    val originalKvittering: String,
+) : Hendelse<RåKvitteringHendelse> {
     override val tidligereHendelseId: HendelseId? = null
     override val versjon: Hendelsesversjon = Hendelsesversjon(1L)
     override val entitetId: UUID = hendelseId.value
     override val triggetAv: HendelseId? = null
 
-    override fun compareTo(other: NyKvitteringHendelse): Int {
+    override fun compareTo(other: RåKvitteringHendelse): Int {
         require(this.entitetId == other.entitetId)
         return this.versjon.compareTo(other.versjon)
     }
@@ -37,13 +37,13 @@ data class NyKvitteringHendelse(
             hendelseMetadata: HendelseMetadata,
             forrigeVersjon: Hendelsesversjon,
             entitetId: UUID,
-            rawXml: String,
-        ): NyKvitteringHendelse {
-            return NyKvitteringHendelse(
+            originalKvittering: String,
+        ): RåKvitteringHendelse {
+            return RåKvitteringHendelse(
                 hendelseId = hendelseId,
                 hendelsestidspunkt = hendelsestidspunkt,
                 meta = hendelseMetadata,
-                rawXml = rawXml,
+                originalKvittering = originalKvittering,
             ).also {
                 require(it.entitetId == entitetId) {
                     "Den persistert entitetId var ulik den utleda fra domenet:${it.entitetId} vs. $entitetId. "

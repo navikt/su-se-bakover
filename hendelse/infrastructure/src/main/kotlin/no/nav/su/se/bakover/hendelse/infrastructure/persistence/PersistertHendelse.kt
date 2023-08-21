@@ -15,4 +15,5 @@ data class PersistertHendelse(
     val tidligereHendelseId: UUID?,
     val hendelseMetadata: HendelseMetadata,
     val entitetId: UUID,
+    val triggetAv: UUID?,
 )
