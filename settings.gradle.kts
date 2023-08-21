@@ -45,3 +45,4 @@ include("kontrollsamtale:application")
 include("kontrollsamtale:domain")
 
 include("økonomi:domain")
+include("økonomi:infrastructure")

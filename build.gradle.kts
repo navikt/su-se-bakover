@@ -213,32 +213,17 @@ configure(listOf(project(":client"))) {
     }
 }
 
-configure(
-    listOf(
-        project(":application"),
-        project(":common:domain"),
-        project(":common:infrastructure"),
-        project(":domain"),
-        project(":test-common"),
-        project(":service"),
-        project(":web"),
-        project(":database"),
-        project(":web-regresjonstest"),
-        project(":statistikk"),
-        project(":hendelse:infrastructure"),
-        project(":hendelse:domain"),
-        project(":utenlandsopphold:application"),
-        project(":utenlandsopphold:infrastructure"),
-        project(":utenlandsopphold:domain"),
-    ),
-) {
-    tasks.test {
-        sharedTestSetup()
-        maxParallelForks = (Runtime.getRuntime().availableProcessors() * 0.4).toInt().takeIf { it > 0 } ?: 1
-        // https://junit.org/junit5/docs/snapshot/user-guide/#writing-tests-parallel-execution
-        systemProperties["junit.jupiter.execution.parallel.enabled"] = true
-        systemProperties["junit.jupiter.execution.parallel.mode.default"] = "concurrent"
-        systemProperties["junit.jupiter.execution.parallel.mode.classes.default"] = "concurrent"
+subprojects {
+    // Exclude the 'client' subproject
+    if (name != "client") {
+        tasks.test.configure {
+            sharedTestSetup()
+            maxParallelForks = (Runtime.getRuntime().availableProcessors() * 0.4).toInt().takeIf { it > 0 } ?: 1
+            // https://junit.org/junit5/docs/snapshot/user-guide/#writing-tests-parallel-execution
+            systemProperties["junit.jupiter.execution.parallel.enabled"] = true
+            systemProperties["junit.jupiter.execution.parallel.mode.default"] = "concurrent"
+            systemProperties["junit.jupiter.execution.parallel.mode.classes.default"] = "concurrent"
+        }
     }
 }
 

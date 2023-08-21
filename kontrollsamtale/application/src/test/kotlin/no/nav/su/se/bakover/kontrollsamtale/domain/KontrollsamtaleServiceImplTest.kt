@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.gjennomførtKontrollsamtale
 import no.nav.su.se.bakover.test.innkaltKontrollsamtale
+import no.nav.su.se.bakover.test.pdfATom
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.planlagtKontrollsamtale
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
@@ -47,7 +48,6 @@ internal class KontrollsamtaleServiceImplTest {
 
     private val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
     private val person = person()
-    private val pdf = ByteArray(1)
     private val kontrollsamtale = planlagtKontrollsamtale()
 
     @Test
@@ -194,7 +194,7 @@ internal class KontrollsamtaleServiceImplTest {
         val dokumentCaptor = ArgumentCaptor.forClass(Dokument.MedMetadata.Informasjon::class.java)
         verify(services.brevService).lagreDokument(capture<Dokument.MedMetadata.Informasjon>(dokumentCaptor), any())
         dokumentCaptor.value.opprettet shouldBe Tidspunkt.now(fixedClock)
-        dokumentCaptor.value.generertDokument shouldBe pdf
+        dokumentCaptor.value.generertDokument shouldBe pdfATom()
 
         verify(services.oppgaveService).opprettOppgaveMedSystembruker(
             argThat {
@@ -324,7 +324,7 @@ internal class KontrollsamtaleServiceImplTest {
 
         services.kontrollsamtaleService.hentKontrollsamtaler(sakId).let {
             it.size shouldBe 2
-            verify(services.kontrollsamtaleService).hentKontrollsamtaler(argThat { it shouldBe sakId })
+            verify(services.kontrollsamtaleRepo).hentForSakId(argThat { it shouldBe sakId }, anyOrNull())
         }
     }
 
