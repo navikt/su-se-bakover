@@ -73,13 +73,13 @@ class InstitusjonsoppholdService(
                 jobbNavn = jobbNavn,
                 hendelsestype = InstitusjonsoppholdHendelsestype,
             ).map { (sakId, _) ->
-                val oppgaveHendelserPåSak = oppgaveHendelseRepo.hentForSak(sakId)
-                val alleInstHendelserPåSak = institusjonsoppholdHendelseRepo.hentForSak(sakId)
+                val alleOppgaveHendelser = oppgaveHendelseRepo.hentForSak(sakId)
+                val alleInstHendelser = institusjonsoppholdHendelseRepo.hentForSak(sakId)
                     ?: return Unit.also { log.debug("Sak {} har ingen inst-hendelser", sakId) }
 
                 val instOgOppgaveHendelserPåSak = InstitusjonOgOppgaveHendelserPåSak(
-                    alleInstHendelserPåSak,
-                    oppgaveHendelserPåSak,
+                    alleInstHendelser,
+                    alleOppgaveHendelser,
                 )
 
                 instOgOppgaveHendelserPåSak.hentInstHendelserSomManglerOppgave().ifNotEmpty {

@@ -1,7 +1,6 @@
 // Contains shared test-data, functions and extension funcions to be used across modules
 val ktorVersion: String by project
 dependencies {
-    implementation(project(mapOf("path" to ":oppgave:domain")))
     val kotestVersion = "5.6.2"
 
     implementation(project(":common:domain"))
