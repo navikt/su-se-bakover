@@ -2,11 +2,11 @@ package no.nav.su.se.bakover.oppgave.infrastructure
 
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
@@ -37,9 +37,6 @@ class OppgaveHendelsePostgresRepo(
         }
     }
 
-    override fun hentSisteVersjonFor(sakId: UUID): Hendelsesversjon? =
-        hendelseRepo.hentSisteHendelseforSakIdOgTyper(sakId, nonEmptyListOf(OppgaveHendelsestype))?.versjon
-
     override fun hentForSak(sakId: UUID): List<OppgaveHendelse> {
         return dbMetrics.timeQuery("hentOppgaveHendelserForSak") {
             hendelseRepo.hentHendelserForSakIdOgTyper(sakId, alleTyper).map {
@@ -49,7 +46,7 @@ class OppgaveHendelsePostgresRepo(
     }
 
     private fun PersistertHendelse.toOppgaveHendelse(): OppgaveHendelse {
-        val data = deserialize<OppgaveHendelse>(this.data)
+        val data = deserialize<OppgaveHendelseData>(this.data)
         return OppgaveHendelse(
             hendelseId = HendelseId.fromUUID(this.hendelseId),
             tidligereHendelseId = this.tidligereHendelseId?.let { HendelseId.fromUUID(it) },
@@ -57,7 +54,7 @@ class OppgaveHendelsePostgresRepo(
             versjon = this.versjon,
             hendelsestidspunkt = this.hendelsestidspunkt,
             triggetAv = this.triggetAv?.let { HendelseId.fromUUID(it) },
-            oppgaveId = data.oppgaveId,
+            oppgaveId = OppgaveId(data.oppgaveId),
         )
     }
 }

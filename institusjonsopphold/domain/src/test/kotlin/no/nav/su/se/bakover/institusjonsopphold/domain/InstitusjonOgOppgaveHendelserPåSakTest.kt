@@ -45,13 +45,39 @@ class InstitusjonOgOppgaveHendelserPåSakTest {
     }
 
     @Test
+    fun `null dersom samme oppholdId ikke finnes`() {
+        val tidligereInstOppholdGruppe1 = nyInstitusjonsoppholdHendelse()
+        val oppgaveHendelseGruppe1 = nyOppgaveHendelse(triggetAv = tidligereInstOppholdGruppe1)
+        val nyInstOppholdGruppe1 = nyInstitusjonsoppholdHendelse(
+            tidligereHendelse = tidligereInstOppholdGruppe1.hendelseId,
+            versjon = oppgaveHendelseGruppe1.versjon.inc(),
+        )
+
+        InstitusjonOgOppgaveHendelserPåSak(
+            InstitusjonsoppholdHendelserPåSak(
+                nonEmptyListOf(
+                    tidligereInstOppholdGruppe1,
+                    nyInstOppholdGruppe1,
+                ),
+            ),
+            listOf(oppgaveHendelseGruppe1),
+        ).hentHendelserMedSammeOppholdId(OppholdId(99)) shouldBe null
+    }
+
+    @Test
     fun `henter hendelser med samme oppholdId`() {
         val tidligereInstOppholdGruppe1 = nyInstitusjonsoppholdHendelse()
         val oppgaveHendelseGruppe1 = nyOppgaveHendelse(triggetAv = tidligereInstOppholdGruppe1)
-        val nyInstOppholdGruppe1 = nyInstitusjonsoppholdHendelse(tidligereHendelse = tidligereInstOppholdGruppe1.hendelseId, versjon = oppgaveHendelseGruppe1.versjon.inc())
+        val nyInstOppholdGruppe1 = nyInstitusjonsoppholdHendelse(
+            tidligereHendelse = tidligereInstOppholdGruppe1.hendelseId,
+            versjon = oppgaveHendelseGruppe1.versjon.inc(),
+        )
 
         val tidligereInstOppholdGruppe2 =
-            nyInstitusjonsoppholdHendelse(eksternHendelse = nyEksternInstitusjonsoppholdHendelse(oppholdId = OppholdId(3)), versjon = nyInstOppholdGruppe1.versjon.inc())
+            nyInstitusjonsoppholdHendelse(
+                eksternHendelse = nyEksternInstitusjonsoppholdHendelse(oppholdId = OppholdId(3)),
+                versjon = nyInstOppholdGruppe1.versjon.inc(),
+            )
         val oppgaveHendelseGruppe2 = nyOppgaveHendelse(triggetAv = tidligereInstOppholdGruppe2)
         val nyInstOppholdGruppe2 = nyInstitusjonsoppholdHendelse(
             tidligereHendelse = tidligereInstOppholdGruppe2.hendelseId,
