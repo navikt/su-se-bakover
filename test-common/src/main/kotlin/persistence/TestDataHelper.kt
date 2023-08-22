@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
+import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlag
@@ -96,12 +97,15 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandling
 import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
 import no.nav.su.se.bakover.test.epsFnr
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
@@ -112,6 +116,7 @@ import no.nav.su.se.bakover.test.grunnlagsdataMedEpsMedFradrag
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.nyInstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurdering
@@ -183,6 +188,9 @@ class TestDataHelper(
     val tilbakekrevingRepo = databaseRepos.tilbakekrevingRepo
     val søknadsbehandlingRepo = databaseRepos.søknadsbehandling
     val utbetalingRepo = databaseRepos.utbetaling
+    val institusjonsoppholdHendelseRepo = databaseRepos.institusjonsoppholdHendelseRepo
+    val oppgaveHendelseRepo = databaseRepos.oppgaveHendelseRepo
+    val hendelseJobbRepo = databaseRepos.hendelseJobbRepo
 
     /**
      * Oppretter og persisterer en ny sak (dersom den ikke finnes fra før) med søknad med tomt søknadsinnhold.
@@ -1578,6 +1586,52 @@ class TestDataHelper(
     fun persisterSkattedokumentJournalført(): Skattedokument.Journalført {
         return persisterSkattedokumentGenerert().tilJournalført(JournalpostId("journalpostId")).also {
             databaseRepos.dokumentSkattRepo.lagre(it)
+        }
+    }
+
+    fun persisterInstitusjonsoppholdHendelse(): InstitusjonsoppholdHendelse {
+        return persisterSøknadsbehandlingIverksatt().let {
+            nyInstitusjonsoppholdHendelse(sakId = it.first.id).also {
+                institusjonsoppholdHendelseRepo.lagre(it)
+            }
+        }
+    }
+
+    fun persisterOppgaveHendelse(): OppgaveHendelse {
+        return persisterInstitusjonsoppholdHendelse().let {
+            it.nyOppgaveHendelse(oppgaveId = OppgaveId("oppgaveId"), null, versjon = it.versjon.inc(), clock = fixedClock)
+                .also { oppgaveHendelse ->
+                    sessionFactory.withSessionContext {
+                        oppgaveHendelseRepo.lagre(oppgaveHendelse, it)
+                    }
+                }
+        }
+    }
+
+    fun persisterInstJobbHendelse(): InstitusjonsoppholdHendelse {
+        return persisterInstitusjonsoppholdHendelse().let { hendelse ->
+            hendelse.also {
+                sessionFactory.withSessionContext { tx ->
+                    hendelseJobbRepo.lagre(hendelse.hendelseId, "INSTITUSJON", tx)
+                }
+            }
+        }
+    }
+
+    fun persisterFlereInstJobbHendelser(): List<InstitusjonsoppholdHendelse> {
+        return persisterSøknadsbehandlingIverksatt().let {
+            sessionFactory.withSessionContext { tx ->
+                val første = nyInstitusjonsoppholdHendelse(sakId = it.first.id).also {
+                    institusjonsoppholdHendelseRepo.lagre(it)
+                }
+                val andre = nyInstitusjonsoppholdHendelse(sakId = it.first.id, versjon = Hendelsesversjon(3)).also {
+                    institusjonsoppholdHendelseRepo.lagre(it)
+                }
+
+                listOf(første, andre).also {
+                    hendelseJobbRepo.lagre(listOf(første.hendelseId, andre.hendelseId), "INSTITUSJON", tx)
+                }
+            }
         }
     }
 

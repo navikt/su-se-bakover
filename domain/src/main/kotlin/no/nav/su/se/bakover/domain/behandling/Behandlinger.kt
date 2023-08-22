@@ -22,6 +22,8 @@ data class Behandlinger(
 
     companion object {
         fun empty() = Behandlinger(emptyList(), emptyList(), emptyList(), emptyList())
+
+        fun List<Søknadsbehandling>.harBehandlingUnderArbeid(): Boolean = this.any { it.erÅpen() }
     }
 
     fun nySøknadsbehandling(søknadsbehandling: Søknadsbehandling): Behandlinger {

@@ -25,6 +25,7 @@ sealed interface Stønadsvedtak : Vedtak {
     val saksnummer get() = behandling.saksnummer
     val sakstype get() = behandling.sakstype
 
+    fun erInnvilget(): Boolean
     fun erOpphør(): Boolean
     fun erStans(): Boolean
     fun erGjenopptak(): Boolean

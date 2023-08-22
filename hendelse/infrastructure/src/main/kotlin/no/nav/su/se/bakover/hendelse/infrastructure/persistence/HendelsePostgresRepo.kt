@@ -73,7 +73,7 @@ class HendelsePostgresRepo(
         dbMetrics.timeQuery("persisterHendelse") {
             sessionContext.withSession { session ->
                 """
-                    insert into hendelse (hendelseId, tidligereHendelseId, sakId, type, data, meta, hendelsestidspunkt, entitetId, versjon)
+                    insert into hendelse (hendelseId, tidligereHendelseId, sakId, type, data, meta, hendelsestidspunkt, entitetId, versjon, triggetAv)
                     values(
                         :hendelseId,
                         :tidligereHendelseId,
@@ -83,7 +83,8 @@ class HendelsePostgresRepo(
                         to_jsonb(:meta::jsonb),
                         :hendelsestidspunkt,
                         :entitetId,
-                        :versjon
+                        :versjon,
+                        :triggetAv
                     )
                 """.trimIndent().insert(
                     params = mapOf(
@@ -96,6 +97,7 @@ class HendelsePostgresRepo(
                         "hendelsestidspunkt" to hendelse.hendelsestidspunkt,
                         "entitetId" to hendelse.entitetId,
                         "versjon" to hendelse.versjon.value,
+                        "triggetAv" to hendelse.triggetAv?.value,
                     ),
                     session = session,
                 )
@@ -126,6 +128,20 @@ class HendelsePostgresRepo(
             }
         }
     }
+
+    fun hentHendelserForAlleSakerPåTyper(typer: NonEmptyList<String>): List<PersistertHendelse>? =
+        dbMetrics.timeQuery("hentSisteHendelseForAlleSaker") {
+            // sikkerhets issues med denne type input - Ser ikke ut at det er så enkelt å parametisere den
+            sessionFactory.withSession { session ->
+                """
+                    select * from hendelse
+                    where type IN (${typer.map { "'$it'" }.joinToString(", ")})
+                    order by versjon desc
+                """.trimIndent()
+                    .hentListe(session = session) { toPersistertHendelse(it) }
+                    .ifEmpty { null }
+            }
+        }
 
     fun hentHendelserForSakIdOgTyper(
         sakId: UUID,

@@ -53,6 +53,10 @@ data class VedtakPåTidslinje private constructor(
         is CopyArgs.Tidslinje.NyPeriode -> nyPeriode(args.periode)
     }
 
+    /**
+     * Reguleringer, og gjenopptak regnes som innvilgelser - I tillegg til Innvilget
+     */
+    fun erInnvilget(): Boolean = originaltVedtak.erInnvilget()
     fun erOpphør(): Boolean = originaltVedtak.erOpphør()
     fun erStans(): Boolean = originaltVedtak.erStans()
     fun erGjenopptak(): Boolean = originaltVedtak.erGjenopptak()
@@ -124,6 +128,18 @@ data class VedtakPåTidslinje private constructor(
                 originaltVedtak = this,
             )
         }
+
+        /**
+         * Se [erInnvilget]
+         * @return true dersom det finnes minst en innvilgelse i tidslinjen
+         */
+        fun Tidslinje<VedtakPåTidslinje>?.harInnvilgelse(): Boolean = this != null && this.any { it.erInnvilget() }
+
+        /**
+         * Se [erStans]
+         * @return true dersom det finnes minst en innvilgelse i tidslinjen
+         */
+        fun Tidslinje<VedtakPåTidslinje>?.harStans(): Boolean = this != null && this.any { it.erStans() }
     }
 }
 

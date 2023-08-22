@@ -18,6 +18,9 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
 import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
 import no.nav.su.se.bakover.domain.DatabaseRepos
+import no.nav.su.se.bakover.institusjonsopphold.application.service.InstitusjonsoppholdService
+import no.nav.su.se.bakover.institusjonsopphold.presentation.InstitusjonsoppholdConsumer
+import no.nav.su.se.bakover.institusjonsopphold.presentation.InstitusjonsoppholdOppgaveJob
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs.KontrollsamtaleinnkallingJob
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs.StansYtelseVedManglendeOppmøteKontrollsamtaleJob
 import no.nav.su.se.bakover.service.dokument.DistribuerDokumentService
@@ -117,6 +120,31 @@ fun startJobberOgConsumers(
             klageinstanshendelseService = services.klageinstanshendelseService,
             clock = clock,
         )
+
+        if (services.toggles.isEnabled("supstonad.institusjonsopphold.hendelser")) {
+            val institusjonsoppholdService = InstitusjonsoppholdService(
+                oppgaveService = services.oppgave,
+                personService = services.person,
+                institusjonsoppholdHendelseRepo = databaseRepos.institusjonsoppholdHendelseRepo,
+                oppgaveHendelseRepo = databaseRepos.oppgaveHendelseRepo,
+                hendelseJobbRepo = databaseRepos.hendelseJobbRepo,
+                hendelseRepo = databaseRepos.hendelseRepo,
+                sakRepo = databaseRepos.sak,
+                clock = clock,
+                sessionFactory = databaseRepos.sessionFactory,
+            )
+            InstitusjonsoppholdConsumer(
+                config = applicationConfig.institusjonsoppholdKafkaConfig,
+                institusjonsoppholdService = institusjonsoppholdService,
+                clock = clock,
+            )
+            InstitusjonsoppholdOppgaveJob(
+                institusjonsoppholdService = institusjonsoppholdService,
+                periode = Duration.of(5, ChronoUnit.MINUTES),
+                initialDelay = initialDelay.next(),
+                runCheckFactory = runCheckFactory,
+            )
+        }
 
         JournalførDokumentJob(
             initialDelay = initialDelay.next(),

@@ -31,9 +31,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
     override val simulering: Simulering
     override val utbetalingId: UUID30?
 
-    fun sakinfo(): SakInfo {
-        return behandling.sakinfo()
-    }
+    fun sakinfo(): SakInfo = behandling.sakinfo()
 
     companion object {
         fun from(

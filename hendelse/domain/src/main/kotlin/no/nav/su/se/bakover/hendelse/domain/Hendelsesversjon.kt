@@ -4,7 +4,7 @@ package no.nav.su.se.bakover.hendelse.domain
 value class Hendelsesversjon(val value: Long) : Comparable<Hendelsesversjon> {
 
     init {
-        require(value > 0L)
+        require(value > 0L) { "Versjonen må være større enn 0L" }
     }
 
     override fun compareTo(other: Hendelsesversjon): Int {
@@ -16,6 +16,11 @@ value class Hendelsesversjon(val value: Long) : Comparable<Hendelsesversjon> {
     override fun toString() = value.toString()
 
     companion object {
+        /**
+         * nr 1 er reservert for ny sak (se versjon i SakPostgresRepo)
+         */
+        fun ny(): Hendelsesversjon = Hendelsesversjon(2)
+
         fun max(first: Hendelsesversjon, second: Hendelsesversjon): Hendelsesversjon =
             if (first > second) first else second
 

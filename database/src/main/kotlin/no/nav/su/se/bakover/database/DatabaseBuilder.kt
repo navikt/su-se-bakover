@@ -35,6 +35,7 @@ import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRep
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdgrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.hendelse.HendelseJobbPostgresRepo
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.klage.klageinstans.KlageinstanshendelsePostgresRepo
@@ -55,6 +56,8 @@ import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
+import no.nav.su.se.bakover.institusjonsopphold.database.InstitusjonsoppholdHendelsePostgresRepo
+import no.nav.su.se.bakover.oppgave.infrastructure.OppgaveHendelsePostgresRepo
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.UtenlandsoppholdPostgresRepo
 import org.jetbrains.annotations.TestOnly
 import java.time.Clock
@@ -278,6 +281,10 @@ data object DatabaseBuilder {
             hendelseRepo = hendelseRepo,
             utenlandsoppholdRepo = utenlandsoppholdRepo,
             dokumentSkattRepo = DokumentSkattPostgresRepo(dbMetrics, sessionFactory, clock),
+            institusjonsoppholdHendelseRepo = InstitusjonsoppholdHendelsePostgresRepo(sessionFactory, dbMetrics, hendelseRepo, clock),
+            oppgaveHendelseRepo = OppgaveHendelsePostgresRepo(sessionFactory, dbMetrics, hendelseRepo, clock),
+            hendelseJobbRepo = HendelseJobbPostgresRepo(sessionFactory),
+
         )
     }
 }

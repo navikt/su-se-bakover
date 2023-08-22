@@ -33,7 +33,6 @@ data class KorrigerUtenlandsoppholdHendelse private constructor(
     override val versjon: Hendelsesversjon,
     override val meta: HendelseMetadata,
 ) : UtenlandsoppholdHendelse {
-
     override val triggetAv: HendelseId? = null
 
     companion object {

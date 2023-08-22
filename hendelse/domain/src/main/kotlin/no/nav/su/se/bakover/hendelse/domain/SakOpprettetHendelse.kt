@@ -26,6 +26,7 @@ data class SakOpprettetHendelse private constructor(
 
     // Dette vil alltid være første versjon i en hendelsesserie for en sak.
     override val versjon = Hendelsesversjon(1L)
+
     override fun compareTo(other: Sakshendelse): Int {
         require(this.entitetId == other.entitetId && this.sakId == other.sakId)
         return this.versjon.compareTo(other.versjon)

@@ -141,6 +141,25 @@ sealed class OppgaveConfig {
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(30)
     }
 
+    data class Institusjonsopphold(
+        val saksnummer: Saksnummer,
+        val sakstype: Sakstype,
+        override val aktørId: AktørId,
+        override val clock: Clock,
+    ) : OppgaveConfig() {
+        override val saksreferanse = saksnummer.toString()
+        override val journalpostId: JournalpostId? = null
+        override val tilordnetRessurs: NavIdentBruker? = null
+        override val behandlingstema = when (sakstype) {
+            Sakstype.ALDER -> Behandlingstema.SU_ALDER
+            Sakstype.UFØRE -> Behandlingstema.SU_UFØRE_FLYKTNING
+        }
+        override val behandlingstype = Behandlingstype.REVURDERING
+        override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
+        override val aktivDato: LocalDate = LocalDate.now(clock)
+        override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(7)
+    }
+
     sealed class Klage : OppgaveConfig() {
         abstract val saksnummer: Saksnummer
         override val saksreferanse by lazy { saksnummer.toString() }

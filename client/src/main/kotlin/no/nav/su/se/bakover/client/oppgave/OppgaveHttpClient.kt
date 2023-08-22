@@ -140,6 +140,12 @@ internal class OppgaveHttpClient(
                     Tidspunkt.now(clock).toOppgaveFormat()
                 } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}\nKontrollnotat/Dokumentasjon av oppfølgingssamtale ikke funnet for perioden: ${config.periode.fraOgMed}-${config.periode.tilOgMed}. Maskinell stans kunne ikke gjennomføres."
             }
+
+            is OppgaveConfig.Institusjonsopphold -> {
+                "--- ${
+                    Tidspunkt.now(clock).toOppgaveFormat()
+                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}\nEndring i institusjonsopphold"
+            }
         }
 
         return Either.catch {

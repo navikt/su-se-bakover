@@ -12,6 +12,9 @@ dependencies {
     implementation(project(":hendelse:infrastructure"))
     implementation(project(":utenlandsopphold:domain"))
     implementation(project(":kontrollsamtale:domain"))
+    implementation(project(":institusjonsopphold:domain"))
+    implementation(project(":institusjonsopphold:presentation"))
+    implementation(project(":oppgave:domain"))
     implementation(project(":økonomi:domain"))
 
     compileOnly("io.kotest:kotest-assertions-core:$kotestVersion")
