@@ -42,8 +42,6 @@ import no.nav.su.se.bakover.web.services.tilbakekreving.LokalMottaKravgrunnlagJo
 import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingIbmMqConsumer
 import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingJob
 import org.apache.kafka.clients.consumer.KafkaConsumer
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringIbmMqConsumer
 import økonomi.infrastructure.kvittering.consumer.lokal.LokalKvitteringJob
 import økonomi.infrastructure.kvittering.consumer.lokal.LokalKvitteringService
@@ -64,8 +62,6 @@ fun startJobberOgConsumers(
     clock: Clock,
     consumers: Consumers,
 ) {
-    val log: Logger = LoggerFactory.getLogger("StartJobberOgConsumers")
-
     val personhendelseService = PersonhendelseService(
         sakRepo = databaseRepos.sak,
         personhendelseRepo = databaseRepos.personhendelseRepo,
@@ -124,9 +120,8 @@ fun startJobberOgConsumers(
             klageinstanshendelseService = services.klageinstanshendelseService,
             clock = clock,
         )
-        log.info("er inst toggle enabled: ${services.toggles.isEnabled("supstonad.institusjonsopphold.hendelser")}")
+
         if (services.toggles.isEnabled("supstonad.institusjonsopphold.hendelser")) {
-            log.info("setter opp klasser for inst")
             val institusjonsoppholdService = InstitusjonsoppholdService(
                 oppgaveService = services.oppgave,
                 personService = services.person,
