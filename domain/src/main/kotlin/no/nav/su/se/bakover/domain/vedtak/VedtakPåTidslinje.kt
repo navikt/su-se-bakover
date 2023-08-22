@@ -134,6 +134,12 @@ data class VedtakPåTidslinje private constructor(
          * @return true dersom det finnes minst en innvilgelse i tidslinjen
          */
         fun Tidslinje<VedtakPåTidslinje>?.harInnvilgelse(): Boolean = this != null && this.any { it.erInnvilget() }
+
+        /**
+         * Se [erStans]
+         * @return true dersom det finnes minst en innvilgelse i tidslinjen
+         */
+        fun Tidslinje<VedtakPåTidslinje>?.harStans(): Boolean = this != null && this.any { it.erStans() }
     }
 }
 

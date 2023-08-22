@@ -60,6 +60,7 @@ class InstitusjonsoppholdServiceTest {
     fun `person har sak blir prosessert og hendelse blir knyttet til sak`() {
         val institusjonsoppholdHendelseRepo = mock<InstitusjonsoppholdHendelseRepo> {
             doNothing().whenever(it).lagre(any())
+            on { hentTidligereInstHendelserForOpphold(any(), any()) } doReturn emptyList()
         }
         val sak = søknadsbehandlingIverksattInnvilget().first
         val sakRepo = mock<SakRepo> {
@@ -70,6 +71,10 @@ class InstitusjonsoppholdServiceTest {
         val hendelse = nyEksternInstitusjonsoppholdHendelse()
         testMocks.institusjonsoppholdService().process(hendelse)
         verify(sakRepo).hentSaker(argThat { it shouldBe fnr })
+        verify(institusjonsoppholdHendelseRepo).hentTidligereInstHendelserForOpphold(
+            argThat { it shouldBe sak.id },
+            argThat { it shouldBe hendelse.oppholdId },
+        )
         verify(institusjonsoppholdHendelseRepo).lagre(
             argThat {
                 it shouldBe InstitusjonsoppholdHendelse(
@@ -81,6 +86,7 @@ class InstitusjonsoppholdServiceTest {
                 )
             },
         )
+        testMocks.verifyNoMoreInteractions()
     }
 
     @Test
@@ -90,9 +96,7 @@ class InstitusjonsoppholdServiceTest {
 
         val hendelseJobbRepo = mock<HendelseJobbRepo> {
             on { hentSakIdOgHendelseIderForNavnOgType(any(), any(), anyOrNull(), anyOrNull()) } doReturn mapOf(
-                sak.id to listOf(
-                    hendelse.hendelseId,
-                ),
+                sak.id to listOf(hendelse.hendelseId),
             )
         }
         val oppgaveHendelseRepo = mock<OppgaveHendelseRepo> {
@@ -111,8 +115,7 @@ class InstitusjonsoppholdServiceTest {
             oppgaveHendelseRepo = oppgaveHendelseRepo,
         )
         testMocks.institusjonsoppholdService().opprettOppgaveForHendelser("jobbNavn")
-
-        hendelseJobbRepo.hentSakIdOgHendelseIderForNavnOgType(
+        verify(hendelseJobbRepo).hentSakIdOgHendelseIderForNavnOgType(
             argThat { it shouldBe "jobbNavn" },
             argThat { it shouldBe "INSTITUSJONSOPPHOLD" },
             anyOrNull(),
@@ -228,8 +231,7 @@ class InstitusjonsoppholdServiceTest {
                 )
             },
         )
-
-        verify(hendelseRepo).hentSisteVersjonFraEntitetId(argThat { it shouldBe sak.id }, anyOrNull())
+        verify(hendelseRepo).hentSisteVersjonFraEntitetId(argThat { it shouldBe sak.id }, argThat { it shouldBe TestSessionFactory.transactionContext })
         verify(oppgaveHendelseRepo).lagre(
             argThat {
                 it shouldBe OppgaveHendelse(
@@ -300,36 +302,41 @@ class InstitusjonsoppholdServiceTest {
         val sakRepo = mock<SakRepo> {
             on { hentSaker(any()) } doReturn listOf(sak)
         }
-        val hendelseRepo = mock<HendelseRepo> {
-            on { hentSisteVersjonFraEntitetId(any(), anyOrNull()) } doReturn Hendelsesversjon(2)
-        }
         val testMocks =
             mockedServices(
                 sakRepo = sakRepo,
                 institusjonsoppholdHendelseRepo = institusjonsoppholdHendelseRepo,
-                hendelseRepo = hendelseRepo,
             )
         testMocks.institusjonsoppholdService().process(nyHendelse)
         verify(sakRepo).hentSaker(argThat { it shouldBe fnr })
+        verify(institusjonsoppholdHendelseRepo).hentTidligereInstHendelserForOpphold(
+            argThat { it shouldBe sak.id },
+            argThat { it shouldBe nyHendelse.oppholdId },
+        )
         verify(institusjonsoppholdHendelseRepo).lagre(
             argThat {
                 it shouldBe InstitusjonsoppholdHendelse(
                     sakId = sak.id,
                     hendelseId = it.hendelseId,
                     tidligereHendelseId = tidligereHendelse.hendelseId,
-                    versjon = Hendelsesversjon(3),
+                    // hendelse 2 fordi saken i denne testen ikke har tatt høyde for tidligere hendelsen
+                    versjon = Hendelsesversjon(2),
                     eksterneHendelse = nyHendelse,
                     hendelsestidspunkt = fixedTidspunkt,
                 )
             },
         )
+        testMocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `knytter oppgave hendelse til tidligere oppgaveHendelse dersom dem har samme oppholdId`() {
         val sak = søknadsbehandlingIverksattInnvilget().first
         val tidligereInstHendelse = nyInstitusjonsoppholdHendelse()
-        val nyInstHendelse = nyInstitusjonsoppholdHendelse(tidligereHendelse = tidligereInstHendelse.hendelseId, versjon = tidligereInstHendelse.versjon.inc())
+        val nyInstHendelse = nyInstitusjonsoppholdHendelse(
+            tidligereHendelse = tidligereInstHendelse.hendelseId,
+            versjon = tidligereInstHendelse.versjon.inc(),
+        )
         val tidligereOppgaveHendelse = nyOppgaveHendelse(triggetAv = tidligereInstHendelse)
         val person = person()
 
@@ -342,7 +349,12 @@ class InstitusjonsoppholdServiceTest {
             doNothing().whenever(it).lagre(any(), any())
         }
         val institusjonsoppholdHendelseRepo = mock<InstitusjonsoppholdHendelseRepo> {
-            on { hentForSak(any()) } doReturn InstitusjonsoppholdHendelserPåSak(nonEmptyListOf(tidligereInstHendelse, nyInstHendelse))
+            on { hentForSak(any()) } doReturn InstitusjonsoppholdHendelserPåSak(
+                nonEmptyListOf(
+                    tidligereInstHendelse,
+                    nyInstHendelse,
+                ),
+            )
         }
         val sakRepo = mock<SakRepo> {
             on { hentSakInfo(any<UUID>()) } doReturn sak.info()
@@ -433,7 +445,15 @@ class InstitusjonsoppholdServiceTest {
         )
 
         fun verifyNoMoreInteractions() {
-            verifyNoMoreInteractions(oppgaveService, personService, institusjonsoppholdHendelseRepo, sakRepo)
+            verifyNoMoreInteractions(
+                oppgaveService,
+                personService,
+                institusjonsoppholdHendelseRepo,
+                oppgaveHendelseRepo,
+                hendelseJobbRepo,
+                hendelseRepo,
+                sakRepo,
+            )
         }
     }
 }

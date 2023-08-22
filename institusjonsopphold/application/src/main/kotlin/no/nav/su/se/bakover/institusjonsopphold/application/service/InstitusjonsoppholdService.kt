@@ -9,6 +9,8 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.EksternInstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.InstitusjonOgOppgaveHendelserPåSak
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelseRepo
+import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.behandling.Behandlinger.Companion.harBehandlingUnderArbeid
 import no.nav.su.se.bakover.domain.hentSisteHendelse
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -16,6 +18,7 @@ import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje.Companion.harInnvilgelse
+import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje.Companion.harStans
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.institusjonsopphold.database.InstitusjonsoppholdHendelsestype
 import no.nav.su.se.bakover.oppgave.domain.HendelseJobbRepo
@@ -41,7 +44,7 @@ class InstitusjonsoppholdService(
     fun process(hendelse: EksternInstitusjonsoppholdHendelse) {
         sakRepo.hentSaker(hendelse.norskident).ifNotEmpty {
             this.forEach { sak ->
-                sak.vedtakstidslinje(Måned.now(clock)).harInnvilgelse().ifTrue {
+                sak.harBehandlingUnderArbeidEllerVedtakSomGirGrunnlagForInstHendelse(clock).ifTrue {
                     institusjonsoppholdHendelseRepo.hentTidligereInstHendelserForOpphold(sak.id, hendelse.oppholdId)
                         .whenever(
                             isEmpty = {
@@ -49,14 +52,11 @@ class InstitusjonsoppholdService(
                                     .lagre(hendelse.nyHendelsePåSak(sak.id, sak.versjon.inc(), clock))
                             },
                             isNotEmpty = {
-                                val sisteHendelsesVersjon =
-                                    hendelseRepo.hentSisteVersjonFraEntitetId(sak.id)
-                                        ?: throw IllegalStateException("Fant ikke siste hendelses versjon for sak ${sak.id} ved eksterne inst hendelse ${hendelse.hendelseId}")
                                 institusjonsoppholdHendelseRepo
                                     .lagre(
                                         hendelse.nyHendelsePåSakLenketTilEksisterendeHendelse(
                                             it.hentSisteHendelse(),
-                                            sisteHendelsesVersjon.inc(),
+                                            sak.versjon.inc(),
                                             clock,
                                         ),
                                     )
@@ -94,7 +94,7 @@ class InstitusjonsoppholdService(
                             }
 
                         this.forEach {
-                            val hendelsesversjon = hendelseRepo.hentSisteVersjonFraEntitetId(sakInfo.sakId)?.inc()
+                            val hendelsesversjon = hendelseRepo.hentSisteVersjonFraEntitetId(sakInfo.sakId, tx)?.inc()
                                 ?: throw IllegalStateException("Fikk ikke noe hendelsesversjon ved henting fra entitetId (sakId) ${sakInfo.sakId} for hendelse ${it.hendelseId}. Oppgave ble laget med oppgaveId $oppgaveId")
 
                             val tidligereOppgaveHendelse =
@@ -128,4 +128,13 @@ class InstitusjonsoppholdService(
         aktørId = hentAktørId(sakInfo.fnr),
         clock = clock,
     )
+
+    private fun Sak.harBehandlingUnderArbeidEllerVedtakSomGirGrunnlagForInstHendelse(clock: Clock): Boolean {
+        val tidslinje = this.vedtakstidslinje(Måned.now(clock))
+        val harInnvilgetVedtak = tidslinje.harInnvilgelse()
+        val harStansetVedtak = tidslinje.harStans()
+        val harBehandlingUnderArbeid = this.behandlinger.søknadsbehandlinger.harBehandlingUnderArbeid()
+
+        return harInnvilgetVedtak || harStansetVedtak || harBehandlingUnderArbeid
+    }
 }
