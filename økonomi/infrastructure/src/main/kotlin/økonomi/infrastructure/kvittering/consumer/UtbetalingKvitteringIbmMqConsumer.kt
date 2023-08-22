@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.services.utbetaling.kvittering
+package økonomi.infrastructure.kvittering.consumer
 
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.sikkerLogg

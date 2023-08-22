@@ -1,12 +1,10 @@
-package økonomi.infrastructure.kvittering
+package økonomi.infrastructure.kvittering.consumer
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse.Companion.toKvitteringResponse
 import org.junit.jupiter.api.Test
+import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringResponse.Companion.toKvitteringResponse
 
 internal class UtbetalingKvitteringResponseTest {
 

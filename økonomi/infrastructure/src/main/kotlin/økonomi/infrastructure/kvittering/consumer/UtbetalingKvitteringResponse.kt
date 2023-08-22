@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.services.utbetaling.kvittering
+package økonomi.infrastructure.kvittering.consumer
 
 import arrow.core.Either
 import arrow.core.getOrElse
@@ -10,12 +10,12 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.OppdragRequest
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse.Alvorlighetsgrad.ALVORLIG_FEIL
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse.Alvorlighetsgrad.OK
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse.Alvorlighetsgrad.OK_MED_VARSEL
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse.Alvorlighetsgrad.SQL_FEIL
 import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.kvittering.Kvittering.Utbetalingsstatus
+import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringResponse.Alvorlighetsgrad.ALVORLIG_FEIL
+import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringResponse.Alvorlighetsgrad.OK
+import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringResponse.Alvorlighetsgrad.OK_MED_VARSEL
+import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringResponse.Alvorlighetsgrad.SQL_FEIL
 import java.time.Clock
 
 /**

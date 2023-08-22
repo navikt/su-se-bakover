@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.services.utbetaling.kvittering
+package økonomi.infrastructure.kvittering.consumer.lokal
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId

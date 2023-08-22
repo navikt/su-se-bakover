@@ -1,4 +1,4 @@
-package økonomi.infrastructure.kvittering
+package økonomi.infrastructure.kvittering.consumer.lokal
 
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -27,8 +27,6 @@ import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringService
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -36,6 +34,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import økonomi.domain.kvittering.Kvittering
+import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringConsumer
 import java.time.LocalDate
 import java.util.UUID
 

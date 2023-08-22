@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web
 
 import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingConsumer
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
+import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringConsumer
 
 data class Consumers(
     val tilbakekrevingConsumer: TilbakekrevingConsumer,

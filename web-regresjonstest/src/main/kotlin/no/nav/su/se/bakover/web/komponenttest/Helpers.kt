@@ -11,8 +11,8 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingsmeldingMapper
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse
+import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringConsumer
+import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringResponse
 import java.math.BigDecimal
 import java.util.UUID
 

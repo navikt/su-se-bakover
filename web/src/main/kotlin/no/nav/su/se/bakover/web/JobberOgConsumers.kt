@@ -41,10 +41,10 @@ import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJo
 import no.nav.su.se.bakover.web.services.tilbakekreving.LokalMottaKravgrunnlagJob
 import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingIbmMqConsumer
 import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingJob
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringJob
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringService
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringIbmMqConsumer
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringIbmMqConsumer
+import økonomi.infrastructure.kvittering.consumer.lokal.LokalKvitteringJob
+import økonomi.infrastructure.kvittering.consumer.lokal.LokalKvitteringService
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
