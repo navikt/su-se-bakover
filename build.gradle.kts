@@ -259,20 +259,24 @@ tasks.named("build") {
 //apply(from = "gradle/checkImports.gradle.kts")
 
 
-tasks.register("verifyUniqueProjectNames") {
+tasks.register("verifyUniqueJarNames") {
     doLast {
-        val allProjectNames = allprojects.map { it.name }
-        val uniqueProjectNames = allProjectNames.toSet()
-        if (allProjectNames.size != uniqueProjectNames.size) {
-            val duplicateNames = allProjectNames.groupingBy { it }
+        val allJarNames = allprojects.mapNotNull { project ->
+            project.tasks.findByName("jar")?.let {
+                (it as? org.gradle.jvm.tasks.Jar)?.archiveBaseName?.get()
+            }
+        }
+        val uniqueJarNames = allJarNames.toSet()
+        if (allJarNames.size != uniqueJarNames.size) {
+            val duplicateNames = allJarNames.groupingBy { it }
                 .eachCount()
                 .filter { it.value > 1 }
                 .keys
-            throw GradleException("Duplicate module/submodule names found: $duplicateNames. Please ensure all names are unique.")
+            throw GradleException("Duplicate JAR names found: $duplicateNames. Please ensure all JAR names are unique.")
         }
-        println("All module/submodule names are unique.")
+        println("All JAR names are unique.")
     }
 }
 tasks.named("check") {
-    dependsOn("verifyUniqueProjectNames")
+    dependsOn("verifyUniqueJarNames")
 }
