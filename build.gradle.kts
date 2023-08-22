@@ -257,3 +257,22 @@ tasks.named("build") {
 }
 // TODO jah: Fix find + grep
 //apply(from = "gradle/checkImports.gradle.kts")
+
+
+tasks.register("verifyUniqueProjectNames") {
+    doLast {
+        val allProjectNames = allprojects.map { it.name }
+        val uniqueProjectNames = allProjectNames.toSet()
+        if (allProjectNames.size != uniqueProjectNames.size) {
+            val duplicateNames = allProjectNames.groupingBy { it }
+                .eachCount()
+                .filter { it.value > 1 }
+                .keys
+            throw GradleException("Duplicate module/submodule names found: $duplicateNames. Please ensure all names are unique.")
+        }
+        println("All module/submodule names are unique.")
+    }
+}
+tasks.named("check") {
+    dependsOn("verifyUniqueProjectNames")
+}
