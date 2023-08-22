@@ -164,6 +164,25 @@ class HendelsePostgresRepo(
         }
     }
 
+    fun hentHendelseForHendelseId(
+        hendelseId: HendelseId,
+        sessionContext: SessionContext = sessionFactory.newSessionContext(),
+    ): PersistertHendelse? {
+        return dbMetrics.timeQuery("hentHendelseForHendelseId") {
+            sessionContext.withSession { session ->
+                """
+                    select * from hendelse
+                    where hendelseId = :hendelseId
+                """.trimIndent().hent(
+                    params = mapOf(
+                        "hendelseId" to hendelseId,
+                    ),
+                    session = session,
+                ) { toPersistertHendelse(it) }
+            }
+        }
+    }
+
     // TODO jah: Flytt til database/sak sitt repo sammen med mapping til/fra.
     @Suppress("unused")
     fun hentSakOpprettetHendelse(

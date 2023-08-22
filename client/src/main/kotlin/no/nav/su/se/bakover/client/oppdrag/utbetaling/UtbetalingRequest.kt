@@ -6,6 +6,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 
@@ -63,6 +64,10 @@ data class UtbetalingRequest(
                 check(it.count() == 1) { "Oppdragslinjer i samme oppdragsrequest refererer ikke til samme henvisning/utbetalingsId." }
                 UUID30.fromString(it.single())
             }
+        }
+
+        fun saksnummer(): Saksnummer {
+            return Saksnummer(fagsystemId.toLong())
         }
     }
 

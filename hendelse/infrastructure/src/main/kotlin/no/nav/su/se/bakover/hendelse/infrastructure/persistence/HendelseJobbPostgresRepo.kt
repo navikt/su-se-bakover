@@ -61,4 +61,28 @@ class HendelseJobbPostgresRepo(
             }
         }
     }
+
+    override fun hentHendelseIderForNavnOgType(
+        jobbNavn: String,
+        hendelsestype: String,
+        sx: SessionContext?,
+        limit: Int,
+    ): List<HendelseId> {
+        return (sx ?: sessionFactory.newSessionContext()).withSession {
+            """
+            SELECT DISTINCT
+                h.hendelseId
+            FROM
+                hendelse h
+            LEFT JOIN hendelse_jobb hj
+                ON h.hendelseId = hj.hendelseId AND hj.jobbNavn = :jobbNavn
+            WHERE
+                hj.hendelseId IS NULL
+                AND h.type = :type
+            LIMIT :limit
+            """.trimIndent().hentListe(mapOf("type" to hendelsestype, "jobbNavn" to jobbNavn, "limit" to limit), it) {
+                HendelseId.fromUUID(it.uuid("hendelseId"))
+            }
+        }
+    }
 }

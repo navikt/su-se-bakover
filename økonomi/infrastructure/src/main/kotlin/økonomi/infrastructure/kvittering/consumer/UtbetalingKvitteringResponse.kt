@@ -9,6 +9,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.OppdragRequest
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.kvittering.Kvittering.Utbetalingsstatus
@@ -69,6 +70,14 @@ data class UtbetalingKvitteringResponse(
         mottattTidspunkt = Tidspunkt.now(clock),
     )
 
+    fun utbetalingstatus(): Utbetalingsstatus {
+        return when (mmel.alvorlighetsgrad) {
+            OK -> Utbetalingsstatus.OK
+            OK_MED_VARSEL -> Utbetalingsstatus.OK_MED_VARSEL
+            ALVORLIG_FEIL, SQL_FEIL -> Utbetalingsstatus.FEIL
+        }
+    }
+
     companion object {
         internal fun String.toKvitteringResponse(xmlMapper: XmlMapper): UtbetalingKvitteringResponse = this
             .replace("<oppdrag xmlns", "<Oppdrag xmlns")
@@ -80,5 +89,13 @@ data class UtbetalingKvitteringResponse(
                     throw it
                 }
             }
+    }
+}
+
+fun kvitteringXmlTilSaksnummerOgUtbetalingId(
+    xmlMapper: XmlMapper,
+): (String) -> Triple<Saksnummer, UUID30, Utbetalingsstatus> = {
+    xmlMapper.readValue<UtbetalingKvitteringResponse>(it).let {
+        Triple(it.oppdragRequest.saksnummer(), it.oppdragRequest.utbetalingsId(), it.utbetalingstatus())
     }
 }

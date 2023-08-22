@@ -52,3 +52,4 @@ include("oppgave:infrastructure")
 
 include("økonomi:domain")
 include("økonomi:infrastructure")
+include("økonomi:application")

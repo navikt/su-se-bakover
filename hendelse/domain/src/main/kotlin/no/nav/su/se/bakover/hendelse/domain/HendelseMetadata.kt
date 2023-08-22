@@ -16,5 +16,10 @@ data class HendelseMetadata(
 ) {
     companion object {
         fun tom(): HendelseMetadata = HendelseMetadata(null, null, emptyList())
+        fun fraCorrelationId(correlationId: CorrelationId): HendelseMetadata = HendelseMetadata(
+            correlationId = correlationId,
+            ident = null,
+            brukerroller = emptyList(),
+        )
     }
 }

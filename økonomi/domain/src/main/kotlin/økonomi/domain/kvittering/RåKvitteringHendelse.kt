@@ -1,10 +1,13 @@
 package økonomi.domain.kvittering
 
+import no.nav.su.se.bakover.common.CorrelationId
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.Hendelse
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import java.time.Clock
 import java.util.UUID
 
 /**
@@ -51,6 +54,33 @@ data class RåKvitteringHendelse(
                 require(forrigeVersjon == Hendelsesversjon(1L)) {
                     "Den persistert versjon var ulik den utleda fra domenet:$forrigeVersjon vs. ${Hendelsesversjon(1L)}. "
                 }
+            }
+        }
+    }
+
+    fun tilKvitteringPåSakHendelse(
+        correlationId: CorrelationId,
+        sakId: UUID,
+        nesteVersjon: Hendelsesversjon,
+        utbetalingId: UUID30,
+        clock: Clock,
+        utbetalingsstatus: Kvittering.Utbetalingsstatus,
+        tidligereHendelseId: HendelseId? = null,
+    ): KvitteringPåSakHendelse {
+        return KvitteringPåSakHendelse(
+            hendelseId = HendelseId.generer(),
+            hendelsestidspunkt = Tidspunkt.now(clock),
+            meta = HendelseMetadata.fraCorrelationId(correlationId),
+            sakId = sakId,
+            utbetalingsstatus = utbetalingsstatus,
+            originalKvittering = this.originalKvittering,
+            versjon = nesteVersjon,
+            triggetAv = this.hendelseId,
+            utbetalingId = utbetalingId,
+            tidligereHendelseId = tidligereHendelseId,
+        ).also {
+            require(correlationId != this.meta.correlationId) {
+                "CorrelationId skal ikke være lik mellom disse hendelsene, siden de skjer i 2 contexter:${it.meta.correlationId} vs. $correlationId."
             }
         }
     }

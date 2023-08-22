@@ -1,5 +1,6 @@
 package økonomi.domain.kvittering
 
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
@@ -19,9 +20,10 @@ data class KvitteringPåSakHendelse(
     override val sakId: UUID,
     override val hendelsestidspunkt: Tidspunkt,
     override val meta: HendelseMetadata,
+    override val tidligereHendelseId: HendelseId? = null,
     val utbetalingsstatus: Kvittering.Utbetalingsstatus,
     val originalKvittering: String,
-    val utbetalingId: UUID,
+    val utbetalingId: UUID30,
 ) : Sakshendelse {
     init {
         require(versjon.value > 1L) {
@@ -29,7 +31,6 @@ data class KvitteringPåSakHendelse(
         }
     }
 
-    override val tidligereHendelseId: HendelseId? = null
     override val entitetId: UUID = sakId
 
     override fun compareTo(other: Sakshendelse): Int {
@@ -48,7 +49,7 @@ data class KvitteringPåSakHendelse(
             originalKvittering: String,
             sakId: UUID,
             triggetAv: HendelseId,
-            utbetalingId: UUID,
+            utbetalingId: UUID30,
         ): KvitteringPåSakHendelse {
             return KvitteringPåSakHendelse(
                 hendelseId = hendelseId,

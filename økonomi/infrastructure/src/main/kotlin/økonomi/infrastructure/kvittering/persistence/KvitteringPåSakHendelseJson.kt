@@ -1,17 +1,17 @@
 package økonomi.infrastructure.kvittering.persistence
 
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.kvittering.KvitteringPåSakHendelse
-import java.util.UUID
 
 internal data class KvitteringPåSakHendelseJson(
     val utbetalingsstatus: String,
     val originalKvittering: String,
-    val utbetalingId: UUID,
+    val utbetalingId: UUID30,
 ) {
     val utbetalingsstatusDomain: Kvittering.Utbetalingsstatus by lazy {
         when (utbetalingsstatus) {

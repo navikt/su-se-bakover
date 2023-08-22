@@ -12,4 +12,11 @@ interface HendelseJobbRepo {
         sx: SessionContext? = null,
         limit: Int = 10,
     ): Map<UUID, List<HendelseId>>
+
+    fun hentHendelseIderForNavnOgType(
+        jobbNavn: String,
+        hendelsestype: String,
+        sx: SessionContext? = null,
+        limit: Int = 10,
+    ): List<HendelseId>
 }
