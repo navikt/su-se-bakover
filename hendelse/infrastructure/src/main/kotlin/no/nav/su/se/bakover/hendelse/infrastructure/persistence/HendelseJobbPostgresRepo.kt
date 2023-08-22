@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.database.hendelse
+package no.nav.su.se.bakover.hendelse.infrastructure.persistence
 
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.oppgave.domain.HendelseJobbRepo
+import no.nav.su.se.bakover.hendelse.domain.HendelseJobbRepo
 import java.util.UUID
 
 class HendelseJobbPostgresRepo(
@@ -41,12 +41,12 @@ class HendelseJobbPostgresRepo(
     ): Map<UUID, List<HendelseId>> {
         return (sx ?: sessionFactory.newSessionContext()).withSession {
             """
-           select 
-                h.sakId, h.hendelseId 
-           from 
-                hendelse h 
-                    left join hendelse_jobb hj 
-                        on h.hendelseId = hj.hendelseId 
+           select
+                h.sakId, h.hendelseId
+           from
+                hendelse h
+                    left join hendelse_jobb hj
+                        on h.hendelseId = hj.hendelseId
            where
              hj.jobbNavn = :jobbNavn
              and h.type IN (:type)

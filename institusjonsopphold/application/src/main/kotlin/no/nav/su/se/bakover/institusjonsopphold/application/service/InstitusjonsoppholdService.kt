@@ -19,9 +19,9 @@ import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje.Companion.harInnvilgelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje.Companion.harStans
+import no.nav.su.se.bakover.hendelse.domain.HendelseJobbRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.institusjonsopphold.database.InstitusjonsoppholdHendelsestype
-import no.nav.su.se.bakover.oppgave.domain.HendelseJobbRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
