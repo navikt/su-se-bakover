@@ -67,10 +67,10 @@ data class InstitusjonsoppholdHendelse(
         return this.versjon.compareTo(other.versjon)
     }
 
-    fun nyOppgaveHendelse(oppgaveId: OppgaveId, versjon: Hendelsesversjon, clock: Clock): OppgaveHendelse =
+    fun nyOppgaveHendelse(oppgaveId: OppgaveId, tidligereHendelse: OppgaveHendelse?, versjon: Hendelsesversjon, clock: Clock): OppgaveHendelse =
         OppgaveHendelse(
             hendelseId = HendelseId.generer(),
-            tidligereHendelseId = null,
+            tidligereHendelseId = tidligereHendelse?.tidligereHendelseId,
             sakId = this.sakId,
             versjon = versjon,
             hendelsestidspunkt = Tidspunkt.now(clock),

@@ -3,12 +3,11 @@ package no.nav.su.se.bakover.institusjonsopphold.application.service
 import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.extensions.whenever
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.EksternInstitusjonsoppholdHendelse
-import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelse
+import no.nav.su.se.bakover.domain.InstitusjonOgOppgaveHendelserPåSak
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelseRepo
 import no.nav.su.se.bakover.domain.hentSisteHendelse
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -43,25 +42,26 @@ class InstitusjonsoppholdService(
         sakRepo.hentSaker(hendelse.norskident).ifNotEmpty {
             this.forEach { sak ->
                 sak.vedtakstidslinje(Måned.now(clock)).harInnvilgelse().ifTrue {
-                    institusjonsoppholdHendelseRepo.hentTidligereOpphold(hendelse.oppholdId).whenever(
-                        isEmpty = {
-                            institusjonsoppholdHendelseRepo
-                                .lagre(hendelse.nyHendelsePåSak(sak.id, sak.versjon.inc(), clock))
-                        },
-                        isNotEmpty = {
-                            val sisteHendelsesVersjon =
-                                hendelseRepo.hentSisteVersjonFraEntitetId(sak.id)
-                                    ?: throw IllegalStateException("Fant ikke siste hendelses versjon for sak ${sak.id} ved eksterne inst hendelse ${hendelse.hendelseId}")
-                            institusjonsoppholdHendelseRepo
-                                .lagre(
-                                    hendelse.nyHendelsePåSakLenketTilEksisterendeHendelse(
-                                        it.hentSisteHendelse(),
-                                        sisteHendelsesVersjon.inc(),
-                                        clock,
-                                    ),
-                                )
-                        },
-                    )
+                    institusjonsoppholdHendelseRepo.hentTidligereInstHendelserForOpphold(sak.id, hendelse.oppholdId)
+                        .whenever(
+                            isEmpty = {
+                                institusjonsoppholdHendelseRepo
+                                    .lagre(hendelse.nyHendelsePåSak(sak.id, sak.versjon.inc(), clock))
+                            },
+                            isNotEmpty = {
+                                val sisteHendelsesVersjon =
+                                    hendelseRepo.hentSisteVersjonFraEntitetId(sak.id)
+                                        ?: throw IllegalStateException("Fant ikke siste hendelses versjon for sak ${sak.id} ved eksterne inst hendelse ${hendelse.hendelseId}")
+                                institusjonsoppholdHendelseRepo
+                                    .lagre(
+                                        hendelse.nyHendelsePåSakLenketTilEksisterendeHendelse(
+                                            it.hentSisteHendelse(),
+                                            sisteHendelsesVersjon.inc(),
+                                            clock,
+                                        ),
+                                    )
+                            },
+                        )
                 }
             }
         }
@@ -72,29 +72,46 @@ class InstitusjonsoppholdService(
             hendelseJobbRepo.hentSakIdOgHendelseIderForNavnOgType(
                 jobbNavn = jobbNavn,
                 hendelsestype = InstitusjonsoppholdHendelsestype,
-            ).map { (sakId, hendelseIder) ->
-                val relevanteOppgaver = oppgaveHendelseRepo.hentForSak(sakId).filter { it.triggetAv in hendelseIder }
-                val alleInstitusjonsHendelserForSaken = institusjonsoppholdHendelseRepo.hentForSak(sakId)
-                if (alleInstitusjonsHendelserForSaken == null) {
-                    log.debug("ingen nye inst-hendelser for sak {}. Avslutter jobb.", sakId)
-                    return
-                }
-                alleInstitusjonsHendelserForSaken
-                    .filter { it.hendelseId in hendelseIder }
-                    .filterNot { it.hendelseId in relevanteOppgaver.map { it.triggetAv } }
-                    .ifNotEmpty {
-                        val sakInfo =
-                            sakRepo.hentSakInfo(sakId) ?: throw IllegalStateException("Feil ved henting av sak $sakId")
-                        sessionFactory.withTransactionContext { tx ->
-                            opprettOppgave(
-                                sakInfo = sakInfo,
-                                aktørId = hentAktørId(sakInfo.fnr),
-                                hendelser = this,
-                                tx = tx,
+            ).map { (sakId, _) ->
+                val oppgaveHendelserPåSak = oppgaveHendelseRepo.hentForSak(sakId)
+                val alleInstHendelserPåSak = institusjonsoppholdHendelseRepo.hentForSak(sakId)
+                    ?: return Unit.also { log.debug("Sak {} har ingen inst-hendelser", sakId) }
+
+                val instOgOppgaveHendelserPåSak = InstitusjonOgOppgaveHendelserPåSak(
+                    alleInstHendelserPåSak,
+                    oppgaveHendelserPåSak,
+                )
+
+                instOgOppgaveHendelserPåSak.hentInstHendelserSomManglerOppgave().ifNotEmpty {
+                    val sakInfo = sakRepo.hentSakInfo(sakId)
+                        ?: throw IllegalStateException("Feil ved henting av sak $sakId")
+                    sessionFactory.withTransactionContext { tx ->
+
+                        val oppgaveId = oppgaveService.opprettOppgave(lagOppgaveConfig(sakInfo, clock))
+                            .getOrElse {
+                                log.error("Fikk ikke opprettet oppgave for institusjonsopphold hendelser ${this.map { it.hendelseId }} for sak ${sakInfo.saksnummer}")
+                                return@withTransactionContext
+                            }
+
+                        this.forEach {
+                            val hendelsesversjon = hendelseRepo.hentSisteVersjonFraEntitetId(sakInfo.sakId)?.inc()
+                                ?: throw IllegalStateException("Fikk ikke noe hendelsesversjon ved henting fra entitetId (sakId) ${sakInfo.sakId} for hendelse ${it.hendelseId}. Oppgave ble laget med oppgaveId $oppgaveId")
+
+                            val tidligereOppgaveHendelse =
+                                instOgOppgaveHendelserPåSak.hentHendelserMedSammeOppholdId(it.eksterneHendelse.oppholdId)?.second?.maxByOrNull { it.versjon }
+
+                            oppgaveHendelseRepo.lagre(
+                                it.nyOppgaveHendelse(oppgaveId, tidligereOppgaveHendelse, hendelsesversjon, clock),
+                                tx,
                             )
-                            hendelseJobbRepo.lagre(hendelser = hendelseIder, jobbNavn = jobbNavn, context = tx)
                         }
+                        hendelseJobbRepo.lagre(
+                            hendelser = this.map { it.hendelseId },
+                            jobbNavn = jobbNavn,
+                            context = tx,
+                        )
                     }
+                }
             }
         } catch (e: Exception) {
             log.error("Feil skjedde ved oppretting av oppgave for jobb $jobbNavn. originalFeil $e")
@@ -105,28 +122,10 @@ class InstitusjonsoppholdService(
         throw IllegalStateException("Feil ved henting av person $fnr")
     }
 
-    private fun opprettOppgave(
-        sakInfo: SakInfo,
-        aktørId: AktørId,
-        hendelser: List<InstitusjonsoppholdHendelse>,
-        tx: TransactionContext,
-    ) {
-        oppgaveService.opprettOppgave(
-            OppgaveConfig.Institusjonsopphold(
-                saksnummer = sakInfo.saksnummer,
-                sakstype = sakInfo.type,
-                aktørId = aktørId,
-                clock = clock,
-            ),
-        ).mapLeft {
-            log.error("Fikk ikke opprettet oppgave for institusjonsopphold hendelser ${hendelser.map { it.hendelseId }} for sak ${sakInfo.saksnummer}")
-        }.map { oppgaveId ->
-            hendelser.forEach {
-                val hendelsesversjon = hendelseRepo.hentSisteVersjonFraEntitetId(sakInfo.sakId)?.inc()
-                    ?: throw IllegalStateException("Fikk ikke noe hendelsesversjon ved henting fra entitetId (sakId) ${sakInfo.sakId} for hendelse ${it.hendelseId}. Oppgave ble laget med oppgaveId $oppgaveId")
-
-                oppgaveHendelseRepo.lagre(it.nyOppgaveHendelse(oppgaveId, hendelsesversjon, clock), tx)
-            }
-        }
-    }
+    private fun lagOppgaveConfig(sakInfo: SakInfo, clock: Clock): OppgaveConfig = OppgaveConfig.Institusjonsopphold(
+        saksnummer = sakInfo.saksnummer,
+        sakstype = sakInfo.type,
+        aktørId = hentAktørId(sakInfo.fnr),
+        clock = clock,
+    )
 }

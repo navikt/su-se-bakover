@@ -39,6 +39,7 @@ internal class InstitusjonsoppholdHendelseTest {
         val instHendelse = nyInstitusjonsoppholdHendelse(sakId = expectedSakId)
         val actual = instHendelse.nyOppgaveHendelse(
             oppgaveId = expectedOppgaveId,
+            tidligereHendelse = null,
             versjon = instHendelse.versjon.inc(),
             clock = fixedClock,
         )

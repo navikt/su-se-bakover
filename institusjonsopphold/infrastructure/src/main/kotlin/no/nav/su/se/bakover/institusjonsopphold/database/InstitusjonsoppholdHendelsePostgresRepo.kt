@@ -10,8 +10,8 @@ import no.nav.su.se.bakover.domain.EksternInstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelseRepo
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelserPåSak
+import no.nav.su.se.bakover.domain.OppholdId
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import no.nav.su.se.bakover.institusjonsopphold.database.InstitusjonsoppholdHendelseData.Companion.toStringifiedJson
@@ -47,8 +47,14 @@ class InstitusjonsoppholdHendelsePostgresRepo(
             }.toInstitusjonsoppholdHendelserPåSak()
         }
 
-    override fun hentSisteVersjonFor(sakId: UUID): Hendelsesversjon? =
-        hendelseRepo.hentSisteHendelseforSakIdOgTyper(sakId, alleTyper)?.versjon
+    override fun hentTidligereInstHendelserForOpphold(sakId: UUID, oppholdId: OppholdId): List<InstitusjonsoppholdHendelse> {
+        return hendelseRepo.hentHendelserForSakIdOgTyper(sakId, alleTyper).toInstitusjonsoppholdhendelse().filter {
+            it.eksterneHendelse.oppholdId == oppholdId
+        }
+    }
+
+    private fun List<PersistertHendelse>.toInstitusjonsoppholdhendelse(): List<InstitusjonsoppholdHendelse> =
+        this.map { it.toInstitusjonsoppholdhendelse() }
 
     private fun PersistertHendelse.toInstitusjonsoppholdhendelse(): InstitusjonsoppholdHendelse {
         val data = deserialize<InstitusjonsoppholdHendelseData>(this.data)
@@ -61,7 +67,7 @@ class InstitusjonsoppholdHendelsePostgresRepo(
             versjon = this.versjon,
             eksterneHendelse = EksternInstitusjonsoppholdHendelse(
                 hendelseId = data.hendelseId,
-                oppholdId = data.oppholdId,
+                oppholdId = OppholdId(data.oppholdId),
                 norskident = Fnr.tryCreate(data.norskident)
                     ?: throw IllegalStateException("Kunne ikke lage Fnr for institusjonsoppholdhendelse $hendelseId"),
                 type = data.type.toDomain(),

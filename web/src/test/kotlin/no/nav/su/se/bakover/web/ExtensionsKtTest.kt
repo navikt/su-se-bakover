@@ -24,18 +24,18 @@ internal class ExtensionsKtTest {
     }
 
     @Test
-    fun `whenever utfører isTrue dersom den er true`() {
-        false.whenever(
-            isTrue = { fail("False skal ikke kjøre true block") },
-            isFalse = { },
+    fun `whenever utfører isNotEmpty dersom den ikke er tom`() {
+        listOf("").whenever(
+            isEmpty = { fail("isEmpty skal ikke kjøre dersom listen er tom") },
+            isNotEmpty = { },
         )
     }
 
     @Test
-    fun `whenever utfører isFalse dersom den er false`() {
-        true.whenever(
-            isTrue = { },
-            isFalse = { fail("False skal ikke kjøre true block") },
+    fun `whenever utfører isEmpty dersom den er tom`() {
+        emptyList<String>().whenever(
+            isEmpty = { },
+            isNotEmpty = { fail("isNotEmpty skal ikke kjøre på en tom liste") },
         )
     }
 }

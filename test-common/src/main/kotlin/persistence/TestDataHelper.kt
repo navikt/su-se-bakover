@@ -1599,7 +1599,7 @@ class TestDataHelper(
 
     fun persisterOppgaveHendelse(): OppgaveHendelse {
         return persisterInstitusjonsoppholdHendelse().let {
-            it.nyOppgaveHendelse(oppgaveId = OppgaveId("oppgaveId"), versjon = it.versjon.inc(), clock = fixedClock)
+            it.nyOppgaveHendelse(oppgaveId = OppgaveId("oppgaveId"), null, versjon = it.versjon.inc(), clock = fixedClock)
                 .also { oppgaveHendelse ->
                     sessionFactory.withSessionContext {
                         oppgaveHendelseRepo.lagre(oppgaveHendelse, it)

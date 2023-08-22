@@ -6,13 +6,14 @@ import no.nav.su.se.bakover.domain.EksternInstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdKilde
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdType
+import no.nav.su.se.bakover.domain.OppholdId
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import java.util.UUID
 
 fun nyEksternInstitusjonsoppholdHendelse(
     hendelseId: Long = 1,
-    oppholdId: Long = 2,
+    oppholdId: OppholdId = OppholdId(2),
     norskIdent: Fnr = fnr,
     type: InstitusjonsoppholdType = InstitusjonsoppholdType.INNMELDING,
     kilde: InstitusjonsoppholdKilde = InstitusjonsoppholdKilde.Institusjon,

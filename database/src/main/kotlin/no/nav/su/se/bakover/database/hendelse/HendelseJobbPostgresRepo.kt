@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.oppgave.infrastructure
+package no.nav.su.se.bakover.database.hendelse
 
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory

@@ -20,7 +20,7 @@ data class InstitusjonsoppholdHendelseData(
     companion object {
         fun InstitusjonsoppholdHendelse.toJson(): InstitusjonsoppholdHendelseData = InstitusjonsoppholdHendelseData(
             hendelseId = this.eksterneHendelse.hendelseId,
-            oppholdId = this.eksterneHendelse.oppholdId,
+            oppholdId = this.eksterneHendelse.oppholdId.value,
             norskident = this.eksterneHendelse.norskident.toString(),
             type = this.eksterneHendelse.type.toJson(),
             kilde = this.eksterneHendelse.kilde.toJson(),

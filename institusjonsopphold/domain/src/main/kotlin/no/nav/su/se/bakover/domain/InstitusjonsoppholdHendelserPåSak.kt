@@ -18,5 +18,5 @@ data class InstitusjonsoppholdHendelserPåSak(
         }
     }
 
-    fun sisteHendelse(): InstitusjonsoppholdHendelse = this.last()
+    fun sisteHendelse(): InstitusjonsoppholdHendelse = this.maxBy { it.versjon }
 }

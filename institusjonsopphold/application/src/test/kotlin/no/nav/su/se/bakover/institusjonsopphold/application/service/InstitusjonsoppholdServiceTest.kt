@@ -286,6 +286,129 @@ class InstitusjonsoppholdServiceTest {
         testMocks.verifyNoMoreInteractions()
     }
 
+    @Test
+    fun `knytter ny hendelse med en tidligere dersom de har samme oppholdId`() {
+        val sak = søknadsbehandlingIverksattInnvilget().first
+        val tidligereHendelse = nyInstitusjonsoppholdHendelse()
+        val nyHendelse = nyEksternInstitusjonsoppholdHendelse(oppholdId = tidligereHendelse.eksterneHendelse.oppholdId)
+
+        val institusjonsoppholdHendelseRepo = mock<InstitusjonsoppholdHendelseRepo> {
+            doNothing().whenever(it).lagre(any())
+            on { hentTidligereInstHendelserForOpphold(any(), any()) } doReturn listOf(tidligereHendelse)
+            on { hentForSak(any()) } doReturn InstitusjonsoppholdHendelserPåSak(nonEmptyListOf(tidligereHendelse))
+        }
+        val sakRepo = mock<SakRepo> {
+            on { hentSaker(any()) } doReturn listOf(sak)
+        }
+        val hendelseRepo = mock<HendelseRepo> {
+            on { hentSisteVersjonFraEntitetId(any(), anyOrNull()) } doReturn Hendelsesversjon(2)
+        }
+        val testMocks =
+            mockedServices(
+                sakRepo = sakRepo,
+                institusjonsoppholdHendelseRepo = institusjonsoppholdHendelseRepo,
+                hendelseRepo = hendelseRepo,
+            )
+        testMocks.institusjonsoppholdService().process(nyHendelse)
+        verify(sakRepo).hentSaker(argThat { it shouldBe fnr })
+        verify(institusjonsoppholdHendelseRepo).lagre(
+            argThat {
+                it shouldBe InstitusjonsoppholdHendelse(
+                    sakId = sak.id,
+                    hendelseId = it.hendelseId,
+                    tidligereHendelseId = tidligereHendelse.hendelseId,
+                    versjon = Hendelsesversjon(3),
+                    eksterneHendelse = nyHendelse,
+                    hendelsestidspunkt = fixedTidspunkt,
+                )
+            },
+        )
+    }
+
+    @Test
+    fun `knytter oppgave hendelse til tidligere oppgaveHendelse dersom dem har samme oppholdId`() {
+        val sak = søknadsbehandlingIverksattInnvilget().first
+        val tidligereInstHendelse = nyInstitusjonsoppholdHendelse()
+        val nyInstHendelse = nyInstitusjonsoppholdHendelse(tidligereHendelse = tidligereInstHendelse.hendelseId, versjon = tidligereInstHendelse.versjon.inc())
+        val tidligereOppgaveHendelse = nyOppgaveHendelse(triggetAv = tidligereInstHendelse)
+        val person = person()
+
+        val hendelseJobbRepo = mock<HendelseJobbRepo> {
+            on { hentSakIdOgHendelseIderForNavnOgType(any(), any(), anyOrNull(), anyOrNull()) } doReturn
+                mapOf(sak.id to listOf(nyInstHendelse.hendelseId))
+        }
+        val oppgaveHendelseRepo = mock<OppgaveHendelseRepo> {
+            on { hentForSak(any()) } doReturn listOf(tidligereOppgaveHendelse)
+            doNothing().whenever(it).lagre(any(), any())
+        }
+        val institusjonsoppholdHendelseRepo = mock<InstitusjonsoppholdHendelseRepo> {
+            on { hentForSak(any()) } doReturn InstitusjonsoppholdHendelserPåSak(nonEmptyListOf(tidligereInstHendelse, nyInstHendelse))
+        }
+        val sakRepo = mock<SakRepo> {
+            on { hentSakInfo(any<UUID>()) } doReturn sak.info()
+        }
+        val personService = mock<PersonService> {
+            on { hentAktørId(any()) } doReturn person.ident.aktørId.right()
+        }
+        val oppgaveService = mock<OppgaveService> {
+            on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
+        }
+        val hendelseRepo = mock<HendelseRepo> {
+            on { hentSisteVersjonFraEntitetId(any(), anyOrNull()) } doReturn Hendelsesversjon(4)
+        }
+        val testMocks = mockedServices(
+            sakRepo = sakRepo,
+            institusjonsoppholdHendelseRepo = institusjonsoppholdHendelseRepo,
+            hendelseJobbRepo = hendelseJobbRepo,
+            oppgaveHendelseRepo = oppgaveHendelseRepo,
+            personService = personService,
+            hendelseRepo = hendelseRepo,
+            oppgaveService = oppgaveService,
+        )
+        testMocks.institusjonsoppholdService().opprettOppgaveForHendelser("jobbNavn")
+
+        verify(hendelseJobbRepo).hentSakIdOgHendelseIderForNavnOgType(
+            argThat { it shouldBe "jobbNavn" },
+            argThat { it shouldBe "INSTITUSJONSOPPHOLD" },
+            anyOrNull(),
+            anyOrNull(),
+        )
+        verify(oppgaveHendelseRepo).hentForSak(argThat { it shouldBe sak.id })
+        verify(institusjonsoppholdHendelseRepo).hentForSak(argThat { it shouldBe sak.id })
+        verify(sakRepo).hentSakInfo(argThat { it shouldBe sak.id })
+        verify(personService).hentAktørId(argThat { it shouldBe sak.fnr })
+
+        verify(oppgaveService).opprettOppgave(
+            argThat {
+                it shouldBe OppgaveConfig.Institusjonsopphold(
+                    sak.saksnummer, sak.type, person.ident.aktørId, fixedClock,
+                )
+            },
+        )
+
+        verify(hendelseRepo).hentSisteVersjonFraEntitetId(argThat { it shouldBe sak.id }, anyOrNull())
+        verify(oppgaveHendelseRepo).lagre(
+            argThat {
+                it shouldBe OppgaveHendelse(
+                    hendelseId = it.hendelseId,
+                    tidligereHendelseId = tidligereOppgaveHendelse.tidligereHendelseId,
+                    sakId = sak.id,
+                    versjon = Hendelsesversjon(value = 5),
+                    hendelsestidspunkt = fixedTidspunkt,
+                    triggetAv = nyInstHendelse.hendelseId,
+                    oppgaveId = OppgaveId("oppgaveId"),
+                )
+            },
+            anyOrNull(),
+        )
+        verify(hendelseJobbRepo).lagre(
+            argThat<List<HendelseId>> { it shouldBe listOf(nyInstHendelse.hendelseId) },
+            argThat { it shouldBe "jobbNavn" },
+            argThat { it shouldBe TestSessionFactory.transactionContext },
+        )
+        testMocks.verifyNoMoreInteractions()
+    }
+
     private data class mockedServices(
         val oppgaveService: OppgaveService = mock(),
         val personService: PersonService = mock(),
