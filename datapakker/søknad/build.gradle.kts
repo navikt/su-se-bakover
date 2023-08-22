@@ -1,5 +1,5 @@
 tasks.named<Jar>("jar") {
-    archiveBaseName.set("datapakker-søknad")
+    archiveBaseName.set("datapakker-soknad")
     archiveVersion.set("")
     manifest {
         attributes["Main-Class"] = "no.nav.su.se.bakover.datapakker.soknad.AppKt"
