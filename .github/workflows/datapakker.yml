@@ -30,7 +30,7 @@ jobs:
           java-version: '19'
           distribution: 'temurin'
       - name: test and build
-        run: ./gradlew --no-build-cache :datapakker:søknad:build
+        run: ./gradlew --no-build-cache :datapakker:soknad:build
         env:
           ORG_GRADLE_PROJECT_githubUser: x-access-token
           ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
@@ -44,7 +44,7 @@ jobs:
         uses: docker/build-push-action@v4.1.1
         with:
           context: .
-          file: ./datapakker/søknad/Dockerfile
+          file: ./datapakker/soknad/Dockerfile
           push: true
           pull: true
           tags: ${{env.IMAGE}}
@@ -60,8 +60,8 @@ jobs:
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-fss
-          RESOURCE: datapakker/søknad/nais.yml
-          VARS: datapakker/søknad/nais-dev.json
+          RESOURCE: datapakker/soknad/nais.yml
+          VARS: datapakker/soknad/nais-dev.json
 
   deploy_to_prod:
     name: Deploy to prod
@@ -74,5 +74,5 @@ jobs:
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: prod-fss
-          RESOURCE: datapakker/søknad/nais.yml
-          VARS: datapakker/søknad/nais-prod.json
+          RESOURCE: datapakker/soknad/nais.yml
+          VARS: datapakker/soknad/nais-prod.json

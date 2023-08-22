@@ -38,7 +38,7 @@ include("utenlandsopphold:infrastructure")
 include("utenlandsopphold:application")
 include("utenlandsopphold:domain")
 
-include("datapakker:søknad")
+include("datapakker:soknad")
 
 include("kontrollsamtale:infrastructure")
 include("kontrollsamtale:application")
