@@ -4,10 +4,10 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.hendelse.domain.Hendelse
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
 import java.time.Clock
 import java.util.UUID
@@ -57,12 +57,12 @@ data class InstitusjonsoppholdHendelse(
     override val hendelsestidspunkt: Tidspunkt,
     override val tidligereHendelseId: HendelseId? = null,
     val eksterneHendelse: EksternInstitusjonsoppholdHendelse,
-) : Hendelse {
+) : Sakshendelse {
     override val meta: HendelseMetadata = HendelseMetadata.tom()
     override val entitetId: UUID = sakId
     override val triggetAv: HendelseId? = null
 
-    override fun compareTo(other: Hendelse): Int {
+    override fun compareTo(other: Sakshendelse): Int {
         require(this.entitetId == other.entitetId && this.sakId == other.sakId) { "EntitetIdene eller sakIdene var ikke lik" }
         return this.versjon.compareTo(other.versjon)
     }

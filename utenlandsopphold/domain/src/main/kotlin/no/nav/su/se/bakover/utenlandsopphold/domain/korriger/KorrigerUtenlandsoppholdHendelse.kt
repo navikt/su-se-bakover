@@ -35,8 +35,6 @@ data class KorrigerUtenlandsoppholdHendelse private constructor(
 ) : UtenlandsoppholdHendelse {
     override val triggetAv: HendelseId? = null
 
-    override val triggetAv: HendelseId? = null
-
     companion object {
 
         fun fraPersistert(
