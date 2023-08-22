@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.regulering
 
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.sak.Saksnummer
 import java.util.UUID
 
 interface ReguleringRepo {

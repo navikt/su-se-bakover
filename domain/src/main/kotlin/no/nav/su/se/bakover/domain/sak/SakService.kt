@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.sak
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.person.Fnr

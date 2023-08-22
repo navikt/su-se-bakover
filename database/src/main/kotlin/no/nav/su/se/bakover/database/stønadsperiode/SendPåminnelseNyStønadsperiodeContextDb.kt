@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.database.stønadsperiode
 
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.database.jobcontext.JobContextDb
 import no.nav.su.se.bakover.domain.jobcontext.NameAndYearMonthId
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
-import no.nav.su.se.bakover.domain.sak.Saksnummer
 import java.time.YearMonth
 
 data class SendPåminnelseNyStønadsperiodeContextDb(

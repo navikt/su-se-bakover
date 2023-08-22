@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.brev.søknad.lukk
 
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.extensions.ddMMyyyy
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
@@ -14,7 +15,6 @@ import no.nav.su.se.bakover.domain.brev.søknad.lukk.avvist.AvvistSøknadFriteks
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.avvist.AvvistSøknadVedtakPdfInnhold
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.Person.Navn
-import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.getOrFail

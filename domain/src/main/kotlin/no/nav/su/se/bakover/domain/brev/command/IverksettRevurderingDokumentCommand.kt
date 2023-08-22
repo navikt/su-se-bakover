@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.brev.command
 
 import no.nav.su.se.bakover.common.Månedsbeløp
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -8,7 +9,6 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
-import no.nav.su.se.bakover.domain.sak.Saksnummer
 
 sealed interface IverksettRevurderingDokumentCommand : GenererDokumentCommand {
 

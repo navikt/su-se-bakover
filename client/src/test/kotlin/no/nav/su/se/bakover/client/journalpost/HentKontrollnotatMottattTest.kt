@@ -4,6 +4,7 @@ import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.WiremockBase
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.extensions.februar
 import no.nav.su.se.bakover.common.extensions.september
 import no.nav.su.se.bakover.common.journal.JournalpostId
@@ -17,7 +18,6 @@ import no.nav.su.se.bakover.domain.journalpost.JournalpostStatus
 import no.nav.su.se.bakover.domain.journalpost.JournalpostTema
 import no.nav.su.se.bakover.domain.journalpost.JournalpostType
 import no.nav.su.se.bakover.domain.journalpost.KontrollnotatMottattJournalpost
-import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.test.shouldBeType
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

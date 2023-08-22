@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.client.journalpost
 
 import arrow.core.Either
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
@@ -15,7 +16,6 @@ import no.nav.su.se.bakover.domain.journalpost.KontrollnotatMottattJournalpost
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalposter
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkKontrollnotatMottatt
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkeTilknytningTilSak
-import no.nav.su.se.bakover.domain.sak.Saksnummer
 
 data object JournalpostClientStub : JournalpostClient {
     override suspend fun erTilknyttetSak(

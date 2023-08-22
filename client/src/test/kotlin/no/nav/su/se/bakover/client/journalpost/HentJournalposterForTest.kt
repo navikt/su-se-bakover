@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.client.journalpost
 import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.WiremockBase
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalposter
-import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.test.shouldBeType
 import org.junit.jupiter.api.Test
 

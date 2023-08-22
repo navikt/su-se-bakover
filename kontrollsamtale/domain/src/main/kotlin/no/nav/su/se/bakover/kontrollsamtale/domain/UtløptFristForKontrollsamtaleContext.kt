@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.kontrollsamtale.domain
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.extensions.førsteINesteMåned
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -17,7 +18,6 @@ import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.sak.SakInfo
-import no.nav.su.se.bakover.domain.sak.Saksnummer
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate

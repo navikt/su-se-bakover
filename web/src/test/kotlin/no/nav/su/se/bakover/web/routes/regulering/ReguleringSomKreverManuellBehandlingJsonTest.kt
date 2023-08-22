@@ -3,10 +3,10 @@ package no.nav.su.se.bakover.web.routes.regulering
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserializeList
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
-import no.nav.su.se.bakover.domain.sak.Saksnummer
 import org.junit.jupiter.api.Test
 import java.util.UUID
 

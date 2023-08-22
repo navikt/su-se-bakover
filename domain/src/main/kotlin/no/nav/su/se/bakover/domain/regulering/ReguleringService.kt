@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.sak.Saksnummer
 import java.util.UUID
 
 sealed class KunneIkkeFerdigstilleOgIverksette {

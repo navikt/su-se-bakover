@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.extensions.ddMMyyyy
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.sak.Saksnummer
 import java.time.Clock
 import java.time.LocalDate
 

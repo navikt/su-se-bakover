@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.client.journalpost
 
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.KontrollnotatMottattJournalpost
-import no.nav.su.se.bakover.domain.sak.Saksnummer
 
 internal fun List<Journalpost>.toDomain(): List<KontrollnotatMottattJournalpost> {
     return map { it.toDomain() }
