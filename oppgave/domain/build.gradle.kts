@@ -6,7 +6,7 @@ dependencies {
 }
 
 tasks.named<Jar>("jar") {
-    archiveBaseName.set("institusjonsopphold-domain")
+    archiveBaseName.set("oppgave-domain")
 }
 
 tasks.test {
