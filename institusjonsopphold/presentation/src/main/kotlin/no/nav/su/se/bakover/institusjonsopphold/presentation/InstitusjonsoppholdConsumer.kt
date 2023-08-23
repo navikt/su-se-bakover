@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationIdSuspend
 import no.nav.su.se.bakover.institusjonsopphold.application.service.InstitusjonsoppholdService
@@ -30,7 +31,7 @@ class InstitusjonsoppholdConsumer private constructor(
     private val clock: Clock,
     private val log: Logger = LoggerFactory.getLogger(InstitusjonsoppholdConsumer::class.java),
     private val sikkerLogg: Logger = no.nav.su.se.bakover.common.sikkerLogg,
-    private val consumer: KafkaConsumer<String, EksternInstitusjonsoppholdHendelseJson> = KafkaConsumer(config.kafkaConfig),
+    private val consumer: KafkaConsumer<String, String> = KafkaConsumer(config.kafkaConfig),
 ) {
     constructor(
         config: ApplicationConfig.InstitusjonsoppholdKafkaConfig,
@@ -66,13 +67,14 @@ class InstitusjonsoppholdConsumer private constructor(
         }
     }
 
-    private fun consume(messages: ConsumerRecords<String, EksternInstitusjonsoppholdHendelseJson>) {
+    private fun consume(messages: ConsumerRecords<String, String>) {
         val offsets = mutableMapOf<TopicPartition, OffsetAndMetadata>()
         log.debug("InstitusjonsoppholdConsumer: Prosesserer ${messages.count()} nye meldinger.")
 
         run offsets@{
             messages.forEach { message ->
-                institusjonsoppholdService.process(message.value().toDomain())
+                val eksternInstHendelse = deserialize<EksternInstitusjonsoppholdHendelseJson>(message.value())
+                institusjonsoppholdService.process(eksternInstHendelse.toDomain())
                 offsets[TopicPartition(message.topic(), message.partition())] = OffsetAndMetadata(message.offset() + 1)
             }
             consumer.commitSync(offsets)
