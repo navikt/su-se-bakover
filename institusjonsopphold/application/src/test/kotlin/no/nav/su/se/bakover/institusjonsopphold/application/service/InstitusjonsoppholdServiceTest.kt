@@ -14,8 +14,8 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.hendelse.domain.HendelseActionRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseJobbRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
@@ -94,8 +94,8 @@ class InstitusjonsoppholdServiceTest {
         val sak = søknadsbehandlingIverksattInnvilget().first
         val hendelse = nyInstitusjonsoppholdHendelse()
 
-        val hendelseJobbRepo = mock<HendelseJobbRepo> {
-            on { hentSakIdOgHendelseIderForNavnOgType(any(), any(), anyOrNull(), anyOrNull()) } doReturn mapOf(
+        val hendelseActionRepo = mock<HendelseActionRepo> {
+            on { hentSakOgHendelsesIderSomIkkeHarKjørtAction(any(), any(), anyOrNull(), anyOrNull()) } doReturn mapOf(
                 sak.id to listOf(hendelse.hendelseId),
             )
         }
@@ -111,11 +111,11 @@ class InstitusjonsoppholdServiceTest {
         val testMocks = mockedServices(
             sakRepo = sakRepo,
             institusjonsoppholdHendelseRepo = institusjonsoppholdHendelseRepo,
-            hendelseJobbRepo = hendelseJobbRepo,
+            hendelseActionRepo = hendelseActionRepo,
             oppgaveHendelseRepo = oppgaveHendelseRepo,
         )
         testMocks.institusjonsoppholdService().opprettOppgaveForHendelser("jobbNavn")
-        verify(hendelseJobbRepo).hentSakIdOgHendelseIderForNavnOgType(
+        verify(hendelseActionRepo).hentSakOgHendelsesIderSomIkkeHarKjørtAction(
             argThat { it shouldBe "jobbNavn" },
             argThat { it shouldBe "INSTITUSJONSOPPHOLD" },
             anyOrNull(),
@@ -132,8 +132,8 @@ class InstitusjonsoppholdServiceTest {
         val sak = søknadsbehandlingIverksattInnvilget().first
         val hendelse = nyInstitusjonsoppholdHendelse()
 
-        val hendelseJobbRepo = mock<HendelseJobbRepo> {
-            on { hentSakIdOgHendelseIderForNavnOgType(any(), any(), anyOrNull(), anyOrNull()) } doReturn mapOf(
+        val hendelseActionRepo = mock<HendelseActionRepo> {
+            on { hentSakOgHendelsesIderSomIkkeHarKjørtAction(any(), any(), anyOrNull(), anyOrNull()) } doReturn mapOf(
                 sak.id to listOf(
                     hendelse.hendelseId,
                 ),
@@ -154,13 +154,13 @@ class InstitusjonsoppholdServiceTest {
         val testMocks = mockedServices(
             sakRepo = sakRepo,
             institusjonsoppholdHendelseRepo = institusjonsoppholdHendelseRepo,
-            hendelseJobbRepo = hendelseJobbRepo,
+            hendelseActionRepo = hendelseActionRepo,
             oppgaveHendelseRepo = oppgaveHendelseRepo,
             personService = personService,
         )
         testMocks.institusjonsoppholdService().opprettOppgaveForHendelser("jobbNavn")
 
-        verify(hendelseJobbRepo).hentSakIdOgHendelseIderForNavnOgType(
+        verify(hendelseActionRepo).hentSakOgHendelsesIderSomIkkeHarKjørtAction(
             argThat { it shouldBe "jobbNavn" },
             argThat { it shouldBe "INSTITUSJONSOPPHOLD" },
             anyOrNull(),
@@ -179,8 +179,8 @@ class InstitusjonsoppholdServiceTest {
         val hendelse = nyInstitusjonsoppholdHendelse()
         val person = person()
 
-        val hendelseJobbRepo = mock<HendelseJobbRepo> {
-            on { hentSakIdOgHendelseIderForNavnOgType(any(), any(), anyOrNull(), anyOrNull()) } doReturn
+        val hendelseActionRepo = mock<HendelseActionRepo> {
+            on { hentSakOgHendelsesIderSomIkkeHarKjørtAction(any(), any(), anyOrNull(), anyOrNull()) } doReturn
                 mapOf(sak.id to listOf(hendelse.hendelseId))
         }
         val oppgaveHendelseRepo = mock<OppgaveHendelseRepo> {
@@ -205,7 +205,7 @@ class InstitusjonsoppholdServiceTest {
         val testMocks = mockedServices(
             sakRepo = sakRepo,
             institusjonsoppholdHendelseRepo = institusjonsoppholdHendelseRepo,
-            hendelseJobbRepo = hendelseJobbRepo,
+            hendelseActionRepo = hendelseActionRepo,
             oppgaveHendelseRepo = oppgaveHendelseRepo,
             personService = personService,
             hendelseRepo = hendelseRepo,
@@ -213,7 +213,7 @@ class InstitusjonsoppholdServiceTest {
         )
         testMocks.institusjonsoppholdService().opprettOppgaveForHendelser("jobbNavn")
 
-        verify(hendelseJobbRepo).hentSakIdOgHendelseIderForNavnOgType(
+        verify(hendelseActionRepo).hentSakOgHendelsesIderSomIkkeHarKjørtAction(
             argThat { it shouldBe "jobbNavn" },
             argThat { it shouldBe "INSTITUSJONSOPPHOLD" },
             anyOrNull(),
@@ -246,7 +246,7 @@ class InstitusjonsoppholdServiceTest {
             },
             anyOrNull(),
         )
-        verify(hendelseJobbRepo).lagre(
+        verify(hendelseActionRepo).lagre(
             argThat<List<HendelseId>> { it shouldBe listOf(hendelse.hendelseId) },
             argThat { it shouldBe "jobbNavn" },
             argThat { it shouldBe TestSessionFactory.transactionContext },
@@ -260,8 +260,8 @@ class InstitusjonsoppholdServiceTest {
         val hendelse = nyInstitusjonsoppholdHendelse()
         val oppgaveHendelse = nyOppgaveHendelse(hendelse)
 
-        val hendelseJobbRepo = mock<HendelseJobbRepo> {
-            on { hentSakIdOgHendelseIderForNavnOgType(any(), any(), anyOrNull(), anyOrNull()) } doReturn
+        val hendelseActionRepo = mock<HendelseActionRepo> {
+            on { hentSakOgHendelsesIderSomIkkeHarKjørtAction(any(), any(), anyOrNull(), anyOrNull()) } doReturn
                 mapOf(sak.id to listOf(hendelse.hendelseId))
         }
         val oppgaveHendelseRepo = mock<OppgaveHendelseRepo> {
@@ -272,12 +272,12 @@ class InstitusjonsoppholdServiceTest {
         }
         val testMocks = mockedServices(
             institusjonsoppholdHendelseRepo = institusjonsoppholdHendelseRepo,
-            hendelseJobbRepo = hendelseJobbRepo,
+            hendelseActionRepo = hendelseActionRepo,
             oppgaveHendelseRepo = oppgaveHendelseRepo,
         )
         testMocks.institusjonsoppholdService().opprettOppgaveForHendelser("jobbNavn")
 
-        verify(hendelseJobbRepo).hentSakIdOgHendelseIderForNavnOgType(
+        verify(hendelseActionRepo).hentSakOgHendelsesIderSomIkkeHarKjørtAction(
             argThat { it shouldBe "jobbNavn" },
             argThat { it shouldBe "INSTITUSJONSOPPHOLD" },
             anyOrNull(),
@@ -340,8 +340,8 @@ class InstitusjonsoppholdServiceTest {
         val tidligereOppgaveHendelse = nyOppgaveHendelse(triggetAv = tidligereInstHendelse)
         val person = person()
 
-        val hendelseJobbRepo = mock<HendelseJobbRepo> {
-            on { hentSakIdOgHendelseIderForNavnOgType(any(), any(), anyOrNull(), anyOrNull()) } doReturn
+        val hendelseActionRepo = mock<HendelseActionRepo> {
+            on { hentSakOgHendelsesIderSomIkkeHarKjørtAction(any(), any(), anyOrNull(), anyOrNull()) } doReturn
                 mapOf(sak.id to listOf(nyInstHendelse.hendelseId))
         }
         val oppgaveHendelseRepo = mock<OppgaveHendelseRepo> {
@@ -371,7 +371,7 @@ class InstitusjonsoppholdServiceTest {
         val testMocks = mockedServices(
             sakRepo = sakRepo,
             institusjonsoppholdHendelseRepo = institusjonsoppholdHendelseRepo,
-            hendelseJobbRepo = hendelseJobbRepo,
+            hendelseActionRepo = hendelseActionRepo,
             oppgaveHendelseRepo = oppgaveHendelseRepo,
             personService = personService,
             hendelseRepo = hendelseRepo,
@@ -379,7 +379,7 @@ class InstitusjonsoppholdServiceTest {
         )
         testMocks.institusjonsoppholdService().opprettOppgaveForHendelser("jobbNavn")
 
-        verify(hendelseJobbRepo).hentSakIdOgHendelseIderForNavnOgType(
+        verify(hendelseActionRepo).hentSakOgHendelsesIderSomIkkeHarKjørtAction(
             argThat { it shouldBe "jobbNavn" },
             argThat { it shouldBe "INSTITUSJONSOPPHOLD" },
             anyOrNull(),
@@ -413,7 +413,7 @@ class InstitusjonsoppholdServiceTest {
             },
             anyOrNull(),
         )
-        verify(hendelseJobbRepo).lagre(
+        verify(hendelseActionRepo).lagre(
             argThat<List<HendelseId>> { it shouldBe listOf(nyInstHendelse.hendelseId) },
             argThat { it shouldBe "jobbNavn" },
             argThat { it shouldBe TestSessionFactory.transactionContext },
@@ -426,7 +426,7 @@ class InstitusjonsoppholdServiceTest {
         val personService: PersonService = mock(),
         val institusjonsoppholdHendelseRepo: InstitusjonsoppholdHendelseRepo = mock(),
         val oppgaveHendelseRepo: OppgaveHendelseRepo = mock(),
-        val hendelseJobbRepo: HendelseJobbRepo = mock(),
+        val hendelseActionRepo: HendelseActionRepo = mock(),
         val hendelseRepo: HendelseRepo = mock(),
         val sakRepo: SakRepo = mock(),
         val sessionFactory: TestSessionFactory = TestSessionFactory(),
@@ -437,7 +437,7 @@ class InstitusjonsoppholdServiceTest {
             personService = personService,
             institusjonsoppholdHendelseRepo = institusjonsoppholdHendelseRepo,
             oppgaveHendelseRepo = oppgaveHendelseRepo,
-            hendelseJobbRepo = hendelseJobbRepo,
+            hendelseActionRepo = hendelseActionRepo,
             hendelseRepo = hendelseRepo,
             sakRepo = sakRepo,
             sessionFactory = sessionFactory,
@@ -450,7 +450,7 @@ class InstitusjonsoppholdServiceTest {
                 personService,
                 institusjonsoppholdHendelseRepo,
                 oppgaveHendelseRepo,
-                hendelseJobbRepo,
+                hendelseActionRepo,
                 hendelseRepo,
                 sakRepo,
             )

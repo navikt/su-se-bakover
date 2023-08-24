@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje.Companion.harInnvilgelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje.Companion.harStans
-import no.nav.su.se.bakover.hendelse.domain.HendelseJobbRepo
+import no.nav.su.se.bakover.hendelse.domain.HendelseActionRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.institusjonsopphold.database.InstitusjonsoppholdHendelsestype
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
@@ -33,7 +33,7 @@ class InstitusjonsoppholdService(
     private val personService: PersonService,
     private val institusjonsoppholdHendelseRepo: InstitusjonsoppholdHendelseRepo,
     private val oppgaveHendelseRepo: OppgaveHendelseRepo,
-    private val hendelseJobbRepo: HendelseJobbRepo,
+    private val hendelseActionRepo: HendelseActionRepo,
     private val hendelseRepo: HendelseRepo,
     private val sakRepo: SakRepo,
     private val clock: Clock,
@@ -69,8 +69,8 @@ class InstitusjonsoppholdService(
 
     fun opprettOppgaveForHendelser(jobbNavn: String) {
         try {
-            hendelseJobbRepo.hentSakIdOgHendelseIderForNavnOgType(
-                jobbNavn = jobbNavn,
+            hendelseActionRepo.hentSakOgHendelsesIderSomIkkeHarKjørtAction(
+                action = jobbNavn,
                 hendelsestype = InstitusjonsoppholdHendelsestype,
             ).map { (sakId, _) ->
                 val alleOppgaveHendelser = oppgaveHendelseRepo.hentForSak(sakId)
@@ -105,9 +105,9 @@ class InstitusjonsoppholdService(
                                 tx,
                             )
                         }
-                        hendelseJobbRepo.lagre(
+                        hendelseActionRepo.lagre(
                             hendelser = this.map { it.hendelseId },
-                            jobbNavn = jobbNavn,
+                            action = jobbNavn,
                             context = tx,
                         )
                     }
