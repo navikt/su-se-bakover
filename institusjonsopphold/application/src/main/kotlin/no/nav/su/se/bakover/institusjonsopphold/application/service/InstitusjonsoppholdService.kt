@@ -98,7 +98,10 @@ class InstitusjonsoppholdService(
                     sessionFactory.withTransactionContext { tx ->
                         log.info("starter transaction")
 
-                        val oppgaveId = oppgaveService.opprettOppgave(lagOppgaveConfig(sakInfo, clock))
+                        val oppgaveConfig = lagOppgaveConfig(sakInfo, clock)
+                        log.info("oppgaveConfig laget")
+
+                        val oppgaveId = oppgaveService.opprettOppgaveMedSystembruker(oppgaveConfig)
                             .getOrElse {
                                 log.error("Fikk ikke opprettet oppgave for institusjonsopphold hendelser ${this.map { it.hendelseId }} for sak ${sakInfo.saksnummer}")
                                 return@withTransactionContext

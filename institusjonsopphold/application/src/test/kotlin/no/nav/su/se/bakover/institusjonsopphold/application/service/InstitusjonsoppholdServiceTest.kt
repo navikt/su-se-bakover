@@ -197,7 +197,7 @@ class InstitusjonsoppholdServiceTest {
             on { hentAktørId(any()) } doReturn person.ident.aktørId.right()
         }
         val oppgaveService = mock<OppgaveService> {
-            on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
+            on { opprettOppgaveMedSystembruker(any()) } doReturn OppgaveId("oppgaveId").right()
         }
         val hendelseRepo = mock<HendelseRepo> {
             on { hentSisteVersjonFraEntitetId(any(), anyOrNull()) } doReturn Hendelsesversjon(2)
@@ -224,7 +224,7 @@ class InstitusjonsoppholdServiceTest {
         verify(sakRepo).hentSakInfo(argThat { it shouldBe sak.id })
         verify(personService).hentAktørId(argThat { it shouldBe sak.fnr })
 
-        verify(oppgaveService).opprettOppgave(
+        verify(oppgaveService).opprettOppgaveMedSystembruker(
             argThat {
                 it shouldBe OppgaveConfig.Institusjonsopphold(
                     sak.saksnummer, sak.type, person.ident.aktørId, fixedClock,
@@ -363,7 +363,7 @@ class InstitusjonsoppholdServiceTest {
             on { hentAktørId(any()) } doReturn person.ident.aktørId.right()
         }
         val oppgaveService = mock<OppgaveService> {
-            on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
+            on { opprettOppgaveMedSystembruker(any()) } doReturn OppgaveId("oppgaveId").right()
         }
         val hendelseRepo = mock<HendelseRepo> {
             on { hentSisteVersjonFraEntitetId(any(), anyOrNull()) } doReturn Hendelsesversjon(4)
@@ -390,7 +390,7 @@ class InstitusjonsoppholdServiceTest {
         verify(sakRepo).hentSakInfo(argThat { it shouldBe sak.id })
         verify(personService).hentAktørId(argThat { it shouldBe sak.fnr })
 
-        verify(oppgaveService).opprettOppgave(
+        verify(oppgaveService).opprettOppgaveMedSystembruker(
             argThat {
                 it shouldBe OppgaveConfig.Institusjonsopphold(
                     sak.saksnummer, sak.type, person.ident.aktørId, fixedClock,
