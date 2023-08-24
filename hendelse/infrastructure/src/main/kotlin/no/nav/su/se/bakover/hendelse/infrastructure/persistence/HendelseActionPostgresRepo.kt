@@ -7,11 +7,14 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.hendelse.domain.HendelseActionRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
+import org.slf4j.LoggerFactory
 import java.util.UUID
 
 class HendelseActionPostgresRepo(
     val sessionFactory: PostgresSessionFactory,
 ) : HendelseActionRepo {
+    private val log = LoggerFactory.getLogger(this::class.java)
+
     override fun lagre(hendelser: List<HendelseId>, action: String, context: SessionContext) {
         hendelser.forEach {
             lagre(it, action, context)
@@ -39,8 +42,9 @@ class HendelseActionPostgresRepo(
         sx: SessionContext?,
         limit: Int,
     ): Map<UUID, List<HendelseId>> {
-        return (sx ?: sessionFactory.newSessionContext()).withSession {
-            """
+        try {
+            return (sx ?: sessionFactory.newSessionContext()).withSession {
+                """
             SELECT
                 h.sakId, h.hendelseId
             FROM
@@ -51,14 +55,18 @@ class HendelseActionPostgresRepo(
                 ha.hendelseId IS NULL
                 AND h.type = :type
             LIMIT :limit
-            """.trimIndent().hentListe(mapOf("type" to hendelsestype, "action" to action, "limit" to limit), it) {
-                it.uuid("sakId") to HendelseId.fromUUID(it.uuid("hendelseId"))
-            }.let {
-                it.groupBy { it.first }
-                    .mapValues { (_, value) ->
-                        value.map { it.second }
-                    }
+                """.trimIndent().hentListe(mapOf("type" to hendelsestype, "action" to action, "limit" to limit), it) {
+                    it.uuid("sakId") to HendelseId.fromUUID(it.uuid("hendelseId"))
+                }.let {
+                    it.groupBy { it.first }
+                        .mapValues { (_, value) ->
+                            value.map { it.second }
+                        }
+                }
             }
+        } catch (e: Exception) {
+            log.error("Feil ved henting av sak + hendelsesIder som ikke har action kjørt. original feil $e")
+            return emptyMap()
         }
     }
 

@@ -73,6 +73,8 @@ class InstitusjonsoppholdService(
                 action = jobbNavn,
                 hendelsestype = InstitusjonsoppholdHendelsestype,
             ).map { (sakId, _) ->
+                log.info("starter opprettelse av oppgaver for inst-hendelser på sak $sakId")
+
                 val alleOppgaveHendelser = oppgaveHendelseRepo.hentForSak(sakId)
                 val alleInstHendelser = institusjonsoppholdHendelseRepo.hentForSak(sakId)
                     ?: return Unit.also { log.debug("Sak {} har ingen inst-hendelser", sakId) }
