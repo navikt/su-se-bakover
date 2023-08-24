@@ -368,10 +368,10 @@ class TestDataHelper(
             kvittering = null,
         ) { søknadsbehandling(it) }.let { (sak, _, vedtak) ->
             (vedtak as VedtakInnvilgetSøknadsbehandling).let {
-                databaseRepos.utbetaling.hentOversendtUtbetalingForUtbetalingId(vedtak.utbetalingId)
+                databaseRepos.utbetaling.hentOversendtUtbetalingForUtbetalingId(vedtak.utbetalingId, null)
                     .let { utbetalingUtenKvittering ->
                         (utbetalingUtenKvittering as Utbetaling.OversendtUtbetaling.MedKvittering).let { utbetalingMedKvittering ->
-                            databaseRepos.utbetaling.oppdaterMedKvittering(utbetalingMedKvittering)
+                            databaseRepos.utbetaling.oppdaterMedKvittering(utbetalingMedKvittering, null)
                             databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
                                 Triple(
                                     persistertSak!!,
@@ -396,7 +396,7 @@ class TestDataHelper(
         sakOgRevurdering: Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse> = persisterIverksattRevurdering(),
     ): Pair<VedtakInnvilgetRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering> {
         return sakOgRevurdering.let { (sak, _, utbetaling, vedtak) ->
-            databaseRepos.utbetaling.oppdaterMedKvittering(utbetaling)
+            databaseRepos.utbetaling.oppdaterMedKvittering(utbetaling, null)
             databaseRepos.sak.hentSak(sak.id)!!.let { persistertSak ->
                 persistertSak.vedtakListe.single { it.id == vedtak.id } as VedtakInnvilgetRevurdering to persistertSak.utbetalinger.single { it.id == utbetaling.id } as Utbetaling.OversendtUtbetaling.MedKvittering
             }
@@ -431,7 +431,7 @@ class TestDataHelper(
         ).let {
             databaseRepos.utbetaling.opprettUtbetaling(it, sessionFactory.newTransactionContext())
             it.toKvittertUtbetaling(kvittering()).also { utbetalingMedKvittering ->
-                databaseRepos.utbetaling.oppdaterMedKvittering(utbetalingMedKvittering)
+                databaseRepos.utbetaling.oppdaterMedKvittering(utbetalingMedKvittering, null)
             }
         }
         return VedtakSomKanRevurderes.from(stans, utbetalingId, clock).also {

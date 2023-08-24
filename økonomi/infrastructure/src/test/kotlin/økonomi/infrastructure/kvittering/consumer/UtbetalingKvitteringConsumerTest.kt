@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.internal.verification.Times
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -29,7 +30,7 @@ internal class UtbetalingKvitteringConsumerTest {
     @Test
     fun `kaster exception hvis vi ikke klarer å oppdatere kvittering`() {
         val serviceMock = mock<UtbetalingService> {
-            on { oppdaterMedKvittering(any(), any()) } doReturn FantIkkeUtbetaling.left()
+            on { oppdaterMedKvittering(any(), any(), anyOrNull()) } doReturn FantIkkeUtbetaling.left()
         }
         val consumer = UtbetalingKvitteringConsumer(
             utbetalingService = serviceMock,
@@ -42,7 +43,7 @@ internal class UtbetalingKvitteringConsumerTest {
         }.also {
             it.message shouldStartWith "Kunne ikke oppdatere kvittering eller vedtak ved prossessering av kvittering"
         }
-        verify(serviceMock, Times(2)).oppdaterMedKvittering(any(), any())
+        verify(serviceMock, Times(2)).oppdaterMedKvittering(any(), any(), anyOrNull())
     }
 
     @Test
@@ -50,7 +51,7 @@ internal class UtbetalingKvitteringConsumerTest {
         val utbetalingMedKvittering = oversendtUtbetalingMedKvittering()
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
+            on { oppdaterMedKvittering(any(), any(), anyOrNull()) } doReturn utbetalingMedKvittering.right()
         }
         val ferdigstillVedtakServiceMock = mock<FerdigstillVedtakService> {
             on { ferdigstillVedtakEtterUtbetaling(any()) } doReturn KunneIkkeFerdigstilleVedtakMedUtbetaling.FantIkkeVedtakForUtbetalingId(
@@ -87,7 +88,7 @@ internal class UtbetalingKvitteringConsumerTest {
         )
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
+            on { oppdaterMedKvittering(any(), any(), anyOrNull()) } doReturn utbetalingMedKvittering.right()
         }
 
         val ferdigstillVedtakServiceMock = mock<FerdigstillVedtakService> {
@@ -109,6 +110,7 @@ internal class UtbetalingKvitteringConsumerTest {
         verify(utbetalingServiceMock).oppdaterMedKvittering(
             utbetalingId = argThat { it shouldBe utbetalingMedKvittering.id },
             kvittering = argThat { it shouldBe kvittering },
+            sessionContext = anyOrNull(),
         )
 
         verify(ferdigstillVedtakServiceMock).ferdigstillVedtakEtterUtbetaling(

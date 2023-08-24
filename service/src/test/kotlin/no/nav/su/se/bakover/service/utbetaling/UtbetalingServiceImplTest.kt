@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingUtenKvittering
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
@@ -37,6 +38,7 @@ internal class UtbetalingServiceImplTest {
             it.service.oppdaterMedKvittering(
                 utbetalingId = UUID30.randomUUID(),
                 kvittering = kvittering(),
+                sessionContext = null,
             ) shouldBe FantIkkeUtbetaling.left()
         }
     }
@@ -48,15 +50,16 @@ internal class UtbetalingServiceImplTest {
 
         UtbetalingServiceAndMocks(
             utbetalingRepo = mock {
-                on { hentOversendtUtbetalingForUtbetalingId(any<UUID30>()) } doReturn utbetalingUtenKvittering
+                on { hentOversendtUtbetalingForUtbetalingId(any<UUID30>(), anyOrNull()) } doReturn utbetalingUtenKvittering
             },
         ).let {
             it.service.oppdaterMedKvittering(
                 utbetalingId = utbetalingUtenKvittering.id,
                 kvittering = kvittering(),
+                sessionContext = null,
             ).getOrFail() shouldBe utbetalingMedKvittering
 
-            verify(it.utbetalingRepo).oppdaterMedKvittering(utbetalingMedKvittering)
+            verify(it.utbetalingRepo).oppdaterMedKvittering(utbetalingMedKvittering, null)
         }
     }
 
@@ -66,15 +69,16 @@ internal class UtbetalingServiceImplTest {
 
         UtbetalingServiceAndMocks(
             utbetalingRepo = mock {
-                on { hentOversendtUtbetalingForUtbetalingId(any<UUID30>()) } doReturn utbetalingMedKvittering
+                on { hentOversendtUtbetalingForUtbetalingId(any<UUID30>(), anyOrNull()) } doReturn utbetalingMedKvittering
             },
         ).let {
             it.service.oppdaterMedKvittering(
                 utbetalingId = utbetalingMedKvittering.id,
                 kvittering = kvittering(),
+                sessionContext = null,
             ).getOrFail() shouldBe utbetalingMedKvittering
 
-            verify(it.utbetalingRepo, never()).oppdaterMedKvittering(any())
+            verify(it.utbetalingRepo, never()).oppdaterMedKvittering(any(), anyOrNull())
         }
     }
 

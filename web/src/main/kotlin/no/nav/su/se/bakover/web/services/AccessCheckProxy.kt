@@ -255,6 +255,7 @@ open class AccessCheckProxy(
                 override fun oppdaterMedKvittering(
                     utbetalingId: UUID30,
                     kvittering: Kvittering,
+                    sessionContext: SessionContext?,
                 ) = kastKanKunKallesFraAnnenService()
 
                 override fun simulerUtbetaling(

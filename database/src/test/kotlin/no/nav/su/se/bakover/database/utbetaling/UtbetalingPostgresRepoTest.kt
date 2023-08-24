@@ -112,7 +112,7 @@ internal class UtbetalingPostgresRepoTest {
             val repo = testDataHelper.utbetalingRepo
             val utbetalingMedKvittering: Utbetaling.OversendtUtbetaling.MedKvittering =
                 testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().third
-            repo.hentOversendtUtbetalingForUtbetalingId(utbetalingMedKvittering.id) shouldBe utbetalingMedKvittering
+            repo.hentOversendtUtbetalingForUtbetalingId(utbetalingMedKvittering.id, null) shouldBe utbetalingMedKvittering
         }
     }
 

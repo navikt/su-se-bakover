@@ -23,7 +23,7 @@ internal fun AppComponents.mottaKvitteringForUtbetalingFraØkonomi(sakId: UUID) 
 }
 
 internal fun AppComponents.mottaKvitteringForUtbetalingFraØkonomi(utbetalingId: UUID30): String {
-    return databaseRepos.utbetaling.hentOversendtUtbetalingForUtbetalingId(utbetalingId)!!
+    return databaseRepos.utbetaling.hentOversendtUtbetalingForUtbetalingId(utbetalingId, null)!!
         .shouldBeType<Utbetaling.OversendtUtbetaling.UtenKvittering>().let {
             lagUtbetalingsKvittering(it.utbetalingsrequest)
         }.also {

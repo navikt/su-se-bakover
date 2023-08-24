@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.utbetaling
 
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
+import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
@@ -9,6 +10,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.simulering.serializeSimulering
@@ -26,9 +28,10 @@ internal class UtbetalingPostgresRepo(
 ) : UtbetalingRepo {
     override fun hentOversendtUtbetalingForUtbetalingId(
         utbetalingId: UUID30,
+        sessionContext: SessionContext?,
     ): Utbetaling.OversendtUtbetaling? {
         return dbMetrics.timeQuery("hentUtbetalingForId") {
-            sessionFactory.withSession { session ->
+            (sessionContext ?: sessionFactory.newSessionContext()).withSession { session ->
                 UtbetalingInternalRepo.hentOversendtUtbetaling(
                     utbetalingId,
                     session,
@@ -71,9 +74,12 @@ internal class UtbetalingPostgresRepo(
         }
     }
 
-    override fun oppdaterMedKvittering(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering) {
+    override fun oppdaterMedKvittering(
+        utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering,
+        sessionContext: SessionContext?,
+    ) {
         dbMetrics.timeQuery("oppdaterUtbetalingMedKvittering") {
-            sessionFactory.withSession { session ->
+            (sessionContext ?: sessionFactory.newSessionContext()).withSession { session ->
                 "update utbetaling set kvittering = to_json(:kvittering::json) where id = :id".oppdatering(
                     mapOf(
                         "id" to utbetaling.id,

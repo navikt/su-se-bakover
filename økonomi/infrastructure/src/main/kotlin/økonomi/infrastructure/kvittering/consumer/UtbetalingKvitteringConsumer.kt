@@ -19,6 +19,9 @@ import økonomi.domain.kvittering.Kvittering
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringResponse.Companion.toKvitteringResponse
 import java.time.Clock
 
+/**
+ * TODO jah: Denne slettes når vi tar i bruk UtbetalingKvitteringIbmMqConsumerV2
+ */
 class UtbetalingKvitteringConsumer(
     private val utbetalingService: UtbetalingService,
     private val ferdigstillVedtakService: FerdigstillVedtakService,
@@ -47,6 +50,7 @@ class UtbetalingKvitteringConsumer(
             utbetalingService.oppdaterMedKvittering(
                 utbetalingId = kvitteringResponse.utbetalingsId(),
                 kvittering = kvittering,
+                sessionContext = null,
             )
                 .flatMap { ferdigstillInnvilgelse(it) }
                 .mapLeft {
@@ -63,6 +67,7 @@ class UtbetalingKvitteringConsumer(
                     utbetalingService.oppdaterMedKvittering(
                         utbetalingId = kvitteringResponse.utbetalingsId(),
                         kvittering = kvittering,
+                        sessionContext = null,
                     )
                         .flatMap { ferdigstillInnvilgelse(it) }
                         .mapLeft {

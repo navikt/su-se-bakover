@@ -71,4 +71,12 @@ data class KvitteringPåSakHendelse(
             }
         }
     }
+
+    val kvittering: Kvittering by lazy {
+        Kvittering(
+            utbetalingsstatus = utbetalingsstatus,
+            originalKvittering = originalKvittering,
+            mottattTidspunkt = hendelsestidspunkt,
+        )
+    }
 }

@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -64,7 +65,10 @@ import kotlin.math.roundToInt
 private data class UtbetalingRepoMock(
     private val eksisterendeUtbetalinger: Utbetalinger,
 ) : UtbetalingRepo {
-    override fun hentOversendtUtbetalingForUtbetalingId(utbetalingId: UUID30): Utbetaling.OversendtUtbetaling? {
+    override fun hentOversendtUtbetalingForUtbetalingId(
+        utbetalingId: UUID30,
+        sessionContext: SessionContext?,
+    ): Utbetaling.OversendtUtbetaling? {
         TODO("Not yet implemented")
     }
 
@@ -76,7 +80,10 @@ private data class UtbetalingRepoMock(
         return eksisterendeUtbetalinger
     }
 
-    override fun oppdaterMedKvittering(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering) {
+    override fun oppdaterMedKvittering(
+        utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering,
+        sessionContext: SessionContext?,
+    ) {
         TODO("Not yet implemented")
     }
 

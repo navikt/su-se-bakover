@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -37,8 +38,9 @@ class UtbetalingServiceImpl(
     override fun oppdaterMedKvittering(
         utbetalingId: UUID30,
         kvittering: Kvittering,
+        sessionContext: SessionContext?,
     ): Either<FantIkkeUtbetaling, Utbetaling.OversendtUtbetaling.MedKvittering> {
-        return utbetalingRepo.hentOversendtUtbetalingForUtbetalingId(utbetalingId)
+        return utbetalingRepo.hentOversendtUtbetalingForUtbetalingId(utbetalingId, sessionContext)
             ?.let { utbetaling ->
                 when (utbetaling) {
                     is Utbetaling.OversendtUtbetaling.MedKvittering -> {
@@ -49,7 +51,7 @@ class UtbetalingServiceImpl(
                     is Utbetaling.OversendtUtbetaling.UtenKvittering -> {
                         log.info("Oppdaterer utbetaling med kvittering fra Oppdrag")
                         utbetaling.toKvittertUtbetaling(kvittering).also {
-                            utbetalingRepo.oppdaterMedKvittering(it)
+                            utbetalingRepo.oppdaterMedKvittering(it, sessionContext)
                         }
                     }
                 }.right()

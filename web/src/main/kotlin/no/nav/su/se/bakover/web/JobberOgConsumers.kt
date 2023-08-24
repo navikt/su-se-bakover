@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
 import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
+import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.institusjonsopphold.application.service.InstitusjonsoppholdService
 import no.nav.su.se.bakover.institusjonsopphold.presentation.InstitusjonsoppholdConsumer
@@ -61,6 +62,8 @@ fun startJobberOgConsumers(
     jmsConfig: JmsConfig,
     clock: Clock,
     consumers: Consumers,
+    // TODO jah: Skal brukes når vi bytter over til ny jobb for å ferdigstille vedtak med utbetaling+kvittering
+    @Suppress("UNUSED_PARAMETER") dbMetrics: DbMetrics,
 ) {
     val personhendelseService = PersonhendelseService(
         sakRepo = databaseRepos.sak,
@@ -106,6 +109,21 @@ fun startJobberOgConsumers(
             }
         }
         val isProd = applicationConfig.naisCluster == ApplicationConfig.NaisCluster.Prod
+        // TODO jah: startAsynkroneUtbetalingsprosesser skal erstatte den gamle UtbetalingKvitteringIbmMqConsumer
+//        startAsynkroneUtbetalingsprosesser(
+//            oppdragConfig = applicationConfig.oppdrag,
+//            jmsConfig = jmsConfig,
+//            sakService = services.sak,
+//            sessionFactory = databaseRepos.sessionFactory,
+//            clock = clock,
+//            hendelseActionRepo = databaseRepos.hendelseActionRepo,
+//            utbetalingService = services.utbetaling,
+//            ferdigstillVedtakService = services.ferdigstillVedtak,
+//            initalDelay = initialDelay::next,
+//            runCheckFactory = runCheckFactory,
+//            dbMetrics = dbMetrics,
+//            hendelseRepo = databaseRepos.hendelseRepo as HendelsePostgresRepo,
+//        )
         UtbetalingKvitteringIbmMqConsumer(
             kvitteringQueueName = applicationConfig.oppdrag.utbetaling.mqReplyTo,
             globalJmsContext = jmsConfig.jmsContext,

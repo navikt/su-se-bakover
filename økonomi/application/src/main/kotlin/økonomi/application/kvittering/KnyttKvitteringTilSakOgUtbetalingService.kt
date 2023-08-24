@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.HendelseActionRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
+import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import økonomi.domain.kvittering.Kvittering
@@ -25,6 +26,7 @@ class KnyttKvitteringTilSakOgUtbetalingService(
     private val mapRåXmlTilSaksnummerOgUtbetalingId: (String) -> Triple<Saksnummer, UUID30, Kvittering.Utbetalingsstatus>,
     private val clock: Clock,
     private val sessionFactory: SessionFactory,
+    private val utbetalingService: UtbetalingService,
 ) {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
@@ -36,7 +38,9 @@ class KnyttKvitteringTilSakOgUtbetalingService(
             utbetalingKvitteringRepo.hentUbehandledeKvitteringer(
                 jobbNavn = jobbNavn,
             ).forEach { hendelseId ->
-                val råKvittering = utbetalingKvitteringRepo.hentRåKvittering(hendelseId) ?: throw IllegalStateException("Vi fikk denne hendelsesIden fra basen, så dette skal ikke kunne skje.")
+                val råKvittering = utbetalingKvitteringRepo.hentRåKvittering(hendelseId) ?: throw IllegalStateException(
+                    "Vi fikk denne hendelsesIden fra basen, så dette skal ikke kunne skje.",
+                )
                 val (saksnummer, utbetalingId, utbetalingsstatus) = mapRåXmlTilSaksnummerOgUtbetalingId(råKvittering.originalKvittering)
                 val sak = sakService.hentSak(saksnummer).getOrElse {
                     throw RuntimeException("Fant ikke sak med saksnummer $saksnummer")
@@ -51,7 +55,7 @@ class KnyttKvitteringTilSakOgUtbetalingService(
                     -> throw IllegalStateException("Utbetalingen skal ikke være i tilstanden ${utbetaling::class.simpleName}")
 
                     is Utbetaling.OversendtUtbetaling.MedKvittering -> {
-                        råKvittering.erAlleredeKvittert(
+                        råKvittering.prosesserAlleredeKvittertUtbetaling(
                             sak = sak,
                             hendelseId = hendelseId,
                             utbetaling = utbetaling,
@@ -79,6 +83,11 @@ class KnyttKvitteringTilSakOgUtbetalingService(
                                 action = jobbNavn,
                                 context = tx,
                             )
+                            utbetalingService.oppdaterMedKvittering(
+                                utbetalingId = utbetalingId,
+                                kvittering = hendelsePåSak.kvittering,
+                                sessionContext = tx,
+                            )
                         }
                     }
                 }
@@ -88,7 +97,7 @@ class KnyttKvitteringTilSakOgUtbetalingService(
         }
     }
 
-    private fun RåKvitteringHendelse.erAlleredeKvittert(
+    private fun RåKvitteringHendelse.prosesserAlleredeKvittertUtbetaling(
         sak: Sak,
         hendelseId: HendelseId,
         utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering,

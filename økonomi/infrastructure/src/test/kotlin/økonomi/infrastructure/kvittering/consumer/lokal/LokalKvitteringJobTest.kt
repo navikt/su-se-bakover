@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -92,7 +93,7 @@ internal class LokalKvitteringJobTest {
             kvittering = kvittering,
         )
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
+            on { oppdaterMedKvittering(any(), any(), anyOrNull()) } doReturn utbetalingMedKvittering.right()
         }
         val innvilgetSøknadsbehandling = mock<IverksattSøknadsbehandling.Innvilget> {}
         val ferdigstillVedtakServiceMock = mock<FerdigstillVedtakService> {
@@ -109,6 +110,7 @@ internal class LokalKvitteringJobTest {
         verify(utbetalingServiceMock).oppdaterMedKvittering(
             utbetalingId = argThat { it shouldBe utbetaling.id },
             kvittering = argThat { it shouldBe kvittering.copy(originalKvittering = it.originalKvittering) },
+            sessionContext = anyOrNull(),
         )
         verify(ferdigstillVedtakServiceMock).ferdigstillVedtakEtterUtbetaling(
             argThat { it shouldBe utbetalingMedKvittering },

@@ -118,5 +118,6 @@ fun Application.susebakover(
         jmsConfig = jmsConfig,
         clock = clock,
         consumers = consumers,
+        dbMetrics = dbMetrics,
     )
 }
