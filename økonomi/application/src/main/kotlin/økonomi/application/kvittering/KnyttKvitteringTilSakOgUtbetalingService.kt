@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.hendelse.domain.HendelseActionRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseJobbRepo
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import økonomi.domain.kvittering.Kvittering
@@ -21,7 +21,7 @@ import java.time.Clock
 class KnyttKvitteringTilSakOgUtbetalingService(
     private val utbetalingKvitteringRepo: UtbetalingKvitteringRepo,
     private val sakService: SakService,
-    private val hendelseJobbRepo: HendelseJobbRepo,
+    private val hendelseActionRepo: HendelseActionRepo,
     private val mapRåXmlTilSaksnummerOgUtbetalingId: (String) -> Triple<Saksnummer, UUID30, Kvittering.Utbetalingsstatus>,
     private val clock: Clock,
     private val sessionFactory: SessionFactory,
@@ -74,9 +74,9 @@ class KnyttKvitteringTilSakOgUtbetalingService(
                         )
                         sessionFactory.withTransactionContext { tx ->
                             utbetalingKvitteringRepo.lagre(hendelsePåSak, tx)
-                            hendelseJobbRepo.lagre(
+                            hendelseActionRepo.lagre(
                                 hendelseId = råKvittering.hendelseId,
-                                jobbNavn = jobbNavn,
+                                action = jobbNavn,
                                 context = tx,
                             )
                         }
@@ -103,9 +103,9 @@ class KnyttKvitteringTilSakOgUtbetalingService(
         if (utbetaling.kvittering.utbetalingsstatus == utbetalingsstatus) {
             log.warn("Utbetaling med id $utbetalingId på sak $saksnummer er allerede kvittert med samme status som før: $utbetalingsstatus. Ignorerer.")
             // Vi lager en jobb, slik at vi ikke prøver igjen.
-            hendelseJobbRepo.lagre(
+            hendelseActionRepo.lagre(
                 hendelseId = hendelseId,
-                jobbNavn = jobbNavn,
+                action = jobbNavn,
                 context = sessionFactory.newSessionContext(),
             )
         } else {
@@ -120,9 +120,9 @@ class KnyttKvitteringTilSakOgUtbetalingService(
             )
             sessionFactory.withTransactionContext { tx ->
                 utbetalingKvitteringRepo.lagre(hendelsePåSak, tx)
-                hendelseJobbRepo.lagre(
+                hendelseActionRepo.lagre(
                     hendelseId = hendelseId,
-                    jobbNavn = jobbNavn,
+                    action = jobbNavn,
                     context = tx,
                 )
             }

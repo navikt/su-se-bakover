@@ -5,53 +5,53 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFac
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.hendelse.domain.HendelseActionRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseJobbRepo
 import java.util.UUID
 
-class HendelseJobbPostgresRepo(
+class HendelseActionPostgresRepo(
     val sessionFactory: PostgresSessionFactory,
-) : HendelseJobbRepo {
-    override fun lagre(hendelser: List<HendelseId>, jobbNavn: String, context: SessionContext) {
+) : HendelseActionRepo {
+    override fun lagre(hendelser: List<HendelseId>, action: String, context: SessionContext) {
         hendelser.forEach {
-            lagre(it, jobbNavn, context)
+            lagre(it, action, context)
         }
     }
 
-    override fun lagre(hendelseId: HendelseId, jobbNavn: String, context: SessionContext) {
+    override fun lagre(hendelseId: HendelseId, action: String, context: SessionContext) {
         context.withSession {
             """
             INSERT INTO
-                hendelse_jobb 
-                    (id, hendelseId, jobbNavn)
+                hendelse_action 
+                    (id, hendelseId, action)
                     values
-                        (:id, :hendelseId, :jobbNavn)
+                        (:id, :hendelseId, :action)
             """.trimIndent().insert(
-                mapOf("id" to UUID.randomUUID(), "hendelseId" to hendelseId.value, "jobbNavn" to jobbNavn),
+                mapOf("id" to UUID.randomUUID(), "hendelseId" to hendelseId.value, "action" to action),
                 it,
             )
         }
     }
 
-    override fun hentSakIdOgHendelseIderForNavnOgType(
-        jobbNavn: String,
+    override fun hentSakOgHendelsesIderSomIkkeHarKjørtAction(
+        action: String,
         hendelsestype: String,
         sx: SessionContext?,
         limit: Int,
     ): Map<UUID, List<HendelseId>> {
         return (sx ?: sessionFactory.newSessionContext()).withSession {
             """
-           select
+            SELECT
                 h.sakId, h.hendelseId
-           from
+            FROM
                 hendelse h
-                    left join hendelse_jobb hj
-                        on h.hendelseId = hj.hendelseId
-           where
-             hj.jobbNavn = :jobbNavn
-             and h.type IN (:type)
-             limit :limit
-            """.trimIndent().hentListe(mapOf("type" to hendelsestype, "jobbNavn" to jobbNavn, "limit" to limit), it) {
+            LEFT JOIN hendelse_action ha
+                ON h.hendelseId = ha.hendelseId AND ha.action = :action
+            WHERE
+                ha.hendelseId IS NULL
+                AND h.type = :type
+            LIMIT :limit
+            """.trimIndent().hentListe(mapOf("type" to hendelsestype, "action" to action, "limit" to limit), it) {
                 it.uuid("sakId") to HendelseId.fromUUID(it.uuid("hendelseId"))
             }.let {
                 it.groupBy { it.first }
@@ -62,8 +62,8 @@ class HendelseJobbPostgresRepo(
         }
     }
 
-    override fun hentHendelseIderForNavnOgType(
-        jobbNavn: String,
+    override fun hentHendelseIderForActionOgType(
+        action: String,
         hendelsestype: String,
         sx: SessionContext?,
         limit: Int,
@@ -74,13 +74,13 @@ class HendelseJobbPostgresRepo(
                 h.hendelseId
             FROM
                 hendelse h
-            LEFT JOIN hendelse_jobb hj
-                ON h.hendelseId = hj.hendelseId AND hj.jobbNavn = :jobbNavn
+            LEFT JOIN hendelse_action ha
+                ON h.hendelseId = ha.hendelseId AND ha.action = :action
             WHERE
-                hj.hendelseId IS NULL
+                ha.hendelseId IS NULL
                 AND h.type = :type
             LIMIT :limit
-            """.trimIndent().hentListe(mapOf("type" to hendelsestype, "jobbNavn" to jobbNavn, "limit" to limit), it) {
+            """.trimIndent().hentListe(mapOf("type" to hendelsestype, "action" to action, "limit" to limit), it) {
                 HendelseId.fromUUID(it.uuid("hendelseId"))
             }
         }

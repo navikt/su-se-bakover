@@ -3,18 +3,19 @@ package no.nav.su.se.bakover.hendelse.domain
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import java.util.UUID
 
-interface HendelseJobbRepo {
-    fun lagre(hendelser: List<HendelseId>, jobbNavn: String, context: SessionContext)
-    fun lagre(hendelseId: HendelseId, jobbNavn: String, context: SessionContext)
-    fun hentSakIdOgHendelseIderForNavnOgType(
-        jobbNavn: String,
+interface HendelseActionRepo {
+    fun lagre(hendelser: List<HendelseId>, action: String, context: SessionContext)
+    fun lagre(hendelseId: HendelseId, action: String, context: SessionContext)
+
+    fun hentSakOgHendelsesIderSomIkkeHarKjørtAction(
+        action: String,
         hendelsestype: String,
         sx: SessionContext? = null,
         limit: Int = 10,
     ): Map<UUID, List<HendelseId>>
 
-    fun hentHendelseIderForNavnOgType(
-        jobbNavn: String,
+    fun hentHendelseIderForActionOgType(
+        action: String,
         hendelsestype: String,
         sx: SessionContext? = null,
         limit: Int = 10,

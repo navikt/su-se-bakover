@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class HendelseJobbRepoTest {
+class HendelseActionRepoTest {
 
     @Test
     fun `lagrer en hendelse`() {
@@ -31,11 +31,11 @@ class HendelseJobbRepoTest {
     }
 
     @Test
-    fun `henter sak-id og hendelses id'er for en gitt jobbnavn og hendelses type`() {
+    fun `henter sakId og hendelse ider for hendelser som ikke har kjørt en action`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val lagret = testDataHelper.persisterInstJobbHendelse()
-            val hentet = testDataHelper.hendelseJobbRepo.hentSakIdOgHendelseIderForNavnOgType(
+            val lagret = testDataHelper.persisterInstitusjonsoppholdHendelse()
+            val hentet = testDataHelper.hendelseActionRepo.hentSakOgHendelsesIderSomIkkeHarKjørtAction(
                 "INSTITUSJON",
                 "INSTITUSJONSOPPHOLD",
             )
@@ -46,9 +46,9 @@ class HendelseJobbRepoTest {
     private fun hentAlle(tx: SessionContext): List<Triple<UUID, HendelseId, String>> {
         return tx.withSession {
             """
-                select * from hendelse_jobb
+                select * from hendelse_action
             """.trimIndent().hentListe(emptyMap(), it) {
-                Triple(it.uuid("id"), HendelseId.fromUUID(it.uuid("hendelseId")), it.string("jobbNavn"))
+                Triple(it.uuid("id"), HendelseId.fromUUID(it.uuid("hendelseId")), it.string("action"))
             }
         }
     }

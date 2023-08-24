@@ -190,7 +190,7 @@ class TestDataHelper(
     val utbetalingRepo = databaseRepos.utbetaling
     val institusjonsoppholdHendelseRepo = databaseRepos.institusjonsoppholdHendelseRepo
     val oppgaveHendelseRepo = databaseRepos.oppgaveHendelseRepo
-    val hendelseJobbRepo = databaseRepos.hendelseJobbRepo
+    val hendelseActionRepo = databaseRepos.hendelseActionRepo
 
     /**
      * Oppretter og persisterer en ny sak (dersom den ikke finnes fra før) med søknad med tomt søknadsinnhold.
@@ -1612,7 +1612,7 @@ class TestDataHelper(
         return persisterInstitusjonsoppholdHendelse().let { hendelse ->
             hendelse.also {
                 sessionFactory.withSessionContext { tx ->
-                    hendelseJobbRepo.lagre(hendelse.hendelseId, "INSTITUSJON", tx)
+                    hendelseActionRepo.lagre(hendelse.hendelseId, "INSTITUSJON", tx)
                 }
             }
         }
@@ -1629,7 +1629,7 @@ class TestDataHelper(
                 }
 
                 listOf(første, andre).also {
-                    hendelseJobbRepo.lagre(listOf(første.hendelseId, andre.hendelseId), "INSTITUSJON", tx)
+                    hendelseActionRepo.lagre(listOf(første.hendelseId, andre.hendelseId), "INSTITUSJON", tx)
                 }
             }
         }

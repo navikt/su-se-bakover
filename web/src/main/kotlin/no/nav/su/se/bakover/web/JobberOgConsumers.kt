@@ -127,7 +127,7 @@ fun startJobberOgConsumers(
                 personService = services.person,
                 institusjonsoppholdHendelseRepo = databaseRepos.institusjonsoppholdHendelseRepo,
                 oppgaveHendelseRepo = databaseRepos.oppgaveHendelseRepo,
-                hendelseJobbRepo = databaseRepos.hendelseJobbRepo,
+                hendelseActionRepo = databaseRepos.hendelseActionRepo,
                 hendelseRepo = databaseRepos.hendelseRepo,
                 sakRepo = databaseRepos.sak,
                 clock = clock,
