@@ -86,17 +86,17 @@ class InstitusjonsoppholdService(
                 val instOgOppgaveHendelserPåSak = InstitusjonOgOppgaveHendelserPåSak(
                     alleInstHendelser,
                     alleOppgaveHendelser,
-                ).let {
-                    log.info("laget instOgOppgaveHendelserPåSak")
-                    it
-                }
+                )
+                log.info("laget instOgOppgaveHendelserPåSak")
 
                 instOgOppgaveHendelserPåSak.hentInstHendelserSomManglerOppgave().ifNotEmpty {
                     log.info("Hentet alle inst hendelser som mangler oppgave")
 
                     val sakInfo = sakRepo.hentSakInfo(sakId)
                         ?: throw IllegalStateException("Feil ved henting av sak $sakId")
+                    log.info("Hentet sakInfo")
                     sessionFactory.withTransactionContext { tx ->
+                        log.info("starter transaction")
 
                         val oppgaveId = oppgaveService.opprettOppgave(lagOppgaveConfig(sakInfo, clock))
                             .getOrElse {
