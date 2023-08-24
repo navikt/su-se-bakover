@@ -63,20 +63,21 @@ Import
 
 ### Troubleshooting lokal/embedded postgres
 
-Dersom man får
-feilen `running bootstrap script ... 2022-08-30 16:10:20.342 CEST [53606] FATAL:  could not create shared memory segment: Cannot allocate memory`
-kan man øke shared memory:
+Dersom man får feilene
+- `running bootstrap script ... 2022-08-30 16:10:20.342 CEST [53606] FATAL:  could not create shared memory segment: Cannot allocate memory`
+- `java.lang.IllegalStateException: Process [/var/folders/l_/c1b_7t2n39j48k7sbpp54zy00000gn/T/embedded-pg/PG-8eddc1e460ca1c5597350c162933683c/bin/initdb, -A, trust, -U, postgres, -D, /var/folders/l_/c1b_7t2n39j48k7sbpp54zy00000gn/T/epg3835758492450081687, -E, UTF-8] failed`
 
-* `sudo sysctl kern.sysv.shmmax=104857600` eller en annen ønsket verdi, for eksempel `524288000`
-* `sudo sysctl kern.sysv.shmall=2560` eller en annen ønsket verdi, for eksempel `65536`
+kan du prøve disse 2 mulighetene:
 
-Dersom du får feilen 
-`java.lang.IllegalStateException: Process [/var/folders/l_/c1b_7t2n39j48k7sbpp54zy00000gn/T/embedded-pg/PG-8eddc1e460ca1c5597350c162933683c/bin/initdb, -A, trust, -U, postgres, -D, /var/folders/l_/c1b_7t2n39j48k7sbpp54zy00000gn/T/epg3835758492450081687, -E, UTF-8] failed`
-eller lignende, legg inn:
-* `export LC_CTYPE="en_US.UTF-8"`
-* `export LC_ALL="en_US.UTF-8"`
+1. Hvis du ikke har; legg inn
+   * `export LC_CTYPE="en_US.UTF-8"`
+   * `export LC_ALL="en_US.UTF-8"`
 
-i din terminal profil (f.eks .zshrc). Dersom det ikke fikser problemet, kan du også prøve punktet over.
+   i din terminal profil (f.eks .zshrc). Dersom det ikke fikser problemet, kan du også prøve punktet over.
+
+2. øke shared memory:
+   * `sudo sysctl kern.sysv.shmmax=104857600` eller en annen ønsket verdi, for eksempel `524288000`
+   * `sudo sysctl kern.sysv.shmall=2560` eller en annen ønsket verdi, for eksempel `65536`
 
 #### Autentisering
 
