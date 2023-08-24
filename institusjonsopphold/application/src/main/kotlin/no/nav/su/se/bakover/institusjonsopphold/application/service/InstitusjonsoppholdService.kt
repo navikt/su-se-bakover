@@ -132,7 +132,7 @@ class InstitusjonsoppholdService(
                 }
             }
         } catch (e: Exception) {
-            log.error("Feil skjedde ved oppretting av oppgave for jobb $jobbNavn. originalFeil $e")
+            log.error("Feil skjedde ved oppretting av oppgave for jobb $jobbNavn. originalFeil $e", e)
         }
     }
 
