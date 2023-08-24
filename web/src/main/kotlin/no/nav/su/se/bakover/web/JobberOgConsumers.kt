@@ -143,7 +143,7 @@ fun startJobberOgConsumers(
                 periode = Duration.of(5, ChronoUnit.MINUTES),
                 initialDelay = initialDelay.next(),
                 runCheckFactory = runCheckFactory,
-            )
+            ).schedule()
         }
 
         JournalførDokumentJob(
