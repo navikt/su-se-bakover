@@ -136,7 +136,7 @@ class InstitusjonsoppholdService(
         }
     }
 
-    private fun hentAktørId(fnr: Fnr): AktørId = personService.hentAktørId(fnr).getOrElse {
+    private fun hentAktørId(fnr: Fnr): AktørId = personService.hentAktørIdMedSystembruker(fnr).getOrElse {
         throw IllegalStateException("Feil ved henting av person $fnr")
     }
 
