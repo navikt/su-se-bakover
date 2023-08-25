@@ -1,13 +1,10 @@
 package no.nav.su.se.bakover.web.routes.skatt
 
-import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.application.call
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
-import no.nav.su.se.bakover.common.featuretoggle.ToggleClient
 import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
@@ -20,12 +17,8 @@ import no.nav.su.se.bakover.web.routes.skatt.SkattegrunnlagJSON.Companion.toStri
 
 internal const val skattPath = "/skatt"
 
-internal fun Route.skattRoutes(skatteService: SkatteService, toggleService: ToggleClient) {
+internal fun Route.skattRoutes(skatteService: SkatteService) {
     get("$skattPath/person/{fnr}") {
-        if (!toggleService.isEnabled("supstonad.skattemelding")) {
-            call.respond(HttpStatusCode.NotFound)
-            return@get
-        }
         call.withFnr { fnr ->
             skatteService.hentSamletSkattegrunnlag(fnr, call.suUserContext.saksbehandler).let {
                 call.audit(fnr, AuditLogEvent.Action.SEARCH, null)

@@ -26,7 +26,6 @@ internal class GrensesnittsavstemingJobTest {
                 },
                 applicationConfig = ApplicationConfig.createLocalConfig(),
                 clock = fixedClock,
-                toggleService = mock(),
             ),
         ).let {
             it.run()
@@ -45,7 +44,6 @@ internal class GrensesnittsavstemingJobTest {
                 },
                 applicationConfig = ApplicationConfig.createLocalConfig(),
                 clock = fixedClock,
-                toggleService = mock(),
             ),
         ).let {
             it.run()
@@ -64,7 +62,6 @@ internal class GrensesnittsavstemingJobTest {
                 },
                 applicationConfig = ApplicationConfig.createLocalConfig(),
                 clock = fixedClock,
-                toggleService = mock(),
             ),
         ).let {
             it.run()

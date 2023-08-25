@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.web
 
-import io.getunleash.FakeUnleash
-import io.getunleash.Unleash
 import io.ktor.client.HttpClient
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.headers
@@ -150,14 +148,13 @@ data object SharedRegressionTestData {
                         databaseRepos = db,
                     ).build(applicationConfig)
                 },
-                serviceBuilder = { databaseRepos, clients, clock, satsFactory, unleash ->
+                serviceBuilder = { databaseRepos, clients, clock, satsFactory ->
                     ServiceBuilder.build(
                         databaseRepos = databaseRepos,
                         clients = clients,
                         behandlingMetrics = mock(),
                         søknadMetrics = mock(),
                         clock = clock,
-                        unleash = unleash,
                         satsFactory = satsFactory.gjeldende(LocalDate.now(clock)),
                         applicationConfig = applicationConfig(),
                         dbMetrics = dbMetricsStub,
@@ -189,14 +186,12 @@ data object SharedRegressionTestData {
             utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
             databaseRepos = databaseRepos,
         ).build(applicationConfig),
-        unleash: Unleash = FakeUnleash().apply { enableAll() },
         services: Services = ServiceBuilder.build(
             databaseRepos = databaseRepos,
             clients = clients,
             behandlingMetrics = mock(),
             søknadMetrics = mock(),
             clock = clock,
-            unleash = unleash,
             satsFactory = satsFactoryTestPåDato(LocalDate.now(clock)),
             applicationConfig = applicationConfig(),
             dbMetrics = dbMetricsStub,

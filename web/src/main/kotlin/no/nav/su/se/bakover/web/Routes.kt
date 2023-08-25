@@ -31,7 +31,6 @@ import no.nav.su.se.bakover.web.routes.sak.sakRoutes
 import no.nav.su.se.bakover.web.routes.skatt.skattRoutes
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.overordnetSøknadsbehandligRoutes
-import no.nav.su.se.bakover.web.routes.toggleRoutes
 import no.nav.su.se.bakover.web.routes.vedtak.stønadsmottakereRoute
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.opplysningspliktRoutes
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
@@ -50,8 +49,6 @@ internal fun Application.setupKtorRoutes(
     clients: Clients,
 ) {
     routing {
-        toggleRoutes(services.toggles)
-
         authenticate("frikort") {
             frikortVedtakRoutes(services.vedtakService, clock)
         }
@@ -77,7 +74,6 @@ internal fun Application.setupKtorRoutes(
                         accessProtectedServices.søknadsbehandling,
                         clock,
                         satsFactoryIDag,
-                        accessProtectedServices.toggles,
                         applicationConfig,
                     )
                     avstemmingRoutes(accessProtectedServices.avstemming, clock)
@@ -106,7 +102,7 @@ internal fun Application.setupKtorRoutes(
                         satsFactory = satsFactoryIDag,
                         clock = clock,
                     )
-                    skattRoutes(accessProtectedServices.skatteService, accessProtectedServices.toggles)
+                    skattRoutes(accessProtectedServices.skatteService)
                     utenlandsoppholdRoutes(
                         registerService = RegistrerUtenlandsoppholdService(
                             sakRepo = databaseRepos.sak,

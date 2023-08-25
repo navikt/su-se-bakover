@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.services
 
-import no.nav.su.se.bakover.common.featuretoggle.ToggleClient
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.PersonService
@@ -35,7 +34,6 @@ data class Services(
     val lukkSøknad: LukkSøknadService,
     val oppgave: OppgaveService,
     val person: PersonService,
-    val toggles: ToggleClient,
     val søknadsbehandling: SøknadsbehandlingServices,
     val ferdigstillVedtak: FerdigstillVedtakService,
     val revurdering: RevurderingService,

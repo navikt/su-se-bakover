@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.web
 
-import io.getunleash.FakeUnleash
-import io.getunleash.Unleash
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.headers
 import io.ktor.client.request.request
@@ -37,7 +35,6 @@ internal fun Application.testSusebakoverWithMockedDb(
     clock: Clock = fixedClock,
     databaseRepos: DatabaseRepos = mockedDb(),
     clients: Clients = TestClientsBuilder(clock, databaseRepos).build(applicationConfig),
-    unleash: Unleash = FakeUnleash().apply { enableAll() },
     /** Bruk gjeldende satser i hht angitt [clock] */
     satsFactory: SatsFactory = satsFactoryTest.gjeldende(LocalDate.now(clock)),
     services: Services = ServiceBuilder.build(
@@ -47,7 +44,6 @@ internal fun Application.testSusebakoverWithMockedDb(
         behandlingMetrics = org.mockito.kotlin.mock(),
         søknadMetrics = org.mockito.kotlin.mock(),
         clock = clock,
-        unleash = unleash,
         satsFactory = satsFactory,
         applicationConfig = applicationConfig(),
         dbMetrics = dbMetricsStub,

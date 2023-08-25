@@ -39,7 +39,6 @@ class StansYtelseVedManglendeOppmøteKontrollsamtaleJob(
                     listOf(
                         runCheckFactory.åpningstidStormaskin(),
                         runCheckFactory.leaderPod(),
-                        runCheckFactory.unleashToggle("supstonad.automatisk.stans.manglende.oppmote.kontrollsamtale"),
                     ).shouldRun().ifTrue {
                         service.håndterUtløpsdato(igår(clock))
                     }

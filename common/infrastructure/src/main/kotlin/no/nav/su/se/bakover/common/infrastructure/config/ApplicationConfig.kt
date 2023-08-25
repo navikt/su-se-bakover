@@ -58,7 +58,6 @@ data class ApplicationConfig(
     val database: DatabaseConfig,
     val clientsConfig: ClientsConfig,
     val kafkaConfig: KafkaConfig,
-    val unleash: UnleashConfig,
     val kabalKafkaConfig: KabalKafkaConfig,
     val institusjonsoppholdKafkaConfig: InstitusjonsoppholdKafkaConfig,
 ) {
@@ -222,18 +221,6 @@ data class ApplicationConfig(
                     mq = TilbakekrevingConfig.Mq("unused"),
                     soap = TilbakekrevingConfig.Soap("unused"),
                 ),
-            )
-        }
-    }
-
-    data class UnleashConfig(
-        val unleashUrl: String,
-        val appName: String,
-    ) {
-        companion object {
-            fun createFromEnvironmentVariables() = UnleashConfig(
-                getEnvironmentVariableOrDefault("UNLEASH_URL", "https://unleash.nais.io/api"),
-                getEnvironmentVariableOrDefault("NAIS_APP_NAME", "su-se-bakover"),
             )
         }
     }
@@ -541,7 +528,6 @@ data class ApplicationConfig(
             database = DatabaseConfig.createFromEnvironmentVariables(),
             clientsConfig = ClientsConfig.createFromEnvironmentVariables(),
             kafkaConfig = KafkaConfig.createFromEnvironmentVariables(),
-            unleash = UnleashConfig.createFromEnvironmentVariables(),
             kabalKafkaConfig = KabalKafkaConfig.createFromEnvironmentVariables(),
             institusjonsoppholdKafkaConfig = InstitusjonsoppholdKafkaConfig.createFromEnvironmentVariables(),
         )
@@ -559,7 +545,6 @@ data class ApplicationConfig(
             database = DatabaseConfig.createLocalConfig(),
             clientsConfig = ClientsConfig.createLocalConfig(),
             kafkaConfig = KafkaConfig.createLocalConfig(),
-            unleash = UnleashConfig.createFromEnvironmentVariables(),
             kabalKafkaConfig = KabalKafkaConfig.createLocalConfig(),
             institusjonsoppholdKafkaConfig = InstitusjonsoppholdKafkaConfig.createLocalConfig(),
         ).also {

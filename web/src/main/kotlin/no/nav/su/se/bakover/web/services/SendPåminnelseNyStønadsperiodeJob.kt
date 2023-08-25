@@ -36,7 +36,6 @@ internal class SendPåminnelseNyStønadsperiodeJob(
                 withCorrelationId {
                     listOf(
                         runCheckFactory.leaderPod(),
-                        runCheckFactory.unleashToggle(toggle),
                     ).shouldRun().ifTrue {
                         sendPåminnelseService.sendPåminnelser()
                     }

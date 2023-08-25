@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web
 
-import io.getunleash.Unleash
 import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
@@ -8,7 +7,6 @@ import io.ktor.server.routing.Route
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ProdClientsBuilder
 import no.nav.su.se.bakover.client.StubClientsBuilder
-import no.nav.su.se.bakover.client.UnleashBuilder
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
@@ -49,7 +47,6 @@ fun Application.susebakover(
     ),
     dbMetrics: DbMetrics = DbMicrometerMetrics(),
     applicationConfig: ApplicationConfig = ApplicationConfig.createConfig(),
-    unleash: Unleash = UnleashBuilder.build(applicationConfig),
     satsFactory: SatsFactoryForSupplerendeStønad = SatsFactoryForSupplerendeStønad(),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(
         databaseConfig = applicationConfig.database,
@@ -68,7 +65,6 @@ fun Application.susebakover(
         ProdClientsBuilder(
             jmsConfig,
             clock = clock,
-            unleash = unleash,
             metrics = clientMetrics,
         ).build(applicationConfig)
     },
@@ -78,7 +74,6 @@ fun Application.susebakover(
         behandlingMetrics = behandlingMetrics,
         søknadMetrics = søknadMetrics,
         clock = clock,
-        unleash = unleash,
         satsFactory = satsFactory.gjeldende(LocalDate.now(clock)),
         applicationConfig = applicationConfig,
         dbMetrics = dbMetrics,

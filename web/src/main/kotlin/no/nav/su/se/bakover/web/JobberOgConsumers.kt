@@ -77,8 +77,6 @@ fun startJobberOgConsumers(
         leaderPodLookup = clients.leaderPodLookup,
         applicationConfig = applicationConfig,
         clock = clock,
-        toggleService = services.toggles,
-
     )
     val distribuerDokumentService = DistribuerDokumentService(
         dokDistFordeling = clients.dokDistFordeling,
@@ -139,7 +137,8 @@ fun startJobberOgConsumers(
             clock = clock,
         )
 
-        if (services.toggles.isEnabled("supstonad.institusjonsopphold.hendelser")) {
+        // holder inst på kun i dev inntil videre
+        if (!isProd) {
             val institusjonsoppholdService = InstitusjonsoppholdService(
                 oppgaveService = services.oppgave,
                 personService = services.person,

@@ -76,7 +76,6 @@ internal class ServiceBuilderTest {
             behandlingMetrics = mock(),
             søknadMetrics = mock(),
             clock = Clock.systemUTC(),
-            unleash = mock(),
             satsFactory = satsFactoryTestPåDato(),
             applicationConfig = applicationConfig(),
             dbMetrics = dbMetricsStub,
