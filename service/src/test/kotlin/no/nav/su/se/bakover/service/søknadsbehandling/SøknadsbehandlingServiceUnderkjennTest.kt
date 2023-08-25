@@ -39,6 +39,7 @@ import no.nav.su.se.bakover.test.tilAttesteringSøknadsbehandlingUføre
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
@@ -293,7 +294,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
 
         val oppgaveServiceMock = mock<OppgaveService> {
             on { opprettOppgave(any()) } doReturn nyOppgaveId.right()
-            on { lukkOppgave(any()) } doReturn KunneIkkeLukkeOppgave.left()
+            on { lukkOppgave(any()) } doAnswer { KunneIkkeLukkeOppgave(it.getArgument(0)).left() }
         }
         val behandlingMetricsMock = mock<BehandlingMetrics>()
         val observerMock: StatistikkEventObserver = mock()

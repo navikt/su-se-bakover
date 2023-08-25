@@ -38,6 +38,7 @@ import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
@@ -261,10 +262,10 @@ internal class FerdigstillVedtakServiceImplTest {
 
         FerdigstillVedtakServiceMocks(
             oppgaveService = mock {
-                on { lukkOppgave(any()) } doReturn KunneIkkeLukkeOppgave.left()
+                on { lukkOppgave(any()) } doAnswer { KunneIkkeLukkeOppgave(it.getArgument(0)).left() }
             },
         ) {
-            service.lukkOppgaveMedBruker(behandling) shouldBe KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave.left()
+            service.lukkOppgaveMedBruker(behandling) shouldBe KunneIkkeLukkeOppgave(behandling.oppgaveId).left()
 
             inOrder(
                 *all(),

@@ -35,7 +35,7 @@ interface FerdigstillVedtakService {
 
     fun lukkOppgaveMedBruker(
         behandling: Behandling,
-    ): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit>
+    ): Either<KunneIkkeLukkeOppgave, Unit>
 }
 
 class FerdigstillVedtakServiceImpl(
@@ -79,73 +79,106 @@ class FerdigstillVedtakServiceImpl(
                     "Kunne ikke ferdigstille vedtak ${vedtak.id}: $it",
                     RuntimeException("Trigger stacktrace for enklere debugging"),
                 )
-            }.onRight {
+            }.map {
                 log.info("Ferdigstilte vedtak ${vedtak.id}")
+                vedtak
             }
         }
     }
 
-    override fun lukkOppgaveMedBruker(behandling: Behandling): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit> {
+    override fun lukkOppgaveMedBruker(behandling: Behandling): Either<KunneIkkeLukkeOppgave, Unit> {
         return lukkOppgaveIntern(behandling) {
             oppgaveService.lukkOppgave(it)
-        }
+        }.map { /* Unit */ }
     }
 
     private fun Utbetaling.trengerIkkeFerdigstilles(): Boolean {
         return erStans() || erReaktivering()
     }
 
-    private fun ferdigstillVedtak(vedtak: VedtakSomKanRevurderes): Either<KunneIkkeFerdigstilleVedtak, VedtakSomKanRevurderes> {
+    private fun ferdigstillVedtak(
+        vedtak: VedtakSomKanRevurderes,
+    ): Either<KunneIkkeFerdigstilleVedtak, VedtakFerdigstilt> {
         return if (vedtak.skalGenerereDokumentVedFerdigstillelse()) {
-            lagreDokument(vedtak).getOrElse { return it.left() }
-            lukkOppgaveMedSystembruker(vedtak.behandling)
-            vedtak.right()
+            val dokument = lagreDokument(vedtak).getOrElse { return it.left() }
+            lukkOppgaveMedSystembruker(vedtak.behandling).fold(
+                {
+                    VedtakFerdigstilt.DokumentLagret.KunneIkkeLukkeOppgave(dokument, it.oppgaveId).right()
+                },
+                { oppgaveId ->
+                    if (oppgaveId != null) {
+                        VedtakFerdigstilt.DokumentLagret.OppgaveLukket(dokument, oppgaveId).right()
+                    } else {
+                        VedtakFerdigstilt.DokumentLagret.SkalIkkeLukkeOppgave(dokument).right()
+                    }
+                },
+            )
         } else {
-            lukkOppgaveMedSystembruker(vedtak.behandling)
-            vedtak.right()
+            // I disse tilfellene skal det ikke sendes brev, men vi prøver likevel å lukke oppgaven, dersom det finnes en.
+            lukkOppgaveMedSystembruker(vedtak.behandling).fold(
+                {
+                    VedtakFerdigstilt.DokumentSkalIkkeLagres.KunneIkkeLukkeOppgave(it.oppgaveId).right()
+                },
+                { oppgaveId ->
+                    if (oppgaveId != null) {
+                        VedtakFerdigstilt.DokumentSkalIkkeLagres.OppgaveLukket(oppgaveId).right()
+                    } else {
+                        VedtakFerdigstilt.DokumentSkalIkkeLagres.SkalIkkeLukkeOppgave.right()
+                    }
+                },
+            )
         }
     }
 
-    private fun lagreDokument(vedtak: VedtakSomKanRevurderes): Either<KunneIkkeFerdigstilleVedtak, VedtakSomKanRevurderes> {
+    private fun lagreDokument(vedtak: VedtakSomKanRevurderes): Either<KunneIkkeFerdigstilleVedtak, Dokument.MedMetadata> {
         return brevService.lagDokument(vedtak.lagDokumentKommando(clock, satsFactory)).mapLeft {
             KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev(it)
         }.map {
-            brevService.lagreDokument(
-                it.leggTilMetadata(
-                    metadata = Dokument.Metadata(
-                        sakId = vedtak.behandling.sakId,
-                        søknadId = null,
-                        vedtakId = vedtak.id,
-                        revurderingId = null,
-                    ),
+            val dokumentMedMetadata: Dokument.MedMetadata = it.leggTilMetadata(
+                metadata = Dokument.Metadata(
+                    sakId = vedtak.behandling.sakId,
+                    søknadId = null,
+                    vedtakId = vedtak.id,
+                    revurderingId = null,
                 ),
             )
-            vedtak
+            brevService.lagreDokument(
+                dokumentMedMetadata,
+            )
+            dokumentMedMetadata
         }
     }
 
-    private fun lukkOppgaveMedSystembruker(behandling: Behandling): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit> {
+    /**
+     * @return null dersom behandlingen ikke har oppgave som skal lukkes.
+     */
+    private fun lukkOppgaveMedSystembruker(
+        behandling: Behandling,
+    ): Either<KunneIkkeLukkeOppgave, OppgaveId?> {
         return lukkOppgaveIntern(behandling) {
             oppgaveService.lukkOppgaveMedSystembruker(it)
         }
     }
 
+    /**
+     * @return null dersom behandlingen ikke har oppgave som skal lukkes.
+     */
     private fun lukkOppgaveIntern(
         behandling: Behandling,
         lukkOppgave: (oppgaveId: OppgaveId) -> Either<KunneIkkeLukkeOppgave, Unit>,
-    ): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit> {
+    ): Either<KunneIkkeLukkeOppgave, OppgaveId?> {
         val oppgaveId = if (behandling is BehandlingMedOppgave) {
             behandling.oppgaveId
         } else {
-            return KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave.left()
+            return null.right()
         }
 
-        return lukkOppgave(oppgaveId).mapLeft {
+        return lukkOppgave(oppgaveId).onLeft {
             log.error("Kunne ikke lukke oppgave: $oppgaveId for behandling: ${behandling.id}")
-            KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave
         }.map {
             log.info("Lukket oppgave: $oppgaveId for behandling: ${behandling.id}")
             incrementLukketOppgave(behandling)
+            oppgaveId
         }
     }
 
@@ -161,5 +194,52 @@ class FerdigstillVedtakServiceImpl(
             // TODO jah: Nå som vi har vedtakstyper og revurdering må vi vurdere hva vi ønsker grafer på.
             else -> Unit
         }
+    }
+}
+
+/**
+ * Inneholder kun de positive utfallene (Right).
+ * I alle tilfeller vil dokument være lagret (dersom vi skal sende brev)
+ */
+sealed interface VedtakFerdigstilt {
+    val dokument: Dokument.MedMetadata?
+    val oppgaveId: OppgaveId?
+
+    sealed interface DokumentLagret : VedtakFerdigstilt {
+
+        override val dokument: Dokument.MedMetadata
+
+        data class OppgaveLukket(
+            override val dokument: Dokument.MedMetadata,
+            override val oppgaveId: OppgaveId,
+        ) : DokumentLagret
+
+        data class SkalIkkeLukkeOppgave(
+            override val dokument: Dokument.MedMetadata,
+        ) : DokumentLagret {
+            override val oppgaveId = null
+        }
+
+        data class KunneIkkeLukkeOppgave(
+            override val dokument: Dokument.MedMetadata,
+            override val oppgaveId: OppgaveId,
+        ) : DokumentLagret
+    }
+
+    sealed interface DokumentSkalIkkeLagres : VedtakFerdigstilt {
+
+        override val dokument: Dokument.MedMetadata? get() = null
+
+        data class OppgaveLukket(
+            override val oppgaveId: OppgaveId,
+        ) : DokumentSkalIkkeLagres
+
+        data object SkalIkkeLukkeOppgave : DokumentSkalIkkeLagres {
+            override val oppgaveId = null
+        }
+
+        data class KunneIkkeLukkeOppgave(
+            override val oppgaveId: OppgaveId,
+        ) : DokumentSkalIkkeLagres
     }
 }

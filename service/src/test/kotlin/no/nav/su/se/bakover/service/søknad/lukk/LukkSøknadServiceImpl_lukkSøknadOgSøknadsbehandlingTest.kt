@@ -54,6 +54,7 @@ import no.nav.su.se.bakover.test.trekkSøknad
 import no.nav.su.se.bakover.test.veileder
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
@@ -338,7 +339,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
                 søknadId = søknad.id,
             ),
             oppgaveService = mock {
-                on { lukkOppgave(any()) } doReturn KunneIkkeLukkeOppgave.left()
+                on { lukkOppgave(any()) } doAnswer { KunneIkkeLukkeOppgave(it.getArgument(0)).left() }
             },
             brevService = mock {
                 on { lagDokument(any()) } doReturn dokumentUtenMetadata.right()

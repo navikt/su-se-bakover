@@ -14,7 +14,7 @@ interface OppgaveClient {
 // TODO jah: Høres usannsynlig ut at alt dette kan skje i hver av funksjonene.
 sealed interface OppgaveFeil {
     data object KunneIkkeOppretteOppgave : OppgaveFeil
-    data object KunneIkkeLukkeOppgave : OppgaveFeil
+    data class KunneIkkeLukkeOppgave(val oppgaveId: OppgaveId) : OppgaveFeil
     data object KunneIkkeOppdatereOppgave : OppgaveFeil
     data object KunneIkkeEndreOppgave : OppgaveFeil
     data object KunneIkkeSøkeEtterOppgave : OppgaveFeil

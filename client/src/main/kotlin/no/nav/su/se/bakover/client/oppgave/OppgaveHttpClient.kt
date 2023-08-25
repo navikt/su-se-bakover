@@ -65,7 +65,7 @@ internal class OppgaveHttpClient(
 
     override fun lukkOppgave(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit> {
         return onBehalfOfToken()
-            .mapLeft { OppgaveFeil.KunneIkkeLukkeOppgave }
+            .mapLeft { OppgaveFeil.KunneIkkeLukkeOppgave(oppgaveId) }
             .flatMap { lukkOppgave(oppgaveId, it) }
     }
 
@@ -201,7 +201,7 @@ internal class OppgaveHttpClient(
 
     private fun lukkOppgave(oppgaveId: OppgaveId, token: String): Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit> {
         return hentOppgave(oppgaveId, token).mapLeft {
-            OppgaveFeil.KunneIkkeLukkeOppgave
+            OppgaveFeil.KunneIkkeLukkeOppgave(oppgaveId)
         }.flatMap {
             if (it.erFerdigstilt()) {
                 log.info("Oppgave $oppgaveId er allerede lukket for sak ${it.saksreferanse}.")
@@ -268,7 +268,7 @@ internal class OppgaveHttpClient(
         token: String,
     ): Either<OppgaveFeil.KunneIkkeLukkeOppgave, OppdatertOppgaveResponse> {
         return endreOppgave(oppgave, token, "FERDIGSTILT", "Lukket av Supplerende Stønad").mapLeft {
-            OppgaveFeil.KunneIkkeLukkeOppgave
+            OppgaveFeil.KunneIkkeLukkeOppgave(oppgave.getOppgaveId())
         }
     }
 

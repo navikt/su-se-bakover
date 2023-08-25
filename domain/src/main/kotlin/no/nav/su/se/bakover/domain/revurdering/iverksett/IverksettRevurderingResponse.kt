@@ -8,10 +8,10 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
+import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
-import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
 import no.nav.su.se.bakover.domain.vedtak.Revurderingsvedtak
 import java.util.UUID
 
@@ -36,6 +36,6 @@ interface IverksettRevurderingResponse<out T : Revurderingsvedtak> {
         statistikkObservers: () -> List<StatistikkEventObserver>,
         // lagreDokument  og lukkOppgave er kun brukt ved rene avkortinger.
         lagreDokument: (Dokument.MedMetadata, TransactionContext) -> Unit,
-        lukkOppgave: (IverksattRevurdering.Opphørt) -> Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit>,
+        lukkOppgave: (IverksattRevurdering.Opphørt) -> Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit>,
     ): Either<KunneIkkeFerdigstilleIverksettelsestransaksjon, IverksattRevurdering>
 }
