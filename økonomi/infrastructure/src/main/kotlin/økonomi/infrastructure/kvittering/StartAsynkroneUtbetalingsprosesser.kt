@@ -13,13 +13,15 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.HendelseActionRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
-import økonomi.application.kvittering.KnyttKvitteringTilSakOgUtbetalingService
+import økonomi.application.kvittering.FerdigstillVedtakEtterMottattKvitteringKonsument
+import økonomi.application.kvittering.KnyttKvitteringTilSakOgUtbetalingKonsument
 import økonomi.application.kvittering.RåKvitteringService
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringIbmMqConsumerV2
 import økonomi.infrastructure.kvittering.consumer.kvitteringXmlTilSaksnummerOgUtbetalingId
-import økonomi.infrastructure.kvittering.job.KnyttKvitteringTilSakOgUtbetalingJob
+import økonomi.infrastructure.kvittering.job.KvitteringshendelseJob
 import økonomi.infrastructure.kvittering.persistence.UtbetalingKvitteringPostgresRepo
 import java.time.Clock
 import java.time.Duration
@@ -40,10 +42,11 @@ fun startAsynkroneUtbetalingsprosesser(
     clock: Clock,
     hendelseActionRepo: HendelseActionRepo,
     hendelseRepo: HendelsePostgresRepo,
+    oppgaveHendelseRepo: OppgaveHendelseRepo,
     dbMetrics: DbMetrics,
     utbetalingService: UtbetalingService,
     // TODO jah: Lag en jobb+service for å ferdigstille vedtak med utbetaling+kvittering
-    @Suppress("UNUSED_PARAMETER") ferdigstillVedtakService: FerdigstillVedtakService,
+    ferdigstillVedtakService: FerdigstillVedtakService,
     runCheckFactory: RunCheckFactory,
     initalDelay: () -> Duration,
 ) {
@@ -58,7 +61,7 @@ fun startAsynkroneUtbetalingsprosesser(
         dbMetrics = dbMetrics,
     )
     val knyttKvitteringTilSakOgUtbetalingService =
-        KnyttKvitteringTilSakOgUtbetalingService(
+        KnyttKvitteringTilSakOgUtbetalingKonsument(
             utbetalingKvitteringRepo = utbetalingKvitteringRepo,
             sakService = sakService,
             hendelseActionRepo = hendelseActionRepo,
@@ -80,10 +83,17 @@ fun startAsynkroneUtbetalingsprosesser(
         globalJmsContext = jmsConfig.jmsContext,
         råKvitteringService = råKvitteringService,
     )
-    KnyttKvitteringTilSakOgUtbetalingJob(
-        service = knyttKvitteringTilSakOgUtbetalingService,
+    KvitteringshendelseJob(
+        knyttKvitteringTilSakOgUtbetalingService = knyttKvitteringTilSakOgUtbetalingService,
         initialDelay = initalDelay(),
         intervall = Duration.ofMinutes(5),
         runCheckFactory = runCheckFactory,
+        ferdigstillVedtakEtterMottattKvitteringKonsument = FerdigstillVedtakEtterMottattKvitteringKonsument(
+            ferdigstillVedtakService = ferdigstillVedtakService,
+            utbetalingKvitteringRepo = utbetalingKvitteringRepo,
+            sakService = sakService,
+            sessionFactory = sessionFactory,
+            oppgaveHendelseRepo = oppgaveHendelseRepo,
+        ),
     )
 }

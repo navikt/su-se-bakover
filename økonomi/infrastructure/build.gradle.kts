@@ -8,6 +8,7 @@ dependencies {
     implementation(project(":hendelse:infrastructure"))
     implementation(project(":økonomi:domain"))
     implementation(project(":økonomi:application"))
+    implementation(project(":oppgave:domain"))
 
     testImplementation(project(":test-common"))
 }

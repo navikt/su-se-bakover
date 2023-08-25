@@ -31,6 +31,7 @@ dependencies {
     implementation(project(":oppgave:domain"))
     implementation(project(":økonomi:domain"))
     implementation(project(":økonomi:infrastructure"))
+    implementation(project(":dokument:domain"))
 
     testImplementation(project(":test-common"))
     testImplementation("org.awaitility:awaitility:4.2.0")

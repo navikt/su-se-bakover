@@ -9,7 +9,13 @@ interface UtbetalingKvitteringRepo {
         hendelse: KvitteringPåSakHendelse,
         sessionContext: SessionContext,
     )
+//    fun lagre(
+//        hendelse: LagretDokumentHendelse,
+//        sessionContext: SessionContext,
+//    )
 
-    fun hentUbehandledeKvitteringer(jobbNavn: String): List<HendelseId>
+    fun hentUbehandledeKvitteringer(subscriberId: String): List<HendelseId>
     fun hentRåKvittering(id: HendelseId): RåKvitteringHendelse?
+    fun hentUbehandledeKvitteringerKnyttetMotUtbetaling(subscriberId: String): List<HendelseId>
+    fun hentKvittering(hendelseId: HendelseId): KvitteringPåSakHendelse?
 }

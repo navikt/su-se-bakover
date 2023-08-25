@@ -7,6 +7,7 @@ dependencies {
     implementation(project(":utenlandsopphold:domain"))
     implementation(project(":utenlandsopphold:infrastructure"))
     implementation(project(":økonomi:domain"))
+    implementation(project(":dokument:domain"))
 
     implementation(project(":institusjonsopphold:infrastructure"))
     implementation(project(":institusjonsopphold:domain"))

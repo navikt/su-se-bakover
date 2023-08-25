@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.services
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import dokument.domain.Dokument
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -23,7 +24,6 @@ import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.domain.brev.command.GenererDokumentCommand
-import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
@@ -183,6 +183,7 @@ import no.nav.su.se.bakover.domain.vilkår.pensjon.KunneIkkeLeggeTilPensjonsVilk
 import no.nav.su.se.bakover.domain.vilkår.pensjon.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeHenteKontrollsamtale
@@ -304,6 +305,12 @@ open class AccessCheckProxy(
 
                 override fun hentSak(saksnummer: Saksnummer): Either<FantIkkeSak, Sak> {
                     return services.sak.hentSak(saksnummer).also {
+                        it.map { sak -> assertHarTilgangTilSak(sak.id) }
+                    }
+                }
+
+                override fun hentSak(hendelseId: HendelseId): Either<FantIkkeSak, Sak> {
+                    return services.sak.hentSak(hendelseId).also {
                         it.map { sak -> assertHarTilgangTilSak(sak.id) }
                     }
                 }

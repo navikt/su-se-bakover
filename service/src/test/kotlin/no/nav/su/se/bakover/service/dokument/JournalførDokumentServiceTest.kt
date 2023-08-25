@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.dokument
 
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.Dokument
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.client.ClientError
@@ -10,7 +11,6 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Ident
 import no.nav.su.se.bakover.domain.brev.KunneIkkeJournalføreDokument
-import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon

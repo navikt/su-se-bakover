@@ -5,6 +5,7 @@ import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import dokument.domain.Dokument
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.person.Fnr
@@ -14,7 +15,6 @@ import no.nav.su.se.bakover.domain.BegrensetSakinfo
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
-import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.journalpost.Journalpost
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
@@ -76,6 +77,10 @@ class SakServiceImpl(
 
     override fun hentSak(saksnummer: Saksnummer): Either<FantIkkeSak, Sak> {
         return sakRepo.hentSak(saksnummer)?.right() ?: FantIkkeSak.left()
+    }
+
+    override fun hentSak(hendelseId: HendelseId): Either<FantIkkeSak, Sak> {
+        return sakRepo.hentSak(hendelseId)?.right() ?: FantIkkeSak.left()
     }
 
     override fun hentGjeldendeVedtaksdata(

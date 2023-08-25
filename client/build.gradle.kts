@@ -7,6 +7,7 @@ dependencies {
     implementation(project(":common:infrastructure"))
     implementation(project(":domain"))
     implementation(project(":økonomi:domain"))
+    implementation(project(":dokument:domain"))
 
     implementation("com.github.kittinunf.fuel:fuel:$fuelVersion")
     implementation("com.github.kittinunf.fuel:fuel-gson:$fuelVersion")

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.dokument
 
 import arrow.core.Either
+import dokument.domain.Dokument
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId

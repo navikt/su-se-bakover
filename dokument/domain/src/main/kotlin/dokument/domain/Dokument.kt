@@ -1,9 +1,9 @@
-package no.nav.su.se.bakover.domain.dokument
+package dokument.domain
 
+import dokument.domain.brev.Distribusjonstidspunkt
+import dokument.domain.brev.Distribusjonstype
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.brev.Distribusjonstidspunkt
-import no.nav.su.se.bakover.domain.brev.Distribusjonstype
 import java.util.UUID
 
 sealed interface Dokument {

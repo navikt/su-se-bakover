@@ -4,12 +4,12 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.Dokument
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.brev.BrevService
-import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -54,6 +54,7 @@ class FerdigstillVedtakServiceImpl(
     override fun ferdigstillVedtakEtterUtbetaling(
         utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering,
     ): Either<KunneIkkeFerdigstilleVedtakMedUtbetaling, Unit> {
+        // TODO jah: Gjør denne idempotent? Kan lage hendelser for oppgaven+dokumentet
         return if (utbetaling.trengerIkkeFerdigstilles()) {
             log.info("Utbetaling ${utbetaling.id} trenger ikke ferdigstilles.")
             Unit.right()

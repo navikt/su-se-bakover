@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.test
 
+import dokument.domain.Dokument
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.dokument.Dokument
 import java.util.UUID
 
 fun dokumentUtenMetadataVedtak(

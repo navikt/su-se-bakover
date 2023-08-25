@@ -7,7 +7,7 @@ import økonomi.application.kvittering.RåKvitteringService
 import javax.jms.JMSContext
 import javax.jms.Session
 
-class UtbetalingKvitteringIbmMqConsumerV2(
+internal class UtbetalingKvitteringIbmMqConsumerV2(
     kvitteringQueueName: String,
     globalJmsContext: JMSContext,
     private val råKvitteringService: RåKvitteringService,

@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import java.util.UUID
 
 interface SakRepo {
@@ -12,6 +13,7 @@ interface SakRepo {
     fun hentSak(sakId: UUID, sessionContext: SessionContext): Sak?
     fun hentSak(fnr: Fnr, type: Sakstype): Sak?
     fun hentSak(saksnummer: Saksnummer): Sak?
+    fun hentSak(hendelseId: HendelseId): Sak?
     fun hentSakInfoForIdenter(personidenter: NonEmptyList<String>): SakInfo?
     fun hentSakInfo(sakId: UUID): SakInfo?
     fun opprettSak(sak: NySak)

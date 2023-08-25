@@ -5,12 +5,12 @@ import arrow.core.left
 import arrow.core.right
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
+import dokument.domain.brev.Distribusjonstidspunkt
+import dokument.domain.brev.Distribusjonstype
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.brev.Distribusjonstidspunkt
-import no.nav.su.se.bakover.domain.brev.Distribusjonstype
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 
