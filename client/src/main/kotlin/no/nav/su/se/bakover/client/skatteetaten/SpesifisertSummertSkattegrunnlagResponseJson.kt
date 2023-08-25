@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.client.skatteetaten.SpesifisertSummertSkattegrunnlag
 private val log = LoggerFactory.getLogger(SpesifisertSummertSkattegrunnlagResponseJson::class.java)
 
 internal data class SpesifisertSummertSkattegrunnlagResponseJson(
-    val grunnlag: List<SpesifisertSummertSkattegrunnlagsobjekt> = emptyList(),
+    val grunnlag: List<SpesifisertSummertSkattegrunnlagsobjekt>? = emptyList(),
     val skatteoppgjoersdato: String?,
     val svalbardGrunnlag: List<SpesifisertSummertSkattegrunnlagsobjekt>? = null,
 ) {
@@ -155,8 +155,9 @@ private fun SpesifisertSummertSkattegrunnlagResponseJson.toDomain(
         return it.left()
     }
 
-    val mappet: List<Skattegrunnlag.Grunnlag> = (this.grunnlag + (this.svalbardGrunnlag ?: emptyList()))
-        .map { it.toDomain(år, stadie) }
+    val mappet: List<Skattegrunnlag.Grunnlag> =
+        ((this.grunnlag ?: emptyList()) + (this.svalbardGrunnlag ?: emptyList()))
+            .map { it.toDomain(år, stadie) }
 
     return Skattegrunnlag.SkattegrunnlagForÅr(
         oppgjørsdato = oppgjørsdato,
