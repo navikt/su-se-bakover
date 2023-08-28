@@ -9,6 +9,7 @@ import økonomi.domain.kvittering.KvitteringPåSakHendelse
 import økonomi.domain.kvittering.RåKvitteringHendelse
 import økonomi.domain.kvittering.UtbetalingKvitteringRepo
 import økonomi.infrastructure.kvittering.persistence.KvitteringPåSakHendelseJson.Companion.toJson
+import økonomi.infrastructure.kvittering.persistence.KvitteringPåSakHendelseJson.Companion.toKvitteringPåSakHendelse
 import økonomi.infrastructure.kvittering.persistence.RåKvitteringHendelseJson.Companion.toJson
 import økonomi.infrastructure.kvittering.persistence.RåKvitteringHendelseJson.Companion.toRåKvitteringHendelse
 
@@ -33,15 +34,27 @@ class UtbetalingKvitteringPostgresRepo(
         }
     }
 
-    override fun hentUbehandledeKvitteringer(jobbNavn: String): List<HendelseId> {
+    override fun hentUbehandledeKvitteringer(subscriberId: String): List<HendelseId> {
         return hendelseActionRepo.hentHendelseIderForActionOgType(
-            action = jobbNavn,
+            action = subscriberId,
             hendelsestype = UtbetalingKvitteringHendelsestype,
+        )
+    }
+
+    override fun hentUbehandledeKvitteringerKnyttetMotUtbetaling(subscriberId: String): List<HendelseId> {
+        return hendelseActionRepo.hentHendelseIderForActionOgType(
+            action = subscriberId,
+            hendelsestype = UtbetalingKvitteringPåSakHendelsestype,
         )
     }
 
     override fun hentRåKvittering(id: HendelseId): RåKvitteringHendelse? {
         val hendelse = hendelseRepo.hentHendelseForHendelseId(id)
         return hendelse?.toRåKvitteringHendelse()
+    }
+
+    override fun hentKvittering(hendelseId: HendelseId): KvitteringPåSakHendelse? {
+        val hendelse = hendelseRepo.hentHendelseForHendelseId(hendelseId)
+        return hendelse?.toKvitteringPåSakHendelse()
     }
 }

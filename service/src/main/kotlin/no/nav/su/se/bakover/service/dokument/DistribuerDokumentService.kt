@@ -2,11 +2,11 @@ package no.nav.su.se.bakover.service.dokument
 
 import arrow.core.Either
 import arrow.core.right
+import dokument.domain.brev.Distribusjonstidspunkt
+import dokument.domain.brev.Distribusjonstype
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.brev.Distribusjonstidspunkt
-import no.nav.su.se.bakover.domain.brev.Distribusjonstype
 import no.nav.su.se.bakover.domain.brev.KunneIkkeBestilleBrevForDokument
 import no.nav.su.se.bakover.domain.brev.KunneIkkeDistribuereBrev
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo

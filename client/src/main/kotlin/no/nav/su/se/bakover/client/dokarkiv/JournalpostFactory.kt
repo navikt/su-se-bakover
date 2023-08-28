@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.client.dokarkiv
 
+import dokument.domain.Dokument
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Sakstype
 

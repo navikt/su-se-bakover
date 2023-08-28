@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":kontrollsamtale:infrastructure"))
     implementation(project(":økonomi:infrastructure"))
     implementation(project(":økonomi:domain"))
+    implementation(project(":dokument:domain"))
 
     implementation("io.ktor:ktor-client-java:$ktorVersion")
     implementation("io.ktor:ktor-server-test-host:$ktorVersion") {

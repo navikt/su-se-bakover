@@ -1,5 +1,6 @@
 package økonomi.application.kvittering
 
+import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.toNonEmptyListOrNone
 import no.nav.su.se.bakover.common.CorrelationId
@@ -11,6 +12,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.HendelseActionRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
+import no.nav.su.se.bakover.hendelse.domain.HendelseSubscriber
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -19,7 +21,7 @@ import økonomi.domain.kvittering.RåKvitteringHendelse
 import økonomi.domain.kvittering.UtbetalingKvitteringRepo
 import java.time.Clock
 
-class KnyttKvitteringTilSakOgUtbetalingService(
+class KnyttKvitteringTilSakOgUtbetalingKonsument(
     private val utbetalingKvitteringRepo: UtbetalingKvitteringRepo,
     private val sakService: SakService,
     private val hendelseActionRepo: HendelseActionRepo,
@@ -27,16 +29,17 @@ class KnyttKvitteringTilSakOgUtbetalingService(
     private val clock: Clock,
     private val sessionFactory: SessionFactory,
     private val utbetalingService: UtbetalingService,
-) {
+) : HendelseSubscriber {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
+    override val subscriberId = "KnyttKvitteringTilSakOgUtbetaling"
+
     fun knyttKvitteringerTilSakOgUtbetaling(
-        jobbNavn: String,
         correlationId: CorrelationId,
     ) {
-        try {
+        Either.catch {
             utbetalingKvitteringRepo.hentUbehandledeKvitteringer(
-                jobbNavn = jobbNavn,
+                subscriberId = subscriberId,
             ).forEach { hendelseId ->
                 val råKvittering = utbetalingKvitteringRepo.hentRåKvittering(hendelseId) ?: throw IllegalStateException(
                     "Vi fikk denne hendelsesIden fra basen, så dette skal ikke kunne skje.",
@@ -61,7 +64,7 @@ class KnyttKvitteringTilSakOgUtbetalingService(
                             utbetaling = utbetaling,
                             utbetalingsstatus = utbetalingsstatus,
                             utbetalingId = utbetalingId,
-                            jobbNavn = jobbNavn,
+                            subscriberId = subscriberId,
                             correlationId = correlationId,
                         )
                         return@forEach
@@ -80,7 +83,7 @@ class KnyttKvitteringTilSakOgUtbetalingService(
                             utbetalingKvitteringRepo.lagre(hendelsePåSak, tx)
                             hendelseActionRepo.lagre(
                                 hendelseId = råKvittering.hendelseId,
-                                action = jobbNavn,
+                                action = subscriberId,
                                 context = tx,
                             )
                             utbetalingService.oppdaterMedKvittering(
@@ -92,8 +95,8 @@ class KnyttKvitteringTilSakOgUtbetalingService(
                     }
                 }
             }
-        } catch (e: Exception) {
-            log.error("Feil skjedde ved oppretting av oppgave for jobb $jobbNavn. originalFeil $e")
+        }.onLeft {
+            log.error("Feil under kjøring av hendelseskonsument $subscriberId", it)
         }
     }
 
@@ -103,7 +106,7 @@ class KnyttKvitteringTilSakOgUtbetalingService(
         utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering,
         utbetalingsstatus: Kvittering.Utbetalingsstatus,
         utbetalingId: UUID30,
-        jobbNavn: String,
+        subscriberId: String,
         correlationId: CorrelationId,
     ) {
         val saksnummer = sak.saksnummer
@@ -114,7 +117,7 @@ class KnyttKvitteringTilSakOgUtbetalingService(
             // Vi lager en jobb, slik at vi ikke prøver igjen.
             hendelseActionRepo.lagre(
                 hendelseId = hendelseId,
-                action = jobbNavn,
+                action = subscriberId,
                 context = sessionFactory.newSessionContext(),
             )
         } else {
@@ -131,7 +134,7 @@ class KnyttKvitteringTilSakOgUtbetalingService(
                 utbetalingKvitteringRepo.lagre(hendelsePåSak, tx)
                 hendelseActionRepo.lagre(
                     hendelseId = hendelseId,
-                    action = jobbNavn,
+                    action = subscriberId,
                     context = tx,
                 )
             }

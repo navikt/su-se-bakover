@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.dokarkiv
 
+import dokument.domain.Dokument
 import no.nav.su.se.bakover.client.dokarkiv.JournalpostDokument.Companion.lagDokumenterForJournalpost
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -7,7 +8,6 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Behandlingstema
 import no.nav.su.se.bakover.domain.Tema
 import no.nav.su.se.bakover.domain.brev.jsonRequest.PdfInnhold
-import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Sakstype

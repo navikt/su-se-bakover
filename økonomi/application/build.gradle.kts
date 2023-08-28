@@ -4,8 +4,7 @@ dependencies {
     implementation(project(":hendelse:domain"))
     implementation(project(":service"))
     implementation(project(":domain"))
-
-    testImplementation(project(":test-common"))
+    implementation(project(":oppgave:domain"))
 }
 
 tasks.named<Jar>("jar") {
