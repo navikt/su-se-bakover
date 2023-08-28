@@ -1,9 +1,7 @@
 package no.nav.su.se.bakover.web.services
 
-import io.getunleash.Unleash
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
-import no.nav.su.se.bakover.common.infrastructure.featuretoggle.UnleashToggleClient
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
@@ -49,13 +47,11 @@ data object ServiceBuilder {
         behandlingMetrics: BehandlingMetrics,
         søknadMetrics: SøknadMetrics,
         clock: Clock,
-        unleash: Unleash,
         satsFactory: SatsFactory,
         applicationConfig: ApplicationConfig,
         dbMetrics: DbMetrics,
     ): Services {
         val personService = PersonServiceImpl(clients.personOppslag)
-        val toggleService = UnleashToggleClient(unleash)
 
         val statistikkEventObserver = StatistikkEventObserverBuilder(
             kafkaPublisher = clients.kafkaPublisher,
@@ -96,7 +92,6 @@ data object ServiceBuilder {
             personService = personService,
             oppgaveService = oppgaveService,
             søknadMetrics = søknadMetrics,
-            toggleService = toggleService,
             clock = clock,
         ).apply {
             addObserver(statistikkEventObserver)
@@ -270,7 +265,6 @@ data object ServiceBuilder {
             },
             oppgave = oppgaveService,
             person = personService,
-            toggles = toggleService,
             søknadsbehandling = SøknadsbehandlingServices(
                 søknadsbehandlingService = søknadsbehandlingService,
                 iverksettSøknadsbehandlingService = iverksettSøknadsbehandlingService,

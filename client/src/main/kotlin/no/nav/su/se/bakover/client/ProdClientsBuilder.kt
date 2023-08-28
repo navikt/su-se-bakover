@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.client
 
-import io.getunleash.Unleash
 import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.dokarkiv.DokArkivClient
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordelingClient
@@ -36,7 +35,6 @@ import java.time.Clock
 data class ProdClientsBuilder(
     private val jmsConfig: JmsConfig,
     private val clock: Clock,
-    private val unleash: Unleash,
     private val metrics: ClientMetrics,
 ) : ClientsBuilder {
 
@@ -108,7 +106,6 @@ data class ProdClientsBuilder(
                     serviceUser = serviceUser,
                 ).wrapWithSTSSimulerFpService(),
                 clock = clock,
-                unleash = unleash,
             ),
             utbetalingPublisher = UtbetalingMqPublisher(
                 mqPublisher = applicationConfig.oppdrag.let {

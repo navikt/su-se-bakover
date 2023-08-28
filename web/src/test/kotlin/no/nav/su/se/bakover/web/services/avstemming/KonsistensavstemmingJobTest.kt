@@ -34,7 +34,6 @@ internal class KonsistensavstemmingJobTest {
                 },
                 applicationConfig = ApplicationConfig.createLocalConfig(),
                 clock = fixedClock,
-                toggleService = mock(),
             ),
         ).let {
             it.run()
@@ -55,7 +54,6 @@ internal class KonsistensavstemmingJobTest {
                 },
                 applicationConfig = ApplicationConfig.createLocalConfig(),
                 clock = fixedClock,
-                toggleService = mock(),
             ),
         ).let {
             it.run()
@@ -87,7 +85,6 @@ internal class KonsistensavstemmingJobTest {
                 },
                 applicationConfig = ApplicationConfig.createLocalConfig(),
                 clock = fixedClock,
-                toggleService = mock(),
             ),
         ).let {
             it.run()
@@ -120,7 +117,6 @@ internal class KonsistensavstemmingJobTest {
                 },
                 applicationConfig = ApplicationConfig.createLocalConfig(),
                 clock = fixedClock,
-                toggleService = mock(),
             ),
         ).let {
             it.run()
@@ -142,7 +138,6 @@ internal class KonsistensavstemmingJobTest {
                 },
                 applicationConfig = ApplicationConfig.createLocalConfig(),
                 clock = fixedClock,
-                toggleService = mock(),
             ),
         ).let {
             it.run()

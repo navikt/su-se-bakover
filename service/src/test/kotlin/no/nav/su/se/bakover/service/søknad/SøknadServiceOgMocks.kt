@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.service.søknad
 
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
-import no.nav.su.se.bakover.common.featuretoggle.ToggleClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakFactory
@@ -25,7 +24,6 @@ internal data class SøknadServiceOgMocks(
     val personService: PersonService = defaultMock(),
     val oppgaveService: OppgaveService = defaultMock(),
     val søknadMetrics: SøknadMetrics = defaultMock(),
-    val toggleService: ToggleClient = defaultMock(),
     val clock: Clock = fixedClock,
 ) {
     val service = SøknadServiceImpl(
@@ -37,7 +35,6 @@ internal data class SøknadServiceOgMocks(
         personService = personService,
         oppgaveService = oppgaveService,
         søknadMetrics = søknadMetrics,
-        toggleService = toggleService,
         clock = fixedClock,
     )
 
@@ -49,7 +46,6 @@ internal data class SøknadServiceOgMocks(
         personService,
         oppgaveService,
         søknadMetrics,
-        toggleService,
     ).toTypedArray()
 
     fun verifyNoMoreInteractions() {

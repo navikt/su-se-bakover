@@ -93,7 +93,6 @@ fun applicationConfig() = ApplicationConfig(
         producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()),
         consumerCfg = ApplicationConfig.KafkaConfig.ConsumerCfg(emptyMap()),
     ),
-    unleash = ApplicationConfig.UnleashConfig("https://localhost", "su-se-bakover"),
     kabalKafkaConfig = ApplicationConfig.KabalKafkaConfig(
         kafkaConfig = emptyMap(),
     ),

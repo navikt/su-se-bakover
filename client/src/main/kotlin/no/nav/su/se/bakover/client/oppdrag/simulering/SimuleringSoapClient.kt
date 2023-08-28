@@ -5,7 +5,6 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import com.ctc.wstx.exc.WstxEOFException
-import io.getunleash.Unleash
 import no.nav.su.se.bakover.common.infrastructure.xml.xmlMapper
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -16,7 +15,6 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerBeregningFeilUnderBehandling
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerFpService
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningRequest
-import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
 import java.net.SocketException
 import java.time.Clock
@@ -27,7 +25,6 @@ import javax.xml.ws.soap.SOAPFaultException
 internal class SimuleringSoapClient(
     private val simulerFpService: SimulerFpService,
     private val clock: Clock,
-    private val unleash: Unleash,
 ) : SimuleringClient {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -38,14 +35,6 @@ internal class SimuleringSoapClient(
         val simulerRequest = SimuleringRequestBuilder(request).build()
         return try {
             simulerFpService.simulerBeregning(simulerRequest)?.response?.let {
-                unleash.isEnabled("supstonad.logg.simulering").ifTrue {
-                    sikkerLogg.debug(
-                        """
-                            Request: ${serialize(simulerRequest)},
-                            Response: ${serialize(it)}
-                        """.trimIndent(),
-                    )
-                }
                 // TODO jah: Ideelt sett burde vi fått tak i den rå XMLen, men CXF gjør det ikke så lett for oss (OutInterceptor).
                 val rawResponse: String = Either.catch {
                     xmlMapper.writeValueAsString(it)

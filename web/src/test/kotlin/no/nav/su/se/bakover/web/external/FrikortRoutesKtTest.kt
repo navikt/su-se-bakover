@@ -97,8 +97,8 @@ internal class FrikortRoutesKtTest {
         testApplication {
             application {
                 testSusebakoverWithMockedDb(
-                    services = TestServicesBuilder.services(vedtakService = vedtakServiceMock),
                     clock = Clock.fixed(31.januar(2021).startOfDay().instant, ZoneOffset.UTC),
+                    services = TestServicesBuilder.services(vedtakService = vedtakServiceMock),
                 )
             }
             val response = client.get(frikortPath) {
@@ -123,8 +123,8 @@ internal class FrikortRoutesKtTest {
         testApplication {
             application {
                 testSusebakoverWithMockedDb(
-                    services = TestServicesBuilder.services(vedtakService = vedtakServiceMock),
                     clock = Clock.fixed(31.januar(2021).startOfDay().instant, ZoneOffset.UTC),
+                    services = TestServicesBuilder.services(vedtakService = vedtakServiceMock),
                 )
             }
 
@@ -150,8 +150,8 @@ internal class FrikortRoutesKtTest {
         testApplication {
             application {
                 testSusebakoverWithMockedDb(
-                    services = TestServicesBuilder.services(vedtakService = vedtakServiceMock),
                     clock = Clock.fixed(31.januar(2021).startOfDay().instant, ZoneOffset.UTC),
+                    services = TestServicesBuilder.services(vedtakService = vedtakServiceMock),
                 )
             }
             val response = client.get("$frikortPath/2021-02") {

@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.web.komponenttest
 
-import io.getunleash.FakeUnleash
-import io.getunleash.Unleash
 import io.ktor.server.application.Application
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
@@ -33,7 +31,6 @@ class AppComponents private constructor(
     val applicationConfig: ApplicationConfig,
     val databaseRepos: DatabaseRepos,
     val clients: Clients,
-    val unleash: Unleash,
     val services: Services,
     val accessCheckProxy: AccessCheckProxy,
     val consumers: Consumers,
@@ -45,12 +42,11 @@ class AppComponents private constructor(
             dataSource: DataSource,
             repoBuilder: (dataSource: DataSource, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad) -> DatabaseRepos,
             clientBuilder: (databaseRepos: DatabaseRepos, clock: Clock) -> Clients,
-            serviceBuilder: (databaseRepos: DatabaseRepos, clients: Clients, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad, unleash: Unleash) -> Services,
+            serviceBuilder: (databaseRepos: DatabaseRepos, clients: Clients, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad) -> Services,
         ): AppComponents {
             val databaseRepos = repoBuilder(dataSource, clock, satsFactoryTest)
             val clients = clientBuilder(databaseRepos, clock)
-            val unleash = FakeUnleash().apply { enableAll() }
-            val services: Services = serviceBuilder(databaseRepos, clients, clock, satsFactoryTest, unleash)
+            val services: Services = serviceBuilder(databaseRepos, clients, clock, satsFactoryTest)
             val accessCheckProxy = AccessCheckProxy(
                 personRepo = databaseRepos.person,
                 services = services,
@@ -69,13 +65,12 @@ class AppComponents private constructor(
             )
             return AppComponents(
                 clock = clock,
+                applicationConfig = applicationConfig,
                 databaseRepos = databaseRepos,
                 clients = clients,
-                unleash = unleash,
                 services = services,
                 accessCheckProxy = accessCheckProxy,
                 consumers = consumers,
-                applicationConfig = applicationConfig,
             )
         }
     }
@@ -97,14 +92,13 @@ internal fun withKomptestApplication(
             databaseRepos = databaseRepos,
         ).build(applicationConfig)
     },
-    serviceBuilder: (databaseRepos: DatabaseRepos, clients: Clients, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad, unleash: Unleash) -> Services = { databaseRepos, clients, klokke, satsFactory, unleash ->
+    serviceBuilder: (databaseRepos: DatabaseRepos, clients: Clients, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad) -> Services = { databaseRepos, clients, klokke, satsFactory ->
         ServiceBuilder.build(
             databaseRepos = databaseRepos,
             clients = clients,
             behandlingMetrics = mock(),
             søknadMetrics = mock(),
             clock = klokke,
-            unleash = unleash,
             satsFactory = satsFactory.gjeldende(LocalDate.now(klokke)),
             applicationConfig = applicationConfig,
             dbMetrics = dbMetricsStub,
@@ -131,7 +125,6 @@ fun Application.testSusebakover(appComponents: AppComponents) {
     return susebakover(
         clock = appComponents.clock,
         applicationConfig = appComponents.applicationConfig,
-        unleash = appComponents.unleash,
         databaseRepos = appComponents.databaseRepos,
         clients = appComponents.clients,
         services = appComponents.services,

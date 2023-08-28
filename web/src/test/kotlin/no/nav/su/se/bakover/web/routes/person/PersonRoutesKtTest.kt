@@ -132,7 +132,7 @@ internal class PersonRoutesKtTest {
 
         testApplication {
             application {
-                testSusebakoverWithMockedDb(accessCheckProxy = accessCheckProxyMock, clock = fixedClock)
+                testSusebakoverWithMockedDb(clock = fixedClock, accessCheckProxy = accessCheckProxyMock)
             }
             defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"$testIdent"}""")

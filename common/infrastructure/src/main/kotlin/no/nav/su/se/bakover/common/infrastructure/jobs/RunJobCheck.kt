@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.common.infrastructure.jobs
 
 import no.nav.su.se.bakover.common.extensions.zoneIdOslo
-import no.nav.su.se.bakover.common.featuretoggle.ToggleClient
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.nais.erLeaderPod
 import no.nav.su.se.bakover.common.nais.LeaderPodLookup
@@ -13,7 +12,6 @@ data class RunCheckFactory(
     private val leaderPodLookup: LeaderPodLookup,
     private val applicationConfig: ApplicationConfig,
     private val clock: Clock,
-    private val toggleService: ToggleClient,
 ) {
     fun åpningstidStormaskin(): ÅpningstidStormaskin {
         return ÅpningstidStormaskin(
@@ -24,13 +22,6 @@ data class RunCheckFactory(
 
     fun leaderPod(): LeaderPod {
         return LeaderPod(leaderPodLookup = leaderPodLookup)
-    }
-
-    fun unleashToggle(name: String): UnleashToggle {
-        return UnleashToggle(
-            client = toggleService,
-            toggleName = name,
-        )
     }
 }
 
@@ -58,14 +49,5 @@ data class LeaderPod(
 ) : RunJobCheck {
     override fun shouldRun(): Boolean {
         return leaderPodLookup.erLeaderPod(InetAddress.getLocalHost().hostName)
-    }
-}
-
-data class UnleashToggle(
-    private val client: ToggleClient,
-    private val toggleName: String,
-) : RunJobCheck {
-    override fun shouldRun(): Boolean {
-        return client.isEnabled(toggleName)
     }
 }

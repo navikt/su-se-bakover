@@ -502,7 +502,6 @@ open class AccessCheckProxy(
                     return services.person.sjekkTilgangTilPerson(fnr)
                 }
             },
-            toggles = services.toggles,
             søknadsbehandling = SøknadsbehandlingServices(
                 iverksettSøknadsbehandlingService = object : IverksettSøknadsbehandlingService {
 

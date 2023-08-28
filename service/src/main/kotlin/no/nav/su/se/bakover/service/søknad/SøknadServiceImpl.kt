@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.common.featuretoggle.ToggleClient
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.person.Fnr
@@ -33,6 +32,7 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdAlder
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
 import org.slf4j.LoggerFactory
+import java.lang.IllegalStateException
 import java.time.Clock
 import java.util.UUID
 
@@ -45,7 +45,6 @@ class SøknadServiceImpl(
     private val personService: PersonService,
     private val oppgaveService: OppgaveService,
     private val søknadMetrics: SøknadMetrics,
-    private val toggleService: ToggleClient,
     private val clock: Clock,
 ) : SøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -274,10 +273,8 @@ class SøknadServiceImpl(
             }
     }
 
-    private fun SøknadInnhold.kanSendeInnSøknad(): Boolean {
-        return when (this) {
-            is SøknadsinnholdAlder -> toggleService.isEnabled("supstonad.alder.innsending")
-            is SøknadsinnholdUføre -> true
-        }
+    private fun SøknadInnhold.kanSendeInnSøknad(): Boolean = when (this) {
+        is SøknadsinnholdAlder -> throw IllegalStateException("Innsending av alderssøknad er ikke støttet for")
+        is SøknadsinnholdUføre -> true
     }
 }

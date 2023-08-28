@@ -278,9 +278,6 @@ internal class RevurderingSendTilAttesteringTest {
                     ),
                 )
             },
-            toggleService = mock {
-                on { isEnabled(any()) } doReturn true
-            },
             // TODO må endre rekkefølge slik at disse ikke kalles
             personService = mock {
                 on { hentAktørId(any()) } doReturn aktørId.right()
@@ -329,9 +326,6 @@ internal class RevurderingSendTilAttesteringTest {
                         periode = revurdering.periode,
                     ).tilbakekrev(),
                 )
-            },
-            toggleService = mock {
-                on { isEnabled(any()) } doReturn true
             },
             // TODO må endre rekkefølge slik at disse ikke kalles
             personService = mock {

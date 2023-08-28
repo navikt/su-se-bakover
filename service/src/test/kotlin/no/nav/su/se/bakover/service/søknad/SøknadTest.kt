@@ -250,7 +250,6 @@ class SøknadTest {
             },
             søknadRepo = mock(),
             søknadMetrics = mock(),
-            toggleService = mock(),
         ).also {
             val søknadInnhold = søknadinnholdUføre(personopplysninger = Personopplysninger(sak.fnr))
             val actual = it.service.nySøknad(søknadInnhold, innsender)

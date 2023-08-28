@@ -142,7 +142,6 @@ class ApplicationConfigTest {
                 ),
             ),
         ),
-        unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover"),
         kabalKafkaConfig = ApplicationConfig.KabalKafkaConfig(
             kafkaConfig = kafkaConfig,
         ),
@@ -291,7 +290,6 @@ class ApplicationConfigTest {
                     producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap())),
                     consumerCfg = ApplicationConfig.KafkaConfig.ConsumerCfg(emptyMap()),
                 ),
-                unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover"),
                 kabalKafkaConfig = ApplicationConfig.KabalKafkaConfig(emptyMap()),
                 institusjonsoppholdKafkaConfig = ApplicationConfig.InstitusjonsoppholdKafkaConfig(
                     emptyMap(),

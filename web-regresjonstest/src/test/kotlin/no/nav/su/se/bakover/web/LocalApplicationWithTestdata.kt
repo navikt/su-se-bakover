@@ -16,6 +16,6 @@ fun main() {
     SLF4JBridgeHandler.removeHandlersForRootLogger()
     SLF4JBridgeHandler.install()
     embeddedServer(factory = Netty, port = 8080, module = {
-        susebakover(extraRoutes = { this.testDataRoutes() })
+        susebakover { this.testDataRoutes() }
     }).start(true)
 }

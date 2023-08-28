@@ -38,7 +38,6 @@ internal class AccessCheckProxyTest {
         lukkSøknad = mock(),
         oppgave = mock(),
         person = mock(),
-        toggles = mock(),
         søknadsbehandling = SøknadsbehandlingServices(mock(), mock()),
         ferdigstillVedtak = mock(),
         revurdering = mock(),

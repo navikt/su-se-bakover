@@ -159,7 +159,7 @@ private fun nyAlderssøknad(
             setBody(requestJson)
         }.apply {
             withClue("body=${this.bodyAsText()}") {
-                status shouldBe HttpStatusCode.Created
+                status shouldBe HttpStatusCode.InternalServerError
                 contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
             }
         }.bodyAsText()

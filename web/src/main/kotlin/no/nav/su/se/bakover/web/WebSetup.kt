@@ -34,7 +34,6 @@ import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.naisPaths
 import no.nav.su.se.bakover.web.routes.naisRoutes
-import no.nav.su.se.bakover.web.routes.togglePaths
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.services.Tilgangssjekkfeil
@@ -90,7 +89,6 @@ private fun Application.setupKtorCallLogging() {
         filter { call ->
             if (call.request.httpMethod.value == "OPTIONS") return@filter false
             if (call.pathShouldBeExcluded(naisPaths)) return@filter false
-            if (call.pathShouldBeExcluded(togglePaths)) return@filter false
 
             return@filter true
         }
