@@ -15,15 +15,12 @@ import java.util.UUID
  * I noen tilfeller sendes brevet rett etter iverksettelsen (ingen nye utbetalingslinjer).
  * Dersom vi har sendt noe til oppdrag venter vi på kvittering. (I førsteomgang brukes bare denne hendelsen i dette tilfellet)
  * Dersom simuleringa viste feilutbetaling, går vi inn i et tilbakekrevingsløp, da venter på på kravgrunnlaget før vi sender brevet.
- *
- * @param triggetAv Hendelsen som førte til at vi sendte brevet. Se over.
  */
 data class LagretDokumentHendelse(
     override val hendelseId: HendelseId,
     override val hendelsestidspunkt: Tidspunkt,
     override val versjon: Hendelsesversjon,
     override val meta: HendelseMetadata,
-    override val triggetAv: HendelseId,
     override val sakId: UUID,
     val dokument: Dokument.MedMetadata,
 ) : Sakshendelse {
@@ -46,7 +43,6 @@ data class LagretDokumentHendelse(
             entitetId: UUID,
             forrigeVersjon: Hendelsesversjon,
             sakId: UUID,
-            triggetAv: HendelseId,
             dokument: Dokument.MedMetadata,
         ): LagretDokumentHendelse {
             return LagretDokumentHendelse(
@@ -55,7 +51,6 @@ data class LagretDokumentHendelse(
                 meta = hendelseMetadata,
                 sakId = sakId,
                 versjon = forrigeVersjon,
-                triggetAv = triggetAv,
                 dokument = dokument,
             ).also {
                 require(it.entitetId == entitetId) {

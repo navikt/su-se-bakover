@@ -19,7 +19,8 @@ import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
 import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.domain.DatabaseRepos
-import no.nav.su.se.bakover.institusjonsopphold.application.service.InstitusjonsoppholdService
+import no.nav.su.se.bakover.institusjonsopphold.application.service.EksternInstitusjonsoppholdKonsument
+import no.nav.su.se.bakover.institusjonsopphold.application.service.OpprettOppgaverForInstitusjonsoppholdshendelser
 import no.nav.su.se.bakover.institusjonsopphold.presentation.InstitusjonsoppholdConsumer
 import no.nav.su.se.bakover.institusjonsopphold.presentation.InstitusjonsoppholdOppgaveJob
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs.KontrollsamtaleinnkallingJob
@@ -113,7 +114,7 @@ fun startJobberOgConsumers(
 //            sakService = services.sak,
 //            sessionFactory = databaseRepos.sessionFactory,
 //            clock = clock,
-//            hendelseActionRepo = databaseRepos.hendelseActionRepo,
+//            hendelsekonsumenterRepo = databaseRepos.hendelseKonsumenterRepo,
 //            utbetalingService = services.utbetaling,
 //            ferdigstillVedtakService = services.ferdigstillVedtak,
 //            initalDelay = initialDelay::next,
@@ -138,24 +139,29 @@ fun startJobberOgConsumers(
 
         // holder inst på kun i dev inntil videre
         if (!isProd) {
-            val institusjonsoppholdService = InstitusjonsoppholdService(
-                oppgaveService = services.oppgave,
-                personService = services.person,
+            val institusjonsoppholdService = EksternInstitusjonsoppholdKonsument(
                 institusjonsoppholdHendelseRepo = databaseRepos.institusjonsoppholdHendelseRepo,
-                oppgaveHendelseRepo = databaseRepos.oppgaveHendelseRepo,
-                hendelseActionRepo = databaseRepos.hendelseActionRepo,
-                hendelseRepo = databaseRepos.hendelseRepo,
                 sakRepo = databaseRepos.sak,
                 clock = clock,
-                sessionFactory = databaseRepos.sessionFactory,
             )
             InstitusjonsoppholdConsumer(
                 config = applicationConfig.institusjonsoppholdKafkaConfig,
                 institusjonsoppholdService = institusjonsoppholdService,
                 clock = clock,
             )
+            val hendelseskonsument = OpprettOppgaverForInstitusjonsoppholdshendelser(
+                oppgaveService = services.oppgave,
+                personService = services.person,
+                institusjonsoppholdHendelseRepo = databaseRepos.institusjonsoppholdHendelseRepo,
+                oppgaveHendelseRepo = databaseRepos.oppgaveHendelseRepo,
+                hendelseRepo = databaseRepos.hendelseRepo,
+                sakRepo = databaseRepos.sak,
+                clock = clock,
+                sessionFactory = databaseRepos.sessionFactory,
+                hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
+            )
             InstitusjonsoppholdOppgaveJob(
-                institusjonsoppholdService = institusjonsoppholdService,
+                hendelseskonsument = hendelseskonsument,
                 periode = Duration.of(5, ChronoUnit.MINUTES),
                 initialDelay = initialDelay.next(),
                 runCheckFactory = runCheckFactory,

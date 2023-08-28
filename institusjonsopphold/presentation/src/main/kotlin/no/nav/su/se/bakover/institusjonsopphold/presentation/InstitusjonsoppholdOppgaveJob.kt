@@ -4,14 +4,14 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.jobs.shouldRun
-import no.nav.su.se.bakover.institusjonsopphold.application.service.InstitusjonsoppholdService
+import no.nav.su.se.bakover.institusjonsopphold.application.service.OpprettOppgaverForInstitusjonsoppholdshendelser
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import kotlin.concurrent.fixedRateTimer
 
 class InstitusjonsoppholdOppgaveJob(
-    private val institusjonsoppholdService: InstitusjonsoppholdService,
+    private val hendelseskonsument: OpprettOppgaverForInstitusjonsoppholdshendelser,
     private val periode: Duration,
     private val initialDelay: Duration,
     private val runCheckFactory: RunCheckFactory,
@@ -31,7 +31,7 @@ class InstitusjonsoppholdOppgaveJob(
             Either.catch {
                 listOf(runCheckFactory.leaderPod())
                     .shouldRun()
-                    .ifTrue { withCorrelationId { institusjonsoppholdService.opprettOppgaveForHendelser(jobName) } }
+                    .ifTrue { withCorrelationId { hendelseskonsument.opprettOppgaverForHendelser(it) } }
             }.mapLeft { log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it) }
         }
     }

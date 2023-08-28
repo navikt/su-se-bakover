@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationIdSuspend
-import no.nav.su.se.bakover.institusjonsopphold.application.service.InstitusjonsoppholdService
+import no.nav.su.se.bakover.institusjonsopphold.application.service.EksternInstitusjonsoppholdKonsument
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.consumer.OffsetAndMetadata
@@ -26,7 +26,7 @@ import kotlin.time.Duration.Companion.seconds
 class InstitusjonsoppholdConsumer private constructor(
     private val config: ApplicationConfig.InstitusjonsoppholdKafkaConfig,
     private val topicName: String = config.topicName,
-    private val institusjonsoppholdService: InstitusjonsoppholdService,
+    private val institusjonsoppholdService: EksternInstitusjonsoppholdKonsument,
     private val pollTimeoutDuration: Duration = Duration.ofMillis(500),
     private val clock: Clock,
     private val log: Logger = LoggerFactory.getLogger(InstitusjonsoppholdConsumer::class.java),
@@ -35,7 +35,7 @@ class InstitusjonsoppholdConsumer private constructor(
 ) {
     constructor(
         config: ApplicationConfig.InstitusjonsoppholdKafkaConfig,
-        institusjonsoppholdService: InstitusjonsoppholdService,
+        institusjonsoppholdService: EksternInstitusjonsoppholdKonsument,
         clock: Clock,
     ) : this(
         config = config,

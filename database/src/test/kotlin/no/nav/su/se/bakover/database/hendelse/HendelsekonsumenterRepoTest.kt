@@ -5,12 +5,14 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionCon
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
+import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
+import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class HendelseActionRepoTest {
+class HendelsekonsumenterRepoTest {
 
     @Test
     fun `lagrer en hendelse`() {
@@ -35,9 +37,9 @@ class HendelseActionRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val lagret = testDataHelper.persisterInstitusjonsoppholdHendelse()
-            val hentet = testDataHelper.hendelseActionRepo.hentSakOgHendelsesIderSomIkkeHarKjørtAction(
-                "INSTITUSJON",
-                "INSTITUSJONSOPPHOLD",
+            val hentet = testDataHelper.hendelsekonsumenterRepo.hentUteståendeSakOgHendelsesIderForKonsumentOgType(
+                HendelseskonsumentId("INSTITUSJON"),
+                Hendelsestype("INSTITUSJONSOPPHOLD"),
             )
             hentet shouldBe mapOf(lagret.sakId to listOf(lagret.hendelseId))
         }
@@ -46,9 +48,9 @@ class HendelseActionRepoTest {
     private fun hentAlle(tx: SessionContext): List<Triple<UUID, HendelseId, String>> {
         return tx.withSession {
             """
-                select * from hendelse_action
+                select * from hendelse_konsument
             """.trimIndent().hentListe(emptyMap(), it) {
-                Triple(it.uuid("id"), HendelseId.fromUUID(it.uuid("hendelseId")), it.string("action"))
+                Triple(it.uuid("id"), HendelseId.fromUUID(it.uuid("hendelseId")), it.string("konsumentId"))
             }
         }
     }

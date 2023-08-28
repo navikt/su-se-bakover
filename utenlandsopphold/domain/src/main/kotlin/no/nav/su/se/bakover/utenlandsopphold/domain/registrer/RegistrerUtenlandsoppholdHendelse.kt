@@ -35,7 +35,6 @@ data class RegistrerUtenlandsoppholdHendelse private constructor(
     override val meta: HendelseMetadata,
 ) : UtenlandsoppholdHendelse {
     override val tidligereHendelseId: HendelseId? = null
-    override val triggetAv: HendelseId? = null
 
     override val entitetId: UUID
         get() = sakId

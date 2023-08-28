@@ -16,7 +16,15 @@ data class InstitusjonsoppholdHendelserPåSak(
         hendelser.mapNotNull { it.tidligereHendelseId }.let {
             require(it.distinct() == it) { "Krever at hendelser ikke kan peke til samme tidligere hendelse" }
         }
+        hendelser.map { it.eksterneHendelse.hendelseId }.also {
+            require(it.distinct() == it) {
+                "2 eksterne institusjonshendelser kan ikke ha samme eksterne id."
+            }
+        }
     }
 
     fun sisteHendelse(): InstitusjonsoppholdHendelse = this.maxBy { it.versjon }
+    fun harEksternHendelse(eksternHendelseId: Long): Boolean {
+        return hendelser.map { it.eksterneHendelse.hendelseId }.contains(eksternHendelseId)
+    }
 }

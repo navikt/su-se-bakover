@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.hendelse.infrastructure.persistence
 
-import arrow.core.NonEmptyList
 import kotliquery.Row
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
+import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withOptionalSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.hendelse.domain.Hendelse
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
+import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.SakOpprettetHendelse
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
@@ -27,11 +28,11 @@ class HendelsePostgresRepo(
     /**
      * @param sessionContext Støtter både [SessionContext] (dersom hendelsen er master data/eneste data) og [no.nav.su.se.bakover.common.persistence.TransactionContext] (i tilfellene hendelsen ikke er master data/eneste data).
      */
-    fun persister(
+    fun persisterSakshendelse(
         hendelse: Sakshendelse,
-        type: String,
+        type: Hendelsestype,
         data: String,
-        sessionContext: SessionContext = sessionFactory.newSessionContext(),
+        sessionContext: SessionContext? = null,
     ) {
         persister(
             hendelse = hendelse,
@@ -45,9 +46,9 @@ class HendelsePostgresRepo(
     /**
      * @param sessionContext Støtter både [SessionContext] (dersom hendelsen er master data/eneste data) og [no.nav.su.se.bakover.common.persistence.TransactionContext] (i tilfellene hendelsen ikke er master data/eneste data).
      */
-    fun persister(
+    fun persisterHendelse(
         hendelse: Hendelse<*>,
-        type: String,
+        type: Hendelsestype,
         data: String,
         sessionContext: SessionContext = sessionFactory.newSessionContext(),
     ) {
@@ -65,15 +66,15 @@ class HendelsePostgresRepo(
      */
     private fun persister(
         hendelse: Hendelse<*>,
-        type: String,
+        type: Hendelsestype,
         data: String,
         sakId: UUID?,
-        sessionContext: SessionContext = sessionFactory.newSessionContext(),
+        sessionContext: SessionContext? = null,
     ) {
         dbMetrics.timeQuery("persisterHendelse") {
-            sessionContext.withSession { session ->
+            sessionContext.withOptionalSession(sessionFactory) { session ->
                 """
-                    insert into hendelse (hendelseId, tidligereHendelseId, sakId, type, data, meta, hendelsestidspunkt, entitetId, versjon, triggetAv)
+                    insert into hendelse (hendelseId, tidligereHendelseId, sakId, type, data, meta, hendelsestidspunkt, entitetId, versjon)
                     values(
                         :hendelseId,
                         :tidligereHendelseId,
@@ -83,21 +84,19 @@ class HendelsePostgresRepo(
                         to_jsonb(:meta::jsonb),
                         :hendelsestidspunkt,
                         :entitetId,
-                        :versjon,
-                        :triggetAv
+                        :versjon
                     )
                 """.trimIndent().insert(
                     params = mapOf(
                         "hendelseId" to hendelse.hendelseId.value,
                         "tidligereHendelseId" to hendelse.tidligereHendelseId?.value,
                         "sakId" to sakId,
-                        "type" to type,
+                        "type" to type.toString(),
                         "data" to data,
                         "meta" to hendelse.toMeta(),
                         "hendelsestidspunkt" to hendelse.hendelsestidspunkt,
                         "entitetId" to hendelse.entitetId,
                         "versjon" to hendelse.versjon.value,
-                        "triggetAv" to hendelse.triggetAv?.value,
                     ),
                     session = session,
                 )
@@ -105,58 +104,21 @@ class HendelsePostgresRepo(
         }
     }
 
-    fun hentSisteHendelseforSakIdOgTyper(
+    fun hentHendelserForSakIdOgType(
         sakId: UUID,
-        typer: NonEmptyList<String>,
-    ): PersistertHendelse? {
-        return dbMetrics.timeQuery("hentSisteHendelseforSakIdOgTyper") {
-            sessionFactory.withSession { session ->
-                """
-                    select * from hendelse
-                    where sakId = :sakId and type IN (:type)
-                    order by versjon desc
-                    limit 1
-                """.trimIndent().hent(
-                    params = mapOf(
-                        "sakId" to sakId,
-                        "type" to typer.joinToString { "," },
-                    ),
-                    session = session,
-                ) {
-                    toPersistertHendelse(it)
-                }
-            }
-        }
-    }
-
-    fun hentHendelserForAlleSakerPåTyper(typer: NonEmptyList<String>): List<PersistertHendelse>? =
-        dbMetrics.timeQuery("hentSisteHendelseForAlleSaker") {
-            // sikkerhets issues med denne type input - Ser ikke ut at det er så enkelt å parametisere den
-            sessionFactory.withSession { session ->
-                """
-                    select * from hendelse
-                    where type IN (${typer.map { "'$it'" }.joinToString(", ")})
-                    order by versjon desc
-                """.trimIndent()
-                    .hentListe(session = session) { toPersistertHendelse(it) }
-                    .ifEmpty { null }
-            }
-        }
-
-    fun hentHendelserForSakIdOgTyper(
-        sakId: UUID,
-        typer: NonEmptyList<String>,
+        type: Hendelsestype,
         sessionContext: SessionContext = sessionFactory.newSessionContext(),
     ): List<PersistertHendelse> {
-        return dbMetrics.timeQuery("hentHendelserForSakIdOgTyper") {
+        return dbMetrics.timeQuery("hentHendelserForSakIdOgType") {
             sessionContext.withSession { session ->
                 """
                     select * from hendelse
-                    where sakId = :sakId and type IN (${typer.joinToString { "'$it'" }})
+                    where sakId = :sakId and type = :type
                     order by versjon
                 """.trimIndent().hentListe(
                     params = mapOf(
                         "sakId" to sakId,
+                        "type" to type.toString(),
                     ),
                     session = session,
                 ) { toPersistertHendelse(it) }
@@ -213,25 +175,23 @@ class HendelsePostgresRepo(
         }
     }
 
-    override fun hentSisteVersjonFraEntitetId(entitetId: UUID, sessionContext: SessionContext): Hendelsesversjon? {
+    override fun hentSisteVersjonFraEntitetId(entitetId: UUID, sessionContext: SessionContext?): Hendelsesversjon? {
         return dbMetrics.timeQuery("hentSisteVersjonForEntitetId") {
-            sessionContext.withSession { session ->
-                """
+            sessionFactory.withSessionContext(sessionContext) { sessionContext ->
+                sessionContext.withSession { session ->
+                    """
                     select max(versjon) from hendelse where entitetId = :entitetId
-                """.trimIndent().hent(
-                    params = mapOf(
-                        "entitetId" to entitetId,
-                    ),
-                    session = session,
-                ) {
-                    it.longOrNull("max")?.let { Hendelsesversjon(it) }
+                    """.trimIndent().hent(
+                        params = mapOf(
+                            "entitetId" to entitetId,
+                        ),
+                        session = session,
+                    ) {
+                        it.longOrNull("max")?.let { Hendelsesversjon(it) }
+                    }
                 }
             }
         }
-    }
-
-    override fun defaultSessionContext(): SessionContext {
-        return sessionFactory.newSessionContext()
     }
 
     companion object {
@@ -239,13 +199,12 @@ class HendelsePostgresRepo(
             data = it.string("data"),
             hendelsestidspunkt = it.tidspunkt("hendelsestidspunkt"),
             versjon = Hendelsesversjon(it.long("versjon")),
-            type = it.string("type"),
+            type = Hendelsestype(it.string("type")),
             sakId = it.uuidOrNull("sakId"),
-            hendelseId = it.uuid("hendelseId"),
-            tidligereHendelseId = it.uuidOrNull("tidligereHendelseId"),
+            hendelseId = HendelseId.fromUUID(it.uuid("hendelseId")),
+            tidligereHendelseId = it.uuidOrNull("tidligereHendelseId")?.let { HendelseId.fromUUID(it) },
             hendelseMetadata = MetadataJson.toDomain(it.string("meta")),
             entitetId = it.uuid("entitetId"),
-            triggetAv = it.uuidOrNull("triggetAv"),
         )
     }
 }

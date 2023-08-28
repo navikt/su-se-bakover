@@ -1,6 +1,7 @@
 dependencies {
     implementation(project(":institusjonsopphold:application"))
     implementation(project(":institusjonsopphold:domain"))
+    implementation(project(":hendelse:domain"))
 
     implementation(project(":common:domain"))
     implementation(project(":common:infrastructure"))

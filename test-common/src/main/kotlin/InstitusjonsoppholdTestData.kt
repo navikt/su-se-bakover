@@ -29,7 +29,8 @@ fun nyInstitusjonsoppholdHendelse(
     id: HendelseId = HendelseId.generer(),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
-    eksternHendelse: EksternInstitusjonsoppholdHendelse = nyEksternInstitusjonsoppholdHendelse(),
+    eksternHendelseId: Long = 1,
+    eksternHendelse: EksternInstitusjonsoppholdHendelse = nyEksternInstitusjonsoppholdHendelse(hendelseId = eksternHendelseId),
     versjon: Hendelsesversjon = Hendelsesversjon.ny(),
     tidligereHendelse: HendelseId? = null,
 ): InstitusjonsoppholdHendelse = InstitusjonsoppholdHendelse(

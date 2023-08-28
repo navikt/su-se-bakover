@@ -2,7 +2,6 @@ package økonomi.infrastructure.kvittering.persistence
 
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import økonomi.domain.kvittering.RåKvitteringHendelse
 
@@ -27,7 +26,7 @@ internal data class RåKvitteringHendelseJson(
             }
             return deserialize<RåKvitteringHendelseJson>(this.data).let { json ->
                 RåKvitteringHendelse.fraPersistert(
-                    hendelseId = HendelseId.fromUUID(this.hendelseId),
+                    hendelseId = this.hendelseId,
                     hendelsestidspunkt = this.hendelsestidspunkt,
                     hendelseMetadata = this.hendelseMetadata,
                     forrigeVersjon = this.versjon,

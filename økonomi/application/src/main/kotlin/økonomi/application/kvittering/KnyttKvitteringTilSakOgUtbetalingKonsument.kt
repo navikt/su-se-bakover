@@ -10,9 +10,10 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.hendelse.domain.HendelseActionRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseSubscriber
+import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
+import no.nav.su.se.bakover.hendelse.domain.Hendelseskonsument
+import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -24,22 +25,23 @@ import java.time.Clock
 class KnyttKvitteringTilSakOgUtbetalingKonsument(
     private val utbetalingKvitteringRepo: UtbetalingKvitteringRepo,
     private val sakService: SakService,
-    private val hendelseActionRepo: HendelseActionRepo,
+    private val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
     private val mapRåXmlTilSaksnummerOgUtbetalingId: (String) -> Triple<Saksnummer, UUID30, Kvittering.Utbetalingsstatus>,
     private val clock: Clock,
     private val sessionFactory: SessionFactory,
     private val utbetalingService: UtbetalingService,
-) : HendelseSubscriber {
+) : Hendelseskonsument {
+
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-    override val subscriberId = "KnyttKvitteringTilSakOgUtbetaling"
+    override val konsumentId = HendelseskonsumentId("KnyttKvitteringTilSakOgUtbetaling")
 
     fun knyttKvitteringerTilSakOgUtbetaling(
         correlationId: CorrelationId,
     ) {
         Either.catch {
             utbetalingKvitteringRepo.hentUbehandledeKvitteringer(
-                subscriberId = subscriberId,
+                konsumentId = konsumentId,
             ).forEach { hendelseId ->
                 val råKvittering = utbetalingKvitteringRepo.hentRåKvittering(hendelseId) ?: throw IllegalStateException(
                     "Vi fikk denne hendelsesIden fra basen, så dette skal ikke kunne skje.",
@@ -64,7 +66,7 @@ class KnyttKvitteringTilSakOgUtbetalingKonsument(
                             utbetaling = utbetaling,
                             utbetalingsstatus = utbetalingsstatus,
                             utbetalingId = utbetalingId,
-                            subscriberId = subscriberId,
+                            konsumentId = konsumentId,
                             correlationId = correlationId,
                         )
                         return@forEach
@@ -81,9 +83,9 @@ class KnyttKvitteringTilSakOgUtbetalingKonsument(
                         )
                         sessionFactory.withTransactionContext { tx ->
                             utbetalingKvitteringRepo.lagre(hendelsePåSak, tx)
-                            hendelseActionRepo.lagre(
+                            hendelsekonsumenterRepo.lagre(
                                 hendelseId = råKvittering.hendelseId,
-                                action = subscriberId,
+                                konsumentId = konsumentId,
                                 context = tx,
                             )
                             utbetalingService.oppdaterMedKvittering(
@@ -96,7 +98,7 @@ class KnyttKvitteringTilSakOgUtbetalingKonsument(
                 }
             }
         }.onLeft {
-            log.error("Feil under kjøring av hendelseskonsument $subscriberId", it)
+            log.error("Feil under kjøring av hendelseskonsument $konsumentId", it)
         }
     }
 
@@ -106,7 +108,7 @@ class KnyttKvitteringTilSakOgUtbetalingKonsument(
         utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering,
         utbetalingsstatus: Kvittering.Utbetalingsstatus,
         utbetalingId: UUID30,
-        subscriberId: String,
+        konsumentId: HendelseskonsumentId,
         correlationId: CorrelationId,
     ) {
         val saksnummer = sak.saksnummer
@@ -115,9 +117,9 @@ class KnyttKvitteringTilSakOgUtbetalingKonsument(
         if (utbetaling.kvittering.utbetalingsstatus == utbetalingsstatus) {
             log.warn("Utbetaling med id $utbetalingId på sak $saksnummer er allerede kvittert med samme status som før: $utbetalingsstatus. Ignorerer.")
             // Vi lager en jobb, slik at vi ikke prøver igjen.
-            hendelseActionRepo.lagre(
+            hendelsekonsumenterRepo.lagre(
                 hendelseId = hendelseId,
-                action = subscriberId,
+                konsumentId = konsumentId,
                 context = sessionFactory.newSessionContext(),
             )
         } else {
@@ -132,9 +134,9 @@ class KnyttKvitteringTilSakOgUtbetalingKonsument(
             )
             sessionFactory.withTransactionContext { tx ->
                 utbetalingKvitteringRepo.lagre(hendelsePåSak, tx)
-                hendelseActionRepo.lagre(
+                hendelsekonsumenterRepo.lagre(
                     hendelseId = hendelseId,
-                    action = subscriberId,
+                    konsumentId = konsumentId,
                     context = tx,
                 )
             }
