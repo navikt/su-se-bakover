@@ -29,7 +29,7 @@ import org.slf4j.MDC
 import java.time.LocalDate
 import java.time.Year
 
-internal class SamletSkattegrunnlagTest {
+internal class SkatteClientTest {
     private val azureAdMock = mock<AzureAd> {
         on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
     }
@@ -304,6 +304,50 @@ internal class SamletSkattegrunnlagTest {
             oppgjør = SamletSkattegrunnlagForÅrOgStadie.Oppgjør(
                 oppslag = nySkattegrunnlagForÅr(
                     oppgjørsdato = LocalDate.parse("2021-04-01"),
+                    verdsettingsrabattSomGirGjeldsreduksjon = emptyList(),
+                    oppjusteringAvEierinntekt = emptyList(),
+                    manglerKategori = emptyList(),
+                    annet = emptyList(),
+                ).right(),
+                inntektsår = år,
+            ),
+            år = år,
+        )
+    }
+
+    @Test
+    fun `kan deserialisere alle feltene i responsen er null`() {
+        wireMockServer.stubFor(
+            WireMock.get("/api/v1/spesifisertsummertskattegrunnlag")
+                .willReturn(
+                    WireMock.ok("""{"grunnlag":null,"svalbardGrunnlag":null,"skatteoppgjoersdato":null}""".trimIndent())
+                        .withHeader("Content-Type", "application/json"),
+                ),
+        )
+
+        val år = Year.of(2021)
+        client.hentSamletSkattegrunnlag(fnr, år) shouldBe SamletSkattegrunnlagForÅr(
+            utkast = SamletSkattegrunnlagForÅrOgStadie.Utkast(
+                oppslag = nySkattegrunnlagForÅr(
+                    oppgjørsdato = null,
+                    inntekt = emptyList(),
+                    formue = emptyList(),
+                    formuesFradrag = emptyList(),
+                    inntektsfradrag = emptyList(),
+                    verdsettingsrabattSomGirGjeldsreduksjon = emptyList(),
+                    oppjusteringAvEierinntekt = emptyList(),
+                    manglerKategori = emptyList(),
+                    annet = emptyList(),
+                ).right(),
+                inntektsår = år,
+            ),
+            oppgjør = SamletSkattegrunnlagForÅrOgStadie.Oppgjør(
+                oppslag = nySkattegrunnlagForÅr(
+                    oppgjørsdato = null,
+                    inntekt = emptyList(),
+                    formue = emptyList(),
+                    formuesFradrag = emptyList(),
+                    inntektsfradrag = emptyList(),
                     verdsettingsrabattSomGirGjeldsreduksjon = emptyList(),
                     oppjusteringAvEierinntekt = emptyList(),
                     manglerKategori = emptyList(),
