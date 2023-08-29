@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
 import no.nav.su.se.bakover.domain.skatt.Skattedokument
+import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeGenerereSkattedokument
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import java.time.Clock
@@ -29,6 +30,10 @@ class SkattDokumentServiceImpl(
         vedtak: Stønadsvedtak,
         txc: TransactionContext,
     ): Either<KunneIkkeGenerereSkattedokument, Skattedokument> = generer(vedtak).onRight { lagre(it, txc) }
+
+    override fun generer(skattegrunnlag: Skattegrunnlag): Either<KunneIkkeGenerereSkattedokument, Skattedokument> {
+        TODO()
+    }
 
     private fun generer(vedtak: Stønadsvedtak): Either<KunneIkkeGenerereSkattedokument, Skattedokument> {
         val hentetSkatt = when (vedtak.behandling.eksterneGrunnlag.skatt) {
