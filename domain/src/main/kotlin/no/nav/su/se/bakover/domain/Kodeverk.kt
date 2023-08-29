@@ -5,7 +5,7 @@ package no.nav.su.se.bakover.domain
  */
 
 /**
- * https://kodeverk-web.nais.adeo.no/kodeverksoversikt/kodeverk/Tema/
+ * https://kodeverk-web.nais.adeo.no/kodeverksoversikt/kodeverk/Tema/ - tilgjengelig gjennom VMware
  */
 enum class Tema(val value: String) {
     SUPPLERENDE_STØNAD("SUP"),

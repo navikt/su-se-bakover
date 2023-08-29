@@ -169,7 +169,7 @@ internal class DokArkivClientTest : WiremockBase {
                 ),
         )
         client.opprettJournalpost(
-            Journalpost.Søknadspost.from(
+            JournalpostForSak.Søknadspost.from(
                 saksnummer = Saksnummer(2021),
                 person = person,
                 søknadInnhold = søknadInnhold,
@@ -189,7 +189,7 @@ internal class DokArkivClientTest : WiremockBase {
         )
 
         client.opprettJournalpost(
-            Journalpost.Søknadspost.from(
+            JournalpostForSak.Søknadspost.from(
                 saksnummer = Saksnummer(2021),
                 person = person,
                 søknadInnhold = søknadInnhold,
@@ -223,7 +223,7 @@ internal class DokArkivClientTest : WiremockBase {
         )
 
         client.opprettJournalpost(
-            Journalpost.Vedtakspost.from(
+            JournalpostForSak.Vedtakspost.from(
                 person = person,
                 saksnummer = Saksnummer(saksnummer),
                 pdfInnhold = pdfInnholdInnvilgetVedtak(),

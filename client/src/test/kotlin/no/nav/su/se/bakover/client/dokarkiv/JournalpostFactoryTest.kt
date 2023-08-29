@@ -38,7 +38,7 @@ internal class JournalpostFactoryTest {
         )
 
         JournalpostFactory.lagJournalpost(personMock, saksnummer, dokument, Sakstype.UFØRE).let {
-            it.shouldBeTypeOf<Journalpost.Vedtakspost>()
+            it.shouldBeTypeOf<JournalpostForSak.Vedtakspost>()
             assert(it, dokument)
         }
     }
@@ -55,7 +55,7 @@ internal class JournalpostFactoryTest {
         )
 
         JournalpostFactory.lagJournalpost(personMock, saksnummer, dokument, Sakstype.UFØRE).let {
-            it.shouldBeTypeOf<Journalpost.Info>()
+            it.shouldBeTypeOf<JournalpostForSak.Info>()
             assert(it, dokument)
         }
     }

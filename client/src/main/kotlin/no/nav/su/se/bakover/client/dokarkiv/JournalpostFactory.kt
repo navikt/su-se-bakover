@@ -13,7 +13,7 @@ data object JournalpostFactory {
         sakstype: Sakstype,
     ): Journalpost = when (dokument) {
         is Dokument.MedMetadata.Informasjon,
-        -> Journalpost.Info.from(
+        -> JournalpostForSak.Info.from(
             person = person,
             saksnummer = saksnummer,
             dokument = dokument,
@@ -21,7 +21,7 @@ data object JournalpostFactory {
         )
 
         is Dokument.MedMetadata.Vedtak,
-        -> Journalpost.Vedtakspost.from(
+        -> JournalpostForSak.Vedtakspost.from(
             person = person,
             saksnummer = saksnummer,
             dokument = dokument,

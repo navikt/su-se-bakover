@@ -5,7 +5,7 @@ import arrow.core.right
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.ClientError
-import no.nav.su.se.bakover.client.dokarkiv.Journalpost
+import no.nav.su.se.bakover.client.dokarkiv.JournalpostForSak
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -201,7 +201,7 @@ class SøknadTest {
                 )
                 verify(it.dokArkiv).opprettJournalpost(
                     argThat {
-                        it shouldBe Journalpost.Søknadspost.from(
+                        it shouldBe JournalpostForSak.Søknadspost.from(
                             person = person,
                             saksnummer = saksnummer,
                             søknadInnhold = søknadInnhold,
@@ -282,7 +282,7 @@ class SøknadTest {
                 )
                 verify(it.dokArkiv).opprettJournalpost(
                     argThat {
-                        it shouldBe Journalpost.Søknadspost.from(
+                        it shouldBe JournalpostForSak.Søknadspost.from(
                             person = person,
                             saksnummer = sak.saksnummer,
                             søknadInnhold = søknadInnhold,
@@ -398,7 +398,7 @@ class SøknadTest {
                 )
                 verify(it.dokArkiv).opprettJournalpost(
                     argThat {
-                        it shouldBe Journalpost.Søknadspost.from(
+                        it shouldBe JournalpostForSak.Søknadspost.from(
                             person = person,
                             saksnummer = saksnummer,
                             søknadInnhold = søknadInnhold,

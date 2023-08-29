@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.client.dokarkiv
 
-import no.nav.su.se.bakover.client.dokarkiv.JournalpostDokument.Companion.lagDokumenterForJournalpost
+import no.nav.su.se.bakover.client.dokarkiv.JournalpostDokument.Companion.lagDokumenterForJournalpostForSak
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.domain.person.Person
@@ -19,7 +19,7 @@ data class JournalpostSkatt(
     override val tittel: String,
     override val dokumenter: List<JournalpostDokument>,
     override val datoDokument: LocalDate,
-) : Journalpost() {
+) : JournalpostForSak {
     override val sak: Fagsak = Fagsak(saksnummer.nummer.toString())
     override val journalpostType: JournalPostType = JournalPostType.NOTAT
     override val journalfoerendeEnhet: JournalførendeEnhet = JournalførendeEnhet.AUTOMATISK
@@ -33,7 +33,7 @@ data class JournalpostSkatt(
             saksnummer = sakInfo.saksnummer,
             sakstype = sakInfo.type,
             tittel = this.dokumentTittel,
-            dokumenter = lagDokumenterForJournalpost(
+            dokumenter = lagDokumenterForJournalpostForSak(
                 tittel = this.dokumentTittel,
                 pdf = this.generertDokument,
                 originalJson = this.dokumentJson,

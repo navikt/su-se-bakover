@@ -6,7 +6,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
-import no.nav.su.se.bakover.client.dokarkiv.Journalpost
+import no.nav.su.se.bakover.client.dokarkiv.JournalpostForSak
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -196,7 +196,7 @@ class SøknadServiceImpl(
         log.info("Ny søknad: Generert PDF ok.")
 
         val journalpostId = dokArkiv.opprettJournalpost(
-            Journalpost.Søknadspost.from(
+            JournalpostForSak.Søknadspost.from(
                 søknadInnhold = søknad.søknadInnhold,
                 pdf = pdf,
                 saksnummer = saksnummer,

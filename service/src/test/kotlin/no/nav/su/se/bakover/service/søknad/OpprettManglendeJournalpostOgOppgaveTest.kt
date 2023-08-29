@@ -4,7 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.ClientError
-import no.nav.su.se.bakover.client.dokarkiv.Journalpost
+import no.nav.su.se.bakover.client.dokarkiv.JournalpostForSak
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
@@ -282,7 +282,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                 )
                 verify(it.dokArkiv).opprettJournalpost(
                     argThat {
-                        it shouldBe Journalpost.Søknadspost.from(
+                        it shouldBe JournalpostForSak.Søknadspost.from(
                             person = person,
                             saksnummer = Saksnummer(2021),
                             søknadInnhold = søknadInnhold,
