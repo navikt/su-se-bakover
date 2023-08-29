@@ -9,8 +9,7 @@ data class FrioppslagSkattRequest(
     val fnr: Fnr,
     val år: Year,
     val begrunnelse: String,
-    //TODO - finn ut hvordan saksnummer formatet for SU-alder er
-    val saksnummer: Long,
+    val saksnummer: String,
     val sakstype: Sakstype,
     val saksbehandler: NavIdentBruker.Saksbehandler,
 )

@@ -3,8 +3,9 @@ package no.nav.su.se.bakover.service.skatt
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
-import no.nav.su.se.bakover.client.dokarkiv.JournalpostSkatt.Companion.lagJournalpostIkkeTilknyttetSak
+import no.nav.su.se.bakover.client.dokarkiv.JournalpostSkattUtenforSak.Companion.lagJournalpostUtenforSak
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -64,7 +65,8 @@ class SkatteServiceImpl(
             fnr = request.fnr,
             hentetTidspunkt = Tidspunkt.now(clock),
             saksbehandler = request.saksbehandler,
-            årsgrunnlag = skatteClient.hentSamletSkattegrunnlag(request.fnr, request.år).hentMestGyldigeSkattegrunnlagEllerFeil()
+            årsgrunnlag = skatteClient.hentSamletSkattegrunnlag(request.fnr, request.år)
+                .hentMestGyldigeSkattegrunnlagEllerFeil()
                 .getOrElse { return it.left() },
             årSpurtFor = request.år.toRange(),
         )
@@ -73,7 +75,7 @@ class SkatteServiceImpl(
             TODO()
         }
 
-        skatteDokument.lagJournalpostIkkeTilknyttetSak(
+        val journalpostSkatt = skatteDokument.lagJournalpostUtenforSak(
             person = personService.hentPersonMedSystembruker(request.fnr).getOrElse {
                 TODO()
             },
@@ -82,5 +84,10 @@ class SkatteServiceImpl(
         )
 
 
+        return dokArkiv.opprettJournalpost(journalpostSkatt).getOrElse {
+            TODO()
+        }.let {
+            skatteDokument.generertDokument.right()
+        }
     }
 }
