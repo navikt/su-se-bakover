@@ -4,7 +4,6 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.ClientError
-import no.nav.su.se.bakover.client.dokarkiv.JournalpostForSak
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
@@ -15,6 +14,7 @@ import no.nav.su.se.bakover.common.person.Ident
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.journalpost.JournalpostForSakCommand
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.veileder
@@ -80,7 +81,10 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                 on { hentSøknaderMedJournalpostMenUtenOppgave() } doReturn emptyList()
             },
         ).also {
-            it.service.opprettManglendeJournalpostOgOppgave() shouldBe OpprettManglendeJournalpostOgOppgaveResultat(emptyList(), emptyList())
+            it.service.opprettManglendeJournalpostOgOppgave() shouldBe OpprettManglendeJournalpostOgOppgaveResultat(
+                emptyList(),
+                emptyList(),
+            )
             inOrder(*it.allMocks()) {
                 verify(it.søknadRepo).hentSøknaderUtenJournalpost()
                 verify(it.søknadRepo).hentSøknaderMedJournalpostMenUtenOppgave()
@@ -102,7 +106,14 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         ).also {
             it.service.opprettManglendeJournalpostOgOppgave() shouldBe OpprettManglendeJournalpostOgOppgaveResultat(
                 journalpostResultat = listOf(KunneIkkeOppretteJournalpost(sakId, nySøknad.id, "Fant ikke sak").left()),
-                oppgaveResultat = listOf(KunneIkkeOppretteOppgave(sakId, nySøknad.id, journalførtSøknad.journalpostId, "Fant ikke sak").left()),
+                oppgaveResultat = listOf(
+                    KunneIkkeOppretteOppgave(
+                        sakId,
+                        nySøknad.id,
+                        journalførtSøknad.journalpostId,
+                        "Fant ikke sak",
+                    ).left(),
+                ),
             )
 
             inOrder(*it.allMocks()) {
@@ -130,8 +141,21 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             },
         ).also {
             it.service.opprettManglendeJournalpostOgOppgave() shouldBe OpprettManglendeJournalpostOgOppgaveResultat(
-                journalpostResultat = listOf(KunneIkkeOppretteJournalpost(sakId, nySøknad.id, "Fant ikke person").left()),
-                oppgaveResultat = listOf(KunneIkkeOppretteOppgave(sakId, journalførtSøknad.id, journalførtSøknad.journalpostId, "Fant ikke person").left()),
+                journalpostResultat = listOf(
+                    KunneIkkeOppretteJournalpost(
+                        sakId,
+                        nySøknad.id,
+                        "Fant ikke person",
+                    ).left(),
+                ),
+                oppgaveResultat = listOf(
+                    KunneIkkeOppretteOppgave(
+                        sakId,
+                        journalførtSøknad.id,
+                        journalførtSøknad.journalpostId,
+                        "Fant ikke person",
+                    ).left(),
+                ),
             )
             inOrder(*it.allMocks()) {
                 verify(it.søknadRepo).hentSøknaderUtenJournalpost()
@@ -163,7 +187,13 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             },
         ).also {
             it.service.opprettManglendeJournalpostOgOppgave() shouldBe OpprettManglendeJournalpostOgOppgaveResultat(
-                journalpostResultat = listOf(KunneIkkeOppretteJournalpost(sakId, nySøknad.id, "Kunne ikke generere PDF").left()),
+                journalpostResultat = listOf(
+                    KunneIkkeOppretteJournalpost(
+                        sakId,
+                        nySøknad.id,
+                        "Kunne ikke generere PDF",
+                    ).left(),
+                ),
                 oppgaveResultat = emptyList(),
             )
             inOrder(*it.allMocks()) {
@@ -207,7 +237,14 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         ).also {
             it.service.opprettManglendeJournalpostOgOppgave() shouldBe OpprettManglendeJournalpostOgOppgaveResultat(
                 journalpostResultat = emptyList(),
-                oppgaveResultat = listOf(KunneIkkeOppretteOppgave(sakId, journalførtSøknad.id, journalførtSøknad.journalpostId, "Kunne ikke opprette oppgave").left()),
+                oppgaveResultat = listOf(
+                    KunneIkkeOppretteOppgave(
+                        sakId,
+                        journalførtSøknad.id,
+                        journalførtSøknad.journalpostId,
+                        "Kunne ikke opprette oppgave",
+                    ).left(),
+                ),
             )
 
             inOrder(*it.allMocks()) {
@@ -282,11 +319,14 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                 )
                 verify(it.dokArkiv).opprettJournalpost(
                     argThat {
-                        it shouldBe JournalpostForSak.Søknadspost.from(
-                            person = person,
+                        it shouldBe JournalpostForSakCommand.Søknadspost(
                             saksnummer = Saksnummer(2021),
                             søknadInnhold = søknadInnhold,
                             pdf = pdf,
+                            sakstype = Sakstype.UFØRE,
+                            datoDokument = fixedLocalDate,
+                            fnr = person.ident.fnr,
+                            navn = person.navn,
                         )
                     },
                 )

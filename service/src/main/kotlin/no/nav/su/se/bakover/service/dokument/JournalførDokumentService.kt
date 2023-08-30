@@ -5,14 +5,14 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
-import no.nav.su.se.bakover.client.dokarkiv.Journalpost
-import no.nav.su.se.bakover.client.dokarkiv.JournalpostFactory
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.brev.KunneIkkeJournalføreBrev
 import no.nav.su.se.bakover.domain.brev.KunneIkkeJournalføreDokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.KunneIkkeJournalføreOgDistribuereBrev
+import no.nav.su.se.bakover.domain.journalpost.JournalpostCommand
+import no.nav.su.se.bakover.domain.journalpost.JournalpostForSakCommand
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat
@@ -49,11 +49,12 @@ class JournalførDokumentService(
 
         val journalførtDokument = dokumentdistribusjon.journalfør {
             journalfør(
-                journalpost = JournalpostFactory.lagJournalpost(
-                    person = person,
+                journalpost = JournalpostForSakCommand.Brev(
                     saksnummer = sakInfo.saksnummer,
                     dokument = dokumentdistribusjon.dokument,
                     sakstype = sakInfo.type,
+                    fnr = person.ident.fnr,
+                    navn = person.navn,
                 ),
             ).mapLeft { KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring }
         }
@@ -70,7 +71,7 @@ class JournalførDokumentService(
             }
     }
 
-    private fun journalfør(journalpost: Journalpost): Either<KunneIkkeJournalføreBrev, JournalpostId> {
+    private fun journalfør(journalpost: JournalpostCommand): Either<KunneIkkeJournalføreBrev, JournalpostId> {
         return dokArkiv.opprettJournalpost(journalpost)
             .mapLeft {
                 log.error("Journalføring: Kunne ikke journalføre i eksternt system (joark/dokarkiv)")

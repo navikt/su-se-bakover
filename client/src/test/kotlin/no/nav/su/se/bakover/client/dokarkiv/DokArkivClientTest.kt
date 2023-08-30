@@ -15,11 +15,13 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.journalpost.JournalpostForSakCommand
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.test.brev.pdfInnholdInnvilgetVedtak
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import org.junit.jupiter.api.Test
@@ -169,11 +171,14 @@ internal class DokArkivClientTest : WiremockBase {
                 ),
         )
         client.opprettJournalpost(
-            JournalpostForSak.Søknadspost.from(
+            JournalpostForSakCommand.Søknadspost(
                 saksnummer = Saksnummer(2021),
-                person = person,
                 søknadInnhold = søknadInnhold,
                 pdf = pdf,
+                sakstype = Sakstype.UFØRE,
+                datoDokument = fixedLocalDate,
+                fnr = person.ident.fnr,
+                navn = person.navn,
             ),
         ).shouldBe(
             JournalpostId("1").right(),
@@ -189,11 +194,14 @@ internal class DokArkivClientTest : WiremockBase {
         )
 
         client.opprettJournalpost(
-            JournalpostForSak.Søknadspost.from(
+            JournalpostForSakCommand.Søknadspost(
                 saksnummer = Saksnummer(2021),
-                person = person,
                 søknadInnhold = søknadInnhold,
                 pdf = pdf,
+                sakstype = Sakstype.UFØRE,
+                datoDokument = fixedLocalDate,
+                fnr = person.ident.fnr,
+                navn = person.navn,
             ),
         ) shouldBe
             ClientError(403, "Feil ved journalføring").left()
@@ -223,12 +231,14 @@ internal class DokArkivClientTest : WiremockBase {
         )
 
         client.opprettJournalpost(
-            JournalpostForSak.Vedtakspost.from(
-                person = person,
-                saksnummer = Saksnummer(saksnummer),
-                pdfInnhold = pdfInnholdInnvilgetVedtak(),
+            JournalpostForSakCommand.Søknadspost(
+                saksnummer = Saksnummer(2021),
+                søknadInnhold = søknadInnhold,
                 pdf = pdf,
                 sakstype = Sakstype.UFØRE,
+                datoDokument = fixedLocalDate,
+                fnr = person.ident.fnr,
+                navn = person.navn,
             ),
         ) shouldBe (
             JournalpostId("1").right()

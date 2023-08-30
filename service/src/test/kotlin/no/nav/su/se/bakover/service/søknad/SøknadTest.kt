@@ -5,7 +5,6 @@ import arrow.core.right
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.ClientError
-import no.nav.su.se.bakover.client.dokarkiv.JournalpostForSak
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -15,6 +14,7 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.journalpost.JournalpostForSakCommand
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
@@ -201,11 +202,14 @@ class SøknadTest {
                 )
                 verify(it.dokArkiv).opprettJournalpost(
                     argThat {
-                        it shouldBe JournalpostForSak.Søknadspost.from(
-                            person = person,
-                            saksnummer = saksnummer,
+                        it shouldBe JournalpostForSakCommand.Søknadspost(
+                            saksnummer = Saksnummer(2021),
                             søknadInnhold = søknadInnhold,
                             pdf = pdf,
+                            sakstype = Sakstype.UFØRE,
+                            datoDokument = fixedLocalDate,
+                            fnr = person.ident.fnr,
+                            navn = person.navn,
                         )
                     },
                 )
@@ -282,11 +286,14 @@ class SøknadTest {
                 )
                 verify(it.dokArkiv).opprettJournalpost(
                     argThat {
-                        it shouldBe JournalpostForSak.Søknadspost.from(
-                            person = person,
-                            saksnummer = sak.saksnummer,
+                        it shouldBe JournalpostForSakCommand.Søknadspost(
+                            saksnummer = Saksnummer(2021),
                             søknadInnhold = søknadInnhold,
                             pdf = pdf,
+                            sakstype = Sakstype.UFØRE,
+                            datoDokument = fixedLocalDate,
+                            fnr = person.ident.fnr,
+                            navn = person.navn,
                         )
                     },
                 )
@@ -398,11 +405,14 @@ class SøknadTest {
                 )
                 verify(it.dokArkiv).opprettJournalpost(
                     argThat {
-                        it shouldBe JournalpostForSak.Søknadspost.from(
-                            person = person,
-                            saksnummer = saksnummer,
+                        it shouldBe JournalpostForSakCommand.Søknadspost(
+                            saksnummer = Saksnummer(2021),
                             søknadInnhold = søknadInnhold,
                             pdf = pdf,
+                            sakstype = Sakstype.UFØRE,
+                            datoDokument = fixedLocalDate,
+                            fnr = person.ident.fnr,
+                            navn = person.navn,
                         )
                     },
                 )

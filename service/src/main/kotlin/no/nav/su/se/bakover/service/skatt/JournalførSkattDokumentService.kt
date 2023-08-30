@@ -2,13 +2,11 @@ package no.nav.su.se.bakover.service.skatt
 
 import arrow.core.Either
 import arrow.core.getOrElse
-import arrow.core.left
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
-import no.nav.su.se.bakover.client.dokarkiv.Journalpost
-import no.nav.su.se.bakover.client.dokarkiv.JournalpostSkatt.Companion.lagJournalpost
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.brev.KunneIkkeJournalføreDokument
-import no.nav.su.se.bakover.domain.person.PersonService
+import no.nav.su.se.bakover.domain.journalpost.JournalpostCommand
+import no.nav.su.se.bakover.domain.journalpost.JournalpostSkatt.Companion.lagJournalpost
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
 import no.nav.su.se.bakover.domain.skatt.Skattedokument
@@ -24,7 +22,6 @@ import org.slf4j.LoggerFactory
 class JournalførSkattDokumentService(
     private val dokArkiv: DokArkiv,
     private val sakService: SakService,
-    private val personService: PersonService,
     private val dokumentSkattRepo: DokumentSkattRepo,
 ) {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -39,17 +36,14 @@ class JournalførSkattDokumentService(
         val sakInfo = sakService.hentSakInfo(skattedokument.sakid).getOrElse {
             throw IllegalStateException("Fant ikke sak. Her burde vi egentlig sak finnes. sakId ${skattedokument.sakid}")
         }
-        val person = personService.hentPersonMedSystembruker(sakInfo.fnr)
-            .getOrElse { return KunneIkkeJournalføreDokument.KunneIkkeFinnePerson.left() }
-
-        return journalfør(skattedokument.lagJournalpost(person, sakInfo)).map {
+        return journalfør(skattedokument.lagJournalpost(sakInfo)).map {
             val tilJournalført = skattedokument.tilJournalført(it)
             dokumentSkattRepo.lagre(tilJournalført)
             tilJournalført
         }
     }
 
-    private fun journalfør(journalpost: Journalpost): Either<KunneIkkeJournalføreDokument, JournalpostId> {
+    private fun journalfør(journalpost: JournalpostCommand): Either<KunneIkkeJournalføreDokument, JournalpostId> {
         return dokArkiv.opprettJournalpost(journalpost)
             .mapLeft {
                 log.error("Journalføring: Kunne ikke journalføre i eksternt system (joark/dokarkiv)")

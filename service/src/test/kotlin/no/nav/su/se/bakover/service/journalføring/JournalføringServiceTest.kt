@@ -114,7 +114,6 @@ class JournalføringServiceTest {
             journalførSkattDokumentService = JournalførSkattDokumentService(
                 dokArkiv = dokArkiv,
                 sakService = sakService,
-                personService = personService,
                 dokumentSkattRepo = dokumentSkattRepo,
             ),
         )

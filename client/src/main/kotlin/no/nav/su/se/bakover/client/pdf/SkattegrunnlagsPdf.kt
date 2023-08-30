@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
 import java.time.Clock
 import java.util.UUID
 
+// TODO - rename til SkattegrunnlagsPdfInnhold
 data class SkattegrunnlagsPdf private constructor(
     val saksnummer: Saksnummer,
     // TODO: Denne må vi ta inn når vi begynner med revurdering
