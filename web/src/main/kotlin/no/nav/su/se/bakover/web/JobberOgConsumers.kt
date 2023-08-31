@@ -91,9 +91,8 @@ fun startJobberOgConsumers(
 
     val journalførDokumentSkattService = JournalførSkattDokumentService(
         dokArkiv = clients.dokArkiv,
-        dokumentSkattRepo = databaseRepos.dokumentSkattRepo,
         sakService = services.sak,
-        personService = services.person,
+        dokumentSkattRepo = databaseRepos.dokumentSkattRepo,
     )
 
     if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {

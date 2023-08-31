@@ -6,7 +6,6 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
-import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -15,12 +14,14 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.journalpost.JournalpostForSakCommand
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakFactory
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -34,6 +35,7 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
 import org.slf4j.LoggerFactory
 import java.lang.IllegalStateException
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 
 class SøknadServiceImpl(
@@ -76,7 +78,7 @@ class SøknadServiceImpl(
             log.error("Ny søknad: Personen har et nyere fødselsnummer i PDL enn det som ble sendt inn. Bruker det nyeste fødselsnummeret istedet. Personoppslaget burde ha returnert det nyeste fødselsnummeret og bør sjekkes opp.")
         }
 
-        val (saksnummer: Saksnummer, søknad: Søknad.Ny) = sakService.hentSakidOgSaksnummer(fnr).fold(
+        val (sakInfo: SakInfo, søknad: Søknad.Ny) = sakService.hentSakidOgSaksnummer(fnr).fold(
             {
                 log.info("Ny søknad: Fant ikke sak for fødselsnummmer. Oppretter ny søknad og ny sak.")
                 val nySak = sakFactory.nySakMedNySøknad(
@@ -88,7 +90,7 @@ class SøknadServiceImpl(
                 }
                 val sakIdSaksnummerFnr = sakService.hentSakidOgSaksnummer(fnr)
                     .getOrElse { throw RuntimeException("Feil ved henting av sak") }
-                Pair(sakIdSaksnummerFnr.saksnummer, nySak.søknad)
+                Pair(sakIdSaksnummerFnr, nySak.søknad)
             },
             {
                 log.info("Ny søknad: Fant eksisterende sak for fødselsnummmer. Oppretter ny søknad på eksisterende sak.")
@@ -101,18 +103,18 @@ class SøknadServiceImpl(
                 )
                 søknadRepo.opprettSøknad(søknad)
 
-                Pair(it.saksnummer, søknad)
+                Pair(it, søknad)
             },
         )
         // Ved å gjøre increment først, kan vi lage en alert dersom vi får mismatch på dette.
         søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.PERSISTERT)
-        opprettJournalpostOgOppgave(saksnummer, person, søknad)
+        opprettJournalpostOgOppgave(sakInfo, person, søknad)
         observers.forEach { observer ->
             observer.handle(
-                StatistikkEvent.Søknad.Mottatt(søknad, saksnummer),
+                StatistikkEvent.Søknad.Mottatt(søknad, sakInfo.saksnummer),
             )
         }
-        return Pair(saksnummer, søknad).right()
+        return Pair(sakInfo.saksnummer, søknad).right()
     }
 
     override fun persisterSøknad(søknad: Søknad.Journalført.MedOppgave.Lukket, sessionContext: SessionContext) {
@@ -138,9 +140,9 @@ class SøknadServiceImpl(
                 return@map KunneIkkeOppretteJournalpost(sak.id, søknad.id, "Fant ikke person").left()
             }
             opprettJournalpost(
-                sak.saksnummer,
-                søknad,
-                person,
+                sakInfo = sak.info(),
+                søknad = søknad,
+                person = person,
             )
         }
     }
@@ -150,7 +152,12 @@ class SøknadServiceImpl(
             // TODO jah: Legg på saksnummer på Søknad (dette innebærer å legge til en ny Opprettet 'tilstand')
             val sak = sakService.hentSak(søknad.sakId).getOrElse {
                 log.error("Fant ikke sak med sakId ${søknad.sakId} - sannsynligvis dataintegritetsfeil i databasen.")
-                return@map KunneIkkeOppretteOppgave(søknad.sakId, søknad.id, søknad.journalpostId, "Fant ikke sak").left()
+                return@map KunneIkkeOppretteOppgave(
+                    sakId = søknad.sakId,
+                    søknadId = søknad.id,
+                    journalpostId = søknad.journalpostId,
+                    grunn = "Fant ikke sak",
+                ).left()
             }
             val person = personService.hentPersonMedSystembruker(sak.fnr).getOrElse {
                 log.error("Fant ikke person med sakId ${sak.id}.")
@@ -165,24 +172,24 @@ class SøknadServiceImpl(
     }
 
     private fun opprettJournalpostOgOppgave(
-        saksnummer: Saksnummer,
+        sakInfo: SakInfo,
         person: Person,
         søknad: Søknad.Ny,
     ) {
         // TODO jah: Burde kanskje innføre en multi-respons-type som responderer med de stegene som er utført og de som ikke er utført.
-        opprettJournalpost(saksnummer, søknad, person).map { journalførtSøknad ->
+        opprettJournalpost(sakInfo, søknad, person).map { journalførtSøknad ->
             opprettOppgave(journalførtSøknad, person)
         }
     }
 
     private fun opprettJournalpost(
-        saksnummer: Saksnummer,
+        sakInfo: SakInfo,
         søknad: Søknad.Ny,
         person: Person,
     ): Either<KunneIkkeOppretteJournalpost, Søknad.Journalført.UtenOppgave> {
         val pdf = pdfGenerator.genererPdf(
             SøknadPdfInnhold.create(
-                saksnummer = saksnummer,
+                saksnummer = sakInfo.saksnummer,
                 søknadsId = søknad.id,
                 navn = person.navn,
                 søknadOpprettet = søknad.opprettet,
@@ -196,11 +203,14 @@ class SøknadServiceImpl(
         log.info("Ny søknad: Generert PDF ok.")
 
         val journalpostId = dokArkiv.opprettJournalpost(
-            Journalpost.Søknadspost.from(
+            JournalpostForSakCommand.Søknadspost(
                 søknadInnhold = søknad.søknadInnhold,
                 pdf = pdf,
-                saksnummer = saksnummer,
-                person = person,
+                saksnummer = sakInfo.saksnummer,
+                sakstype = sakInfo.type,
+                datoDokument = LocalDate.now(clock),
+                fnr = person.ident.fnr,
+                navn = person.navn,
             ),
         ).getOrElse {
             log.error("Ny søknad: Kunne ikke opprette journalpost. Originalfeil: $it")

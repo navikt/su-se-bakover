@@ -80,7 +80,7 @@ class JournalføringServiceTest {
         verify(dokumentRepo, times(1)).hentDokumenterForJournalføring()
         verify(dokumentSkattRepo, times(1)).hentDokumenterForJournalføring()
         verify(sakService, times(2)).hentSakInfo(argThat { it shouldBe sakinfo.sakId })
-        verify(personService, times(2)).hentPersonMedSystembruker(argThat { it shouldBe fnr })
+        verify(personService, times(1)).hentPersonMedSystembruker(argThat { it shouldBe fnr })
         verify(dokumentRepo, times(1)).oppdaterDokumentdistribusjon(
             argThat {
                 it shouldBe dokumentDis.copy(
@@ -114,7 +114,6 @@ class JournalføringServiceTest {
             journalførSkattDokumentService = JournalførSkattDokumentService(
                 dokArkiv = dokArkiv,
                 sakService = sakService,
-                personService = personService,
                 dokumentSkattRepo = dokumentSkattRepo,
             ),
         )

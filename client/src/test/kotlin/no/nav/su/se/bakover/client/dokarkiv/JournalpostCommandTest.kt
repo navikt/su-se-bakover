@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.client.dokarkiv
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
-internal class JournalpostTest {
+internal class JournalpostCommandTest {
     @Test
     fun `dokumentvariant inneholder korrekte verdier`() {
         DokumentVariant.ArkivPDF("doc").let {

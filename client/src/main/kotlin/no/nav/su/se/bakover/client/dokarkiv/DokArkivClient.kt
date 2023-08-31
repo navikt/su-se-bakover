@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.CorrelationIdHeader
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.journalpost.JournalpostCommand
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 
@@ -26,29 +26,14 @@ class DokArkivClient(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun opprettJournalpost(
-        dokumentInnhold: Journalpost,
+        dokumentInnhold: JournalpostCommand,
     ): Either<ClientError, JournalpostId> {
         val (_, response, result) = "$baseUrl$dokArkivPath".httpPost(listOf("forsoekFerdigstill" to "true"))
             .authentication().bearer(tokenOppslag.token().value)
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .header(CorrelationIdHeader, getOrCreateCorrelationIdFromThreadLocal())
-            .body(
-                serialize(
-                    JournalpostRequest(
-                        tittel = dokumentInnhold.tittel,
-                        journalpostType = dokumentInnhold.journalpostType,
-                        tema = dokumentInnhold.tema,
-                        kanal = dokumentInnhold.kanal,
-                        behandlingstema = dokumentInnhold.behandlingstema,
-                        journalfoerendeEnhet = dokumentInnhold.journalfoerendeEnhet.enhet,
-                        avsenderMottaker = dokumentInnhold.avsenderMottaker,
-                        bruker = dokumentInnhold.bruker,
-                        sak = dokumentInnhold.sak,
-                        dokumenter = dokumentInnhold.dokumenter,
-                    ),
-                ),
-            ).responseString()
+            .body(dokumentInnhold.tilJson()).responseString()
 
         return result.fold(
             { json ->
@@ -72,7 +57,6 @@ class DokArkivClient(
                 log.error("Feil ved journalføring. status=${response.statusCode} body=${String(response.data)}", it)
                 ClientError(response.statusCode, "Feil ved journalføring").left()
             },
-
         )
     }
 }

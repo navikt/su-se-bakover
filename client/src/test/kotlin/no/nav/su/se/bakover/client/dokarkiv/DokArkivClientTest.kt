@@ -4,6 +4,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
+import dokument.domain.Dokument
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.WiremockBase
@@ -15,12 +16,16 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.journalpost.JournalpostForSakCommand
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.test.brev.pdfInnholdInnvilgetVedtak
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import org.junit.jupiter.api.Test
 import java.util.Base64
@@ -40,7 +45,16 @@ internal class DokArkivClientTest : WiremockBase {
         søknadInnhold = søknadInnhold,
         clock = fixedClock,
     )
-    private val vedtakInnhold = pdfInnholdInnvilgetVedtak()
+    private val vedtaksDokument = Dokument.MedMetadata.Vedtak(
+        utenMetadata = Dokument.UtenMetadata.Vedtak(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            tittel = "Vedtaksbrev for søknad om supplerende stønad",
+            generertDokument = PdfGeneratorStub.genererPdf(pdfInnholdInnvilgetVedtak()).getOrFail(),
+            generertDokumentJson = serialize(pdfInnholdInnvilgetVedtak()),
+        ),
+        metadata = Dokument.Metadata(sakId = sakId),
+    )
 
     private val pdf = PdfGeneratorStub.genererPdf(søknadPdfInnhold).getOrFail()
     private val fnr = søknadInnhold.personopplysninger.fnr
@@ -96,7 +110,8 @@ internal class DokArkivClientTest : WiremockBase {
                             }
                           ]
                         }
-                      ]
+                      ],
+                        "datoDokument": "2021-01-01"
                     }
         """.trimIndent()
 
@@ -130,19 +145,20 @@ internal class DokArkivClientTest : WiremockBase {
                           "dokumentvarianter": [
                             {
                               "filtype": "PDFA",
-                              "fysiskDokument": "${Base64.getEncoder().encodeToString(pdf.getContent())}",
+                              "fysiskDokument": "${Base64.getEncoder().encodeToString(vedtaksDokument.generertDokument.getContent())}",
                               "variantformat": "ARKIV"
                             },
                             {
                               "filtype": "JSON",
                               "fysiskDokument": "${
-            Base64.getEncoder().encodeToString(serialize(vedtakInnhold).toByteArray())
+            Base64.getEncoder().encodeToString(vedtaksDokument.generertDokumentJson.toByteArray())
         }",
                               "variantformat": "ORIGINAL"
                             }
                           ]
                         }
-                      ]
+                      ],
+                      "datoDokument": "2021-01-01"
                     }
         """.trimIndent()
 
@@ -169,11 +185,14 @@ internal class DokArkivClientTest : WiremockBase {
                 ),
         )
         client.opprettJournalpost(
-            Journalpost.Søknadspost.from(
+            JournalpostForSakCommand.Søknadspost(
                 saksnummer = Saksnummer(2021),
-                person = person,
                 søknadInnhold = søknadInnhold,
                 pdf = pdf,
+                sakstype = Sakstype.UFØRE,
+                datoDokument = fixedLocalDate,
+                fnr = person.ident.fnr,
+                navn = person.navn,
             ),
         ).shouldBe(
             JournalpostId("1").right(),
@@ -189,11 +208,14 @@ internal class DokArkivClientTest : WiremockBase {
         )
 
         client.opprettJournalpost(
-            Journalpost.Søknadspost.from(
+            JournalpostForSakCommand.Søknadspost(
                 saksnummer = Saksnummer(2021),
-                person = person,
                 søknadInnhold = søknadInnhold,
                 pdf = pdf,
+                sakstype = Sakstype.UFØRE,
+                datoDokument = fixedLocalDate,
+                fnr = person.ident.fnr,
+                navn = person.navn,
             ),
         ) shouldBe
             ClientError(403, "Feil ved journalføring").left()
@@ -215,7 +237,8 @@ internal class DokArkivClientTest : WiremockBase {
                               "dokumentInfoId": "485227498",
                               "tittel": "Søknad om supplerende stønad for uføre flyktninger"
                             }
-                          ]
+                          ],
+                          "datoDokument": "2021-01-01"
                         }
                         """.trimIndent(),
                     ),
@@ -223,12 +246,12 @@ internal class DokArkivClientTest : WiremockBase {
         )
 
         client.opprettJournalpost(
-            Journalpost.Vedtakspost.from(
-                person = person,
-                saksnummer = Saksnummer(saksnummer),
-                pdfInnhold = pdfInnholdInnvilgetVedtak(),
-                pdf = pdf,
+            JournalpostForSakCommand.Brev(
+                saksnummer = Saksnummer(2021),
                 sakstype = Sakstype.UFØRE,
+                fnr = person.ident.fnr,
+                navn = person.navn,
+                dokument = vedtaksDokument,
             ),
         ) shouldBe (
             JournalpostId("1").right()

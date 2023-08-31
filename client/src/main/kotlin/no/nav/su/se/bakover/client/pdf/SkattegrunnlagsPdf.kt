@@ -41,7 +41,11 @@ data class SkattegrunnlagsPdf private constructor(
             vedtaksId = vedtaksId,
             hentet = hentet,
             opprettet = Tidspunkt.now(clock),
-            søkers = SkattPdfDataJson(skatt.søkers.fnr, hentNavn(skatt.søkers.fnr), skatt.søkers.årsgrunnlag.tilPdfJson()),
+            søkers = SkattPdfDataJson(
+                skatt.søkers.fnr,
+                hentNavn(skatt.søkers.fnr),
+                skatt.søkers.årsgrunnlag.tilPdfJson(),
+            ),
             eps = skatt.eps?.let { SkattPdfDataJson(it.fnr, hentNavn(it.fnr), it.årsgrunnlag.tilPdfJson()) },
         )
     }
