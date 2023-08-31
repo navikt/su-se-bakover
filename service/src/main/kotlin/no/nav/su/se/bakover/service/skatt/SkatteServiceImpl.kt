@@ -3,13 +3,16 @@ package no.nav.su.se.bakover.service.skatt
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.right
+import no.nav.su.se.bakover.client.pdf.PdfGenerator
+import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdfInnhold.Companion.lagPdfInnhold
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.common.tid.toRange
-import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
+import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
 import java.time.Clock
@@ -18,6 +21,8 @@ import java.util.UUID
 
 class SkatteServiceImpl(
     private val skatteClient: Skatteoppslag,
+    private val personService: PersonService,
+    private val pdfGenerator: PdfGenerator,
     val clock: Clock,
 ) : SkatteService {
 
@@ -50,18 +55,28 @@ class SkatteServiceImpl(
 
     override fun hentOgLagPdfAvSamletSkattegrunnlagFor(
         request: FrioppslagSkattRequest,
-    ): Either<KunneIkkeHenteSkattemelding, PdfA> {
-        Skattegrunnlag(
+    ): Either<KunneIkkeHenteOgLagePdfAvSkattegrunnlag, PdfA> {
+        val skattegrunnlag = Skattegrunnlag(
             id = UUID.randomUUID(),
             fnr = request.fnr,
             hentetTidspunkt = Tidspunkt.now(clock),
             saksbehandler = request.saksbehandler,
             årsgrunnlag = skatteClient.hentSamletSkattegrunnlag(request.fnr, request.år)
                 .hentMestGyldigeSkattegrunnlagEllerFeil()
-                .getOrElse { return it.left() },
+                .getOrElse { return KunneIkkeHenteOgLagePdfAvSkattegrunnlag.KunneIkkeHenteSkattemelding(it).left() },
             årSpurtFor = request.år.toRange(),
         )
 
-        TODO()
+        val skattPdfInnhold = skattegrunnlag.lagPdfInnhold(
+            saksnummer = request.saksnummer,
+            begrunnelse = request.begrunnelse,
+            navn = personService.hentPerson(request.fnr)
+                .getOrElse { return KunneIkkeHenteOgLagePdfAvSkattegrunnlag.FeilVedHentingAvPerson(it).left() }.navn,
+            clock = clock,
+        )
+
+        return pdfGenerator.genererPdf(skattPdfInnhold).getOrElse {
+            return KunneIkkeHenteOgLagePdfAvSkattegrunnlag.FeilVedPdfGenerering(it).left()
+        }.right()
     }
 }

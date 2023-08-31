@@ -4,13 +4,14 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.common.tid.toRange
+import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅr
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
 import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
@@ -384,9 +385,15 @@ class SkatteServiceImplTest {
 
     private data class mockedServices(
         val skatteClient: Skatteoppslag = mock(),
-        val søknadsbehandlingService: SøknadsbehandlingService = mock(),
+        val personService: PersonService = mock(),
+        val pdfGenerator: PdfGenerator = mock(),
         val clock: Clock = fixedClock,
     ) {
-        val service = SkatteServiceImpl(skatteClient = skatteClient, clock = fixedClock)
+        val service = SkatteServiceImpl(
+            skatteClient = skatteClient,
+            personService = personService,
+            pdfGenerator = pdfGenerator,
+            clock = fixedClock,
+        )
     }
 }

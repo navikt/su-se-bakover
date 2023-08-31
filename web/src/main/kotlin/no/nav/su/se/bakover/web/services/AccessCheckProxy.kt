@@ -131,7 +131,6 @@ import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.Sakstype
-import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
@@ -202,6 +201,7 @@ import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.skatt.FrioppslagSkattRequest
+import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteOgLagePdfAvSkattegrunnlag
 import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
@@ -1143,7 +1143,7 @@ open class AccessCheckProxy(
                     return services.skatteService.hentSamletSkattegrunnlagForÅr(fnr, saksbehandler, yearRange)
                 }
 
-                override fun hentOgLagPdfAvSamletSkattegrunnlagFor(request: FrioppslagSkattRequest): Either<KunneIkkeHenteSkattemelding, PdfA> {
+                override fun hentOgLagPdfAvSamletSkattegrunnlagFor(request: FrioppslagSkattRequest): Either<KunneIkkeHenteOgLagePdfAvSkattegrunnlag, PdfA> {
                     assertHarTilgangTilPerson(request.fnr)
                     return services.skatteService.hentOgLagPdfAvSamletSkattegrunnlagFor(request)
                 }

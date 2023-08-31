@@ -5,7 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
-import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdf
+import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdfInnhold
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagForPdf
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagMedFnr
 import no.nav.su.se.bakover.common.persistence.TransactionContext
@@ -41,7 +41,7 @@ class SkattDokumentServiceImpl(
             EksterneGrunnlagSkatt.IkkeHentet -> return KunneIkkeGenerereSkattedokument.SkattegrunnlagErIkkeHentetForÅGenereDokument.left()
         }
 
-        return SkattegrunnlagsPdf.lagSkattegrunnlagsPdf(
+        return SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdf(
             saksnummer = vedtak.saksnummer,
             søknadsbehandlingsId = vedtak.behandling.id,
             vedtaksId = vedtak.id,

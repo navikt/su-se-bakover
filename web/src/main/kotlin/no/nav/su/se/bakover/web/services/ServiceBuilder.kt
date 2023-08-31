@@ -121,6 +121,8 @@ data object ServiceBuilder {
 
         val skatteServiceImpl = SkatteServiceImpl(
             skatteClient = clients.skatteOppslag,
+            personService = personService,
+            pdfGenerator = clients.pdfGenerator,
             clock = clock,
         )
 
