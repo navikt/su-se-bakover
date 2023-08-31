@@ -287,7 +287,7 @@ class SøknadTest {
                 verify(it.dokArkiv).opprettJournalpost(
                     argThat {
                         it shouldBe JournalpostForSakCommand.Søknadspost(
-                            saksnummer = Saksnummer(2021),
+                            saksnummer = sak.saksnummer,
                             søknadInnhold = søknadInnhold,
                             pdf = pdf,
                             sakstype = Sakstype.UFØRE,
