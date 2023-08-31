@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
 import java.time.Clock
 import java.util.UUID
 
-// TODO - rename til SkattegrunnlagsPdfInnhold
 data class SkattegrunnlagsPdf private constructor(
     val saksnummer: Saksnummer,
     // TODO: Denne må vi ta inn når vi begynner med revurdering
@@ -42,7 +41,11 @@ data class SkattegrunnlagsPdf private constructor(
             vedtaksId = vedtaksId,
             hentet = hentet,
             opprettet = Tidspunkt.now(clock),
-            søkers = SkattPdfDataJson(skatt.søkers.fnr, hentNavn(skatt.søkers.fnr), skatt.søkers.årsgrunnlag.tilPdfJson()),
+            søkers = SkattPdfDataJson(
+                skatt.søkers.fnr,
+                hentNavn(skatt.søkers.fnr),
+                skatt.søkers.årsgrunnlag.tilPdfJson(),
+            ),
             eps = skatt.eps?.let { SkattPdfDataJson(it.fnr, hentNavn(it.fnr), it.årsgrunnlag.tilPdfJson()) },
         )
     }

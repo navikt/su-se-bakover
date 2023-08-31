@@ -14,11 +14,6 @@ sealed interface JournalpostCommand {
     val fnr: Fnr
 }
 
-// TODO - gjøres i andre PR
-sealed interface JournalpostUtenforSakCommand : JournalpostCommand {
-    val fagsystemId: String
-}
-
 sealed interface JournalpostForSakCommand : JournalpostCommand {
     val saksnummer: Saksnummer
 
