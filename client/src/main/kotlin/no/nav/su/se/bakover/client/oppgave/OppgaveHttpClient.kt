@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.Tema
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
+import no.nav.su.se.bakover.oppgave.domain.Oppgave
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
@@ -35,6 +36,11 @@ import java.time.format.DateTimeFormatter
 
 internal const val oppgavePath = "/api/v1/oppgaver"
 
+/**
+ * Github repo: https://github.com/navikt/oppgave
+ * Swagger API: https://oppgave.dev.intern.nav.no/
+ * Doc: https://confluence.adeo.no/display/TO/Systemdokumentasjon+Oppgave
+ */
 internal class OppgaveHttpClient(
     private val connectionConfig: ApplicationConfig.ClientsConfig.OppgaveConfig,
     private val exchange: AzureAd,
@@ -76,6 +82,28 @@ internal class OppgaveHttpClient(
         return onBehalfOfToken()
             .mapLeft { OppgaveFeil.KunneIkkeOppdatereOppgave }
             .flatMap { oppdaterOppgave(oppgaveId, it, beskrivelse) }
+    }
+
+    override fun hentOppgave(
+        oppgaveId: OppgaveId,
+    ): Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, Oppgave> {
+        return onBehalfOfToken().mapLeft {
+            OppgaveFeil.KunneIkkeSøkeEtterOppgave
+        }.flatMap { token ->
+            hentOppgave(oppgaveId, token)
+        }.map {
+            it.toDomain()
+        }
+    }
+
+    override fun hentOppgaveMedSystembruker(
+        oppgaveId: OppgaveId,
+    ): Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, Oppgave> {
+        return tokenoppslagForSystembruker.token().value.let {
+            hentOppgave(oppgaveId, it)
+        }.map {
+            it.toDomain()
+        }
     }
 
     private fun onBehalfOfToken(): Either<OppgaveFeil.KunneIkkeLageToken, String> {

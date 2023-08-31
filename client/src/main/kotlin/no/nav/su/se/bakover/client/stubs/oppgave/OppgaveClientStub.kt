@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
+import no.nav.su.se.bakover.oppgave.domain.Oppgave
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -17,7 +18,8 @@ data object OppgaveClientStub : OppgaveClient {
         OppgaveId("stubbedOppgaveId").right().also { log.info("OppgaveClientStub oppretter oppgave: $config") }
 
     override fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> =
-        OppgaveId("stubbedOppgaveId").right().also { log.info("OppgaveClientStub oppretter oppgave med systembruker: $config") }
+        OppgaveId("stubbedOppgaveId").right()
+            .also { log.info("OppgaveClientStub oppretter oppgave med systembruker: $config") }
 
     override fun lukkOppgave(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit> =
         Unit.right().also { log.info("OppgaveClientStub lukker oppgave med oppgaveId: $oppgaveId") }
@@ -30,4 +32,24 @@ data object OppgaveClientStub : OppgaveClient {
         beskrivelse: String,
     ): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> =
         Unit.right().also { log.info("OppgaveClientStub oppdaterer oppgave $oppgaveId med beskrivelse: $beskrivelse") }
+
+    override fun hentOppgave(
+        oppgaveId: OppgaveId,
+    ): Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, Oppgave> {
+        return Oppgave(
+            id = oppgaveId,
+            versjon = 1,
+            status = Oppgave.Oppgavestatus.Opprettet,
+        ).also { log.info("OppgaveClientStub hentet oppgave $it") }.right()
+    }
+
+    override fun hentOppgaveMedSystembruker(
+        oppgaveId: OppgaveId,
+    ): Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, Oppgave> {
+        return Oppgave(
+            id = oppgaveId,
+            versjon = 1,
+            status = Oppgave.Oppgavestatus.Opprettet,
+        ).also { log.info("OppgaveClientStub hentet oppgave $it") }.right()
+    }
 }
