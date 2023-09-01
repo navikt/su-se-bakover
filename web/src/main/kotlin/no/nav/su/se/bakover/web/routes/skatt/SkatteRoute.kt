@@ -5,7 +5,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.get
+import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
@@ -41,7 +41,7 @@ internal fun Route.skattRoutes(skatteService: SkatteService) {
         )
     }
 
-    get("$skattPath/person/{fnr}") {
+    post("$skattPath/person/{fnr}") {
         call.withFnr { fnr ->
             call.withBody<FrioppslagRequestBody> { body ->
                 skatteService.hentOgLagPdfAvSamletSkattegrunnlagFor(
