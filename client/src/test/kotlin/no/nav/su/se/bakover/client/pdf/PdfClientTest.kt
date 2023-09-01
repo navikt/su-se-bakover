@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.nySkattegrunnlagsPdfInnhold
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -41,6 +42,25 @@ internal class PdfClientTest : WiremockBase {
         )
         val client = PdfClient(wireMockServer.baseUrl())
         client.genererPdf(søknadPdfInnhold)
+            .map { it } shouldBe PdfA("pdf-byte-array-here".toByteArray()).right()
+    }
+
+    @Test
+    fun `generer pdf for pdfInnhold`() {
+        val request = nySkattegrunnlagsPdfInnhold()
+        val wiremockBuilder = WireMock.post(WireMock.urlPathEqualTo("/api/v1/genpdf/supdfgen/skattegrunnlag"))
+            .withHeader("Content-Type", WireMock.equalTo("application/json"))
+            .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
+            .withRequestBody(WireMock.equalTo(serialize(request)))
+
+        wireMockServer.stubFor(
+            wiremockBuilder
+                .willReturn(
+                    WireMock.ok("pdf-byte-array-here"),
+                ),
+        )
+        val client = PdfClient(wireMockServer.baseUrl())
+        client.genererPdf(request)
             .map { it } shouldBe PdfA("pdf-byte-array-here".toByteArray()).right()
     }
 

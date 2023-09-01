@@ -15,7 +15,7 @@ import java.time.Clock
 import java.util.UUID
 
 data class SkattegrunnlagsPdfInnhold private constructor(
-    val saksnummer: String,
+    val saksnummer: String?,
     // TODO: Denne må vi ta inn når vi begynner med revurdering
     val behandlingstype: BehandlingstypeForSkattemelding = BehandlingstypeForSkattemelding.Søknadsbehandling,
     val behandlingsId: UUID?,
@@ -53,12 +53,11 @@ data class SkattegrunnlagsPdfInnhold private constructor(
         )
 
         fun Skattegrunnlag.lagPdfInnhold(
-            saksnummer: String,
             begrunnelse: String?,
             navn: Person.Navn,
             clock: Clock,
         ): SkattegrunnlagsPdfInnhold = SkattegrunnlagsPdfInnhold(
-            saksnummer = saksnummer,
+            saksnummer = null,
             behandlingstype = BehandlingstypeForSkattemelding.Frioppslag,
             behandlingsId = null,
             vedtaksId = null,

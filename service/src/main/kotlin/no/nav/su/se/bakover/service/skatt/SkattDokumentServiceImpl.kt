@@ -6,8 +6,10 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdfInnhold
+import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdfInnhold.Companion.lagPdfInnhold
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagForPdf
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagMedFnr
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.person.PersonOppslag
@@ -31,8 +33,17 @@ class SkattDokumentServiceImpl(
         txc: TransactionContext,
     ): Either<KunneIkkeGenerereSkattedokument, Skattedokument> = generer(vedtak).onRight { lagre(it, txc) }
 
-    override fun generer(skattegrunnlag: Skattegrunnlag): Either<KunneIkkeGenerereSkattedokument, Skattedokument> {
-        TODO()
+    override fun genererSkattePdf(begrunnelse: String, skattegrunnlag: Skattegrunnlag): Either<KunneIkkeHenteOgLagePdfAvSkattegrunnlag, PdfA> {
+        val skattPdfInnhold = skattegrunnlag.lagPdfInnhold(
+            begrunnelse = begrunnelse,
+            navn = personOppslag.person(skattegrunnlag.fnr)
+                .getOrElse { return KunneIkkeHenteOgLagePdfAvSkattegrunnlag.FeilVedHentingAvPerson(it).left() }.navn,
+            clock = clock,
+        )
+
+        return pdfGenerator.genererPdf(skattPdfInnhold).getOrElse {
+            return KunneIkkeHenteOgLagePdfAvSkattegrunnlag.FeilVedPdfGenerering(it).left()
+        }.right()
     }
 
     private fun generer(vedtak: Stønadsvedtak): Either<KunneIkkeGenerereSkattedokument, Skattedokument> {

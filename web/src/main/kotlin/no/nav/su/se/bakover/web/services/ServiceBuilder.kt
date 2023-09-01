@@ -119,10 +119,16 @@ data object ServiceBuilder {
             satsFactory = satsFactory,
         )
 
+        val skattDokumentService = SkattDokumentServiceImpl(
+            pdfGenerator = clients.pdfGenerator,
+            personOppslag = clients.personOppslag,
+            dokumentSkattRepo = databaseRepos.dokumentSkattRepo,
+            clock = clock,
+        )
+
         val skatteServiceImpl = SkatteServiceImpl(
             skatteClient = clients.skatteOppslag,
-            personService = personService,
-            pdfGenerator = clients.pdfGenerator,
+            skattDokumentService = skattDokumentService,
             clock = clock,
         )
 
@@ -237,12 +243,7 @@ data object ServiceBuilder {
             opprettPlanlagtKontrollsamtaleService = kontrollsamtaleSetup.opprettPlanlagtKontrollsamtaleService,
             ferdigstillVedtakService = ferdigstillVedtakService,
             brevService = brevService,
-            skattDokumentService = SkattDokumentServiceImpl(
-                pdfGenerator = clients.pdfGenerator,
-                personOppslag = clients.personOppslag,
-                dokumentSkattRepo = databaseRepos.dokumentSkattRepo,
-                clock = clock,
-            ),
+            skattDokumentService = skattDokumentService,
             satsFactory = satsFactory,
         ).apply { addObserver(statistikkEventObserver) }
         return Services(

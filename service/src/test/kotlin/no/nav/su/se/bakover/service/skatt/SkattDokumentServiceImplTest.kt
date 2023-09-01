@@ -6,8 +6,10 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdfInnhold
+import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdfInnhold.Companion.lagPdfInnhold
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagForPdf
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagMedFnr
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.brev.jsonRequest.PdfInnhold
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
@@ -36,6 +38,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
+import java.time.Clock
 
 internal class SkattDokumentServiceImplTest {
 
@@ -339,16 +342,63 @@ internal class SkattDokumentServiceImplTest {
         val pdfGeneratorMock = mock<PdfGenerator> {
             on { genererPdf(any<PdfInnhold>()) } doReturn pdfATom().right()
         }
-        val dokumentSkatt = mock<DokumentSkattRepo> {}
 
-        val service = SkattDokumentServiceImpl(
+        val service = mockedServices(
             pdfGenerator = pdfGeneratorMock,
             personOppslag = personMock,
-            dokumentSkattRepo = dokumentSkatt,
             clock = fixedClock,
-        )
+        ).service
         val tx = TestSessionFactory.transactionContext
         val dokument = service.genererOgLagre(vedtak, tx)
         dokument.shouldBeRight()
+    }
+
+    @Test
+    fun `kan lage skatte pdf av skattegrunnlag`() {
+        val skattegrunnlag = nySkattegrunnlag()
+        val person = person()
+        val pdfGenerator = mock<PdfGenerator> {
+            on { genererPdf(any<PdfInnhold>()) } doReturn PdfA("content".toByteArray()).right()
+        }
+        val personOppslag = mock<PersonOppslag> {
+            on { person(any()) } doReturn person.right()
+        }
+
+        mockedServices(pdfGenerator = pdfGenerator, personOppslag = personOppslag).let {
+            it.service.genererSkattePdf(
+                begrunnelse = "begrunnelse",
+                skattegrunnlag = skattegrunnlag,
+            ).shouldBeRight()
+
+            verify(personOppslag).person(argThat { it shouldBe skattegrunnlag.fnr })
+            verify(pdfGenerator).genererPdf(
+                argThat<PdfInnhold> {
+                    it shouldBe skattegrunnlag.lagPdfInnhold(
+                        "begrunnelse",
+                        person.navn,
+                        fixedClock,
+                    )
+                },
+            )
+        }
+        verifyNoMoreInteractions(pdfGenerator, personOppslag)
+    }
+
+    private data class mockedServices(
+        val pdfGenerator: PdfGenerator = mock(),
+        val personOppslag: PersonOppslag = mock(),
+        val dokumentSkattRepo: DokumentSkattRepo = mock(),
+        val clock: Clock = fixedClock,
+    ) {
+        val service = SkattDokumentServiceImpl(
+            pdfGenerator = pdfGenerator,
+            personOppslag = personOppslag,
+            dokumentSkattRepo = dokumentSkattRepo,
+            clock = fixedClock,
+        )
+
+        fun verifyNoMoreInteractions() {
+            verifyNoMoreInteractions(pdfGenerator, personOppslag, dokumentSkattRepo)
+        }
     }
 }
