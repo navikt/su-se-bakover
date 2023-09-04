@@ -107,7 +107,7 @@ internal class BekreftVurderingerForKlageTest {
             }
             defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Saksbehandler)).apply {
                 status shouldBe status
-                this.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+                this.contentType() shouldBe ContentType.parse("application/json")
                 bodyAsText() shouldBe body
             }
         }
@@ -128,7 +128,7 @@ internal class BekreftVurderingerForKlageTest {
             }
             defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Saksbehandler)).apply {
                 status shouldBe HttpStatusCode.OK
-                this.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+                this.contentType() shouldBe ContentType.parse("application/json")
                 JSONAssert.assertEquals(
                     //language=JSON
                     """

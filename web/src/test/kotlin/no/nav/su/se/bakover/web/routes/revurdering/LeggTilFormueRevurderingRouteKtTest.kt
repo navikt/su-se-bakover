@@ -195,7 +195,7 @@ internal class LeggTilFormueRevurderingRouteKtTest {
                 setBody(validBody)
             }.apply {
                 status shouldBe HttpStatusCode.OK
-                this.headers["Content-Type"] shouldBe "application/json; charset=UTF-8"
+                this.headers["Content-Type"] shouldBe "application/json"
                 this.headers["X-Correlation-ID"] shouldBe "her skulle vi sikkert hatt en korrelasjonsid"
                 bodyAsText() shouldContain opprettetRevurdering.id.toString()
             }

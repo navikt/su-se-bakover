@@ -114,7 +114,7 @@ class RoutesTest {
             val response = defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"${Fnr.generer()}"}""")
             }
-            response.contentType().toString() shouldBe "${ContentType.Application.Json}; charset=${Charsets.UTF_8}"
+            response.contentType().toString() shouldBe "${ContentType.Application.Json}"
         }
     }
 }

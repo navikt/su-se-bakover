@@ -140,7 +140,7 @@ internal class OpprettKlageTest {
                 setBody(validBody)
             }.apply {
                 this.status shouldBe status
-                this.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+                this.contentType() shouldBe ContentType.parse("application/json")
                 this.bodyAsText() shouldBe body
             }
         }
@@ -163,7 +163,7 @@ internal class OpprettKlageTest {
                 setBody(validBody)
             }.apply {
                 status shouldBe HttpStatusCode.Created
-                this.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+                this.contentType() shouldBe ContentType.parse("application/json")
                 JSONAssert.assertEquals(
                     //language=JSON
                     """

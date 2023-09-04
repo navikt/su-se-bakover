@@ -34,7 +34,7 @@ internal fun leggTilPersonligOppmøte(
         }.apply {
             withClue("body=${this.bodyAsText()}") {
                 this.status shouldBe HttpStatusCode.Created
-                contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+                contentType() shouldBe ContentType.parse("application/json")
             }
         }.bodyAsText()
     }

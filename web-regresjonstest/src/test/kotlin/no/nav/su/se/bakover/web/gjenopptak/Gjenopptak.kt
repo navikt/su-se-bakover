@@ -41,7 +41,7 @@ internal fun opprettGjenopptak(
             )
         }.apply {
             status shouldBe HttpStatusCode.Created
-            contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+            contentType() shouldBe ContentType.parse("application/json")
         }.bodyAsText()
     }
 }
@@ -65,7 +65,7 @@ internal fun iverksettGjenopptak(
             if (assertResponse) {
                 status shouldBe HttpStatusCode.OK
             }
-            contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+            contentType() shouldBe ContentType.parse("application/json")
         }.bodyAsText().also {
             appComponents?.mottaKvitteringForUtbetalingFraØkonomi(sakId = UUID.fromString(sakId))
         }

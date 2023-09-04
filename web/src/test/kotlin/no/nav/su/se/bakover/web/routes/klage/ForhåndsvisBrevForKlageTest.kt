@@ -161,7 +161,7 @@ internal class ForhåndsvisBrevForKlageTest {
                 setBody(validBody)
             }.apply {
                 status shouldBe status
-                this.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+                this.contentType() shouldBe ContentType.parse("application/json")
                 bodyAsText() shouldBe body
             }
         }

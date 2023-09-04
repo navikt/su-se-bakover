@@ -46,7 +46,7 @@ internal fun opprettStans(
         }.apply {
             withClue("opprettStans feilet med status: $status og body: ${this.bodyAsText()}") {
                 status shouldBe expectedStatusCode
-                contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+                contentType() shouldBe ContentType.parse("application/json")
             }
         }.bodyAsText()
     }
@@ -72,7 +72,7 @@ internal fun iverksettStans(
                 if (assertResponse) {
                     status shouldBe HttpStatusCode.OK
                 }
-                contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+                contentType() shouldBe ContentType.parse("application/json")
             }
         }.bodyAsText().also {
             appComponents?.mottaKvitteringForUtbetalingFraØkonomi(sakId = UUID.fromString(sakId))

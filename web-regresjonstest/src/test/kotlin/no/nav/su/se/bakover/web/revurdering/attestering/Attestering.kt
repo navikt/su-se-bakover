@@ -28,7 +28,7 @@ internal fun sendTilAttestering(
         ).apply {
             withClue("body=${this.bodyAsText()}") {
                 status shouldBe HttpStatusCode.OK
-                contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+                contentType() shouldBe ContentType.parse("application/json")
             }
         }.bodyAsText()
     }

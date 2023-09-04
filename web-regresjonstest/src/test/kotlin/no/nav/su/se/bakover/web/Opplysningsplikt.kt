@@ -51,7 +51,7 @@ internal fun leggTilOpplysningsplikt(
         }.apply {
             withClue("body=${this.bodyAsText()}") {
                 status shouldBe HttpStatusCode.Created
-                contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+                contentType() shouldBe ContentType.parse("application/json")
             }
         }.bodyAsText()
     }

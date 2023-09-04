@@ -126,7 +126,7 @@ internal class AvsluttKlageTest {
                 setBody("""{"begrunnelse":"Begrunnelse av hvorfor vi avsluttet klagen"}""")
             }.apply {
                 this.status shouldBe status
-                this.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+                this.contentType() shouldBe ContentType.parse("application/json")
                 this.bodyAsText() shouldBe body
             }
         }
@@ -149,7 +149,7 @@ internal class AvsluttKlageTest {
                 setBody("""{"begrunnelse":"Begrunnelse av hvorfor vi avsluttet klagen"}""")
             }.apply {
                 status shouldBe HttpStatusCode.OK
-                this.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+                this.contentType() shouldBe ContentType.parse("application/json")
                 JSONAssert.assertEquals(
                     //language=JSON
                     """

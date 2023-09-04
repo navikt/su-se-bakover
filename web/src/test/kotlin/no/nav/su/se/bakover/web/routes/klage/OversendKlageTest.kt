@@ -199,7 +199,7 @@ internal class OversendKlageTest {
                 setBody(validBody)
             }.apply {
                 this.status shouldBe status
-                this.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+                this.contentType() shouldBe ContentType.parse("application/json")
                 bodyAsText() shouldBe body
             }
         }
@@ -220,7 +220,7 @@ internal class OversendKlageTest {
             }
             defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Attestant)).apply {
                 status shouldBe HttpStatusCode.OK
-                this.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+                this.contentType() shouldBe ContentType.parse("application/json")
                 JSONAssert.assertEquals(
                     //language=JSON
                     """
