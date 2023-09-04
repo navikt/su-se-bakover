@@ -3,4 +3,11 @@ description: 'Checkout, download java and assemble and test'
 runs:
   using: "composite"
   steps:
-    - uses: ./.github/actions/build-and-test
+    - uses: actions/checkout@v3
+    - uses: ./.github/actions/setup-java
+    - name: Run gradle build
+      uses: gradle/gradle-build-action@v2.8.0
+      with:
+        gradle-version: wrapper
+        arguments: build
+

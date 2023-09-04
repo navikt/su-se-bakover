@@ -23,7 +23,7 @@ env:
   IMAGE: ghcr.io/${{ github.repository }}/su-se-bakover:${{ github.sha }}
 
 jobs:
-  build-and-test:
+  build-test-push-image:
     name: Build, test and push image
     runs-on: ubuntu-latest
     permissions:
@@ -40,25 +40,13 @@ jobs:
           project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
           tag: ${{ github.sha }}
   submit-dependency-graph:
-    needs: build-and-test
+    needs: build-test-push-image
     name: Submit dependency graph
     permissions:
       contents: 'write'
     uses: navikt/su-se-bakover/.github/workflows/reusable-submit-dependency-graph.yml@master
 
-#  deploy-to-preprod:
-#    name: Deploy to preprod
-#    needs: push-image
-#    if: github.ref == 'refs/heads/master'
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v3
-#      - uses: nais/deploy/actions/deploy@v1
-#        env:
-#          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-#          CLUSTER: dev-fss
-#          RESOURCE: nais.yml
-#          VARS: nais-dev.json
+
 
 #  generate-draft-release:
 #    name: Generate/update draft release
