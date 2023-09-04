@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.skatt
 
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import dokument.domain.Dokument
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
@@ -10,10 +11,14 @@ import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdfInnhold.Companion.lagPd
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagForPdf
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagMedFnr
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.common.extensions.trimWhitespace
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.brev.jsonRequest.PdfInnhold
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
+import no.nav.su.se.bakover.domain.journalpost.JournalpostSkattUtenforSak
 import no.nav.su.se.bakover.domain.person.PersonOppslag
+import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
@@ -22,6 +27,7 @@ import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
 import no.nav.su.se.bakover.test.eksterneGrunnlag.nyEksternGrunnlagHentetFeil
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.pdfATom
 import no.nav.su.se.bakover.test.person
@@ -387,6 +393,105 @@ internal class SkattDokumentServiceImplTest {
             )
         }
         verifyNoMoreInteractions(pdfGenerator, personOppslag)
+    }
+
+    @Test
+    fun `lager skatte pdf, og journalfører den`() {
+        val pdf = pdfATom()
+        val skattegrunnlag = nySkattegrunnlag()
+        val person = person()
+        val pdfGenerator = mock<PdfGenerator> {
+            on { genererPdf(any<PdfInnhold>()) } doReturn pdf.right()
+        }
+        val personOppslag = mock<PersonOppslag> {
+            on { person(any()) } doReturn person.right()
+        }
+        val journalførSkattDokumentService = mock<JournalførSkattDokumentService> {
+            on { journalfør(any()) } doReturn JournalpostId("journalpostId").right()
+        }
+
+        mockedServices(
+            pdfGenerator = pdfGenerator,
+            personOppslag = personOppslag,
+            journalførSkattDokumentService = journalførSkattDokumentService,
+        ).let {
+            it.service.genererSkattePdfOgJournalfør(
+                GenererSkattPdfOgJournalførRequest(
+                    skattegrunnlag = skattegrunnlag,
+                    begrunnelse = "begrunnelse",
+                    fnr = fnr,
+                    sakstype = Sakstype.ALDER,
+                    fagsystemId = "saksnummer som ikke 'tilhører' oss",
+                ),
+            ).shouldBeRight()
+
+            verify(personOppslag).person(argThat { it shouldBe fnr })
+            verify(pdfGenerator).genererPdf(
+                argThat<PdfInnhold> {
+                    it shouldBe skattegrunnlag.lagPdfInnhold(
+                        begrunnelse = "begrunnelse",
+                        navn = person.navn,
+                        clock = fixedClock,
+                    )
+                },
+            )
+
+            verify(journalførSkattDokumentService).journalfør(
+                argThat {
+                    (it as JournalpostSkattUtenforSak) shouldBe JournalpostSkattUtenforSak(
+                        fnr = fnr,
+                        sakstype = Sakstype.ALDER,
+                        fagsystemId = "saksnummer som ikke 'tilhører' oss",
+                        dokument = Dokument.UtenMetadata.Informasjon.Annet(
+                            id = it.dokument.id,
+                            opprettet = fixedTidspunkt,
+                            tittel = "Skattegrunnlag",
+                            generertDokument = pdf,
+                            generertDokumentJson = """
+                                {
+                                  "saksnummer":null,
+                                  "behandlingstype":"Frioppslag",
+                                  "behandlingsId":null,
+                                  "vedtaksId":null,
+                                  "hentet":"2021-01-01T01:02:03.456789Z",
+                                  "opprettet":"2021-01-01T01:02:03.456789Z",
+                                  "søkers":{
+                                    "fnr":"$fnr",
+                                    "navn":{
+                                      "fornavn":"Tore",
+                                      "mellomnavn":"Johnas",
+                                      "etternavn":"Strømøy"
+                                    },
+                                    "årsgrunnlag":[
+                                      {
+                                        "type":"HarSkattegrunnlag",
+                                        "år":2021,
+                                        "stadie":"Oppgjør",
+                                        "oppgjørsdato":null,
+                                        "formue":[{"tekniskNavn":"bruttoformue","beløp":"1238","spesifisering":[]},{"tekniskNavn":"formuesverdiForKjoeretoey","beløp":"20000","spesifisering":[]}],
+                                        "inntekt":[{"tekniskNavn":"alminneligInntektFoerSaerfradrag","beløp":"1000","spesifisering":[]}],
+                                        "inntektsfradrag":[{"tekniskNavn":"fradragForFagforeningskontingent","beløp":"4000","spesifisering":[]}],
+                                        "formuesfradrag":[{"tekniskNavn":"samletAnnenGjeld","beløp":"6000","spesifisering":[]}],
+                                        "verdsettingsrabattSomGirGjeldsreduksjon":[{"tekniskNavn":"fradragForFagforeningskontingent","beløp":"4000","spesifisering":[]}],
+                                        "oppjusteringAvEierinntekter":[{"tekniskNavn":"fradragForFagforeningskontingent","beløp":"4000","spesifisering":[]}],
+                                        "manglerKategori":[{"tekniskNavn":"fradragForFagforeningskontingent","beløp":"4000","spesifisering":[]}],
+                                        "annet":[{"tekniskNavn":"fradragForFagforeningskontingent","beløp":"4000","spesifisering":[]}],
+                                        "kjøretøy":[{"beløp":"15000","registreringsnummer":"AB12345","fabrikatnavn":"Troll","årForFørstegangsregistrering":"1957","formuesverdi":"15000","antattVerdiSomNytt":null,"antattMarkedsverdi":null},{"beløp":"5000","registreringsnummer":"BC67890","fabrikatnavn":"Think","årForFørstegangsregistrering":"2003","formuesverdi":"5000","antattVerdiSomNytt":null,"antattMarkedsverdi":null}]
+                                      }
+                                    ]
+                                  },
+                                  "eps":null,
+                                  "begrunnelse":"begrunnelse",
+                                  "erAldersbrev":false
+                                }
+                            """.trimIndent().trimWhitespace(),
+                        ),
+                    )
+                },
+            )
+
+            it.verifyNoMoreInteractions()
+        }
     }
 
     private data class mockedServices(
