@@ -1,3 +1,5 @@
+
+
 name: 'CodeQL'
 description: 'Run CodeQL analysis'
 runs:
@@ -9,4 +11,13 @@ runs:
       uses: gradle/gradle-build-action@v2.8.0
       with:
         gradle-version: wrapper
-        arguments: build
+        arguments: assemble testClasses
+    - uses: github/codeql-action/init@v2
+      with:
+        languages: kotlin
+        queries: security-and-quality
+    - uses: github/codeql-action/analyze@v2
+      with:
+        languages: kotlin
+
+
