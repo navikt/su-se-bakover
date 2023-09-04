@@ -2,16 +2,6 @@ name: Checkout, download java and assemble
 
 on:
   workflow_call:
-    outputs:
-      checkout-ref:
-        description: "The ref that was checked out"
-        value: "${{ steps.checkout.outputs.ref }}"
-      java-version-used:
-        description: "The version of Java used"
-        value: "${{ steps.setup-java.outputs.java-version }}"
-      build-result:
-        description: "The result of the Gradle build"
-        value: "${{ steps.gradle-build.outputs.result }}"
 
 jobs:
   checkout-java-assemble:
@@ -36,3 +26,9 @@ jobs:
         with:
           gradle-version: wrapper
           arguments: assemble
+
+      - name: Upload build directories
+        uses: actions/upload-artifact@v2
+        with:
+          name: upload-build-artifacts
+          path: '**/build'  # This will match all 'build' directories in the project
