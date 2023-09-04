@@ -16,8 +16,7 @@ import java.util.UUID
 
 data class SkattegrunnlagsPdfInnhold private constructor(
     val saksnummer: String?,
-    // TODO: Denne må vi ta inn når vi begynner med revurdering
-    val behandlingstype: BehandlingstypeForSkattemelding = BehandlingstypeForSkattemelding.Søknadsbehandling,
+    val behandlingstype: BehandlingstypeForSkattemelding,
     val behandlingsId: UUID?,
     val vedtaksId: UUID?,
     val hentet: Tidspunkt,
@@ -39,6 +38,7 @@ data class SkattegrunnlagsPdfInnhold private constructor(
             clock: Clock,
         ): SkattegrunnlagsPdfInnhold = SkattegrunnlagsPdfInnhold(
             saksnummer = saksnummer.toString(),
+            behandlingstype = BehandlingstypeForSkattemelding.Søknadsbehandling,
             behandlingsId = søknadsbehandlingsId,
             vedtaksId = vedtaksId,
             hentet = hentet,

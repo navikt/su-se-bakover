@@ -7,10 +7,12 @@ import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
+import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
+import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
@@ -42,17 +44,19 @@ internal fun Route.skattRoutes(skatteService: SkatteService) {
     }
 
     post("$skattPath/person/{fnr}") {
-        call.withFnr { fnr ->
-            call.withBody<FrioppslagRequestBody> { body ->
-                skatteService.hentOgLagPdfAvSamletSkattegrunnlagFor(
-                    request = body.tilFrioppslagSkattRequest(fnr, call.suUserContext.saksbehandler),
-                ).fold(
-                    ifLeft = { call.svar(it.tilResultat()) },
-                    ifRight = {
-                        call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
-                        call.respondBytes(it.getContent(), ContentType.Application.Pdf)
-                    },
-                )
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+            call.withFnr { fnr ->
+                call.withBody<FrioppslagRequestBody> { body ->
+                    skatteService.hentOgLagPdfAvSamletSkattegrunnlagFor(
+                        request = body.tilFrioppslagSkattRequest(fnr, call.suUserContext.saksbehandler),
+                    ).fold(
+                        ifLeft = { call.svar(it.tilResultat()) },
+                        ifRight = {
+                            call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
+                            call.respondBytes(it.getContent(), ContentType.Application.Pdf)
+                        },
+                    )
+                }
             }
         }
     }
