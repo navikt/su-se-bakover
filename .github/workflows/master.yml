@@ -59,22 +59,6 @@ jobs:
           pull: true
           tags: ${{env.IMAGE}}
 
-  snyk:
-    #https://github.com/snyk/actions/tree/master/gradle
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/gradle@master
-        continue-on-error: true # To make sure that SARIF upload gets called
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-          ORG_GRADLE_PROJECT_githubUser: x-access-token
-          ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          args: --all-sub-projects --org=supstonad --sarif-file-output=${{ github.workspace }}/snyk.sarif
-          command: monitor
-
   deploy_to_dev:
     name: Deploy to dev
     needs: build

@@ -265,19 +265,6 @@ Vi bruker Github sin innebygde dependabot: https://github.com/navikt/su-se-bakov
 Se og `.github/dependabot.yaml`
 Denne vil opprette PRs en gang i uka på dependencies som ikke kjører siste versjon.
 
-## Snyk
-
-Scanner etter dependencies med kjente sikkerhetshull og gir forslag til tiltak. Se https://app.snyk.io/login og logg inn
-via `SSO`
-
-### Kjør Snyk lokalt
-
-1. Installer Snyk
-2. `snyk auth`
-3. `snyk test --all-sub-projects --trust-policies --policy-path=.snyk`
-
-Evaluer innholdet i `.snyk`-fila: `snyk policy`
-
 ## Koble til database i preprod/prod
 
 1. Via naisdevice (fungerer kun med nav image) eller via vmware
