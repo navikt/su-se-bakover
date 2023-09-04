@@ -1,0 +1,17 @@
+# requires permission contents: 'write'
+
+name: 'Submit dependecy graph'
+description: 'Submit dependecy graph'
+runs:
+  using: "composite"
+
+  steps:
+    - uses: actions/checkout@v3
+    - uses: ./.github/actions/setup-java
+
+    - name: Submit dependency graph
+      uses: gradle/gradle-build-action@v2.8.0
+      id: gradle-submit-dependency-graph
+      with:
+        gradle-version: wrapper
+        dependency-graph: generate-and-submit
