@@ -28,23 +28,18 @@ jobs:
       id-token: 'write'
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-v2-${{ hashFiles('gradle.properties', 'settings.gradle.kts', '**/build.gradle.kts', 'gradle/wrapper/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
       - uses: actions/setup-java@v3
         with:
-          java-version: '19'
           distribution: 'temurin'
-      - name: test and build
-        run: ./gradlew --no-build-cache test build
-        env:
-          ORG_GRADLE_PROJECT_githubUser: x-access-token
-          ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
+          java-version: '19'
+      - name: Run gradle build
+        uses: gradle/gradle-build-action@v2.6.1
+        id: gradle-build
+        with:
+          gradle-version: wrapper
+          dependency-graph: generate-and-submit
+          #arguments: --configuration-cache build
+          arguments: build
       - name: Login to DockerHub
         uses: docker/login-action@v2.2.0
         with:
