@@ -2,9 +2,12 @@ name: 'Deploy'
 description: 'Deploy'
 
 inputs:
-  environment:
+  nav-environment:
     required: true
     description: 'dev or prod'
+  NAIS_DEPLOY_APIKEY:
+    required: true
+    description: 'secrets.NAIS_DEPLOY_APIKEY'
 
 runs:
   using: "composite"
@@ -12,7 +15,7 @@ runs:
     - uses: actions/checkout@v3
     - uses: nais/deploy/actions/deploy@v1
       env:
-        APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-        CLUSTER: ${{ inputs.environment }}-fss
+        APIKEY: ${{ inputs.NAIS_DEPLOY_APIKEY }}
+        CLUSTER: ${{ inputs.nav-environment }}-fss
         RESOURCE: nais.yml
-        VARS: nais-${{ inputs.environment }}.json
+        VARS: nais-${{ inputs.nav-environment }}.json

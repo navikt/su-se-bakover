@@ -50,9 +50,8 @@ jobs:
     name: Deploy to preprod
     uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
     with:
-      environment: dev
-    secrets:
-      NAIS_DEPLOY_APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+      nav-environment: dev
+    secrets: inherit
 
 #  generate-draft-release:
 #    name: Generate/update draft release

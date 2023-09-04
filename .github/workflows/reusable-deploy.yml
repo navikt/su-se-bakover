@@ -8,8 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Deploy to ${{ inputs.environment }}
+      - name: Deploy
         uses: ./.github/actions/deploy
         with:
+          nav-environment: ${{ inputs.environment }}
           NAIS_DEPLOY_APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-          environment: ${{ inputs.environment }}
