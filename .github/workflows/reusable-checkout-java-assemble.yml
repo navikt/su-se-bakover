@@ -6,8 +6,6 @@ on:
 jobs:
   checkout-java-assemble:
     runs-on: ubuntu-latest
-    permissions:
-      contents: 'read'
     steps:
       - name: Checkout code
         id: checkout
@@ -30,5 +28,5 @@ jobs:
       - name: Upload build directories
         uses: actions/upload-artifact@v2
         with:
-          name: upload-build-artifacts
+          name: build-artifacts
           path: '**/build'  # This will match all 'build' directories in the project

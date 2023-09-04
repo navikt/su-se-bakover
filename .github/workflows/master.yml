@@ -27,24 +27,49 @@ jobs:
     uses: navikt/su-se-bakover/.github/workflows/reusable-checkout-java-assemble.yml@master
   run-tests:
     name: Build and push Docker container
+    needs: assemble
     runs-on: ubuntu-latest
-    permissions:
-      packages: 'write'
-      contents: 'write' # needed to submit the dependency graph
-      id-token: 'write'
     steps:
+      - uses: actions/checkout@v3
+      - name: Download build artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: build-artifacts
       - name: Check and test
         uses: gradle/gradle-build-action@v2.8.0
         id: gradle-check
         with:
           gradle-version: wrapper
           arguments: check
+  submit-dependency-graph:
+    name: Submit dependecy graph
+    needs: assemble
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'write' # needed to submit the dependency graph
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download build artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: build-artifacts
       - name: Submit dependency graph
         uses: gradle/gradle-build-action@v2.8.0
         id: gradle-submit-dependency-graph
         with:
           gradle-version: wrapper
           dependency-graph: generate-and-submit
+
+  push-image:
+    name: Deploy to preprod
+    needs: [run-tests, submit-dependency-graph]
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    permissions:
+      packages: 'write'
+      id-token: 'write'
+    steps:
+      - uses: actions/checkout@v3
       - name: Login to DockerHub
         uses: docker/login-action@v2.2.0
         with:
@@ -59,9 +84,9 @@ jobs:
           pull: true
           tags: ${{env.IMAGE}}
 
-  deploy_to_dev:
-    name: Deploy to dev
-    needs: build
+  deploy-to-preprod:
+    name: Deploy to preprod
+    needs: push-image
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
