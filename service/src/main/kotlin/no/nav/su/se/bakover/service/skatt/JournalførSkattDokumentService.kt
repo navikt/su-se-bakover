@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.brev.KunneIkkeJournalføreDokument
 import no.nav.su.se.bakover.domain.journalpost.JournalpostCommand
-import no.nav.su.se.bakover.domain.journalpost.JournalpostSkatt.Companion.lagJournalpost
+import no.nav.su.se.bakover.domain.journalpost.JournalpostSkattForSak.Companion.lagJournalpost
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
 import no.nav.su.se.bakover.domain.skatt.Skattedokument
@@ -17,7 +17,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 /**
- * journalfører dokumenter tilhørende skatt. Ment å bli kallt fra en jobb
+ * journalfører dokumenter/pdf tilhørende skatt
  */
 class JournalførSkattDokumentService(
     private val dokArkiv: DokArkiv,
@@ -26,7 +26,10 @@ class JournalførSkattDokumentService(
 ) {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-    fun journalfør(): List<JournalføringOgDistribueringsResultat> {
+    /**
+     * Ment å bli kallt fra en jobb
+     */
+    fun journalførAlleSkattedokumenter(): List<JournalføringOgDistribueringsResultat> {
         return dokumentSkattRepo.hentDokumenterForJournalføring()
             .map { skattedokument -> journalførSkattedokument(skattedokument).tilResultat(skattedokument, log) }
             .also { it.logResultat("Journalføring skatt", log) }
@@ -43,7 +46,7 @@ class JournalførSkattDokumentService(
         }
     }
 
-    private fun journalfør(journalpost: JournalpostCommand): Either<KunneIkkeJournalføreDokument, JournalpostId> {
+    fun journalfør(journalpost: JournalpostCommand): Either<KunneIkkeJournalføreDokument, JournalpostId> {
         return dokArkiv.opprettJournalpost(journalpost)
             .mapLeft {
                 log.error("Journalføring: Kunne ikke journalføre i eksternt system (joark/dokarkiv)")

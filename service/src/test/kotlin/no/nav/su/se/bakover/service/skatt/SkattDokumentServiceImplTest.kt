@@ -52,12 +52,13 @@ internal class SkattDokumentServiceImplTest {
         }
         val dokumentSkatt = mock<DokumentSkattRepo> {}
 
-        val service = SkattDokumentServiceImpl(
+        val service = mockedServices(
             pdfGenerator = pdfGeneratorMock,
             personOppslag = personMock,
             dokumentSkattRepo = dokumentSkatt,
+            journalførSkattDokumentService = mock(),
             clock = fixedClock,
-        )
+        ).service
         val tx = TestSessionFactory.transactionContext
         val dokument = service.genererOgLagre(vedtak, tx)
 
@@ -104,12 +105,13 @@ internal class SkattDokumentServiceImplTest {
         }
         val dokumentSkatt = mock<DokumentSkattRepo> {}
 
-        val service = SkattDokumentServiceImpl(
+        val service = mockedServices(
             pdfGenerator = pdfGeneratorMock,
             personOppslag = personMock,
             dokumentSkattRepo = dokumentSkatt,
+            journalførSkattDokumentService = mock(),
             clock = fixedClock,
-        )
+        ).service
         val tx = TestSessionFactory.transactionContext
         val dokument = service.genererOgLagre(vedtak, tx)
         dokument.shouldBeRight()
@@ -166,12 +168,13 @@ internal class SkattDokumentServiceImplTest {
         }
         val dokumentSkatt = mock<DokumentSkattRepo> {}
 
-        val service = SkattDokumentServiceImpl(
+        val service = mockedServices(
             pdfGenerator = pdfGeneratorMock,
             personOppslag = personMock,
             dokumentSkattRepo = dokumentSkatt,
+            journalførSkattDokumentService = mock(),
             clock = fixedClock,
-        )
+        ).service
         val tx = TestSessionFactory.transactionContext
         val dokument = service.genererOgLagre(vedtak, tx)
         dokument.shouldBeRight()
@@ -228,12 +231,13 @@ internal class SkattDokumentServiceImplTest {
         }
         val dokumentSkatt = mock<DokumentSkattRepo> {}
 
-        val service = SkattDokumentServiceImpl(
+        val service = mockedServices(
             pdfGenerator = pdfGeneratorMock,
             personOppslag = personMock,
             dokumentSkattRepo = dokumentSkatt,
+            journalførSkattDokumentService = mock(),
             clock = fixedClock,
-        )
+        ).service
         val tx = TestSessionFactory.transactionContext
         val dokument = service.genererOgLagre(vedtak, tx)
         dokument.shouldBeRight()
@@ -286,12 +290,13 @@ internal class SkattDokumentServiceImplTest {
         }
         val dokumentSkatt = mock<DokumentSkattRepo> {}
 
-        val service = SkattDokumentServiceImpl(
+        val service = mockedServices(
             pdfGenerator = pdfGeneratorMock,
             personOppslag = personMock,
             dokumentSkattRepo = dokumentSkatt,
+            journalførSkattDokumentService = mock(),
             clock = fixedClock,
-        )
+        ).service
         val tx = TestSessionFactory.transactionContext
         val dokument = service.genererOgLagre(vedtak, tx)
         dokument.shouldBeRight()
@@ -388,12 +393,14 @@ internal class SkattDokumentServiceImplTest {
         val pdfGenerator: PdfGenerator = mock(),
         val personOppslag: PersonOppslag = mock(),
         val dokumentSkattRepo: DokumentSkattRepo = mock(),
+        val journalførSkattDokumentService: JournalførSkattDokumentService = mock(),
         val clock: Clock = fixedClock,
     ) {
         val service = SkattDokumentServiceImpl(
             pdfGenerator = pdfGenerator,
             personOppslag = personOppslag,
             dokumentSkattRepo = dokumentSkattRepo,
+            journalførSkattDokumentService = journalførSkattDokumentService,
             clock = fixedClock,
         )
 

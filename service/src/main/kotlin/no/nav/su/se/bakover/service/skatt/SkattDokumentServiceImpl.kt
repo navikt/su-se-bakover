@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.Dokument
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdfInnhold
 import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdfInnhold.Companion.lagPdfInnhold
@@ -11,7 +12,9 @@ import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagForPdf
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagMedFnr
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
+import no.nav.su.se.bakover.domain.journalpost.JournalpostSkattUtenforSak
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
 import no.nav.su.se.bakover.domain.skatt.Skattedokument
@@ -21,10 +24,14 @@ import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import java.time.Clock
 import java.util.UUID
 
+/**
+ * Service som 'gjør ting' med dokumenter/pdf tilhørende skatt
+ */
 class SkattDokumentServiceImpl(
     private val pdfGenerator: PdfGenerator,
     private val personOppslag: PersonOppslag,
     private val dokumentSkattRepo: DokumentSkattRepo,
+    private val journalførSkattDokumentService: JournalførSkattDokumentService,
     private val clock: Clock,
 ) : SkattDokumentService {
 
@@ -33,17 +40,56 @@ class SkattDokumentServiceImpl(
         txc: TransactionContext,
     ): Either<KunneIkkeGenerereSkattedokument, Skattedokument> = generer(vedtak).onRight { lagre(it, txc) }
 
-    override fun genererSkattePdf(begrunnelse: String, skattegrunnlag: Skattegrunnlag): Either<KunneIkkeHenteOgLagePdfAvSkattegrunnlag, PdfA> {
-        val skattPdfInnhold = skattegrunnlag.lagPdfInnhold(
-            begrunnelse = begrunnelse,
-            navn = personOppslag.person(skattegrunnlag.fnr)
-                .getOrElse { return KunneIkkeHenteOgLagePdfAvSkattegrunnlag.FeilVedHentingAvPerson(it).left() }.navn,
-            clock = clock,
-        )
+    override fun genererSkattePdf(
+        begrunnelse: String,
+        skattegrunnlag: Skattegrunnlag,
+    ): Either<KunneIkkeHenteOgLagePdfAvSkattegrunnlag, PdfA> {
+        return lagSkattePdfInnhold(begrunnelse, skattegrunnlag)
+            .getOrElse { return it.left() }
+            .let {
+                pdfGenerator.genererPdf(it).getOrElse {
+                    return KunneIkkeHenteOgLagePdfAvSkattegrunnlag.FeilVedPdfGenerering(it).left()
+                }
+            }.right()
+    }
 
-        return pdfGenerator.genererPdf(skattPdfInnhold).getOrElse {
-            return KunneIkkeHenteOgLagePdfAvSkattegrunnlag.FeilVedPdfGenerering(it).left()
-        }.right()
+    override fun genererSkattePdfOgJournalfør(request: GenererSkattPdfOgJournalførRequest): Either<KunneIkkeGenerereSkattePdfOgJournalføre, PdfA> {
+        return lagSkattePdfInnhold(request.begrunnelse, request.skattegrunnlag)
+            .getOrElse { return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedGenereringAvPdf(it).left() }
+            .let {
+                val pdf = pdfGenerator.genererPdf(it).getOrElse {
+                    return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedGenereringAvPdf(
+                        KunneIkkeHenteOgLagePdfAvSkattegrunnlag.FeilVedPdfGenerering(it),
+                    ).left()
+                }
+                journalførSkattDokumentService.journalfør(
+                    JournalpostSkattUtenforSak(
+                        fnr = request.fnr,
+                        sakstype = request.sakstype,
+                        fagsystemId = request.fagsystemId,
+                        dokument = Dokument.UtenMetadata.Informasjon.Annet(
+                            id = UUID.randomUUID(),
+                            opprettet = Tidspunkt.now(clock),
+                            tittel = it.pdfTemplate.tittel(),
+                            generertDokument = pdf,
+                            generertDokumentJson = it.toJson(),
+                        ),
+                    ),
+                ).mapLeft { KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedJournalføring(it) }.map { pdf }
+            }
+    }
+
+    private fun lagSkattePdfInnhold(
+        begrunnelse: String,
+        skattegrunnlag: Skattegrunnlag,
+    ): Either<KunneIkkeHenteOgLagePdfAvSkattegrunnlag, SkattegrunnlagsPdfInnhold> {
+        return skattegrunnlag.lagPdfInnhold(
+            begrunnelse = begrunnelse,
+            navn = personOppslag.person(skattegrunnlag.fnr).getOrElse {
+                return KunneIkkeHenteOgLagePdfAvSkattegrunnlag.FeilVedHentingAvPerson(it).left()
+            }.navn,
+            clock = clock,
+        ).right()
     }
 
     private fun generer(vedtak: Stønadsvedtak): Either<KunneIkkeGenerereSkattedokument, Skattedokument> {

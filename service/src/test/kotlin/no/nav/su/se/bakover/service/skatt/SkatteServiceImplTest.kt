@@ -8,6 +8,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.common.tid.toRange
+import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅr
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
@@ -396,19 +397,21 @@ class SkatteServiceImplTest {
         }
 
         val skattDokumentService = mock<SkattDokumentService> {
-            on { genererSkattePdf(any(), any()) } doReturn PdfA("content".toByteArray()).right()
+            on { genererSkattePdfOgJournalfør(any()) } doReturn PdfA("content".toByteArray()).right()
         }
 
         mockedServices(
             skatteClient = skatteClient,
             skattDokumentService = skattDokumentService,
         ).let {
-            it.service.hentOgLagPdfAvSamletSkattegrunnlagFor(
+            it.service.hentLagOgJournalførSkattePdf(
                 request = FrioppslagSkattRequest(
                     fnr = fnr,
                     år = Year.of(2021),
                     begrunnelse = "begrunnelse for henting av skatte-data",
                     saksbehandler = saksbehandler,
+                    sakstype = Sakstype.ALDER,
+                    fagsystemId = "29901",
                 ),
             ).shouldBeRight()
 
@@ -416,9 +419,16 @@ class SkatteServiceImplTest {
                 argThat { it shouldBe fnr },
                 argThat { it shouldBe Year.of(2021) },
             )
-            verify(it.skattDokumentService).genererSkattePdf(
-                argThat { it shouldBe "begrunnelse for henting av skatte-data" },
-                argThat { it shouldBe nySkattegrunnlag(id = it.id) },
+            verify(it.skattDokumentService).genererSkattePdfOgJournalfør(
+                argThat {
+                    it shouldBe GenererSkattPdfOgJournalførRequest(
+                        skattegrunnlag = it.skattegrunnlag,
+                        begrunnelse = "begrunnelse for henting av skatte-data",
+                        fnr = fnr,
+                        sakstype = Sakstype.ALDER,
+                        fagsystemId = "29901",
+                    )
+                },
             )
             it.verifyNoMoreInteractions()
         }

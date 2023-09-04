@@ -7,7 +7,8 @@ import no.nav.su.se.bakover.domain.Behandlingstema
 import no.nav.su.se.bakover.domain.Tema
 import no.nav.su.se.bakover.domain.journalpost.JournalpostCommand
 import no.nav.su.se.bakover.domain.journalpost.JournalpostForSakCommand
-import no.nav.su.se.bakover.domain.journalpost.JournalpostSkatt
+import no.nav.su.se.bakover.domain.journalpost.JournalpostSkattForSak
+import no.nav.su.se.bakover.domain.journalpost.JournalpostSkattUtenforSak
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import java.time.LocalDate
@@ -37,7 +38,7 @@ internal fun JournalpostCommand.tilJson(): String {
         Sakstype.UFØRE -> Behandlingstema.SU_UFØRE_FLYKTNING.value
     }
     return when (this) {
-        is JournalpostSkatt -> JournalpostRequest(
+        is JournalpostSkattForSak -> JournalpostRequest(
             tittel = dokument.dokumentTittel,
             journalpostType = JournalPostType.NOTAT,
             kanal = null,
@@ -92,6 +93,23 @@ internal fun JournalpostCommand.tilJson(): String {
                 originalJson = serialize(søknadInnhold),
             ),
             datoDokument = datoDokument,
+        )
+
+        is JournalpostSkattUtenforSak -> JournalpostRequest(
+            tittel = dokument.tittel,
+            journalpostType = JournalPostType.NOTAT,
+            kanal = null,
+            behandlingstema = behandlingstema,
+            journalfoerendeEnhet = JournalførendeEnhet.AUTOMATISK.enhet,
+            avsenderMottaker = null,
+            bruker = bruker,
+            sak = Fagsak(this.fagsystemId),
+            dokumenter = JournalpostDokument.lagDokumenterForJournalpostForSak(
+                tittel = dokument.tittel,
+                pdf = dokument.generertDokument,
+                originalJson = dokument.generertDokumentJson,
+            ),
+            datoDokument = dokument.opprettet.toLocalDate(zoneIdOslo),
         )
     }.let {
         serialize(it)

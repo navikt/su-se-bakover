@@ -22,7 +22,7 @@ class JournalføringService(
 ) {
     fun journalfør() {
         journalførDokumentService.journalfør()
-        journalførSkattDokumentService.journalfør()
+        journalførSkattDokumentService.journalførAlleSkattedokumenter()
     }
 }
 

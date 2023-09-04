@@ -20,4 +20,5 @@ interface SkattDokumentService {
     ): Either<KunneIkkeHenteOgLagePdfAvSkattegrunnlag, PdfA>
 
     fun lagre(skattedokument: Skattedokument, txc: TransactionContext)
+    fun genererSkattePdfOgJournalfør(request: GenererSkattPdfOgJournalførRequest): Either<KunneIkkeGenerereSkattePdfOgJournalføre, PdfA>
 }

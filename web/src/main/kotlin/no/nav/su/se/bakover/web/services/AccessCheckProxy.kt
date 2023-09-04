@@ -201,7 +201,7 @@ import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.skatt.FrioppslagSkattRequest
-import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteOgLagePdfAvSkattegrunnlag
+import no.nav.su.se.bakover.service.skatt.KunneIkkeGenerereSkattePdfOgJournalføre
 import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
@@ -1143,9 +1143,9 @@ open class AccessCheckProxy(
                     return services.skatteService.hentSamletSkattegrunnlagForÅr(fnr, saksbehandler, yearRange)
                 }
 
-                override fun hentOgLagPdfAvSamletSkattegrunnlagFor(request: FrioppslagSkattRequest): Either<KunneIkkeHenteOgLagePdfAvSkattegrunnlag, PdfA> {
+                override fun hentLagOgJournalførSkattePdf(request: FrioppslagSkattRequest): Either<KunneIkkeGenerereSkattePdfOgJournalføre, PdfA> {
                     assertHarTilgangTilPerson(request.fnr)
-                    return services.skatteService.hentOgLagPdfAvSamletSkattegrunnlagFor(request)
+                    return services.skatteService.hentLagOgJournalførSkattePdf(request)
                 }
             },
             kontrollsamtaleSetup = object : KontrollsamtaleSetup {

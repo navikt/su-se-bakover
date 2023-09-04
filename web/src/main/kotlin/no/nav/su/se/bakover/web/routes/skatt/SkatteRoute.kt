@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
@@ -18,8 +19,11 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withFnr
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.domain.brev.KunneIkkeJournalføreDokument
+import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.service.skatt.FrioppslagSkattRequest
+import no.nav.su.se.bakover.service.skatt.KunneIkkeGenerereSkattePdfOgJournalføre
 import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteOgLagePdfAvSkattegrunnlag
 import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.web.routes.person.tilResultat
@@ -31,6 +35,8 @@ internal fun Route.skattRoutes(skatteService: SkatteService) {
     data class FrioppslagRequestBody(
         val år: Int,
         val begrunnelse: String,
+        val sakstype: String,
+        val fagsystemId: String,
     ) {
         fun tilFrioppslagSkattRequest(
             fnr: Fnr,
@@ -40,6 +46,8 @@ internal fun Route.skattRoutes(skatteService: SkatteService) {
             år = Year.of(år),
             begrunnelse = begrunnelse,
             saksbehandler = saksbehandler,
+            sakstype = Sakstype.from(sakstype),
+            fagsystemId = fagsystemId,
         )
     }
 
@@ -47,7 +55,7 @@ internal fun Route.skattRoutes(skatteService: SkatteService) {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withFnr { fnr ->
                 call.withBody<FrioppslagRequestBody> { body ->
-                    skatteService.hentOgLagPdfAvSamletSkattegrunnlagFor(
+                    skatteService.hentLagOgJournalførSkattePdf(
                         request = body.tilFrioppslagSkattRequest(fnr, call.suUserContext.saksbehandler),
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
@@ -62,16 +70,25 @@ internal fun Route.skattRoutes(skatteService: SkatteService) {
     }
 }
 
-internal fun KunneIkkeHenteOgLagePdfAvSkattegrunnlag.tilResultat(): Resultat {
-    return when (this) {
-        is KunneIkkeHenteOgLagePdfAvSkattegrunnlag.FeilVedHentingAvPerson -> this.originalFeil.tilResultat()
-        is KunneIkkeHenteOgLagePdfAvSkattegrunnlag.FeilVedPdfGenerering -> ErrorJson(
-            "Feil ved generering av pdf",
-            "feil_ved_generering_av_pdf",
-        ).tilResultat(HttpStatusCode.InternalServerError)
+internal fun KunneIkkeGenerereSkattePdfOgJournalføre.tilResultat(): Resultat = when (this) {
+    is KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedGenereringAvPdf -> this.originalFeil.tilResultat()
+    is KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedHentingAvSkattemelding -> this.originalFeil.tilResultat()
+    is KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedJournalføring -> this.originalFeil.tilResultat()
+}
 
-        is KunneIkkeHenteOgLagePdfAvSkattegrunnlag.KunneIkkeHenteSkattemelding -> this.originalFeil.tilResultat()
-    }
+internal fun KunneIkkeJournalføreDokument.tilResultat(): Resultat = when (this) {
+    KunneIkkeJournalføreDokument.FeilVedOpprettelseAvJournalpost -> Feilresponser.feilVedOpprettelseAvJournalpost
+    KunneIkkeJournalføreDokument.KunneIkkeFinnePerson -> Feilresponser.fantIkkePerson
+}
+
+internal fun KunneIkkeHenteOgLagePdfAvSkattegrunnlag.tilResultat(): Resultat = when (this) {
+    is KunneIkkeHenteOgLagePdfAvSkattegrunnlag.FeilVedHentingAvPerson -> this.originalFeil.tilResultat()
+    is KunneIkkeHenteOgLagePdfAvSkattegrunnlag.FeilVedPdfGenerering -> ErrorJson(
+        "Feil ved generering av pdf",
+        "feil_ved_generering_av_pdf",
+    ).tilResultat(HttpStatusCode.InternalServerError)
+
+    is KunneIkkeHenteOgLagePdfAvSkattegrunnlag.KunneIkkeHenteSkattemelding -> this.originalFeil.tilResultat()
 }
 
 internal fun KunneIkkeHenteSkattemelding.tilResultat(): Resultat = when (this) {
