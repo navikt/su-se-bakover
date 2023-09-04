@@ -23,17 +23,15 @@ env:
   IMAGE: ghcr.io/${{ github.repository }}/su-se-bakover:${{ github.sha }}
 
 jobs:
-  build:
+  push-to-master:
     name: Build and push Docker container
     runs-on: ubuntu-latest
     permissions:
       packages: 'write'
       contents: 'write' # needed to submit the dependency graph
       id-token: 'write'
+    uses: navikt/su-se-bakover/.github/workflows/reusable-checkout-java-assemble.yml@master
     steps:
-      - name: Checkout, download java and compile
-        id: checkout-java-assemble
-        uses: navikt/su-se-bakover/.github/workflows/reusable-checkout-java-assemble.yml@master
       - name: Check and test
         uses: gradle/gradle-build-action@v2.8.0
         id: gradle-check
