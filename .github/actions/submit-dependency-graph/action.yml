@@ -13,3 +13,4 @@ runs:
       with:
         gradle-version: wrapper
         dependency-graph: generate-and-submit
+        arguments: assemble testClasses

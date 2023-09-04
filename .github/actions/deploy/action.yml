@@ -22,4 +22,4 @@ runs:
         CLUSTER: ${{ inputs.nav-environment }}-fss
         RESOURCE: nais.yml
         VARS: nais-${{ inputs.nav-environment }}.json
-        VAR: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover@sha256:${{ inputs.tag }}
+        VAR: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover:${{ inputs.tag }}
