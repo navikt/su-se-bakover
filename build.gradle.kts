@@ -24,7 +24,7 @@ subprojects {
     val jacksonVersion = "2.15.2"
     val kotlinVersion: String by this
     val confluentVersion = "7.3.1"
-    val slf4jVersion = "2.0.7"
+    val slf4jVersion = "2.0.9"
     dependencies {
         implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
         implementation("org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion")
