@@ -42,7 +42,13 @@ dependencies {
 configure<SourceSetContainer> {
     named("main") {
         java.srcDir("src/main/java")
-        java.srcDir("$buildDir/generated-sources/xsd2java")
-        java.srcDir("$buildDir/generated-sources/wsdl2java")
+
+        // For xsd2java
+        val xsd2javaDir: Provider<Directory> = layout.buildDirectory.dir("generated-sources/xsd2java")
+        java.srcDir(xsd2javaDir.map { it.asFile })
+
+        // For wsdl2java
+        val wsdl2javaDir: Provider<Directory> = layout.buildDirectory.dir("generated-sources/wsdl2java")
+        java.srcDir(wsdl2javaDir.map { it.asFile })
     }
 }

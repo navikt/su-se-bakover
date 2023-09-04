@@ -9,9 +9,10 @@ tasks.named<Jar>("jar") {
     }
     doLast {
         configurations.runtimeClasspath.get().forEach {
-            val file = File("$buildDir/libs/${it.name}")
-            if (!file.exists()) {
-                it.copyTo(file)
+            val fileProvider: Provider<RegularFile> = layout.buildDirectory.file("libs/${it.name}")
+            val targetFile = File(fileProvider.get().toString())
+            if (!targetFile.exists()) {
+                it.copyTo(targetFile)
             }
         }
     }
