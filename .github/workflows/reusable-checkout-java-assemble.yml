@@ -1,6 +1,4 @@
-# .github/workflows/build-only.yml
-
-name: Build Only
+name: Checkout, download java and assemble
 
 on:
   workflow_call:
@@ -16,7 +14,7 @@ on:
         value: "${{ steps.gradle-build.outputs.result }}"
 
 jobs:
-  build:
+  checkout-java-assemble:
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'

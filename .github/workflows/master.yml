@@ -33,7 +33,7 @@ jobs:
     steps:
       - name: Checkout, download java and compile
         id: checkout-java-assemble
-        uses: ./.github/workflows/reusable-checkout-java-assemble.yml@master
+        uses: navikt/su-se-bakover/.github/workflows/reusable-checkout-java-assemble.yml@master
       - name: Check and test
         uses: gradle/gradle-build-action@v2.8.0
         id: gradle-check
