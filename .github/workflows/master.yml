@@ -19,9 +19,6 @@ on:
       - '.editorconfig'
       - '.env*'
 
-env:
-  IMAGE: ghcr.io/${{ github.repository }}/su-se-bakover:${{ github.sha }}
-
 jobs:
   build-test-push-image:
     name: Build, test and push image
@@ -40,7 +37,6 @@ jobs:
           project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
           tag: ${{ github.sha }}
   submit-dependency-graph:
-    needs: build-test-push-image
     name: Submit dependency graph
     permissions:
       contents: 'write'
@@ -51,6 +47,7 @@ jobs:
     uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
     with:
       nav-environment: dev
+      tag: ${{ github.sha }}
     secrets:
       NAIS_DEPLOY_APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
 

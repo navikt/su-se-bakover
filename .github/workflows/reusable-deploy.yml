@@ -7,16 +7,21 @@ on:
         required: true
         description: 'dev or prod'
         type: string
+      tag:
+        required: true
+        description: 'github.sha'
+        type: string
     secrets:
       NAIS_DEPLOY_APIKEY:
         required: true
         description: 'secrets.NAIS_DEPLOY_APIKEY'
 jobs:
-  submit-dependency-graph:
+  deploy:
     runs-on: ubuntu-latest
+    name: Deploy to ${{ inputs.nav-environment }}
     steps:
       - uses: actions/checkout@v3
-      - name: Deploy
+      - name: Deploy to ${{ inputs.nav-environment }}
         uses: ./.github/actions/deploy
         with:
           nav-environment: ${{ inputs.nav-environment }}
