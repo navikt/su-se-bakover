@@ -32,6 +32,8 @@ jobs:
   submit-dependency-graph:
     needs: build-and-test
     name: Submit dependency graph
+    permissions:
+      contents: 'write'
     uses: navikt/su-se-bakover/.github/workflows/reusable-submit-dependency-graph.yml@master
 #
 #  push-image:
