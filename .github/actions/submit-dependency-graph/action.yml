@@ -8,7 +8,6 @@ runs:
   steps:
     - uses: actions/checkout@v3
     - uses: ./.github/actions/setup-java
-
     - name: Submit dependency graph
       uses: gradle/gradle-build-action@v2.8.0
       with:
