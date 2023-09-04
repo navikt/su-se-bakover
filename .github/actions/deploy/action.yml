@@ -8,12 +8,13 @@ inputs:
   NAIS_DEPLOY_APIKEY:
     required: true
     description: 'secrets.NAIS_DEPLOY_APIKEY'
-  tag:
+  image:
     required: true
-    description: 'github.sha'
+    description: 'full image url'
 
 runs:
   using: "composite"
+
   steps:
     - uses: actions/checkout@v3
     - uses: nais/deploy/actions/deploy@v1
@@ -22,4 +23,4 @@ runs:
         CLUSTER: ${{ inputs.nav-environment }}-fss
         RESOURCE: nais.yml
         VARS: nais-${{ inputs.nav-environment }}.json
-        VAR: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover:${{ inputs.tag }}
+        VAR: image=${{ inputs.image }}

@@ -26,3 +26,4 @@ jobs:
         with:
           nav-environment: ${{ inputs.nav-environment }}
           NAIS_DEPLOY_APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          image: europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover:${{ inputs.tag }}
