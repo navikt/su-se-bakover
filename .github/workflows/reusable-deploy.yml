@@ -11,5 +11,5 @@ jobs:
       - name: Deploy to ${{ inputs.environment }}
         uses: ./.github/actions/deploy
         with:
-          apikey: ${{ inputs.apikey }}
+          NAIS_DEPLOY_APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           environment: ${{ inputs.environment }}
