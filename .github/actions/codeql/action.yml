@@ -19,5 +19,3 @@ runs:
     - uses: github/codeql-action/analyze@v2
       with:
         languages: kotlin
-
-
