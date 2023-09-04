@@ -51,7 +51,8 @@ jobs:
     uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
     with:
       nav-environment: dev
-    secrets: inherit
+    secrets:
+      NAIS_DEPLOY_APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
 
 #  generate-draft-release:
 #    name: Generate/update draft release
