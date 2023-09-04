@@ -1,0 +1,17 @@
+name: 'Build and test'
+description: 'Checkout, download java and assemble and test'
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v3
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '19'
+
+    - name: Run gradle assemble
+      uses: gradle/gradle-build-action@v2.8.0
+      with:
+        gradle-version: wrapper
+        arguments: build
