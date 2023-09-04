@@ -25,7 +25,6 @@ env:
 jobs:
   push-to-master:
     name: Checkout, download java, assemble, test and deploy to preprod
-    needs: assemble
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
