@@ -33,7 +33,7 @@ jobs:
           distribution: 'temurin'
           java-version: '19'
       - name: Run gradle build
-        uses: gradle/gradle-build-action@v2.6.1
+        uses: gradle/gradle-build-action@v2.8.0
         id: gradle-build
         with:
           gradle-version: wrapper
@@ -71,6 +71,9 @@ jobs:
   generate-draft-release:
     name: Generate/update draft release
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'write'
+      pull-requests: 'write'
     steps:
       # Drafts your next Release notes as Pull Requests are merged into "master"
       - uses: release-drafter/release-drafter@v5
