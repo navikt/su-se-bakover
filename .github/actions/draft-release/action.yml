@@ -5,10 +5,16 @@
 name: 'Genereate draft release'
 description: 'Appends all PR desctiptions to a draft release (creates/edits). Also adds labels to PRs'
 
+inputs:
+  GITHUB_TOKEN:
+    description: 'The GitHub token to use for authentication'
+    required: true
 runs:
   using: "composite"
   steps:
     - uses: release-drafter/release-drafter@v5
+      with:
+        token: ${{ inputs.GITHUB_TOKEN }}
 
 #  generate-draft-release:
 #    name: Generate/update draft release

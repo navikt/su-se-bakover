@@ -56,10 +56,13 @@ jobs:
       contents: 'write' # needed to create/edit releases
       pull-requests: 'write' # needed to add labels to pull requests
     uses: navikt/su-se-bakover/.github/workflows/reusable-draft-release.yml@master
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   code-ql:
     name: CodeQL
     permissions:
       contents: 'read'
       security-events: 'write'
     uses: navikt/su-se-bakover/.github/workflows/reusable-codeql.yml@master
+
 
