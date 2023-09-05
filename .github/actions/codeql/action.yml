@@ -1,3 +1,5 @@
+# https://github.com/github/codeql-action/blob/main/init/action.yml
+# https://github.com/github/codeql-action/blob/main/analyze/action.yml
 name: 'CodeQL'
 description: 'Run CodeQL analysis'
 runs:
@@ -15,5 +17,3 @@ runs:
         languages: kotlin
         queries: security-and-quality
     - uses: github/codeql-action/analyze@v2
-      with:
-        languages: kotlin
