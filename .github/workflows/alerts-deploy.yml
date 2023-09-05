@@ -6,24 +6,25 @@ on:
     paths:
       - 'alerts.yml'
       - '.github/workflows/alerts-deploy.yml'
+
+permissions: { }
+
 jobs:
-  apply-alerts:
-    name: Apply alerts to cluster
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: deploy to dev
-        uses: nais/deploy/actions/deploy@v1
-        env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-          CLUSTER: dev-fss
-          RESOURCE: alerts.yml
-          VAR: SLACK_ALERTS_CHANNEL=#su_alerts_dev,LOGS_URL=https://logs.adeo.no/goto/10065d0eff34c88407beb46993e0d729
-      - name: deploy to prod
-        uses: nais/deploy/actions/deploy@v1
-        env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-          CLUSTER: prod-fss
-          RESOURCE: alerts.yml
-          VAR: SLACK_ALERTS_CHANNEL=#su_alerts,LOGS_URL=https://logs.adeo.no/goto/6af62b00d098b7ef2d7cb769c53379b5
+  deploy_to_dev:
+    name: Deploy to dev
+    uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
+    with:
+      var: SLACK_ALERTS_CHANNEL=#su_alerts_dev,LOGS_URL=https://logs.adeo.no/goto/10065d0eff34c88407beb46993e0d729
+      cluster: dev-fss
+      resource: alerts.yml
+    secrets:
+      NAIS_DEPLOY_APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+  deploy_to_prod:
+    name: Deploy to prod
+    uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
+    with:
+      var: SLACK_ALERTS_CHANNEL=#su_alerts,LOGS_URL=https://logs.adeo.no/goto/6af62b00d098b7ef2d7cb769c53379b5
+      cluster: prod-fss
+      resource: alerts.yml
+    secrets:
+      NAIS_DEPLOY_APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}

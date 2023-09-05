@@ -3,6 +3,8 @@ name: Submit dependency graph
 on:
   workflow_call:
 
+permissions: {}
+
 jobs:
   submit-dependency-graph:
     runs-on: ubuntu-latest

@@ -6,6 +6,9 @@ on:
       GITHUB_TOKEN:
         required: true
         description: 'secrets.GITHUB_TOKEN'
+
+permissions: {}
+
 jobs:
   draft-release:
     permissions:

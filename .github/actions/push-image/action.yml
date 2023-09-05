@@ -11,6 +11,14 @@ inputs:
   tag:
     required: true
     description: 'github.sha'
+  dockerfile:
+    required: false
+    description: 'Optional dockerfile path, default: Dockerfile
+    default: 'Dockerfile'
+  image_suffix:
+    required: false
+    description: 'Optional, default empty'
+    default: ''
 outputs:
   image:
     description: "Docker image in GAR"
@@ -26,3 +34,6 @@ runs:
         tag: ${{ inputs.tag }}
         identity_provider: ${{ inputs.identity_provider }}
         project_id: ${{ inputs.project_id }}
+        dockerfile: ${{ inputs.dockerfile }}
+        image_suffix: ${{ inputs.image_suffix }}
+

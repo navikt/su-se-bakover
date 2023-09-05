@@ -7,17 +7,24 @@ on:
     branches:
       - master
     paths-ignore:
-      - '.github/workflows/datapakker.yml'
-      - '.github/workflows/codeql.yml'
-      - '.github/workflows/alerts-deploy.yml'
-      - 'alerts.yml'
-      - 'README.md'
-      - 'docker-compose.yml'
+      - '.github/**'
+      - '!.github/workflows/su-se-bakover-master.yml'
+      - '!.github/actions/**'
+      - '.idea/**'
       - 'datapakker/**'
       - 'local-db-scripts/**'
       - 'scripts/**'
       - '.editorconfig'
-      - '.env*'
+      - '*.template'
+      - '.gitignore'
+      - 'alerts.yml'
+      - '*.sh'
+      - 'CODEOWNERS'
+      - 'docker-compose.yml'
+      - 'LICENSE'
+      - '*.md'
+
+permissions: {}
 
 jobs:
   build-test-push-image:
@@ -36,6 +43,7 @@ jobs:
           identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
           project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
           tag: ${{ github.sha }}
+          image_suffix: 'app'
   submit-dependency-graph:
     name: Submit dependency graph
     permissions:
@@ -46,8 +54,9 @@ jobs:
     name: Deploy to preprod
     uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
     with:
-      nav-environment: dev
-      tag: ${{ github.sha }}
+      cluster: dev-fss
+      vars: nais-dev.json
+      var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover:${{ inputs.tag }}
     secrets:
       NAIS_DEPLOY_APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
   draft-release:
