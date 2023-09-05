@@ -15,5 +15,5 @@ runs:
       uses: gradle/gradle-build-action@v2.8.0
       with:
         gradle-version: wrapper
-        arguments: assemble testClasses
+        arguments: clean assemble testClasses --no-build-cache
     - uses: github/codeql-action/analyze@v2
