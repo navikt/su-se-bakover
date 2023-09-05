@@ -7,7 +7,7 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdfInnhold
-import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdfInnhold.Companion.lagPdfInnhold
+import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdfInnhold.Companion.lagPdfInnholdFraFrioppslag
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagForPdf
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagMedFnr
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -377,17 +377,24 @@ internal class SkattDokumentServiceImplTest {
 
         mockedServices(pdfGenerator = pdfGenerator, personOppslag = personOppslag).let {
             it.service.genererSkattePdf(
-                begrunnelse = "begrunnelse",
-                skattegrunnlag = skattegrunnlag,
+                request = GenererSkattPdfRequest(
+                    skattegrunnlag = skattegrunnlag,
+                    begrunnelse = "begrunnelse",
+                    fnr = fnr,
+                    sakstype = Sakstype.UFØRE,
+                    fagsystemId = "fagsystemId",
+                ),
             ).shouldBeRight()
 
             verify(personOppslag).person(argThat { it shouldBe skattegrunnlag.fnr })
             verify(pdfGenerator).genererPdf(
                 argThat<PdfInnhold> {
-                    it shouldBe skattegrunnlag.lagPdfInnhold(
-                        "begrunnelse",
-                        person.navn,
-                        fixedClock,
+                    it shouldBe skattegrunnlag.lagPdfInnholdFraFrioppslag(
+                        fagsystemId = "fagsystemId",
+                        sakstype = Sakstype.UFØRE,
+                        begrunnelse = "begrunnelse",
+                        navn = person.navn,
+                        clock = fixedClock,
                     )
                 },
             )
@@ -416,19 +423,21 @@ internal class SkattDokumentServiceImplTest {
             journalførSkattDokumentService = journalførSkattDokumentService,
         ).let {
             it.service.genererSkattePdfOgJournalfør(
-                GenererSkattPdfOgJournalførRequest(
+                GenererSkattPdfRequest(
                     skattegrunnlag = skattegrunnlag,
                     begrunnelse = "begrunnelse",
                     fnr = fnr,
                     sakstype = Sakstype.ALDER,
-                    fagsystemId = "saksnummer som ikke 'tilhører' oss",
+                    fagsystemId = "fagsystemId",
                 ),
             ).shouldBeRight()
 
             verify(personOppslag).person(argThat { it shouldBe fnr })
             verify(pdfGenerator).genererPdf(
                 argThat<PdfInnhold> {
-                    it shouldBe skattegrunnlag.lagPdfInnhold(
+                    it shouldBe skattegrunnlag.lagPdfInnholdFraFrioppslag(
+                        fagsystemId = "fagsystemId",
+                        sakstype = Sakstype.ALDER,
                         begrunnelse = "begrunnelse",
                         navn = person.navn,
                         clock = fixedClock,
@@ -441,7 +450,7 @@ internal class SkattDokumentServiceImplTest {
                     (it as JournalpostSkattUtenforSak) shouldBe JournalpostSkattUtenforSak(
                         fnr = fnr,
                         sakstype = Sakstype.ALDER,
-                        fagsystemId = "saksnummer som ikke 'tilhører' oss",
+                        fagsystemId = "fagsystemId",
                         dokument = Dokument.UtenMetadata.Informasjon.Annet(
                             id = it.dokument.id,
                             opprettet = fixedTidspunkt,
@@ -449,7 +458,7 @@ internal class SkattDokumentServiceImplTest {
                             generertDokument = pdf,
                             generertDokumentJson = """
                                 {
-                                  "saksnummer":null,
+                                  "saksnummer":"fagsystemId",
                                   "behandlingstype":"Frioppslag",
                                   "behandlingsId":null,
                                   "vedtaksId":null,
@@ -482,7 +491,7 @@ internal class SkattDokumentServiceImplTest {
                                   },
                                   "eps":null,
                                   "begrunnelse":"begrunnelse",
-                                  "erAldersbrev":false
+                                  "erAldersbrev":true
                                 }
                             """.trimIndent().trimWhitespace(),
                         ),

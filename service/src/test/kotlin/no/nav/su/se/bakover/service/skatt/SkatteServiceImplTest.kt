@@ -421,7 +421,7 @@ class SkatteServiceImplTest {
             )
             verify(it.skattDokumentService).genererSkattePdfOgJournalfør(
                 argThat {
-                    it shouldBe GenererSkattPdfOgJournalførRequest(
+                    it shouldBe GenererSkattPdfRequest(
                         skattegrunnlag = it.skattegrunnlag,
                         begrunnelse = "begrunnelse for henting av skatte-data",
                         fnr = fnr,

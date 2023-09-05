@@ -51,6 +51,24 @@ internal fun Route.skattRoutes(skatteService: SkatteService) {
         )
     }
 
+    post("$skattPath/person/{fnr}/forhandsvis") {
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+            call.withFnr { fnr ->
+                call.withBody<FrioppslagRequestBody> { body ->
+                    skatteService.hentOgLagSkattePdf(
+                        request = body.tilFrioppslagSkattRequest(fnr, call.suUserContext.saksbehandler),
+                    ).fold(
+                        ifLeft = { call.svar(it.tilResultat()) },
+                        ifRight = {
+                            call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
+                            call.respondBytes(it.getContent(), ContentType.Application.Pdf)
+                        },
+                    )
+                }
+            }
+        }
+    }
+
     post("$skattPath/person/{fnr}") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withFnr { fnr ->

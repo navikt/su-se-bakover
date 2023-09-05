@@ -7,7 +7,7 @@ import arrow.core.right
 import dokument.domain.Dokument
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdfInnhold
-import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdfInnhold.Companion.lagPdfInnhold
+import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdfInnhold.Companion.lagPdfInnholdFraFrioppslag
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagForPdf
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagMedFnr
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.journalpost.JournalpostSkattUtenforSak
 import no.nav.su.se.bakover.domain.person.PersonOppslag
+import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
 import no.nav.su.se.bakover.domain.skatt.Skattedokument
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
@@ -45,10 +46,14 @@ class SkattDokumentServiceImpl(
     ): Either<KunneIkkeGenerereSkattedokument, Skattedokument> = generer(vedtak).onRight { lagre(it, txc) }
 
     override fun genererSkattePdf(
-        begrunnelse: String,
-        skattegrunnlag: Skattegrunnlag,
+        request: GenererSkattPdfRequest,
     ): Either<KunneIkkeHenteOgLagePdfAvSkattegrunnlag, PdfA> {
-        return lagSkattePdfInnhold(begrunnelse, skattegrunnlag)
+        return lagSkattePdfInnhold(
+            fagsystemId = request.fagsystemId,
+            sakstype = request.sakstype,
+            begrunnelse = request.begrunnelse,
+            skattegrunnlag = request.skattegrunnlag,
+        )
             .getOrElse { return it.left() }
             .let {
                 pdfGenerator.genererPdf(it).getOrElse {
@@ -57,8 +62,13 @@ class SkattDokumentServiceImpl(
             }.right()
     }
 
-    override fun genererSkattePdfOgJournalfør(request: GenererSkattPdfOgJournalførRequest): Either<KunneIkkeGenerereSkattePdfOgJournalføre, PdfA> {
-        return lagSkattePdfInnhold(request.begrunnelse, request.skattegrunnlag)
+    override fun genererSkattePdfOgJournalfør(request: GenererSkattPdfRequest): Either<KunneIkkeGenerereSkattePdfOgJournalføre, PdfA> {
+        return lagSkattePdfInnhold(
+            fagsystemId = request.fagsystemId,
+            sakstype = request.sakstype,
+            begrunnelse = request.begrunnelse,
+            skattegrunnlag = request.skattegrunnlag,
+        )
             .getOrElse { return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedGenereringAvPdf(it).left() }
             .let {
                 val pdf = pdfGenerator.genererPdf(it).getOrElse {
@@ -91,10 +101,14 @@ class SkattDokumentServiceImpl(
     }
 
     private fun lagSkattePdfInnhold(
+        fagsystemId: String,
+        sakstype: Sakstype,
         begrunnelse: String,
         skattegrunnlag: Skattegrunnlag,
     ): Either<KunneIkkeHenteOgLagePdfAvSkattegrunnlag, SkattegrunnlagsPdfInnhold> {
-        return skattegrunnlag.lagPdfInnhold(
+        return skattegrunnlag.lagPdfInnholdFraFrioppslag(
+            fagsystemId = fagsystemId,
+            sakstype = sakstype,
             begrunnelse = begrunnelse,
             navn = personOppslag.person(skattegrunnlag.fnr).getOrElse {
                 return KunneIkkeHenteOgLagePdfAvSkattegrunnlag.FeilVedHentingAvPerson(it).left()

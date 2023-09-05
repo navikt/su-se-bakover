@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.brev.PdfTemplateMedDokumentNavn
 import no.nav.su.se.bakover.domain.brev.SkattegrunnlagPdfTemplate
 import no.nav.su.se.bakover.domain.brev.jsonRequest.PdfInnhold
 import no.nav.su.se.bakover.domain.person.Person
+import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import java.time.Clock
@@ -17,6 +18,7 @@ import java.util.UUID
 data class SkattegrunnlagsPdfInnhold private constructor(
     val saksnummer: String?,
     val behandlingstype: BehandlingstypeForSkattemelding,
+    override val sakstype: Sakstype,
     val behandlingsId: UUID?,
     val vedtaksId: UUID?,
     val hentet: Tidspunkt,
@@ -39,6 +41,7 @@ data class SkattegrunnlagsPdfInnhold private constructor(
         ): SkattegrunnlagsPdfInnhold = SkattegrunnlagsPdfInnhold(
             saksnummer = saksnummer.toString(),
             behandlingstype = BehandlingstypeForSkattemelding.Søknadsbehandling,
+            sakstype = Sakstype.UFØRE,
             behandlingsId = søknadsbehandlingsId,
             vedtaksId = vedtaksId,
             hentet = hentet,
@@ -52,13 +55,16 @@ data class SkattegrunnlagsPdfInnhold private constructor(
             begrunnelse = null,
         )
 
-        fun Skattegrunnlag.lagPdfInnhold(
+        fun Skattegrunnlag.lagPdfInnholdFraFrioppslag(
+            fagsystemId: String,
+            sakstype: Sakstype,
             begrunnelse: String?,
             navn: Person.Navn,
             clock: Clock,
         ): SkattegrunnlagsPdfInnhold = SkattegrunnlagsPdfInnhold(
-            saksnummer = null,
+            saksnummer = fagsystemId,
             behandlingstype = BehandlingstypeForSkattemelding.Frioppslag,
+            sakstype = sakstype,
             behandlingsId = null,
             vedtaksId = null,
             hentet = this.hentetTidspunkt,

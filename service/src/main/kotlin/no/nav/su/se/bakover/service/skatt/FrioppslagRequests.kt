@@ -15,7 +15,7 @@ data class FrioppslagSkattRequest(
     val fagsystemId: String,
 )
 
-data class GenererSkattPdfOgJournalførRequest(
+data class GenererSkattPdfRequest(
     val skattegrunnlag: Skattegrunnlag,
     val begrunnelse: String,
     val fnr: Fnr,

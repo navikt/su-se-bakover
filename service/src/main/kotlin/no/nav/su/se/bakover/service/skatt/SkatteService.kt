@@ -19,5 +19,6 @@ interface SkatteService {
         yearRange: YearRange,
     ): Skattegrunnlag
 
+    fun hentOgLagSkattePdf(request: FrioppslagSkattRequest): Either<KunneIkkeHenteOgLagePdfAvSkattegrunnlag, PdfA>
     fun hentLagOgJournalførSkattePdf(request: FrioppslagSkattRequest): Either<KunneIkkeGenerereSkattePdfOgJournalføre, PdfA>
 }

@@ -55,6 +55,29 @@ class SkatteServiceImpl(
         årSpurtFor = yearRange,
     )
 
+    override fun hentOgLagSkattePdf(request: FrioppslagSkattRequest): Either<KunneIkkeHenteOgLagePdfAvSkattegrunnlag, PdfA> {
+        return Skattegrunnlag(
+            id = UUID.randomUUID(),
+            fnr = request.fnr,
+            hentetTidspunkt = Tidspunkt.now(clock),
+            saksbehandler = request.saksbehandler,
+            årsgrunnlag = skatteClient.hentSamletSkattegrunnlag(request.fnr, request.år)
+                .hentMestGyldigeSkattegrunnlagEllerFeil()
+                .getOrElse { return KunneIkkeHenteOgLagePdfAvSkattegrunnlag.KunneIkkeHenteSkattemelding(it).left() },
+            årSpurtFor = request.år.toRange(),
+        ).let {
+            skattDokumentService.genererSkattePdf(
+                GenererSkattPdfRequest(
+                    skattegrunnlag = it,
+                    begrunnelse = request.begrunnelse,
+                    fnr = request.fnr,
+                    sakstype = request.sakstype,
+                    fagsystemId = request.fagsystemId,
+                ),
+            )
+        }
+    }
+
     override fun hentLagOgJournalførSkattePdf(
         request: FrioppslagSkattRequest,
     ): Either<KunneIkkeGenerereSkattePdfOgJournalføre, PdfA> {
@@ -70,7 +93,7 @@ class SkatteServiceImpl(
         ).let {
             log.info("Hentet skattegrunnlag for sakstype ${request.sakstype} med fagsystemId ${request.fagsystemId}")
             skattDokumentService.genererSkattePdfOgJournalfør(
-                GenererSkattPdfOgJournalførRequest(
+                GenererSkattPdfRequest(
                     skattegrunnlag = it,
                     begrunnelse = request.begrunnelse,
                     fnr = request.fnr,
