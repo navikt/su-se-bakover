@@ -26,7 +26,7 @@ jobs:
           languages: kotlin
           queries: security-and-quality
           setup-python-dependencies: false
-          ram: 5GB
+          ram: 5000
           threads: 2
       - name: Gradle build
         uses: gradle/gradle-build-action@v2.8.0
