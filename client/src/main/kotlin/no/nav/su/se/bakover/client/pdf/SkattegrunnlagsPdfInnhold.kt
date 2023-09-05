@@ -10,19 +10,20 @@ import no.nav.su.se.bakover.domain.brev.SkattegrunnlagPdfTemplate
 import no.nav.su.se.bakover.domain.brev.jsonRequest.PdfInnhold
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
+import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import java.time.Clock
 import java.util.UUID
 
-data class SkattegrunnlagsPdf private constructor(
-    val saksnummer: Saksnummer,
-    // TODO: Denne må vi ta inn når vi begynner med revurdering
-    val behandlingstype: BehandlingstypeForSkattemelding = BehandlingstypeForSkattemelding.Søknadsbehandling,
-    val behandlingsId: UUID,
-    val vedtaksId: UUID,
+data class SkattegrunnlagsPdfInnhold private constructor(
+    val saksnummer: String?,
+    val behandlingstype: BehandlingstypeForSkattemelding,
+    val behandlingsId: UUID?,
+    val vedtaksId: UUID?,
     val hentet: Tidspunkt,
     val opprettet: Tidspunkt,
     val søkers: SkattPdfDataJson,
     val eps: SkattPdfDataJson?,
+    val begrunnelse: String?,
 ) : PdfInnhold() {
     override val pdfTemplate: PdfTemplateMedDokumentNavn = SkattegrunnlagPdfTemplate
 
@@ -35,8 +36,9 @@ data class SkattegrunnlagsPdf private constructor(
             skatt: ÅrsgrunnlagForPdf,
             hentNavn: (Fnr) -> Person.Navn,
             clock: Clock,
-        ): SkattegrunnlagsPdf = SkattegrunnlagsPdf(
-            saksnummer = saksnummer,
+        ): SkattegrunnlagsPdfInnhold = SkattegrunnlagsPdfInnhold(
+            saksnummer = saksnummer.toString(),
+            behandlingstype = BehandlingstypeForSkattemelding.Søknadsbehandling,
             behandlingsId = søknadsbehandlingsId,
             vedtaksId = vedtaksId,
             hentet = hentet,
@@ -47,12 +49,34 @@ data class SkattegrunnlagsPdf private constructor(
                 skatt.søkers.årsgrunnlag.tilPdfJson(),
             ),
             eps = skatt.eps?.let { SkattPdfDataJson(it.fnr, hentNavn(it.fnr), it.årsgrunnlag.tilPdfJson()) },
+            begrunnelse = null,
+        )
+
+        fun Skattegrunnlag.lagPdfInnhold(
+            begrunnelse: String?,
+            navn: Person.Navn,
+            clock: Clock,
+        ): SkattegrunnlagsPdfInnhold = SkattegrunnlagsPdfInnhold(
+            saksnummer = null,
+            behandlingstype = BehandlingstypeForSkattemelding.Frioppslag,
+            behandlingsId = null,
+            vedtaksId = null,
+            hentet = this.hentetTidspunkt,
+            opprettet = Tidspunkt.now(clock),
+            søkers = SkattPdfDataJson(
+                fnr = this.fnr,
+                navn = navn,
+                årsgrunnlag = this.årsgrunnlag.tilPdfJson(),
+            ),
+            eps = null,
+            begrunnelse = begrunnelse,
         )
     }
 }
 
 enum class BehandlingstypeForSkattemelding {
     Søknadsbehandling,
+    Frioppslag,
 }
 
 data class ÅrsgrunnlagMedFnr(

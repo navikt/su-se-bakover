@@ -1,6 +1,9 @@
 package no.nav.su.se.bakover.service.skatt
 
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import arrow.core.Either
+import arrow.core.getOrElse
+import arrow.core.left
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -14,6 +17,7 @@ import java.util.UUID
 
 class SkatteServiceImpl(
     private val skatteClient: Skatteoppslag,
+    private val skattDokumentService: SkattDokumentService,
     val clock: Clock,
 ) : SkatteService {
 
@@ -43,4 +47,24 @@ class SkatteServiceImpl(
             .map { it.hentMestGyldigeSkattegrunnlag() }.toNonEmptyList(),
         årSpurtFor = yearRange,
     )
+
+    override fun hentOgLagPdfAvSamletSkattegrunnlagFor(
+        request: FrioppslagSkattRequest,
+    ): Either<KunneIkkeHenteOgLagePdfAvSkattegrunnlag, PdfA> {
+        return Skattegrunnlag(
+            id = UUID.randomUUID(),
+            fnr = request.fnr,
+            hentetTidspunkt = Tidspunkt.now(clock),
+            saksbehandler = request.saksbehandler,
+            årsgrunnlag = skatteClient.hentSamletSkattegrunnlag(request.fnr, request.år)
+                .hentMestGyldigeSkattegrunnlagEllerFeil()
+                .getOrElse { return KunneIkkeHenteOgLagePdfAvSkattegrunnlag.KunneIkkeHenteSkattemelding(it).left() },
+            årSpurtFor = request.år.toRange(),
+        ).let {
+            skattDokumentService.genererSkattePdf(
+                begrunnelse = request.begrunnelse,
+                skattegrunnlag = it,
+            )
+        }
+    }
 }

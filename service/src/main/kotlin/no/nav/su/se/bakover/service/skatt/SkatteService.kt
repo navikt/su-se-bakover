@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.service.skatt
 
+import arrow.core.Either
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.YearRange
@@ -16,4 +18,6 @@ interface SkatteService {
         saksbehandler: NavIdentBruker.Saksbehandler,
         yearRange: YearRange,
     ): Skattegrunnlag
+
+    fun hentOgLagPdfAvSamletSkattegrunnlagFor(request: FrioppslagSkattRequest): Either<KunneIkkeHenteOgLagePdfAvSkattegrunnlag, PdfA>
 }

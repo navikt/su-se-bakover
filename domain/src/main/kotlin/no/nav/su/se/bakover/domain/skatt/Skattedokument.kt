@@ -21,6 +21,7 @@ sealed interface Skattedokument {
      * til bruk for når man skal lage journalpost, da vi ikke har tatt vare på pdfinnholdet
      */
     val dokumentTittel: String get() = SkattegrunnlagPdfTemplate.tittel()
+    fun tilJournalført(journalpostId: JournalpostId): Journalført
 
     data class Generert(
         override val id: UUID,
@@ -33,11 +34,13 @@ sealed interface Skattedokument {
         override val skattedataHentet: Tidspunkt,
     ) : Skattedokument {
         override val journalpostid: JournalpostId? = null
-        fun tilJournalført(journalpostId: JournalpostId): Journalført = Journalført(this, journalpostId)
+        override fun tilJournalført(journalpostId: JournalpostId): Journalført = Journalført(this, journalpostId)
     }
 
     data class Journalført(
         val generert: Generert,
         override val journalpostid: JournalpostId,
-    ) : Skattedokument by generert
+    ) : Skattedokument by generert {
+        override fun tilJournalført(journalpostId: JournalpostId): Journalført = this
+    }
 }

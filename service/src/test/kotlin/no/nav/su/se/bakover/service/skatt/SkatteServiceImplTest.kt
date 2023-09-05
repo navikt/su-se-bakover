@@ -3,24 +3,29 @@ package no.nav.su.se.bakover.service.skatt
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.common.tid.toRange
 import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅr
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
 import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.skatt.nySamletSkattegrunnlagForÅr
 import no.nav.su.se.bakover.test.skatt.nySkattegrunnlag
 import no.nav.su.se.bakover.test.skatt.nySkattegrunnlagForÅr
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import java.time.Clock
 import java.time.Year
 
@@ -382,11 +387,56 @@ class SkatteServiceImplTest {
         }
     }
 
+    @Test
+    fun `henter skattegrunnlag og lager pdf av den`() {
+        val samletSkattegrunnlag = nySamletSkattegrunnlagForÅr()
+
+        val skatteClient = mock<Skatteoppslag> {
+            on { hentSamletSkattegrunnlag(any(), any()) } doReturn samletSkattegrunnlag
+        }
+
+        val skattDokumentService = mock<SkattDokumentService> {
+            on { genererSkattePdf(any(), any()) } doReturn PdfA("content".toByteArray()).right()
+        }
+
+        mockedServices(
+            skatteClient = skatteClient,
+            skattDokumentService = skattDokumentService,
+        ).let {
+            it.service.hentOgLagPdfAvSamletSkattegrunnlagFor(
+                request = FrioppslagSkattRequest(
+                    fnr = fnr,
+                    år = Year.of(2021),
+                    begrunnelse = "begrunnelse for henting av skatte-data",
+                    saksbehandler = saksbehandler,
+                ),
+            ).shouldBeRight()
+
+            verify(it.skatteClient).hentSamletSkattegrunnlag(
+                argThat { it shouldBe fnr },
+                argThat { it shouldBe Year.of(2021) },
+            )
+            verify(it.skattDokumentService).genererSkattePdf(
+                argThat { it shouldBe "begrunnelse for henting av skatte-data" },
+                argThat { it shouldBe nySkattegrunnlag(id = it.id) },
+            )
+            it.verifyNoMoreInteractions()
+        }
+    }
+
     private data class mockedServices(
         val skatteClient: Skatteoppslag = mock(),
-        val søknadsbehandlingService: SøknadsbehandlingService = mock(),
+        val skattDokumentService: SkattDokumentService = mock(),
         val clock: Clock = fixedClock,
     ) {
-        val service = SkatteServiceImpl(skatteClient = skatteClient, clock = fixedClock)
+        val service = SkatteServiceImpl(
+            skatteClient = skatteClient,
+            skattDokumentService = skattDokumentService,
+            clock = fixedClock,
+        )
+
+        fun verifyNoMoreInteractions() {
+            verifyNoMoreInteractions(skatteClient, skattDokumentService)
+        }
     }
 }

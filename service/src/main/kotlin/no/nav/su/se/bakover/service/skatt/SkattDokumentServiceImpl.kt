@@ -5,14 +5,17 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
-import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdf
+import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdfInnhold
+import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdfInnhold.Companion.lagPdfInnhold
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagForPdf
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagMedFnr
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.skatt.DokumentSkattRepo
 import no.nav.su.se.bakover.domain.skatt.Skattedokument
+import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeGenerereSkattedokument
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import java.time.Clock
@@ -30,13 +33,26 @@ class SkattDokumentServiceImpl(
         txc: TransactionContext,
     ): Either<KunneIkkeGenerereSkattedokument, Skattedokument> = generer(vedtak).onRight { lagre(it, txc) }
 
+    override fun genererSkattePdf(begrunnelse: String, skattegrunnlag: Skattegrunnlag): Either<KunneIkkeHenteOgLagePdfAvSkattegrunnlag, PdfA> {
+        val skattPdfInnhold = skattegrunnlag.lagPdfInnhold(
+            begrunnelse = begrunnelse,
+            navn = personOppslag.person(skattegrunnlag.fnr)
+                .getOrElse { return KunneIkkeHenteOgLagePdfAvSkattegrunnlag.FeilVedHentingAvPerson(it).left() }.navn,
+            clock = clock,
+        )
+
+        return pdfGenerator.genererPdf(skattPdfInnhold).getOrElse {
+            return KunneIkkeHenteOgLagePdfAvSkattegrunnlag.FeilVedPdfGenerering(it).left()
+        }.right()
+    }
+
     private fun generer(vedtak: Stønadsvedtak): Either<KunneIkkeGenerereSkattedokument, Skattedokument> {
         val hentetSkatt = when (vedtak.behandling.eksterneGrunnlag.skatt) {
             is EksterneGrunnlagSkatt.Hentet -> vedtak.behandling.eksterneGrunnlag.skatt as EksterneGrunnlagSkatt.Hentet
             EksterneGrunnlagSkatt.IkkeHentet -> return KunneIkkeGenerereSkattedokument.SkattegrunnlagErIkkeHentetForÅGenereDokument.left()
         }
 
-        return SkattegrunnlagsPdf.lagSkattegrunnlagsPdf(
+        return SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdf(
             saksnummer = vedtak.saksnummer,
             søknadsbehandlingsId = vedtak.behandling.id,
             vedtaksId = vedtak.id,

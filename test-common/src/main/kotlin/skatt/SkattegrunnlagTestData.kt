@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
+import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅr
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅrOgStadie
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.skatt.toYearRange
@@ -57,10 +58,24 @@ fun nySkattegrunnlagMedFeilIÅrsgrunnlag(
     årSpurtFor = årSpurtFor,
 )
 
+fun nySamletSkattegrunnlagForÅr(
+    oppgjør: SamletSkattegrunnlagForÅrOgStadie.Oppgjør = nySamletSkattegrunnlagForÅrOgStadieOppgjør(),
+    utkast: SamletSkattegrunnlagForÅrOgStadie.Utkast = nySamletSkattegrunnlagForÅrOgStadieUtkast(),
+    år: Year = Year.of(2021),
+): SamletSkattegrunnlagForÅr = SamletSkattegrunnlagForÅr(utkast = utkast, oppgjør = oppgjør, år = år)
+
 fun nySamletSkattegrunnlagForÅrOgStadieOppgjør(
     inntektsÅr: Year = Year.of(2021),
     oppslag: Either<KunneIkkeHenteSkattemelding, Skattegrunnlag.SkattegrunnlagForÅr> = nySkattegrunnlagForÅr().right(),
 ): SamletSkattegrunnlagForÅrOgStadie.Oppgjør = SamletSkattegrunnlagForÅrOgStadie.Oppgjør(
+    oppslag = oppslag,
+    inntektsår = inntektsÅr,
+)
+
+fun nySamletSkattegrunnlagForÅrOgStadieUtkast(
+    inntektsÅr: Year = Year.of(2021),
+    oppslag: Either<KunneIkkeHenteSkattemelding, Skattegrunnlag.SkattegrunnlagForÅr> = nySkattegrunnlagForÅr().right(),
+): SamletSkattegrunnlagForÅrOgStadie.Utkast = SamletSkattegrunnlagForÅrOgStadie.Utkast(
     oppslag = oppslag,
     inntektsår = inntektsÅr,
 )
