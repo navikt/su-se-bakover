@@ -9,6 +9,7 @@ on:
     paths-ignore:
       - '.github/**'
       - '!.github/workflows/su-se-bakover-master.yml'
+      - '!.github/workflows/reusable*.yml'
       - '!.github/actions/**'
       - '.idea/**'
       - 'datapakker/**'

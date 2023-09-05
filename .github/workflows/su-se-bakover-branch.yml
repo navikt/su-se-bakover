@@ -12,6 +12,7 @@ on:
       - '.github/**'
       - '!.github/workflows/su-se-bakover-branch.yml'
       - '!.github/actions/build-and-test/**'
+      - '!.github/actions/setup-java/**'
       - '.idea/**'
       - 'datapakker/**'
       - 'local-db-scripts/**'

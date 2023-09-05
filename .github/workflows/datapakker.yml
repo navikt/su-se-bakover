@@ -4,6 +4,8 @@ on:
       - master
     paths:
       - '.github/workflows/datapakker.yml'
+      - '.github/workflows/reusable*.yml'
+      - '.github/actions/**'
       - 'datapakker/**'
       - 'common/**'
 

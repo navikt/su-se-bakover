@@ -6,7 +6,7 @@ on:
 permissions: {}
 
 jobs:
-  draft-release:
+  codeql:
     permissions:
       contents: read
       security-events: write
@@ -14,5 +14,5 @@ jobs:
     name: CodeQL
     steps:
       - uses: actions/checkout@v3
-      - name: Draft release
-        uses: ./.github/actions/draft-release
+      - name: CodeQL
+        uses: ./.github/actions/codeql
