@@ -389,7 +389,53 @@ class SkatteServiceImplTest {
     }
 
     @Test
-    fun `henter skattegrunnlag og lager pdf av den`() {
+    fun `henter skattegrunnlag og lager pdf av den for forhåndsvisning`() {
+        val samletSkattegrunnlag = nySamletSkattegrunnlagForÅr()
+
+        val skatteClient = mock<Skatteoppslag> {
+            on { hentSamletSkattegrunnlag(any(), any()) } doReturn samletSkattegrunnlag
+        }
+
+        val skattDokumentService = mock<SkattDokumentService> {
+            on { genererSkattePdf(any()) } doReturn PdfA("content".toByteArray()).right()
+        }
+
+        mockedServices(
+            skatteClient = skatteClient,
+            skattDokumentService = skattDokumentService,
+        ).let {
+            it.service.hentOgLagSkattePdf(
+                request = FrioppslagSkattRequest(
+                    fnr = fnr,
+                    år = Year.of(2021),
+                    begrunnelse = "begrunnelse for henting av skatte-data",
+                    saksbehandler = saksbehandler,
+                    sakstype = Sakstype.ALDER,
+                    fagsystemId = "29901",
+                ),
+            ).shouldBeRight()
+
+            verify(it.skatteClient).hentSamletSkattegrunnlag(
+                argThat { it shouldBe fnr },
+                argThat { it shouldBe Year.of(2021) },
+            )
+            verify(it.skattDokumentService).genererSkattePdf(
+                argThat {
+                    it shouldBe GenererSkattPdfRequest(
+                        skattegrunnlag = it.skattegrunnlag,
+                        begrunnelse = "begrunnelse for henting av skatte-data",
+                        fnr = fnr,
+                        sakstype = Sakstype.ALDER,
+                        fagsystemId = "29901",
+                    )
+                },
+            )
+            it.verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `henter skattegrunnlag og lager pdf av den for journalføring`() {
         val samletSkattegrunnlag = nySamletSkattegrunnlagForÅr()
 
         val skatteClient = mock<Skatteoppslag> {
