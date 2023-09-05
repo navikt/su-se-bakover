@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.web.routes.revurdering
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.readBytes
 import io.ktor.http.ContentType
@@ -33,7 +32,6 @@ import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
 internal class BrevutkastForRevurderingRouteTest {
-    private val validBody = """{ "fritekst": "someFritekst"}"""
 
     private val revurderingId = UUID.randomUUID()
 
@@ -42,12 +40,10 @@ internal class BrevutkastForRevurderingRouteTest {
         testApplication {
             application { testSusebakoverWithMockedDb() }
             defaultRequest(
-                HttpMethod.Post,
+                HttpMethod.Get,
                 "/saker/$sakId/revurderinger/$revurderingId/brevutkast",
                 listOf(Brukerrolle.Veileder),
-            ) {
-                setBody(validBody)
-            }.apply {
+            ).apply {
                 status shouldBe HttpStatusCode.Forbidden
                 JSONAssert.assertEquals(
                     """
@@ -70,19 +66,17 @@ internal class BrevutkastForRevurderingRouteTest {
             on { fnr } doReturn mock()
         }
         val revurderingServiceMock = mock<RevurderingService> {
-            on { lagBrevutkastForRevurdering(any(), any()) } doReturn PdfA(pdfAsBytes).right()
+            on { lagBrevutkastForRevurdering(any()) } doReturn PdfA(pdfAsBytes).right()
             on { hentRevurdering(any()) } doReturn revurderingMock
         }
 
         testApplication {
             application { testSusebakoverWithMockedDb(services = TestServicesBuilder.services(revurdering = revurderingServiceMock)) }
             defaultRequest(
-                HttpMethod.Post,
+                HttpMethod.Get,
                 "/saker/$sakId/revurderinger/$revurderingId/brevutkast",
                 listOf(Brukerrolle.Saksbehandler),
-            ) {
-                setBody(validBody)
-            }.apply {
+            ).apply {
                 status shouldBe HttpStatusCode.OK
                 this.readBytes() shouldBe pdfAsBytes
                 this.contentType() shouldBe ContentType.Application.Pdf
@@ -170,19 +164,17 @@ internal class BrevutkastForRevurderingRouteTest {
         expectedJsonResponse: String,
     ) {
         val revurderingServiceMock = mock<RevurderingService> {
-            on { lagBrevutkastForRevurdering(any(), any()) } doReturn error.left()
+            on { lagBrevutkastForRevurdering(any()) } doReturn error.left()
             on { hentRevurdering(any()) } doReturn mock<OpprettetRevurdering>()
         }
 
         testApplication {
             application { testSusebakoverWithMockedDb(services = TestServicesBuilder.services(revurdering = revurderingServiceMock)) }
             defaultRequest(
-                HttpMethod.Post,
+                HttpMethod.Get,
                 "/saker/$sakId/revurderinger/$revurderingId/brevutkast",
                 listOf(Brukerrolle.Saksbehandler),
-            ) {
-                setBody(validBody)
-            }.apply {
+            ).apply {
                 status shouldBe expectedStatusCode
                 JSONAssert.assertEquals(
                     expectedJsonResponse,

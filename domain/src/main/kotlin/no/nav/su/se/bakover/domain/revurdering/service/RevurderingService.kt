@@ -99,7 +99,6 @@ interface RevurderingService {
 
     fun lagBrevutkastForRevurdering(
         revurderingId: UUID,
-        fritekst: String?,
     ): Either<KunneIkkeLageBrevutkastForRevurdering, PdfA>
 
     fun iverksett(

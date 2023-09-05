@@ -50,7 +50,6 @@ internal class LagBrevutkastForRevurderingTest {
         ).let {
             it.revurderingService.lagBrevutkastForRevurdering(
                 revurderingId = revurderingId,
-                fritekst = "",
             ) shouldBe pdfATom().right()
 
             inOrder(
@@ -80,7 +79,6 @@ internal class LagBrevutkastForRevurderingTest {
         ).let {
             it.revurderingService.lagBrevutkastForRevurdering(
                 revurderingId = revurderingId,
-                fritekst = "",
             ) shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(
                 KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
                     FeilVedHentingAvInformasjon.KunneIkkeHentePerson(
@@ -117,7 +115,6 @@ internal class LagBrevutkastForRevurderingTest {
         ).let {
             it.revurderingService.lagBrevutkastForRevurdering(
                 revurderingId = revurderingId,
-                fritekst = "",
             ) shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(
                 KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
                     FeilVedHentingAvInformasjon.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(
@@ -149,7 +146,6 @@ internal class LagBrevutkastForRevurderingTest {
         ).let {
             it.revurderingService.lagBrevutkastForRevurdering(
                 revurderingId = revurderingId,
-                fritekst = "",
             ) shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(
                 KunneIkkeLageDokument.FeilVedGenereringAvPdf,
             ).left()
@@ -179,7 +175,6 @@ internal class LagBrevutkastForRevurderingTest {
             ).let {
                 it.revurderingService.lagBrevutkastForRevurdering(
                     revurderingId = revurderingId,
-                    fritekst = "",
                 )
 
                 verify(it.revurderingRepo).hent(argThat { it shouldBe opprettetRevurdering.id })
@@ -205,7 +200,6 @@ internal class LagBrevutkastForRevurderingTest {
                 },
             ).revurderingService.lagBrevutkastForRevurdering(
                 revurderingId = revurderingId,
-                fritekst = "",
             )
         }
     }

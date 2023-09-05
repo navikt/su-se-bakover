@@ -869,7 +869,6 @@ class RevurderingServiceImpl(
 
     override fun lagBrevutkastForRevurdering(
         revurderingId: UUID,
-        fritekst: String?,
     ): Either<KunneIkkeLageBrevutkastForRevurdering, PdfA> {
         return hent(revurderingId)
             .mapLeft { KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering }

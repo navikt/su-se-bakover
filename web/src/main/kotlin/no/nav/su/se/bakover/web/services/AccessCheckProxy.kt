@@ -772,10 +772,9 @@ open class AccessCheckProxy(
 
                 override fun lagBrevutkastForRevurdering(
                     revurderingId: UUID,
-                    fritekst: String?,
                 ): Either<KunneIkkeLageBrevutkastForRevurdering, PdfA> {
                     assertHarTilgangTilRevurdering(revurderingId)
-                    return services.revurdering.lagBrevutkastForRevurdering(revurderingId, fritekst)
+                    return services.revurdering.lagBrevutkastForRevurdering(revurderingId)
                 }
 
                 override fun iverksett(
