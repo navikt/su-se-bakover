@@ -68,11 +68,3 @@ jobs:
     uses: navikt/su-se-bakover/.github/workflows/reusable-draft-release.yml@master
     secrets:
       github-token: ${{ secrets.GITHUB_TOKEN }}
-  code-ql:
-    name: CodeQL
-    permissions:
-      contents: 'read'
-      security-events: 'write'
-    uses: navikt/su-se-bakover/.github/workflows/reusable-codeql.yml@master
-
-
