@@ -100,6 +100,7 @@ internal class PdfInnholdTest {
                     "etternavn": "Strømøy",
                     "saksnummer": 2021
                 },
+                "sakstype": "UFØRE",
                 "fradato": "01.01.2020",
                 "tildato": "01.01.2020",
                 "forventetInntektStørreEnn0": true,
@@ -163,6 +164,7 @@ internal class PdfInnholdTest {
                   "etternavn": "Strømøy",
                   "saksnummer": 2021
               },
+              "sakstype": "UFØRE",
               "erAldersbrev": false,
               "datoSøknadOpprettet": "01.01.2020",
               "trukketDato": "01.02.2020",
@@ -222,6 +224,7 @@ internal class PdfInnholdTest {
                     "etternavn": "Strømøy",
                     "saksnummer": 2021
                 },
+                "sakstype": "UFØRE",
                 "harEktefelle": true,
                 "harFradrag": false,
                 "beregningsperioder": [{
@@ -290,6 +293,7 @@ internal class PdfInnholdTest {
                     "etternavn": "Strømøy",
                     "saksnummer": 12345676
                 },
+                "sakstype": "UFØRE",
                 "erAldersbrev": false,
                 "saksbehandlerNavn": "saks",
                 "fritekst": "fri",
@@ -330,6 +334,7 @@ internal class PdfInnholdTest {
                     "etternavn": "Strømøy",
                     "saksnummer": 12345676
                 },
+                "sakstype": "UFØRE",
                 "erAldersbrev": false,
                 "saksbehandlerNavn": "saks",
                 "fritekst": "fri",

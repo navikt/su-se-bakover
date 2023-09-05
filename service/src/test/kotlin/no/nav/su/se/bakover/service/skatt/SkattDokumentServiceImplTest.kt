@@ -447,7 +447,7 @@ internal class SkattDokumentServiceImplTest {
 
             verify(journalførSkattDokumentService).journalfør(
                 argThat {
-                    (it as JournalpostSkattUtenforSak) shouldBe JournalpostSkattUtenforSak(
+                    (it as JournalpostSkattUtenforSak) shouldBe JournalpostSkattUtenforSak.create(
                         fnr = fnr,
                         sakstype = Sakstype.ALDER,
                         fagsystemId = "fagsystemId",
@@ -460,6 +460,7 @@ internal class SkattDokumentServiceImplTest {
                                 {
                                   "saksnummer":"fagsystemId",
                                   "behandlingstype":"Frioppslag",
+                                  "sakstype": "ALDER",
                                   "behandlingsId":null,
                                   "vedtaksId":null,
                                   "hentet":"2021-01-01T01:02:03.456789Z",

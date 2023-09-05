@@ -79,7 +79,7 @@ class SkattDokumentServiceImpl(
                 log.info("Genererte skatte-pdf for sakstype ${request.sakstype} med fagsystemId ${request.fagsystemId}")
 
                 journalførSkattDokumentService.journalfør(
-                    JournalpostSkattUtenforSak(
+                    JournalpostSkattUtenforSak.tryCreate(
                         fnr = request.fnr,
                         sakstype = request.sakstype,
                         fagsystemId = request.fagsystemId,
@@ -90,7 +90,9 @@ class SkattDokumentServiceImpl(
                             generertDokument = pdf,
                             generertDokumentJson = it.toJson(),
                         ),
-                    ),
+                    ).getOrElse {
+                        return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedJournalpostUtenforSak(it).left()
+                    },
                 ).mapLeft {
                     KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedJournalføring(it)
                 }.map {

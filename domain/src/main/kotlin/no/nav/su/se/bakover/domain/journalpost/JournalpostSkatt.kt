@@ -1,11 +1,17 @@
 package no.nav.su.se.bakover.domain.journalpost
 
+import arrow.core.Either
+import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import dokument.domain.Dokument
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.skatt.Skattedokument
+import org.jetbrains.annotations.TestOnly
+import java.lang.IllegalArgumentException
 
 /**
  * kan brukes som mal for 'Notat' poster i Joark.
@@ -27,7 +33,7 @@ data class JournalpostSkattForSak(
     }
 }
 
-data class JournalpostSkattUtenforSak(
+data class JournalpostSkattUtenforSak private constructor(
     override val fnr: Fnr,
     override val sakstype: Sakstype,
     /**
@@ -35,4 +41,37 @@ data class JournalpostSkattUtenforSak(
      */
     override val fagsystemId: String,
     val dokument: Dokument.UtenMetadata,
-) : JournalpostUtenforSakCommand
+) : JournalpostUtenforSakCommand {
+
+    companion object {
+        @TestOnly
+        fun create(
+            fnr: Fnr,
+            sakstype: Sakstype,
+            fagsystemId: String,
+            dokument: Dokument.UtenMetadata,
+        ): JournalpostSkattUtenforSak {
+            return tryCreate(fnr, sakstype, fagsystemId, dokument).getOrElse {
+                throw IllegalArgumentException("Valideringsfeil i JournalpostSkattUtenforSak - ")
+            }
+        }
+
+        fun tryCreate(
+            fnr: Fnr,
+            sakstype: Sakstype,
+            fagsystemId: String,
+            dokument: Dokument.UtenMetadata,
+        ): Either<KunneIkkeLageJournalpostUtenforSak, JournalpostSkattUtenforSak> {
+            if (fagsystemId.isBlank()) {
+                return KunneIkkeLageJournalpostUtenforSak.FagsystemIdErTom.left()
+            }
+
+            return JournalpostSkattUtenforSak(
+                fnr,
+                sakstype,
+                fagsystemId,
+                dokument,
+            ).right()
+        }
+    }
+}

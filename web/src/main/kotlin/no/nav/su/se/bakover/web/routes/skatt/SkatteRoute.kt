@@ -14,12 +14,14 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withFnr
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.brev.KunneIkkeJournalføreDokument
+import no.nav.su.se.bakover.domain.journalpost.KunneIkkeLageJournalpostUtenforSak
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.service.skatt.FrioppslagSkattRequest
@@ -38,6 +40,9 @@ internal fun Route.skattRoutes(skatteService: SkatteService) {
         val sakstype: String,
         val fagsystemId: String,
     ) {
+        /**
+         * fagsystemId & begrunnelse kan være tom string - Dette er ment for forhåndsvisning
+         */
         fun tilFrioppslagSkattRequest(
             fnr: Fnr,
             saksbehandler: NavIdentBruker.Saksbehandler,
@@ -92,6 +97,16 @@ internal fun KunneIkkeGenerereSkattePdfOgJournalføre.tilResultat(): Resultat = 
     is KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedGenereringAvPdf -> this.originalFeil.tilResultat()
     is KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedHentingAvSkattemelding -> this.originalFeil.tilResultat()
     is KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedJournalføring -> this.originalFeil.tilResultat()
+    is KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedJournalpostUtenforSak -> this.originalFeil.tilResultat()
+}
+
+internal fun KunneIkkeLageJournalpostUtenforSak.tilResultat(): Resultat {
+    return when (this) {
+        KunneIkkeLageJournalpostUtenforSak.FagsystemIdErTom -> HttpStatusCode.BadRequest.errorJson(
+            "Ugyldig data - FagsystemId er tom",
+            "fagsystemId_er_tom",
+        )
+    }
 }
 
 internal fun KunneIkkeJournalføreDokument.tilResultat(): Resultat = when (this) {

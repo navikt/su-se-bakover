@@ -45,7 +45,6 @@ abstract class PdfInnhold {
     // TODO CHM 05.05.2021: Se på å samle mer av det som er felles for brevinnholdene, f.eks. personalia
 
     // TODO ØH 21.06.2022: Denne bør være abstract på sikt, og settes for alle brev eksplisitt
-    @get:JsonIgnore
     open val sakstype: Sakstype = Sakstype.UFØRE
 
     @JsonProperty
