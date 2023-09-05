@@ -10,7 +10,7 @@ jobs:
   verify-master-is-ancestor:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - run: | # git merge-base returns 0 when master is ancestor, 1 if it is not (other positive numbers on error)
@@ -36,7 +36,7 @@ jobs:
       contents: read
       id-token: write # needed for push-image
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build and test
         uses: ./.github/actions/build-and-test
       - name: Push image
