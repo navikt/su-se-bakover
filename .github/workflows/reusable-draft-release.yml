@@ -3,7 +3,7 @@ name: Draft release
 on:
   workflow_call:
     secrets:
-      GITHUB_TOKEN:
+      github-token:
         required: true
         description: 'secrets.GITHUB_TOKEN'
 
@@ -21,4 +21,4 @@ jobs:
       - name: Draft release
         uses: ./.github/actions/draft-release
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.github-token }}

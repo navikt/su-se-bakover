@@ -37,7 +37,7 @@ jobs:
     uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
     needs: build-test-push-image
     with:
-      tag: ${{ github.sha }}
+      var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-datapakker-job:${{ inputs.tag }}
       cluster: dev-fss
       vars: datapakker/soknad/nais-dev.json
       resource: datapakker/soknad/nais.yml
@@ -49,7 +49,7 @@ jobs:
     uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
     needs: build-test-push-image
     with:
-      tag: ${{ github.sha }}
+      var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-datapakker-job:${{ inputs.tag }}
       cluster: prod-fss
       vars: datapakker/soknad/nais-prod.json
       resource: datapakker/soknad/nais.yml

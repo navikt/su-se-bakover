@@ -11,7 +11,7 @@ jobs:
     name: Deploy to prod
     uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
     with:
-      var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover:${{ inputs.tag }}
+      var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-app:${{ inputs.tag }}
       cluster: prod-fss
       vars: nais-prod.json
     secrets:

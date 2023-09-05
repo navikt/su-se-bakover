@@ -2,19 +2,19 @@
 #      contents: 'write' # needed to create/edit releases
 #      pull-requests: 'write' # needed to add labels to pull requests
 
-name: 'Genereate draft release'
-description: 'Appends all PR desctiptions to a draft release (creates/edits). Also adds labels to PRs'
+name: 'Draft release'
+description: 'Appends all PR descriptions to a draft release (creates/edits). Also adds labels to PRs'
 
 inputs:
-  GITHUB_TOKEN:
+  github-token:
     description: 'The GitHub token to use for authentication'
     required: true
 runs:
   using: "composite"
   steps:
     - uses: release-drafter/release-drafter@v5
-      with:
-        token: ${{ inputs.GITHUB_TOKEN }}
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
 
 #  generate-draft-release:
 #    name: Generate/update draft release
