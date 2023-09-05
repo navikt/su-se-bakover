@@ -21,6 +21,8 @@ import no.nav.su.se.bakover.domain.skatt.Skattedokument
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeGenerereSkattedokument
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
 
@@ -34,6 +36,8 @@ class SkattDokumentServiceImpl(
     private val journalførSkattDokumentService: JournalførSkattDokumentService,
     private val clock: Clock,
 ) : SkattDokumentService {
+
+    private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     override fun genererOgLagre(
         vedtak: Stønadsvedtak,
@@ -62,6 +66,8 @@ class SkattDokumentServiceImpl(
                         KunneIkkeHenteOgLagePdfAvSkattegrunnlag.FeilVedPdfGenerering(it),
                     ).left()
                 }
+                log.info("Genererte skatte-pdf for sakstype ${request.sakstype} med fagsystemId ${request.fagsystemId}")
+
                 journalførSkattDokumentService.journalfør(
                     JournalpostSkattUtenforSak(
                         fnr = request.fnr,
@@ -75,7 +81,12 @@ class SkattDokumentServiceImpl(
                             generertDokumentJson = it.toJson(),
                         ),
                     ),
-                ).mapLeft { KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedJournalføring(it) }.map { pdf }
+                ).mapLeft {
+                    KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedJournalføring(it)
+                }.map {
+                    log.info("Journalførte skatte-pdf for sakstype ${request.sakstype} med fagsystemId ${request.fagsystemId}. Fikk journalpostId $it")
+                    pdf
+                }
             }
     }
 

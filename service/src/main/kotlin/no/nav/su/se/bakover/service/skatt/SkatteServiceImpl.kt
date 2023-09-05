@@ -11,6 +11,8 @@ import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.common.tid.toRange
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.Year
 import java.util.UUID
@@ -23,6 +25,8 @@ class SkatteServiceImpl(
     private val skattDokumentService: SkattDokumentService,
     val clock: Clock,
 ) : SkatteService {
+
+    private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     override fun hentSamletSkattegrunnlag(
         fnr: Fnr,
@@ -64,6 +68,7 @@ class SkatteServiceImpl(
                 .getOrElse { return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedHentingAvSkattemelding(it).left() },
             årSpurtFor = request.år.toRange(),
         ).let {
+            log.info("Hentet skattegrunnlag for sakstype ${request.sakstype} med fagsystemId ${request.fagsystemId}")
             skattDokumentService.genererSkattePdfOgJournalfør(
                 GenererSkattPdfOgJournalførRequest(
                     skattegrunnlag = it,
