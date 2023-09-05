@@ -50,15 +50,16 @@ jobs:
       tag: ${{ github.sha }}
     secrets:
       NAIS_DEPLOY_APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+  draft-release:
+    name: Draft release
+    permissions:
+      contents: 'write' # needed to create/edit releases
+      pull-requests: 'write' # needed to add labels to pull requests
+    uses: navikt/su-se-bakover/.github/workflows/reusable-draft-release.yml@master
+  code-ql:
+    name: CodeQL
+    permissions:
+      contents: 'read'
+      security-events: 'write'
+    uses: navikt/su-se-bakover/.github/workflows/reusable-codeql.yml@master
 
-#  generate-draft-release:
-#    name: Generate/update draft release
-#    runs-on: ubuntu-latest
-#    permissions:
-#      contents: 'write' # needed to create/edit releases
-#      pull-requests: 'write' # needed to add labels to pull requests
-#    steps:
-#      # Drafts your next Release notes as Pull Requests are merged into "master"
-#      - uses: release-drafter/release-drafter@v5
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

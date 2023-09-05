@@ -7,7 +7,7 @@ runs:
   steps:
     - uses: actions/checkout@v3
     - uses: ./.github/actions/setup-java
-    - name: Run gradle assemble
+    - name: Run gradle assemble testClasses
       uses: gradle/gradle-build-action@v2.8.0
       with:
         gradle-version: wrapper

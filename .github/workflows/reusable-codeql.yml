@@ -1,0 +1,16 @@
+name: CodeQL
+
+on:
+  workflow_call:
+
+jobs:
+  draft-release:
+    permissions:
+      contents: read
+      security-events: write
+    runs-on: ubuntu-latest
+    name: CodeQL
+    steps:
+      - uses: actions/checkout@v3
+      - name: Draft release
+        uses: ./.github/actions/draft-release
