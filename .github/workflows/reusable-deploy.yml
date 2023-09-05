@@ -32,10 +32,10 @@ permissions: {}
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    name: Deploy to ${{ inputs.nav-environment }}
+    name: Deploy to ${{ inputs.cluster }}
     steps:
       - uses: actions/checkout@v3
-      - name: Deploy to ${{ inputs.nav-environment }}
+      - name: Deploy to ${{ inputs.cluster }}
         uses: ./.github/actions/deploy
         with:
           NAIS_DEPLOY_APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
