@@ -13,7 +13,7 @@ inputs:
     description: 'github.sha'
   dockerfile:
     required: false
-    description: 'Optional dockerfile path, default: Dockerfile
+    description: 'Optional dockerfile path, default: Dockerfile'
     default: 'Dockerfile'
   image_suffix:
     required: false
