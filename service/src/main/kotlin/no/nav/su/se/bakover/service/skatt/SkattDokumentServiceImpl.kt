@@ -7,7 +7,6 @@ import arrow.core.right
 import dokument.domain.Dokument
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdfInnhold
-import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdfInnhold.Companion.lagPdfInnholdFraFrioppslag
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagForPdf
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagMedFnr
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -52,7 +51,8 @@ class SkattDokumentServiceImpl(
             fagsystemId = request.fagsystemId,
             sakstype = request.sakstype,
             begrunnelse = request.begrunnelse,
-            skattegrunnlag = request.skattegrunnlag,
+            skattegrunnlagSøker = request.skattegrunnlagSøkers,
+            skattegrunnlagEps = request.skattegrunnlagEps,
         )
             .getOrElse { return it.left() }
             .let {
@@ -67,7 +67,8 @@ class SkattDokumentServiceImpl(
             fagsystemId = request.fagsystemId,
             sakstype = request.sakstype,
             begrunnelse = request.begrunnelse,
-            skattegrunnlag = request.skattegrunnlag,
+            skattegrunnlagSøker = request.skattegrunnlagSøkers,
+            skattegrunnlagEps = request.skattegrunnlagEps,
         )
             .getOrElse { return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedGenereringAvPdf(it).left() }
             .let {
@@ -80,7 +81,7 @@ class SkattDokumentServiceImpl(
 
                 journalførSkattDokumentService.journalfør(
                     JournalpostSkattUtenforSak.tryCreate(
-                        fnr = request.fnr,
+                        fnr = request.skattegrunnlagSøkers.fnr,
                         sakstype = request.sakstype,
                         fagsystemId = request.fagsystemId,
                         dokument = Dokument.UtenMetadata.Informasjon.Annet(
@@ -106,17 +107,24 @@ class SkattDokumentServiceImpl(
         fagsystemId: String,
         sakstype: Sakstype,
         begrunnelse: String,
-        skattegrunnlag: Skattegrunnlag,
+        skattegrunnlagSøker: Skattegrunnlag,
+        skattegrunnlagEps: Skattegrunnlag?,
     ): Either<KunneIkkeHenteOgLagePdfAvSkattegrunnlag, SkattegrunnlagsPdfInnhold> {
-        return skattegrunnlag.lagPdfInnholdFraFrioppslag(
+        return SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdfInnholdFraFrioppslag(
             fagsystemId = fagsystemId,
             sakstype = sakstype,
             begrunnelse = begrunnelse,
-            navn = personOppslag.person(skattegrunnlag.fnr).getOrElse {
-                return KunneIkkeHenteOgLagePdfAvSkattegrunnlag.FeilVedHentingAvPerson(it).left()
-            }.navn,
+            skattegrunnlagSøker = skattegrunnlagSøker,
+            skattegrunnlagEps = skattegrunnlagEps,
+            hentNavn = {
+                personOppslag.person(it).map { it.navn }
+            },
             clock = clock,
-        ).right()
+        ).map {
+            it
+        }.mapLeft {
+            KunneIkkeHenteOgLagePdfAvSkattegrunnlag.FeilVedHentingAvPerson(it)
+        }
     }
 
     private fun generer(vedtak: Stønadsvedtak): Either<KunneIkkeGenerereSkattedokument, Skattedokument> {

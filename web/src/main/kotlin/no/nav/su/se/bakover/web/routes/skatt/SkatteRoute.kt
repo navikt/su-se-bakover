@@ -35,6 +35,7 @@ internal const val skattPath = "/skatt"
 
 internal fun Route.skattRoutes(skatteService: SkatteService) {
     data class FrioppslagRequestBody(
+        val epsFnr: String?,
         val år: Int,
         val begrunnelse: String,
         val sakstype: String,
@@ -48,6 +49,7 @@ internal fun Route.skattRoutes(skatteService: SkatteService) {
             saksbehandler: NavIdentBruker.Saksbehandler,
         ): FrioppslagSkattRequest = FrioppslagSkattRequest(
             fnr = fnr,
+            epsFnr = if (epsFnr != null) Fnr(epsFnr) else null,
             år = Year.of(år),
             begrunnelse = begrunnelse,
             saksbehandler = saksbehandler,

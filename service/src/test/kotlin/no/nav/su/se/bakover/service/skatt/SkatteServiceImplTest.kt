@@ -407,6 +407,7 @@ class SkatteServiceImplTest {
             it.service.hentOgLagSkattePdf(
                 request = FrioppslagSkattRequest(
                     fnr = fnr,
+                    epsFnr = null,
                     år = Year.of(2021),
                     begrunnelse = "begrunnelse for henting av skatte-data",
                     saksbehandler = saksbehandler,
@@ -422,9 +423,9 @@ class SkatteServiceImplTest {
             verify(it.skattDokumentService).genererSkattePdf(
                 argThat {
                     it shouldBe GenererSkattPdfRequest(
-                        skattegrunnlag = it.skattegrunnlag,
+                        skattegrunnlagSøkers = it.skattegrunnlagSøkers,
+                        skattegrunnlagEps = null,
                         begrunnelse = "begrunnelse for henting av skatte-data",
-                        fnr = fnr,
                         sakstype = Sakstype.ALDER,
                         fagsystemId = "29901",
                     )
@@ -453,6 +454,7 @@ class SkatteServiceImplTest {
             it.service.hentLagOgJournalførSkattePdf(
                 request = FrioppslagSkattRequest(
                     fnr = fnr,
+                    epsFnr = null,
                     år = Year.of(2021),
                     begrunnelse = "begrunnelse for henting av skatte-data",
                     saksbehandler = saksbehandler,
@@ -468,9 +470,9 @@ class SkatteServiceImplTest {
             verify(it.skattDokumentService).genererSkattePdfOgJournalfør(
                 argThat {
                     it shouldBe GenererSkattPdfRequest(
-                        skattegrunnlag = it.skattegrunnlag,
+                        skattegrunnlagSøkers = it.skattegrunnlagSøkers,
+                        skattegrunnlagEps = null,
                         begrunnelse = "begrunnelse for henting av skatte-data",
-                        fnr = fnr,
                         sakstype = Sakstype.ALDER,
                         fagsystemId = "29901",
                     )

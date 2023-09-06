@@ -8,6 +8,7 @@ import java.time.Year
 
 data class FrioppslagSkattRequest(
     val fnr: Fnr,
+    val epsFnr: Fnr?,
     val år: Year,
     val begrunnelse: String,
     val saksbehandler: NavIdentBruker.Saksbehandler,
@@ -16,9 +17,9 @@ data class FrioppslagSkattRequest(
 )
 
 data class GenererSkattPdfRequest(
-    val skattegrunnlag: Skattegrunnlag,
+    val skattegrunnlagSøkers: Skattegrunnlag,
+    val skattegrunnlagEps: Skattegrunnlag?,
     val begrunnelse: String,
-    val fnr: Fnr,
     val sakstype: Sakstype,
     val fagsystemId: String,
 )

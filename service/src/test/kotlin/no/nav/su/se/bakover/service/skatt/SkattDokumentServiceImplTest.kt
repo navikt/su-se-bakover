@@ -7,7 +7,7 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdfInnhold
-import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdfInnhold.Companion.lagPdfInnholdFraFrioppslag
+import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdfInnhold.Companion.lagSkattegrunnlagsPdfInnholdFraFrioppslag
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagForPdf
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagMedFnr
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.bosituasjonEpsUnder67
 import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
 import no.nav.su.se.bakover.test.eksterneGrunnlag.nyEksternGrunnlagHentetFeil
+import no.nav.su.se.bakover.test.epsFnr
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
@@ -378,9 +379,9 @@ internal class SkattDokumentServiceImplTest {
         mockedServices(pdfGenerator = pdfGenerator, personOppslag = personOppslag).let {
             it.service.genererSkattePdf(
                 request = GenererSkattPdfRequest(
-                    skattegrunnlag = skattegrunnlag,
+                    skattegrunnlagSøkers = skattegrunnlag,
+                    skattegrunnlagEps = null,
                     begrunnelse = "begrunnelse",
-                    fnr = fnr,
                     sakstype = Sakstype.UFØRE,
                     fagsystemId = "fagsystemId",
                 ),
@@ -389,11 +390,13 @@ internal class SkattDokumentServiceImplTest {
             verify(personOppslag).person(argThat { it shouldBe skattegrunnlag.fnr })
             verify(pdfGenerator).genererPdf(
                 argThat<PdfInnhold> {
-                    it shouldBe skattegrunnlag.lagPdfInnholdFraFrioppslag(
+                    it.right() shouldBe lagSkattegrunnlagsPdfInnholdFraFrioppslag(
                         fagsystemId = "fagsystemId",
                         sakstype = Sakstype.UFØRE,
                         begrunnelse = "begrunnelse",
-                        navn = person.navn,
+                        skattegrunnlagSøker = skattegrunnlag,
+                        skattegrunnlagEps = null,
+                        hentNavn = { _ -> person.navn.right() },
                         clock = fixedClock,
                     )
                 },
@@ -403,9 +406,10 @@ internal class SkattDokumentServiceImplTest {
     }
 
     @Test
-    fun `lager skatte pdf, og journalfører den`() {
+    fun `lager skatte pdf, med eps, og journalfører den`() {
         val pdf = pdfATom()
         val skattegrunnlag = nySkattegrunnlag()
+        val skattegrunnlagEps = nySkattegrunnlag(fnr = epsFnr)
         val person = person()
         val pdfGenerator = mock<PdfGenerator> {
             on { genererPdf(any<PdfInnhold>()) } doReturn pdf.right()
@@ -424,22 +428,28 @@ internal class SkattDokumentServiceImplTest {
         ).let {
             it.service.genererSkattePdfOgJournalfør(
                 GenererSkattPdfRequest(
-                    skattegrunnlag = skattegrunnlag,
+                    skattegrunnlagSøkers = skattegrunnlag,
+                    skattegrunnlagEps = skattegrunnlagEps,
                     begrunnelse = "begrunnelse",
-                    fnr = fnr,
                     sakstype = Sakstype.ALDER,
                     fagsystemId = "fagsystemId",
                 ),
             ).shouldBeRight()
 
-            verify(personOppslag).person(argThat { it shouldBe fnr })
+            val captor = argumentCaptor<Fnr>()
+            verify(personOppslag, times(2)).person(captor.capture())
+            captor.allValues.size shouldBe 2
+            captor.firstValue shouldBe person.ident.fnr
+            captor.lastValue shouldBe epsFnr
             verify(pdfGenerator).genererPdf(
                 argThat<PdfInnhold> {
-                    it shouldBe skattegrunnlag.lagPdfInnholdFraFrioppslag(
+                    it.right() shouldBe lagSkattegrunnlagsPdfInnholdFraFrioppslag(
                         fagsystemId = "fagsystemId",
                         sakstype = Sakstype.ALDER,
                         begrunnelse = "begrunnelse",
-                        navn = person.navn,
+                        skattegrunnlagSøker = skattegrunnlag,
+                        skattegrunnlagEps = skattegrunnlagEps,
+                        hentNavn = { _ -> person.navn.right() },
                         clock = fixedClock,
                     )
                 },
@@ -490,7 +500,28 @@ internal class SkattDokumentServiceImplTest {
                                       }
                                     ]
                                   },
-                                  "eps":null,
+                                  "eps":{
+                                    "fnr":"$epsFnr",
+                                    "navn":{
+                                        "fornavn":"Tore",
+                                        "mellomnavn":"Johnas",
+                                        "etternavn":"Strømøy"
+                                    },
+                                    "årsgrunnlag":[
+                                        {
+                                            "type":"HarSkattegrunnlag",
+                                            "år":2021,
+                                            "stadie":"Oppgjør",
+                                            "oppgjørsdato":null,
+                                            "formue":[{"tekniskNavn":"bruttoformue","beløp":"1238","spesifisering":[]},{"tekniskNavn":"formuesverdiForKjoeretoey","beløp":"20000","spesifisering":[]}],
+                                            "inntekt":[{"tekniskNavn":"alminneligInntektFoerSaerfradrag","beløp":"1000","spesifisering":[]}],
+                                            "inntektsfradrag":[{"tekniskNavn":"fradragForFagforeningskontingent","beløp":"4000","spesifisering":[]}],
+                                            "formuesfradrag":[{"tekniskNavn":"samletAnnenGjeld","beløp":"6000","spesifisering":[]}],
+                                            "verdsettingsrabattSomGirGjeldsreduksjon":[{"tekniskNavn":"fradragForFagforeningskontingent","beløp":"4000","spesifisering":[]}],
+                                            "oppjusteringAvEierinntekter":[{"tekniskNavn":"fradragForFagforeningskontingent","beløp":"4000","spesifisering":[]}],
+                                            "manglerKategori":[{"tekniskNavn":"fradragForFagforeningskontingent","beløp":"4000","spesifisering":[]}],
+                                            "annet":[{"tekniskNavn":"fradragForFagforeningskontingent","beløp":"4000","spesifisering":[]}],
+                                            "kjøretøy":[{"beløp":"15000","registreringsnummer":"AB12345","fabrikatnavn":"Troll","årForFørstegangsregistrering":"1957","formuesverdi":"15000","antattVerdiSomNytt":null,"antattMarkedsverdi":null},{"beløp":"5000","registreringsnummer":"BC67890","fabrikatnavn":"Think","årForFørstegangsregistrering":"2003","formuesverdi":"5000","antattVerdiSomNytt":null,"antattMarkedsverdi":null}]}]},
                                   "begrunnelse":"begrunnelse",
                                   "erAldersbrev":true
                                 }
