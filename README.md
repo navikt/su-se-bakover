@@ -236,12 +236,20 @@ prod: https://alertmanager.prod-fss.nav.cloud.nais.io/#/alerts
 
 ## Kubernetes
 
-1. Check out https://github.com/navikt/kubeconfigs
-2. Bruk context: `kubectl config use-context dev-fss`
-3. Try to get pods: `kubectl get pods`, and follow the auth info
+#### Hvis du har brukt gamle måten før, kan du gjøre disse tingene:
+1. Fjern KUBECONFIG pathen i shellet ditt
+2. fjern kubeconfig-repoet `navikt/kubeconfig`
 
-* Set team-namespace as default: `kubectl config set-context --current --namespace=supstonad`
-* Describe pod: `kubectl describe pod su-se-bakover`
+#### Et par ting du må gjøre hvis du har lyst til å gjøre noe snacks i kubernetes. 
+1. Du må ha nais-cli - https://docs.nais.io/cli/
+2. Du må også ha gcloud-cli (kanskje?) - https://cloud.google.com/sdk/docs/install
+3. log inn i gcloud - `gcloud auth login --update-adc` 
+4. Kjør `nais kubeconfig` - Dette vil hente ned alle Clusterene.
+   1. merk: Kjør `nais kubeconfig -io` for å hente on-prem clusters også (dev-fss/prod-fss)
+5. Sett context du hr lyst til å bruke
+   1. for eksempel: `kubectl config use-context dev-fss`
+   2. Hvis du må sette namespace i tillegg: `kubectl config set-context --current --namespace=supstonad`
+6. Nå skal du kunne kjøre `kubectl get pods` og få listet alle podene våre
 
 ## IBM MQ (oppdrag/utbetaling/simulering)
 
