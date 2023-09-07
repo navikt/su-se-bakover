@@ -33,7 +33,7 @@ dependencies {
     implementation("com.nimbusds:nimbus-jose-jwt:9.31")
 
     testImplementation(project(":test-common"))
-    testImplementation("org.wiremock:wiremock:3.0.1") {
+    testImplementation("org.wiremock:wiremock:3.0.3") {
         exclude(group = "junit")
     }
     testImplementation("org.xmlunit:xmlunit-matchers:2.9.1")
