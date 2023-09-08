@@ -35,7 +35,6 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
 import org.slf4j.LoggerFactory
 import java.lang.IllegalStateException
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 
 class SøknadServiceImpl(
@@ -208,7 +207,7 @@ class SøknadServiceImpl(
                 pdf = pdf,
                 saksnummer = sakInfo.saksnummer,
                 sakstype = sakInfo.type,
-                datoDokument = LocalDate.now(clock),
+                datoDokument = Tidspunkt.now(clock),
                 fnr = person.ident.fnr,
                 navn = person.navn,
             ),

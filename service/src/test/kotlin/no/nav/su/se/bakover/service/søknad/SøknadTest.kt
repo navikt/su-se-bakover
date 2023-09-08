@@ -32,7 +32,6 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
@@ -207,7 +206,7 @@ class SøknadTest {
                             søknadInnhold = søknadInnhold,
                             pdf = pdf,
                             sakstype = Sakstype.UFØRE,
-                            datoDokument = fixedLocalDate,
+                            datoDokument = fixedTidspunkt,
                             fnr = person.ident.fnr,
                             navn = person.navn,
                         )
@@ -291,7 +290,7 @@ class SøknadTest {
                             søknadInnhold = søknadInnhold,
                             pdf = pdf,
                             sakstype = Sakstype.UFØRE,
-                            datoDokument = fixedLocalDate,
+                            datoDokument = fixedTidspunkt,
                             fnr = person.ident.fnr,
                             navn = person.navn,
                         )
@@ -410,7 +409,7 @@ class SøknadTest {
                             søknadInnhold = søknadInnhold,
                             pdf = pdf,
                             sakstype = Sakstype.UFØRE,
-                            datoDokument = fixedLocalDate,
+                            datoDokument = fixedTidspunkt,
                             fnr = person.ident.fnr,
                             navn = person.navn,
                         )

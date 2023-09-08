@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.test.brev.pdfInnholdInnvilgetVedtak
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.sakId
@@ -111,7 +110,7 @@ internal class DokArkivClientTest : WiremockBase {
                           ]
                         }
                       ],
-                        "datoDokument": "2021-01-01"
+                        "datoDokument": "2021-01-01T01:02:03.456789Z"
                     }
         """.trimIndent()
 
@@ -158,7 +157,7 @@ internal class DokArkivClientTest : WiremockBase {
                           ]
                         }
                       ],
-                      "datoDokument": "2021-01-01"
+                      "datoDokument": "2021-01-01T01:02:03.456789Z"
                     }
         """.trimIndent()
 
@@ -190,7 +189,7 @@ internal class DokArkivClientTest : WiremockBase {
                 søknadInnhold = søknadInnhold,
                 pdf = pdf,
                 sakstype = Sakstype.UFØRE,
-                datoDokument = fixedLocalDate,
+                datoDokument = fixedTidspunkt,
                 fnr = person.ident.fnr,
                 navn = person.navn,
             ),
@@ -213,7 +212,7 @@ internal class DokArkivClientTest : WiremockBase {
                 søknadInnhold = søknadInnhold,
                 pdf = pdf,
                 sakstype = Sakstype.UFØRE,
-                datoDokument = fixedLocalDate,
+                datoDokument = fixedTidspunkt,
                 fnr = person.ident.fnr,
                 navn = person.navn,
             ),
@@ -238,7 +237,7 @@ internal class DokArkivClientTest : WiremockBase {
                               "tittel": "Søknad om supplerende stønad for uføre flyktninger"
                             }
                           ],
-                          "datoDokument": "2021-01-01"
+                          "datoDokument": "2021-01-01T01:02:03.456789Z"
                         }
                         """.trimIndent(),
                     ),

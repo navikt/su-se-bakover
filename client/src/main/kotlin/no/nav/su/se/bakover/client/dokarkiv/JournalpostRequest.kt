@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.client.dokarkiv
 
 import no.nav.su.se.bakover.common.domain.PdfA
-import no.nav.su.se.bakover.common.extensions.zoneIdOslo
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Behandlingstema
 import no.nav.su.se.bakover.domain.Tema
 import no.nav.su.se.bakover.domain.journalpost.JournalpostCommand
@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.domain.journalpost.JournalpostSkattForSak
 import no.nav.su.se.bakover.domain.journalpost.JournalpostSkattUtenforSak
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Sakstype
-import java.time.LocalDate
 import java.util.Base64
 
 internal data class JournalpostRequest(
@@ -25,7 +24,7 @@ internal data class JournalpostRequest(
     val bruker: Bruker,
     val sak: Fagsak,
     val dokumenter: List<JournalpostDokument>,
-    val datoDokument: LocalDate?,
+    val datoDokument: Tidspunkt?,
 )
 
 private fun søkersNavn(navn: Person.Navn): String =
@@ -37,6 +36,7 @@ internal fun JournalpostCommand.tilJson(): String {
         Sakstype.ALDER -> Behandlingstema.SU_ALDER.value
         Sakstype.UFØRE -> Behandlingstema.SU_UFØRE_FLYKTNING.value
     }
+
     return when (this) {
         is JournalpostSkattForSak -> JournalpostRequest(
             tittel = dokument.dokumentTittel,
@@ -52,7 +52,7 @@ internal fun JournalpostCommand.tilJson(): String {
                 pdf = dokument.generertDokument,
                 originalJson = dokument.dokumentJson,
             ),
-            datoDokument = dokument.skattedataHentet.toLocalDate(zoneIdOslo),
+            datoDokument = dokument.skattedataHentet,
         )
 
         is JournalpostForSakCommand.Brev -> JournalpostRequest(
@@ -69,7 +69,7 @@ internal fun JournalpostCommand.tilJson(): String {
                 pdf = dokument.generertDokument,
                 originalJson = dokument.generertDokumentJson,
             ),
-            datoDokument = dokument.opprettet.toLocalDate(zoneIdOslo),
+            datoDokument = dokument.opprettet,
         )
 
         is JournalpostForSakCommand.Søknadspost -> JournalpostRequest(
@@ -109,7 +109,7 @@ internal fun JournalpostCommand.tilJson(): String {
                 pdf = dokument.generertDokument,
                 originalJson = dokument.generertDokumentJson,
             ),
-            datoDokument = dokument.opprettet.toLocalDate(zoneIdOslo),
+            datoDokument = dokument.opprettet,
         )
     }.let {
         serialize(it)

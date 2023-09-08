@@ -4,10 +4,10 @@ import dokument.domain.Dokument
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
-import java.time.LocalDate
 
 sealed interface JournalpostCommand {
     val sakstype: Sakstype
@@ -27,7 +27,7 @@ sealed interface JournalpostForSakCommand : JournalpostCommand {
         // TODO - Bør erstatte søknadinnhold, pdf & datoDokument med [Dokument.MedMetadata]
         val søknadInnhold: SøknadInnhold,
         val pdf: PdfA,
-        val datoDokument: LocalDate,
+        val datoDokument: Tidspunkt,
         override val fnr: Fnr,
         val navn: Person.Navn,
     ) : JournalpostForSakCommand

@@ -27,7 +27,7 @@ import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.veileder
@@ -324,7 +324,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                             søknadInnhold = søknadInnhold,
                             pdf = pdf,
                             sakstype = Sakstype.UFØRE,
-                            datoDokument = fixedLocalDate,
+                            datoDokument = fixedTidspunkt,
                             fnr = person.ident.fnr,
                             navn = person.navn,
                         )
