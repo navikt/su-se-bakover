@@ -56,7 +56,7 @@ class DokArkivClient(
             },
             {
                 log.error("Feil ved journalføring. status=${response.statusCode} body=${String(response.data)}. Se sikker logg for mer detaljer", it)
-                sikkerLogg.warn(
+                sikkerLogg.error(
                     "Feil ved journalføring " +
                         "Request $request er forespørselen mot dokarkiv som feilet. Headere ${request.headers}",
                 )
