@@ -29,12 +29,14 @@ class DokArkivClient(
     override fun opprettJournalpost(
         dokumentInnhold: JournalpostCommand,
     ): Either<ClientError, JournalpostId> {
+        val correlationId = getOrCreateCorrelationIdFromThreadLocal()
+
         val (request, response, result) = "$baseUrl$dokArkivPath".httpPost(listOf("forsoekFerdigstill" to "true"))
             .authentication().bearer(tokenOppslag.token().value)
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
-            .header("Nav-Callid", getOrCreateCorrelationIdFromThreadLocal().toString())
-            .header(CorrelationIdHeader, getOrCreateCorrelationIdFromThreadLocal())
+            .header("Nav-Callid", correlationId.toString())
+            .header(CorrelationIdHeader, correlationId)
             .body(dokumentInnhold.tilJson()).responseString()
 
         return result.fold(
