@@ -338,6 +338,11 @@ data object Feilresponser {
         code = "nye_overlappende_vedtak",
     )
 
+    val feilVedOpprettelseAvJournalpost = InternalServerError.errorJson(
+        "Feil ved opprettelse av journalpost",
+        "feil_ved_opprettelse_av_journalpost",
+    )
+
     data object Brev {
         val kunneIkkeGenerereBrev = InternalServerError.errorJson(
             "Kunne ikke generere brev",

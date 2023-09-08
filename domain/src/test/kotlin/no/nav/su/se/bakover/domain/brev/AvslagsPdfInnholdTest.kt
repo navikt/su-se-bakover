@@ -23,6 +23,7 @@ class AvslagsPdfInnholdTest {
                   "etternavn": "Strømøy",
                   "saksnummer": 2021
               },
+              "sakstype": "UFØRE",
               "avslagsgrunner": ["FLYKTNING"],
               "erAldersbrev": false,
               "harFlereAvslagsgrunner": false,
@@ -113,6 +114,7 @@ class AvslagsPdfInnholdTest {
                   "etternavn": "Strømøy",
                   "saksnummer": 2021
               },
+              "sakstype": "UFØRE",
               "avslagsgrunner": ["FORMUE"],
               "erAldersbrev": false,
               "harFlereAvslagsgrunner": false,
@@ -191,6 +193,7 @@ class AvslagsPdfInnholdTest {
                   "etternavn": "Strømøy",
                   "saksnummer": 2021
               },
+              "sakstype": "UFØRE",
               "avslagsgrunner": ["FORMUE"],
               "erAldersbrev": false,
               "harFlereAvslagsgrunner": false,

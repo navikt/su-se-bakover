@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.client.dokarkiv
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.journalpost.JournalpostSkatt.Companion.lagJournalpost
+import no.nav.su.se.bakover.domain.journalpost.JournalpostSkattForSak.Companion.lagJournalpost
 import no.nav.su.se.bakover.test.sakinfo
 import no.nav.su.se.bakover.test.skatt.nySkattedokumentGenerert
 import org.junit.jupiter.api.Test

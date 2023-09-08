@@ -14,6 +14,10 @@ sealed interface JournalpostCommand {
     val fnr: Fnr
 }
 
+sealed interface JournalpostUtenforSakCommand : JournalpostCommand {
+    val fagsystemId: String
+}
+
 sealed interface JournalpostForSakCommand : JournalpostCommand {
     val saksnummer: Saksnummer
 

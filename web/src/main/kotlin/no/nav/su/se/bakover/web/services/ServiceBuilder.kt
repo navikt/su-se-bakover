@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseServiceImpl
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.revurdering.StansYtelseServiceImpl
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
+import no.nav.su.se.bakover.service.skatt.JournalførSkattDokumentService
 import no.nav.su.se.bakover.service.skatt.SkattDokumentServiceImpl
 import no.nav.su.se.bakover.service.skatt.SkatteServiceImpl
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserServiceImpl
@@ -123,6 +124,11 @@ data object ServiceBuilder {
             pdfGenerator = clients.pdfGenerator,
             personOppslag = clients.personOppslag,
             dokumentSkattRepo = databaseRepos.dokumentSkattRepo,
+            journalførSkattDokumentService = JournalførSkattDokumentService(
+                dokArkiv = clients.dokArkiv,
+                sakService = sakService,
+                dokumentSkattRepo = databaseRepos.dokumentSkattRepo,
+            ),
             clock = clock,
         )
 

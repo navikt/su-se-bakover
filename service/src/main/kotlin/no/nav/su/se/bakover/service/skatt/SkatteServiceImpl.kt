@@ -3,23 +3,32 @@ package no.nav.su.se.bakover.service.skatt
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.common.tid.toRange
+import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.skatt.Skatteoppslag
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.Year
 import java.util.UUID
 
+/**
+ * Har som ansvar å hente skattegrunnlaget, og gjøre noe videre med denne
+ */
 class SkatteServiceImpl(
     private val skatteClient: Skatteoppslag,
     private val skattDokumentService: SkattDokumentService,
     val clock: Clock,
 ) : SkatteService {
+
+    private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     override fun hentSamletSkattegrunnlag(
         fnr: Fnr,
@@ -48,23 +57,68 @@ class SkatteServiceImpl(
         årSpurtFor = yearRange,
     )
 
-    override fun hentOgLagPdfAvSamletSkattegrunnlagFor(
+    override fun hentOgLagSkattePdf(request: FrioppslagSkattRequest): Either<KunneIkkeHenteOgLagePdfAvSkattegrunnlag, PdfA> {
+        return hentSkattegrunnlag(request).getOrElse {
+            return KunneIkkeHenteOgLagePdfAvSkattegrunnlag.KunneIkkeHenteSkattemelding(it).left()
+        }.let {
+            skattDokumentService.genererSkattePdf(
+                GenererSkattPdfRequest(
+                    skattegrunnlagSøkers = it.first,
+                    skattegrunnlagEps = it.second,
+                    begrunnelse = request.begrunnelse,
+                    sakstype = request.sakstype,
+                    fagsystemId = request.fagsystemId,
+                ),
+            )
+        }
+    }
+
+    override fun hentLagOgJournalførSkattePdf(
         request: FrioppslagSkattRequest,
-    ): Either<KunneIkkeHenteOgLagePdfAvSkattegrunnlag, PdfA> {
-        return Skattegrunnlag(
+    ): Either<KunneIkkeGenerereSkattePdfOgJournalføre, PdfA> {
+        return hentSkattegrunnlag(request).getOrElse {
+            return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedHentingAvSkattemelding(it).left()
+        }.let {
+            log.info("Hentet skattegrunnlag for sakstype ${request.sakstype} med fagsystemId ${request.fagsystemId}")
+            skattDokumentService.genererSkattePdfOgJournalfør(
+                GenererSkattPdfRequest(
+                    skattegrunnlagSøkers = it.first,
+                    skattegrunnlagEps = it.second,
+                    begrunnelse = request.begrunnelse,
+                    sakstype = request.sakstype,
+                    fagsystemId = request.fagsystemId,
+                ),
+            )
+        }
+    }
+
+    private fun hentSkattegrunnlag(request: FrioppslagSkattRequest): Either<KunneIkkeHenteSkattemelding, Pair<Skattegrunnlag, Skattegrunnlag?>> {
+        val skattegrunnlagSøkers = Skattegrunnlag(
             id = UUID.randomUUID(),
             fnr = request.fnr,
             hentetTidspunkt = Tidspunkt.now(clock),
             saksbehandler = request.saksbehandler,
             årsgrunnlag = skatteClient.hentSamletSkattegrunnlag(request.fnr, request.år)
                 .hentMestGyldigeSkattegrunnlagEllerFeil()
-                .getOrElse { return KunneIkkeHenteOgLagePdfAvSkattegrunnlag.KunneIkkeHenteSkattemelding(it).left() },
+                .getOrElse { return it.left() },
             årSpurtFor = request.år.toRange(),
-        ).let {
-            skattDokumentService.genererSkattePdf(
-                begrunnelse = request.begrunnelse,
-                skattegrunnlag = it,
+        )
+
+        val skattegrunnlagEps = if (request.epsFnr != null) {
+            Skattegrunnlag(
+                id = UUID.randomUUID(),
+                fnr = request.epsFnr,
+                hentetTidspunkt = Tidspunkt.now(clock),
+                saksbehandler = request.saksbehandler,
+                årsgrunnlag = skatteClient.hentSamletSkattegrunnlag(request.epsFnr, request.år)
+                    .hentMestGyldigeSkattegrunnlagEllerFeil()
+                    .getOrElse { return it.left() },
+                årSpurtFor = request.år.toRange(),
             )
+        } else {
+            null
         }
+
+        return Pair(skattegrunnlagSøkers, skattegrunnlagEps).right()
     }
 }
