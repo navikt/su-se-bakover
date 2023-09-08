@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.CorrelationIdHeader
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.journal.JournalpostId
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.journalpost.JournalpostCommand
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
@@ -28,7 +29,7 @@ class DokArkivClient(
     override fun opprettJournalpost(
         dokumentInnhold: JournalpostCommand,
     ): Either<ClientError, JournalpostId> {
-        val (_, response, result) = "$baseUrl$dokArkivPath".httpPost(listOf("forsoekFerdigstill" to "true"))
+        val (request, response, result) = "$baseUrl$dokArkivPath".httpPost(listOf("forsoekFerdigstill" to "true"))
             .authentication().bearer(tokenOppslag.token().value)
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
@@ -55,6 +56,11 @@ class DokArkivClient(
             },
             {
                 log.error("Feil ved journalføring. status=${response.statusCode} body=${String(response.data)}", it)
+                sikkerLogg.warn(
+                    "Feil ved journalføring " +
+                        "Request $request er forespørselen mot dokarkiv som feilet. Headere ${request.headers}",
+                )
+
                 ClientError(response.statusCode, "Feil ved journalføring").left()
             },
         )

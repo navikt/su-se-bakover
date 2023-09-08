@@ -78,7 +78,7 @@ internal fun JournalpostCommand.tilJson(): String {
                 Sakstype.UFØRE -> "Søknad om supplerende stønad for uføre flyktninger"
             },
             journalpostType = JournalPostType.INNGAAENDE,
-            kanal = Kanal.INNSENDT_NAV_ANSTATT.value,
+            kanal = Kanal.INNSENDT_NAV_ANSATT.value,
             behandlingstema = behandlingstema,
             journalfoerendeEnhet = JournalførendeEnhet.AUTOMATISK.enhet,
             avsenderMottaker = AvsenderMottaker(id = fnr.toString(), navn = søkersNavn(this.navn)),
@@ -120,7 +120,7 @@ private enum class Kanal(val value: String) {
     /**
      * Dette er en Mottakskanal - til bruk for inngående dokumenter
      */
-    INNSENDT_NAV_ANSTATT("INNSENDT_NAV_ANSATT"),
+    INNSENDT_NAV_ANSATT("INNSENDT_NAV_ANSATT"),
 }
 
 internal data class JournalpostDokument(
