@@ -33,6 +33,7 @@ class DokArkivClient(
             .authentication().bearer(tokenOppslag.token().value)
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
+            .header("Nav-Callid", getOrCreateCorrelationIdFromThreadLocal().toString())
             .header(CorrelationIdHeader, getOrCreateCorrelationIdFromThreadLocal())
             .body(dokumentInnhold.tilJson()).responseString()
 
