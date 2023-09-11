@@ -100,7 +100,7 @@ class SkatteServiceImpl(
             saksbehandler = request.saksbehandler,
             årsgrunnlag = skatteClient.hentSamletSkattegrunnlag(request.fnr, request.år)
                 .hentMestGyldigeSkattegrunnlagEllerFeil()
-                .getOrElse { return it.left() },
+                .getOrElse { return it.tilKunneIkkeHenteSkattemelding().left() },
             årSpurtFor = request.år.toRange(),
         )
 
@@ -112,7 +112,7 @@ class SkatteServiceImpl(
                 saksbehandler = request.saksbehandler,
                 årsgrunnlag = skatteClient.hentSamletSkattegrunnlag(request.epsFnr, request.år)
                     .hentMestGyldigeSkattegrunnlagEllerFeil()
-                    .getOrElse { return it.left() },
+                    .getOrElse { return it.tilKunneIkkeHenteSkattemelding().left() },
                 årSpurtFor = request.år.toRange(),
             )
         } else {

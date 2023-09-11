@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.tid.YearRange
+import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteMestGyldigeSkattegrunnlag.Companion.tilKunneIkkeHenteMestGyldigeSkattegrunnlag
 import java.time.Year
 
 data class SamletSkattegrunnlagForÅr(
@@ -16,18 +17,27 @@ data class SamletSkattegrunnlagForÅr(
             is SamletSkattegrunnlagForÅrOgStadie.Resultat.Feil,
             is SamletSkattegrunnlagForÅrOgStadie.Resultat.Finnes,
             -> oppgjør
+
             is SamletSkattegrunnlagForÅrOgStadie.Resultat.FinnesIkke -> utkast
         }
     }
 
-    fun hentMestGyldigeSkattegrunnlagEllerFeil(): Either<KunneIkkeHenteSkattemelding, SamletSkattegrunnlagForÅrOgStadie> {
+    /**
+     * KunneIkkeHenteSkattemelding.FinnesIkke mappes om til å gi Skattegrunnlaget, der det er aktuelt.
+     * Dette er fordi vi som oftest vil gjøre noe videre med skattegrunnlaget
+     */
+    fun hentMestGyldigeSkattegrunnlagEllerFeil(): Either<KunneIkkeHenteMestGyldigeSkattegrunnlag, SamletSkattegrunnlagForÅrOgStadie> {
         return when (val oppgjørRes = this.oppgjør.resultat) {
-            is SamletSkattegrunnlagForÅrOgStadie.Resultat.Feil -> oppgjørRes.originalFeil.left()
+            is SamletSkattegrunnlagForÅrOgStadie.Resultat.Feil -> oppgjørRes.originalFeil.tilKunneIkkeHenteMestGyldigeSkattegrunnlag()
+                .left()
+
             is SamletSkattegrunnlagForÅrOgStadie.Resultat.Finnes -> oppgjørRes.value.right()
             SamletSkattegrunnlagForÅrOgStadie.Resultat.FinnesIkke -> when (val utkastRes = this.utkast.resultat) {
-                is SamletSkattegrunnlagForÅrOgStadie.Resultat.Feil -> utkastRes.originalFeil.left()
+                is SamletSkattegrunnlagForÅrOgStadie.Resultat.Feil -> utkastRes.originalFeil.tilKunneIkkeHenteMestGyldigeSkattegrunnlag()
+                    .left()
+
                 is SamletSkattegrunnlagForÅrOgStadie.Resultat.Finnes -> utkastRes.value.right()
-                SamletSkattegrunnlagForÅrOgStadie.Resultat.FinnesIkke -> KunneIkkeHenteSkattemelding.FinnesIkke.left()
+                SamletSkattegrunnlagForÅrOgStadie.Resultat.FinnesIkke -> utkast.right()
             }
         }
     }
