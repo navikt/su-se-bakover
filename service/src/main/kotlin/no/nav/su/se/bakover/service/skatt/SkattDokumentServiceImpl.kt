@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagForPdf
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagMedFnr
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.journalpost.JournalpostSkattUtenforSak
@@ -121,6 +122,7 @@ class SkattDokumentServiceImpl(
             },
             clock = clock,
         ).map {
+            sikkerLogg.info("SkattePdfInnhold: $it")
             it
         }.mapLeft {
             KunneIkkeHenteOgLagePdfAvSkattegrunnlag.FeilVedHentingAvPerson(it)
