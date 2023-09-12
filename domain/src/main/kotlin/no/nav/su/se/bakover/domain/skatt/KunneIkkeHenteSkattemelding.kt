@@ -11,4 +11,5 @@ sealed interface KunneIkkeHenteSkattemelding {
     data object UkjentFeil : KunneIkkeHenteSkattemelding
     data object ManglerRettigheter : KunneIkkeHenteSkattemelding
     data object PersonFeil : KunneIkkeHenteSkattemelding
+    data object OppslagetInneholdtUgyldigData : KunneIkkeHenteSkattemelding
 }

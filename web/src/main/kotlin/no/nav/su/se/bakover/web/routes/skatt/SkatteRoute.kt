@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.web.routes.skatt
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
@@ -33,6 +36,17 @@ import java.time.Year
 
 internal const val skattPath = "/skatt"
 
+sealed interface FrioppslagValideringsFeil {
+    data object InntektsårErFør2020 : FrioppslagValideringsFeil
+
+    fun tilResultat(): Resultat = when (this) {
+        InntektsårErFør2020 -> HttpStatusCode.BadRequest.errorJson(
+            "Inntektsåret som ble forespurt er før 2020. Vi har kun avtale å hente fra 2020",
+            "inntektsår_før_2020",
+        )
+    }
+}
+
 internal fun Route.skattRoutes(skatteService: SkatteService) {
     data class FrioppslagRequestBody(
         val epsFnr: String?,
@@ -47,28 +61,37 @@ internal fun Route.skattRoutes(skatteService: SkatteService) {
         fun tilFrioppslagSkattRequest(
             fnr: Fnr,
             saksbehandler: NavIdentBruker.Saksbehandler,
-        ): FrioppslagSkattRequest = FrioppslagSkattRequest(
-            fnr = fnr,
-            epsFnr = if (epsFnr != null) Fnr(epsFnr) else null,
-            år = Year.of(år),
-            begrunnelse = begrunnelse,
-            saksbehandler = saksbehandler,
-            sakstype = Sakstype.from(sakstype),
-            fagsystemId = fagsystemId,
-        )
+        ): Either<FrioppslagValideringsFeil, FrioppslagSkattRequest> {
+            return FrioppslagSkattRequest(
+                fnr = fnr,
+                epsFnr = if (epsFnr != null) Fnr(epsFnr) else null,
+                år = if (år < 2020) return FrioppslagValideringsFeil.InntektsårErFør2020.left() else Year.of(år),
+                begrunnelse = begrunnelse,
+                saksbehandler = saksbehandler,
+                sakstype = Sakstype.from(sakstype),
+                fagsystemId = fagsystemId,
+            ).right()
+        }
     }
 
     post("$skattPath/person/{fnr}/forhandsvis") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withFnr { fnr ->
                 call.withBody<FrioppslagRequestBody> { body ->
-                    skatteService.hentOgLagSkattePdf(
-                        request = body.tilFrioppslagSkattRequest(fnr, call.suUserContext.saksbehandler),
-                    ).fold(
-                        ifLeft = { call.svar(it.tilResultat()) },
-                        ifRight = {
-                            call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
-                            call.respondBytes(it.getContent(), ContentType.Application.Pdf)
+                    body.tilFrioppslagSkattRequest(fnr, call.suUserContext.saksbehandler).fold(
+                        {
+                            call.svar(it.tilResultat())
+                        },
+                        {
+                            skatteService.hentOgLagSkattePdf(
+                                request = it,
+                            ).fold(
+                                ifLeft = { call.svar(it.tilResultat()) },
+                                ifRight = {
+                                    call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
+                                    call.respondBytes(it.getContent(), ContentType.Application.Pdf)
+                                },
+                            )
                         },
                     )
                 }
@@ -80,13 +103,20 @@ internal fun Route.skattRoutes(skatteService: SkatteService) {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withFnr { fnr ->
                 call.withBody<FrioppslagRequestBody> { body ->
-                    skatteService.hentLagOgJournalførSkattePdf(
-                        request = body.tilFrioppslagSkattRequest(fnr, call.suUserContext.saksbehandler),
-                    ).fold(
-                        ifLeft = { call.svar(it.tilResultat()) },
-                        ifRight = {
-                            call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
-                            call.respondBytes(it.getContent(), ContentType.Application.Pdf)
+                    body.tilFrioppslagSkattRequest(fnr, call.suUserContext.saksbehandler).fold(
+                        {
+                            call.svar(it.tilResultat())
+                        },
+                        {
+                            skatteService.hentOgLagSkattePdf(
+                                request = it,
+                            ).fold(
+                                ifLeft = { call.svar(it.tilResultat()) },
+                                ifRight = {
+                                    call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
+                                    call.respondBytes(it.getContent(), ContentType.Application.Pdf)
+                                },
+                            )
                         },
                     )
                 }
@@ -132,6 +162,8 @@ internal fun KunneIkkeHenteSkattemelding.tilResultat(): Resultat = when (this) {
     KunneIkkeHenteSkattemelding.Nettverksfeil -> this.tilErrorJson().tilResultat(HttpStatusCode.InternalServerError)
     KunneIkkeHenteSkattemelding.PersonFeil -> this.tilErrorJson().tilResultat(HttpStatusCode.InternalServerError)
     KunneIkkeHenteSkattemelding.UkjentFeil -> this.tilErrorJson().tilResultat(HttpStatusCode.InternalServerError)
+    KunneIkkeHenteSkattemelding.OppslagetInneholdtUgyldigData -> this.tilErrorJson()
+        .tilResultat(HttpStatusCode.BadRequest)
 }
 
 internal fun KunneIkkeHenteSkattemelding.tilErrorJson(): ErrorJson = when (this) {
@@ -158,5 +190,10 @@ internal fun KunneIkkeHenteSkattemelding.tilErrorJson(): ErrorJson = when (this)
     KunneIkkeHenteSkattemelding.UkjentFeil -> ErrorJson(
         "Uforventet feil oppstod ved kall til Sigrun/Skatteetaten.",
         "uforventet_feil_mot_skatt",
+    )
+
+    KunneIkkeHenteSkattemelding.OppslagetInneholdtUgyldigData -> ErrorJson(
+        "Inntektsåret som ble forespurt er før 2020. Vi har kun avtale å hente fra 2020",
+        "inntektsår_før_2020",
     )
 }

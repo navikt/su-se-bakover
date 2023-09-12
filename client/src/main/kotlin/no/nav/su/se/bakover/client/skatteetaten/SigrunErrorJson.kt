@@ -94,6 +94,12 @@ internal fun håndterSigrunFeil(
     }
 
     return when (statusCode) {
+        400 -> SkatteoppslagFeil.OppslagetInneholderUgyldigData.also {
+            if (inntektsår.value < 2020) {
+                log.error("Prøvde å gjøre et skatteoppslag for et år som er før 2020")
+            }
+        }
+
         403 -> SkatteoppslagFeil.ManglerRettigheter.also {
             // Vi forventer ikke se denne, så vi logger som error inntil den blir plagsom.
             logError()

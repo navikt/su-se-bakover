@@ -133,6 +133,7 @@ sealed interface StadieJson {
     data object Nettverksfeil : StadieJson
     data object Personfeil : StadieJson
     data object UkjentFeil : StadieJson
+    data object OppsalgetInneholdtUgyldigData : StadieJson
 
     fun toDomain(): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag.SkattegrunnlagForÅr> {
         // Her må man ha is fordi objekt referanser vil endre seg når man henter ut fra db
@@ -154,6 +155,7 @@ sealed interface StadieJson {
             is Nettverksfeil -> KunneIkkeHenteSkattemelding.Nettverksfeil.left()
             is Personfeil -> KunneIkkeHenteSkattemelding.PersonFeil.left()
             is UkjentFeil -> KunneIkkeHenteSkattemelding.UkjentFeil.left()
+            OppsalgetInneholdtUgyldigData -> KunneIkkeHenteSkattemelding.OppslagetInneholdtUgyldigData.left()
         }
     }
 }

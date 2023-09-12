@@ -7,6 +7,9 @@ import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteMestGyldigeSkattegrunnlag.Companion.tilKunneIkkeHenteMestGyldigeSkattegrunnlag
 import java.time.Year
 
+/**
+ * Et hvert år inneholder 2 forskjellige skatte-stadier
+ */
 data class SamletSkattegrunnlagForÅr(
     val utkast: SamletSkattegrunnlagForÅrOgStadie.Utkast,
     val oppgjør: SamletSkattegrunnlagForÅrOgStadie.Oppgjør,

@@ -5,6 +5,11 @@ import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.tid.YearRange
 import java.time.Year
 
+/**
+ * Representerer et skatte-stadie for et gitt år
+ *
+ * Hvis du er interessert i stadiene for et helt år, kan du se på [SamletSkattegrunnlagForÅr]
+ */
 sealed class SamletSkattegrunnlagForÅrOgStadie {
     abstract val oppslag: Either<KunneIkkeHenteSkattemelding, Skattegrunnlag.SkattegrunnlagForÅr>
     abstract val inntektsår: Year
@@ -29,6 +34,7 @@ sealed class SamletSkattegrunnlagForÅrOgStadie {
                 KunneIkkeHenteSkattemelding.Nettverksfeil,
                 KunneIkkeHenteSkattemelding.PersonFeil,
                 KunneIkkeHenteSkattemelding.UkjentFeil,
+                KunneIkkeHenteSkattemelding.OppslagetInneholdtUgyldigData,
                 -> Resultat.Feil(this.oppslag.value)
             }
 
@@ -47,6 +53,7 @@ sealed class SamletSkattegrunnlagForÅrOgStadie {
                 KunneIkkeHenteSkattemelding.Nettverksfeil,
                 KunneIkkeHenteSkattemelding.PersonFeil,
                 KunneIkkeHenteSkattemelding.UkjentFeil,
+                KunneIkkeHenteSkattemelding.OppslagetInneholdtUgyldigData,
                 -> Resultat.Feil(this.oppslag.value)
             }
 

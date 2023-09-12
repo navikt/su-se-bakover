@@ -7,12 +7,14 @@ sealed interface KunneIkkeHenteMestGyldigeSkattegrunnlag {
     data object UkjentFeil : KunneIkkeHenteMestGyldigeSkattegrunnlag
     data object ManglerRettigheter : KunneIkkeHenteMestGyldigeSkattegrunnlag
     data object PersonFeil : KunneIkkeHenteMestGyldigeSkattegrunnlag
+    data object OppslagetInneholdtUyldigData : KunneIkkeHenteMestGyldigeSkattegrunnlag
 
     fun tilKunneIkkeHenteSkattemelding(): KunneIkkeHenteSkattemelding = when (this) {
         ManglerRettigheter -> KunneIkkeHenteSkattemelding.ManglerRettigheter
         Nettverksfeil -> KunneIkkeHenteSkattemelding.Nettverksfeil
         PersonFeil -> KunneIkkeHenteSkattemelding.PersonFeil
         UkjentFeil -> KunneIkkeHenteSkattemelding.UkjentFeil
+        OppslagetInneholdtUyldigData -> KunneIkkeHenteSkattemelding.OppslagetInneholdtUgyldigData
     }
 
     companion object {
@@ -23,6 +25,7 @@ sealed interface KunneIkkeHenteMestGyldigeSkattegrunnlag {
                 KunneIkkeHenteSkattemelding.Nettverksfeil -> Nettverksfeil
                 KunneIkkeHenteSkattemelding.PersonFeil -> PersonFeil
                 KunneIkkeHenteSkattemelding.UkjentFeil -> UkjentFeil
+                KunneIkkeHenteSkattemelding.OppslagetInneholdtUgyldigData -> OppslagetInneholdtUyldigData
             }
     }
 }

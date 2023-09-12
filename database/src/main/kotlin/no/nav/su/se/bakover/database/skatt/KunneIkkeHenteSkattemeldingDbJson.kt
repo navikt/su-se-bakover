@@ -9,4 +9,5 @@ internal fun KunneIkkeHenteSkattemelding.toDbJson(): StadieJson = when (this) {
     is KunneIkkeHenteSkattemelding.Nettverksfeil -> StadieJson.Nettverksfeil
     is KunneIkkeHenteSkattemelding.PersonFeil -> StadieJson.Personfeil
     is KunneIkkeHenteSkattemelding.UkjentFeil -> StadieJson.UkjentFeil
+    KunneIkkeHenteSkattemelding.OppslagetInneholdtUgyldigData -> StadieJson.OppsalgetInneholdtUgyldigData
 }

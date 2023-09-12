@@ -11,14 +11,13 @@ import java.time.Year
  */
 internal sealed interface SkatteoppslagFeil {
 
-    fun tilKunneIkkeHenteSkattemelding(): KunneIkkeHenteSkattemelding {
-        return when (this) {
-            is FantIkkeSkattegrunnlagForPersonOgÅr -> KunneIkkeHenteSkattemelding.FinnesIkke
-            ManglerRettigheter -> KunneIkkeHenteSkattemelding.ManglerRettigheter
-            is Nettverksfeil -> KunneIkkeHenteSkattemelding.Nettverksfeil
-            is PersonFeil -> KunneIkkeHenteSkattemelding.PersonFeil
-            is UkjentFeil -> KunneIkkeHenteSkattemelding.UkjentFeil
-        }
+    fun tilKunneIkkeHenteSkattemelding(): KunneIkkeHenteSkattemelding = when (this) {
+        is FantIkkeSkattegrunnlagForPersonOgÅr -> KunneIkkeHenteSkattemelding.FinnesIkke
+        ManglerRettigheter -> KunneIkkeHenteSkattemelding.ManglerRettigheter
+        is Nettverksfeil -> KunneIkkeHenteSkattemelding.Nettverksfeil
+        is PersonFeil -> KunneIkkeHenteSkattemelding.PersonFeil
+        is UkjentFeil -> KunneIkkeHenteSkattemelding.UkjentFeil
+        OppslagetInneholderUgyldigData -> KunneIkkeHenteSkattemelding.OppslagetInneholdtUgyldigData
     }
 
     data class Nettverksfeil(val throwable: Throwable) : SkatteoppslagFeil {
@@ -37,4 +36,6 @@ internal sealed interface SkatteoppslagFeil {
     data class UkjentFeil(val throwable: Throwable) : SkatteoppslagFeil
     data object ManglerRettigheter : SkatteoppslagFeil
     data class PersonFeil(val feil: KunneIkkeHentePerson) : SkatteoppslagFeil
+
+    data object OppslagetInneholderUgyldigData : SkatteoppslagFeil
 }
