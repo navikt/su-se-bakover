@@ -108,7 +108,7 @@ internal fun Route.skattRoutes(skatteService: SkatteService) {
                             call.svar(it.tilResultat())
                         },
                         {
-                            skatteService.hentOgLagSkattePdf(
+                            skatteService.hentLagOgJournalførSkattePdf(
                                 request = it,
                             ).fold(
                                 ifLeft = { call.svar(it.tilResultat()) },
