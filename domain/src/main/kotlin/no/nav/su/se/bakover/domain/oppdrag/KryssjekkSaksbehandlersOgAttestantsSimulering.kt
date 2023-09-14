@@ -33,15 +33,14 @@ class KryssjekkSaksbehandlersOgAttestantsSimulering(
         if (saksbehandlersSimulering.harFeilutbetalinger() != attestantsSimulering.simulering.harFeilutbetalinger()) {
             return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikFeilutbetaling.left()
         }
+        if (saksbehandlersSimulering.hentFeilutbetalteBeløp() != attestantsSimulering.simulering.hentFeilutbetalteBeløp()) {
+            return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikFeilutbetaling.left()
+        }
 
         if (saksbehandlersSimulering.hentTotalUtbetaling()
                 .måneder() != attestantsSimulering.simulering.hentTotalUtbetaling().måneder()
         ) {
             return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikPeriode.left()
-        }
-
-        if (saksbehandlersSimulering.hentTotalUtbetaling() != attestantsSimulering.simulering.hentTotalUtbetaling()) {
-            return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløp.left()
         }
 
         if (saksbehandlersSimulering.hentTotalUtbetaling() != attestantsSimulering.simulering.hentTotalUtbetaling()) {

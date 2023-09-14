@@ -21,7 +21,7 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.simulering.simuleringNy
-import no.nav.su.se.bakover.test.simulering.simulertDetaljDebetTidligereUtbetalt
+import no.nav.su.se.bakover.test.simulering.simulertDetaljDebetFeilutbetaling
 import no.nav.su.se.bakover.test.simulering.simulertDetaljFeilutbetaling
 import no.nav.su.se.bakover.test.simulering.simulertDetaljMotpostering
 import no.nav.su.se.bakover.test.simulering.simulertDetaljTilbakeføring
@@ -305,7 +305,7 @@ internal class SimuleringTest {
                         feilkonto = false,
                         detaljer = listOf(
                             // Vi får ikke en ordinær ved OPPH eller beløp=0
-                            simulertDetaljDebetTidligereUtbetalt(
+                            simulertDetaljDebetFeilutbetaling(
                                 måned = januar(2021),
                                 beløp = 8949,
                             ),

@@ -461,7 +461,7 @@ fun simulering(
 fun simuleringFeilutbetaling(
     vararg perioder: Periode = listOf(juni(2021)).toTypedArray(),
     simulertePerioder: List<SimulertMåned> = perioder.map { it.måneder() }.flatten()
-        .map { simulertMånedFeilutbetaling(it) },
+        .map { simulertMånedFeilutbetalingVedOpphør(it) },
     gjelderId: Fnr = fnr,
     gjelderNavn: String = "navn",
     datoBeregnet: LocalDate = fixedLocalDate,
@@ -486,20 +486,58 @@ fun simulertMåned(
     utbetaling = simulerteUtbetalinger,
 )
 
-fun simulertMånedFeilutbetaling(
+/**
+ * Opphør gir den samme simuleringen som om man utbetaler 0 for en måned, men man mangler den ordinære detaljen man får ved beløp > 0.
+ * Her antas det at det tidligere var utbetalt 15k for måneden, og nå endres det til 0.
+ */
+fun simulertMånedFeilutbetalingVedOpphør(
     måned: Måned,
-    simulerteUtbetalinger: SimulertUtbetaling? = simulertUtbetaling(
+    tidligereBeløp: Int = 15000,
+    simulertUtbetaling: SimulertUtbetaling? = simulertUtbetaling(
         måned = måned,
         simulertDetaljer = listOf(
-            simulertDetaljFeilutbetaling(måned, 15000),
-            simulertDetaljTilbakeføring(måned, 15000),
-            simulertDetaljOrdinær(måned, 7000),
+            simulertDetaljFeilutbetaling(måned, tidligereBeløp),
+            simulertDetaljMotpostering(måned, tidligereBeløp),
+            simulertDetaljTilbakeføring(måned, tidligereBeløp),
+            simulertDetaljDebetFeilutbetaling(måned, tidligereBeløp),
         ),
     ),
-): SimulertMåned = SimulertMåned(
-    måned = måned,
-    utbetaling = simulerteUtbetalinger,
-)
+): SimulertMåned {
+    require(tidligereBeløp > 0) {
+        "Usikker på om vi kanskje må akseptere 0 her, siden man i teorien kan opphøre et opphør."
+    }
+    return SimulertMåned(
+        måned = måned,
+        utbetaling = simulertUtbetaling,
+    )
+}
+
+/**
+ * Opphør gir den samme simuleringen som om man utbetaler 0 for en måned, men man mangler den ordinære detaljen man får ved beløp > 0.
+ * Her simuleres det at man tidligere fikk utbetalt 15k, og blir justert ned til 14k.
+ */
+fun simulertMånedFeilutbetalingVedNedjustering(
+    måned: Måned,
+    tidligereBeløp: Int = 15000,
+    nyttBeløp: Int = 14000,
+    simulertUtbetaling: SimulertUtbetaling? = simulertUtbetaling(
+        måned = måned,
+        simulertDetaljer = listOf(
+            simulertDetaljFeilutbetaling(måned, tidligereBeløp - nyttBeløp),
+            simulertDetaljMotpostering(måned, tidligereBeløp - nyttBeløp),
+            simulertDetaljDebetFeilutbetaling(måned, tidligereBeløp - nyttBeløp),
+            simulertDetaljTilbakeføring(måned, tidligereBeløp),
+            simulertDetaljOrdinær(måned, nyttBeløp),
+        ),
+    ),
+): SimulertMåned {
+    require(nyttBeløp < tidligereBeløp)
+    require(nyttBeløp > 0)
+    return SimulertMåned(
+        måned = måned,
+        utbetaling = simulertUtbetaling,
+    )
+}
 
 fun simulertUtbetaling(
     måned: Måned,
@@ -513,6 +551,9 @@ fun simulertUtbetaling(
     detaljer = simulertDetaljer,
 )
 
+/**
+ * @param beløp må være positivt
+ */
 fun simulertDetaljOrdinær(
     måned: Måned,
     beløp: Int,
@@ -522,7 +563,7 @@ fun simulertDetaljOrdinær(
     return SimulertDetaljer(
         faktiskFraOgMed = måned.fraOgMed,
         faktiskTilOgMed = måned.tilOgMed,
-        konto = "",
+        konto = "4952000",
         belop = beløp,
         tilbakeforing = false,
         sats = beløp,
@@ -530,11 +571,16 @@ fun simulertDetaljOrdinær(
         antallSats = 1,
         uforegrad = uføregrad,
         klassekode = KlasseKode.SUUFORE,
-        klassekodeBeskrivelse = "",
+        klassekodeBeskrivelse = "Supplerende stønad Uføre",
         klasseType = KlasseType.YTEL,
     )
 }
 
+/**
+ * Dukker kun og alltid opp ved feilutbetaling, i.e.:
+ * - nedjustering av tidligere utbetalt beløp, inkl. 0.
+ * - opphør
+ */
 fun simulertDetaljFeilutbetaling(
     måned: Måned,
     beløp: Int,
@@ -543,7 +589,7 @@ fun simulertDetaljFeilutbetaling(
     return SimulertDetaljer(
         faktiskFraOgMed = måned.fraOgMed,
         faktiskTilOgMed = måned.tilOgMed,
-        konto = "",
+        konto = "0630986",
         belop = beløp,
         tilbakeforing = false,
         sats = 0,
@@ -556,6 +602,12 @@ fun simulertDetaljFeilutbetaling(
     )
 }
 
+/**
+ * Beløp vil være motsatt av KL_KODE_FEIL_INNT og samme som debet feilutbetaling (YTEL).
+ * Dukker kun og alltid opp ved feilutbetaling.
+ *
+ * @param beløp må være positivt (funksjonen snur fortegnet)
+ */
 fun simulertDetaljMotpostering(
     måned: Måned,
     beløp: Int,
@@ -577,48 +629,61 @@ fun simulertDetaljMotpostering(
     )
 }
 
-fun simulertDetaljDebetTidligereUtbetalt(
+/**
+ * Vil være samme beløp som KL_KODE_FEIL_INNT og motsatt av TBMOTOBS.
+ * Dukker kun og alltid opp ved feilutbetaling.
+ * Se også: SimuleringTestData: Stoppnivå.Periode.debetFeilutbetaling(...) og SimuleringStub.createDebetFeilutbetaling(...)
+ *
+ * @param beløp må være positivt
+ */
+fun simulertDetaljDebetFeilutbetaling(
     måned: Måned,
     beløp: Int,
-    uføregrad: Int = 0,
 ): SimulertDetaljer {
     require(beløp > 0) { "Beløpene må være positive, siden funksjonene simulertDetalj-funksjonene velger riktig fortegn" }
     return SimulertDetaljer(
         faktiskFraOgMed = måned.fraOgMed,
         faktiskTilOgMed = måned.tilOgMed,
-        konto = "",
+        konto = "4952000",
         belop = beløp,
         tilbakeforing = false,
         sats = 0,
         typeSats = "",
         antallSats = 0,
-        uforegrad = uføregrad,
+        uforegrad = 0, // Denne er alltid 0 (kun satt for ordinær/tilbakeføring)
         klassekode = KlasseKode.SUUFORE,
-        klassekodeBeskrivelse = "",
+        klassekodeBeskrivelse = "Supplerende stønad Uføre",
         klasseType = KlasseType.YTEL,
     )
 }
 
 /**
+ * Også kalt tilbakeføring.
+ * Denne dukker opp dersom det har blitt utbetalt et beløp før.
+ * Dette vil da blir trukket fra, før det nye beløpet legges til (så lenge ikke det nye beløpet er 0).
+ *
  * @param beløp må være positivt (funksjonen snur fortegnet)
+ *
+ * Merk: Dersom vi har fått retur fra UR, så vil vi få en balanserende post til denne (debet) med positivt beløp.
  */
 fun simulertDetaljTilbakeføring(
     måned: Måned,
     beløp: Int,
+    uføregrad: Int = 100,
 ): SimulertDetaljer {
     require(beløp > 0) { "Beløpene må være positive, siden funksjonene simulertDetalj-funksjonene velger riktig fortegn" }
     return SimulertDetaljer(
         faktiskFraOgMed = måned.fraOgMed,
         faktiskTilOgMed = måned.tilOgMed,
-        konto = "",
+        konto = "4952000",
         belop = -beløp,
         tilbakeforing = true,
-        sats = 0,
-        typeSats = "",
+        sats = beløp, // Positivt (motsatt av beløp)
+        typeSats = "MND",
         antallSats = 0,
-        uforegrad = 0,
+        uforegrad = uføregrad,
         klassekode = KlasseKode.SUUFORE,
-        klassekodeBeskrivelse = "",
+        klassekodeBeskrivelse = "Supplerende stønad Uføre",
         klasseType = KlasseType.YTEL,
     )
 }
@@ -696,6 +761,7 @@ data class SimuleringResponseData(
             /**
              * Vil være samme beløp som KL_KODE_FEIL_INNT og motsatt av TBMOTOBS.
              * Dukker kun og alltid opp ved feilutbetaling.
+             * Se også: SimuleringTestData - Stoppnivå.Periode.debetFeilutbetaling(...)
              *
              * @param belop må være positivt
              */

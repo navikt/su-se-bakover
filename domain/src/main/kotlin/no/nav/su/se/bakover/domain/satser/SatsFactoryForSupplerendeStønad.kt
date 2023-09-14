@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpFactory
 import no.nav.su.se.bakover.domain.grunnbeløp.Grunnbeløpsendring
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
+import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -200,6 +201,12 @@ class SatsFactoryForSupplerendeStønad(
         }
     }
 
+    fun gjeldende(
+        clock: Clock,
+        zoneId: ZoneId = zoneIdOslo,
+    ): SatsFactory {
+        return gjeldende(Tidspunkt.now(clock), zoneId)
+    }
     fun gjeldende(
         tidspunkt: Tidspunkt,
         zoneId: ZoneId = zoneIdOslo,
