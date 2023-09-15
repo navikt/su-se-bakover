@@ -54,3 +54,8 @@ include("økonomi:domain")
 include("økonomi:infrastructure")
 include("økonomi:application")
 include("dokument:domain")
+
+include("tilbakekreving:presentation")
+include("tilbakekreving:application")
+include("tilbakekreving:domain")
+include("tilbakekreving:infrastructure")
