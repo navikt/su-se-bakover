@@ -47,7 +47,7 @@ subprojects {
         implementation("com.papertrailapp", "logback-syslog4j", "1.0.0")
 
         implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
-        implementation("com.networknt:json-schema-validator:1.0.86")
+        implementation("com.networknt:json-schema-validator:1.0.87")
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.3.3.1")
         implementation("org.apache.kafka:kafka-clients:3.5.1") {
             exclude("org.apache.kafka", "kafka-raft")
