@@ -39,6 +39,7 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakServiceImpl
 import no.nav.su.se.bakover.service.vedtak.VedtakServiceImpl
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
+import no.nav.su.se.bakover.tilbakekreving.application.service.ManuellTilbakekrevingServiceImpl
 import java.time.Clock
 
 data object ServiceBuilder {
@@ -311,6 +312,7 @@ data object ServiceBuilder {
                 sakRepo = databaseRepos.sak,
                 statistikkEventObserver = statistikkEventObserver,
             ),
+            manuellTilbakekrevingService = ManuellTilbakekrevingServiceImpl(databaseRepos.tilbakekrevingRepo),
         )
     }
 }

@@ -50,4 +50,5 @@ data class Services(
     val skatteService: SkatteService,
     val kontrollsamtaleSetup: KontrollsamtaleSetup,
     val resendStatistikkhendelserService: ResendStatistikkhendelserService,
+    val manuellTilbakekrevingService: no.nav.su.se.bakover.tilbakekreving.domain.ManuellTilbakekrevingService,
 )

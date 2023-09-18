@@ -60,8 +60,6 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Kravgrunnlag
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -217,6 +215,10 @@ import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.tilbakekreving.domain.Kravgrunnlag
+import no.nav.su.se.bakover.tilbakekreving.domain.KunneIkkeHenteSisteFerdigbehandledeKravgrunnlag
+import no.nav.su.se.bakover.tilbakekreving.domain.KunneIkkeOppretteTilbakekrevingsbehandling
+import no.nav.su.se.bakover.tilbakekreving.domain.RåttKravgrunnlag
 import økonomi.domain.kvittering.Kvittering
 import java.time.LocalDate
 import java.util.UUID
@@ -1213,6 +1215,20 @@ open class AccessCheckProxy(
                 override fun resendStatistikkForVedtak(vedtakId: UUID, requiredType: KClass<*>?): Either<Unit, Unit> {
                     // Driftsendepunkt - returnerer ikke data, bare status
                     return services.resendStatistikkhendelserService.resendStatistikkForVedtak(vedtakId, requiredType)
+                }
+            },
+            manuellTilbakekrevingService = object : no.nav.su.se.bakover.tilbakekreving.domain.ManuellTilbakekrevingService {
+                override fun hentAktivKravgrunnlag(
+                    sakId: UUID,
+                    kravgrunnlagMapper: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
+                ): Either<KunneIkkeHenteSisteFerdigbehandledeKravgrunnlag, Kravgrunnlag> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.manuellTilbakekrevingService.hentAktivKravgrunnlag(sakId, kravgrunnlagMapper)
+                }
+
+                override fun ny(sakId: UUID): Either<KunneIkkeOppretteTilbakekrevingsbehandling, no.nav.su.se.bakover.tilbakekreving.domain.Tilbakekrevingsbehandling> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.manuellTilbakekrevingService.ny(sakId)
                 }
             },
         )
