@@ -7,9 +7,6 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Kravgrunnlag
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåTilbakekrevingsvedtakForsendelse
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingClient
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingRepo
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
@@ -18,6 +15,9 @@ import no.nav.su.se.bakover.domain.revurdering.brev.lagDokumentKommando
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.tilbakekreving.domain.Kravgrunnlag
+import no.nav.su.se.bakover.tilbakekreving.domain.RåTilbakekrevingsvedtakForsendelse
+import no.nav.su.se.bakover.tilbakekreving.domain.RåttKravgrunnlag
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID

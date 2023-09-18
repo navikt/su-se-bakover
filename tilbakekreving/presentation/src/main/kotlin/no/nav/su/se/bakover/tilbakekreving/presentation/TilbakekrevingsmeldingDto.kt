@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.services.tilbakekreving
+package no.nav.su.se.bakover.tilbakekreving.presentation
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonRootName

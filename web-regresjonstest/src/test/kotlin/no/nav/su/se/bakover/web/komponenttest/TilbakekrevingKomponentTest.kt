@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.shouldBeType
+import no.nav.su.se.bakover.tilbakekreving.presentation.TilbakekrevingsmeldingMapper
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.revurdering.attestering.sendTilAttestering
 import no.nav.su.se.bakover.web.revurdering.avgjørTilbakekreving
@@ -37,7 +38,6 @@ import no.nav.su.se.bakover.web.revurdering.fradrag.leggTilFradrag
 import no.nav.su.se.bakover.web.revurdering.iverksett.iverksett
 import no.nav.su.se.bakover.web.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.TilbakekrevingsbehandlingJson
-import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingsmeldingMapper
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling

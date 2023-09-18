@@ -17,6 +17,7 @@ dependencies {
     implementation(project(":oppgave:domain"))
     implementation(project(":økonomi:domain"))
     implementation(project(":dokument:domain"))
+    implementation(project(":tilbakekreving:domain"))
 
     compileOnly("io.kotest:kotest-assertions-core:$kotestVersion")
     // TODO jah: Finn en måte å gjenbruke de versjonene her på.

@@ -2,9 +2,9 @@ package no.nav.su.se.bakover.client.oppdrag.tilbakekreving
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.periode.oktober
-import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsvedtak
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.tilbakekreving.domain.KlasseKode
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.math.BigInteger

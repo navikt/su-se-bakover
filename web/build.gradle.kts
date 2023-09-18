@@ -33,6 +33,10 @@ dependencies {
     implementation(project(":økonomi:infrastructure"))
     implementation(project(":dokument:domain"))
 
+    implementation(project(":tilbakekreving:presentation"))
+    implementation(project(":tilbakekreving:application"))
+    implementation(project(":tilbakekreving:domain"))
+
     testImplementation(project(":test-common"))
     testImplementation("org.awaitility:awaitility:4.2.0")
 }

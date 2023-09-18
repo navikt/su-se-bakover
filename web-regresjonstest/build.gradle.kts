@@ -17,6 +17,9 @@ dependencies {
     implementation(project(":økonomi:domain"))
     implementation(project(":dokument:domain"))
 
+    implementation(project(":tilbakekreving:domain"))
+    implementation(project(":tilbakekreving:presentation"))
+
     implementation("io.ktor:ktor-client-java:$ktorVersion")
     implementation("io.ktor:ktor-server-test-host:$ktorVersion") {
         exclude(group = "junit")

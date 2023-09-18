@@ -6,8 +6,6 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.extensions.idag
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
-import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
-import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
@@ -20,6 +18,8 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.tilbakekreving.domain.KlasseKode
+import no.nav.su.se.bakover.tilbakekreving.domain.KlasseType
 import java.time.Clock
 import java.time.LocalDate
 import kotlin.math.abs

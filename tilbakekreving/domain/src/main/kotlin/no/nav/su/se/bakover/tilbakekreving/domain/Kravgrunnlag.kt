@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.oppdrag.tilbakekreving
+package no.nav.su.se.bakover.tilbakekreving.domain
 
 import no.nav.su.se.bakover.common.Beløp
 import no.nav.su.se.bakover.common.MånedBeløp
@@ -8,8 +8,6 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.tilMåned
-import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
-import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import java.math.BigDecimal
 
 data class Kravgrunnlag(

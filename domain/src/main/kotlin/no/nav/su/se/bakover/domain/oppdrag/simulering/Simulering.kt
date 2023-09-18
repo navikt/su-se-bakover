@@ -9,6 +9,8 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
 import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.tilbakekreving.domain.KlasseKode
+import no.nav.su.se.bakover.tilbakekreving.domain.KlasseType
 import java.time.LocalDate
 
 /**
@@ -199,48 +201,6 @@ data class SimulertDetaljer(
 ) {
     fun tolk(): TolketDetalj? {
         return TolketDetalj.from(simulertDetaljer = this)
-    }
-}
-
-enum class KlasseType {
-    YTEL,
-    SKAT,
-    FEIL,
-    MOTP,
-    ;
-
-    companion object {
-        fun skalIkkeFiltreres(): List<String> {
-            return setOf(YTEL, FEIL, MOTP).map { it.name }
-        }
-
-        fun contains(value: String): Boolean {
-            return entries.map { it.name }.contains(value)
-        }
-    }
-}
-
-enum class KlasseKode {
-    SUUFORE,
-    KL_KODE_FEIL_INNT,
-    TBMOTOBS,
-    FSKTSKAT,
-
-    /** Filtreres vekk av klient, bakoverkompatabilitet */
-    UFOREUT,
-
-    SUALDER,
-    KL_KODE_FEIL,
-    ;
-
-    companion object {
-        fun skalIkkeFiltreres(): List<String> {
-            return setOf(SUUFORE, KL_KODE_FEIL_INNT, SUALDER, KL_KODE_FEIL, TBMOTOBS).map { it.name }
-        }
-
-        fun contains(value: String): Boolean {
-            return entries.map { it.name }.contains(value)
-        }
     }
 }
 

@@ -6,6 +6,7 @@ dependencies {
     implementation(project(":oppgave:domain"))
     implementation(project(":økonomi:domain"))
     implementation(project(":dokument:domain"))
+    implementation(project(":tilbakekreving:domain"))
 
     testImplementation(project(":test-common"))
 }

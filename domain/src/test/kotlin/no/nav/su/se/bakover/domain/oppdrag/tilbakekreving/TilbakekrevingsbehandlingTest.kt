@@ -7,13 +7,14 @@ import no.nav.su.se.bakover.common.Månedsbeløp
 import no.nav.su.se.bakover.common.extensions.juli
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.mai
-import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.matchendeKravgrunnlag
+import no.nav.su.se.bakover.tilbakekreving.domain.KlasseKode
+import no.nav.su.se.bakover.tilbakekreving.domain.RåttKravgrunnlag
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.util.UUID

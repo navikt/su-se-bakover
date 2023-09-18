@@ -18,8 +18,6 @@ import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
-import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
-import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Kontobeløp
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Kontooppstilling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.PeriodeOppsummering
@@ -30,6 +28,8 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertMåned
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.simulering.SimuleringResponseData.Companion.simuleringXml
+import no.nav.su.se.bakover.tilbakekreving.domain.KlasseKode
+import no.nav.su.se.bakover.tilbakekreving.domain.KlasseType
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningResponse
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal

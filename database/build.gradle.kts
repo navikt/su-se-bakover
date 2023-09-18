@@ -15,5 +15,7 @@ dependencies {
     implementation(project(":oppgave:infrastructure"))
     implementation(project(":oppgave:domain"))
 
+    implementation(project(":tilbakekreving:domain"))
+
     testImplementation(project(":test-common"))
 }

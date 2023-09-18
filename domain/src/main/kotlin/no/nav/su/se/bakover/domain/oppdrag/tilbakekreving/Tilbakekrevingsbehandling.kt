@@ -5,8 +5,11 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.tilbakekreving.domain.KlasseKode
+import no.nav.su.se.bakover.tilbakekreving.domain.Kravgrunnlag
+import no.nav.su.se.bakover.tilbakekreving.domain.RåTilbakekrevingsvedtakForsendelse
+import no.nav.su.se.bakover.tilbakekreving.domain.RåttKravgrunnlag
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.UUID

@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOf
+import no.nav.su.se.bakover.tilbakekreving.domain.KlasseType
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.lang.Integer.max

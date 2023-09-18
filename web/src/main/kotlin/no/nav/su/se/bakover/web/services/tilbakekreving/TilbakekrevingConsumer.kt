@@ -5,10 +5,13 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
+import no.nav.su.se.bakover.tilbakekreving.domain.RåttKravgrunnlag
+import no.nav.su.se.bakover.tilbakekreving.presentation.KravgrunnlagRootDto
+import no.nav.su.se.bakover.tilbakekreving.presentation.KravgrunnlagStatusendringRootDto
+import no.nav.su.se.bakover.tilbakekreving.presentation.TilbakekrevingsmeldingMapper
 import org.slf4j.LoggerFactory
 import java.time.Clock
 

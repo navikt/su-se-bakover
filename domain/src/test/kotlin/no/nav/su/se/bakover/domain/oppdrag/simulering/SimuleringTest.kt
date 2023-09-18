@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.test.simulering.simulertDetaljDebetFeilutbetaling
 import no.nav.su.se.bakover.test.simulering.simulertDetaljFeilutbetaling
 import no.nav.su.se.bakover.test.simulering.simulertDetaljMotpostering
 import no.nav.su.se.bakover.test.simulering.simulertDetaljTilbakeføring
+import no.nav.su.se.bakover.tilbakekreving.domain.KlasseType
 import org.junit.jupiter.api.Test
 
 internal class SimuleringTest {

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.oppdrag.tilbakekreving
+package no.nav.su.se.bakover.tilbakekreving.domain
 
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 
