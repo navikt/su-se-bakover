@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.tilMåned
@@ -10,6 +11,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.tilbakekreving.domain.KlasseKode
 import no.nav.su.se.bakover.tilbakekreving.domain.KlasseType
 import no.nav.su.se.bakover.tilbakekreving.domain.Kravgrunnlag
+import no.nav.su.se.bakover.tilbakekreving.domain.RåttKravgrunnlag
 import java.math.BigDecimal
 import java.time.Clock
 
@@ -61,4 +63,30 @@ fun matchendeKravgrunnlag(
                 },
         )
     }
+}
+
+fun nyRåttKravgrunnlag(
+    kravgrunnlagXml: String = "<detaljertKravgrunnlagMelding><detaljertKravgrunnlag><kravgrunnlagId>123456</kravgrunnlagId><vedtakId>654321</vedtakId><kodeStatusKrav>NY</kodeStatusKrav><kodeFagomraade>SUUFORE</kodeFagomraade><fagsystemId>10002099</fagsystemId><datoVedtakFagsystem/><vedtakIdOmgjort/><vedtakGjelderId>18506438140</vedtakGjelderId><typeGjelderId>PERSON</typeGjelderId><utbetalesTilId>18506438140</utbetalesTilId><typeUtbetId>PERSON</typeUtbetId><kodeHjemmel>ANNET</kodeHjemmel><renterBeregnes>N</renterBeregnes><enhetAnsvarlig>4815</enhetAnsvarlig><enhetBosted>8020</enhetBosted><enhetBehandl>4815</enhetBehandl><kontrollfelt>2023-09-19-10.01.03.842916</kontrollfelt><saksbehId>K231B433</saksbehId><referanse>ef8ac92a-ba30-414e-85f4-d1227c</referanse><tilbakekrevingsPeriode><periode><fom>2023-06-01</fom><tom>2023-06-30</tom></periode><belopSkattMnd>4395</belopSkattMnd><tilbakekrevingsBelop><kodeKlasse>KL_KODE_FEIL_INNT</kodeKlasse><typeKlasse>FEIL</typeKlasse><belopOpprUtbet>0</belopOpprUtbet><belopNy>2643</belopNy><belopTilbakekreves>0</belopTilbakekreves><belopUinnkrevd>0</belopUinnkrevd><skattProsent>0</skattProsent></tilbakekrevingsBelop><tilbakekrevingsBelop><kodeKlasse>SUUFORE</kodeKlasse><typeKlasse>YTEL</typeKlasse><belopOpprUtbet>16181</belopOpprUtbet><belopNy>13538</belopNy><belopTilbakekreves>2643</belopTilbakekreves><belopUinnkrevd>0</belopUinnkrevd><skattProsent>43.9983</skattProsent></tilbakekrevingsBelop></tilbakekrevingsPeriode><tilbakekrevingsPeriode><periode><fom>2023-07-01</fom><tom>2023-07-31</tom></periode><belopSkattMnd>4395</belopSkattMnd><tilbakekrevingsBelop><kodeKlasse>KL_KODE_FEIL_INNT</kodeKlasse><typeKlasse>FEIL</typeKlasse><belopOpprUtbet>0</belopOpprUtbet><belopNy>2643</belopNy><belopTilbakekreves>0</belopTilbakekreves><belopUinnkrevd>0</belopUinnkrevd><skattProsent>0</skattProsent></tilbakekrevingsBelop><tilbakekrevingsBelop><kodeKlasse>SUUFORE</kodeKlasse><typeKlasse>YTEL</typeKlasse><belopOpprUtbet>16181</belopOpprUtbet><belopNy>13538</belopNy><belopTilbakekreves>2643</belopTilbakekreves><belopUinnkrevd>0</belopUinnkrevd><skattProsent>43.9983</skattProsent></tilbakekrevingsBelop></tilbakekrevingsPeriode><tilbakekrevingsPeriode><periode><fom>2023-08-01</fom><tom>2023-08-31</tom></periode><belopSkattMnd>4395</belopSkattMnd><tilbakekrevingsBelop><kodeKlasse>KL_KODE_FEIL_INNT</kodeKlasse><typeKlasse>FEIL</typeKlasse><belopOpprUtbet>0</belopOpprUtbet><belopNy>2643</belopNy><belopTilbakekreves>0</belopTilbakekreves><belopUinnkrevd>0</belopUinnkrevd><skattProsent>0</skattProsent></tilbakekrevingsBelop><tilbakekrevingsBelop><kodeKlasse>SUUFORE</kodeKlasse><typeKlasse>YTEL</typeKlasse><belopOpprUtbet>16181</belopOpprUtbet><belopNy>13538</belopNy><belopTilbakekreves>2643</belopTilbakekreves><belopUinnkrevd>0</belopUinnkrevd><skattProsent>43.9983</skattProsent></tilbakekrevingsBelop></tilbakekrevingsPeriode></detaljertKravgrunnlag></detaljertKravgrunnlagMelding>",
+): RåttKravgrunnlag = RåttKravgrunnlag(kravgrunnlagXml)
+
+fun nyKravgrunnlag(
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    kravgrunnlagId: String = "123-456",
+    vedtakId: String = "789-101",
+    kontrollfelt: String = "19.09.2023.16:54",
+    status: Kravgrunnlag.KravgrunnlagStatus = Kravgrunnlag.KravgrunnlagStatus.MANU,
+    behandler: NavIdentBruker = saksbehandler,
+    utbetalingId: UUID30 = UUID30.randomUUID(),
+    grunnlagsperioder: List<Kravgrunnlag.Grunnlagsperiode> = emptyList(),
+): Kravgrunnlag {
+    return Kravgrunnlag(
+        saksnummer = saksnummer,
+        kravgrunnlagId = kravgrunnlagId,
+        vedtakId = vedtakId,
+        kontrollfelt = kontrollfelt,
+        status = status,
+        behandler = behandler,
+        utbetalingId = utbetalingId,
+        grunnlagsperioder = grunnlagsperioder,
+    )
 }

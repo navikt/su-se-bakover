@@ -25,7 +25,7 @@ class ManuellTilbakekrevingServiceImpl(
         sakId: UUID,
         kravgrunnlagMapper: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
     ): Either<KunneIkkeHenteSisteFerdigbehandledeKravgrunnlag, Kravgrunnlag> {
-        return tilbakekrevingRepo.hentSisteFerdigbehandledeKravgrunnlagForSak(sakId)?.kravgrunnlag?.let {
+        return tilbakekrevingRepo.hentSisteFerdigbehandledeKravgrunnlagForSak(sakId)?.let {
             kravgrunnlagMapper(it).map {
                 it
             }.mapLeft {
@@ -40,7 +40,7 @@ class ManuellTilbakekrevingServiceImpl(
         kravgrunnlagMapper: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
     ): Either<KunneIkkeOppretteTilbakekrevingsbehandling, ManuellTilbakekrevingsbehandling> {
         // TODO - en sjekk på at kravgrunnlaget ikke har en aktiv behandling
-        return tilbakekrevingRepo.hentSisteFerdigbehandledeKravgrunnlagForSak(sakId)?.kravgrunnlag?.let {
+        return tilbakekrevingRepo.hentSisteFerdigbehandledeKravgrunnlagForSak(sakId)?.let {
             kravgrunnlagMapper(it).map {
                 ManuellTilbakekrevingsbehandling(
                     id = UUID.randomUUID(),

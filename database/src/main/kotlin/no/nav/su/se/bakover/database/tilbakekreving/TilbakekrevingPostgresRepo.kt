@@ -59,7 +59,7 @@ internal class TilbakekrevingPostgresRepo(
         }
     }
 
-    override fun hentSisteFerdigbehandledeKravgrunnlagForSak(sakId: UUID): Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag? {
+    override fun hentSisteFerdigbehandledeKravgrunnlagForSak(sakId: UUID): RåttKravgrunnlag? {
         return sessionFactory.withSession { session ->
             """
                 select 
@@ -77,7 +77,7 @@ internal class TilbakekrevingPostgresRepo(
                     session,
                 ) {
                     it.toTilbakekrevingsbehandling()
-                }.filterIsInstance<Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag>().singleOrNull()
+                }.filterIsInstance<Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag>().singleOrNull()?.kravgrunnlag
         }
     }
 
