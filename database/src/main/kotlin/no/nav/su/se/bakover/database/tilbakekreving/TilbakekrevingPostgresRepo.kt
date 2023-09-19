@@ -49,7 +49,7 @@ internal class TilbakekrevingPostgresRepo(
 
     override fun hentMottattKravgrunnlag(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag> {
         return sessionFactory.withSession { session ->
-            "select * from tilbakekrevingsbehandling where tilstand = '${Tilstand.MOTTATT_KRAVGRUNNLAG}' and tilbakekrevingsvedtakForsendelse is null"
+            "select * from revurdering_tilbakekreving where tilstand = '${Tilstand.MOTTATT_KRAVGRUNNLAG}' and tilbakekrevingsvedtakForsendelse is null"
                 .hentListe(
                     emptyMap(),
                     session,
@@ -65,7 +65,7 @@ internal class TilbakekrevingPostgresRepo(
                 select 
                     * 
                 from 
-                    tilbakekrevingsbehandling 
+                    revurdering_tilbakekreving 
                 where 
                     tilstand = '${Tilstand.MOTTATT_KRAVGRUNNLAG}' 
                     and tilbakekrevingsvedtakForsendelse is null 
@@ -87,7 +87,7 @@ internal class TilbakekrevingPostgresRepo(
     ) {
         slettForRevurderingId(tilbakrekrevingsbehanding.revurderingId, tx)
 
-        "insert into tilbakekrevingsbehandling (id, opprettet, sakId, revurderingId, fraOgMed, tilOgMed, avgjørelse, tilstand) values (:id, :opprettet, :sakId, :revurderingId, :fraOgMed, :tilOgMed, :avgjorelse, :tilstand)"
+        "insert into revurdering_tilbakekreving (id, opprettet, sakId, revurderingId, fraOgMed, tilOgMed, avgjørelse, tilstand) values (:id, :opprettet, :sakId, :revurderingId, :fraOgMed, :tilOgMed, :avgjorelse, :tilstand)"
             .insert(
                 mapOf(
                     "id" to tilbakrekrevingsbehanding.id,
@@ -112,7 +112,7 @@ internal class TilbakekrevingPostgresRepo(
         session: Session,
     ) {
         """
-            update tilbakekrevingsbehandling set tilstand = :tilstand where id = :id
+            update revurdering_tilbakekreving set tilstand = :tilstand where id = :id
         """.trimIndent()
             .oppdatering(
                 mapOf(
@@ -128,7 +128,7 @@ internal class TilbakekrevingPostgresRepo(
         session: Session,
     ) {
         """
-            update tilbakekrevingsbehandling set tilstand = :tilstand, kravgrunnlag = :kravgrunnlag, kravgrunnlagMottatt = :kravgrunnlagMottatt where id = :id
+            update revurdering_tilbakekreving set tilstand = :tilstand, kravgrunnlag = :kravgrunnlag, kravgrunnlagMottatt = :kravgrunnlagMottatt where id = :id
         """.trimIndent()
             .oppdatering(
                 mapOf(
@@ -146,7 +146,7 @@ internal class TilbakekrevingPostgresRepo(
         session: Session,
     ) {
         """
-            update tilbakekrevingsbehandling set tilstand = :tilstand, tilbakekrevingsvedtakForsendelse = :tilbakekrevingsvedtakForsendelse where id = :id
+            update revurdering_tilbakekreving set tilstand = :tilstand, tilbakekrevingsvedtakForsendelse = :tilbakekrevingsvedtakForsendelse where id = :id
         """.trimIndent()
             .oppdatering(
                 mapOf(
@@ -164,7 +164,7 @@ internal class TilbakekrevingPostgresRepo(
 
     internal fun slettForRevurderingId(revurderingId: UUID, session: Session) {
         """
-                delete from tilbakekrevingsbehandling where revurderingId = :revurderingId
+                delete from revurdering_tilbakekreving where revurderingId = :revurderingId
         """.trimIndent()
             .oppdatering(
                 mapOf(
@@ -176,7 +176,7 @@ internal class TilbakekrevingPostgresRepo(
 
     internal fun hentTilbakekrevingsbehandling(revurderingId: UUID, session: Session): Tilbakekrevingsbehandling? {
         return """
-            select * from tilbakekrevingsbehandling where revurderingId = :revurderingId
+            select * from revurdering_tilbakekreving where revurderingId = :revurderingId
         """.trimIndent()
             .hent(
                 mapOf("revurderingId" to revurderingId),
@@ -267,7 +267,7 @@ internal class TilbakekrevingPostgresRepo(
 
     override fun hentAvventerKravgrunnlag(sakId: UUID): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
         return sessionFactory.withSession { session ->
-            "select * from tilbakekrevingsbehandling where sakId = :sakId and tilstand = '${Tilstand.AVVENTER_KRAVGRUNNLAG}'"
+            "select * from revurdering_tilbakekreving where sakId = :sakId and tilstand = '${Tilstand.AVVENTER_KRAVGRUNNLAG}'"
                 .hentListe(
                     params = mapOf(
                         "sakId" to sakId,
@@ -283,7 +283,7 @@ internal class TilbakekrevingPostgresRepo(
     override fun hentAvventerKravgrunnlag(utbetalingId: UUID30): Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag? {
         return sessionFactory.withSession { session ->
             """
-                select t.* from tilbakekrevingsbehandling t
+                select t.* from revurdering_tilbakekreving t
                     join behandling_vedtak bv on bv.revurderingid = t.revurderingid
                     join vedtak v on v.id = bv.vedtakid
                     join utbetaling u on u.id = v.utbetalingid
@@ -303,7 +303,7 @@ internal class TilbakekrevingPostgresRepo(
 
     override fun hentAvventerKravgrunnlag(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
         return sessionFactory.withSession { session ->
-            "select * from tilbakekrevingsbehandling where tilstand = '${Tilstand.AVVENTER_KRAVGRUNNLAG}'"
+            "select * from revurdering_tilbakekreving where tilstand = '${Tilstand.AVVENTER_KRAVGRUNNLAG}'"
                 .hentListe(
                     params = emptyMap(),
                     session = session,
