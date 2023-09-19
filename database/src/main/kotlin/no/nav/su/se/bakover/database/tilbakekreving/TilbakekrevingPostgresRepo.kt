@@ -70,7 +70,7 @@ internal class TilbakekrevingPostgresRepo(
                     tilstand = '${Tilstand.MOTTATT_KRAVGRUNNLAG}' 
                     and tilbakekrevingsvedtakForsendelse is null 
                     and sakId=:sakId
-                    and opprettet = (SELECT MAX(opprettet) FROM tilbakekrevingsbehandling);
+                    and opprettet = (SELECT MAX(opprettet) FROM revurdering_tilbakekreving);
             """.trimIndent()
                 .hentListe(
                     mapOf("sakId" to sakId),
