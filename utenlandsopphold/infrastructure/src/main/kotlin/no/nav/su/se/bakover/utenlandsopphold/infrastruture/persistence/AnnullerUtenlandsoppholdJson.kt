@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.ident.IdentJson
 import no.nav.su.se.bakover.common.infrastructure.ident.IdentJson.Companion.toIdentJson
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import no.nav.su.se.bakover.utenlandsopphold.domain.annuller.AnnullerUtenlandsoppholdHendelse
 
@@ -25,8 +24,8 @@ internal data class AnnullerUtenlandsoppholdJson(
         fun PersistertHendelse.toAnnullertUtenlandsoppholdHendelse(): AnnullerUtenlandsoppholdHendelse {
             return deserialize<AnnullerUtenlandsoppholdJson>(this.data).let { json ->
                 AnnullerUtenlandsoppholdHendelse.fraPersistert(
-                    hendelseId = HendelseId.fromUUID(this.hendelseId),
-                    tidligereHendelseId = HendelseId.fromUUID(this.tidligereHendelseId!!),
+                    hendelseId = this.hendelseId,
+                    tidligereHendelseId = this.tidligereHendelseId!!,
                     sakId = this.sakId!!,
                     utførtAv = json.ident.toDomain() as NavIdentBruker.Saksbehandler,
                     hendelsestidspunkt = this.hendelsestidspunkt,

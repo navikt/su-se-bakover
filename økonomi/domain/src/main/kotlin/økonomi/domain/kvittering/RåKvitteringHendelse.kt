@@ -26,7 +26,6 @@ data class RåKvitteringHendelse(
     override val tidligereHendelseId: HendelseId? = null
     override val versjon: Hendelsesversjon = Hendelsesversjon(1L)
     override val entitetId: UUID = hendelseId.value
-    override val triggetAv: HendelseId? = null
 
     override fun compareTo(other: RåKvitteringHendelse): Int {
         require(this.entitetId == other.entitetId)
@@ -75,7 +74,6 @@ data class RåKvitteringHendelse(
             utbetalingsstatus = utbetalingsstatus,
             originalKvittering = this.originalKvittering,
             versjon = nesteVersjon,
-            triggetAv = this.hendelseId,
             utbetalingId = utbetalingId,
             tidligereHendelseId = tidligereHendelseId,
         ).also {

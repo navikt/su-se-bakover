@@ -2,8 +2,10 @@ package økonomi.infrastructure.kvittering.persistence
 
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.SessionContext
-import no.nav.su.se.bakover.hendelse.domain.HendelseActionRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
+import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
+import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
+import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import økonomi.domain.kvittering.KvitteringPåSakHendelse
 import økonomi.domain.kvittering.RåKvitteringHendelse
@@ -13,37 +15,37 @@ import økonomi.infrastructure.kvittering.persistence.KvitteringPåSakHendelseJs
 import økonomi.infrastructure.kvittering.persistence.RåKvitteringHendelseJson.Companion.toJson
 import økonomi.infrastructure.kvittering.persistence.RåKvitteringHendelseJson.Companion.toRåKvitteringHendelse
 
-const val UtbetalingKvitteringHendelsestype = "UTBETALING_KVITTERING"
-const val UtbetalingKvitteringPåSakHendelsestype = "UTBETALING_KVITTERING_PÅ_SAK"
+val UtbetalingKvitteringHendelsestype = Hendelsestype("UTBETALING_KVITTERING")
+val UtbetalingKvitteringPåSakHendelsestype = Hendelsestype("UTBETALING_KVITTERING_PÅ_SAK")
 
 class UtbetalingKvitteringPostgresRepo(
     private val hendelseRepo: HendelsePostgresRepo,
-    private val hendelseActionRepo: HendelseActionRepo,
+    private val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
     private val dbMetrics: DbMetrics,
 ) : UtbetalingKvitteringRepo {
 
     override fun lagre(hendelse: RåKvitteringHendelse) {
         dbMetrics.timeQuery("lagreRåKvitteringHendelse") {
-            hendelseRepo.persister(hendelse, UtbetalingKvitteringHendelsestype, hendelse.toJson())
+            hendelseRepo.persisterHendelse(hendelse, UtbetalingKvitteringHendelsestype, hendelse.toJson())
         }
     }
 
     override fun lagre(hendelse: KvitteringPåSakHendelse, sessionContext: SessionContext) {
         dbMetrics.timeQuery("lagreKvitteringPåSakHendelse") {
-            hendelseRepo.persister(hendelse, UtbetalingKvitteringPåSakHendelsestype, hendelse.toJson())
+            hendelseRepo.persisterSakshendelse(hendelse, UtbetalingKvitteringPåSakHendelsestype, hendelse.toJson())
         }
     }
 
-    override fun hentUbehandledeKvitteringer(subscriberId: String): List<HendelseId> {
-        return hendelseActionRepo.hentHendelseIderForActionOgType(
-            action = subscriberId,
+    override fun hentUbehandledeKvitteringer(konsumentId: HendelseskonsumentId): List<HendelseId> {
+        return hendelsekonsumenterRepo.hentHendelseIderForKonsumentOgType(
+            konsumentId = konsumentId,
             hendelsestype = UtbetalingKvitteringHendelsestype,
         )
     }
 
-    override fun hentUbehandledeKvitteringerKnyttetMotUtbetaling(subscriberId: String): List<HendelseId> {
-        return hendelseActionRepo.hentHendelseIderForActionOgType(
-            action = subscriberId,
+    override fun hentUbehandledeKvitteringerKnyttetMotUtbetaling(konsumentId: HendelseskonsumentId): List<HendelseId> {
+        return hendelsekonsumenterRepo.hentHendelseIderForKonsumentOgType(
+            konsumentId = konsumentId,
             hendelsestype = UtbetalingKvitteringPåSakHendelsestype,
         )
     }

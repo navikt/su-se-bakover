@@ -129,8 +129,16 @@ class TestSessionFactory : SessionFactory {
     override fun <T> withSessionContext(action: (SessionContext) -> T): T =
         SessionCounter().withCountSessions { action(sessionContext) }
 
+    override fun <T> withSessionContext(sessionContext: SessionContext?, action: (SessionContext) -> T): T {
+        return SessionCounter().withCountSessions { action(sessionContext ?: TestSessionFactory.sessionContext) }
+    }
+
     override fun <T> withTransactionContext(action: (TransactionContext) -> T): T =
         SessionCounter().withCountSessions { action(transactionContext) }
+
+    override fun <T> withTransactionContext(transactionContext: TransactionContext?, action: (TransactionContext) -> T): T {
+        return SessionCounter().withCountSessions { action(transactionContext ?: TestSessionFactory.transactionContext) }
+    }
 
     override fun <T> use(transactionContext: TransactionContext, action: (TransactionContext) -> T): T {
         return SessionCounter().withCountSessions { action(transactionContext) }

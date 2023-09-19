@@ -4,9 +4,9 @@ import java.util.UUID
 
 /**
  * Representerer en hendelse unikt på tvers av alle hendelser.
+ * Kan ikke være value class pga mockito
  */
-@JvmInline
-value class HendelseId private constructor(val value: UUID) {
+data class HendelseId private constructor(val value: UUID) {
     companion object {
         fun generer(): HendelseId = HendelseId(UUID.randomUUID())
 

@@ -1,10 +1,11 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.extensions.whenever
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
 
 /**
- * Denne klassen er for å gjøre funksjoner på tvers av inst + oppgave hendelser lettere
+ * Utilityklasse for å lage en felles tilstand for inst + oppgave-hendelser (siden tilstanden ikke er integrert i [no.nav.su.se.bakover.domain.Sak]
  */
 data class InstitusjonOgOppgaveHendelserPåSak(
     private val instHendelser: InstitusjonsoppholdHendelserPåSak,
@@ -12,6 +13,11 @@ data class InstitusjonOgOppgaveHendelserPåSak(
 ) {
 
     init {
+        instHendelser.map { it.sakId }.let {
+            require(it.distinct().size == 1) {
+                "Institusjonsoppholdhendelsene må være knyttet til samme sak, men var: $it"
+            }
+        }
         oppgaveHendelser.whenever(
             isEmpty = {},
             isNotEmpty = {
@@ -23,20 +29,16 @@ data class InstitusjonOgOppgaveHendelserPåSak(
     }
 
     fun hentInstHendelserSomManglerOppgave(): List<InstitusjonsoppholdHendelse> {
-        return instHendelser.filter { it.hendelseId !in oppgaveHendelser.map { it.triggetAv } }
+        val relaterteHendelser = oppgaveHendelser.flatMap { it.relaterteHendelser }
+
+        return instHendelser.filter { it.hendelseId !in relaterteHendelser }
     }
 
-    fun hentHendelserMedSammeOppholdId(oppholdId: OppholdId): Pair<List<InstitusjonsoppholdHendelse>, List<OppgaveHendelse>>? {
-        return instHendelser.filter { it.eksterneHendelse.oppholdId == oppholdId }.whenever(
-            isEmpty = {
-                null
-            },
-            isNotEmpty = { instHendelserMedSammeOppholdId ->
-                val oppgaveHendelserTilknyttetOppholdId = oppgaveHendelser.filter {
-                    it.triggetAv in instHendelserMedSammeOppholdId.map { it.hendelseId }
-                }
-                instHendelserMedSammeOppholdId to oppgaveHendelserTilknyttetOppholdId
-            },
-        )
+    fun sisteOppgaveId(): OppgaveId? {
+        val relevanteOppgaveHendelser = oppgaveHendelser.filter { oppgave ->
+            oppgave.relaterteHendelser.intersect(instHendelser.map { it.hendelseId }.toSet()).isNotEmpty()
+        }
+
+        return relevanteOppgaveHendelser.maxByOrNull { it.hendelsestidspunkt.instant }?.oppgaveId
     }
 }

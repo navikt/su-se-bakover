@@ -79,6 +79,10 @@ internal class SakPostgresRepo(
         }
     }
 
+    /**
+     * En person kan ha en uføre sak og en alderssak. Derfor returnerer denne en liste.
+     * TODO jah: Kanskje vi bør legge en unique index på fnr+type i sak tabellen? Det føles veldig rart og få flere saker her.
+     */
     override fun hentSaker(fnr: Fnr): List<Sak> {
         return dbMetrics.timeQuery("hentSakerForFnr") {
             sessionFactory.withSessionContext {
@@ -171,6 +175,7 @@ internal class SakPostgresRepo(
 
     /***
      * @param personidenter Inneholder alle identer til brukeren, f.eks fnr og aktørid.
+     * // TODO jah: Denne tar ikke høyde for at en bruker kan ha flere saker(uføre+alder). Vi må da returnere en liste.
      */
     override fun hentSakInfoForIdenter(personidenter: NonEmptyList<String>): SakInfo? {
         return dbMetrics.timeQuery("hentSakIdOgNummerForIdenter") {

@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.infrastructure.ident.IdentJson
 import no.nav.su.se.bakover.common.infrastructure.ident.IdentJson.Companion.toIdentJson
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import no.nav.su.se.bakover.utenlandsopphold.domain.korriger.KorrigerUtenlandsoppholdHendelse
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.UtenlandsoppholdDokumentasjonDatabaseJson.Companion.toJson
@@ -37,8 +36,8 @@ internal data class KorrigerUtenlandsoppholdJson(
         fun PersistertHendelse.toKorrigerUtenlandsoppholdHendelse(): KorrigerUtenlandsoppholdHendelse {
             return deserialize<KorrigerUtenlandsoppholdJson>(this.data).let { json ->
                 KorrigerUtenlandsoppholdHendelse.fraPersistert(
-                    hendelseId = HendelseId.fromUUID(this.hendelseId),
-                    tidligereHendelseId = HendelseId.fromUUID(this.tidligereHendelseId!!),
+                    hendelseId = this.hendelseId,
+                    tidligereHendelseId = this.tidligereHendelseId!!,
                     sakId = this.sakId!!,
                     periode = json.periode.toDatoIntervall(),
                     dokumentasjon = json.dokumentasjon.toDomain(),

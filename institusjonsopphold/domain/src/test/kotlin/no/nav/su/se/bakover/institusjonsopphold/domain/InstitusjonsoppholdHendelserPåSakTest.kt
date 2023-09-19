@@ -86,10 +86,14 @@ class InstitusjonsoppholdHendelserPåSakTest {
             InstitusjonsoppholdHendelserPåSak(
                 hendelser = nonEmptyListOf(
                     førsteHendelseSomHarFåttOppgaveId,
-                    nyInstitusjonsoppholdHendelse(versjon = Hendelsesversjon(3)),
+                    nyInstitusjonsoppholdHendelse(
+                        versjon = Hendelsesversjon(3),
+                        eksternHendelseId = 2,
+                    ),
                     nyInstitusjonsoppholdHendelse(
                         tidligereHendelse = førsteHendelseSomHarFåttOppgaveId.hendelseId,
                         versjon = Hendelsesversjon(4),
+                        eksternHendelseId = 3,
                     ),
                 ),
             )

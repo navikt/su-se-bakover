@@ -21,8 +21,8 @@ import no.nav.su.se.bakover.domain.stønadsperiode.SendPåminnelseNyStønadsperi
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
-import no.nav.su.se.bakover.hendelse.domain.HendelseActionRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
+import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdRepo
 import org.mockito.kotlin.mock
@@ -52,7 +52,7 @@ data object MockDatabaseBuilder {
         dokumentSkattRepo: DokumentSkattRepo = mock(),
         institusjonsoppholdHendelseRepo: InstitusjonsoppholdHendelseRepo = mock(),
         oppgaveHendelseRepo: OppgaveHendelseRepo = mock(),
-        hendelseActionRepo: HendelseActionRepo = mock(),
+        hendelsekonsumenterRepo: HendelsekonsumenterRepo = mock(),
     ): DatabaseRepos {
         return DatabaseRepos(
             avstemming = avstemming,
@@ -78,7 +78,7 @@ data object MockDatabaseBuilder {
             dokumentSkattRepo = dokumentSkattRepo,
             institusjonsoppholdHendelseRepo = institusjonsoppholdHendelseRepo,
             oppgaveHendelseRepo = oppgaveHendelseRepo,
-            hendelseActionRepo = hendelseActionRepo,
+            hendelsekonsumenterRepo = hendelsekonsumenterRepo,
         )
     }
 }

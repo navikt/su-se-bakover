@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.hendelse.domain.HendelseActionRepo
+import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -40,7 +40,7 @@ fun startAsynkroneUtbetalingsprosesser(
     sakService: SakService,
     sessionFactory: SessionFactory,
     clock: Clock,
-    hendelseActionRepo: HendelseActionRepo,
+    hendelsekonsumenterRepo: HendelsekonsumenterRepo,
     hendelseRepo: HendelsePostgresRepo,
     oppgaveHendelseRepo: OppgaveHendelseRepo,
     dbMetrics: DbMetrics,
@@ -57,14 +57,14 @@ fun startAsynkroneUtbetalingsprosesser(
     }
     val utbetalingKvitteringRepo = UtbetalingKvitteringPostgresRepo(
         hendelseRepo = hendelseRepo,
-        hendelseActionRepo = hendelseActionRepo,
+        hendelsekonsumenterRepo = hendelsekonsumenterRepo,
         dbMetrics = dbMetrics,
     )
     val knyttKvitteringTilSakOgUtbetalingService =
         KnyttKvitteringTilSakOgUtbetalingKonsument(
             utbetalingKvitteringRepo = utbetalingKvitteringRepo,
             sakService = sakService,
-            hendelseActionRepo = hendelseActionRepo,
+            hendelsekonsumenterRepo = hendelsekonsumenterRepo,
             mapRåXmlTilSaksnummerOgUtbetalingId = kvitteringXmlTilSaksnummerOgUtbetalingId(
                 xmlMapper = xmlMapper,
             ),

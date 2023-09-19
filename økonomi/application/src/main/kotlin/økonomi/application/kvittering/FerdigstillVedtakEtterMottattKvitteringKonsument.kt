@@ -6,7 +6,8 @@ import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.hendelse.domain.HendelseSubscriber
+import no.nav.su.se.bakover.hendelse.domain.Hendelseskonsument
+import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import org.slf4j.Logger
@@ -26,18 +27,18 @@ class FerdigstillVedtakEtterMottattKvitteringKonsument(
     private val sakService: SakService,
     private val sessionFactory: SessionFactory,
     @Suppress("unused") private val oppgaveHendelseRepo: OppgaveHendelseRepo,
-) : HendelseSubscriber {
+) : Hendelseskonsument {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-    override val subscriberId = "FerdigstillVedtakEtterMottattKvittering"
+    override val konsumentId = HendelseskonsumentId("FerdigstillVedtakEtterMottattKvittering")
 
     fun ferdigstillVedtakEtterMottattKvittering(
         @Suppress("UNUSED_PARAMETER") correlationId: CorrelationId,
     ) {
         Either.catch {
             utbetalingKvitteringRepo.hentUbehandledeKvitteringerKnyttetMotUtbetaling(
-                subscriberId = subscriberId,
+                konsumentId = konsumentId,
             ).forEach { hendelseId ->
                 val hendelse = utbetalingKvitteringRepo.hentKvittering(hendelseId)
                     ?: throw IllegalStateException("Fant ikke kvittering for hendelseId $hendelseId")
@@ -60,7 +61,7 @@ class FerdigstillVedtakEtterMottattKvitteringKonsument(
                 }
             }
         }.onLeft {
-            log.error("Feil under kjøring av hendelseskonsument $subscriberId", it)
+            log.error("Feil under kjøring av hendelseskonsument $konsumentId", it)
         }
     }
 }

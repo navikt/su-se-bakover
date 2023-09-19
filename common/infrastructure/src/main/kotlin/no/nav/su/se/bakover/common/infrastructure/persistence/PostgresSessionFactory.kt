@@ -17,7 +17,8 @@ class PostgresSessionFactory(
     private val queryParameterMappers: List<QueryParameterMapper>,
 ) : SessionFactory {
 
-    /** Lager en ny context - starter ikke sesjonen */
+    /** Lager en ny context - starter ikke sesjonen.
+     * DEPRECATION: Use nullable paramters and withSessionContext(sessionContext: SessionContext?, action) instead */
     override fun newSessionContext(): PostgresSessionContext {
         return PostgresSessionContext(dataSource, dbMetrics, sessionCounter, queryParameterMappers)
     }
@@ -25,6 +26,15 @@ class PostgresSessionFactory(
     /** Lager en ny context og starter sesjonen - lukkes automatisk  */
     override fun <T> withSessionContext(action: (SessionContext) -> T): T {
         return newSessionContext().let { context ->
+            context.withSession {
+                action(context)
+            }
+        }
+    }
+
+    /** Lager en ny context og starter sesjonen - lukkes automatisk  */
+    override fun <T> withSessionContext(sessionContext: SessionContext?, action: (SessionContext) -> T): T {
+        return (sessionContext ?: newSessionContext()).let { context ->
             context.withSession {
                 action(context)
             }
@@ -48,6 +58,8 @@ class PostgresSessionFactory(
      *
      * Merk: Man må kalle withTransaction {...} før man kaller withSession {...} hvis ikke får man en [IllegalStateException]
      * withSession {...} vil kjøre inne i den samme transaksjonen.
+     *
+     * DEPRECATION: Use nullable paramters and withTransactionContext(tx: TransactionContext?, action) instead
      * */
     override fun newTransactionContext(): PostgresTransactionContext {
         return PostgresTransactionContext(dataSource, dbMetrics, sessionCounter, queryParameterMappers)
@@ -58,6 +70,18 @@ class PostgresSessionFactory(
         action: (TransactionContext) -> T,
     ): T {
         return newTransactionContext().let { context ->
+            context.withTransaction {
+                action(context)
+            }
+        }
+    }
+
+    /** Lager en ny context dersom den ikke finnes og starter sesjonen - lukkes automatisk  */
+    override fun <T> withTransactionContext(
+        transactionContext: TransactionContext?,
+        action: (TransactionContext) -> T,
+    ): T {
+        return (transactionContext ?: newTransactionContext()).let { context ->
             context.withTransaction {
                 action(context)
             }

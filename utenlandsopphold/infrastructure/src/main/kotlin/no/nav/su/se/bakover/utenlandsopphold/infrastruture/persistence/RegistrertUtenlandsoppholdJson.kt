@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.infrastructure.ident.IdentJson
 import no.nav.su.se.bakover.common.infrastructure.ident.IdentJson.Companion.toIdentJson
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import no.nav.su.se.bakover.utenlandsopphold.domain.registrer.RegistrerUtenlandsoppholdHendelse
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.UtenlandsoppholdDokumentasjonDatabaseJson.Companion.toJson
@@ -36,7 +35,7 @@ internal data class RegistrertUtenlandsoppholdJson(
         fun PersistertHendelse.toRegistrerUtenlandsoppholdHendelse(): RegistrerUtenlandsoppholdHendelse {
             return deserialize<RegistrertUtenlandsoppholdJson>(this.data).let { json ->
                 RegistrerUtenlandsoppholdHendelse.fraPersistert(
-                    hendelseId = HendelseId.fromUUID(this.hendelseId),
+                    hendelseId = this.hendelseId,
                     sakId = this.sakId!!,
                     periode = json.periode.toDatoIntervall(),
                     dokumentasjon = json.dokumentasjon.toDomain(),

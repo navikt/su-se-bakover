@@ -16,7 +16,6 @@ import java.util.UUID
 data class KvitteringPåSakHendelse(
     override val hendelseId: HendelseId,
     override val versjon: Hendelsesversjon,
-    override val triggetAv: HendelseId,
     override val sakId: UUID,
     override val hendelsestidspunkt: Tidspunkt,
     override val meta: HendelseMetadata,
@@ -48,7 +47,6 @@ data class KvitteringPåSakHendelse(
             utbetalingsstatus: Kvittering.Utbetalingsstatus,
             originalKvittering: String,
             sakId: UUID,
-            triggetAv: HendelseId,
             utbetalingId: UUID30,
         ): KvitteringPåSakHendelse {
             return KvitteringPåSakHendelse(
@@ -59,7 +57,7 @@ data class KvitteringPåSakHendelse(
                 utbetalingsstatus = utbetalingsstatus,
                 originalKvittering = originalKvittering,
                 versjon = forrigeVersjon,
-                triggetAv = triggetAv,
+
                 utbetalingId = utbetalingId,
             ).also {
                 require(it.entitetId == entitetId) {

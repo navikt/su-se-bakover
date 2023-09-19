@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import kotliquery.using
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
@@ -25,6 +26,16 @@ open class PostgresSessionContext(
     private var session: Session? = null
 
     companion object {
+
+        fun <T> SessionContext?.withOptionalSession(
+            sessionFactory: SessionFactory,
+            action: (session: Session) -> T,
+        ): T {
+            return (this ?: sessionFactory.newSessionContext()).withSession {
+                action(it)
+            }
+        }
+
         /**
          * Første kall lager en ny sesjon og lukkes automatisk sammen med funksjonsblokka.
          * Påfølgende kall gjenbruker samme sesjon.

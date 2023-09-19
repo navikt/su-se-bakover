@@ -54,8 +54,8 @@ import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
-import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelseActionPostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
+import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsekonsumenterPostgresRepo
 import no.nav.su.se.bakover.institusjonsopphold.database.InstitusjonsoppholdHendelsePostgresRepo
 import no.nav.su.se.bakover.oppgave.infrastructure.OppgaveHendelsePostgresRepo
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.UtenlandsoppholdPostgresRepo
@@ -281,10 +281,9 @@ data object DatabaseBuilder {
             hendelseRepo = hendelseRepo,
             utenlandsoppholdRepo = utenlandsoppholdRepo,
             dokumentSkattRepo = DokumentSkattPostgresRepo(dbMetrics, sessionFactory, clock),
-            institusjonsoppholdHendelseRepo = InstitusjonsoppholdHendelsePostgresRepo(sessionFactory, dbMetrics, hendelseRepo, clock),
-            oppgaveHendelseRepo = OppgaveHendelsePostgresRepo(sessionFactory, dbMetrics, hendelseRepo, clock),
-            hendelseActionRepo = HendelseActionPostgresRepo(sessionFactory),
-
+            institusjonsoppholdHendelseRepo = InstitusjonsoppholdHendelsePostgresRepo(dbMetrics, hendelseRepo),
+            oppgaveHendelseRepo = OppgaveHendelsePostgresRepo(dbMetrics, hendelseRepo),
+            hendelsekonsumenterRepo = HendelsekonsumenterPostgresRepo(sessionFactory),
         )
     }
 }

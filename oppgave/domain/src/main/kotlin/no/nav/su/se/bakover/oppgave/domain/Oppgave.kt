@@ -7,6 +7,10 @@ data class Oppgave(
     val versjon: Int,
     val status: Oppgavestatus,
 ) {
+    fun erÅpen(): Boolean {
+        return status.erÅpen()
+    }
+
     enum class Oppgavestatus {
         Opprettet,
         Åpnet,

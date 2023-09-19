@@ -3,7 +3,6 @@ package økonomi.infrastructure.kvittering.persistence
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.kvittering.KvitteringPåSakHendelse
@@ -46,7 +45,7 @@ internal data class KvitteringPåSakHendelseJson(
             }
             return deserialize<KvitteringPåSakHendelseJson>(this.data).let { json ->
                 KvitteringPåSakHendelse.fraPersistert(
-                    hendelseId = HendelseId.fromUUID(this.hendelseId),
+                    hendelseId = this.hendelseId,
                     hendelsestidspunkt = this.hendelsestidspunkt,
                     hendelseMetadata = this.hendelseMetadata,
                     forrigeVersjon = this.versjon,
@@ -54,7 +53,6 @@ internal data class KvitteringPåSakHendelseJson(
                     utbetalingsstatus = json.utbetalingsstatusDomain,
                     originalKvittering = json.originalKvittering,
                     utbetalingId = json.utbetalingId,
-                    triggetAv = HendelseId.fromUUID(this.triggetAv!!),
                     sakId = sakId!!,
                 )
             }

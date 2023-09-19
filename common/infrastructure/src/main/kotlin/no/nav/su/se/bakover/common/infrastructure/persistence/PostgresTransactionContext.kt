@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import kotliquery.using
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresTransactionContext.Companion.withTransaction
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
@@ -26,6 +27,16 @@ class PostgresTransactionContext(
     private var transactionalSession: TransactionalSession? = null
 
     companion object {
+
+        fun <T> TransactionContext?.withOptionalTransaction(
+            sessionFactory: SessionFactory,
+            action: (session: TransactionalSession) -> T,
+        ): T {
+            return (this ?: sessionFactory.newTransactionContext()).withTransaction {
+                action(it)
+            }
+        }
+
         /**
          * Første kall lager en ny transaksjonell sesjon og lukkes automatisk sammen med funksjonsblokka..
          * Påfølgende kall gjenbruker samme transaksjon.
