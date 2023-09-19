@@ -56,7 +56,7 @@ fun Sak.avslåSøknadPgaManglendeDokumentasjon(
             sak = sak,
             søknadsbehandling = (behandling as? KanOppdaterePeriodeBosituasjonVilkår).let {
                 it
-                    ?: throw IllegalArgumentException("Søknadsbehandling var ikke av typen KanOppdaterePeriodeGrunnlagVilkår ved avslag pga. manglende dokumentasjon. Actual: ${behandling::class.simpleName} ")
+                    ?: throw IllegalArgumentException("Søknadsbehandling var ikke av typen KanOppdaterePeriodeGrunnlagVilkår ved avslag pga. manglende dokumentasjon. Actual: ${behandling::class.qualifiedName}")
             },
             request = command,
             clock = clock,

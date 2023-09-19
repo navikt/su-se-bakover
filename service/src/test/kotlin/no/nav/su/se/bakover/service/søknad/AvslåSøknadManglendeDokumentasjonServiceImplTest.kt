@@ -370,7 +370,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     fritekstTilBrev = "fritekstTilBrev",
                 ),
             )
-        }.message shouldBe "Søknadsbehandling var ikke av typen KanOppdaterePeriodeGrunnlagVilkår ved avslag pga. manglende dokumentasjon. Actual: Innvilget "
+        }.message shouldBe "Søknadsbehandling var ikke av typen KanOppdaterePeriodeGrunnlagVilkår ved avslag pga. manglende dokumentasjon. Actual: no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling.Innvilget"
         verify(serviceAndMocks.sakService).hentSakForSøknad(søknadId)
         serviceAndMocks.verifyNoMoreInteractions()
     }

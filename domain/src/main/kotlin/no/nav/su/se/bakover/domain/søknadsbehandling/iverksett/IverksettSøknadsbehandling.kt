@@ -69,7 +69,7 @@ private fun Sak.hentSøknadsbehandlingEllerKast(command: IverksettSøknadsbehand
         throw IllegalArgumentException("Fant ikke behandling ${command.behandlingId} for sak $id")
     }.let {
         (it as? SøknadsbehandlingTilAttestering)
-            ?: throw IllegalArgumentException("Prøvde iverksette søknadsbehandling som ikke var til attestering. Sak $id, søknadsbehandling ${it.id} og status ${it::class.simpleName}")
+            ?: throw IllegalArgumentException("Prøvde iverksette søknadsbehandling som ikke var til attestering. Sak $id, søknadsbehandling ${it.id} og status ${it::class.qualifiedName}")
     }
 }
 

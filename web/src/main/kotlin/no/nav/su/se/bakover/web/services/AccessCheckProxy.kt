@@ -1278,4 +1278,4 @@ open class AccessCheckProxy(
     }
 }
 
-class Tilgangssjekkfeil(val feil: KunneIkkeHentePerson, val fnr: Fnr) : RuntimeException()
+class Tilgangssjekkfeil(val feil: KunneIkkeHentePerson, val fnr: Fnr) : RuntimeException("Underliggende feil: $feil")

@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.satser.Satskategori
 import org.slf4j.LoggerFactory
+import java.math.RoundingMode
 
 internal data class PersistertMånedsberegning(
     val sumYtelse: Int,
@@ -35,7 +36,7 @@ internal data class PersistertMånedsberegning(
                         måned = måned,
                         satskategori = sats,
                     ).also {
-                        check(satsbeløp == it.satsForMånedAsDouble)
+                        check(satsbeløp.isEqualToTwoDecimals(it.satsForMånedAsDouble))
                         check(sats == it.satskategori)
                     }
                 }
@@ -45,14 +46,14 @@ internal data class PersistertMånedsberegning(
                         måned = måned,
                         satskategori = sats,
                     ).also {
-                        // TODO jah: Disse skulle egentlig være checks, men siden vi har beregninger med satser i prod får vi prøve finne og fikse dem etterhvert som de dukker opp.
+                        // TODO jah: it.grunnbeløp.grunnbeløpPerÅr gir
                         if (benyttetGrunnbeløp != it.grunnbeløp.grunnbeløpPerÅr) {
                             log.warn(
                                 "Saksnummer $saksnummer: Hentet benyttetGrunnbeløp: $benyttetGrunnbeløp fra databasen, mens den utleda verdien for grunnbeløp var: ${it.grunnbeløp.grunnbeløpPerÅr}",
                                 RuntimeException("Genererer en stacktrace for enklere debugging."),
                             )
                         }
-                        if (satsbeløp != it.satsForMånedAsDouble) {
+                        if (!satsbeløp.isEqualToTwoDecimals(it.satsForMånedAsDouble)) {
                             log.warn(
                                 "Saksnummer $saksnummer: Hentet satsbeløp $satsbeløp fra databasen, mens den utleda verdien for satsForMånedAsDouble var: ${it.satsForMånedAsDouble}",
                                 RuntimeException("Genererer en stacktrace for enklere debugging."),
@@ -86,4 +87,8 @@ internal fun Månedsberegning.toJson(): PersistertMånedsberegning {
         fribeløpForEps = getFribeløpForEps(),
         merknader = getMerknader().toSnapshot(),
     )
+}
+
+private fun Double.isEqualToTwoDecimals(other: Double): Boolean {
+    return this.toBigDecimal().setScale(2, RoundingMode.HALF_UP) == other.toBigDecimal().setScale(2, RoundingMode.HALF_UP)
 }

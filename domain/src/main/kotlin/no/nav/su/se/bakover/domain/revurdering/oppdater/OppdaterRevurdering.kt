@@ -36,7 +36,7 @@ fun Sak.oppdaterRevurdering(
     val revurdering = hentRevurdering(command.revurderingId).fold(
         { throw IllegalArgumentException("Fant ikke revurdering med id ${command.revurderingId}") },
         {
-            if (it is Revurdering) it else throw IllegalArgumentException("Revurdering med id ${command.revurderingId} var av feil type: ${it::class.simpleName}")
+            if (it is Revurdering) it else throw IllegalArgumentException("Revurdering med id ${command.revurderingId} var av feil type: ${it::class.qualifiedName}")
         },
     )
     val periode = command.periode
