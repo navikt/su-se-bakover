@@ -21,19 +21,20 @@ data class KravgrunnlagJson(
 ) {
 
     companion object {
-        fun Kravgrunnlag.toJson(): String = serialize(
-            KravgrunnlagJson(
-                eksternKravgrunnlagsId = this.kravgrunnlagId,
-                eksternVedtakId = this.vedtakId,
-                kontrollfelt = this.kontrollfelt,
-                status = this.status.toJson(),
-                grunnlagsperiode = this.grunnlagsperioder.toJson(),
-            ),
+        fun Kravgrunnlag.toJson(): KravgrunnlagJson = KravgrunnlagJson(
+            eksternKravgrunnlagsId = this.kravgrunnlagId,
+            eksternVedtakId = this.vedtakId,
+            kontrollfelt = this.kontrollfelt,
+            status = this.status.toJson(),
+            grunnlagsperiode = this.grunnlagsperioder.toJson(),
         )
+
+        fun Kravgrunnlag.toStringifiedJson(): String = serialize(this.toJson())
     }
 }
 
 data class GrunnlagsperiodeJson(
+    // TODO bytt til månedJson
     val periode: PeriodeJson,
     val beløpSkattMnd: String,
     val grunnlagsbeløp: List<GrunnlagsbeløpJson>,

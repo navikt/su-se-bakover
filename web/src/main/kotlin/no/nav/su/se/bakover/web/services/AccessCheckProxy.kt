@@ -218,6 +218,8 @@ import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.tilbakekreving.domain.Kravgrunnlag
 import no.nav.su.se.bakover.tilbakekreving.domain.KunneIkkeHenteSisteFerdigbehandledeKravgrunnlag
 import no.nav.su.se.bakover.tilbakekreving.domain.KunneIkkeOppretteTilbakekrevingsbehandling
+import no.nav.su.se.bakover.tilbakekreving.domain.ManuellTilbakekrevingService
+import no.nav.su.se.bakover.tilbakekreving.domain.ManuellTilbakekrevingsbehandling
 import no.nav.su.se.bakover.tilbakekreving.domain.RåttKravgrunnlag
 import økonomi.domain.kvittering.Kvittering
 import java.time.LocalDate
@@ -1217,7 +1219,7 @@ open class AccessCheckProxy(
                     return services.resendStatistikkhendelserService.resendStatistikkForVedtak(vedtakId, requiredType)
                 }
             },
-            manuellTilbakekrevingService = object : no.nav.su.se.bakover.tilbakekreving.domain.ManuellTilbakekrevingService {
+            manuellTilbakekrevingService = object : ManuellTilbakekrevingService {
                 override fun hentAktivKravgrunnlag(
                     sakId: UUID,
                     kravgrunnlagMapper: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
@@ -1226,9 +1228,12 @@ open class AccessCheckProxy(
                     return services.manuellTilbakekrevingService.hentAktivKravgrunnlag(sakId, kravgrunnlagMapper)
                 }
 
-                override fun ny(sakId: UUID): Either<KunneIkkeOppretteTilbakekrevingsbehandling, no.nav.su.se.bakover.tilbakekreving.domain.Tilbakekrevingsbehandling> {
+                override fun ny(
+                    sakId: UUID,
+                    kravgrunnlagMapper: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
+                ): Either<KunneIkkeOppretteTilbakekrevingsbehandling, ManuellTilbakekrevingsbehandling> {
                     assertHarTilgangTilSak(sakId)
-                    return services.manuellTilbakekrevingService.ny(sakId)
+                    return services.manuellTilbakekrevingService.ny(sakId, kravgrunnlagMapper)
                 }
             },
         )

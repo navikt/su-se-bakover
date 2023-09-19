@@ -312,7 +312,7 @@ data object ServiceBuilder {
                 sakRepo = databaseRepos.sak,
                 statistikkEventObserver = statistikkEventObserver,
             ),
-            manuellTilbakekrevingService = ManuellTilbakekrevingServiceImpl(databaseRepos.tilbakekrevingRepo),
+            manuellTilbakekrevingService = ManuellTilbakekrevingServiceImpl(databaseRepos.tilbakekrevingRepo, clock),
         )
     }
 }

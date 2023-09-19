@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.tilbakekreving.domain.KunneIkkeHenteSisteFerdigbehandledeKravgrunnlag
 import no.nav.su.se.bakover.tilbakekreving.domain.KunneIkkeOppretteTilbakekrevingsbehandling
 import no.nav.su.se.bakover.tilbakekreving.domain.ManuellTilbakekrevingService
-import no.nav.su.se.bakover.tilbakekreving.presentation.KravgrunnlagJson.Companion.toJson
+import no.nav.su.se.bakover.tilbakekreving.presentation.KravgrunnlagJson.Companion.toStringifiedJson
 import no.nav.su.se.bakover.tilbakekreving.presentation.TilbakekrevingsbehandlingJson.Companion.toJson
 
 internal const val tilbakekrevingPath = "saker/{sakId}/tilbakekreving"
@@ -28,7 +28,7 @@ fun Route.tilbakekrevingRoute(tilbakekrevingService: ManuellTilbakekrevingServic
                     kravgrunnlagMapper = TilbakekrevingsmeldingMapper::toKravgrunnlg,
                 ).fold(
                     ifLeft = { call.svar(it.tilResultat()) },
-                    ifRight = { call.svar(Resultat.json(HttpStatusCode.Created, it.toJson())) },
+                    ifRight = { call.svar(Resultat.json(HttpStatusCode.Created, it.toStringifiedJson())) },
                 )
             }
         }
@@ -37,7 +37,10 @@ fun Route.tilbakekrevingRoute(tilbakekrevingService: ManuellTilbakekrevingServic
     post("$tilbakekrevingPath/ny") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId {
-                tilbakekrevingService.ny(it).fold(
+                tilbakekrevingService.ny(
+                    sakId = it,
+                    kravgrunnlagMapper = TilbakekrevingsmeldingMapper::toKravgrunnlg,
+                ).fold(
                     ifLeft = { call.svar(it.tilResultat()) },
                     ifRight = { call.svar(Resultat.json(HttpStatusCode.Created, it.toJson())) },
                 )
@@ -46,19 +49,22 @@ fun Route.tilbakekrevingRoute(tilbakekrevingService: ManuellTilbakekrevingServic
     }
 }
 
-internal fun KunneIkkeHenteSisteFerdigbehandledeKravgrunnlag.tilResultat(): Resultat {
-    return when (this) {
-        KunneIkkeHenteSisteFerdigbehandledeKravgrunnlag.FeilVedMappingAvKravgrunnalget -> HttpStatusCode.InternalServerError.errorJson(
-            "Teknisk feil ved mapping av innholdet",
-            "teknisk_feil_ved_mapping_av_kravgrunnlag",
-        )
-        KunneIkkeHenteSisteFerdigbehandledeKravgrunnlag.FinnesIngenFerdigBehandledeKravgrunnlag -> HttpStatusCode.NotFound.errorJson(
-            "Ingen ferdig behandlede kravgrunnlag",
-            "ingen_ferdig_behandlede_kravgrunnlag",
-        )
-    }
+val mappingFeil = HttpStatusCode.InternalServerError.errorJson(
+    "Teknisk feil ved mapping av innholdet",
+    "teknisk_feil_ved_mapping_av_kravgrunnlag",
+)
+
+val finnesIkkeFeil = HttpStatusCode.NotFound.errorJson(
+    "Ingen ferdig behandlede kravgrunnlag",
+    "ingen_ferdig_behandlede_kravgrunnlag",
+)
+
+internal fun KunneIkkeHenteSisteFerdigbehandledeKravgrunnlag.tilResultat(): Resultat = when (this) {
+    KunneIkkeHenteSisteFerdigbehandledeKravgrunnlag.FeilVedMappingAvKravgrunnalget -> mappingFeil
+    KunneIkkeHenteSisteFerdigbehandledeKravgrunnlag.FinnesIngenFerdigBehandledeKravgrunnlag -> finnesIkkeFeil
 }
 
-internal fun KunneIkkeOppretteTilbakekrevingsbehandling.tilResultat(): Resultat {
-    TODO()
+internal fun KunneIkkeOppretteTilbakekrevingsbehandling.tilResultat(): Resultat = when (this) {
+    KunneIkkeOppretteTilbakekrevingsbehandling.FeilVedMappingAvKravgrunnalget -> mappingFeil
+    KunneIkkeOppretteTilbakekrevingsbehandling.FinnesIngenFerdigBehandledeKravgrunnlag -> finnesIkkeFeil
 }

@@ -9,5 +9,8 @@ interface ManuellTilbakekrevingService {
         kravgrunnlagMapper: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
     ): Either<KunneIkkeHenteSisteFerdigbehandledeKravgrunnlag, Kravgrunnlag>
 
-    fun ny(sakId: UUID): Either<KunneIkkeOppretteTilbakekrevingsbehandling, Tilbakekrevingsbehandling>
+    fun ny(
+        sakId: UUID,
+        kravgrunnlagMapper: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
+    ): Either<KunneIkkeOppretteTilbakekrevingsbehandling, ManuellTilbakekrevingsbehandling>
 }
