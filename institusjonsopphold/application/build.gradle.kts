@@ -8,6 +8,7 @@ dependencies {
     implementation(project(":oppgave:domain"))
     implementation(project(":institusjonsopphold:domain"))
     implementation(project(":institusjonsopphold:infrastructure"))
+    implementation(project(":person:domain"))
 
     testImplementation(project(":test-common"))
 }

@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevKommandoForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -28,6 +27,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
+import person.domain.KunneIkkeHentePerson
 import java.util.UUID
 
 internal class OversendKlageTest {

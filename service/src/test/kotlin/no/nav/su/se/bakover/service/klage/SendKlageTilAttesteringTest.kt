@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeKlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
@@ -38,6 +37,7 @@ import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import person.domain.KunneIkkeHentePerson
 import java.util.UUID
 
 internal class SendKlageTilAttesteringTest {

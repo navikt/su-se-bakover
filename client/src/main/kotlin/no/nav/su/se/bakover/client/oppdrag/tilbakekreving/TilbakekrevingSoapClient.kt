@@ -11,8 +11,8 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingClient
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsvedtak
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingsvedtakForsendelseFeil
-import no.nav.su.se.bakover.tilbakekreving.domain.RåTilbakekrevingsvedtakForsendelse
 import org.slf4j.LoggerFactory
+import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
 import java.time.Clock
 
 class TilbakekrevingSoapClient(

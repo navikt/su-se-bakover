@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.oppdrag.tilbakekreving
 
 import arrow.core.Either
-import no.nav.su.se.bakover.tilbakekreving.domain.RåTilbakekrevingsvedtakForsendelse
+import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
 
 interface TilbakekrevingClient {
     fun sendTilbakekrevingsvedtak(tilbakekrevingsvedtak: Tilbakekrevingsvedtak): Either<TilbakekrevingsvedtakForsendelseFeil, RåTilbakekrevingsvedtakForsendelse>

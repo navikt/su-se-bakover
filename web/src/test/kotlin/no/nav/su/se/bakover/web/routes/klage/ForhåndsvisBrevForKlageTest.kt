@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevKommandoForKlage
 import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
@@ -28,6 +27,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import person.domain.KunneIkkeHentePerson
 import java.util.UUID
 
 internal class ForhåndsvisBrevForKlageTest {

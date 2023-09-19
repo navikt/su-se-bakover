@@ -13,9 +13,9 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.matchendeKravgrunnlag
-import no.nav.su.se.bakover.tilbakekreving.domain.KlasseKode
-import no.nav.su.se.bakover.tilbakekreving.domain.RåttKravgrunnlag
 import org.junit.jupiter.api.Test
+import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
+import økonomi.domain.KlasseKode
 import java.math.BigDecimal
 import java.util.UUID
 

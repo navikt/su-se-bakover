@@ -182,7 +182,7 @@ internal class PersonClientTest {
     private class PersonClientConfigTestMocks(
         val brukerTokenGenerator: BrukertokenGenerator = BrukertokenGenerator(),
         val fnr: Fnr = Fnr.generer(),
-        personCacheSpy: Cache<FnrCacheKey, Person> = newCache(cacheName = "person"),
+        personCacheSpy: Cache<FnrCacheKey, Person> = newCache(cacheName = "person/domain"),
         aktørIdCacheSpy: Cache<FnrCacheKey, AktørId> = newCache(cacheName = "aktoerId"),
     ) {
         val kontaktinformasjon = Kontaktinformasjon(

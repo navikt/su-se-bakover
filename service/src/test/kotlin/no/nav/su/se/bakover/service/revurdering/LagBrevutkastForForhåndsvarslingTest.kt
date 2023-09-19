@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
 import no.nav.su.se.bakover.test.saksbehandler
@@ -19,6 +18,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import person.domain.KunneIkkeHentePerson
 import java.util.UUID
 
 class LagBrevutkastForForhåndsvarslingTest {

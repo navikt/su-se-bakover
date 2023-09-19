@@ -25,9 +25,9 @@ import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.avvist.tilAvvistSøknadPdfInnhold
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.trukket.TrukketSøknadPdfInnhold
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Sakstype
+import person.domain.KunneIkkeHentePerson
 import java.time.Clock
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter

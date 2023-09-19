@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
 import no.nav.su.se.bakover.domain.sak.Sakstype
-import no.nav.su.se.bakover.tilbakekreving.domain.KlasseKode
-import no.nav.su.se.bakover.tilbakekreving.domain.KlasseType
+import økonomi.domain.KlasseKode
+import økonomi.domain.KlasseType
 import java.time.LocalDate
 
 /**

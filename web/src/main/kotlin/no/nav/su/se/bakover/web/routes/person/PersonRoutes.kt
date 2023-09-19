@@ -14,17 +14,17 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.FantIkkePerson
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.IkkeTilgangTilPerson
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.Ukjent
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.web.routes.person.PersonResponseJson.Companion.toJson
+import person.domain.KunneIkkeHentePerson
+import person.domain.KunneIkkeHentePerson.FantIkkePerson
+import person.domain.KunneIkkeHentePerson.IkkeTilgangTilPerson
+import person.domain.KunneIkkeHentePerson.Ukjent
 import java.time.Clock
 import java.time.LocalDate
 
-internal const val personPath = "/person"
+internal const val personPath = "/person/domain"
 
 internal fun Route.personRoutes(
     personService: PersonService,

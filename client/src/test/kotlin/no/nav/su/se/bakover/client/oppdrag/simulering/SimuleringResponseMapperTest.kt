@@ -28,10 +28,10 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertMåned
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.simulering.SimuleringResponseData.Companion.simuleringXml
-import no.nav.su.se.bakover.tilbakekreving.domain.KlasseKode
-import no.nav.su.se.bakover.tilbakekreving.domain.KlasseType
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningResponse
 import org.junit.jupiter.api.Test
+import økonomi.domain.KlasseKode
+import økonomi.domain.KlasseType
 import java.math.BigDecimal
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse as GrensesnittResponse
 

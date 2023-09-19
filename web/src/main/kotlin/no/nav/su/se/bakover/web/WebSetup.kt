@@ -29,7 +29,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.jacksonConverter
 import no.nav.su.se.bakover.common.person.UgyldigFnrException
 import no.nav.su.se.bakover.domain.DatabaseRepos
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.naisPaths
@@ -40,6 +39,7 @@ import no.nav.su.se.bakover.web.services.Tilgangssjekkfeil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
+import person.domain.KunneIkkeHentePerson
 import java.time.Clock
 import java.time.format.DateTimeParseException
 

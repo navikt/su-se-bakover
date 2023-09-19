@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.service.skatt
 
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import person.domain.KunneIkkeHentePerson
 
 sealed interface KunneIkkeHenteOgLagePdfAvSkattegrunnlag {
 

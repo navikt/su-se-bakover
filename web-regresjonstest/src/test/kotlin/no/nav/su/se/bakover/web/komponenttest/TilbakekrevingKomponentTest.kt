@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.shouldBeType
-import no.nav.su.se.bakover.tilbakekreving.presentation.TilbakekrevingsmeldingMapper
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.revurdering.attestering.sendTilAttestering
 import no.nav.su.se.bakover.web.revurdering.avgjørTilbakekreving
@@ -47,6 +46,7 @@ import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
 import java.util.UUID
 
 class TilbakekrevingKomponentTest {
@@ -102,7 +102,7 @@ class TilbakekrevingKomponentTest {
                 .shouldBeType<VedtakInnvilgetRevurdering>().behandling.tilbakekrevingsbehandling.shouldBeType<MottattKravgrunnlag>()
 
             appComponents.services.tilbakekrevingService.sendTilbakekrevingsvedtak {
-                TilbakekrevingsmeldingMapper.toKravgrunnlg(it).getOrFail()
+                TilbakekrevingsmeldingMapper.toKravgrunnlag(it).getOrFail()
             }
 
             appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!

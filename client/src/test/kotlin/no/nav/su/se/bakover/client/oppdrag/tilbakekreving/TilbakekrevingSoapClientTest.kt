@@ -17,8 +17,8 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsvedtak
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingsvedtakForsendelseFeil
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.tilbakekreving.domain.RåTilbakekrevingsvedtakForsendelse
 import org.junit.jupiter.api.Test
+import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
 
 internal class TilbakekrevingSoapClientTest {
 

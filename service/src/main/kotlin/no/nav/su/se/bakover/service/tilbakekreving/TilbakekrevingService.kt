@@ -15,10 +15,10 @@ import no.nav.su.se.bakover.domain.revurdering.brev.lagDokumentKommando
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.service.vedtak.VedtakService
-import no.nav.su.se.bakover.tilbakekreving.domain.Kravgrunnlag
-import no.nav.su.se.bakover.tilbakekreving.domain.RåTilbakekrevingsvedtakForsendelse
-import no.nav.su.se.bakover.tilbakekreving.domain.RåttKravgrunnlag
 import org.slf4j.LoggerFactory
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
+import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import java.time.Clock
 import java.util.UUID
 

@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 
 sealed interface FeilVedHentingAvInformasjon {
     data class KunneIkkeHentePerson(
-        val underliggende: no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson,
+        val underliggende: person.domain.KunneIkkeHentePerson,
     ) : FeilVedHentingAvInformasjon
 
     data class KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(

@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonRepo
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.Sakstype
@@ -26,6 +25,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import person.domain.KunneIkkeHentePerson
 import java.util.UUID
 
 internal class AccessCheckProxyTest {
@@ -54,7 +54,6 @@ internal class AccessCheckProxyTest {
         skatteService = mock(),
         kontrollsamtaleSetup = mock(),
         resendStatistikkhendelserService = mock(),
-        manuellTilbakekrevingService = mock(),
     )
 
     @Nested

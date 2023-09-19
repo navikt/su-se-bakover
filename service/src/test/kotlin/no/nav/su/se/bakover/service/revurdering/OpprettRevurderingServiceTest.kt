@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.avkorting.KanIkkeRevurderePgaAvkorting
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
@@ -62,6 +61,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import person.domain.KunneIkkeHentePerson
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 

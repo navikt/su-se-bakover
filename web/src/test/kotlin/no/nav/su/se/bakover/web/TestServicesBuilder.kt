@@ -28,7 +28,6 @@ import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
-import no.nav.su.se.bakover.tilbakekreving.domain.ManuellTilbakekrevingService
 import no.nav.su.se.bakover.web.services.Services
 import org.mockito.kotlin.mock
 
@@ -66,7 +65,6 @@ data object TestServicesBuilder {
             override val utløptFristForKontrollsamtaleService: UtløptFristForKontrollsamtaleService = mock()
         },
         resendStatistikkhendelserService: ResendStatistikkhendelserService = mock(),
-        manuellTilbakekrevingService: ManuellTilbakekrevingService = mock(),
     ): Services = Services(
         avstemming = avstemming,
         utbetaling = utbetaling,
@@ -92,6 +90,5 @@ data object TestServicesBuilder {
         skatteService = skatteService,
         kontrollsamtaleSetup = kontrollsamtaleSetup,
         resendStatistikkhendelserService = resendStatistikkhendelserService,
-        manuellTilbakekrevingService = manuellTilbakekrevingService,
     )
 }

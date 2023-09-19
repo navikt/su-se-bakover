@@ -72,7 +72,7 @@ internal class LagBrevutkastForRevurderingTest {
             brevService = mock {
                 on { lagDokument(any()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
                     FeilVedHentingAvInformasjon.KunneIkkeHentePerson(
-                        no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.FantIkkePerson,
+                        person.domain.KunneIkkeHentePerson.FantIkkePerson,
                     ),
                 ).left()
             },
@@ -82,7 +82,7 @@ internal class LagBrevutkastForRevurderingTest {
             ) shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(
                 KunneIkkeLageDokument.FeilVedHentingAvInformasjon(
                     FeilVedHentingAvInformasjon.KunneIkkeHentePerson(
-                        no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.FantIkkePerson,
+                        person.domain.KunneIkkeHentePerson.FantIkkePerson,
                     ),
                 ),
             ).left()

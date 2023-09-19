@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokum
 import no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
@@ -27,6 +26,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import person.domain.KunneIkkeHentePerson
 
 internal class SøknadsbehandlingServiceBrevTest {
     private val tilAttesteringInnvilget = søknadsbehandlingTilAttesteringInnvilget().second

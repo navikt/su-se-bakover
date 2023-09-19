@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.person
 import arrow.core.Either
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
+import person.domain.KunneIkkeHentePerson
 
 interface PersonOppslag {
     fun person(fnr: Fnr): Either<KunneIkkeHentePerson, Person>

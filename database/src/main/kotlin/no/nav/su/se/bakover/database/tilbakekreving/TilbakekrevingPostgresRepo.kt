@@ -24,8 +24,8 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.SendtTilbakekrevingsve
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingRepo
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
-import no.nav.su.se.bakover.tilbakekreving.domain.RåTilbakekrevingsvedtakForsendelse
-import no.nav.su.se.bakover.tilbakekreving.domain.RåttKravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
+import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import java.util.UUID
 
 internal class TilbakekrevingPostgresRepo(
@@ -56,28 +56,6 @@ internal class TilbakekrevingPostgresRepo(
                 ) {
                     it.toTilbakekrevingsbehandling()
                 }.filterIsInstance<Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag>()
-        }
-    }
-
-    override fun hentSisteFerdigbehandledeKravgrunnlagForSak(sakId: UUID): RåttKravgrunnlag? {
-        return sessionFactory.withSession { session ->
-            """
-                select 
-                    * 
-                from 
-                    revurdering_tilbakekreving 
-                where 
-                    tilstand = '${Tilstand.MOTTATT_KRAVGRUNNLAG}' 
-                    and tilbakekrevingsvedtakForsendelse is null 
-                    and sakId=:sakId
-                    and opprettet = (SELECT MAX(opprettet) FROM revurdering_tilbakekreving);
-            """.trimIndent()
-                .hentListe(
-                    mapOf("sakId" to sakId),
-                    session,
-                ) {
-                    it.toTilbakekrevingsbehandling()
-                }.filterIsInstance<Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag>().singleOrNull()?.kravgrunnlag
         }
     }
 

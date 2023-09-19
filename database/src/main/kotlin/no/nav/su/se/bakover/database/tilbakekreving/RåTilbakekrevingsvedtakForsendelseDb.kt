@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.database.tilbakekreving
 
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.tilbakekreving.domain.RåTilbakekrevingsvedtakForsendelse
+import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
 
 internal data class RåTilbakekrevingsvedtakForsendelseDb(
     val requestXml: String,

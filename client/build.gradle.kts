@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":dokument:domain"))
     implementation(project(":oppgave:domain"))
     implementation(project(":tilbakekreving:domain"))
+    implementation(project(":person:domain"))
 
     implementation("com.github.kittinunf.fuel:fuel:$fuelVersion")
     implementation("com.github.kittinunf.fuel:fuel-gson:$fuelVersion")

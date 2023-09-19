@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.Månedsbeløp
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.tilMåned
-import no.nav.su.se.bakover.tilbakekreving.domain.KlasseKode
+import økonomi.domain.KlasseKode
 import java.math.BigDecimal
 
 sealed interface Tilbakekrevingsvedtak {

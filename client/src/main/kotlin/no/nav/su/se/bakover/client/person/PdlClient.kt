@@ -25,13 +25,13 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Tema
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.FantIkkePerson
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.IkkeTilgangTilPerson
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.Ukjent
 import no.nav.su.se.bakover.domain.person.Telefonnummer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import person.domain.KunneIkkeHentePerson
+import person.domain.KunneIkkeHentePerson.FantIkkePerson
+import person.domain.KunneIkkeHentePerson.IkkeTilgangTilPerson
+import person.domain.KunneIkkeHentePerson.Ukjent
 import java.time.LocalDate
 
 internal data class PdlClientConfig(

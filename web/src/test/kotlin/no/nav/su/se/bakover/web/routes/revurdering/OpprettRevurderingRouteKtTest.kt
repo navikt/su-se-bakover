@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.test.opprettetRevurdering
@@ -26,6 +25,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
+import person.domain.KunneIkkeHentePerson
 
 internal class OpprettRevurderingRouteKtTest {
     val periode = år(2021)

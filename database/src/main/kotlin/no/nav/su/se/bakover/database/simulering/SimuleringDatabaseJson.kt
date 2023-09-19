@@ -14,8 +14,8 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertMåned
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
-import no.nav.su.se.bakover.tilbakekreving.domain.KlasseKode
-import no.nav.su.se.bakover.tilbakekreving.domain.KlasseType
+import økonomi.domain.KlasseKode
+import økonomi.domain.KlasseType
 import java.time.LocalDate
 
 /**

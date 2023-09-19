@@ -3,6 +3,7 @@ dependencies {
     implementation(project(":kontrollsamtale:domain"))
     implementation(project(":domain"))
     implementation(project(":dokument:domain"))
+    implementation(project(":person:domain"))
 
     testImplementation(project(":test-common"))
     // Mockito

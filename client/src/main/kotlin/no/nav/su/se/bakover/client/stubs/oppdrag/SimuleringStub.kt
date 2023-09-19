@@ -18,8 +18,8 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.sak.Sakstype
-import no.nav.su.se.bakover.tilbakekreving.domain.KlasseKode
-import no.nav.su.se.bakover.tilbakekreving.domain.KlasseType
+import økonomi.domain.KlasseKode
+import økonomi.domain.KlasseType
 import java.time.Clock
 import java.time.LocalDate
 import kotlin.math.abs

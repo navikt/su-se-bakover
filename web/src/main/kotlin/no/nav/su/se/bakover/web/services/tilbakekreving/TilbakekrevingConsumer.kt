@@ -8,11 +8,11 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
-import no.nav.su.se.bakover.tilbakekreving.domain.RåttKravgrunnlag
-import no.nav.su.se.bakover.tilbakekreving.presentation.KravgrunnlagRootDto
-import no.nav.su.se.bakover.tilbakekreving.presentation.KravgrunnlagStatusendringRootDto
-import no.nav.su.se.bakover.tilbakekreving.presentation.TilbakekrevingsmeldingMapper
 import org.slf4j.LoggerFactory
+import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
+import tilbakekreving.presentation.consumer.KravgrunnlagRootDto
+import tilbakekreving.presentation.consumer.KravgrunnlagStatusendringRootDto
+import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
 import java.time.Clock
 
 class TilbakekrevingConsumer(
@@ -41,7 +41,7 @@ class TilbakekrevingConsumer(
                                 revurderingService.hentRevurdering(revurderingId) as IverksattRevurdering
                             },
                             kravgrunnlagMapper = { råttKravgrunnlag ->
-                                TilbakekrevingsmeldingMapper.toKravgrunnlg(råttKravgrunnlag).getOrElse { throw it }
+                                TilbakekrevingsmeldingMapper.toKravgrunnlag(råttKravgrunnlag).getOrElse { throw it }
                             },
                         ).let {
                             tilbakekrevingService.lagre(it)

@@ -32,6 +32,7 @@ dependencies {
     implementation(project(":økonomi:domain"))
     implementation(project(":økonomi:infrastructure"))
     implementation(project(":dokument:domain"))
+    implementation(project(":person:domain"))
 
     implementation(project(":tilbakekreving:presentation"))
     implementation(project(":tilbakekreving:application"))

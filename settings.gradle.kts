@@ -59,3 +59,5 @@ include("tilbakekreving:presentation")
 include("tilbakekreving:application")
 include("tilbakekreving:domain")
 include("tilbakekreving:infrastructure")
+
+include("person:domain")

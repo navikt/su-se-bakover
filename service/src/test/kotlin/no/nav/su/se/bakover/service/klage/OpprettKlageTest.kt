@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -31,6 +30,7 @@ import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import person.domain.KunneIkkeHentePerson
 import java.time.LocalDate
 import java.util.UUID
 

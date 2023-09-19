@@ -7,16 +7,16 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.november
 import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.tilbakekreving.domain.KlasseKode
-import no.nav.su.se.bakover.tilbakekreving.domain.KlasseType
-import no.nav.su.se.bakover.tilbakekreving.domain.Kravgrunnlag
-import no.nav.su.se.bakover.tilbakekreving.domain.RåttKravgrunnlag
-import no.nav.su.se.bakover.tilbakekreving.presentation.KravgrunnlagDto
-import no.nav.su.se.bakover.tilbakekreving.presentation.KravgrunnlagRootDto
-import no.nav.su.se.bakover.tilbakekreving.presentation.KravgrunnlagStatusendringDto
-import no.nav.su.se.bakover.tilbakekreving.presentation.KravgrunnlagStatusendringRootDto
-import no.nav.su.se.bakover.tilbakekreving.presentation.TilbakekrevingsmeldingMapper
 import org.junit.jupiter.api.Test
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
+import tilbakekreving.presentation.consumer.KravgrunnlagDto
+import tilbakekreving.presentation.consumer.KravgrunnlagRootDto
+import tilbakekreving.presentation.consumer.KravgrunnlagStatusendringDto
+import tilbakekreving.presentation.consumer.KravgrunnlagStatusendringRootDto
+import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
+import økonomi.domain.KlasseKode
+import økonomi.domain.KlasseType
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -79,7 +79,7 @@ internal class TilbakekrevingsmeldingMapperTest {
         )
 
         TilbakekrevingsmeldingMapper.toDto(inputXml).getOrFail() shouldBe expected
-        TilbakekrevingsmeldingMapper.toKravgrunnlg(RåttKravgrunnlag(inputXml)).getOrFail() shouldBe Kravgrunnlag(
+        TilbakekrevingsmeldingMapper.toKravgrunnlag(RåttKravgrunnlag(inputXml)).getOrFail() shouldBe Kravgrunnlag(
             saksnummer = Saksnummer(2461),
             kravgrunnlagId = "298604",
             vedtakId = "436204",
@@ -201,7 +201,7 @@ internal class TilbakekrevingsmeldingMapperTest {
         )
 
         TilbakekrevingsmeldingMapper.toDto(inputXml).getOrFail() shouldBe expected
-        TilbakekrevingsmeldingMapper.toKravgrunnlg(RåttKravgrunnlag(inputXml)).getOrFail() shouldBe Kravgrunnlag(
+        TilbakekrevingsmeldingMapper.toKravgrunnlag(RåttKravgrunnlag(inputXml)).getOrFail() shouldBe Kravgrunnlag(
             saksnummer = Saksnummer(2463),
             kravgrunnlagId = "298606",
             vedtakId = "436206",

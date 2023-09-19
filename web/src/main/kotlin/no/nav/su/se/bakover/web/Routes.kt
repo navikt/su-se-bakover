@@ -8,11 +8,11 @@ import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.infrastructure.audit.CefAuditLogger
 import no.nav.su.se.bakover.common.infrastructure.brukerrolle.AzureGroupMapper
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.web.withUser
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.web.kontrollsamtaleRoutes
-import no.nav.su.se.bakover.tilbakekreving.presentation.tilbakekrevingRoute
 import no.nav.su.se.bakover.utenlandsopphold.application.annuller.AnnullerUtenlandsoppholdService
 import no.nav.su.se.bakover.utenlandsopphold.application.korriger.KorrigerUtenlandsoppholdService
 import no.nav.su.se.bakover.utenlandsopphold.application.registrer.RegistrerUtenlandsoppholdService
@@ -36,6 +36,7 @@ import no.nav.su.se.bakover.web.routes.vedtak.stønadsmottakereRoute
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.opplysningspliktRoutes
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.Services
+import tilbakekreving.presentation.api.tilbakekrevingRoutes
 import java.time.Clock
 
 internal fun Application.setupKtorRoutes(
@@ -133,8 +134,11 @@ internal fun Application.setupKtorRoutes(
                     kontrollsamtaleRoutes(
                         kontrollsamtaleService = services.kontrollsamtaleSetup.kontrollsamtaleService,
                     )
-                    tilbakekrevingRoute(
-                        tilbakekrevingService = accessProtectedServices.manuellTilbakekrevingService,
+                    tilbakekrevingRoutes(
+                        personRepo = databaseRepos.person,
+                        personService = services.person,
+                        sessionFactory = databaseRepos.sessionFactory as PostgresSessionFactory,
+                        clock = clock,
                     )
                 }
             }

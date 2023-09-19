@@ -13,12 +13,12 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.requireType
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.vedtakRevurdering
-import no.nav.su.se.bakover.tilbakekreving.presentation.TilbakekrevingsmeldingMapper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
 
 internal class TilbakekrevingConsumerTest {
     @Test

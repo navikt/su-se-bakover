@@ -54,8 +54,8 @@ import no.nav.su.se.bakover.test.nåtidForSimuleringStub
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.tikkendeFixedClock
-import no.nav.su.se.bakover.tilbakekreving.domain.KlasseKode
-import no.nav.su.se.bakover.tilbakekreving.domain.KlasseType
+import økonomi.domain.KlasseKode
+import økonomi.domain.KlasseType
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID

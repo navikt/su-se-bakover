@@ -14,9 +14,9 @@ import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.tilbakekreving.domain.RåTilbakekrevingsvedtakForsendelse
-import no.nav.su.se.bakover.tilbakekreving.domain.RåttKravgrunnlag
 import org.junit.jupiter.api.Test
+import tilbakekreving.domain.kravgrunnlag.RåTilbakekrevingsvedtakForsendelse
+import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import java.util.UUID
 
 internal class TilbakekrevingPostgresRepoTest {

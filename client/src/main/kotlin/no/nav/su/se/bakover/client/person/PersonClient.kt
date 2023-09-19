@@ -11,9 +11,9 @@ import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.PersonOppslag
+import person.domain.KunneIkkeHentePerson
 import java.time.Duration
 import java.time.Year
 
@@ -37,7 +37,7 @@ internal class PersonClient(
         JwtToken.BrukerToken.fraMdc()
     },
     private val personCache: Cache<FnrCacheKey, Person> = newCache(
-        cacheName = "person",
+        cacheName = "person/domain",
         expireAfterWrite = Duration.ofMinutes(30),
     ),
     private val aktørIdCache: Cache<FnrCacheKey, AktørId> = newCache(

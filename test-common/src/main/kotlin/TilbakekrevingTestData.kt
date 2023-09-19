@@ -8,10 +8,10 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
-import no.nav.su.se.bakover.tilbakekreving.domain.KlasseKode
-import no.nav.su.se.bakover.tilbakekreving.domain.KlasseType
-import no.nav.su.se.bakover.tilbakekreving.domain.Kravgrunnlag
-import no.nav.su.se.bakover.tilbakekreving.domain.RåttKravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
+import økonomi.domain.KlasseKode
+import økonomi.domain.KlasseType
 import java.math.BigDecimal
 import java.time.Clock
 

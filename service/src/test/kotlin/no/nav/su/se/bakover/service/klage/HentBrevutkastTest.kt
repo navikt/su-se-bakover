@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevKommandoForKlage
 import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.avvistKlage
@@ -38,6 +37,7 @@ import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import person.domain.KunneIkkeHentePerson
 import java.time.ZoneOffset
 import java.util.UUID
 
