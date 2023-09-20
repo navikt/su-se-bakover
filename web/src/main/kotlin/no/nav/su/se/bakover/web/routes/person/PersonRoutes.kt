@@ -24,7 +24,7 @@ import person.domain.KunneIkkeHentePerson.Ukjent
 import java.time.Clock
 import java.time.LocalDate
 
-internal const val personPath = "/person/domain"
+internal const val personPath = "/person"
 
 internal fun Route.personRoutes(
     personService: PersonService,
