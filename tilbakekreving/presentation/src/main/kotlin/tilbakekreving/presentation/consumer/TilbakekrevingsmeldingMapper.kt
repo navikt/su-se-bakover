@@ -61,7 +61,18 @@ data object TilbakekrevingsmeldingMapper {
                                 saksnummer = Saksnummer(kravgrunnlagDto.fagsystemId.toLong()),
                                 kravgrunnlagId = kravgrunnlagDto.kravgrunnlagId,
                                 vedtakId = kravgrunnlagDto.vedtakId,
-                                status = Kravgrunnlag.KravgrunnlagStatus.valueOf(kravgrunnlagDto.kodeStatusKrav),
+                                status = when (kravgrunnlagDto.kodeStatusKrav) {
+                                    "ANNU" -> Kravgrunnlag.KravgrunnlagStatus.Annulert
+                                    "ANOM" -> Kravgrunnlag.KravgrunnlagStatus.AnnulertVedOmg
+                                    "AVSL" -> Kravgrunnlag.KravgrunnlagStatus.Avsluttet
+                                    "BEHA" -> Kravgrunnlag.KravgrunnlagStatus.Ferdigbehandlet
+                                    "ENDR" -> Kravgrunnlag.KravgrunnlagStatus.Endret
+                                    "FEIL" -> Kravgrunnlag.KravgrunnlagStatus.Feil
+                                    "MANU" -> Kravgrunnlag.KravgrunnlagStatus.Manuell
+                                    "NY" -> Kravgrunnlag.KravgrunnlagStatus.Nytt
+                                    "SPER" -> Kravgrunnlag.KravgrunnlagStatus.Sperret
+                                    else -> throw IllegalArgumentException("Ukjent kravgrunnlagstatus: ${kravgrunnlagDto.kodeStatusKrav}")
+                                },
                                 kontrollfelt = kravgrunnlagDto.kontrollfelt,
                                 behandler = NavIdentBruker.Saksbehandler(kravgrunnlagDto.saksbehId),
                                 utbetalingId = UUID30.fromString(kravgrunnlagDto.utbetalingId),
@@ -88,6 +99,7 @@ data object TilbakekrevingsmeldingMapper {
                             )
                         }
                     }
+
                     is KravgrunnlagStatusendringRootDto -> {
                         throw IllegalArgumentException("RåttKravgrunnlag innholder melding av type:${KravgrunnlagStatusendringRootDto::class}")
                     }

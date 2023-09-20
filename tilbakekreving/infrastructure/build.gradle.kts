@@ -6,6 +6,7 @@ dependencies {
 
     implementation(project(":common:infrastructure"))
     implementation(project(":hendelse:infrastructure"))
+    implementation(project(":hendelse:domain"))
 
     testImplementation(project(":test-common"))
 }

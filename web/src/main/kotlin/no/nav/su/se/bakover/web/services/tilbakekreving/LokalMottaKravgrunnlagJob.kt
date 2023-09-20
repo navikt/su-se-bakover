@@ -160,7 +160,7 @@ fun matchendeKravgrunnlag(
             kravgrunnlagId = "123456",
             vedtakId = "654321",
             kontrollfelt = Tidspunkt.now(clock).toOppdragTimestamp(),
-            status = Kravgrunnlag.KravgrunnlagStatus.NY,
+            status = Kravgrunnlag.KravgrunnlagStatus.Nytt,
             behandler = NavIdentBruker.Saksbehandler("K231B433"),
             utbetalingId = utbetalingId,
             grunnlagsperioder = it.hentFeilutbetalteBeløp()
