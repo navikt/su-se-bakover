@@ -68,7 +68,8 @@ internal class SakJsonTest {
                 "vedtakPåTidslinje": [],
                 "utenlandsopphold": {"utenlandsopphold": [], "antallDager":  0},
                 "versjon": 1,
-                "uteståendeAvkorting": null
+                "uteståendeAvkorting": null,
+                "tilbakekrevinger": []
             }
         """.trimIndent()
 
