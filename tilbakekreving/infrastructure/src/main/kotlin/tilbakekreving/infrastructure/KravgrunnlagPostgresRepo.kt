@@ -19,7 +19,7 @@ class KravgrunnlagPostgresRepo(
                 from 
                     revurdering_tilbakekreving 
                 where 
-                    tilstand = 'MOTTATT_KRAVGRUNNLAG' 
+                    tilstand = 'mottatt_kravgrunnlag' 
                     and tilbakekrevingsvedtakForsendelse is null 
                     and sakId=:sakId
                     and opprettet = (SELECT MAX(opprettet) FROM revurdering_tilbakekreving);
