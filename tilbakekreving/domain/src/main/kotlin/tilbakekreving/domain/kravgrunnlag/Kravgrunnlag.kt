@@ -62,6 +62,7 @@ data class Kravgrunnlag(
             val skatteProsent: BigDecimal,
         )
     }
+
     enum class KravgrunnlagStatus {
         Annulert,
 
@@ -74,5 +75,20 @@ data class Kravgrunnlag(
         Manuell,
         Nytt,
         Sperret,
+        ;
+
+        fun toDtoStatus(): String {
+            return when (this) {
+                Annulert -> "ANNU"
+                AnnulertVedOmg -> "ANOM"
+                Avsluttet -> "AVSL"
+                Ferdigbehandlet -> "BEGA"
+                Endret -> "ENDR"
+                Feil -> "FEIL"
+                Manuell -> "MANU"
+                Nytt -> "NY"
+                Sperret -> "SPER"
+            }
+        }
     }
 }

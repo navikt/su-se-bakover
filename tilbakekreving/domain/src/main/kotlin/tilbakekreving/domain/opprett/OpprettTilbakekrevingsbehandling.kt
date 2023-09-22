@@ -15,8 +15,8 @@ fun opprettTilbakekrevingsbehandling(
         sakId = command.sakId,
         opprettetAv = command.opprettetAv,
         meta = HendelseMetadata(
-            correlationId = null,
-            ident = null,
+            correlationId = command.correlationId,
+            ident = command.opprettetAv,
             brukerroller = command.brukerroller,
         ),
         versjon = forrigeVersjon.inc(),

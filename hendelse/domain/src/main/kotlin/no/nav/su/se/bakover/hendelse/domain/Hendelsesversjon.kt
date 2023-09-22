@@ -18,6 +18,9 @@ value class Hendelsesversjon(val value: Long) : Comparable<Hendelsesversjon> {
     companion object {
         /**
          * nr 1 er reservert for ny sak (se versjon i SakPostgresRepo)
+         *
+         * [ny] er ment å brukes direkte
+         * Det vil si at man skal opprette en ny versjon, for å så gjøre en [inc] på den nye hendelsen
          */
         fun ny(): Hendelsesversjon = Hendelsesversjon(2)
 

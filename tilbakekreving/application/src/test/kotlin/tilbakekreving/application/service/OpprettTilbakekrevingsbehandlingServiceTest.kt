@@ -5,7 +5,6 @@ import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
@@ -46,9 +45,14 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
         val tilgangstyringService = mock<TilbakekrevingsbehandlingTilgangstyringService> {
             on { assertHarTilgangTilSak(any()) } doReturn Unit.right()
         }
+        val hendelseRepo = mock<HendelseRepo> {
+            on { hentSisteVersjonFraEntitetId(any(), anyOrNull()) } doReturn Hendelsesversjon(1)
+        }
+
         val mocks = mockedServices(
             kravgrunnlagRepo = kravgrunnlagRepo,
             tilgangstyringService = tilgangstyringService,
+            hendelseRepo = hendelseRepo,
             clock = clock,
         )
         mocks.service().opprett(
@@ -67,8 +71,8 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
                 it shouldBe OpprettetTilbakekrevingsbehandlingHendelse(
                     hendelseId = it.hendelseId, // Denne blir generert av domenet.
                     sakId = sakId,
-                    hendelsestidspunkt = Tidspunkt.now(clock),
-                    versjon = Hendelsesversjon(value = 0),
+                    hendelsestidspunkt = it.hendelsestidspunkt, // vi bruker tikkende-klokke
+                    versjon = Hendelsesversjon(value = 2),
                     meta = HendelseMetadata(
                         correlationId = correlationId,
                         ident = saksbehandler,

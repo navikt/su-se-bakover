@@ -213,7 +213,7 @@ internal fun matchendeKravgrunnlagDto(
         kravgrunnlagDto = KravgrunnlagDto(
             kravgrunnlagId = kravgrunnlag.kravgrunnlagId,
             vedtakId = kravgrunnlag.vedtakId,
-            kodeStatusKrav = kravgrunnlag.status.toString(),
+            kodeStatusKrav = kravgrunnlag.status.toDtoStatus(),
             kodeFagområde = "SUUFORE",
             fagsystemId = revurdering.saksnummer.toString(),
             datoVedtakFagsystem = null,
