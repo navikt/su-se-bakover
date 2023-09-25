@@ -253,3 +253,15 @@ internal fun matchendeKravgrunnlagDto(
         ),
     )
 }
+
+private fun Kravgrunnlag.KravgrunnlagStatus.toDtoStatus(): String = when (this) {
+    Kravgrunnlag.KravgrunnlagStatus.Annulert -> "ANNU"
+    Kravgrunnlag.KravgrunnlagStatus.AnnulertVedOmg -> "ANOM"
+    Kravgrunnlag.KravgrunnlagStatus.Avsluttet -> "AVSL"
+    Kravgrunnlag.KravgrunnlagStatus.Ferdigbehandlet -> "BEGA"
+    Kravgrunnlag.KravgrunnlagStatus.Endret -> "ENDR"
+    Kravgrunnlag.KravgrunnlagStatus.Feil -> "FEIL"
+    Kravgrunnlag.KravgrunnlagStatus.Manuell -> "MANU"
+    Kravgrunnlag.KravgrunnlagStatus.Nytt -> "NY"
+    Kravgrunnlag.KravgrunnlagStatus.Sperret -> "SPER"
+}
