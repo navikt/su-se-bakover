@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.database.brev
 
-import no.nav.su.se.bakover.domain.brev.Brevvalg
+import dokument.domain.brev.Brevvalg
 
 data class BrevvalgDatabaseJson(
     val fritekst: String?,

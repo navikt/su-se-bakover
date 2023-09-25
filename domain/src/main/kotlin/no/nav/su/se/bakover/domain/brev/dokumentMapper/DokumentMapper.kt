@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.brev.dokumentMapper
 
 import dokument.domain.Dokument
+import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.command.AvsluttRevurderingDokumentCommand

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.database.søknad
 
+import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.database.søknad.LukketJson.Companion.toLukketJson
-import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknad.avvistSøknadMedInformasjonsbrev

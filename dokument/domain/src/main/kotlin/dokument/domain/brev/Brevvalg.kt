@@ -1,6 +1,6 @@
-package no.nav.su.se.bakover.domain.brev
+package dokument.domain.brev
 
-import no.nav.su.se.bakover.domain.dokument.Dokumenttilstand
+import dokument.domain.Dokumenttilstand
 
 /**
  * Ved vedtak, lukking av behandling, forhåndsvarsling og andre handlinger ønsker vi 3 muligheter for brevsending:

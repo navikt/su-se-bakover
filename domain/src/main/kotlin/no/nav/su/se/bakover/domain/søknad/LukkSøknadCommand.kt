@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.søknad
 
+import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.brev.Brevvalg
 import java.time.LocalDate
 import java.util.UUID
 
