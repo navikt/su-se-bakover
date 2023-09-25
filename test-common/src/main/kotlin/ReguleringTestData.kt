@@ -169,6 +169,7 @@ fun avsluttetRegulering(
     reguleringstype: Reguleringstype = Reguleringstype.MANUELL(emptySet()),
     sakstype: Sakstype = Sakstype.UFØRE,
     avsluttetTidspunkt: Clock = enUkeEtterFixedClock,
+    avsluttetAv: NavIdentBruker = saksbehandler,
 ): AvsluttetRegulering {
     return opprettetRegulering(
         id = id,
@@ -181,5 +182,5 @@ fun avsluttetRegulering(
         saksbehandler = saksbehandler,
         reguleringstype = reguleringstype,
         sakstype = sakstype,
-    ).avslutt(avsluttetTidspunkt)
+    ).avslutt(avsluttetAv, avsluttetTidspunkt)
 }

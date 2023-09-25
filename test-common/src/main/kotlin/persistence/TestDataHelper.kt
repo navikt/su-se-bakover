@@ -719,6 +719,7 @@ class TestDataHelper(
                 begrunnelse = "",
                 brevvalg = null,
                 tidspunktAvsluttet = Tidspunkt.now(clock),
+                avsluttetAv = saksbehandler,
             ).getOrFail().also { databaseRepos.revurderingRepo.lagre(it) }
         }
     }

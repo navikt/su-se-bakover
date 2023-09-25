@@ -138,10 +138,11 @@ data class OpprettetRegulering(
             .map { copy(simulering = it) }
     }
 
-    fun avslutt(clock: Clock): AvsluttetRegulering {
+    fun avslutt(avsluttetAv: NavIdentBruker, clock: Clock): AvsluttetRegulering {
         return AvsluttetRegulering(
             opprettetRegulering = this,
             avsluttetTidspunkt = Tidspunkt.now(clock),
+            avsluttetAv = avsluttetAv,
         )
     }
 

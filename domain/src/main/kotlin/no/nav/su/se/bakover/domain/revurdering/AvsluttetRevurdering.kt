@@ -4,13 +4,13 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import dokument.domain.brev.Brevvalg
+import no.nav.su.se.bakover.common.domain.Attesteringshistorikk
+import no.nav.su.se.bakover.common.domain.Avbrutt
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.behandling.Avbrutt
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
@@ -26,6 +26,7 @@ data class AvsluttetRevurdering private constructor(
     /** Denne er ikke låst til [Brevvalg.SaksbehandlersValg] siden det avhenger av om det er forhåndsvarslet eller ikke. Dette ble også migrert på et tidspunkt, tidligere ble det alltid sendt brev dersom det var forhåndsvarslet. */
     val brevvalg: Brevvalg,
     override val avsluttetTidspunkt: Tidspunkt,
+    override val avsluttetAv: NavIdentBruker?,
 ) : Revurdering(),
     Avbrutt {
 
@@ -93,6 +94,7 @@ data class AvsluttetRevurdering private constructor(
             begrunnelse: String,
             brevvalg: Brevvalg?,
             tidspunktAvsluttet: Tidspunkt,
+            avsluttetAv: NavIdentBruker?,
         ): Either<KunneIkkeLageAvsluttetRevurdering, AvsluttetRevurdering> {
             return when (underliggendeRevurdering) {
                 is IverksattRevurdering -> KunneIkkeLageAvsluttetRevurdering.RevurderingenErIverksatt.left()
@@ -112,6 +114,7 @@ data class AvsluttetRevurdering private constructor(
                         //  Det er litt uheldig at vi kan avslutte uten brevvalg, ved "vis brev".
                         brevvalg ?: Brevvalg.SkalIkkeSendeBrev("IKKE_FORHÅNDSVARSLET"),
                         tidspunktAvsluttet,
+                        avsluttetAv,
                     ).right()
                 }
             }

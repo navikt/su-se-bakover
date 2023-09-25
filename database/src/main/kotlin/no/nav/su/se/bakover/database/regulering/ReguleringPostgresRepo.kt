@@ -217,7 +217,7 @@ internal class ReguleringPostgresRepo(
                             }.toString(),
                             "avsluttet" to when (regulering) {
                                 is AvsluttetRegulering -> {
-                                    serialize(AvsluttetReguleringJson(regulering.avsluttetTidspunkt))
+                                    serialize(AvsluttetReguleringJson(regulering.avsluttetTidspunkt, regulering.avsluttetAv?.navIdent))
                                 }
 
                                 is IverksattRegulering -> null
@@ -348,6 +348,7 @@ internal class ReguleringPostgresRepo(
             ReguleringStatus.AVSLUTTET -> AvsluttetRegulering(
                 opprettetRegulering = opprettetRegulering,
                 avsluttetTidspunkt = avsluttetReguleringJson!!.tidspunkt,
+                avsluttetAv = avsluttetReguleringJson.avsluttetAv?.let { NavIdentBruker.Saksbehandler(it) },
             )
         }
     }

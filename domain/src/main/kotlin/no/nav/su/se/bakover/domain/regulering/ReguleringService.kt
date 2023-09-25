@@ -57,7 +57,7 @@ interface ReguleringService {
         command: StartAutomatiskReguleringForInnsynCommand,
     )
 
-    fun avslutt(reguleringId: UUID): Either<KunneIkkeAvslutte, AvsluttetRegulering>
+    fun avslutt(reguleringId: UUID, avsluttetAv: NavIdentBruker): Either<KunneIkkeAvslutte, AvsluttetRegulering>
     fun hentStatus(): List<ReguleringSomKreverManuellBehandling>
     fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer>
     fun regulerManuelt(

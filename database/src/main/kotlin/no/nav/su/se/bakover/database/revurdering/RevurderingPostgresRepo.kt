@@ -6,8 +6,10 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.deserializeMapNullable
 import no.nav.su.se.bakover.common.deserializeNullable
+import no.nav.su.se.bakover.common.domain.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.ident.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
@@ -184,6 +186,7 @@ private fun Revurdering.toDb(): RevurderingDb {
                     begrunnelse = this.begrunnelse,
                     brevvalg = this.brevvalg.toJson(),
                     tidspunktAvsluttet = this.avsluttetTidspunkt,
+                    avsluttetAv = this.avsluttetAv?.navIdent,
                 ),
                 tilbakekrevingsbehandling = null,
             )
@@ -467,6 +470,7 @@ internal class RevurderingPostgresRepo(
                         begrunnelse = this.begrunnelse,
                         brevvalg = null,
                         tidspunktAvsluttet = this.avsluttetTidspunkt,
+                        avsluttetAv = this.avsluttetAv?.navIdent,
                     ),
                     tilbakekrevingsbehandling = null,
                 )
@@ -506,6 +510,7 @@ internal class RevurderingPostgresRepo(
                         begrunnelse = this.begrunnelse,
                         brevvalg = null,
                         tidspunktAvsluttet = this.avsluttetTidspunkt,
+                        avsluttetAv = this.avsluttetAv?.navIdent,
                     ),
                     tilbakekrevingsbehandling = null,
                 )
@@ -631,6 +636,7 @@ internal class RevurderingPostgresRepo(
                     gjenopptakAvYtelseRevurdering = revurdering,
                     begrunnelse = avsluttet.begrunnelse,
                     tidspunktAvsluttet = avsluttet.tidspunktAvsluttet,
+                    avsluttetAv = avsluttet.avsluttetAv?.let { NavIdentBruker.Saksbehandler(it) },
                 ).getOrElse {
                     throw IllegalStateException("Kunne ikke lage en avsluttet gjenoppta revurdering. Se innhold i databasen. revurderingsId $id")
                 }
@@ -641,6 +647,7 @@ internal class RevurderingPostgresRepo(
                         begrunnelse = avsluttet.begrunnelse,
                         brevvalg = avsluttet.brevvalg?.toDomain(),
                         tidspunktAvsluttet = avsluttet.tidspunktAvsluttet,
+                        avsluttetAv = avsluttet.avsluttetAv?.let { NavIdentBruker.Saksbehandler(it) },
                     ).getOrElse {
                         throw IllegalStateException("Kunne ikke lage en avsluttet revurdering. Se innhold i databasen. revurderingsId $id")
                     }
@@ -650,6 +657,7 @@ internal class RevurderingPostgresRepo(
                     stansAvYtelseRevurdering = revurdering,
                     begrunnelse = avsluttet.begrunnelse,
                     tidspunktAvsluttet = avsluttet.tidspunktAvsluttet,
+                    avsluttetAv = avsluttet.avsluttetAv?.let { NavIdentBruker.Saksbehandler(it) },
                 ).getOrElse {
                     throw IllegalStateException("Kunne ikke lage en avsluttet stans av ytelse. Se innhold i databasen. revurderingsId $id")
                 }

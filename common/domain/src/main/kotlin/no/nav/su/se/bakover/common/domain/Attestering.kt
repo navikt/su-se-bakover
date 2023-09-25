@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.behandling
+package no.nav.su.se.bakover.common.domain
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonSubTypes

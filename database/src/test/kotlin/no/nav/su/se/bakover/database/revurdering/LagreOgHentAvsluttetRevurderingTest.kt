@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
+import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test
 
 internal class LagreOgHentAvsluttetRevurderingTest {
@@ -29,6 +30,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
                 begrunnelse = "avslutter denne revurderingen",
                 brevvalg = null,
                 tidspunktAvsluttet = fixedTidspunkt,
+                avsluttetAv = saksbehandler,
             ).getOrElse { fail("$it") }
 
             repo.lagre(avsluttetRevurdering)
@@ -55,6 +57,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
                 begrunnelse = "avslutter denne revurderingen",
                 brevvalg = null,
                 tidspunktAvsluttet = fixedTidspunkt,
+                avsluttetAv = saksbehandler,
             ).getOrElse { fail("$it") }
 
             repo.lagre(avsluttetRevurdering)
@@ -82,6 +85,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
                 begrunnelse = "avslutter denne revurderingen",
                 brevvalg = null,
                 tidspunktAvsluttet = fixedTidspunkt,
+                avsluttetAv = saksbehandler,
             ).getOrElse { fail("$it") }
 
             repo.lagre(avsluttetRevurdering)
@@ -108,6 +112,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
                 begrunnelse = "avslutter denne revurderingen",
                 brevvalg = null,
                 tidspunktAvsluttet = fixedTidspunkt,
+                avsluttetAv = saksbehandler,
             ).getOrElse { fail("$it") }
 
             repo.lagre(avsluttetRevurdering)
@@ -134,6 +139,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
                 begrunnelse = "avslutter denne revurderingen",
                 brevvalg = null,
                 tidspunktAvsluttet = fixedTidspunkt,
+                avsluttetAv = saksbehandler,
             ).getOrElse { fail("$it") }
 
             repo.lagre(avsluttetRevurdering)
@@ -160,6 +166,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
                 begrunnelse = "avslutter denne revurderingen",
                 brevvalg = null,
                 tidspunktAvsluttet = fixedTidspunkt,
+                avsluttetAv = saksbehandler,
             ).getOrElse { fail("$it") }
 
             repo.lagre(avsluttetRevurdering)

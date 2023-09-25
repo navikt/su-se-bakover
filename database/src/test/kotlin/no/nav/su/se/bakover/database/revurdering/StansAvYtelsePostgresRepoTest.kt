@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulering.simulering
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
@@ -100,6 +101,7 @@ internal class StansAvYtelsePostgresRepoTest {
             val avsluttet = persistertSimulert.avslutt(
                 begrunnelse = "jeg opprettet en stans av ytelse, så gjennom, og så teknte 'neh'",
                 tidspunktAvsluttet = fixedTidspunkt,
+                avsluttetAv = saksbehandler,
             ).getOrFail("her skulle vi ha hatt en avsluttet stans av ytelse revurdering")
 
             testDataHelper.revurderingRepo.lagre(avsluttet)

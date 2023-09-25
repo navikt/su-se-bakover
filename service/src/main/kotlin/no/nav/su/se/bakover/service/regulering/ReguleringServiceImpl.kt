@@ -341,13 +341,13 @@ class ReguleringServiceImpl(
         }
     }
 
-    override fun avslutt(reguleringId: UUID): Either<KunneIkkeAvslutte, AvsluttetRegulering> {
+    override fun avslutt(reguleringId: UUID, avsluttetAv: NavIdentBruker): Either<KunneIkkeAvslutte, AvsluttetRegulering> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeAvslutte.FantIkkeRegulering.left()
 
         return when (regulering) {
             is AvsluttetRegulering, is IverksattRegulering -> KunneIkkeAvslutte.UgyldigTilstand.left()
             is OpprettetRegulering -> {
-                val avsluttetRegulering = regulering.avslutt(clock)
+                val avsluttetRegulering = regulering.avslutt(avsluttetAv, clock)
                 reguleringRepo.lagre(avsluttetRegulering)
 
                 avsluttetRegulering.right()

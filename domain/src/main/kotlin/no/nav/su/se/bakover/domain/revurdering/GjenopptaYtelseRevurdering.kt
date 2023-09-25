@@ -3,12 +3,12 @@ package no.nav.su.se.bakover.domain.revurdering
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.Attestering
+import no.nav.su.se.bakover.common.domain.Attesteringshistorikk
+import no.nav.su.se.bakover.common.domain.Avbrutt
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.behandling.Avbrutt
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -37,11 +37,13 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
     fun avslutt(
         begrunnelse: String,
         tidspunktAvsluttet: Tidspunkt,
+        avsluttetAv: NavIdentBruker,
     ): Either<KunneIkkeLageAvsluttetGjenopptaAvYtelse, AvsluttetGjenoppta> {
         return AvsluttetGjenoppta.tryCreate(
             gjenopptakAvYtelseRevurdering = this,
             begrunnelse = begrunnelse,
             tidspunktAvsluttet = tidspunktAvsluttet,
+            avsluttetAv = avsluttetAv,
         )
     }
 
@@ -49,6 +51,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
         private val underliggendeStansAvYtelse: SimulertGjenopptakAvYtelse,
         val begrunnelse: String,
         override val avsluttetTidspunkt: Tidspunkt,
+        override val avsluttetAv: NavIdentBruker?,
     ) : GjenopptaYtelseRevurdering(), Avbrutt {
         override val tilRevurdering: UUID = underliggendeStansAvYtelse.tilRevurdering
         override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis =
@@ -79,6 +82,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
                 gjenopptakAvYtelseRevurdering: GjenopptaYtelseRevurdering,
                 begrunnelse: String,
                 tidspunktAvsluttet: Tidspunkt,
+                avsluttetAv: NavIdentBruker?,
             ): Either<KunneIkkeLageAvsluttetGjenopptaAvYtelse, AvsluttetGjenoppta> {
                 return when (gjenopptakAvYtelseRevurdering) {
                     is AvsluttetGjenoppta -> KunneIkkeLageAvsluttetGjenopptaAvYtelse.RevurderingErAlleredeAvsluttet.left()
@@ -87,6 +91,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering {
                         gjenopptakAvYtelseRevurdering,
                         begrunnelse,
                         tidspunktAvsluttet,
+                        avsluttetAv,
                     ).right()
                 }
             }

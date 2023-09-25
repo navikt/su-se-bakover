@@ -6,6 +6,8 @@ import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonIgnore
 import dokument.domain.Dokumenttilstand
 import dokument.domain.brev.Brevvalg
+import no.nav.su.se.bakover.common.domain.Avbrutt
+import no.nav.su.se.bakover.common.domain.Avsluttet
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.extensions.zoneIdOslo
@@ -14,8 +16,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.behandling.Avbrutt
-import no.nav.su.se.bakover.domain.behandling.Avsluttet
 import no.nav.su.se.bakover.domain.brev.command.AvvistSøknadDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.GenererDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
@@ -242,6 +242,7 @@ sealed interface Søknad {
                     override val dokumenttilstand: Dokumenttilstand = brevvalg.tilDokumenttilstand(),
                 ) : Lukket {
                     override val avsluttetTidspunkt: Tidspunkt = lukketTidspunkt
+                    override val avsluttetAv: NavIdentBruker = lukketAv
 
                     init {
                         when (brevvalg) {
@@ -290,6 +291,7 @@ sealed interface Søknad {
                     override val dokumenttilstand: Dokumenttilstand = Dokumenttilstand.IKKE_GENERERT_ENDA,
                 ) : Lukket, Avbrutt {
                     override val avsluttetTidspunkt: Tidspunkt = lukketTidspunkt
+                    override val avsluttetAv: NavIdentBruker = lukketAv
                     override val brevvalg =
                         Brevvalg.SkalSendeBrev.InformasjonsbrevUtenFritekst("Saksbehandler får ikke per tidspunkt gjøre noen brevvalg dersom bruker trekker søknaden.")
 
@@ -332,6 +334,7 @@ sealed interface Søknad {
                     override val innsendtAv: NavIdentBruker,
                 ) : Lukket, Avbrutt {
                     override val avsluttetTidspunkt: Tidspunkt = lukketTidspunkt
+                    override val avsluttetAv: NavIdentBruker = lukketAv
                     override val brevvalg =
                         Brevvalg.SkalIkkeSendeBrev("Saksbehandler får ikke per tidspunkt gjøre noen brevvalg dersom søknaden bortfaller.")
                     override val dokumenttilstand: Dokumenttilstand = Dokumenttilstand.SKAL_IKKE_GENERERE

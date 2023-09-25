@@ -81,6 +81,7 @@ internal class AvsluttRevurderingTest {
             begrunnelse = "opprettet revurderingen med en feil",
             brevvalg = null,
             tidspunktAvsluttet = fixedTidspunkt,
+            avsluttetAv = saksbehandler,
         )
 
         verify(revurderingRepoMock).hent(argThat { it shouldBe opprettetRevurdering.id })
@@ -173,6 +174,7 @@ internal class AvsluttRevurderingTest {
             stansAvYtelseRevurdering = stansAvYtelse,
             begrunnelse = "skulle stanse ytelse, men så tenkte jeg 'neh'",
             tidspunktAvsluttet = fixedTidspunkt,
+            avsluttetAv = saksbehandler,
         )
 
         verify(revurderingRepoMock).hent(argThat { it shouldBe stansAvYtelse.id })
@@ -254,6 +256,7 @@ internal class AvsluttRevurderingTest {
             gjenopptakAvYtelseRevurdering = gjenopptaYtelse,
             begrunnelse = "skulle stanse ytelse, men så tenkte jeg 'neh'",
             tidspunktAvsluttet = fixedTidspunkt,
+            avsluttetAv = saksbehandler,
         )
 
         verify(revurderingRepoMock).hent(argThat { it shouldBe gjenopptaYtelse.id })

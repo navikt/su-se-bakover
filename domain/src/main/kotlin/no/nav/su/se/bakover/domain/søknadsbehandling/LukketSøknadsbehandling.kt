@@ -3,10 +3,10 @@ package no.nav.su.se.bakover.domain.søknadsbehandling
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.Avsluttet
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.behandling.Avsluttet
 import no.nav.su.se.bakover.domain.grunnlag.EksterneGrunnlagSkatt
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
@@ -25,6 +25,7 @@ data class LukketSøknadsbehandling private constructor(
     override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
 ) : Søknadsbehandling, Avsluttet {
     override val avsluttetTidspunkt: Tidspunkt = søknad.lukketTidspunkt
+    override val avsluttetAv: NavIdentBruker = søknad.lukketAv
     override val aldersvurdering: Aldersvurdering? = underliggendeSøknadsbehandling.aldersvurdering
     override val stønadsperiode: Stønadsperiode? get() = aldersvurdering?.stønadsperiode
     override val grunnlagsdataOgVilkårsvurderinger = underliggendeSøknadsbehandling.grunnlagsdataOgVilkårsvurderinger

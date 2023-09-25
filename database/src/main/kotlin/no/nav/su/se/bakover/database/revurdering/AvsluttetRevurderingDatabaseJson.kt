@@ -7,4 +7,5 @@ data class AvsluttetRevurderingDatabaseJson(
     val begrunnelse: String,
     val brevvalg: BrevvalgDatabaseJson?,
     val tidspunktAvsluttet: Tidspunkt,
+    val avsluttetAv: String?,
 )

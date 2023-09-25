@@ -1000,7 +1000,7 @@ class RevurderingServiceImpl(
         val (avsluttetRevurdering, skalSendeAvslutningsbrev) = when (revurdering) {
             is GjenopptaYtelseRevurdering -> {
                 if (brevvalg != null) return KunneIkkeAvslutteRevurdering.BrevvalgIkkeTillatt.left()
-                revurdering.avslutt(begrunnelse, Tidspunkt.now(clock)).map {
+                revurdering.avslutt(begrunnelse, Tidspunkt.now(clock), saksbehandler).map {
                     it to it.skalSendeAvslutningsbrev()
                 }.getOrElse {
                     return KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse(it).left()
@@ -1009,14 +1009,14 @@ class RevurderingServiceImpl(
 
             is StansAvYtelseRevurdering -> {
                 if (brevvalg != null) return KunneIkkeAvslutteRevurdering.BrevvalgIkkeTillatt.left()
-                revurdering.avslutt(begrunnelse, Tidspunkt.now(clock)).map {
+                revurdering.avslutt(begrunnelse, Tidspunkt.now(clock), saksbehandler).map {
                     it to it.skalSendeAvslutningsbrev()
                 }.getOrElse {
                     return KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetStansAvYtelse(it).left()
                 }
             }
 
-            is Revurdering -> revurdering.avslutt(begrunnelse, brevvalg, Tidspunkt.now(clock)).map {
+            is Revurdering -> revurdering.avslutt(begrunnelse, brevvalg, Tidspunkt.now(clock), saksbehandler).map {
                 it to it.skalSendeAvslutningsbrev()
             }.getOrElse {
                 return KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetRevurdering(it).left()
@@ -1070,6 +1070,7 @@ class RevurderingServiceImpl(
     override fun lagBrevutkastForAvslutting(
         revurderingId: UUID,
         fritekst: String,
+        avsluttetAv: NavIdentBruker,
     ): Either<KunneIkkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, PdfA>> {
         val revurdering = hent(revurderingId)
             .getOrElse { return KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.FantIkkeRevurdering.left() }
@@ -1079,6 +1080,7 @@ class RevurderingServiceImpl(
             begrunnelse = "",
             brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst(fritekst),
             tidspunktAvsluttet = Tidspunkt.now(clock),
+            avsluttetAv = avsluttetAv,
         ).getOrElse {
             return KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeAvslutteRevurdering(it).left()
         }

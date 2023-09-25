@@ -134,6 +134,7 @@ interface RevurderingService {
     fun lagBrevutkastForAvslutting(
         revurderingId: UUID,
         fritekst: String,
+        avsluttetAv: NavIdentBruker,
     ): Either<KunneIkkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, PdfA>>
 
     fun avsluttRevurdering(

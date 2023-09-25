@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingTilAttestering
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
@@ -26,6 +27,7 @@ internal class AvsluttetRevurderingTest {
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
             brevvalg = null,
             tidspunktAvsluttet = Tidspunkt.now(clock),
+            avsluttetAv = saksbehandler,
         ).shouldBeRight()
     }
 
@@ -39,6 +41,7 @@ internal class AvsluttetRevurderingTest {
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
             brevvalg = null,
             tidspunktAvsluttet = Tidspunkt.now(clock),
+            avsluttetAv = saksbehandler,
         ).shouldBeRight()
     }
 
@@ -53,6 +56,7 @@ internal class AvsluttetRevurderingTest {
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
             brevvalg = null,
             tidspunktAvsluttet = Tidspunkt.now(clock),
+            avsluttetAv = saksbehandler,
         ).shouldBeRight()
     }
 
@@ -67,6 +71,7 @@ internal class AvsluttetRevurderingTest {
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
             brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst("en god, og fri tekst"),
             tidspunktAvsluttet = Tidspunkt.now(clock),
+            avsluttetAv = saksbehandler,
         ).shouldBeRight()
     }
 
@@ -80,6 +85,7 @@ internal class AvsluttetRevurderingTest {
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
             brevvalg = null,
             tidspunktAvsluttet = Tidspunkt.now(clock),
+            avsluttetAv = saksbehandler,
         ) shouldBe KunneIkkeLageAvsluttetRevurdering.RevurderingenErTilAttestering.left()
     }
 
@@ -94,10 +100,12 @@ internal class AvsluttetRevurderingTest {
                 begrunnelse = "begrunnelse",
                 brevvalg = null,
                 tidspunktAvsluttet = Tidspunkt.now(clock),
+                avsluttetAv = saksbehandler,
             ).getOrFail(),
             begrunnelse = "prøver å avslutte en revurdering som er i avsluttet tilstand",
             brevvalg = null,
             tidspunktAvsluttet = Tidspunkt.now(clock),
+            avsluttetAv = saksbehandler,
         ) shouldBe KunneIkkeLageAvsluttetRevurdering.RevurderingErAlleredeAvsluttet.left()
     }
 }

@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
+import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 
@@ -140,7 +141,7 @@ internal class ReguleringPostgresRepoTest {
             val repo = testDataHelper.reguleringRepo
 
             val (_, regulering) = testDataHelper.persisterReguleringOpprettet()
-            val avsluttetRegulering = AvsluttetRegulering(regulering, fixedTidspunkt)
+            val avsluttetRegulering = AvsluttetRegulering(regulering, fixedTidspunkt, saksbehandler)
 
             repo.lagre(avsluttetRegulering)
             repo.hent(avsluttetRegulering.id) shouldBe avsluttetRegulering

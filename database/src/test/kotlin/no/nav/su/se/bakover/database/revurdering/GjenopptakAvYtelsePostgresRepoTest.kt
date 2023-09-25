@@ -149,6 +149,7 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
             val avsluttetGjenopptaAvYtelse = persistertSimulert.avslutt(
                 begrunnelse = "Avslutter denne her",
                 tidspunktAvsluttet = fixedTidspunkt,
+                avsluttetAv = saksbehandler,
             ).getOrFail("Her skulle vi ha avsluttet en gjenopptaAvYtelse revurdering")
 
             testDataHelper.revurderingRepo.lagre(avsluttetGjenopptaAvYtelse)

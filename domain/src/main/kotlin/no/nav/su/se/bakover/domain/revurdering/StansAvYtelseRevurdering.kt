@@ -3,12 +3,12 @@ package no.nav.su.se.bakover.domain.revurdering
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.Attestering
+import no.nav.su.se.bakover.common.domain.Attesteringshistorikk
+import no.nav.su.se.bakover.common.domain.Avbrutt
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.behandling.Avbrutt
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -35,11 +35,13 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering {
     fun avslutt(
         begrunnelse: String,
         tidspunktAvsluttet: Tidspunkt,
+        avsluttetAv: NavIdentBruker,
     ): Either<KunneIkkeLageAvsluttetStansAvYtelse, AvsluttetStansAvYtelse> {
         return AvsluttetStansAvYtelse.tryCreate(
             stansAvYtelseRevurdering = this,
             begrunnelse = begrunnelse,
             tidspunktAvsluttet = tidspunktAvsluttet,
+            avsluttetAv = avsluttetAv,
         )
     }
 
@@ -47,6 +49,7 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering {
         private val underliggendeStansAvYtelse: SimulertStansAvYtelse,
         val begrunnelse: String,
         override val avsluttetTidspunkt: Tidspunkt,
+        override val avsluttetAv: NavIdentBruker?,
     ) : StansAvYtelseRevurdering(), Avbrutt {
         override val tilRevurdering = underliggendeStansAvYtelse.tilRevurdering
         override val vedtakSomRevurderesMånedsvis = underliggendeStansAvYtelse.vedtakSomRevurderesMånedsvis
@@ -76,6 +79,7 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering {
                 stansAvYtelseRevurdering: StansAvYtelseRevurdering,
                 begrunnelse: String,
                 tidspunktAvsluttet: Tidspunkt,
+                avsluttetAv: NavIdentBruker?,
             ): Either<KunneIkkeLageAvsluttetStansAvYtelse, AvsluttetStansAvYtelse> {
                 return when (stansAvYtelseRevurdering) {
                     is AvsluttetStansAvYtelse -> KunneIkkeLageAvsluttetStansAvYtelse.RevurderingErAlleredeAvsluttet.left()
@@ -84,6 +88,7 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering {
                         stansAvYtelseRevurdering,
                         begrunnelse,
                         tidspunktAvsluttet,
+                        avsluttetAv,
                     ).right()
                 }
             }

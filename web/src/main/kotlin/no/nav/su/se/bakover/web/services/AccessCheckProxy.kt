@@ -881,9 +881,10 @@ open class AccessCheckProxy(
                 override fun lagBrevutkastForAvslutting(
                     revurderingId: UUID,
                     fritekst: String,
+                    avsluttetAv: NavIdentBruker,
                 ): Either<KunneIkkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, PdfA>> {
                     assertHarTilgangTilRevurdering(revurderingId)
-                    return services.revurdering.lagBrevutkastForAvslutting(revurderingId, fritekst)
+                    return services.revurdering.lagBrevutkastForAvslutting(revurderingId, fritekst, avsluttetAv)
                 }
             },
             stansYtelse = object : StansYtelseService {
@@ -1079,8 +1080,8 @@ open class AccessCheckProxy(
                     return services.reguleringService.startAutomatiskReguleringForInnsyn(command)
                 }
 
-                override fun avslutt(reguleringId: UUID): Either<KunneIkkeAvslutte, AvsluttetRegulering> {
-                    return services.reguleringService.avslutt(reguleringId)
+                override fun avslutt(reguleringId: UUID, avsluttetAv: NavIdentBruker): Either<KunneIkkeAvslutte, AvsluttetRegulering> {
+                    return services.reguleringService.avslutt(reguleringId, avsluttetAv)
                 }
 
                 override fun hentStatus(): List<ReguleringSomKreverManuellBehandling> {

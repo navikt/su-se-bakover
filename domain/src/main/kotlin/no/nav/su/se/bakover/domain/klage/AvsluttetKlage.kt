@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.left
+import no.nav.su.se.bakover.common.domain.Avbrutt
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.behandling.Avbrutt
 import java.util.UUID
 
 /**
@@ -20,6 +20,7 @@ data class AvsluttetKlage(
     val begrunnelse: String,
     override val avsluttetTidspunkt: Tidspunkt,
 ) : Klage by underliggendeKlage, Avbrutt {
+    override val avsluttetAv: NavIdentBruker = saksbehandler
 
     /**
      * Skal kun kalles av intergrasjonslagene for å avgjøre typen (og tester for å forenkle).

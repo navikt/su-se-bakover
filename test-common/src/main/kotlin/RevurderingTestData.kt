@@ -604,12 +604,14 @@ fun avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     begrunnelse: String = "begrunnelsensen",
     fritekst: String? = null,
     tidspunktAvsluttet: Tidspunkt = Tidspunkt.now(fixedClock),
+    avsluttetAv: NavIdentBruker = saksbehandler,
 ): Pair<Sak, AvsluttetRevurdering> {
     return simulertRevurdering().let { (sak, simulert) ->
         val avsluttet = simulert.avslutt(
             begrunnelse = begrunnelse,
             brevvalg = fritekst?.let { Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst(it) },
             tidspunktAvsluttet = tidspunktAvsluttet,
+            avsluttetAv = avsluttetAv,
         ).getOrFail()
 
         Pair(
@@ -694,11 +696,13 @@ fun avsluttetStansAvYtelseFraIverksattSøknadsbehandlignsvedtak(
     clock: Clock = tikkendeFixedClock(),
     begrunnelse: String = "begrunnelse for å avslutte stans av ytelse",
     tidspunktAvsluttet: Tidspunkt = Tidspunkt.now(clock),
+    avsluttetAv: NavIdentBruker = saksbehandler,
 ): Pair<Sak, StansAvYtelseRevurdering.AvsluttetStansAvYtelse> {
     return simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(clock).let { (sak, simulert) ->
         val avsluttet = simulert.avslutt(
             begrunnelse = begrunnelse,
             tidspunktAvsluttet = tidspunktAvsluttet,
+            avsluttetAv = avsluttetAv,
         ).getOrFail()
 
         sak.oppdaterRevurdering(avsluttet) to avsluttet
@@ -794,11 +798,13 @@ fun iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse(
 fun avsluttetGjenopptakelseAvYtelseeFraIverksattSøknadsbehandlignsvedtak(
     begrunnelse: String = "begrunnelse for å avslutte stans av ytelse",
     tidspunktAvsluttet: Tidspunkt = Tidspunkt.now(fixedClock),
+    avsluttetAv: NavIdentBruker = saksbehandler,
 ): Pair<Sak, GjenopptaYtelseRevurdering.AvsluttetGjenoppta> {
     return simulertGjenopptakAvYtelseFraVedtakStansAvYtelse().let { (sak, simulert) ->
         val avsluttet = simulert.avslutt(
             begrunnelse = begrunnelse,
             tidspunktAvsluttet = tidspunktAvsluttet,
+            avsluttetAv = avsluttetAv,
         ).getOrFail()
 
         sak.oppdaterRevurdering(avsluttet) to avsluttet

@@ -143,7 +143,7 @@ internal fun Route.reguler(
                     call.svar(HttpStatusCode.BadRequest.errorJson(it, "reguleringId_mangler_eller_feil_format"))
                 },
                 ifRight = {
-                    reguleringService.avslutt(it).fold(
+                    reguleringService.avslutt(it, call.suUserContext.saksbehandler).fold(
                         ifLeft = { feilmelding ->
                             call.svar(
                                 when (feilmelding) {

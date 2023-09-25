@@ -71,7 +71,7 @@ internal fun Route.avsluttRevurderingRoute(
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<BrevutkastForAvslutting> { body ->
-                    revurderingService.lagBrevutkastForAvslutting(revurderingId, body.fritekst).fold(
+                    revurderingService.lagBrevutkastForAvslutting(revurderingId, body.fritekst, call.suUserContext.saksbehandler).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
                             call.sikkerlogg("Laget brevutkast for revurdering med id $revurderingId")
