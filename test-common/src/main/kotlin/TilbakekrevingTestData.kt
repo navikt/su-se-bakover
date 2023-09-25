@@ -31,7 +31,7 @@ fun matchendeKravgrunnlag(
             kravgrunnlagId = "123456",
             vedtakId = "654321",
             kontrollfelt = Tidspunkt.now(clock).toOppdragTimestamp(),
-            status = Kravgrunnlag.KravgrunnlagStatus.NY,
+            status = Kravgrunnlag.KravgrunnlagStatus.Nytt,
             behandler = NavIdentBruker.Saksbehandler("K231B433"),
             utbetalingId = utbetalingId,
             grunnlagsperioder = it.hentFeilutbetalteBeløp()
@@ -74,7 +74,7 @@ fun nyKravgrunnlag(
     kravgrunnlagId: String = "123-456",
     vedtakId: String = "789-101",
     kontrollfelt: String = "19.09.2023.16:54",
-    status: Kravgrunnlag.KravgrunnlagStatus = Kravgrunnlag.KravgrunnlagStatus.MANU,
+    status: Kravgrunnlag.KravgrunnlagStatus = Kravgrunnlag.KravgrunnlagStatus.Manuell,
     behandler: NavIdentBruker = saksbehandler,
     utbetalingId: UUID30 = UUID30.randomUUID(),
     grunnlagsperioder: List<Kravgrunnlag.Grunnlagsperiode> = emptyList(),

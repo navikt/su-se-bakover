@@ -4,6 +4,9 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+/**
+ * TODO jah: Dette er ingen månedsjson, men en kopi av PeriodeJson. Bytt bruk av denne til PeriodeJson og skriv om denne.
+ */
 data class MånedJson(
     val fraOgMed: String,
     val tilOgMed: String,

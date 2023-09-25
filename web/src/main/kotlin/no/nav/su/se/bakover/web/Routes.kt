@@ -139,6 +139,7 @@ internal fun Application.setupKtorRoutes(
                         personService = services.person,
                         sessionFactory = databaseRepos.sessionFactory as PostgresSessionFactory,
                         clock = clock,
+                        hendelseRepo = databaseRepos.hendelseRepo,
                     )
                 }
             }

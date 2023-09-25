@@ -14,9 +14,10 @@ import java.math.BigDecimal
 
 data class Kravgrunnlag(
     val saksnummer: Saksnummer,
+    /** Dette er en ekstern id som genereres og eies av Oppdrag. Den er transient i vårt system. */
     val kravgrunnlagId: String,
 
-    /** Dette er Oppdrag sin ID som er vedlagt i kravgrunnlaget, den er transient i vårt system */
+    /** Dette er en ekstern id som genereres og eies av Oppdrag. Den er transient i vårt system. */
     val vedtakId: String,
 
     /** Denne er generert av Oppdrag og er vedlagt i kravgrunnlaget, den er transient i vårt system*/
@@ -63,14 +64,31 @@ data class Kravgrunnlag(
     }
 
     enum class KravgrunnlagStatus {
-        ANNU,
-        ANOM,
-        AVSL,
-        BEHA,
-        ENDR,
-        FEIL,
-        MANU,
-        NY,
-        SPER,
+        Annulert,
+
+        /** Kommentar jah: Gjetter på omg står for omgjøring. */
+        AnnulertVedOmg,
+        Avsluttet,
+        Ferdigbehandlet,
+        Endret,
+        Feil,
+        Manuell,
+        Nytt,
+        Sperret,
+        ;
+
+        fun toDtoStatus(): String {
+            return when (this) {
+                Annulert -> "ANNU"
+                AnnulertVedOmg -> "ANOM"
+                Avsluttet -> "AVSL"
+                Ferdigbehandlet -> "BEGA"
+                Endret -> "ENDR"
+                Feil -> "FEIL"
+                Manuell -> "MANU"
+                Nytt -> "NY"
+                Sperret -> "SPER"
+            }
+        }
     }
 }

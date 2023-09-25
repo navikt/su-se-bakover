@@ -11,19 +11,23 @@ import io.ktor.server.auth.Principal
 import io.ktor.server.auth.UnauthorizedResponse
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.principal
+import io.ktor.server.request.header
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RouteSelector
 import io.ktor.server.routing.RouteSelectorEvaluation
 import io.ktor.server.routing.RoutingResolveContext
 import io.ktor.util.AttributeKey
+import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.brukerrolle.AzureGroupMapper
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.correlation.CorrelationIdHeader
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+val log: Logger = LoggerFactory.getLogger("SuUserPlugin")
 class SuUserContext(val call: ApplicationCall, applicationConfig: ApplicationConfig) {
     val navIdent: String = getNAVidentFromJwt(applicationConfig, call.principal())
     val saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(navIdent)
@@ -56,6 +60,13 @@ class SuUserContext(val call: ApplicationCall, applicationConfig: ApplicationCon
 
 val ApplicationCall.suUserContext: SuUserContext
     get() = SuUserContext.from(this)
+
+val ApplicationCall.callId get() = correlationId
+
+val ApplicationCall.correlationId: CorrelationId
+    get() = request.header(CorrelationIdHeader)?.let { CorrelationId(it) } ?: CorrelationId.generate().also {
+        log.warn("Prøvde hente header $CorrelationIdHeader fra ApplicationCall, men var null. Genererte en ny: $it")
+    }
 
 class SuUserRouteSelector :
     RouteSelector() {

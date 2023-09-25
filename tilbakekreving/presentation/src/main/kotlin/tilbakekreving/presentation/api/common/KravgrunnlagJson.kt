@@ -34,7 +34,7 @@ data class KravgrunnlagJson(
 }
 
 data class GrunnlagsperiodeJson(
-    // TODO bytt til månedJson
+    // TODO bytt till et uuuu-MM format (f.eks. toString() av YearMonth)
     val periode: PeriodeJson,
     val beløpSkattMnd: String,
     val grunnlagsbeløp: List<GrunnlagsbeløpJson>,
@@ -128,15 +128,15 @@ enum class KravgrunnlagStatusJson {
 
     companion object {
         fun Kravgrunnlag.KravgrunnlagStatus.toJson(): KravgrunnlagStatusJson = when (this) {
-            Kravgrunnlag.KravgrunnlagStatus.ANNU -> ANNU
-            Kravgrunnlag.KravgrunnlagStatus.ANOM -> ANOM
-            Kravgrunnlag.KravgrunnlagStatus.AVSL -> AVSL
-            Kravgrunnlag.KravgrunnlagStatus.BEHA -> BEHA
-            Kravgrunnlag.KravgrunnlagStatus.ENDR -> ENDR
-            Kravgrunnlag.KravgrunnlagStatus.FEIL -> FEIL
-            Kravgrunnlag.KravgrunnlagStatus.MANU -> MANU
-            Kravgrunnlag.KravgrunnlagStatus.NY -> NY
-            Kravgrunnlag.KravgrunnlagStatus.SPER -> SPER
+            Kravgrunnlag.KravgrunnlagStatus.Annulert -> ANNU
+            Kravgrunnlag.KravgrunnlagStatus.AnnulertVedOmg -> ANOM
+            Kravgrunnlag.KravgrunnlagStatus.Avsluttet -> AVSL
+            Kravgrunnlag.KravgrunnlagStatus.Ferdigbehandlet -> BEHA
+            Kravgrunnlag.KravgrunnlagStatus.Endret -> ENDR
+            Kravgrunnlag.KravgrunnlagStatus.Feil -> FEIL
+            Kravgrunnlag.KravgrunnlagStatus.Manuell -> MANU
+            Kravgrunnlag.KravgrunnlagStatus.Nytt -> NY
+            Kravgrunnlag.KravgrunnlagStatus.Sperret -> SPER
         }
     }
 }

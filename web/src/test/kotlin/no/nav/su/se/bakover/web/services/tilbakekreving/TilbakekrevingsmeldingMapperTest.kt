@@ -84,7 +84,7 @@ internal class TilbakekrevingsmeldingMapperTest {
             kravgrunnlagId = "298604",
             vedtakId = "436204",
             kontrollfelt = "2022-02-07-18.39.46.586953",
-            status = Kravgrunnlag.KravgrunnlagStatus.NY,
+            status = Kravgrunnlag.KravgrunnlagStatus.Nytt,
             behandler = NavIdentBruker.Saksbehandler("K231B433"),
             utbetalingId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),
             grunnlagsperioder = listOf(
@@ -206,7 +206,7 @@ internal class TilbakekrevingsmeldingMapperTest {
             kravgrunnlagId = "298606",
             vedtakId = "436206",
             kontrollfelt = "2022-02-07-18.39.47.693011",
-            status = Kravgrunnlag.KravgrunnlagStatus.NY,
+            status = Kravgrunnlag.KravgrunnlagStatus.Nytt,
             behandler = NavIdentBruker.Saksbehandler("K231B433"),
             utbetalingId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),
             grunnlagsperioder = listOf(
