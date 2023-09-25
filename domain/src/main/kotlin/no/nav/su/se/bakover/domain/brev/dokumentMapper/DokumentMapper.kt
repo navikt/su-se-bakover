@@ -45,17 +45,17 @@ fun PdfA.tilDokument(
         -> informasjonAnnet(clock, pdfInnhold)
 
         is AvvistSøknadDokumentCommand -> when (command.brevvalg) {
-            is no.nav.su.se.bakover.domain.brev.Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst -> informasjonAnnet(
+            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst -> informasjonAnnet(
                 clock,
                 pdfInnhold,
             )
 
-            is no.nav.su.se.bakover.domain.brev.Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.UtenFritekst -> vedtak(
+            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.UtenFritekst -> vedtak(
                 clock,
                 pdfInnhold,
             )
 
-            is no.nav.su.se.bakover.domain.brev.Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst -> vedtak(
+            is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst -> vedtak(
                 clock,
                 pdfInnhold,
             )
