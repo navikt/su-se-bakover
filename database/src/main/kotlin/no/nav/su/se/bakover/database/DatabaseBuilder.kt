@@ -60,6 +60,7 @@ import no.nav.su.se.bakover.institusjonsopphold.database.InstitusjonsoppholdHend
 import no.nav.su.se.bakover.oppgave.infrastructure.OppgaveHendelsePostgresRepo
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.UtenlandsoppholdPostgresRepo
 import org.jetbrains.annotations.TestOnly
+import tilbakekreving.infrastructure.TilbakekrevingsbehandlingPostgresRepo
 import java.time.Clock
 import javax.sql.DataSource
 
@@ -240,6 +241,11 @@ data object DatabaseBuilder {
             dbMetrics = dbMetrics,
             clock = clock,
         )
+        val tilbakekrevingsbehandlingRepo = TilbakekrevingsbehandlingPostgresRepo(
+            sessionFactory,
+            hendelseRepo,
+        )
+
         return DatabaseRepos(
             avstemming = AvstemmingPostgresRepo(sessionFactory, dbMetrics),
             utbetaling = UtbetalingPostgresRepo(
@@ -261,6 +267,7 @@ data object DatabaseBuilder {
                 avkortingsvarselRepo = avkortingsvarselRepo,
                 utenlandsoppholdRepo = utenlandsoppholdRepo,
                 hendelseRepo = hendelseRepo,
+                tilbakekrevingRepo = tilbakekrevingsbehandlingRepo,
             ),
             person = PersonPostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics),
             søknadsbehandling = søknadsbehandlingRepo,

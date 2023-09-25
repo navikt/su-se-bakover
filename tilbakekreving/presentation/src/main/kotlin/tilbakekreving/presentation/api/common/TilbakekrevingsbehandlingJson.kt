@@ -14,14 +14,15 @@ data class TilbakekrevingsbehandlingJson(
 ) {
 
     companion object {
-        fun Tilbakekrevingsbehandling.toJson(): String = serialize(
-            TilbakekrevingsbehandlingJson(
-                id = id.toString(),
-                sakId = sakId.toString(),
-                opprettet = opprettet,
-                opprettetAv = opprettetAv.toString(),
-                kravgrunnlag = this.kravgrunnlag.toJson(),
-            ),
+        fun Tilbakekrevingsbehandling.toStringifiedJson(): String = serialize(this.toJson())
+        fun List<Tilbakekrevingsbehandling>.toJson(): List<TilbakekrevingsbehandlingJson> = this.map { it.toJson() }
+
+        fun Tilbakekrevingsbehandling.toJson(): TilbakekrevingsbehandlingJson = TilbakekrevingsbehandlingJson(
+            id = id.toString(),
+            sakId = sakId.toString(),
+            opprettet = opprettet,
+            opprettetAv = opprettetAv.toString(),
+            kravgrunnlag = this.kravgrunnlag.toJson(),
         )
     }
 }

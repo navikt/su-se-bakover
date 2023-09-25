@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import tilbakekreving.application.service.OpprettTilbakekrevingsbehandlingService
 import tilbakekreving.domain.opprett.KunneIkkeOppretteTilbakekrevingsbehandling
 import tilbakekreving.domain.opprett.OpprettTilbakekrevingsbehandlingCommand
-import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toJson
+import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
 import tilbakekreving.presentation.api.common.ingenÅpneKravgrunnlag
 import tilbakekreving.presentation.api.tilbakekrevingPath
@@ -37,7 +37,7 @@ internal fun Route.opprettTilbakekrevingsbehandlingRoute(
                     kravgrunnlagMapper = TilbakekrevingsmeldingMapper::toKravgrunnlag,
                 ).fold(
                     ifLeft = { call.svar(it.tilResultat()) },
-                    ifRight = { call.svar(Resultat.json(HttpStatusCode.Created, it.toJson())) },
+                    ifRight = { call.svar(Resultat.json(HttpStatusCode.Created, it.toStringifiedJson())) },
                 )
             }
         }

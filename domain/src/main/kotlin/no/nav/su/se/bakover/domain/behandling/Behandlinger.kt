@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import tilbakekreving.domain.Tilbakekrevingsbehandling
 import java.util.UUID
 
 data class Behandlinger(
@@ -14,6 +15,7 @@ data class Behandlinger(
     val revurderinger: List<AbstraktRevurdering>,
     val reguleringer: List<Regulering>,
     val klager: List<Klage>,
+    val tilbakekrevinger: List<Tilbakekrevingsbehandling>,
 ) {
     val saksnummer: Saksnummer? = søknadsbehandlinger.firstOrNull()?.saksnummer
     val fnr: Fnr? = søknadsbehandlinger.firstOrNull()?.fnr
@@ -21,7 +23,7 @@ data class Behandlinger(
     val sakId: UUID? = søknadsbehandlinger.firstOrNull()?.sakId
 
     companion object {
-        fun empty() = Behandlinger(emptyList(), emptyList(), emptyList(), emptyList())
+        fun empty() = Behandlinger(emptyList(), emptyList(), emptyList(), emptyList(), emptyList())
 
         fun List<Søknadsbehandling>.harBehandlingUnderArbeid(): Boolean = this.any { it.erÅpen() }
     }
