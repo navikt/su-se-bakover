@@ -50,7 +50,7 @@ class HendelsePostgresRepo(
         hendelse: Hendelse<*>,
         type: Hendelsestype,
         data: String,
-        sessionContext: SessionContext = sessionFactory.newSessionContext(),
+        sessionContext: SessionContext? = null,
     ) {
         persister(
             hendelse = hendelse,

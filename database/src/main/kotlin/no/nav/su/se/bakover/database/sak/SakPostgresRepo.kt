@@ -35,7 +35,7 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon.Companion.max
 import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdRepo
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
-import tilbakekreving.infrastructure.TilbakekrevingsbehandlingPostgresRepo
+import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import java.util.UUID
 
 internal class SakPostgresRepo(
@@ -48,7 +48,7 @@ internal class SakPostgresRepo(
     private val reguleringRepo: ReguleringRepo,
     private val avkortingsvarselRepo: AvkortingsvarselPostgresRepo,
     private val utenlandsoppholdRepo: UtenlandsoppholdRepo,
-    private val tilbakekrevingRepo: TilbakekrevingsbehandlingPostgresRepo,
+    private val tilbakekrevingRepo: TilbakekrevingsbehandlingRepo,
     private val hendelseRepo: HendelseRepo,
     private val kravgrunnlagRepo: KravgrunnlagRepo,
 ) : SakRepo {

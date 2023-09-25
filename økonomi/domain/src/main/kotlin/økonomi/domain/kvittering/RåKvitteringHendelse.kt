@@ -27,6 +27,9 @@ data class RåKvitteringHendelse(
     override val versjon: Hendelsesversjon = Hendelsesversjon(1L)
     override val entitetId: UUID = hendelseId.value
 
+    /**
+     * Gir ikke så mye mening i dette tilfelle, da den krever at disse hendelsene er like.
+     */
     override fun compareTo(other: RåKvitteringHendelse): Int {
         require(this.entitetId == other.entitetId)
         return this.versjon.compareTo(other.versjon)

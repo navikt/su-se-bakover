@@ -33,6 +33,7 @@ fun Route.tilbakekrevingRoutes(
     val kravgrunnlagRepo = KravgrunnlagPostgresRepo(
         sessionFactory = sessionFactory,
         mapper = TilbakekrevingsmeldingMapper::toKravgrunnlag,
+        hendelseRepo = hendelseRepo,
     )
     val tilbakekrevingsbehHandlingRepo = TilbakekrevingsbehandlingPostgresRepo(
         sessionFactory = sessionFactory,

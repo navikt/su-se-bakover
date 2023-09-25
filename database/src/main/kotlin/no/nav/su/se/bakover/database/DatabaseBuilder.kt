@@ -254,6 +254,7 @@ data object DatabaseBuilder {
         )
         val kravgrunnlagRepo = KravgrunnlagPostgresRepo(
             sessionFactory = sessionFactory,
+            hendelseRepo = hendelseRepo,
             mapper = kravgrunnlagMapper,
         )
 
