@@ -21,8 +21,8 @@ fun opprettTilbakekrevingsbehandling(
         ),
         versjon = forrigeVersjon.inc(),
         clock = clock,
-        kravgrunnlag = kravgrunnlag,
+        kravgrunnlagsId = kravgrunnlag.kravgrunnlagId,
     ).let {
-        it to it.toDomain()
+        it to it.toDomain(kravgrunnlag)
     }
 }

@@ -80,7 +80,7 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
                     ),
                     id = it.id, // Denne blir generert av domenet.
                     opprettetAv = opprettetAv,
-                    kravgrunnlag = kravgrunnlag,
+                    kravgrunnlagsId = kravgrunnlag.kravgrunnlagId,
                 )
             },
             anyOrNull(),

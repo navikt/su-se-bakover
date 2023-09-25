@@ -25,7 +25,7 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
     override val meta: HendelseMetadata,
     val id: TilbakekrevingsbehandlingId,
     val opprettetAv: NavIdentBruker.Saksbehandler,
-    val kravgrunnlag: Kravgrunnlag,
+    val kravgrunnlagsId: String,
 ) : Sakshendelse {
 
     // Dette vil være den første hendelsen i denne behandlingen.
@@ -47,7 +47,7 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
             meta: HendelseMetadata,
             versjon: Hendelsesversjon,
             clock: Clock,
-            kravgrunnlag: Kravgrunnlag,
+            kravgrunnlagsId: String,
         ) = OpprettetTilbakekrevingsbehandlingHendelse(
             hendelseId = HendelseId.generer(),
             sakId = sakId,
@@ -56,11 +56,12 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
             versjon = versjon,
             meta = meta,
             id = TilbakekrevingsbehandlingId.generer(),
-            kravgrunnlag = kravgrunnlag,
+            kravgrunnlagsId = kravgrunnlagsId,
         )
     }
 
-    fun toDomain(): OpprettetTilbakekrevingsbehandling {
+    fun toDomain(kravgrunnlag: Kravgrunnlag): OpprettetTilbakekrevingsbehandling {
+        require(kravgrunnlag.kravgrunnlagId == this.kravgrunnlagsId)
         return OpprettetTilbakekrevingsbehandling(
             id = id,
             sakId = sakId,

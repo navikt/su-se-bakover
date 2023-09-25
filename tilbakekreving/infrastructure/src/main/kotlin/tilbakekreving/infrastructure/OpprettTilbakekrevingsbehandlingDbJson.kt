@@ -2,9 +2,9 @@ package tilbakekreving.infrastructure
 
 import tilbakekreving.domain.opprett.OpprettetTilbakekrevingsbehandlingHendelse
 
-data class OpprettTilbakekrevingsbehandlingHendelseJson(
+internal data class OpprettTilbakekrevingsbehandlingHendelseDbJson(
     val opprettetAv: String,
 )
 
-fun OpprettetTilbakekrevingsbehandlingHendelse.toJson() {
+internal fun OpprettetTilbakekrevingsbehandlingHendelse.toJson() {
 }

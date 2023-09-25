@@ -63,6 +63,13 @@ private fun List<PersistertHendelse>.toOpprettetTilbakekrevingsbehandlingHendels
             // TODO - Disse må vi hente fra repoet, disse blir enda ikke lagret. Legger på random data midlertidig
             id = TilbakekrevingsbehandlingId.generer(),
             opprettetAv = NavIdentBruker.Saksbehandler(navIdent = "hent faktiske saksbehandler"),
+            kravgrunnlagsId = "",
+        )
+    }
+
+private fun List<OpprettetTilbakekrevingsbehandlingHendelse>.toBehandling(): List<OpprettetTilbakekrevingsbehandling> =
+    this.map {
+        it.toDomain(
             kravgrunnlag = Kravgrunnlag(
                 saksnummer = Saksnummer(nummer = 9999),
                 kravgrunnlagId = "",
@@ -75,6 +82,3 @@ private fun List<PersistertHendelse>.toOpprettetTilbakekrevingsbehandlingHendels
             ),
         )
     }
-
-private fun List<OpprettetTilbakekrevingsbehandlingHendelse>.toBehandling(): List<OpprettetTilbakekrevingsbehandling> =
-    this.map { it.toDomain() }
