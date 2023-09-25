@@ -61,6 +61,7 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
                 opprettetAv = opprettetAv,
                 correlationId = correlationId,
                 brukerroller = brukerroller,
+                klientensSisteSaksversjon = Hendelsesversjon(1),
             ),
             kravgrunnlagMapper = { kravgrunnlag.right() },
         ).shouldBeRight()

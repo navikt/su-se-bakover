@@ -11,7 +11,9 @@ import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.correlationId
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
+import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.application.service.OpprettTilbakekrevingsbehandlingService
 import tilbakekreving.domain.opprett.KunneIkkeOppretteTilbakekrevingsbehandling
 import tilbakekreving.domain.opprett.OpprettTilbakekrevingsbehandlingCommand
@@ -21,24 +23,31 @@ import tilbakekreving.presentation.api.common.ingenÅpneKravgrunnlag
 import tilbakekreving.presentation.api.tilbakekrevingPath
 import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
 
+private data class Body(
+    val saksversjon: Long,
+)
+
 internal fun Route.opprettTilbakekrevingsbehandlingRoute(
     opprettTilbakekrevingsbehandlingService: OpprettTilbakekrevingsbehandlingService,
 ) {
     post("$tilbakekrevingPath/ny") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
-                opprettTilbakekrevingsbehandlingService.opprett(
-                    command = OpprettTilbakekrevingsbehandlingCommand(
-                        sakId = sakId,
-                        opprettetAv = call.suUserContext.saksbehandler,
-                        correlationId = call.correlationId,
-                        brukerroller = call.suUserContext.roller.toNonEmptyList(),
-                    ),
-                    kravgrunnlagMapper = TilbakekrevingsmeldingMapper::toKravgrunnlag,
-                ).fold(
-                    ifLeft = { call.svar(it.tilResultat()) },
-                    ifRight = { call.svar(Resultat.json(HttpStatusCode.Created, it.toStringifiedJson())) },
-                )
+                call.withBody<Body> { body ->
+                    opprettTilbakekrevingsbehandlingService.opprett(
+                        command = OpprettTilbakekrevingsbehandlingCommand(
+                            sakId = sakId,
+                            opprettetAv = call.suUserContext.saksbehandler,
+                            correlationId = call.correlationId,
+                            brukerroller = call.suUserContext.roller.toNonEmptyList(),
+                            klientensSisteSaksversjon = Hendelsesversjon(body.saksversjon),
+                        ),
+                        kravgrunnlagMapper = TilbakekrevingsmeldingMapper::toKravgrunnlag,
+                    ).fold(
+                        ifLeft = { call.svar(it.tilResultat()) },
+                        ifRight = { call.svar(Resultat.json(HttpStatusCode.Created, it.toStringifiedJson())) },
+                    )
+                }
             }
         }
     }
