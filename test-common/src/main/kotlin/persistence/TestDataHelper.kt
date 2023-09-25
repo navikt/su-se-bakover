@@ -150,6 +150,7 @@ import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandling
+import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
 import vilkår.personligOppmøtevilkårAvslag
 import økonomi.domain.kvittering.Kvittering
 import java.time.Clock
@@ -172,6 +173,7 @@ class TestDataHelper(
         dbMetrics = dbMetrics,
         clock = clock,
         satsFactory = satsFactory,
+        kravgrunnlagMapper = TilbakekrevingsmeldingMapper::toKravgrunnlag,
     )
     val avstemmingRepo = databaseRepos.avstemming
     val avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo

@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingConsumer
+import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringConsumer
 import java.time.Clock
 import java.time.LocalDate
@@ -33,9 +34,13 @@ import java.time.LocalDate
  * Kun ment til brukt fra produksjons-main. Testene og lokal bør starte sin egen embeddedServer.
  */
 fun startServer() {
-    embeddedServer(factory = Netty, port = 8080, module = {
-        susebakover()
-    }).start(true)
+    embeddedServer(
+        factory = Netty,
+        port = 8080,
+        module = {
+            susebakover()
+        },
+    ).start(true)
 }
 
 fun Application.susebakover(
@@ -54,6 +59,7 @@ fun Application.susebakover(
         clock = clock,
         satsFactory = satsFactory,
         queryParameterMappers = listOf(DomainToQueryParameterMapper),
+        kravgrunnlagMapper = TilbakekrevingsmeldingMapper::toKravgrunnlag,
     ),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
     clients: Clients = if (applicationConfig.runtimeEnvironment != ApplicationConfig.RuntimeEnvironment.Nais) {

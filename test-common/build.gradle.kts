@@ -18,6 +18,7 @@ dependencies {
     implementation(project(":økonomi:domain"))
     implementation(project(":dokument:domain"))
     implementation(project(":tilbakekreving:domain"))
+    implementation(project(":tilbakekreving:presentation"))
     implementation(project(":person:domain"))
 
     compileOnly("io.kotest:kotest-assertions-core:$kotestVersion")

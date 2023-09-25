@@ -54,6 +54,7 @@ import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
 import org.mockito.kotlin.mock
 import org.slf4j.MDC
+import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
 import java.time.Clock
 import java.time.LocalDate
 import javax.sql.DataSource
@@ -97,6 +98,7 @@ data object SharedRegressionTestData {
             dbMetrics = dbMetricsStub,
             clock = clock,
             satsFactory = satsFactory,
+            kravgrunnlagMapper = TilbakekrevingsmeldingMapper::toKravgrunnlag,
         )
     }
 

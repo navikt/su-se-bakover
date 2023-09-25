@@ -12,6 +12,7 @@ import tilbakekreving.infrastructure.KravgrunnlagPostgresRepo
 import tilbakekreving.infrastructure.TilbakekrevingsbehandlingPostgresRepo
 import tilbakekreving.presentation.api.hent.hentKravgrunnlagRoute
 import tilbakekreving.presentation.api.opprett.opprettTilbakekrevingsbehandlingRoute
+import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
 import java.time.Clock
 
 internal const val tilbakekrevingPath = "saker/{sakId}/tilbakekreving"
@@ -29,6 +30,7 @@ fun Route.tilbakekrevingRoutes(
     )
     val kravgrunnlagRepo = KravgrunnlagPostgresRepo(
         sessionFactory = sessionFactory,
+        mapper = TilbakekrevingsmeldingMapper::toKravgrunnlag,
     )
     val tilbakekrevingsbehHandlingRepo = TilbakekrevingsbehandlingPostgresRepo(
         sessionFactory = sessionFactory,
