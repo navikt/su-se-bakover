@@ -24,7 +24,7 @@ class KravgrunnlagPostgresRepo(
     private val mapper: (råttKravgrunnlag: RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
 ) : KravgrunnlagRepo {
 
-    override fun hentÅpentKravgrunnlagForSak(sakId: UUID): RåttKravgrunnlag? {
+    override fun hentRåttÅpentKravgrunnlagForSak(sakId: UUID): RåttKravgrunnlag? {
         // TODO jah: mottatt_kravgrunnlag er en delt tilstand, men vil på sikt eies av kravgrunnlag-delen av tilbakekreving.
         // TODO jah: Vi skal flytte fremtidige kravgrunnlag til en egen hendelse.
         return sessionFactory.withSession { session ->
@@ -47,33 +47,47 @@ class KravgrunnlagPostgresRepo(
         }
     }
 
-    override fun hentRåttKravgrunnlag(id: String): RåttKravgrunnlag? {
+//    override fun hentRåttKravgrunnlag(id: String): RåttKravgrunnlag? {
+//        return sessionFactory.withSession { session ->
+//            """
+//                select
+//                    kravgrunnlag
+//                from
+//                    revurdering_tilbakekreving
+//            """.trimIndent().hentListe(
+//                emptyMap(),
+//                session,
+//            ) {
+//                it.stringOrNull("kravgrunnlag")?.let { RåttKravgrunnlag(it) }
+//            }
+//        }.firstOrNull {
+//            if (it == null) {
+//                false
+//            } else {
+//                val kravgrunnlag = mapper(it).getOrElse {
+//                    throw it
+//                }
+//                kravgrunnlag.kravgrunnlagId == id
+//            }
+//        }
+//    }
+
+    override fun hentKravgrunnlagForSak(sakId: UUID): List<Kravgrunnlag> {
         return sessionFactory.withSession { session ->
             """
                 select 
                     kravgrunnlag 
                 from 
-                    revurdering_tilbakekreving
+                    revurdering_tilbakekreving 
+                where 
+                    sakId=:sakId;
             """.trimIndent().hentListe(
-                emptyMap(),
+                mapOf("sakId" to sakId),
                 session,
             ) {
                 it.stringOrNull("kravgrunnlag")?.let { RåttKravgrunnlag(it) }
-            }
-        }.firstOrNull {
-            if (it == null) {
-                false
-            } else {
-                val kravgrunnlag = mapper(it).getOrElse {
-                    throw it
-                }
-                kravgrunnlag.kravgrunnlagId == id
-            }
-        }
-    }
-
-    override fun hentKravgrunnlag(id: String): Kravgrunnlag? {
-        return hentRåttKravgrunnlag(id)?.let {
+            }.filterNotNull()
+        }.map {
             mapper(it).getOrElse {
                 throw it
             }

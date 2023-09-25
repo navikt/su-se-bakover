@@ -24,7 +24,7 @@ class HentÅpentKravgrunnlagService(
             return KunneIkkeHenteSisteFerdigbehandledeKravgrunnlag.IkkeTilgang(it).left()
         }
 
-        return kravgrunnlagRepo.hentÅpentKravgrunnlagForSak(sakId)?.let {
+        return kravgrunnlagRepo.hentRåttÅpentKravgrunnlagForSak(sakId)?.let {
             kravgrunnlagMapper(it).map {
                 it
             }.mapLeft {

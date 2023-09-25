@@ -34,7 +34,6 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon.Companion.max
 import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdRepo
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import java.util.UUID
 
@@ -50,7 +49,6 @@ internal class SakPostgresRepo(
     private val utenlandsoppholdRepo: UtenlandsoppholdRepo,
     private val tilbakekrevingRepo: TilbakekrevingsbehandlingRepo,
     private val hendelseRepo: HendelseRepo,
-    private val kravgrunnlagRepo: KravgrunnlagRepo,
 ) : SakRepo {
 
     private val åpneBehandlingerRepo = ÅpneBehandlingerRepo(
@@ -328,9 +326,7 @@ internal class SakPostgresRepo(
                     revurderinger = revurderingRepo.hentRevurderingerForSak(sakId, session),
                     reguleringer = reguleringRepo.hentForSakId(sakId, sessionContext),
                     klager = klageRepo.hentKlager(sakId, sessionContext),
-                    tilbakekrevinger = tilbakekrevingRepo.hentForSak(sakId, sessionContext).map {
-                        it.toDomain(kravgrunnlag = kravgrunnlagRepo.hentKravgrunnlag(it.kravgrunnlagsId)!!)
-                    },
+                    tilbakekrevinger = tilbakekrevingRepo.hentForSak(sakId, sessionContext).currentState,
                 ),
                 utbetalinger = Utbetalinger(UtbetalingInternalRepo.hentOversendteUtbetalinger(sakId, session)),
                 vedtakListe = vedtakPostgresRepo.hentForSakId(sakId, session),

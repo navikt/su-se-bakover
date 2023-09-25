@@ -40,7 +40,7 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
         val kravgrunnlag = nyKravgrunnlag()
 
         val kravgrunnlagRepo = mock<KravgrunnlagRepo> {
-            on { hentÅpentKravgrunnlagForSak(any()) } doReturn nyRåttKravgrunnlag()
+            on { hentRåttÅpentKravgrunnlagForSak(any()) } doReturn nyRåttKravgrunnlag()
         }
         val tilgangstyringService = mock<TilbakekrevingsbehandlingTilgangstyringService> {
             on { assertHarTilgangTilSak(any()) } doReturn Unit.right()
@@ -66,7 +66,7 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
             kravgrunnlagMapper = { kravgrunnlag.right() },
         ).shouldBeRight()
 
-        verify(kravgrunnlagRepo).hentÅpentKravgrunnlagForSak(argThat { it shouldBe sakId })
+        verify(kravgrunnlagRepo).hentRåttÅpentKravgrunnlagForSak(argThat { it shouldBe sakId })
         verify(mocks.tilbakekrevingsbehandlingRepo).opprett(
             argThat {
                 it shouldBe OpprettetTilbakekrevingsbehandlingHendelse(

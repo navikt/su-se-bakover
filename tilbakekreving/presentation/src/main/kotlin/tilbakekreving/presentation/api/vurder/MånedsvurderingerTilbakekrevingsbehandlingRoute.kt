@@ -1,4 +1,4 @@
-package tilbakekreving.presentation.api.vurdert
+package tilbakekreving.presentation.api.vurder
 
 import arrow.core.Either
 import arrow.core.getOrElse
@@ -21,11 +21,12 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.application.service.MånedsvurderingerTilbakekrevingsbehandlingService
 import tilbakekreving.domain.vurdert.KunneIkkeVurdereTilbakekrevingsbehandling
-import tilbakekreving.domain.vurdert.LeggTilVurderingerCommand
 import tilbakekreving.domain.vurdert.Månedsvurdering
 import tilbakekreving.domain.vurdert.Månedsvurderinger
+import tilbakekreving.domain.vurdert.OppdaterMånedsvurderingerCommand
 import tilbakekreving.domain.vurdert.Vurdering
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
@@ -34,24 +35,29 @@ import java.time.YearMonth
 import java.util.UUID
 
 private data class Body(
-    val måned: String,
-    val vurdering: String,
-)
+    val versjon: Long,
+    val måneder: List<Måned>,
+) {
+    data class Måned(
+        val måned: String,
+        val vurdering: String,
+    )
+}
 
-private fun List<Body>.toCommand(
+private fun Body.toCommand(
     sakId: UUID,
     utførtAv: NavIdentBruker.Saksbehandler,
     correlationId: CorrelationId,
     brukerroller: List<Brukerrolle>,
-): Either<Resultat, LeggTilVurderingerCommand> {
-    return this.map {
+): Either<Resultat, OppdaterMånedsvurderingerCommand> {
+    return this.måneder.map { måned ->
         Månedsvurdering(
-            måned = Måned.fra(YearMonth.parse(it.måned)),
-            vurdering = when (it.vurdering) {
+            måned = Måned.fra(YearMonth.parse(måned.måned)),
+            vurdering = when (måned.vurdering) {
                 "SkalIkkeTilbakekreve" -> Vurdering.SkalIkkeTilbakekreve
                 "SkalTilbakekreve" -> Vurdering.SkalTilbakekreve
                 else -> return HttpStatusCode.BadRequest.errorJson(
-                    message = "Ukjent vurdering, må være en av SkalTilbakekreve/SkalIkkeTilbakekreve, men var: ${it.vurdering}",
+                    message = "Ukjent vurdering, må være en av SkalTilbakekreve/SkalIkkeTilbakekreve, men var: ${måned.vurdering}",
                     code = "ukjent_vurdering",
                 ).left()
             },
@@ -71,12 +77,13 @@ private fun List<Body>.toCommand(
             ).left()
         }
 
-        LeggTilVurderingerCommand(
+        OppdaterMånedsvurderingerCommand(
             vurderinger = Månedsvurderinger(validatedMånedsvurderinger),
             sakId = sakId,
             utførtAv = utførtAv,
             correlationId = correlationId,
             brukerroller = validatedBrukerroller,
+            klientensSisteSaksversjon = Hendelsesversjon(versjon),
         ).right()
     }
 }
@@ -86,7 +93,7 @@ internal fun Route.månedsvurderingerTilbakekrevingsbehandlingRoute(
 ) {
     post("$tilbakekrevingPath/manedsvurder") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-            call.withBody<List<Body>> { body ->
+            call.withBody<Body> { body ->
                 call.withSakId { sakId ->
 
                     body.toCommand(

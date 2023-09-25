@@ -1,8 +1,11 @@
-package tilbakekreving.domain.vurdert
+@file:Suppress("PackageDirectoryMismatch")
+// Må ligge i samme pakke som Tilbakekrevingsbehandling (siden det er et sealed interface), men trenger ikke ligge i samme mappe.
+
+package tilbakekreving.domain
 
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.domain.Attesteringshistorikk
-import tilbakekreving.domain.opprett.OpprettetTilbakekrevingsbehandling
+import tilbakekreving.domain.vurdert.Månedsvurderinger
 
 sealed interface VurdertTilbakekrevingsbehandling : KanVurdere {
 
@@ -13,7 +16,7 @@ sealed interface VurdertTilbakekrevingsbehandling : KanVurdere {
      * Kan kun gå fra opprettet til denne, men aldri tilbake til denne igjen.
      */
     data class Påbegynt(
-        override val forrigeSteg: OpprettetTilbakekrevingsbehandling,
+        override val forrigeSteg: KanVurdere,
         override val månedsvurderinger: Månedsvurderinger,
     ) : VurdertTilbakekrevingsbehandling, KanVurdere by forrigeSteg {
         override val brevvalg: Brevvalg.SaksbehandlersValg? = null
@@ -21,9 +24,19 @@ sealed interface VurdertTilbakekrevingsbehandling : KanVurdere {
     }
 
     data class Utfylt(
-        override val forrigeSteg: Påbegynt,
+        override val forrigeSteg: VurdertTilbakekrevingsbehandling,
         override val månedsvurderinger: Månedsvurderinger,
         override val brevvalg: Brevvalg.SaksbehandlersValg,
         override val attesteringer: Attesteringshistorikk,
-    ) : VurdertTilbakekrevingsbehandling, KanVurdere by forrigeSteg
+    ) : VurdertTilbakekrevingsbehandling, KanVurdere by forrigeSteg {
+        constructor(
+            forrigeSteg: Utfylt,
+            månedsvurderinger: Månedsvurderinger,
+        ) : this(
+            forrigeSteg = forrigeSteg,
+            månedsvurderinger = månedsvurderinger,
+            brevvalg = forrigeSteg.brevvalg,
+            attesteringer = forrigeSteg.attesteringer,
+        )
+    }
 }

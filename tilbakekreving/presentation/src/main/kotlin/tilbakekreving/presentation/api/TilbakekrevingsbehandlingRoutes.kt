@@ -13,7 +13,7 @@ import tilbakekreving.infrastructure.KravgrunnlagPostgresRepo
 import tilbakekreving.infrastructure.TilbakekrevingsbehandlingPostgresRepo
 import tilbakekreving.presentation.api.hent.hentKravgrunnlagRoute
 import tilbakekreving.presentation.api.opprett.opprettTilbakekrevingsbehandlingRoute
-import tilbakekreving.presentation.api.vurdert.månedsvurderingerTilbakekrevingsbehandlingRoute
+import tilbakekreving.presentation.api.vurder.månedsvurderingerTilbakekrevingsbehandlingRoute
 import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
 import java.time.Clock
 
@@ -38,6 +38,8 @@ fun Route.tilbakekrevingRoutes(
     val tilbakekrevingsbehHandlingRepo = TilbakekrevingsbehandlingPostgresRepo(
         sessionFactory = sessionFactory,
         hendelseRepo = hendelseRepo,
+        clock = clock,
+        kravgrunnlagRepo = kravgrunnlagRepo,
     )
     this.hentKravgrunnlagRoute(
         HentÅpentKravgrunnlagService(

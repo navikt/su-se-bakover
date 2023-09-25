@@ -248,14 +248,16 @@ data object DatabaseBuilder {
             dbMetrics = dbMetrics,
             clock = clock,
         )
-        val tilbakekrevingsbehandlingRepo = TilbakekrevingsbehandlingPostgresRepo(
-            sessionFactory,
-            hendelseRepo,
-        )
         val kravgrunnlagRepo = KravgrunnlagPostgresRepo(
             sessionFactory = sessionFactory,
             hendelseRepo = hendelseRepo,
             mapper = kravgrunnlagMapper,
+        )
+        val tilbakekrevingsbehandlingRepo = TilbakekrevingsbehandlingPostgresRepo(
+            sessionFactory = sessionFactory,
+            hendelseRepo = hendelseRepo,
+            clock = clock,
+            kravgrunnlagRepo = kravgrunnlagRepo,
         )
 
         return DatabaseRepos(
@@ -280,7 +282,6 @@ data object DatabaseBuilder {
                 utenlandsoppholdRepo = utenlandsoppholdRepo,
                 hendelseRepo = hendelseRepo,
                 tilbakekrevingRepo = tilbakekrevingsbehandlingRepo,
-                kravgrunnlagRepo = kravgrunnlagRepo,
             ),
             person = PersonPostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics),
             søknadsbehandling = søknadsbehandlingRepo,

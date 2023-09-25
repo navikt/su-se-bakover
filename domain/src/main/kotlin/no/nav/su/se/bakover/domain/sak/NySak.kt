@@ -27,7 +27,7 @@ data class NySak(
             opprettet = opprettet,
             fnr = fnr,
             søknader = listOf(søknad),
-            behandlinger = Behandlinger.empty(),
+            behandlinger = Behandlinger.empty(id),
             utbetalinger = Utbetalinger(),
             vedtakListe = emptyList(),
             type = søknad.type,

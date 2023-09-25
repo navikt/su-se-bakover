@@ -67,7 +67,7 @@ data class Sak(
     val opprettet: Tidspunkt,
     val fnr: Fnr,
     val søknader: List<Søknad> = emptyList(),
-    val behandlinger: Behandlinger = Behandlinger.empty(),
+    val behandlinger: Behandlinger = Behandlinger.empty(id),
     // TODO jah: Bytt til [Utbetaling.Oversendt]
     val utbetalinger: Utbetalinger,
     val vedtakListe: List<Vedtak> = emptyList(),

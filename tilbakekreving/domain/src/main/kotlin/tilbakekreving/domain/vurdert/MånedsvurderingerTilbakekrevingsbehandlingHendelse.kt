@@ -6,7 +6,14 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
+import tilbakekreving.domain.AvbruttTilbakekrevingsbehandling
+import tilbakekreving.domain.IverksattTilbakekrevingsbehandling
+import tilbakekreving.domain.OpprettetTilbakekrevingsbehandling
+import tilbakekreving.domain.Tilbakekrevingsbehandling
+import tilbakekreving.domain.TilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
+import tilbakekreving.domain.TilbakekrevingsbehandlingTilAttestering
+import tilbakekreving.domain.VurdertTilbakekrevingsbehandling
 import java.util.UUID
 
 data class MånedsvurderingerTilbakekrevingsbehandlingHendelse(
@@ -19,10 +26,33 @@ data class MånedsvurderingerTilbakekrevingsbehandlingHendelse(
     val id: TilbakekrevingsbehandlingId,
     val utførtAv: NavIdentBruker.Saksbehandler,
     val vurderinger: Månedsvurderinger,
-) : Sakshendelse {
+) : TilbakekrevingsbehandlingHendelse {
     override val entitetId: UUID = sakId
     override fun compareTo(other: Sakshendelse): Int {
         require(this.entitetId == other.entitetId && this.sakId == other.sakId)
         return this.versjon.compareTo(other.versjon)
+    }
+}
+
+internal fun Tilbakekrevingsbehandling.applyHendelse(
+    hendelse: MånedsvurderingerTilbakekrevingsbehandlingHendelse,
+): VurdertTilbakekrevingsbehandling {
+    return when (this) {
+        is OpprettetTilbakekrevingsbehandling -> VurdertTilbakekrevingsbehandling.Påbegynt(
+            forrigeSteg = this,
+            månedsvurderinger = hendelse.vurderinger,
+        )
+        is VurdertTilbakekrevingsbehandling.Påbegynt -> VurdertTilbakekrevingsbehandling.Påbegynt(
+            forrigeSteg = this,
+            månedsvurderinger = hendelse.vurderinger,
+        )
+        is VurdertTilbakekrevingsbehandling.Utfylt -> VurdertTilbakekrevingsbehandling.Utfylt(
+            forrigeSteg = this,
+            månedsvurderinger = hendelse.vurderinger,
+        )
+        is AvbruttTilbakekrevingsbehandling,
+        is IverksattTilbakekrevingsbehandling,
+        is TilbakekrevingsbehandlingTilAttestering,
+        -> TODO("implementer")
     }
 }

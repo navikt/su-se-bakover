@@ -1,17 +1,21 @@
-package tilbakekreving.domain.vurdert
+@file:Suppress("PackageDirectoryMismatch")
+// Må ligge i samme pakke som Tilbakekrevingsbehandling (siden det er et sealed interface), men trenger ikke ligge i samme mappe.
+
+package tilbakekreving.domain
 
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import tilbakekreving.domain.Tilbakekrevingsbehandling
-import tilbakekreving.domain.TilbakekrevingsbehandlingId
+import tilbakekreving.domain.vurdert.Månedsvurderinger
+import tilbakekreving.domain.vurdert.MånedsvurderingerTilbakekrevingsbehandlingHendelse
+import tilbakekreving.domain.vurdert.OppdaterMånedsvurderingerCommand
 import java.time.Clock
 
-interface KanVurdere : Tilbakekrevingsbehandling {
+sealed interface KanVurdere : Tilbakekrevingsbehandling {
     fun leggTilVurdering(
-        command: LeggTilVurderingerCommand,
+        command: OppdaterMånedsvurderingerCommand,
         behandlingsId: TilbakekrevingsbehandlingId,
         tidligereHendelsesId: HendelseId,
         nesteVersjon: Hendelsesversjon,

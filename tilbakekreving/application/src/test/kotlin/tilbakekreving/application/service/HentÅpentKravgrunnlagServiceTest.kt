@@ -19,7 +19,7 @@ class HentÅpentKravgrunnlagServiceTest {
     @Test
     fun `henter aktive kravgrunnlag`() {
         val kravgrunnlagRepo = mock<KravgrunnlagRepo> {
-            on { hentÅpentKravgrunnlagForSak(any()) } doReturn nyRåttKravgrunnlag()
+            on { hentRåttÅpentKravgrunnlagForSak(any()) } doReturn nyRåttKravgrunnlag()
         }
 
         val tilgangstyringService = mock<TilbakekrevingsbehandlingTilgangstyringService> {
@@ -32,7 +32,7 @@ class HentÅpentKravgrunnlagServiceTest {
             kravgrunnlagMapper = { nyKravgrunnlag().right() },
         ).shouldBeRight()
 
-        verify(kravgrunnlagRepo).hentÅpentKravgrunnlagForSak(argThat { it shouldBe sakId })
+        verify(kravgrunnlagRepo).hentRåttÅpentKravgrunnlagForSak(argThat { it shouldBe sakId })
         mocks.verifyNoMoreInteractions()
     }
 

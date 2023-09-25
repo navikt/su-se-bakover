@@ -6,6 +6,8 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
+import tilbakekreving.domain.OpprettetTilbakekrevingsbehandling
+import tilbakekreving.domain.TilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import java.time.Clock
@@ -26,7 +28,7 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
     val id: TilbakekrevingsbehandlingId,
     val opprettetAv: NavIdentBruker.Saksbehandler,
     val kravgrunnlagsId: String,
-) : Sakshendelse {
+) : TilbakekrevingsbehandlingHendelse {
 
     // Dette vil være den første hendelsen i denne behandlingen.
     override val tidligereHendelseId: HendelseId? = null
@@ -68,6 +70,7 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
             opprettet = hendelsestidspunkt,
             opprettetAv = opprettetAv,
             kravgrunnlag = kravgrunnlag,
+            versjon = versjon,
         )
     }
 }

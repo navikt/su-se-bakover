@@ -7,12 +7,12 @@ import arrow.core.right
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import org.slf4j.LoggerFactory
+import tilbakekreving.domain.OpprettetTilbakekrevingsbehandling
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import tilbakekreving.domain.opprett.KunneIkkeOppretteTilbakekrevingsbehandling
 import tilbakekreving.domain.opprett.OpprettTilbakekrevingsbehandlingCommand
-import tilbakekreving.domain.opprett.OpprettetTilbakekrevingsbehandling
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.opprett.opprettTilbakekrevingsbehandling
 import java.time.Clock
@@ -40,7 +40,7 @@ class OpprettTilbakekrevingsbehandlingService(
 
         // TODO - en sjekk på at kravgrunnlaget ikke har en aktiv behandling (bør gå via Sak.kt)
         //  Da får vi en naturlig inngang og kravgrunnlaget bør ligge på saken slik at vi slipper mappingsbiten her.
-        return kravgrunnlagRepo.hentÅpentKravgrunnlagForSak(sakId)?.let {
+        return kravgrunnlagRepo.hentRåttÅpentKravgrunnlagForSak(sakId)?.let {
             kravgrunnlagMapper(it).map { kravgrunnlag ->
                 opprettTilbakekrevingsbehandling(
                     command = command,
