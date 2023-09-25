@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.behandling
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.domain.Attestering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.fixedTidspunkt

@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett
 
-import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.common.domain.Attestering
 import java.util.UUID
 
 /**

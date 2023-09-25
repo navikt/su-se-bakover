@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.statistikk.behandling
 
+import no.nav.su.se.bakover.common.domain.Attesteringshistorikk
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
