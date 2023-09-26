@@ -30,7 +30,7 @@ internal class UtbetalingKvitteringIbmMqConsumerV2(
                     }
                 }
             } catch (ex: Exception) {
-                log.error("Feil ved prossessering av melding fra: $kvitteringQueueName", ex)
+                log.error("Feil ved prosessering av melding fra: $kvitteringQueueName", ex)
                 throw ex
             }
         }

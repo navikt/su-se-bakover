@@ -10,13 +10,16 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlagHendelse
 import tilbakekreving.infrastructure.RåttKravgrunnlagDbJson.Companion.toJson
+import tilbakekreving.infrastructure.RåttKravgrunnlagDbJson.Companion.toRåttKravgrunnlagHendelse
 import java.util.UUID
 
 val MottattKravgrunnlagHendelsestype = Hendelsestype("MOTTATT_KRAVGRUNNLAG")
+val KnyttetKravgrunnlagTilSakHendelsestype = Hendelsestype("KNYTTET_KRAVGRUNNLAG_TIL_SAK")
 
 class KravgrunnlagPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -94,7 +97,7 @@ class KravgrunnlagPostgresRepo(
         }
     }
 
-    override fun lagreRåKravgrunnlagHendelse(
+    override fun lagreRåttKravgrunnlagHendelse(
         hendelse: RåttKravgrunnlagHendelse,
         sessionContext: SessionContext?,
     ) {
@@ -104,5 +107,44 @@ class KravgrunnlagPostgresRepo(
             data = hendelse.toJson(),
             sessionContext = sessionContext,
         )
+    }
+
+    /**
+     * Kun tenkt brukt av jobben som knytter kravgrunnlag til sak.
+     */
+    override fun hentUprosesserteRåttKravgrunnlagHendelseForSak(
+        sakId: UUID,
+        sessionContext: SessionContext?,
+        limit: Int,
+    ): List<RåttKravgrunnlagHendelse> {
+        return (hendelseRepo as HendelsePostgresRepo).hentHendelserForType(
+            type = MottattKravgrunnlagHendelsestype,
+            sessionContext = sessionContext,
+            limit = limit,
+        ).map {
+            it.toRåttKravgrunnlagHendelse()
+        }
+    }
+
+    override fun lagreKravgrunnlagPåSakHendelse(hendelse: KravgrunnlagPåSakHendelse, sessionContext: SessionContext?) {
+        (hendelseRepo as HendelsePostgresRepo).persisterHendelse(
+            hendelse = hendelse,
+            type = KnyttetKravgrunnlagTilSakHendelsestype,
+            data = hendelse.toJson(),
+            sessionContext = sessionContext,
+        )
+    }
+
+    override fun hentKravgrunnlagPåSakHendelser(
+        sakId: UUID,
+        sessionContext: SessionContext?,
+    ): List<KravgrunnlagPåSakHendelse> {
+        return (hendelseRepo as HendelsePostgresRepo).hentHendelserForSakIdOgType(
+            sakId = sakId,
+            type = KnyttetKravgrunnlagTilSakHendelsestype,
+            sessionContext = sessionContext,
+        ).map {
+            it.toKravgrunnlagPåSakHendelse()
+        }
     }
 }

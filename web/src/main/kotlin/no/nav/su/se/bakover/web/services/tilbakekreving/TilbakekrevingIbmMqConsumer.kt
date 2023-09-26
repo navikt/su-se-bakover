@@ -35,7 +35,7 @@ internal class TilbakekrevingIbmMqConsumer(
                     }
                 }
             } catch (ex: Exception) {
-                log.error("Feil ved prossessering av melding fra: $queueName", ex)
+                log.error("Feil ved prosessering av melding fra: $queueName", ex)
                 throw ex
             }
         }

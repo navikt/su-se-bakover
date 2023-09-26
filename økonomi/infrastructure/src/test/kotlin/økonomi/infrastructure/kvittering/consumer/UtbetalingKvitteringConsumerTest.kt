@@ -41,7 +41,7 @@ internal class UtbetalingKvitteringConsumerTest {
         shouldThrow<RuntimeException> {
             consumer.onMessage(kvitteringXml(UUID30.randomUUID()))
         }.also {
-            it.message shouldStartWith "Kunne ikke oppdatere kvittering eller vedtak ved prossessering av kvittering"
+            it.message shouldStartWith "Kunne ikke oppdatere kvittering eller vedtak ved prosessering av kvittering"
         }
         verify(serviceMock, Times(2)).oppdaterMedKvittering(any(), any(), anyOrNull())
     }
@@ -67,7 +67,7 @@ internal class UtbetalingKvitteringConsumerTest {
         shouldThrow<RuntimeException> {
             consumer.onMessage(kvitteringXml(utbetalingMedKvittering.id))
         }.also {
-            it.message shouldStartWith "Kunne ikke oppdatere kvittering eller vedtak ved prossessering av kvittering"
+            it.message shouldStartWith "Kunne ikke oppdatere kvittering eller vedtak ved prosessering av kvittering"
         }
         verify(ferdigstillVedtakServiceMock, Times(2)).ferdigstillVedtakEtterUtbetaling(any())
     }

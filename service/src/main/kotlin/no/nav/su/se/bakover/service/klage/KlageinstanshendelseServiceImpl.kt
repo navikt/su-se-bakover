@@ -93,7 +93,7 @@ class KlageinstanshendelseServiceImpl(
                 is Klage.KunneIkkeLeggeTilNyKlageinstansHendelse.MåVæreEnOversendtKlage -> log.error("Feil skjedde i prosessering av klageinstanshendelse: Må være i tilstand ${OversendtKlage::class.java.name} men var ${it.menVar.java.name} for id ${hendelse.id}")
             }
             /* Disse lagres som FEIL i databasen uten videre håndtering. Tanken er at vi får håndtere
-             * de casene som intreffer og så må vi manuellt putte de til 'UPROSSESERT' vid senere tidspunkt.
+             * de casene som intreffer og så må vi manuellt putte de til 'UPROSESSERT' vid senere tidspunkt.
              */
             klageinstanshendelseRepo.markerSomFeil(hendelse.id)
         }

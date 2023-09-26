@@ -89,7 +89,6 @@ fun mapToTilbakekrevingsvedtakRequest(tilbakekrevingsvedtak: Tilbakekrevingsvedt
             this.kodeHjemmel = TilbakekrevingsHjemmel.T.toString()
 
             // 5 - 441 - Renter-beregnes - X(01) - Betinget krav - 'J' Dersom det skal beregnes renter på kravet
-            // TODO jah: Verifiser med fag/juridisk/økonomi at vi ikke skal beregne med renter
             this.renterBeregnes = "N"
 
             // 6 - 441 - Enhet-ansvarlig - X(13) - Krav - Ansvarlig enhet

@@ -104,13 +104,38 @@ class HendelsePostgresRepo(
         }
     }
 
+    /**
+     * Kun ment brukt for hendelser uten sakId (vi sjekker at sakId er null)
+     */
+    fun hentHendelserForType(
+        type: Hendelsestype,
+        sessionContext: SessionContext? = null,
+        limit: Int = 10,
+    ): List<PersistertHendelse> {
+        return dbMetrics.timeQuery("hentHendelserForSakIdOgType") {
+            sessionContext.withOptionalSession(sessionFactory) { session ->
+                """
+                    select * from hendelse
+                    where sakId is null and type = :type
+                    order by versjon
+                    limit $limit
+                """.trimIndent().hentListe(
+                    params = mapOf(
+                        "type" to type.toString(),
+                    ),
+                    session = session,
+                ) { toPersistertHendelse(it) }
+            }
+        }
+    }
+
     fun hentHendelserForSakIdOgType(
         sakId: UUID,
         type: Hendelsestype,
-        sessionContext: SessionContext = sessionFactory.newSessionContext(),
+        sessionContext: SessionContext? = null,
     ): List<PersistertHendelse> {
         return dbMetrics.timeQuery("hentHendelserForSakIdOgType") {
-            sessionContext.withSession { session ->
+            sessionContext.withOptionalSession(sessionFactory) { session ->
                 """
                     select * from hendelse
                     where sakId = :sakId and type = :type

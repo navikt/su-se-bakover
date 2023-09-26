@@ -53,6 +53,7 @@ data class Kravgrunnlag(
         }
 
         data class Grunnlagsbeløp(
+            // TODO jah: kode/type, må vi ta høyde for alle variantene vi kan få her? (vi får bare et begrenset sett) ref. dok.
             val kode: KlasseKode,
             val type: KlasseType,
             val beløpTidligereUtbetaling: BigDecimal,

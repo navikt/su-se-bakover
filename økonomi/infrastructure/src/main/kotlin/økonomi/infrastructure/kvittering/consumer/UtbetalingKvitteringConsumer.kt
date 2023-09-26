@@ -71,7 +71,7 @@ class UtbetalingKvitteringConsumer(
                     )
                         .flatMap { ferdigstillInnvilgelse(it) }
                         .mapLeft {
-                            throw RuntimeException("Kunne ikke oppdatere kvittering eller vedtak ved prossessering av kvittering: $it")
+                            throw RuntimeException("Kunne ikke oppdatere kvittering eller vedtak ved prosessering av kvittering: $it")
                         }
                 }
         }
