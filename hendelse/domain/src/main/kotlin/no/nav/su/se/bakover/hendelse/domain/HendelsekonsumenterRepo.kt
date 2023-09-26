@@ -8,12 +8,12 @@ interface HendelsekonsumenterRepo {
     fun lagre(
         hendelser: List<HendelseId>,
         konsumentId: HendelseskonsumentId,
-        context: SessionContext,
+        context: SessionContext? = null,
     )
     fun lagre(
         hendelseId: HendelseId,
         konsumentId: HendelseskonsumentId,
-        context: SessionContext,
+        context: SessionContext? = null,
     )
 
     /**

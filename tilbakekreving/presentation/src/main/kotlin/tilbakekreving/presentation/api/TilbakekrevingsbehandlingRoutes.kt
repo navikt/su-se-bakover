@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFac
 import no.nav.su.se.bakover.domain.person.PersonRepo
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
+import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import tilbakekreving.application.service.HentÅpentKravgrunnlagService
 import tilbakekreving.application.service.MånedsvurderingerTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.OpprettTilbakekrevingsbehandlingService
@@ -22,6 +23,7 @@ internal const val tilbakekrevingPath = "saker/{sakId}/tilbakekreving"
 fun Route.tilbakekrevingRoutes(
     personRepo: PersonRepo,
     hendelseRepo: HendelseRepo,
+    hendelsekonsumenterRepo: HendelsekonsumenterRepo,
     personService: PersonService,
     sessionFactory: PostgresSessionFactory,
     clock: Clock,
@@ -34,6 +36,7 @@ fun Route.tilbakekrevingRoutes(
         sessionFactory = sessionFactory,
         mapper = TilbakekrevingsmeldingMapper::toKravgrunnlag,
         hendelseRepo = hendelseRepo,
+        hendelsekonsumenterRepo = hendelsekonsumenterRepo,
     )
     val tilbakekrevingsbehHandlingRepo = TilbakekrevingsbehandlingPostgresRepo(
         sessionFactory = sessionFactory,

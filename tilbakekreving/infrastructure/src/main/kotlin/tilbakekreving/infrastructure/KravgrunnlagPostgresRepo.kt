@@ -6,7 +6,10 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFac
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
+import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
+import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
@@ -24,6 +27,7 @@ val KnyttetKravgrunnlagTilSakHendelsestype = Hendelsestype("KNYTTET_KRAVGRUNNLAG
 class KravgrunnlagPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val hendelseRepo: HendelseRepo,
+    private val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
     private val mapper: (råttKravgrunnlag: RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
 ) : KravgrunnlagRepo {
 
@@ -111,19 +115,29 @@ class KravgrunnlagPostgresRepo(
 
     /**
      * Kun tenkt brukt av jobben som knytter kravgrunnlag til sak.
+     * Husk og marker hendelsen som prosessert etter at den er behandlet.
      */
-    override fun hentUprosesserteRåttKravgrunnlagHendelseForSak(
-        sakId: UUID,
+    override fun hentUprosesserteRåttKravgrunnlagHendelser(
+        konsumentId: HendelseskonsumentId,
         sessionContext: SessionContext?,
         limit: Int,
-    ): List<RåttKravgrunnlagHendelse> {
-        return (hendelseRepo as HendelsePostgresRepo).hentHendelserForType(
-            type = MottattKravgrunnlagHendelsestype,
-            sessionContext = sessionContext,
-            limit = limit,
-        ).map {
-            it.toRåttKravgrunnlagHendelse()
-        }
+    ): List<HendelseId> {
+        return hendelsekonsumenterRepo.hentHendelseIderForKonsumentOgType(
+            konsumentId = konsumentId,
+            hendelsestype = MottattKravgrunnlagHendelsestype,
+        )
+    }
+
+    /**
+     * Kun tenkt brukt av jobben som knytter kravgrunnlag til sak.
+     * Husk og marker hendelsen som prosessert etter at den er behandlet.
+     */
+    override fun hentRåttKravgrunnlagHendelseForHendelseId(
+        hendelseId: HendelseId,
+        sessionContext: SessionContext?,
+    ): RåttKravgrunnlagHendelse? {
+        return (hendelseRepo as HendelsePostgresRepo).hentHendelseForHendelseId(hendelseId)
+            ?.toRåttKravgrunnlagHendelse()
     }
 
     override fun lagreKravgrunnlagPåSakHendelse(hendelse: KravgrunnlagPåSakHendelse, sessionContext: SessionContext?) {

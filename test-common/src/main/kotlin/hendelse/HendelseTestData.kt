@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.test.hendelse
 
+import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
@@ -18,11 +19,7 @@ fun sakOpprettetHendelse(
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     opprettetAv: NavIdentBruker = saksbehandler,
     hendelsestidspunkt: Tidspunkt = fixedTidspunkt,
-    meta: HendelseMetadata = HendelseMetadata(
-        correlationId = correlationId(),
-        ident = saksbehandler,
-        brukerroller = listOf(Brukerrolle.Saksbehandler, Brukerrolle.Attestant),
-    ),
+    meta: HendelseMetadata = hendelseMetadata(),
 ) = SakOpprettetHendelse.fraPersistert(
     hendelseId = hendelseId,
     sakId = sakId,
@@ -32,4 +29,14 @@ fun sakOpprettetHendelse(
     meta = meta,
     entitetId = sakId,
     versjon = 1,
+)
+
+fun hendelseMetadata(
+    correlationId: CorrelationId? = correlationId(),
+    ident: NavIdentBruker? = saksbehandler,
+    brukerroller: List<Brukerrolle> = listOf(Brukerrolle.Saksbehandler, Brukerrolle.Attestant),
+) = HendelseMetadata(
+    correlationId = correlationId,
+    ident = ident,
+    brukerroller = brukerroller,
 )

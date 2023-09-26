@@ -242,6 +242,7 @@ data object DatabaseBuilder {
             sessionFactory,
             dbMetrics = dbMetrics,
         )
+        val hendelsekonsumenterRepo = HendelsekonsumenterPostgresRepo(sessionFactory)
         val utenlandsoppholdRepo = UtenlandsoppholdPostgresRepo(
             hendelseRepo = hendelseRepo,
             sessionFactory = sessionFactory,
@@ -252,6 +253,7 @@ data object DatabaseBuilder {
             sessionFactory = sessionFactory,
             hendelseRepo = hendelseRepo,
             mapper = kravgrunnlagMapper,
+            hendelsekonsumenterRepo = hendelsekonsumenterRepo,
         )
         val tilbakekrevingsbehandlingRepo = TilbakekrevingsbehandlingPostgresRepo(
             sessionFactory = sessionFactory,

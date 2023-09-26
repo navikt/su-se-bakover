@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.hendelse.infrastructure.persistence
 
 import arrow.core.Nel
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withOptionalSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
@@ -22,7 +23,7 @@ class HendelsekonsumenterPostgresRepo(
     override fun lagre(
         hendelser: List<HendelseId>,
         konsumentId: HendelseskonsumentId,
-        context: SessionContext,
+        context: SessionContext?,
     ) {
         hendelser.forEach {
             lagre(it, konsumentId, context)
@@ -32,9 +33,9 @@ class HendelsekonsumenterPostgresRepo(
     override fun lagre(
         hendelseId: HendelseId,
         konsumentId: HendelseskonsumentId,
-        context: SessionContext,
+        context: SessionContext?,
     ) {
-        context.withSession {
+        context.withOptionalSession(sessionFactory) {
             """
             INSERT INTO
                 hendelse_konsument
@@ -101,7 +102,7 @@ class HendelsekonsumenterPostgresRepo(
                 AND h.type = :type
             LIMIT :limit
             """.trimIndent()
-                .hentListe(mapOf("type" to hendelsestype, "konsumentId" to konsumentId, "limit" to limit), it) {
+                .hentListe(mapOf("type" to hendelsestype.value, "konsumentId" to konsumentId.value, "limit" to limit), it) {
                     HendelseId.fromUUID(it.uuid("hendelseId"))
                 }
         }
