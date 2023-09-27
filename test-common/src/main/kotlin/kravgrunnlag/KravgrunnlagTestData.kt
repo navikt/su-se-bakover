@@ -110,7 +110,9 @@ fun grunnlagsbeløpYtel(
     beløpSkalIkkeTilbakekreves: BigDecimal = BigDecimal("0.00"),
     skatteProsent: BigDecimal = BigDecimal("50.0000"),
 ): Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp {
-    require(beløpTidligereUtbetaling - beløpNyUtbetaling == beløpSkalTilbakekreves + beløpSkalIkkeTilbakekreves)
+    require(beløpTidligereUtbetaling - beløpNyUtbetaling == beløpSkalTilbakekreves + beløpSkalIkkeTilbakekreves) {
+        "beløpTidligereUtbetaling $beløpTidligereUtbetaling - beløpNyUtbetaling $beløpNyUtbetaling må være lik beløpSkalTilbakekreves $beløpSkalTilbakekreves + beløpSkalIkkeTilbakekreves $beløpSkalIkkeTilbakekreves"
+    }
     require(skatteProsent >= BigDecimal.ZERO && skatteProsent <= BigDecimal("100.0000"))
     return Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp(
         kode = kode,
@@ -126,21 +128,16 @@ fun grunnlagsbeløpYtel(
 fun grunnlagsbeløpFeil(
     kode: KlasseKode = KlasseKode.KL_KODE_FEIL_INNT,
     type: KlasseType = KlasseType.FEIL,
-    beløpTidligereUtbetaling: BigDecimal = BigDecimal("0.00"),
     beløpNyUtbetaling: BigDecimal = BigDecimal("1000"),
-    beløpSkalTilbakekreves: BigDecimal = BigDecimal("0"),
-    beløpSkalIkkeTilbakekreves: BigDecimal = BigDecimal("0"),
-    skatteProsent: BigDecimal = BigDecimal("0"),
 ): Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp {
-    require(beløpTidligereUtbetaling - beløpNyUtbetaling == beløpSkalTilbakekreves + beløpSkalIkkeTilbakekreves)
-    require(skatteProsent >= BigDecimal.ZERO && skatteProsent <= BigDecimal("100.0000"))
+    require(beløpNyUtbetaling >= BigDecimal.ZERO)
     return Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp(
         kode = kode,
         type = type,
-        beløpTidligereUtbetaling = beløpTidligereUtbetaling,
+        beløpTidligereUtbetaling = BigDecimal.ZERO,
         beløpNyUtbetaling = beløpNyUtbetaling,
-        beløpSkalTilbakekreves = beløpSkalTilbakekreves,
-        beløpSkalIkkeTilbakekreves = beløpSkalIkkeTilbakekreves,
-        skatteProsent = skatteProsent,
+        beløpSkalTilbakekreves = BigDecimal.ZERO,
+        beløpSkalIkkeTilbakekreves = BigDecimal.ZERO,
+        skatteProsent = BigDecimal.ZERO,
     )
 }

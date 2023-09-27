@@ -56,7 +56,7 @@ class HendelsePostgresRepo(
             hendelse = hendelse,
             type = type,
             data = data,
-            sakId = null,
+            sakId = (hendelse as? Sakshendelse)?.sakId,
             sessionContext = sessionContext,
         )
     }

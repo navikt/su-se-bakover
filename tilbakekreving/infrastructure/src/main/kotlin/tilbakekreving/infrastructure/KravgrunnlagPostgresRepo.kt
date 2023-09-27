@@ -31,6 +31,9 @@ class KravgrunnlagPostgresRepo(
     private val mapper: (råttKravgrunnlag: RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
 ) : KravgrunnlagRepo {
 
+    /**
+     * TODO jah: Slett denne når vi har flyttet til egen hendelse.
+     */
     override fun hentRåttÅpentKravgrunnlagForSak(sakId: UUID): RåttKravgrunnlag? {
         // TODO jah: mottatt_kravgrunnlag er en delt tilstand, men vil på sikt eies av kravgrunnlag-delen av tilbakekreving.
         // TODO jah: Vi skal flytte fremtidige kravgrunnlag til en egen hendelse.
@@ -54,31 +57,9 @@ class KravgrunnlagPostgresRepo(
         }
     }
 
-//    override fun hentRåttKravgrunnlag(id: String): RåttKravgrunnlag? {
-//        return sessionFactory.withSession { session ->
-//            """
-//                select
-//                    kravgrunnlag
-//                from
-//                    revurdering_tilbakekreving
-//            """.trimIndent().hentListe(
-//                emptyMap(),
-//                session,
-//            ) {
-//                it.stringOrNull("kravgrunnlag")?.let { RåttKravgrunnlag(it) }
-//            }
-//        }.firstOrNull {
-//            if (it == null) {
-//                false
-//            } else {
-//                val kravgrunnlag = mapper(it).getOrElse {
-//                    throw it
-//                }
-//                kravgrunnlag.kravgrunnlagId == id
-//            }
-//        }
-//    }
-
+    /**
+     * TODO jah: Slett denne når vi har flyttet til egen hendelse.
+     */
     override fun hentKravgrunnlagForSak(sakId: UUID): List<Kravgrunnlag> {
         return sessionFactory.withSession { session ->
             """
@@ -140,6 +121,9 @@ class KravgrunnlagPostgresRepo(
             ?.toRåttKravgrunnlagHendelse()
     }
 
+    /**
+     * Denne er kun tenkt brukt av jobben som knytter kravgrunnlag til sak.
+     */
     override fun lagreKravgrunnlagPåSakHendelse(hendelse: KravgrunnlagPåSakHendelse, sessionContext: SessionContext?) {
         (hendelseRepo as HendelsePostgresRepo).persisterHendelse(
             hendelse = hendelse,
@@ -149,6 +133,36 @@ class KravgrunnlagPostgresRepo(
         )
     }
 
+    /**
+     * Kun tenkt brukt av jobben som ferdigstiller revurdering med tilbakekreving inntil tilbakekreving ikke lenger er en del av revurdering.
+     * Husk og marker hendelsen som prosessert etter at den er behandlet.
+     */
+    override fun hentUprosesserteKravgrunnlagKnyttetTilSakHendelser(
+        konsumentId: HendelseskonsumentId,
+        sessionContext: SessionContext?,
+        limit: Int,
+    ): List<HendelseId> {
+        return hendelsekonsumenterRepo.hentHendelseIderForKonsumentOgType(
+            konsumentId = konsumentId,
+            hendelsestype = KnyttetKravgrunnlagTilSakHendelsestype,
+        )
+    }
+
+    /**
+     * Kun tenkt brukt av jobben som knytter kravgrunnlag til sak.
+     * Husk og marker hendelsen som prosessert etter at den er behandlet.
+     */
+    override fun hentKravgrunnlagKnyttetTilSak(
+        hendelseId: HendelseId,
+        sessionContext: SessionContext?,
+    ): KravgrunnlagPåSakHendelse? {
+        return (hendelseRepo as HendelsePostgresRepo).hentHendelseForHendelseId(hendelseId)
+            ?.toKravgrunnlagPåSakHendelse()
+    }
+
+    /**
+     * Denne er kun tenkt brukt av SakRepo (henter kravgrunnlag på sak).
+     */
     override fun hentKravgrunnlagPåSakHendelser(
         sakId: UUID,
         sessionContext: SessionContext?,

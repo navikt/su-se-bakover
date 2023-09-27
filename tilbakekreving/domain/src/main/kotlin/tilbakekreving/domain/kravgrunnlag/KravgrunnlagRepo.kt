@@ -29,7 +29,7 @@ interface KravgrunnlagRepo {
 
     fun hentRåttKravgrunnlagHendelseForHendelseId(
         hendelseId: HendelseId,
-        sessionContext: SessionContext?,
+        sessionContext: SessionContext? = null,
     ): RåttKravgrunnlagHendelse?
 
     fun lagreKravgrunnlagPåSakHendelse(
@@ -37,5 +37,19 @@ interface KravgrunnlagRepo {
         sessionContext: SessionContext? = null,
     )
 
-    fun hentKravgrunnlagPåSakHendelser(sakId: UUID, sessionContext: SessionContext?): List<KravgrunnlagPåSakHendelse>
+    fun hentKravgrunnlagPåSakHendelser(
+        sakId: UUID,
+        sessionContext: SessionContext? = null,
+    ): List<KravgrunnlagPåSakHendelse>
+
+    fun hentUprosesserteKravgrunnlagKnyttetTilSakHendelser(
+        konsumentId: HendelseskonsumentId,
+        sessionContext: SessionContext? = null,
+        limit: Int = 10,
+    ): List<HendelseId>
+
+    fun hentKravgrunnlagKnyttetTilSak(
+        hendelseId: HendelseId,
+        sessionContext: SessionContext? = null,
+    ): KravgrunnlagPåSakHendelse?
 }
