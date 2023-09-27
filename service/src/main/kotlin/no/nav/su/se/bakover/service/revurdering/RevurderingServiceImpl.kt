@@ -464,6 +464,7 @@ class RevurderingServiceImpl(
     override fun beregnOgSimuler(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
+        skalUtsetteTilbakekreving: Boolean,
     ): Either<KunneIkkeBeregneOgSimulereRevurdering, RevurderingOgFeilmeldingerResponse> {
         val sak = sakService.hentSakForRevurdering(revurderingId)
 
@@ -526,6 +527,7 @@ class RevurderingServiceImpl(
                         beregnetRevurdering.simuler(
                             saksbehandler = saksbehandler,
                             clock = clock,
+                            skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
                             simuler = { beregning, uføregrunnlag ->
                                 sak.lagNyUtbetaling(
                                     saksbehandler = saksbehandler,

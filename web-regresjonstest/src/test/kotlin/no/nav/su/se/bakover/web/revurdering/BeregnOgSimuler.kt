@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.revurdering
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
@@ -18,6 +19,7 @@ internal fun beregnOgSimuler(
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
     url: String = "/saker/$sakId/revurderinger/$behandlingId/beregnOgSimuler",
     client: HttpClient,
+    skalUtsetteTilbakekreving: Boolean = false,
 ): String {
     return runBlocking {
         defaultRequest(
@@ -25,7 +27,7 @@ internal fun beregnOgSimuler(
             url,
             listOf(brukerrolle),
             client = client,
-        ).apply {
+        ) { this.setBody("""{"skalUtsetteTilbakekreving":$skalUtsetteTilbakekreving}""") }.apply {
             withClue("body=${this.bodyAsText()}") {
                 status shouldBe HttpStatusCode.Created
             }

@@ -34,7 +34,9 @@ import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers.eq
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -108,6 +110,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 beregnetRevurdering.simuler(
                     saksbehandler = saksbehandler,
                     clock = clock,
+                    skalUtsetteTilbakekreving = false,
                     simuler = { _, _ ->
                         simulerUtbetaling(
                             sak = sak,
@@ -119,15 +122,13 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                     },
                 ).getOrFail()
             }
+
             is BeregnetRevurdering.Opphørt -> throw RuntimeException("Beregningen har 0 kroners utbetalinger")
         }
 
         val revurderingServiceMock = mock<RevurderingService> {
             on {
-                beregnOgSimuler(
-                    any(),
-                    any(),
-                )
+                beregnOgSimuler(any(), any(), anyOrNull())
             } doReturn RevurderingOgFeilmeldingerResponse(simulertRevurdering).right()
         }
 
@@ -140,7 +141,11 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 "/saker/$sakId/revurderinger/${simulertRevurdering.id}/beregnOgSimuler",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody(validBody)
+                setBody(
+                    """
+                    {"skalUtsetteTilbakekreving": false}
+                    """.trimIndent(),
+                )
             }.apply {
                 status shouldBe HttpStatusCode.Created
                 val actualResponse = deserialize<Map<String, Any>>(bodyAsText())
@@ -149,6 +154,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 verify(revurderingServiceMock).beregnOgSimuler(
                     argThat { it shouldBe simulertRevurdering.id },
                     argThat { it shouldBe NavIdentBruker.Saksbehandler("Z990Lokal") },
+                    eq(false),
                 )
                 verifyNoMoreInteractions(revurderingServiceMock)
                 revurdering.id shouldBe simulertRevurdering.id.toString()
@@ -207,7 +213,11 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
     @Test
     fun `simulering feilet`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(SimulerUtbetalingFeilet.FeilVedSimulering(SimuleringFeilet.TekniskFeil)),
+            error = KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(
+                SimulerUtbetalingFeilet.FeilVedSimulering(
+                    SimuleringFeilet.TekniskFeil,
+                ),
+            ),
             expectedStatusCode = HttpStatusCode.InternalServerError,
             expectedJsonResponse = """
                 {
@@ -225,7 +235,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
         expectedJsonResponse: String,
     ) {
         val revurderingServiceMock = mock<RevurderingService> {
-            on { beregnOgSimuler(any(), any()) } doReturn error.left()
+            on { beregnOgSimuler(any(), any(), any()) } doReturn error.left()
         }
 
         testApplication {

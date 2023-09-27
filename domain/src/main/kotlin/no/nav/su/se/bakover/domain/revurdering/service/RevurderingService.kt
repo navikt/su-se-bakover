@@ -71,6 +71,7 @@ interface RevurderingService {
     fun beregnOgSimuler(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
+        skalUtsetteTilbakekreving: Boolean,
     ): Either<KunneIkkeBeregneOgSimulereRevurdering, RevurderingOgFeilmeldingerResponse>
 
     fun lagreOgSendForhåndsvarsel(

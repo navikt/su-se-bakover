@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
+import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
@@ -34,6 +35,10 @@ import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.tilResultat
 
+data class Body(
+    val skalUtsetteTilbakekreving: Boolean = false,
+)
+
 internal fun Route.beregnOgSimulerRevurdering(
     revurderingService: RevurderingService,
     satsFactory: SatsFactory,
@@ -42,15 +47,18 @@ internal fun Route.beregnOgSimulerRevurdering(
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
-                    revurderingService.beregnOgSimuler(
-                        revurderingId = revurderingId,
-                        saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
-                    ).mapLeft {
-                        call.svar(it.tilResultat())
-                    }.map { response ->
-                        call.sikkerlogg("Beregnet og simulert revurdering ${response.revurdering.id} på sak med id $sakId")
-                        call.audit(response.revurdering.fnr, AuditLogEvent.Action.UPDATE, response.revurdering.id)
-                        call.svar(Resultat.json(HttpStatusCode.Created, serialize(response.toJson(satsFactory))))
+                    call.withBody<Body> {
+                        revurderingService.beregnOgSimuler(
+                            revurderingId = revurderingId,
+                            saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                            skalUtsetteTilbakekreving = it.skalUtsetteTilbakekreving,
+                        ).mapLeft {
+                            call.svar(it.tilResultat())
+                        }.map { response ->
+                            call.sikkerlogg("Beregnet og simulert revurdering ${response.revurdering.id} på sak med id $sakId")
+                            call.audit(response.revurdering.fnr, AuditLogEvent.Action.UPDATE, response.revurdering.id)
+                            call.svar(Resultat.json(HttpStatusCode.Created, serialize(response.toJson(satsFactory))))
+                        }
                     }
                 }
             }

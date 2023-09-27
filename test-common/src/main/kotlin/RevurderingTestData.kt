@@ -275,6 +275,7 @@ fun simulertRevurdering(
                 val simulert = beregnet.simuler(
                     saksbehandler = saksbehandler,
                     clock = clock,
+                    skalUtsetteTilbakekreving = false,
                     simuler = { _, _ ->
                         simulerUtbetaling(
                             sak = sak,

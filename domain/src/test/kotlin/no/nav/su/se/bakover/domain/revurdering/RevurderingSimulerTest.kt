@@ -135,6 +135,7 @@ class RevurderingSimulerTest {
                 it.simuler(
                     saksbehandler = saksbehandler,
                     clock = fixedClock,
+                    skalUtsetteTilbakekreving = false,
                     simuler = { _, _ ->
                         simulerUtbetaling(
                             sak = sak,

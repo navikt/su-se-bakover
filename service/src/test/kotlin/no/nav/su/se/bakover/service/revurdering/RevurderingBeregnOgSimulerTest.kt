@@ -91,6 +91,7 @@ internal class RevurderingBeregnOgSimulerTest {
         val response = serviceAndMocks.revurderingService.beregnOgSimuler(
             revurderingId = opprettet.id,
             saksbehandler = saksbehandler,
+            skalUtsetteTilbakekreving = false,
         ).getOrFail()
 
         response.feilmeldinger shouldBe listOf(
@@ -130,6 +131,7 @@ internal class RevurderingBeregnOgSimulerTest {
             val response = it.revurderingService.beregnOgSimuler(
                 revurderingId = revurdering.id,
                 saksbehandler = saksbehandler,
+                skalUtsetteTilbakekreving = false,
             ).getOrFail()
 
             response.revurdering shouldBe beOfType<SimulertRevurdering.Innvilget>()
@@ -171,6 +173,7 @@ internal class RevurderingBeregnOgSimulerTest {
             val response = it.revurderingService.beregnOgSimuler(
                 revurderingId = revurdering.id,
                 saksbehandler = saksbehandler,
+                skalUtsetteTilbakekreving = false,
             ).getOrFail()
 
             response.revurdering shouldBe beOfType<SimulertRevurdering.Opphørt>()
@@ -219,6 +222,7 @@ internal class RevurderingBeregnOgSimulerTest {
         val actual = serviceAndMocks.revurderingService.beregnOgSimuler(
             revurderingId = opprettetRevurdering.id,
             saksbehandler = saksbehandler,
+            skalUtsetteTilbakekreving = false,
         ).getOrFail()
 
         actual.let {
@@ -261,6 +265,7 @@ internal class RevurderingBeregnOgSimulerTest {
             val response = it.revurderingService.beregnOgSimuler(
                 revurderingId = tilAttestring.id,
                 saksbehandler = saksbehandler,
+                skalUtsetteTilbakekreving = false,
             )
             response shouldBe KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand(
                 RevurderingTilAttestering.Innvilget::class,
@@ -296,6 +301,7 @@ internal class RevurderingBeregnOgSimulerTest {
             val response = it.revurderingService.beregnOgSimuler(
                 revurderingId = beregnet.id,
                 saksbehandler = saksbehandler,
+                skalUtsetteTilbakekreving = false,
             )
 
             response shouldBe KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(
@@ -339,6 +345,7 @@ internal class RevurderingBeregnOgSimulerTest {
         val actual = serviceAndMocks.revurderingService.beregnOgSimuler(
             underkjent.id,
             saksbehandler,
+            skalUtsetteTilbakekreving = false,
         ).getOrFail()
 
         actual.let {
@@ -391,6 +398,7 @@ internal class RevurderingBeregnOgSimulerTest {
         val actual = serviceAndMocks.revurderingService.beregnOgSimuler(
             revurderingId = opprettet.id,
             saksbehandler = NavIdentBruker.Saksbehandler("s1"),
+            skalUtsetteTilbakekreving = false,
         ).getOrFail().revurdering
 
         actual shouldBe beOfType<SimulertRevurdering.Opphørt>()
@@ -490,7 +498,8 @@ internal class RevurderingBeregnOgSimulerTest {
         )
 
         val actual =
-            serviceAndMocks.revurderingService.beregnOgSimuler(revurdering2.id, saksbehandler).getOrFail().revurdering
+            serviceAndMocks.revurderingService.beregnOgSimuler(revurdering2.id, saksbehandler, false)
+                .getOrFail().revurdering
 
         (actual as SimulertRevurdering.Innvilget).let { simulert ->
             simulert.grunnlagsdata.fradragsgrunnlag.filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }

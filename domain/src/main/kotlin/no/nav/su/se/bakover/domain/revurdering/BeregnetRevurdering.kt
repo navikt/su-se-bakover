@@ -165,6 +165,7 @@ sealed class BeregnetRevurdering : Revurdering() {
             saksbehandler: NavIdentBruker.Saksbehandler,
             clock: Clock,
             simuler: (beregning: Beregning, uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>?) -> Either<SimulerUtbetalingFeilet, Simulering>,
+            skalUtsetteTilbakekreving: Boolean,
         ): Either<SimulerUtbetalingFeilet, SimulertRevurdering.Innvilget> {
             return simuler(
                 beregning,
@@ -183,7 +184,7 @@ sealed class BeregnetRevurdering : Revurdering() {
             ).mapLeft {
                 it
             }.map {
-                val tilbakekrevingsbehandling = when (it.harFeilutbetalinger()) {
+                val tilbakekrevingsbehandling = when (it.harFeilutbetalinger() && !skalUtsetteTilbakekreving) {
                     true -> {
                         IkkeAvgjort(
                             id = UUID.randomUUID(),

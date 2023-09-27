@@ -724,11 +724,13 @@ open class AccessCheckProxy(
                 override fun beregnOgSimuler(
                     revurderingId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
+                    skalUtsetteTilbakekreving: Boolean,
                 ): Either<KunneIkkeBeregneOgSimulereRevurdering, RevurderingOgFeilmeldingerResponse> {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.beregnOgSimuler(
                         revurderingId = revurderingId,
                         saksbehandler = saksbehandler,
+                        skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
                     )
                 }
 
