@@ -9,7 +9,10 @@ interface KravgrunnlagRepo {
     /**
      * TODO jah: Slett når kravgrunnlaghendelsene er i prod
      */
-    fun hentRåttÅpentKravgrunnlagForSak(sakId: UUID): RåttKravgrunnlag?
+    fun hentRåttÅpentKravgrunnlagForSak(
+        sakId: UUID,
+        sessionContext: SessionContext? = null,
+    ): RåttKravgrunnlag?
 
     /**
      * TODO jah: Slett når kravgrunnlaghendelsene er i prod

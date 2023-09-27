@@ -41,7 +41,7 @@ class KravgrunnlagPostgresRepo(
     ): RåttKravgrunnlag? {
         // TODO jah: mottatt_kravgrunnlag er en delt tilstand, men vil på sikt eies av kravgrunnlag-delen av tilbakekreving.
         // TODO jah: Vi skal flytte fremtidige kravgrunnlag til en egen hendelse.
-        return sessionFactory.withSession { session ->
+        return sessionContext.withOptionalSession(sessionFactory) { session ->
             """
                 select 
                     kravgrunnlag 

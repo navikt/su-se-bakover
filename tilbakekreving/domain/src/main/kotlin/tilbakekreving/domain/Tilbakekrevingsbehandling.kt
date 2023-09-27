@@ -4,6 +4,7 @@ import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.domain.Attesteringshistorikk
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.vurdert.Månedsvurderinger
@@ -15,6 +16,7 @@ import java.util.UUID
  * Vi får deretter en tilstand [VurdertTilbakekrevingsbehandling]
  *
  * @property versjon versjonen til den siste hendelsen knyttet til denne tilbakekrevingsbehandlingen
+ * @property hendelseId hendelses iden til den siste hendelsen knyttet til denne tilbakekrevingsbehandlingen
  */
 sealed interface Tilbakekrevingsbehandling {
     val id: TilbakekrevingsbehandlingId

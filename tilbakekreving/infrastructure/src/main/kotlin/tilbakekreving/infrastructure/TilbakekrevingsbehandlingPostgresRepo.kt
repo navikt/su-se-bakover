@@ -66,7 +66,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
                     .hentHendelserForSakIdOgType(
                         sakId = sakId,
                         type = it,
-                        sessionContext = sessionContext ?: sessionFactory.newSessionContext(),
+                        sessionContext = openSessionContext,
                     ).map {
                         it.toTilbakekrevingsbehandlingHendelse()
                     }

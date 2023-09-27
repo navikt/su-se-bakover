@@ -18,8 +18,8 @@ sealed interface KanVurdere : Tilbakekrevingsbehandling {
         tidligereHendelsesId: HendelseId,
         nesteVersjon: Hendelsesversjon,
         clock: Clock,
-    ): MånedsvurderingerTilbakekrevingsbehandlingHendelse {
-        return MånedsvurderingerTilbakekrevingsbehandlingHendelse(
+    ): Pair<MånedsvurderingerTilbakekrevingsbehandlingHendelse, VurdertTilbakekrevingsbehandling> {
+        val hendelse = MånedsvurderingerTilbakekrevingsbehandlingHendelse(
             hendelseId = HendelseId.generer(),
             sakId = command.sakId,
             hendelsestidspunkt = Tidspunkt.now(clock),
@@ -34,6 +34,7 @@ sealed interface KanVurdere : Tilbakekrevingsbehandling {
             utførtAv = command.utførtAv,
             vurderinger = Månedsvurderinger(command.vurderinger.toNonEmptyList()),
         )
+        return hendelse to this.applyHendelse(hendelse)
     }
 
     fun leggTilBrevtekst(): VurdertTilbakekrevingsbehandling.Utfylt
