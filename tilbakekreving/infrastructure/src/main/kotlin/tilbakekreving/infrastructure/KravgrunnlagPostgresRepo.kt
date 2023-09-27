@@ -2,6 +2,7 @@ package tilbakekreving.infrastructure
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withOptionalSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
@@ -34,7 +35,10 @@ class KravgrunnlagPostgresRepo(
     /**
      * TODO jah: Slett denne når vi har flyttet til egen hendelse.
      */
-    override fun hentRåttÅpentKravgrunnlagForSak(sakId: UUID): RåttKravgrunnlag? {
+    override fun hentRåttÅpentKravgrunnlagForSak(
+        sakId: UUID,
+        sessionContext: SessionContext?,
+    ): RåttKravgrunnlag? {
         // TODO jah: mottatt_kravgrunnlag er en delt tilstand, men vil på sikt eies av kravgrunnlag-delen av tilbakekreving.
         // TODO jah: Vi skal flytte fremtidige kravgrunnlag til en egen hendelse.
         return sessionFactory.withSession { session ->
@@ -60,8 +64,8 @@ class KravgrunnlagPostgresRepo(
     /**
      * TODO jah: Slett denne når vi har flyttet til egen hendelse.
      */
-    override fun hentKravgrunnlagForSak(sakId: UUID): List<Kravgrunnlag> {
-        return sessionFactory.withSession { session ->
+    override fun hentKravgrunnlagForSak(sakId: UUID, sessionContext: SessionContext?): List<Kravgrunnlag> {
+        return sessionContext.withOptionalSession(sessionFactory) { session ->
             """
                 select 
                     kravgrunnlag 

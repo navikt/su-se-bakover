@@ -14,7 +14,10 @@ interface KravgrunnlagRepo {
     /**
      * TODO jah: Slett når kravgrunnlaghendelsene er i prod
      */
-    fun hentKravgrunnlagForSak(sakId: UUID): List<Kravgrunnlag>
+    fun hentKravgrunnlagForSak(
+        sakId: UUID,
+        sessionContext: SessionContext? = null,
+    ): List<Kravgrunnlag>
 
     fun lagreRåttKravgrunnlagHendelse(
         hendelse: RåttKravgrunnlagHendelse,

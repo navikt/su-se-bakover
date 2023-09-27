@@ -21,9 +21,9 @@ import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
 import tilbakekreving.domain.opprett.OpprettTilbakekrevingsbehandlingCommand
-import tilbakekreving.domain.opprett.OpprettetTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import java.time.Clock
 import java.util.UUID
@@ -40,7 +40,7 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
         val kravgrunnlag = nyKravgrunnlag()
 
         val kravgrunnlagRepo = mock<KravgrunnlagRepo> {
-            on { hentRåttÅpentKravgrunnlagForSak(any()) } doReturn nyRåttKravgrunnlag()
+            on { hentRåttÅpentKravgrunnlagForSak(any(), anyOrNull()) } doReturn nyRåttKravgrunnlag()
         }
         val tilgangstyringService = mock<TilbakekrevingsbehandlingTilgangstyringService> {
             on { assertHarTilgangTilSak(any()) } doReturn Unit.right()
@@ -66,8 +66,8 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
             kravgrunnlagMapper = { kravgrunnlag.right() },
         ).shouldBeRight()
 
-        verify(kravgrunnlagRepo).hentRåttÅpentKravgrunnlagForSak(argThat { it shouldBe sakId })
-        verify(mocks.tilbakekrevingsbehandlingRepo).opprett(
+        verify(kravgrunnlagRepo).hentRåttÅpentKravgrunnlagForSak(argThat { it shouldBe sakId }, anyOrNull())
+        verify(mocks.tilbakekrevingsbehandlingRepo).lagre(
             argThat {
                 it shouldBe OpprettetTilbakekrevingsbehandlingHendelse(
                     hendelseId = it.hendelseId, // Denne blir generert av domenet.

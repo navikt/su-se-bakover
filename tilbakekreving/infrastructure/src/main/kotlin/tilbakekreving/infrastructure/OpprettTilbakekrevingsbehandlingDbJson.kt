@@ -7,8 +7,8 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
-import tilbakekreving.domain.opprett.OpprettetTilbakekrevingsbehandlingHendelse
 import java.util.UUID
 
 internal data class OpprettTilbakekrevingsbehandlingHendelseDbJson(

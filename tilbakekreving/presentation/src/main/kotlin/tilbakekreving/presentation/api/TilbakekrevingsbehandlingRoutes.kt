@@ -4,6 +4,7 @@ import io.ktor.server.routing.Route
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.domain.person.PersonRepo
 import no.nav.su.se.bakover.domain.person.PersonService
+import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import tilbakekreving.application.service.HentÅpentKravgrunnlagService
@@ -25,6 +26,7 @@ fun Route.tilbakekrevingRoutes(
     hendelseRepo: HendelseRepo,
     hendelsekonsumenterRepo: HendelsekonsumenterRepo,
     personService: PersonService,
+    sakService: SakService,
     sessionFactory: PostgresSessionFactory,
     clock: Clock,
 ) {
@@ -44,6 +46,7 @@ fun Route.tilbakekrevingRoutes(
         clock = clock,
         kravgrunnlagRepo = kravgrunnlagRepo,
     )
+
     this.hentKravgrunnlagRoute(
         HentÅpentKravgrunnlagService(
             kravgrunnlagRepo = kravgrunnlagRepo,
@@ -63,6 +66,7 @@ fun Route.tilbakekrevingRoutes(
     this.månedsvurderingerTilbakekrevingsbehandlingRoute(
         MånedsvurderingerTilbakekrevingsbehandlingService(
             tilbakekrevingsbehandlingRepo = tilbakekrevingsbehHandlingRepo,
+            sakService = sakService,
             tilgangstyring = tilgangstyringService,
             hendelseRepo = hendelseRepo,
             clock = clock,

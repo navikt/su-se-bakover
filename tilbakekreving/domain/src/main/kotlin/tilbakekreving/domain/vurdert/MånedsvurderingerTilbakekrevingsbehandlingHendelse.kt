@@ -1,4 +1,7 @@
-package tilbakekreving.domain.vurdert
+@file:Suppress("PackageDirectoryMismatch")
+// Må ligge i samme pakke som TilbakekrevingsbehandlingHendelse (siden det er et sealed interface), men trenger ikke ligge i samme mappe.
+
+package tilbakekreving.domain
 
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -6,14 +9,7 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
-import tilbakekreving.domain.AvbruttTilbakekrevingsbehandling
-import tilbakekreving.domain.IverksattTilbakekrevingsbehandling
-import tilbakekreving.domain.OpprettetTilbakekrevingsbehandling
-import tilbakekreving.domain.Tilbakekrevingsbehandling
-import tilbakekreving.domain.TilbakekrevingsbehandlingHendelse
-import tilbakekreving.domain.TilbakekrevingsbehandlingId
-import tilbakekreving.domain.TilbakekrevingsbehandlingTilAttestering
-import tilbakekreving.domain.VurdertTilbakekrevingsbehandling
+import tilbakekreving.domain.vurdert.Månedsvurderinger
 import java.util.UUID
 
 data class MånedsvurderingerTilbakekrevingsbehandlingHendelse(
@@ -23,7 +19,7 @@ data class MånedsvurderingerTilbakekrevingsbehandlingHendelse(
     override val versjon: Hendelsesversjon,
     override val meta: HendelseMetadata,
     override val tidligereHendelseId: HendelseId,
-    val id: TilbakekrevingsbehandlingId,
+    override val id: TilbakekrevingsbehandlingId,
     val utførtAv: NavIdentBruker.Saksbehandler,
     val vurderinger: Månedsvurderinger,
 ) : TilbakekrevingsbehandlingHendelse {

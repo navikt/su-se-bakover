@@ -7,10 +7,11 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
+import tilbakekreving.domain.MånedsvurderingerTilbakekrevingsbehandlingHendelse
+import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelser
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
-import tilbakekreving.domain.opprett.OpprettetTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import java.time.Clock
 import java.util.UUID
@@ -29,15 +30,18 @@ class TilbakekrevingsbehandlingPostgresRepo(
     private val clock: Clock,
     private val kravgrunnlagRepo: KravgrunnlagRepo,
 ) : TilbakekrevingsbehandlingRepo {
-    override fun opprett(
-        hendelse: OpprettetTilbakekrevingsbehandlingHendelse,
+    override fun lagre(
+        hendelse: TilbakekrevingsbehandlingHendelse,
         sessionContext: SessionContext?,
     ) {
         sessionContext.withOptionalSession(sessionFactory) {
             // TODO jah: Kanskje vi bør flytte denne til interfacet?
             (hendelseRepo as HendelsePostgresRepo).persisterSakshendelse(
                 hendelse = hendelse,
-                type = OpprettTilbakekrevingsbehandlingHendelsestype,
+                type = when (hendelse) {
+                    is OpprettetTilbakekrevingsbehandlingHendelse -> OpprettTilbakekrevingsbehandlingHendelsestype
+                    is MånedsvurderingerTilbakekrevingsbehandlingHendelse -> VurderMånederTilbakekrevingsbehandlingHendelsestype
+                },
                 data = hendelse.toJson(),
                 sessionContext = null,
             )
@@ -48,7 +52,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
         sakId: UUID,
         sessionContext: SessionContext?,
     ): TilbakekrevingsbehandlingHendelser {
-        return sessionContext.withOptionalSession(sessionFactory) {
+        return sessionFactory.withSessionContext(sessionContext) { openSessionContext ->
             listOf(
                 OpprettTilbakekrevingsbehandlingHendelsestype,
                 VurderMånederTilbakekrevingsbehandlingHendelsestype,
@@ -71,21 +75,40 @@ class TilbakekrevingsbehandlingPostgresRepo(
                     sakId = sakId,
                     hendelser = it,
                     clock = clock,
-                    kravgrunnlagPåSak = kravgrunnlagRepo.hentKravgrunnlagForSak(sakId),
+                    kravgrunnlagPåSak = kravgrunnlagRepo.hentKravgrunnlagForSak(sakId, openSessionContext),
                 )
             }
         }
     }
 }
 
-private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): TilbakekrevingsbehandlingHendelse = when (this.type) {
-    OpprettTilbakekrevingsbehandlingHendelsestype -> OpprettTilbakekrevingsbehandlingHendelseDbJson.toDomain(
-        data = this.data,
-        hendelseId = this.hendelseId,
-        sakId = this.sakId!!,
-        hendelsestidspunkt = this.hendelsestidspunkt,
-        versjon = this.versjon,
-        meta = this.hendelseMetadata,
-    )
-    else -> throw IllegalStateException("Ukjent tilbakekrevingsbehandlinghendelsestype")
+private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): TilbakekrevingsbehandlingHendelse =
+    when (this.type) {
+        OpprettTilbakekrevingsbehandlingHendelsestype -> OpprettTilbakekrevingsbehandlingHendelseDbJson.toDomain(
+            data = this.data,
+            hendelseId = this.hendelseId,
+            sakId = this.sakId!!,
+            hendelsestidspunkt = this.hendelsestidspunkt,
+            versjon = this.versjon,
+            meta = this.hendelseMetadata,
+        )
+
+        VurderMånederTilbakekrevingsbehandlingHendelsestype -> mapToMånedsvurderingerTilbakekrevingsbehandlingHendelse(
+            data = this.data,
+            hendelseId = this.hendelseId,
+            sakId = this.sakId!!,
+            hendelsestidspunkt = this.hendelsestidspunkt,
+            versjon = this.versjon,
+            meta = this.hendelseMetadata,
+            tidligereHendelsesId = this.tidligereHendelseId!!,
+        )
+
+        else -> throw IllegalStateException("Ukjent tilbakekrevingsbehandlinghendelsestype")
+    }
+
+fun TilbakekrevingsbehandlingHendelse.toJson(): String {
+    return when (this) {
+        is OpprettetTilbakekrevingsbehandlingHendelse -> this.toJson()
+        is MånedsvurderingerTilbakekrevingsbehandlingHendelse -> this.toJson()
+    }
 }

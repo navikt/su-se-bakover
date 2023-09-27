@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withTilbakekrevingId
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.application.service.MånedsvurderingerTilbakekrevingsbehandlingService
+import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.vurdert.KunneIkkeVurdereTilbakekrevingsbehandling
 import tilbakekreving.domain.vurdert.Månedsvurdering
 import tilbakekreving.domain.vurdert.Månedsvurderinger
@@ -82,7 +83,7 @@ private fun Body.toCommand(
         OppdaterMånedsvurderingerCommand(
             vurderinger = Månedsvurderinger(validatedMånedsvurderinger),
             sakId = sakId,
-            behandlingsId = behandlingsId,
+            behandlingsId = TilbakekrevingsbehandlingId(behandlingsId),
             utførtAv = utførtAv,
             correlationId = correlationId,
             brukerroller = validatedBrukerroller,

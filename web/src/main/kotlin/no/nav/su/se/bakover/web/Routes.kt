@@ -137,6 +137,7 @@ internal fun Application.setupKtorRoutes(
                     tilbakekrevingRoutes(
                         personRepo = databaseRepos.person,
                         personService = services.person,
+                        sakService = services.sak,
                         sessionFactory = databaseRepos.sessionFactory as PostgresSessionFactory,
                         clock = clock,
                         hendelseRepo = databaseRepos.hendelseRepo,

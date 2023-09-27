@@ -51,7 +51,7 @@ class OpprettTilbakekrevingsbehandlingService(
             }.getOrElse {
                 throw IllegalStateException("Feil ved mapping av kravgrunnlag på sak $sakId", it)
             }.let {
-                tilbakekrevingsbehandlingRepo.opprett(it.first)
+                tilbakekrevingsbehandlingRepo.lagre(it.first)
                 it.second.right()
             }
         } ?: KunneIkkeOppretteTilbakekrevingsbehandling.IngenÅpneKravgrunnlag.left()

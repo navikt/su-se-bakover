@@ -7,6 +7,7 @@ import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.domain.Attesteringshistorikk
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.vurdert.Månedsvurderinger
@@ -19,6 +20,7 @@ data class OpprettetTilbakekrevingsbehandling(
     override val opprettetAv: NavIdentBruker.Saksbehandler,
     override val kravgrunnlag: Kravgrunnlag,
     override val versjon: Hendelsesversjon,
+    override val hendelseId: HendelseId,
 ) : KanVurdere {
     override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
     override val månedsvurderinger: Månedsvurderinger? = null

@@ -26,4 +26,5 @@ sealed interface Tilbakekrevingsbehandling {
     val brevvalg: Brevvalg.SaksbehandlersValg?
     val attesteringer: Attesteringshistorikk
     val versjon: Hendelsesversjon
+    val hendelseId: HendelseId
 }

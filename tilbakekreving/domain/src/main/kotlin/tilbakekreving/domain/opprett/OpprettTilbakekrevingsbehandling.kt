@@ -3,6 +3,7 @@ package tilbakekreving.domain.opprett
 import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandling
+import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import java.time.Clock
 

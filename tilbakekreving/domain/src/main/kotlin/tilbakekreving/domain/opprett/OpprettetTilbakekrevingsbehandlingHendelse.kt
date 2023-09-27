@@ -6,9 +6,6 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
-import tilbakekreving.domain.OpprettetTilbakekrevingsbehandling
-import tilbakekreving.domain.TilbakekrevingsbehandlingHendelse
-import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import java.time.Clock
 import java.util.UUID
@@ -25,7 +22,7 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
     override val hendelsestidspunkt: Tidspunkt,
     override val versjon: Hendelsesversjon,
     override val meta: HendelseMetadata,
-    val id: TilbakekrevingsbehandlingId,
+    override val id: TilbakekrevingsbehandlingId,
     val opprettetAv: NavIdentBruker.Saksbehandler,
     val kravgrunnlagsId: String,
 ) : TilbakekrevingsbehandlingHendelse {
@@ -71,6 +68,7 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
             opprettetAv = opprettetAv,
             kravgrunnlag = kravgrunnlag,
             versjon = versjon,
+            hendelseId = hendelseId,
         )
     }
 }

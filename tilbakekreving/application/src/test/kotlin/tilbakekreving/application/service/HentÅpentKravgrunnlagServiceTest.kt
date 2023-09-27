@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.test.nyRåttKravgrunnlag
 import no.nav.su.se.bakover.test.sakId
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -19,7 +20,7 @@ class HentÅpentKravgrunnlagServiceTest {
     @Test
     fun `henter aktive kravgrunnlag`() {
         val kravgrunnlagRepo = mock<KravgrunnlagRepo> {
-            on { hentRåttÅpentKravgrunnlagForSak(any()) } doReturn nyRåttKravgrunnlag()
+            on { hentRåttÅpentKravgrunnlagForSak(any(), anyOrNull()) } doReturn nyRåttKravgrunnlag()
         }
 
         val tilgangstyringService = mock<TilbakekrevingsbehandlingTilgangstyringService> {
@@ -32,7 +33,7 @@ class HentÅpentKravgrunnlagServiceTest {
             kravgrunnlagMapper = { nyKravgrunnlag().right() },
         ).shouldBeRight()
 
-        verify(kravgrunnlagRepo).hentRåttÅpentKravgrunnlagForSak(argThat { it shouldBe sakId })
+        verify(kravgrunnlagRepo).hentRåttÅpentKravgrunnlagForSak(argThat { it shouldBe sakId }, anyOrNull())
         mocks.verifyNoMoreInteractions()
     }
 

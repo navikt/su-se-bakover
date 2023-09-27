@@ -21,6 +21,16 @@ data class Tilbakekrevingsbehandlinger(
         }
     }
 
+    fun hent(id: TilbakekrevingsbehandlingId): Tilbakekrevingsbehandling? {
+        val behandling = behandlinger.filter { it.id == id }
+
+        return when {
+            behandling.isEmpty() -> null
+            behandling.size == 1 -> behandling[0]
+            else -> throw IllegalStateException("Mer enn 1 tilbakekrevingsbehandling for unik id: $id")
+        }
+    }
+
     companion object {
         fun empty(sakId: UUID) = Tilbakekrevingsbehandlinger(sakId, listOf())
     }

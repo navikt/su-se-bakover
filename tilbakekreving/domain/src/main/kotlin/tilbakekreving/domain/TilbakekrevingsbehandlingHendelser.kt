@@ -4,9 +4,6 @@ import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import tilbakekreving.domain.opprett.OpprettetTilbakekrevingsbehandlingHendelse
-import tilbakekreving.domain.vurdert.MånedsvurderingerTilbakekrevingsbehandlingHendelse
-import tilbakekreving.domain.vurdert.applyHendelse
 import java.time.Clock
 import java.util.UUID
 
@@ -100,8 +97,6 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                             hendelse,
                         ),
                     ).minus(hendelse.tidligereHendelseId)
-
-                    else -> throw IllegalStateException("Ukjent type: ${hendelse::class.simpleName}")
                 }
             }.values.toList().sortedBy { it.versjon }.let {
                 Tilbakekrevingsbehandlinger(sakId, it)

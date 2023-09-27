@@ -9,14 +9,12 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.vurdert.Månedsvurderinger
-import tilbakekreving.domain.vurdert.MånedsvurderingerTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.vurdert.OppdaterMånedsvurderingerCommand
 import java.time.Clock
 
 sealed interface KanVurdere : Tilbakekrevingsbehandling {
     fun leggTilVurdering(
         command: OppdaterMånedsvurderingerCommand,
-        behandlingsId: TilbakekrevingsbehandlingId,
         tidligereHendelsesId: HendelseId,
         nesteVersjon: Hendelsesversjon,
         clock: Clock,
@@ -32,7 +30,7 @@ sealed interface KanVurdere : Tilbakekrevingsbehandling {
                 ident = command.utførtAv,
                 brukerroller = command.brukerroller,
             ),
-            id = behandlingsId,
+            id = command.behandlingsId,
             utførtAv = command.utførtAv,
             vurderinger = Månedsvurderinger(command.vurderinger.toNonEmptyList()),
         )
