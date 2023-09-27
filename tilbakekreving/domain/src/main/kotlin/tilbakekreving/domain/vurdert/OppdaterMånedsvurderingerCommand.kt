@@ -10,6 +10,7 @@ import java.util.UUID
 data class OppdaterMånedsvurderingerCommand(
     val vurderinger: List<Månedsvurdering>,
     val sakId: UUID,
+    val behandlingsId: UUID,
     val utførtAv: NavIdentBruker.Saksbehandler,
     val correlationId: CorrelationId,
     val brukerroller: Nel<Brukerrolle>,

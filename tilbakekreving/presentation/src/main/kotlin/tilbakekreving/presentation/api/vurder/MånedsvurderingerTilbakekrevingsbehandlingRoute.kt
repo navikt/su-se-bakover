@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
+import no.nav.su.se.bakover.common.infrastructure.web.withTilbakekrevingId
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.application.service.MånedsvurderingerTilbakekrevingsbehandlingService
@@ -46,6 +47,7 @@ private data class Body(
 
 private fun Body.toCommand(
     sakId: UUID,
+    behandlingsId: UUID,
     utførtAv: NavIdentBruker.Saksbehandler,
     correlationId: CorrelationId,
     brukerroller: List<Brukerrolle>,
@@ -80,6 +82,7 @@ private fun Body.toCommand(
         OppdaterMånedsvurderingerCommand(
             vurderinger = Månedsvurderinger(validatedMånedsvurderinger),
             sakId = sakId,
+            behandlingsId = behandlingsId,
             utførtAv = utførtAv,
             correlationId = correlationId,
             brukerroller = validatedBrukerroller,
@@ -91,27 +94,36 @@ private fun Body.toCommand(
 internal fun Route.månedsvurderingerTilbakekrevingsbehandlingRoute(
     månedsvurderingerTilbakekrevingsbehandlingService: MånedsvurderingerTilbakekrevingsbehandlingService,
 ) {
-    post("$tilbakekrevingPath/manedsvurder") {
+    post("$tilbakekrevingPath/{tilbakekrevingsId}/manedsvurder") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withBody<Body> { body ->
                 call.withSakId { sakId ->
-
-                    body.toCommand(
-                        sakId = sakId,
-                        utførtAv = call.suUserContext.saksbehandler,
-                        correlationId = call.correlationId,
-                        brukerroller = call.suUserContext.roller.toNonEmptyList(),
-                    ).fold(
-                        { call.svar(it) },
-                        {
-                            månedsvurderingerTilbakekrevingsbehandlingService.vurder(
-                                command = it,
-                            ).fold(
-                                ifLeft = { call.svar(it.tilResultat()) },
-                                ifRight = { call.svar(Resultat.json(HttpStatusCode.Created, it.toStringifiedJson())) },
-                            )
-                        },
-                    )
+                    call.withTilbakekrevingId { tilbakekrevingId ->
+                        body.toCommand(
+                            sakId = sakId,
+                            behandlingsId = tilbakekrevingId,
+                            utførtAv = call.suUserContext.saksbehandler,
+                            correlationId = call.correlationId,
+                            brukerroller = call.suUserContext.roller.toNonEmptyList(),
+                        ).fold(
+                            { call.svar(it) },
+                            {
+                                månedsvurderingerTilbakekrevingsbehandlingService.vurder(
+                                    command = it,
+                                ).fold(
+                                    ifLeft = { call.svar(it.tilResultat()) },
+                                    ifRight = {
+                                        call.svar(
+                                            Resultat.json(
+                                                HttpStatusCode.Created,
+                                                it.toStringifiedJson(),
+                                            ),
+                                        )
+                                    },
+                                )
+                            },
+                        )
+                    }
                 }
             }
         }

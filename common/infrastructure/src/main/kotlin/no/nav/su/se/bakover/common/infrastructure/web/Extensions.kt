@@ -186,6 +186,13 @@ suspend inline fun ApplicationCall.withReguleringId(ifRight: (UUID) -> Unit) {
     )
 }
 
+suspend inline fun ApplicationCall.withTilbakekrevingId(ifRight: (UUID) -> Unit) {
+    this.lesUUID("tilbakekrevingsId").fold(
+        ifLeft = { this.svar(HttpStatusCode.BadRequest.errorJson(it, "tilbakekrevingId_mangler_eller_feil_format")) },
+        ifRight = { ifRight(it) },
+    )
+}
+
 suspend inline fun ApplicationCall.withDokumentId(ifRight: (UUID) -> Unit) {
     this.lesUUID("dokumentId").fold(
         ifLeft = { this.svar(HttpStatusCode.BadRequest.errorJson(it, "dokumentId_mangler_eller_feil_format")) },
