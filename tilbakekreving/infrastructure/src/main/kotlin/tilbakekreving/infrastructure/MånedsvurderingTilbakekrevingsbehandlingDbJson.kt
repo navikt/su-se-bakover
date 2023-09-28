@@ -2,6 +2,7 @@ package tilbakekreving.infrastructure
 
 import arrow.core.Nel
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -46,7 +47,7 @@ internal fun mapToMånedsvurderingerTilbakekrevingsbehandlingHendelse(
 private data class MånedsvurderingTilbakekrevingsbehandlingDbJson(
     val behandlingsId: UUID,
     val utførtAv: String,
-    val vurderinger: Nel<MånedsvurderingerDbJson>,
+    val vurderinger: List<MånedsvurderingerDbJson>,
 )
 
 internal fun MånedsvurderingerTilbakekrevingsbehandlingHendelse.toJson(): String {
@@ -73,7 +74,7 @@ private data class MånedsvurderingerDbJson(
     )
 
     companion object {
-        fun Nel<MånedsvurderingerDbJson>.toDomain(): Månedsvurderinger = Månedsvurderinger(this.map { it.toDomain() })
+        fun List<MånedsvurderingerDbJson>.toDomain(): Månedsvurderinger = Månedsvurderinger(this.map { it.toDomain() }.toNonEmptyList())
     }
 }
 
