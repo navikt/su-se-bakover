@@ -10,6 +10,17 @@ plugins {
 version = "0.0.1"
 val ktorVersion: String by project
 
+//dependencyResolutionManagement {
+//    versionCatalogs {
+//        create("libs") {
+//            from(files("gradle/libs.versions.toml"))
+//        }
+//    }
+//}
+
+
+
+
 subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "com.diffplug.spotless")
@@ -24,7 +35,6 @@ subprojects {
     val jacksonVersion = "2.15.2"
     val kotlinVersion: String by this
     val confluentVersion = "7.3.1"
-    val slf4jVersion = "2.0.9"
     dependencies {
         implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
         implementation("org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion")
@@ -38,14 +48,13 @@ subprojects {
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
         implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jacksonVersion")
-        implementation("org.slf4j:slf4j-api:$slf4jVersion")
-        implementation("org.slf4j:jul-to-slf4j:$slf4jVersion")
-        implementation("org.slf4j:jcl-over-slf4j:$slf4jVersion")
-        implementation("org.slf4j:log4j-over-slf4j:$slf4jVersion")
+        implementation(rootProject.libs.slf4j.api)
+        implementation(rootProject.libs.jul.to.slf4j)
+        implementation(rootProject.libs.jcl.over.slf4j)
+        implementation(rootProject.libs.log4j.over.slf4j)
         implementation("ch.qos.logback:logback-classic:1.4.11")
         implementation("net.logstash.logback:logstash-logback-encoder:7.4")
         implementation("com.papertrailapp", "logback-syslog4j", "1.0.0")
-
         implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
         implementation("com.networknt:json-schema-validator:1.0.87")
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.3.3.1")
