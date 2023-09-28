@@ -17,6 +17,8 @@ data class TilbakekrevingsbehandlingJson(
     val opprettetAv: String,
     val kravgrunnlag: KravgrunnlagJson,
     val status: TilbakekrevingsbehandlingStatus,
+    val månedsvurderinger: List<MånedsvurderingJson>,
+    val fritekst: String?,
 ) {
 
     companion object {
@@ -37,6 +39,13 @@ data class TilbakekrevingsbehandlingJson(
                 is IverksattTilbakekrevingsbehandling -> TilbakekrevingsbehandlingStatus.IVERKSATT
                 else -> throw IllegalStateException("tilbakekreving $id har ikke en mappet tilstand til frontend")
             },
+            månedsvurderinger = this.månedsvurderinger?.vurderinger?.map {
+                MånedsvurderingJson(
+                    it.måned.toString(),
+                    it.vurdering.toString(),
+                )
+            } ?: emptyList(),
+            fritekst = this.brevvalg?.fritekst,
         )
     }
 }
