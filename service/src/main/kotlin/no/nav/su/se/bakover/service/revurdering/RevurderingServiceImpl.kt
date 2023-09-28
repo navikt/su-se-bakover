@@ -559,6 +559,7 @@ class RevurderingServiceImpl(
                         beregnetRevurdering.simuler(
                             saksbehandler = saksbehandler,
                             clock = clock,
+                            skalUtsetteTilbakekreving = skalUtsetteTilbakekreving,
                             simuler = { opphørsperiode: Periode, behandler: NavIdentBruker.Saksbehandler ->
                                 sak.lagUtbetalingForOpphør(
                                     opphørsperiode = opphørsperiode,

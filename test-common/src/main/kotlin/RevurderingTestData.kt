@@ -295,6 +295,7 @@ fun simulertRevurdering(
                 val simulert = beregnet.simuler(
                     saksbehandler = saksbehandler,
                     clock = clock,
+                    skalUtsetteTilbakekreving = false,
                     simuler = { periode, saksbehandler ->
                         simulerOpphør(
                             sak = sak,

@@ -257,17 +257,17 @@ data class Sak(
     fun hentKlage(klageId: UUID): Klage? = klager.find { it.id == klageId }
 
     fun kanUtbetalingerStansesEllerGjenopptas(clock: Clock): KanStansesEllerGjenopptas {
-        return utbetalingstidslinje()?.let {
-            if (it.isNotEmpty() && ingenKommendeOpphørEllerHull(it, clock)) {
-                if (it.last() is UtbetalingslinjePåTidslinje.Stans) {
-                    KanStansesEllerGjenopptas.GJENOPPTA
-                } else {
-                    KanStansesEllerGjenopptas.STANS
-                }
-            } else {
-                KanStansesEllerGjenopptas.INGEN
-            }
-        } ?: KanStansesEllerGjenopptas.INGEN
+        val tidslinje = utbetalingstidslinje()
+        if (tidslinje.isNullOrEmpty()) return KanStansesEllerGjenopptas.INGEN
+        if (!ingenKommendeOpphørEllerHull(tidslinje, clock)) return KanStansesEllerGjenopptas.INGEN
+        val last = tidslinje.last()
+        if (last is UtbetalingslinjePåTidslinje.Stans) {
+            return KanStansesEllerGjenopptas.GJENOPPTA
+        }
+        if (last is UtbetalingslinjePåTidslinje.Ny || last is UtbetalingslinjePåTidslinje.Reaktivering) {
+            return KanStansesEllerGjenopptas.STANS
+        }
+        return KanStansesEllerGjenopptas.INGEN
     }
 
     /**

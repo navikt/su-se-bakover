@@ -63,6 +63,7 @@ class RevurderingSimulerTest {
                     beregnet.simuler(
                         saksbehandler = saksbehandler,
                         clock = clock,
+                        skalUtsetteTilbakekreving = false,
                         simuler = { _, _ ->
                             simulerOpphør(
                                 sak = sak,

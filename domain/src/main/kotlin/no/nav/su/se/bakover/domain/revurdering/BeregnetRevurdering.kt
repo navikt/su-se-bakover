@@ -251,6 +251,7 @@ sealed class BeregnetRevurdering : Revurdering() {
             saksbehandler: NavIdentBruker.Saksbehandler,
             clock: Clock,
             simuler: (opphørsperiode: Periode, saksbehandler: NavIdentBruker.Saksbehandler) -> Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling>,
+            skalUtsetteTilbakekreving: Boolean,
         ): Either<SimulerUtbetalingFeilet, SimulertRevurdering.Opphørt> {
             val (simulertUtbetaling, håndtertAvkorting, tilbakekrevingsbehandling) = simuler(periode, saksbehandler)
                 .getOrElse { return it.left() }
@@ -272,7 +273,7 @@ sealed class BeregnetRevurdering : Revurdering() {
                                         throw IllegalStateException("Skal ikke kunne skje")
                                     }
                                 },
-                                when (simulering.simulering.harFeilutbetalinger()) {
+                                when (simulering.simulering.harFeilutbetalinger() && !skalUtsetteTilbakekreving) {
                                     true -> IkkeAvgjort(
                                         id = UUID.randomUUID(),
                                         opprettet = Tidspunkt.now(clock),
