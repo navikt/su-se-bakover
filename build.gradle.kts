@@ -126,58 +126,14 @@ subprojects {
         }
 
         constraints {
-            implementation("io.netty:netty-codec") {
-                because("introduced by io.ktor:ktor-server-netty@2.2.1 -> https://security.snyk.io/vuln/SNYK-JAVA-IONETTY-3167773")
-                version {
-                    require("4.1.86.Final")
-                }
-            }
-            implementation("org.eclipse.jetty:jetty-http") {
-                because("introduced by no.nav:kafka-embedded-env@3.1.6 - https://security.snyk.io/vuln/SNYK-JAVA-ORGECLIPSEJETTY-2945452")
-                version {
-                    require("9.4.50.v20221201")
-                }
-            }
-            implementation("org.eclipse.jetty:jetty-client") {
-                because("introduced by no.nav:kafka-embedded-env@3.1.6 -> https://security.snyk.io/vuln/SNYK-JAVA-ORGECLIPSEJETTY-2945453")
-                version {
-                    require("9.4.50.v20221201")
-                }
-            }
-            implementation("org.eclipse.jetty.http2:http2-server") {
-                because("introduced by no.nav:kafka-embedded-env@3.1.6 -> https://security.snyk.io/vuln/SNYK-JAVA-ORGECLIPSEJETTYHTTP2-2945451")
-                version {
-                    require("9.4.50.v20221201")
-                }
-            }
-            implementation("org.glassfish:jakarta.el") {
-                because("introduced by no.nav:kafka-embedded-env@3.1.6 -> https://security.snyk.io/vuln/SNYK-JAVA-ORGGLASSFISH-1297098")
-                version {
-                    require("3.0.4")
-                }
-            }
-            implementation("org.scala-lang:scala-library") {
-                because("introduced by no.nav:kafka-embedded-env@3.1.6 -> https://security.snyk.io/vuln/SNYK-JAVA-ORGGLASSFISH-1297098")
-                version {
-                    require("2.13.9")
-                }
-            }
-
-            implementation("commons-collections:commons-collections") {
-                because("introduced by org.apache.cxf:cxf-rt-ws-security@3.5.5  -> https://security.snyk.io/vuln/SNYK-JAVA-COMMONSCOLLECTIONS-30078 and https://security.snyk.io/vuln/SNYK-JAVA-COMMONSCOLLECTIONS-472711")
-                version {
-                    require("3.2.2")
-                }
-            }
-
-            implementation("org.xerial.snappy:snappy-java ") {
+            implementation("org.xerial.snappy:snappy-java") {
                 because("https://github.com/navikt/su-se-bakover/security/dependabot/12 https://github.com/advisories/GHSA-55g7-9cwv-5qfv")
                 version {
                     require("1.1.10.4")
                 }
             }
             implementation("org.eclipse.jgit:org.eclipse.jgit") {
-                because("https://github.com/navikt/su-se-bakover/security/dependabot/11 https://github.com/advisories/GHSA-3p86-9955-h393")
+                because("Affected <= 6.6.0.202305301015-r https://github.com/navikt/su-se-bakover/security/dependabot/11 https://github.com/advisories/GHSA-3p86-9955-h393")
                 version {
                     require("6.7.0.202309050840-r")
                 }
@@ -185,7 +141,7 @@ subprojects {
             implementation("org.apache.commons:commons-compress") {
                 because("https://github.com/navikt/su-se-bakover/security/dependabot/10 https://github.com/advisories/GHSA-cgwf-w82q-5jrr")
                 version{
-                    require("")
+                    require("1.24.0")
                 }
             }
             implementation("org.bouncycastle:bcprov-jdk15on") {
@@ -198,13 +154,13 @@ subprojects {
             implementation("com.squareup.okio:okio") {
                 because("https://github.com/navikt/su-se-bakover/security/dependabot/6 https://github.com/advisories/GHSA-w33c-445m-f8w7")
                 version{
-                    require("3.4.0")
+                    require("3.5.0")
                 }
             }
             implementation("io.netty:netty-handler") {
                 because("https://github.com/navikt/su-se-bakover/security/dependabot/3 https://github.com/advisories/GHSA-6mjq-h674-j845")
                 version{
-                    require("4.1.94.Final")
+                    require("4.1.98.Final")
                 }
             }
             implementation("com.google.guava:guava") {
