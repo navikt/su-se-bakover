@@ -96,7 +96,8 @@ internal fun JournalpostStatus.toDomain(): no.nav.su.se.bakover.domain.journalpo
 }
 
 internal enum class JournalpostType {
-    I, // Innkommende dokument
+    // Innkommende dokument
+    I,
 }
 
 internal fun JournalpostType.toDomain(): no.nav.su.se.bakover.domain.journalpost.JournalpostType {

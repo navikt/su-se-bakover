@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrela
 import no.nav.su.se.bakover.common.person.Fnr
 import org.slf4j.LoggerFactory
 
-internal const val personPath = "/rest/v1/person"
+internal const val PERSON_PATH = "/rest/v1/person"
 
 /**
  * @see https://digdir-krr-proxy.intern.dev.nav.no/swagger-ui/index.html#/
@@ -24,7 +24,7 @@ class KontaktOgReservasjonsregisterClient(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun hentKontaktinformasjon(fnr: Fnr): Either<KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon, Kontaktinformasjon> {
-        val (_, response, result) = "${config.url}$personPath".httpGet()
+        val (_, response, result) = "${config.url}$PERSON_PATH".httpGet()
             .authentication().bearer(azure.getSystemToken(config.appId))
             .header("Accept", "application/json")
             .header("Nav-Call-Id", getOrCreateCorrelationIdFromThreadLocal())

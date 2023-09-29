@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.web.routes.søknad.søknadPath
+import no.nav.su.se.bakover.web.routes.søknad.SØKNAD_PATH
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettAvslåttSøknadsbehandling
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
@@ -30,7 +30,7 @@ internal fun Route.testDataRoutes() {
     data class NySøknadBody(
         val fnr: String?,
     )
-    post("$søknadPath/dev/ny/uføre") {
+    post("$SØKNAD_PATH/dev/ny/uføre") {
         call.withBody<NySøknadBody> {
             val res = nyDigitalSøknad(
                 fnr = it.fnr ?: Fnr.generer().toString(),

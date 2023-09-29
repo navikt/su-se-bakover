@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.test.avsluttetKlage
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -30,7 +30,7 @@ import java.util.UUID
 internal class AvsluttKlageTest {
     private val sakId = UUID.randomUUID()
     private val klageId = UUID.randomUUID()
-    private val uri = "$sakPath/$sakId/klager/$klageId/avslutt"
+    private val uri = "$SAK_PATH/$sakId/klager/$klageId/avslutt"
 
     @Test
     fun `ingen tilgang gir unauthorized`() {
@@ -75,7 +75,7 @@ internal class AvsluttKlageTest {
     @Test
     fun `Sak id må være en uuid`() {
         verifiserFeilkode(
-            path = klagePath,
+            path = KLAGE_PATH,
             feilkode = null,
             status = HttpStatusCode.BadRequest,
             body = "{\"message\":\"sakId er ikke en gyldig UUID\",\"code\":\"sakId_mangler_eller_feil_format\"}",

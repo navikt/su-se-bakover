@@ -43,7 +43,7 @@ internal fun Route.beregnOgSimulerRevurdering(
     revurderingService: RevurderingService,
     satsFactory: SatsFactory,
 ) {
-    post("$revurderingPath/{revurderingId}/beregnOgSimuler") {
+    post("$REVURDERING_PATH/{revurderingId}/beregnOgSimuler") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->

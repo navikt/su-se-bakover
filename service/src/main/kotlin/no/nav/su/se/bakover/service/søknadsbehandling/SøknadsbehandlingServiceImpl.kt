@@ -425,7 +425,8 @@ class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
             søknadsbehandlingId = request.behandlingId,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
-            ugyldigTilstandError = { _, _ -> null }, // TODO jah: Mangler Left.
+            // TODO jah: Mangler Left.
+            ugyldigTilstandError = { _, _ -> null },
             fantIkkeBehandlingError = { KunneIkkeLeggetilLovligOppholdVilkårForSøknadsbehandling.FantIkkeBehandling },
         ).getOrElse { return it.left() }
 
@@ -563,7 +564,8 @@ class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
             søknadsbehandlingId = request.behandlingId,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
-            ugyldigTilstandError = { _, _ -> null }, // TODO jah: Mangler Left.
+            // TODO jah: Mangler Left.
+            ugyldigTilstandError = { _, _ -> null },
             fantIkkeBehandlingError = { KunneIkkeLeggeTilOpplysningsplikt.FantIkkeBehandling },
         ).getOrElse { return it.left() }
 
@@ -585,7 +587,8 @@ class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
             søknadsbehandlingId = request.behandlingId,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
-            ugyldigTilstandError = { _, _ -> null }, // TODO jah: Mangler Left.
+            // TODO jah: Mangler Left.
+            ugyldigTilstandError = { _, _ -> null },
             fantIkkeBehandlingError = { KunneIkkeLeggeTilPensjonsVilkår.FantIkkeBehandling },
         ).getOrElse { return it.left() }
 
@@ -604,7 +607,8 @@ class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
             søknadsbehandlingId = request.behandlingId,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
-            ugyldigTilstandError = { _, _ -> null }, // TODO jah: Mangler Left.
+            // TODO jah: Mangler Left.
+            ugyldigTilstandError = { _, _ -> null },
             fantIkkeBehandlingError = { KunneIkkeLeggeTilFlyktningVilkår.FantIkkeBehandling },
         ).getOrElse { return it.left() }
 
@@ -623,7 +627,8 @@ class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
             søknadsbehandlingId = request.behandlingId,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
-            ugyldigTilstandError = { _, _ -> null }, // TODO jah: Mangler Left.
+            // TODO jah: Mangler Left.
+            ugyldigTilstandError = { _, _ -> null },
             fantIkkeBehandlingError = { KunneIkkeLeggeFastOppholdINorgeVilkår.FantIkkeBehandling },
         ).getOrElse { return it.left() }
 
@@ -641,7 +646,8 @@ class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
             søknadsbehandlingId = request.behandlingId,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
-            ugyldigTilstandError = { _, _ -> null }, // TODO jah: Mangler Left.
+            // TODO jah: Mangler Left.
+            ugyldigTilstandError = { _, _ -> null },
             fantIkkeBehandlingError = { KunneIkkeLeggeTilPersonligOppmøteVilkårForSøknadsbehandling.FantIkkeBehandling },
         ).getOrElse { return it.left() }
 
@@ -664,7 +670,8 @@ class SøknadsbehandlingServiceImpl(
                     til,
                 )
             },
-            fantIkkeBehandlingError = { null }, // TODO jah: Mangler Left.
+            // TODO jah: Mangler Left.
+            fantIkkeBehandlingError = { null },
         ).getOrElse { return it.left() }
 
         return søknadsbehandling.leggTilFormuegrunnlag(
@@ -682,7 +689,8 @@ class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = hentKanOppdaterePeriodeGrunnlagVilkår(
             søknadsbehandlingId = request.behandlingId,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
-            ugyldigTilstandError = { _, _ -> null }, // TODO jah: Mangler Left.
+            // TODO jah: Mangler Left.
+            ugyldigTilstandError = { _, _ -> null },
             fantIkkeBehandlingError = { KunneIkkeLeggeTilInstitusjonsoppholdVilkår.FantIkkeBehandling },
         ).getOrElse { return it.left() }
 

@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.common.infrastructure.config
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.infrastructure.brukerrolle.AzureGroups
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
-import no.nav.su.se.bakover.common.suSeBakoverConsumerId
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.Test
@@ -118,7 +118,7 @@ class ApplicationConfigTest {
             skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(
                 apiBaseUrl = "skatteetatenUrl",
                 clientId = "skattClientId",
-                consumerId = suSeBakoverConsumerId,
+                consumerId = SU_SE_BAKOVER_CONSUMER_ID,
             ),
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(

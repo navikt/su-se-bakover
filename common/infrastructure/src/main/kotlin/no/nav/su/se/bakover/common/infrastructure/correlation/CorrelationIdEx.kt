@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.CorrelationId
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 
-const val CorrelationIdHeader = "X-Correlation-ID"
+const val CORRELATION_ID_HEADER = "X-Correlation-ID"
 
 private val log = LoggerFactory.getLogger("CorrelationIdEx.kt")
 
@@ -23,11 +23,11 @@ fun withCorrelationId(body: (CorrelationId) -> Unit) {
     }
 }
 
-/** Henter [CorrelationIdHeader] fra MDC dersom den finnes eller genererer en ny og legger den på MDC. */
+/** Henter [CORRELATION_ID_HEADER] fra MDC dersom den finnes eller genererer en ny og legger den på MDC. */
 fun getOrCreateCorrelationIdFromThreadLocal(): CorrelationId {
     return getCorrelationIdFromThreadLocal() ?: (
         CorrelationId.generate().also {
-            MDC.put(CorrelationIdHeader, it.toString())
+            MDC.put(CORRELATION_ID_HEADER, it.toString())
         }
         )
 }
@@ -35,21 +35,21 @@ fun getOrCreateCorrelationIdFromThreadLocal(): CorrelationId {
 suspend fun withCorrelationIdSuspend(body: suspend (CorrelationId) -> Unit) {
     val correlationId = CorrelationId.generate()
     try {
-        MDC.put(CorrelationIdHeader, correlationId.toString())
+        MDC.put(CORRELATION_ID_HEADER, correlationId.toString())
         body(correlationId)
     } finally {
         Either.catch {
-            MDC.remove(CorrelationIdHeader)
+            MDC.remove(CORRELATION_ID_HEADER)
         }.onLeft {
-            log.error("En ukjent feil skjedde når vi prøvde fjerne $CorrelationIdHeader fra MDC.", it)
+            log.error("En ukjent feil skjedde når vi prøvde fjerne $CORRELATION_ID_HEADER fra MDC.", it)
         }
     }
 }
 
 private fun getCorrelationIdFromThreadLocal(): CorrelationId? {
-    return MDC.get(CorrelationIdHeader)?.let { CorrelationId(it) } ?: null.also {
+    return MDC.get(CORRELATION_ID_HEADER)?.let { CorrelationId(it) } ?: null.also {
         log.error(
-            "Mangler '$CorrelationIdHeader' på MDC. Er dette et asynk-kall? Da må det settes manuelt, så tidlig som mulig.",
+            "Mangler '$CORRELATION_ID_HEADER' på MDC. Er dette et asynk-kall? Da må det settes manuelt, så tidlig som mulig.",
             RuntimeException("Genererer en stacktrace for enklere debugging."),
         )
     }

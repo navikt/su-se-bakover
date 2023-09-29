@@ -50,8 +50,10 @@ internal class KlageinstanshendelseConsumerKafkaTest {
             topicName = TOPIC,
             pollTimeoutDuration = Duration.ofMillis(500),
             clock = fixedClock,
-            log = NOPLogger.NOP_LOGGER, // Don't spam logs running tests
-            sikkerLogg = NOPLogger.NOP_LOGGER, // Don't spam logs running tests
+            // Don't spam logs running tests
+            log = NOPLogger.NOP_LOGGER,
+            // Don't spam logs running tests
+            sikkerLogg = NOPLogger.NOP_LOGGER,
         )
         val hendelser = argumentCaptor<UprosessertKlageinstanshendelse>()
         kafkaConsumer.lastComittedOffsetShouldBe(3)
@@ -123,8 +125,10 @@ internal class KlageinstanshendelseConsumerKafkaTest {
             topicName = TOPIC,
             pollTimeoutDuration = Duration.ofMillis(1000),
             clock = fixedClock,
-            log = NOPLogger.NOP_LOGGER, // Don't spam logs running tests
-            sikkerLogg = NOPLogger.NOP_LOGGER, // Don't spam logs running tests
+            // Don't spam logs running tests
+            log = NOPLogger.NOP_LOGGER,
+            // Don't spam logs running tests
+            sikkerLogg = NOPLogger.NOP_LOGGER,
         )
         // Venter først akkurat til vi har fått et kall til klageinstanshendelseService (som forventet)
         verify(klageinstanshendelseService, timeout(1000)).lagre(any())

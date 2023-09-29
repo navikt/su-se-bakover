@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vilkår.oppmøte.LeggTilPersonligOppmøteVilkårRequest
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.json
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.søknadsbehandlingPath
 import no.nav.su.se.bakover.web.routes.vilkår.LeggTilVurderingsperiodePersonligOppmøteJson
 import no.nav.su.se.bakover.web.routes.vilkår.tilResultat
 import no.nav.su.se.bakover.web.routes.vilkår.toDomain
@@ -28,7 +28,7 @@ internal fun Route.personligOppmøteVilkårRoutes(
     satsFactory: SatsFactory,
     clock: Clock,
 ) {
-    post("$søknadsbehandlingPath/{behandlingId}/personligoppmøte") {
+    post("$SØKNADSBEHANDLING_PATH/{behandlingId}/personligoppmøte") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId {
                 call.withBody<List<LeggTilVurderingsperiodePersonligOppmøteJson>> { body ->

@@ -18,7 +18,9 @@ enum class Avslagsgrunn {
     INNLAGT_PÅ_INSTITUSJON,
     MANGLENDE_DOKUMENTASJON,
     SØKNAD_MANGLER_DOKUMENTASJON,
-    PENSJON, // TODO: Fjern denne fra listen, og rydd opp i basen i dev
+
+    // TODO: Fjern denne fra listen, og rydd opp i basen i dev
+    PENSJON,
     MANGLER_VEDTAK_ALDERSPENSJON_FOLKETRYGDEN,
     MANGLER_VEDTAK_ANDRE_NORSKE_PENSJONSORDNINGER,
     MANGLER_VEDTAK_UTENLANDSKE_PENSJONSORDNINGER,

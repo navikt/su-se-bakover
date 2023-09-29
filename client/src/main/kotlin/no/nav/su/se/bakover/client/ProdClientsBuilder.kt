@@ -26,9 +26,9 @@ import no.nav.su.se.bakover.client.person.PersonClientConfig
 import no.nav.su.se.bakover.client.skatteetaten.SkatteClient
 import no.nav.su.se.bakover.client.skjerming.SkjermingClient
 import no.nav.su.se.bakover.client.sts.StsClient
+import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
-import no.nav.su.se.bakover.common.suSeBakoverConsumerId
 import no.nav.su.se.bakover.domain.metrics.ClientMetrics
 import java.time.Clock
 
@@ -48,7 +48,7 @@ data class ProdClientsBuilder(
         )
         val kodeverk = KodeverkHttpClient(
             baseUrl = clientsConfig.kodeverkUrl,
-            consumerId = suSeBakoverConsumerId,
+            consumerId = SU_SE_BAKOVER_CONSUMER_ID,
         )
         val serviceUser = applicationConfig.serviceUser
         val tokenOppslag = StsClient(

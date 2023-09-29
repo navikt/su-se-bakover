@@ -36,7 +36,7 @@ import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.web.routes.grunnlag.FormuegrunnlagJson
 import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
 import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.søknadsbehandlingPath
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.FormueBody.Companion.toServiceRequest
 import java.time.Clock
@@ -105,7 +105,7 @@ internal fun Route.leggTilFormueForSøknadsbehandlingRoute(
     satsFactory: SatsFactory,
     clock: Clock,
 ) {
-    post("$søknadsbehandlingPath/{behandlingId}/formuegrunnlag") {
+    post("$SØKNADSBEHANDLING_PATH/{behandlingId}/formuegrunnlag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->

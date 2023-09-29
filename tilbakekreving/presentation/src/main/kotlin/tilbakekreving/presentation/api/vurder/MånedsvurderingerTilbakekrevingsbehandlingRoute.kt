@@ -30,10 +30,10 @@ import tilbakekreving.domain.vurdert.Månedsvurdering
 import tilbakekreving.domain.vurdert.Månedsvurderinger
 import tilbakekreving.domain.vurdert.OppdaterMånedsvurderingerCommand
 import tilbakekreving.domain.vurdert.Vurdering
+import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
 import tilbakekreving.presentation.api.common.manglerBrukkerroller
-import tilbakekreving.presentation.api.tilbakekrevingPath
 import java.time.YearMonth
 import java.util.UUID
 
@@ -93,7 +93,7 @@ private fun Body.toCommand(
 internal fun Route.månedsvurderingerTilbakekrevingsbehandlingRoute(
     månedsvurderingerTilbakekrevingsbehandlingService: MånedsvurderingerTilbakekrevingsbehandlingService,
 ) {
-    post("$tilbakekrevingPath/{tilbakekrevingsId}/manedsvurder") {
+    post("$TILBAKEKREVING_PATH/{tilbakekrevingsId}/manedsvurder") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withBody<Body> { body ->
                 call.withSakId { sakId ->

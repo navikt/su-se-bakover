@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -41,7 +41,7 @@ internal class OversendKlageTest {
 
     private val sakId: UUID = UUID.randomUUID()
     private val klageId: UUID = UUID.randomUUID()
-    private val uri = "$sakPath/$sakId/klager/$klageId/oversend"
+    private val uri = "$SAK_PATH/$sakId/klager/$klageId/oversend"
 
     @Test
     fun `ingen tilgang gir unauthorized`() {

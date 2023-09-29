@@ -20,29 +20,29 @@ import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.HentDokumenterForIdType
 import java.util.UUID
 
-private const val idParameter = "id"
-private const val idTypeParameter = "idType"
+private const val ID_PARAMETER = "id"
+private const val ID_TYPE_PARAMETER = "idType"
 
 internal fun Route.dokumentRoutes(
     brevService: BrevService,
 ) {
     get("/dokumenter") {
         authorize(Brukerrolle.Saksbehandler) {
-            val id = call.parameter(idParameter)
+            val id = call.parameter(ID_PARAMETER)
                 .getOrElse {
                     return@authorize call.svar(
                         HttpStatusCode.BadRequest.errorJson(
-                            "Parameter '$idParameter' mangler",
-                            "mangler_$idParameter",
+                            "Parameter '$ID_PARAMETER' mangler",
+                            "mangler_$ID_PARAMETER",
                         ),
                     )
                 }
-            val type = call.parameter(idTypeParameter)
+            val type = call.parameter(ID_TYPE_PARAMETER)
                 .getOrElse {
                     return@authorize call.svar(
                         HttpStatusCode.BadRequest.errorJson(
-                            "Parameter '$idTypeParameter' mangler",
-                            "mangler_$idTypeParameter",
+                            "Parameter '$ID_TYPE_PARAMETER' mangler",
+                            "mangler_$ID_TYPE_PARAMETER",
                         ),
                     )
                 }
@@ -53,8 +53,8 @@ internal fun Route.dokumentRoutes(
                         HentDokumentParameters.Companion.UgyldigParameter.UgyldigType -> {
                             call.svar(
                                 HttpStatusCode.BadRequest.errorJson(
-                                    "Ugyldig parameter '$idTypeParameter'",
-                                    "ugyldig_parameter_$idTypeParameter",
+                                    "Ugyldig parameter '$ID_TYPE_PARAMETER'",
+                                    "ugyldig_parameter_$ID_TYPE_PARAMETER",
                                 ),
                             )
                         }
@@ -62,8 +62,8 @@ internal fun Route.dokumentRoutes(
                         HentDokumentParameters.Companion.UgyldigParameter.UgyldigUUID -> {
                             call.svar(
                                 HttpStatusCode.BadRequest.errorJson(
-                                    "Ugyldig parameter '$idParameter'",
-                                    "ugyldig_parameter_$idParameter",
+                                    "Ugyldig parameter '$ID_PARAMETER'",
+                                    "ugyldig_parameter_$ID_PARAMETER",
                                 ),
                             )
                         }

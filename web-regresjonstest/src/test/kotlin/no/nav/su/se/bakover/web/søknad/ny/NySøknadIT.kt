@@ -22,7 +22,8 @@ internal class NySøknadIT {
         withTestApplicationAndEmbeddedDb {
             val actualResponseJson = nyDigitalSøknadOgVerifiser(
                 fnr = fnr,
-                expectedSaksnummerInResponse = 2021, // Første saksnummer er alltid 2021 i en ny-migrert database.
+                // Første saksnummer er alltid 2021 i en ny-migrert database.
+                expectedSaksnummerInResponse = 2021,
             )
             val sakId = NySøknadJson.Response.hentSakId(actualResponseJson)
             val actualSakJson = hentSak(
@@ -43,7 +44,8 @@ internal class NySøknadIT {
         withTestApplicationAndEmbeddedDb {
             val actualResponseJson = nyPapirsøknadOgVerifiser(
                 fnr = fnr,
-                expectedSaksnummerInResponse = 2021, // Første saksnummer er alltid 2021 i en ny-migrert database.
+                // Første saksnummer er alltid 2021 i en ny-migrert database.
+                expectedSaksnummerInResponse = 2021,
                 mottaksdato = fixedLocalDate.toString(),
             )
             val sakId = NySøknadJson.Response.hentSakId(actualResponseJson)

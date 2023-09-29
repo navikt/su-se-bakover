@@ -35,7 +35,7 @@ internal fun Route.iverksettRevurderingRoute(
     revurderingService: RevurderingService,
     satsFactory: SatsFactory,
 ) {
-    post("$revurderingPath/{revurderingId}/iverksett") {
+    post("$REVURDERING_PATH/{revurderingId}/iverksett") {
         authorize(Brukerrolle.Attestant) {
             call.withRevurderingId { revurderingId ->
                 revurderingService.iverksett(

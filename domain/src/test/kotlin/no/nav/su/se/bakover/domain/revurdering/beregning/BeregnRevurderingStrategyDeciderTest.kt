@@ -90,7 +90,8 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 clock = clock,
                 stønadsperiode = stønadsperiode2021,
                 revurderingsperiode = stønadsperiode2021.periode,
-                utbetalingerKjørtTilOgMed = { 1.mai(2021) }, // feilutbetaling for jan-apr
+                // feilutbetaling for jan-apr
+                utbetalingerKjørtTilOgMed = { 1.mai(2021) },
             )
 
             val (medNyStønadsperiode, _, nyStønadsperiode) = iverksattSøknadsbehandling(
@@ -602,7 +603,8 @@ internal class BeregnRevurderingStrategyDeciderTest {
             // Revurderer den delen av siste stønadsperiode som er innvilget, slik at vi får en ny innvilgelse.
             val (sak, tredjeRevurdering) = opprettetRevurdering(
                 clock = clock,
-                stønadsperiode = Stønadsperiode.create(juni(2022)), // Denne blir ikke brukt siden vi sender med sak og vedtak
+                // Denne blir ikke brukt siden vi sender med sak og vedtak
+                stønadsperiode = Stønadsperiode.create(juni(2022)),
                 revurderingsperiode = juni(2022),
                 sakOgVedtakSomKanRevurderes = sakMedRevurderingAvAndreStønadsperiode to revurderingAvAndreStønadsperiode,
                 // vilkårOverrides = listOf(
@@ -680,7 +682,8 @@ internal class BeregnRevurderingStrategyDeciderTest {
             // Revurderer begge stønadsperiodene uten endringer og forventer videreføring og at saken har utestående for andre periode
             val (sak, tredjeRevurdering) = opprettetRevurdering(
                 clock = clock,
-                stønadsperiode = Stønadsperiode.create(år(2022)), // Denne blir ikke brukt siden vi sender med sak og vedtak
+                // Denne blir ikke brukt siden vi sender med sak og vedtak
+                stønadsperiode = Stønadsperiode.create(år(2022)),
                 revurderingsperiode = januar(2022)..desember(2022),
                 sakOgVedtakSomKanRevurderes = sakMedRevurderingAvAndreStønadsperiode to revurderingAvAndreStønadsperiode,
             )
@@ -752,7 +755,8 @@ internal class BeregnRevurderingStrategyDeciderTest {
             // Revurderer den delen av siste stønadsperiode som er innvilget, slik at vi får en ny innvilgelse.
             val (sak, tredjeRevurdering) = opprettetRevurdering(
                 clock = clock,
-                stønadsperiode = Stønadsperiode.create(juni(2022)), // Denne blir ikke brukt siden vi sender med sak og vedtak
+                // Denne blir ikke brukt siden vi sender med sak og vedtak
+                stønadsperiode = Stønadsperiode.create(juni(2022)),
                 revurderingsperiode = juni(2022),
                 sakOgVedtakSomKanRevurderes = sakMedRevurderingAvAndreStønadsperiode to revurderingAvAndreStønadsperiode,
                 vilkårOverrides = listOf(

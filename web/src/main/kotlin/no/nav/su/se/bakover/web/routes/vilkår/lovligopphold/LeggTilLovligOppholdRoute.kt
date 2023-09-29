@@ -28,9 +28,9 @@ import no.nav.su.se.bakover.domain.vilkår.lovligopphold.KunneIkkeLeggetilLovlig
 import no.nav.su.se.bakover.domain.vilkår.lovligopphold.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.lovligopphold.LovligOppholdVilkårStatus
 import no.nav.su.se.bakover.domain.vilkår.lovligopphold.LovligOppholdVurderinger
-import no.nav.su.se.bakover.web.routes.revurdering.revurderingPath
+import no.nav.su.se.bakover.web.routes.revurdering.REVURDERING_PATH
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.søknadsbehandlingPath
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import java.util.UUID
 
@@ -38,7 +38,7 @@ internal fun Route.leggTilLovligOppholdRoute(
     søknadsbehandlingService: SøknadsbehandlingService,
     satsFactory: SatsFactory,
 ) {
-    post("$søknadsbehandlingPath/{behandlingId}/lovligopphold") {
+    post("$SØKNADSBEHANDLING_PATH/{behandlingId}/lovligopphold") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 call.withBody<LovligOppholdBody> { body ->
@@ -62,7 +62,7 @@ internal fun Route.leggTilLovligOppholdRoute(
     revurderingService: RevurderingService,
     satsFactory: SatsFactory,
 ) {
-    post("$revurderingPath/{revurderingId}/lovligopphold") {
+    post("$REVURDERING_PATH/{revurderingId}/lovligopphold") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<LovligOppholdBody> { body ->

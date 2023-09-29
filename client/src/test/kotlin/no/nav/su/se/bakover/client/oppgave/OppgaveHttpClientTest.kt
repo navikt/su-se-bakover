@@ -335,7 +335,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         val oppgaveId = 12345L
         val versjon = 2
         wireMockServer.stubFor(
-            get((urlPathEqualTo("$oppgavePath/$oppgaveId")))
+            get((urlPathEqualTo("$OPPGAVE_PATH/$oppgaveId")))
                 .withHeader("Authorization", WireMock.equalTo("Bearer token"))
                 .withHeader("Content-Type", WireMock.equalTo("application/json"))
                 .withHeader("Accept", WireMock.equalTo("application/json"))
@@ -374,7 +374,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         )
 
         wireMockServer.stubFor(
-            patch((urlPathEqualTo("$oppgavePath/$oppgaveId")))
+            patch((urlPathEqualTo("$OPPGAVE_PATH/$oppgaveId")))
                 .withHeader("Authorization", WireMock.equalTo("Bearer token"))
                 .withHeader("Content-Type", WireMock.equalTo("application/json"))
                 .withHeader("Accept", WireMock.equalTo("application/json"))
@@ -413,7 +413,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         WireMock.configureFor(wireMockServer.port())
         WireMock.verify(
             1,
-            patchRequestedFor(urlPathEqualTo("$oppgavePath/$oppgaveId"))
+            patchRequestedFor(urlPathEqualTo("$OPPGAVE_PATH/$oppgaveId"))
                 .withRequestBody(
                     equalToJson(
                         //language=JSON
@@ -435,7 +435,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         val oppgaveId = 12345L
         val versjon = 2
         wireMockServer.stubFor(
-            get((urlPathEqualTo("$oppgavePath/$oppgaveId")))
+            get((urlPathEqualTo("$OPPGAVE_PATH/$oppgaveId")))
                 .withHeader("Authorization", WireMock.equalTo("Bearer token"))
                 .withHeader("Content-Type", WireMock.equalTo("application/json"))
                 .withHeader("Accept", WireMock.equalTo("application/json"))
@@ -474,7 +474,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         )
 
         wireMockServer.stubFor(
-            patch((urlPathEqualTo("$oppgavePath/$oppgaveId")))
+            patch((urlPathEqualTo("$OPPGAVE_PATH/$oppgaveId")))
                 .withHeader("Authorization", WireMock.equalTo("Bearer token"))
                 .withHeader("Content-Type", WireMock.equalTo("application/json"))
                 .withHeader("Accept", WireMock.equalTo("application/json"))
@@ -514,7 +514,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         WireMock.configureFor(wireMockServer.port())
         WireMock.verify(
             1,
-            patchRequestedFor(urlPathEqualTo("$oppgavePath/$oppgaveId"))
+            patchRequestedFor(urlPathEqualTo("$OPPGAVE_PATH/$oppgaveId"))
                 .withRequestBody(
                     equalToJson(
                         //language=JSON
@@ -536,7 +536,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         val oppgaveId = 12345L
         val versjon = 2
         wireMockServer.stubFor(
-            get((urlPathEqualTo("$oppgavePath/$oppgaveId")))
+            get((urlPathEqualTo("$OPPGAVE_PATH/$oppgaveId")))
                 .withHeader("Authorization", WireMock.equalTo("Bearer token"))
                 .withHeader("Content-Type", WireMock.equalTo("application/json"))
                 .withHeader("Accept", WireMock.equalTo("application/json"))
@@ -576,7 +576,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         )
 
         wireMockServer.stubFor(
-            patch((urlPathEqualTo("$oppgavePath/$oppgaveId")))
+            patch((urlPathEqualTo("$OPPGAVE_PATH/$oppgaveId")))
                 .withHeader("Authorization", WireMock.equalTo("Bearer token"))
                 .withHeader("Content-Type", WireMock.equalTo("application/json"))
                 .withHeader("Accept", WireMock.equalTo("application/json"))
@@ -615,7 +615,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         WireMock.configureFor(wireMockServer.port())
         WireMock.verify(
             1,
-            patchRequestedFor(urlPathEqualTo("$oppgavePath/$oppgaveId"))
+            patchRequestedFor(urlPathEqualTo("$OPPGAVE_PATH/$oppgaveId"))
                 .withRequestBody(
                     equalToJson(
                         //language=JSON
@@ -807,7 +807,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
     fun `opprett oppgave feiler med connection reset by peer`() {
         wireMockServer.stubFor(
             WireMock.post(
-                urlPathEqualTo(oppgavePath),
+                urlPathEqualTo(OPPGAVE_PATH),
             ).willReturn(
                 aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER),
             ),
@@ -841,7 +841,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         val versjon = 2
 
         wireMockServer.stubFor(
-            get((urlPathEqualTo("$oppgavePath/$oppgaveId")))
+            get((urlPathEqualTo("$OPPGAVE_PATH/$oppgaveId")))
                 .withHeader("Authorization", WireMock.equalTo("Bearer token"))
                 .withHeader("Content-Type", WireMock.equalTo("application/json"))
                 .withHeader("Accept", WireMock.equalTo("application/json"))
@@ -881,7 +881,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         )
 
         wireMockServer.stubFor(
-            patch((urlPathEqualTo("$oppgavePath/$oppgaveId")))
+            patch((urlPathEqualTo("$OPPGAVE_PATH/$oppgaveId")))
                 .willReturn(
                     aResponse()
                         .withBody(
@@ -929,7 +929,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
             """.trimIndent()
         wireMockServer.verify(
             1,
-            patchRequestedFor(urlPathEqualTo("$oppgavePath/$oppgaveId"))
+            patchRequestedFor(urlPathEqualTo("$OPPGAVE_PATH/$oppgaveId"))
                 .withHeader("Authorization", WireMock.equalTo("Bearer token"))
                 .withHeader("Content-Type", WireMock.equalTo("application/json"))
                 .withHeader("Accept", WireMock.equalTo("application/json"))
@@ -1171,7 +1171,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         ) shouldBe OppgaveId("111").right()
     }
 
-    private val stubMapping = WireMock.post(urlPathEqualTo(oppgavePath))
+    private val stubMapping = WireMock.post(urlPathEqualTo(OPPGAVE_PATH))
         .withHeader("Authorization", WireMock.equalTo("Bearer token"))
         .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
         .withHeader("Accept", WireMock.equalTo("application/json"))

@@ -76,7 +76,7 @@ class KontaktOgReservasjonsregisterClientTest : WiremockBase {
         client.hentKontaktinformasjon(fnr) shouldBe KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.FeilVedHenting.left()
     }
 
-    private val wiremockBuilder: MappingBuilder = WireMock.get(WireMock.urlPathEqualTo(personPath))
+    private val wiremockBuilder: MappingBuilder = WireMock.get(WireMock.urlPathEqualTo(PERSON_PATH))
         .withHeader("Authorization", WireMock.equalTo("Bearer etFintSystemtoken"))
         .withHeader("Accept", WireMock.equalTo("application/json"))
         .withHeader("Nav-Call-Id", WireMock.equalTo("correlationId"))

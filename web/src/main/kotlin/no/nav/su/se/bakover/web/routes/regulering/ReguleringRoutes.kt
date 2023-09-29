@@ -4,7 +4,7 @@ import io.ktor.server.routing.Route
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import java.time.Clock
 
-internal const val reguleringPath = "/reguleringer"
+internal const val REGULERING_PATH = "/reguleringer"
 
 internal fun Route.reguleringRoutes(
     reguleringService: ReguleringService,

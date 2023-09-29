@@ -60,7 +60,7 @@ internal fun Route.underkjennRevurdering(
     clock: Clock,
     log: Logger = LoggerFactory.getLogger("Route.underkjennRevurdering"),
 ) {
-    patch("$revurderingPath/{revurderingId}/underkjenn") {
+    patch("$REVURDERING_PATH/{revurderingId}/underkjenn") {
         authorize(Brukerrolle.Attestant) {
             val navIdent = call.suUserContext.navIdent
 

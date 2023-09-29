@@ -18,11 +18,11 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.Utbetalinger
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.FRITEKST_TIL_BREV
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanBeregnes
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.beregnetAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.beregnetInnvilget
-import no.nav.su.se.bakover.domain.søknadsbehandling.fritekstTilBrev
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksattAvslagBeregning
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksattAvslagVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksattInnvilget
@@ -147,7 +147,7 @@ internal class SøknadsbehandlingBeregnTest {
         ).getOrFail().let {
             it shouldBe beOfType<BeregnetSøknadsbehandling.Avslag>()
             it.saksbehandler shouldBe saksbehandler
-            it.fritekstTilBrev shouldBe fritekstTilBrev
+            it.fritekstTilBrev shouldBe FRITEKST_TIL_BREV
             it.attesteringer shouldBe Attesteringshistorikk.create(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering()))
             it.søknadsbehandlingsHistorikk shouldBe underkjentAvslagBeregning.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
                 nonEmptyListOf(

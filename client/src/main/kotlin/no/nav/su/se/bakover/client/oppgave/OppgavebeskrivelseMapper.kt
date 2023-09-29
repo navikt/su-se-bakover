@@ -11,7 +11,7 @@ data object OppgavebeskrivelseMapper {
         return "Utfall: ${config.utfall.toReadableName()}" +
             "\nRelevante JournalpostIDer: ${config.journalpostIDer.joinToString(", ")}" +
             "\nKlageinstans sin behandling ble avsluttet den ${config.avsluttetTidspunkt.toOppgaveFormat()}" +
-            "\n\n${config.utfall.LukkBeskrivelse()}"
+            "\n\n${config.utfall.lukkBeskrivelse()}"
     }
 
     fun map(hendelse: Personhendelse.Hendelse) = when (hendelse) {
@@ -57,7 +57,7 @@ data object OppgavebeskrivelseMapper {
         KlageinstansUtfall.AVVIST -> "Avvist"
     }
 
-    private fun KlageinstansUtfall.LukkBeskrivelse() = when (this) {
+    private fun KlageinstansUtfall.lukkBeskrivelse() = when (this) {
         /*
          * Informasjonsoppgaver som må lukkes manuelt.
          * */

@@ -1,7 +1,9 @@
 package no.nav.su.se.bakover.domain.sak
 
 enum class Sakstype(val value: String) {
-    ALDER("alder"), UFØRE("uføre");
+    ALDER("alder"),
+    UFØRE("uføre"),
+    ;
 
     override fun toString() = value
 

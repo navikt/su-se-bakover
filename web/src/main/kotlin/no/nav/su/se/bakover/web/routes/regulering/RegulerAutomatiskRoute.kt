@@ -45,7 +45,7 @@ internal fun Route.reguler(
     reguleringService: ReguleringService,
     clock: Clock,
 ) {
-    post("$reguleringPath/automatisk") {
+    post("$REGULERING_PATH/automatisk") {
         authorize(Brukerrolle.Drift) {
             data class Body(val fraOgMedMåned: String)
             call.withBody<Body> { body ->
@@ -62,7 +62,7 @@ internal fun Route.reguler(
         }
     }
 
-    post("$reguleringPath/manuell/{reguleringId}") {
+    post("$REGULERING_PATH/manuell/{reguleringId}") {
         authorize(Brukerrolle.Saksbehandler) {
             data class Body(val fradrag: List<FradragRequestJson>, val uføre: List<UføregrunnlagJson>)
             call.withReguleringId { id ->
@@ -136,7 +136,7 @@ internal fun Route.reguler(
         }
     }
 
-    post("$reguleringPath/avslutt/{reguleringId}") {
+    post("$REGULERING_PATH/avslutt/{reguleringId}") {
         authorize(Brukerrolle.Saksbehandler) {
             call.lesUUID("reguleringId").fold(
                 ifLeft = {
@@ -168,7 +168,7 @@ internal fun Route.reguler(
         }
     }
 
-    post("$reguleringPath/automatisk/dry") {
+    post("$REGULERING_PATH/automatisk/dry") {
         authorize(Brukerrolle.Drift) {
             /**
              * @param fraOgMedMåned Måned i formatet yyyy-MM

@@ -491,7 +491,8 @@ data class ApplicationConfig(
         ) {
             fun configure(): Map<String, String> = mapOf(
                 CommonClientConfigs.SECURITY_PROTOCOL_CONFIG to SecurityProtocol.SSL.name,
-                SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG to "", // Disable server host name verification
+                // Disable server host name verification
+                SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG to "",
                 SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG to "jks",
                 SslConfigs.SSL_KEYSTORE_TYPE_CONFIG to "PKCS12",
                 SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG to truststorePath,

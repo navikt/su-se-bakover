@@ -19,10 +19,10 @@ import person.domain.KunneIkkeHentePerson
 import tilbakekreving.application.service.opprett.OpprettTilbakekrevingsbehandlingService
 import tilbakekreving.domain.opprett.KunneIkkeOppretteTilbakekrevingsbehandling
 import tilbakekreving.domain.opprett.OpprettTilbakekrevingsbehandlingCommand
+import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
 import tilbakekreving.presentation.api.common.ingenÅpneKravgrunnlag
-import tilbakekreving.presentation.api.tilbakekrevingPath
 
 private data class Body(
     val saksversjon: Long,
@@ -31,7 +31,7 @@ private data class Body(
 internal fun Route.opprettTilbakekrevingsbehandlingRoute(
     opprettTilbakekrevingsbehandlingService: OpprettTilbakekrevingsbehandlingService,
 ) {
-    post("$tilbakekrevingPath/ny") {
+    post("$TILBAKEKREVING_PATH/ny") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withBody<Body> { body ->

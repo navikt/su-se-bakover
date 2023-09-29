@@ -8,12 +8,12 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.revurdering.avslutt.avsluttRevurderingRoute
 import no.nav.su.se.bakover.web.routes.revurdering.forhåndsvarsel.forhåndsvarslingRoute
-import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.leggTilLovligOppholdRoute
 import no.nav.su.se.bakover.web.routes.vilkår.utenlandsopphold.leggTilUtlandsoppholdRoute
 import java.time.Clock
 
-internal const val revurderingPath = "$sakPath/{sakId}/revurderinger"
+internal const val REVURDERING_PATH = "$SAK_PATH/{sakId}/revurderinger"
 
 internal fun Route.revurderingRoutes(
     revurderingService: RevurderingService,

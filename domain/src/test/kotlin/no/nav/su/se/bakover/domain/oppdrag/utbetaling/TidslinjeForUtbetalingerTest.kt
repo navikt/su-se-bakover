@@ -123,7 +123,8 @@ internal class TidslinjeForUtbetalingerTest {
             val andre = utbetalingslinjeNy(
                 id = id,
                 clock = clock,
-                forrigeUtbetalingslinjeId = UUID30.randomUUID(), // id og forrige kan ikke være lik
+                // id og forrige kan ikke være lik
+                forrigeUtbetalingslinjeId = UUID30.randomUUID(),
                 rekkefølge = Rekkefølge.ANDRE,
 
             )

@@ -16,9 +16,10 @@ tasks.named<Jar>("jar") {
     archiveVersion.set("")
     manifest {
         attributes["Main-Class"] = "no.nav.su.se.bakover.application.ApplicationKt"
-        attributes["Class-Path"] = configurations.runtimeClasspath.get().joinToString(separator = " ") {
-            it.name
-        }
+        attributes["Class-Path"] =
+            configurations.runtimeClasspath.get().joinToString(separator = " ") {
+                it.name
+            }
     }
     doLast {
         configurations.runtimeClasspath.get().forEach {

@@ -9,10 +9,10 @@ import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
+import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.common.suSeBakoverConsumerId
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.domain.skatt.SamletSkattegrunnlagForÅr
@@ -44,7 +44,7 @@ internal class SkatteClientTest {
             skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(
                 apiBaseUrl = wireMockServer.baseUrl(),
                 clientId = "mocked",
-                consumerId = suSeBakoverConsumerId,
+                consumerId = SU_SE_BAKOVER_CONSUMER_ID,
             ),
             azureAd = azureAdMock,
         )

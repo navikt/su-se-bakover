@@ -22,14 +22,14 @@ class JwtStub(
         navn: String? = "Brukerens navn",
         audience: String = azureConfig.clientId,
         expiresAt: Date = Date(Long.MAX_VALUE),
-        issuer: String = AuthStubCommonConfig.issuer,
+        issuer: String = AuthStubCommonConfig.ISSUER,
     ): String {
         return JWT.create()
             .withIssuer(issuer)
             .withAudience(audience)
             .withClaim("NAVident", navIdent)
             .withClaim("name", navn)
-            .withKeyId(AuthStubCommonConfig.keyId)
+            .withKeyId(AuthStubCommonConfig.KEY_ID)
             .withSubject(subject)
             .withArrayClaim("groups", roller.map(::toAzureTestGroup).toTypedArray())
             .withClaim("oid", subject + "oid")

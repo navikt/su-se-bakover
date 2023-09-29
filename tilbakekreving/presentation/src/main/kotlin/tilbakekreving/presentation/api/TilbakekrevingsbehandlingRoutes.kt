@@ -10,7 +10,7 @@ import tilbakekreving.presentation.api.opprett.opprettTilbakekrevingsbehandlingR
 import tilbakekreving.presentation.api.vurder.brevTilbakekrevingsbehandlingRoute
 import tilbakekreving.presentation.api.vurder.månedsvurderingerTilbakekrevingsbehandlingRoute
 
-internal const val tilbakekrevingPath = "saker/{sakId}/tilbakekreving"
+internal const val TILBAKEKREVING_PATH = "saker/{sakId}/tilbakekreving"
 
 fun Route.tilbakekrevingRoutes(
     opprettTilbakekrevingsbehandlingService: OpprettTilbakekrevingsbehandlingService,

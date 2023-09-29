@@ -58,7 +58,7 @@ sealed interface VilkårsvurdertSøknadsbehandling :
             val oppdaterteGrunnlagsdataOgVilkårsvurderinger =
                 if (!grunnlagsdataOgVilkårsvurderinger.harVurdertOpplysningsplikt()) {
                     grunnlagsdataOgVilkårsvurderinger.oppdaterVilkår(
-                        /**
+                        /*
                          * Legger til implisitt vilkår for oppfylt opplysningsplikt dersom dette ikke er vurdert fra før.
                          * Tar enn så lenge ikke stilling til dette vilkåret fra frontend ved søknadsbehandling.
                          */

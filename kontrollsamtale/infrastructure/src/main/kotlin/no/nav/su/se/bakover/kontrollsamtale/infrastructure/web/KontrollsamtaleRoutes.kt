@@ -20,12 +20,12 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeSetteNyDatoForKontro
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.web.KontrollsamtaleJson.Companion.toJson
 import java.time.LocalDate
 
-const val sakPath = "/saker"
+const val SAK_PATH = "/saker"
 
 fun Route.kontrollsamtaleRoutes(
     kontrollsamtaleService: KontrollsamtaleService,
 ) {
-    post("$sakPath/{sakId}/kontrollsamtaler/nyDato") {
+    post("$SAK_PATH/{sakId}/kontrollsamtaler/nyDato") {
         authorize(Brukerrolle.Saksbehandler) {
             data class Body(
                 val nyDato: LocalDate,
@@ -50,7 +50,7 @@ fun Route.kontrollsamtaleRoutes(
         }
     }
 
-    get("$sakPath/{sakId}/kontrollsamtaler/hent") {
+    get("$SAK_PATH/{sakId}/kontrollsamtaler/hent") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(sakId).fold(
@@ -73,7 +73,7 @@ fun Route.kontrollsamtaleRoutes(
         }
     }
 
-    get("$sakPath/{sakId}/kontrollsamtaler") {
+    get("$SAK_PATH/{sakId}/kontrollsamtaler") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 kontrollsamtaleService.hentKontrollsamtaler(sakId).let {

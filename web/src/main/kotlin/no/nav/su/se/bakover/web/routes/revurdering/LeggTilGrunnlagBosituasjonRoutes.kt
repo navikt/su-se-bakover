@@ -26,7 +26,7 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
     revurderingService: RevurderingService,
     satsFactory: SatsFactory,
 ) {
-    post("$revurderingPath/{revurderingId}/bosituasjongrunnlag") {
+    post("$REVURDERING_PATH/{revurderingId}/bosituasjongrunnlag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->

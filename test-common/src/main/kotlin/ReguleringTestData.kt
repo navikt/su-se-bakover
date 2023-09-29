@@ -34,10 +34,11 @@ fun opprettetRegulering(
         grunnlagsdataEnsligUtenFradrag(periode = reguleringsperiode),
         vilkårsvurderingerRevurderingInnvilget(periode = reguleringsperiode),
     ),
-    saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(saksbehandlerNavn),
+    saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(SAKSBEHANDLER_NAVN),
     reguleringstype: Reguleringstype = Reguleringstype.MANUELL(emptySet()),
     sakstype: Sakstype = Sakstype.UFØRE,
-) = OpprettetRegulering( // TODO jah: Her omgår vi mye domenelogikk. Bør bruke Regulering.opprettRegulering(...) som tar utgangspunkt i en sak/gjeldendeVedtak.
+) = OpprettetRegulering(
+    // TODO jah: Her omgår vi mye domenelogikk. Bør bruke Regulering.opprettRegulering(...) som tar utgangspunkt i en sak/gjeldendeVedtak.
     id = id,
     opprettet = opprettet,
     sakId = sakId,
@@ -165,7 +166,7 @@ fun avsluttetRegulering(
         grunnlagsdataEnsligUtenFradrag(periode = reguleringsperiode),
         vilkårsvurderingerRevurderingInnvilget(periode = reguleringsperiode),
     ),
-    saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(saksbehandlerNavn),
+    saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(SAKSBEHANDLER_NAVN),
     reguleringstype: Reguleringstype = Reguleringstype.MANUELL(emptySet()),
     sakstype: Sakstype = Sakstype.UFØRE,
     avsluttetTidspunkt: Clock = enUkeEtterFixedClock,

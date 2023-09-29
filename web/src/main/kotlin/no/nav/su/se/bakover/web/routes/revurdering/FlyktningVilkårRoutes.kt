@@ -26,7 +26,7 @@ internal fun Route.flyktningVilkårRoutes(
     satsFactory: SatsFactory,
     clock: Clock,
 ) {
-    post("$revurderingPath/{revurderingId}/flyktning") {
+    post("$REVURDERING_PATH/{revurderingId}/flyktning") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId {
                 call.withBody<List<LeggTilVurderingsperiodeFlyktningVilkårJson>> { body ->

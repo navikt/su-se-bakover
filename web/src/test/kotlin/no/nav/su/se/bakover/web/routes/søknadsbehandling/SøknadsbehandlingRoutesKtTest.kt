@@ -24,7 +24,7 @@ import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.jwtStub
 import no.nav.su.se.bakover.web.requestSomAttestant
-import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -49,7 +49,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 ) {
                     defaultRequest(
                         HttpMethod.Get,
-                        "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}",
+                        "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}",
                         listOf(Brukerrolle.Veileder),
                     ).apply {
                         status shouldBe HttpStatusCode.Forbidden
@@ -78,7 +78,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 ) {
                     defaultRequest(
                         method = HttpMethod.Get,
-                        uri = "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}",
+                        uri = "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}",
                         roller = listOf(Brukerrolle.Saksbehandler),
                     ).apply {
                         status shouldBe HttpStatusCode.OK
@@ -105,7 +105,7 @@ internal class SøknadsbehandlingRoutesKtTest {
             }
             defaultRequest(
                 method = HttpMethod.Post,
-                uri = "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/tilAttestering",
+                uri = "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/tilAttestering",
                 roller = listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody("""{ "fritekst": "Fritekst!" }""")
@@ -126,7 +126,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 }
                 defaultRequest(
                     HttpMethod.Patch,
-                    "$sakPath/rubbish/behandlinger/${UUID.randomUUID()}/underkjenn",
+                    "$SAK_PATH/rubbish/behandlinger/${UUID.randomUUID()}/underkjenn",
                     listOf(Brukerrolle.Saksbehandler),
                     navIdentSaksbehandler,
                 ).apply {
@@ -135,7 +135,7 @@ internal class SøknadsbehandlingRoutesKtTest {
 
                 defaultRequest(
                     HttpMethod.Patch,
-                    "$sakPath/${UUID.randomUUID()}/behandlinger/rubbish/underkjenn",
+                    "$SAK_PATH/${UUID.randomUUID()}/behandlinger/rubbish/underkjenn",
                     listOf(Brukerrolle.Saksbehandler),
                 ).apply {
                     status shouldBe HttpStatusCode.Forbidden
@@ -143,7 +143,7 @@ internal class SøknadsbehandlingRoutesKtTest {
 
                 defaultRequest(
                     HttpMethod.Patch,
-                    "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/underkjenn",
+                    "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/underkjenn",
                     listOf(Brukerrolle.Saksbehandler),
                 ).apply {
                     status shouldBe HttpStatusCode.Forbidden
@@ -159,7 +159,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 }
                 requestSomAttestant(
                     HttpMethod.Patch,
-                    "$sakPath/rubbish/behandlinger/${UUID.randomUUID()}/underkjenn",
+                    "$SAK_PATH/rubbish/behandlinger/${UUID.randomUUID()}/underkjenn",
                     navIdentSaksbehandler,
                 ).apply {
                     status shouldBe HttpStatusCode.BadRequest
@@ -167,7 +167,7 @@ internal class SøknadsbehandlingRoutesKtTest {
 
                 requestSomAttestant(
                     HttpMethod.Patch,
-                    "$sakPath/${UUID.randomUUID()}/behandlinger/rubbish/underkjenn",
+                    "$SAK_PATH/${UUID.randomUUID()}/behandlinger/rubbish/underkjenn",
                     navIdentSaksbehandler,
                 ).apply {
                     status shouldBe HttpStatusCode.BadRequest
@@ -192,7 +192,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 }
                 requestSomAttestant(
                     HttpMethod.Patch,
-                    "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/underkjenn",
+                    "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/underkjenn",
                     navIdentSaksbehandler,
                 ) {
                     setBody("""{"kommentar":"b", "grunn": "BEREGNINGEN_ER_FEIL"}""")
@@ -209,7 +209,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 application { testSusebakoverWithMockedDb() }
                 requestSomAttestant(
                     HttpMethod.Patch,
-                    "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/underkjenn",
+                    "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/underkjenn",
                     navIdentSaksbehandler,
                 ) {
                     setBody(
@@ -240,7 +240,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                         ),
                     )
                 }
-                client.patch("$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/underkjenn") {
+                client.patch("$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/underkjenn") {
                     header(
                         HttpHeaders.Authorization,
                         jwtStub.createJwtToken(
@@ -280,7 +280,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 }
                 requestSomAttestant(
                     HttpMethod.Patch,
-                    "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/underkjenn",
+                    "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/underkjenn",
                     navIdentAttestant,
                 ) {
                     setBody("""{"kommentar":"kommentar", "grunn": "BEREGNINGEN_ER_FEIL" }""")

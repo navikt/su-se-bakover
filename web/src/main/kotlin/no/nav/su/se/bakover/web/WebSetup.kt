@@ -17,7 +17,7 @@ import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
 import io.ktor.server.routing.Route
 import no.nav.su.se.bakover.client.Clients
-import no.nav.su.se.bakover.common.CorrelationIdHeader
+import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
 import no.nav.su.se.bakover.common.infrastructure.brukerrolle.AzureGroupMapper
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
@@ -95,7 +95,7 @@ private fun Application.setupKtorCallLogging() {
 
             return@filter true
         }
-        callIdMdc(CorrelationIdHeader)
+        callIdMdc(CORRELATION_ID_HEADER)
 
         mdc("Authorization") { it.authHeader() }
         disableDefaultColors()

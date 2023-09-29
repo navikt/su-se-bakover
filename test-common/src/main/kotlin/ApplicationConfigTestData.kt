@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.test
 
+import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.infrastructure.brukerrolle.AzureGroups
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.config.AzureConfig
-import no.nav.su.se.bakover.common.suSeBakoverConsumerId
 
 fun applicationConfig() = ApplicationConfig(
     runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Test,
@@ -86,7 +86,7 @@ fun applicationConfig() = ApplicationConfig(
         skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(
             apiBaseUrl = "a",
             clientId = "skattClientId",
-            consumerId = suSeBakoverConsumerId,
+            consumerId = SU_SE_BAKOVER_CONSUMER_ID,
         ),
     ),
     kafkaConfig = ApplicationConfig.KafkaConfig(

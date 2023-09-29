@@ -10,19 +10,19 @@ import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrela
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-internal const val kodeverkPoststedPath = "/api/v1/kodeverk/Postnummer/koder/betydninger"
-internal const val kodeverkKommunePath = "/api/v1/kodeverk/Kommuner/koder/betydninger"
+internal const val KODEVERK_POSTSTED_PATH = "/api/v1/kodeverk/Postnummer/koder/betydninger"
+internal const val KODEVERK_KOMMUNENAVN_PATH = "/api/v1/kodeverk/Kommuner/koder/betydninger"
 
 class KodeverkHttpClient(val baseUrl: String, private val consumerId: String) : Kodeverk {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     override fun hentPoststed(postnummer: String): Either<CouldNotGetKode, String?> {
-        return hentKodebetydning(kodeverkPoststedPath, postnummer)
+        return hentKodebetydning(KODEVERK_POSTSTED_PATH, postnummer)
     }
 
     override fun hentKommunenavn(kommunenummer: String): Either<CouldNotGetKode, String?> {
-        return hentKodebetydning(kodeverkKommunePath, kommunenummer)
+        return hentKodebetydning(KODEVERK_KOMMUNENAVN_PATH, kommunenummer)
     }
 
     private fun hentKodebetydning(path: String, value: String): Either<CouldNotGetKode, String?> {

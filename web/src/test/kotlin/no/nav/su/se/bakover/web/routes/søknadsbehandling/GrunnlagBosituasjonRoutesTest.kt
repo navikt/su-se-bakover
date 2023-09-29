@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -43,7 +43,7 @@ class GrunnlagBosituasjonRoutesTest {
                 }
                 defaultRequest(
                     HttpMethod.Post,
-                    "$sakPath/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon",
+                    "$SAK_PATH/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon",
                     listOf(rolle),
                 ) {
                     setBody(
@@ -79,7 +79,7 @@ class GrunnlagBosituasjonRoutesTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon",
+                "$SAK_PATH/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -131,7 +131,7 @@ class GrunnlagBosituasjonRoutesTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon",
+                "$SAK_PATH/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -185,7 +185,7 @@ class GrunnlagBosituasjonRoutesTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon",
+                "$SAK_PATH/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -237,7 +237,7 @@ class GrunnlagBosituasjonRoutesTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon",
+                "$SAK_PATH/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -289,7 +289,7 @@ class GrunnlagBosituasjonRoutesTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon",
+                "$SAK_PATH/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -343,7 +343,7 @@ class GrunnlagBosituasjonRoutesTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon",
+                "$SAK_PATH/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(

@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.til
 internal fun Route.brevutkastForRevurdering(
     revurderingService: RevurderingService,
 ) {
-    get("$revurderingPath/{revurderingId}/brevutkast") {
+    get("$REVURDERING_PATH/{revurderingId}/brevutkast") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 // TODO jah: La `lagBrevutkastForRevurdering` også returnere fnr slik at vi kan slette denne linja.

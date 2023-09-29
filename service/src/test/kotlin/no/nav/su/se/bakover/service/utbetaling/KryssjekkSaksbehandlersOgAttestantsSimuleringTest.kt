@@ -99,7 +99,8 @@ class KryssjekkSaksbehandlersOgAttestantsSimuleringTest {
         val saksbehandlerSimulering = revurdering.simulering
         val attestantSimulertUtbetaling = nyUtbetalingSimulert(
             sakOgBehandling = sak to revurdering,
-            beregning = (sak.søknadsbehandlinger.first() as IverksattSøknadsbehandling.Innvilget).beregning, // lager simulering for søknadsbehandlingen
+            // lager simulering for søknadsbehandlingen
+            beregning = (sak.søknadsbehandlinger.first() as IverksattSøknadsbehandling.Innvilget).beregning,
             clock = clock,
         )
 

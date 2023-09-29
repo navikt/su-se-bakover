@@ -90,7 +90,7 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
     val oppdatertSak = this.oppdaterSøknadsbehandling(iverksattBehandling).copy(
         vedtakListe = this.vedtakListe + vedtak,
         utbetalinger = this.utbetalinger + simulertUtbetaling,
-        /** Ved iverksett innvilgelse: Dersom det finnes en utestående avkorting må denne avkortes i sin helhet. */
+        /* Ved iverksett innvilgelse: Dersom det finnes en utestående avkorting må denne avkortes i sin helhet. */
         uteståendeAvkorting = Avkortingsvarsel.Ingen,
     )
     return IverksattInnvilgetSøknadsbehandlingResponse(

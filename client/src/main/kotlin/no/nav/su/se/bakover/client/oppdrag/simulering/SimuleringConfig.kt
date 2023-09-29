@@ -43,7 +43,8 @@ class SimuleringConfig(
                         }
                     }
                 },
-                WSAddressingFeature(), // Add LoggingFeature() to enable full logging of req/resp
+                WSAddressingFeature(),
+                // Add LoggingFeature() to enable full logging of req/resp
             )
         }.wrapInStsClient(stsSoapUrl, serviceUser, disableCNCheck)
     }

@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.brukerrolle.AzureGroupMapper
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
-import no.nav.su.se.bakover.common.infrastructure.correlation.CorrelationIdHeader
+import no.nav.su.se.bakover.common.infrastructure.correlation.CORRELATION_ID_HEADER
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -64,8 +64,8 @@ val ApplicationCall.suUserContext: SuUserContext
 val ApplicationCall.callId get() = correlationId
 
 val ApplicationCall.correlationId: CorrelationId
-    get() = request.header(CorrelationIdHeader)?.let { CorrelationId(it) } ?: CorrelationId.generate().also {
-        log.warn("Prøvde hente header $CorrelationIdHeader fra ApplicationCall, men var null. Genererte en ny: $it")
+    get() = request.header(CORRELATION_ID_HEADER)?.let { CorrelationId(it) } ?: CorrelationId.generate().also {
+        log.warn("Prøvde hente header $CORRELATION_ID_HEADER fra ApplicationCall, men var null. Genererte en ny: $it")
     }
 
 class SuUserRouteSelector :

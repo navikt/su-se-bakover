@@ -251,7 +251,8 @@ fun simulertUtbetaling(
         utbetalingslinjer = utbetalingslinjer,
         behandler = attestant,
         avstemmingsnøkkel = avstemmingsnøkkel,
-        sakstype = Sakstype.UFØRE, // TODO("simulering_utbetaling_alder utled fra sak/behandling")
+        // TODO("simulering_utbetaling_alder utled fra sak/behandling")
+        sakstype = Sakstype.UFØRE,
     ).toSimulertUtbetaling(
         simulering = simuleringNy(
             fnr = fnr,

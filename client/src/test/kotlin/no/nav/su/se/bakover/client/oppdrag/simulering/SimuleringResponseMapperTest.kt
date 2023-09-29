@@ -816,7 +816,8 @@ internal class SimuleringResponseMapperTest {
             simuleringXml,
             responseMedFremtidigUtbetaling,
             fixedClock,
-            saksnummer, // Vi tar ikke vare på kodeFagomraade (da domenet vårt ikke forholder seg til andre fagområder)
+            // Vi tar ikke vare på kodeFagomraade (da domenet vårt ikke forholder seg til andre fagområder)
+            saksnummer,
         ).simulering.måneder.map { it.utbetaling!! }.size.shouldBe(1)
     }
 

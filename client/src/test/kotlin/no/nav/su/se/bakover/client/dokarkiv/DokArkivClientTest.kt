@@ -257,7 +257,7 @@ internal class DokArkivClientTest : WiremockBase {
             )
     }
 
-    private val wiremockBuilder = WireMock.post(WireMock.urlPathEqualTo(dokArkivPath))
+    private val wiremockBuilder = WireMock.post(WireMock.urlPathEqualTo(DOK_ARKIV_PATH))
         .withQueryParam("forsoekFerdigstill", WireMock.equalTo("true"))
         .withHeader("Authorization", WireMock.equalTo("Bearer token"))
         .withHeader("Content-Type", WireMock.equalTo("application/json"))

@@ -107,7 +107,8 @@ internal data class KravgrunnlagDbJson(
         companion object {
             fun Kravgrunnlag.Grunnlagsmåned.toDbJson(): Grunnlagsmåned {
                 return Grunnlagsmåned(
-                    måned = this.måned.tilMåned().toString(), // uuuu-MM
+                    // uuuu-MM
+                    måned = this.måned.tilMåned().toString(),
                     betaltSkattForYtelsesgruppen = this.betaltSkattForYtelsesgruppen.toString(),
                     grunnlagsbeløp = this.grunnlagsbeløp.map { it.toDbJson() },
                 )

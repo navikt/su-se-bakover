@@ -14,13 +14,13 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringService
 internal fun Route.reguleringOversiktRoutes(
     reguleringService: ReguleringService,
 ) {
-    get("$reguleringPath/status") {
+    get("$REGULERING_PATH/status") {
         authorize(Brukerrolle.Saksbehandler) {
             call.svar(Resultat.json(HttpStatusCode.OK, reguleringService.hentStatus().toJson()))
         }
     }
 
-    get("$reguleringPath/saker/apneBehandlinger") {
+    get("$REGULERING_PATH/saker/apneBehandlinger") {
         val json = reguleringService.hentSakerMedÅpenBehandlingEllerStans()
         call.svar(Resultat.json(HttpStatusCode.OK, serialize(json)))
     }

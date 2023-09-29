@@ -9,5 +9,5 @@ data object AzureClientStub : AzureAd {
     override val jwksUri = "http://localhost:8080/jwks"
     override fun getSystemToken(otherAppId: String) = "etFintSystemtoken"
 
-    override val issuer = AuthStubCommonConfig.issuer
+    override val issuer = AuthStubCommonConfig.ISSUER
 }

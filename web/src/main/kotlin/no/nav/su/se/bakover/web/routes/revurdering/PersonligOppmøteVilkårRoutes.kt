@@ -25,7 +25,7 @@ internal fun Route.personligOppmøteVilkårRoutes(
     satsFactory: SatsFactory,
     clock: Clock,
 ) {
-    post("$revurderingPath/{revurderingId}/personligoppmøte") {
+    post("$REVURDERING_PATH/{revurderingId}/personligoppmøte") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId {
                 call.withBody<List<LeggTilVurderingsperiodePersonligOppmøteJson>> { body ->

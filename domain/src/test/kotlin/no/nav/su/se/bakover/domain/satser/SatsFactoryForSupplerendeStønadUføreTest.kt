@@ -83,7 +83,8 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                         virkningstidspunkt = 1.januar(2015),
                         måned = januar(2021),
                     ),
-                    toProsentAvHøyForMåned = BigDecimal("418.9174666666666666666666666666667"), // 2.48 * 106399 * 0.02 / 12
+                    // 2.48 * 106399 * 0.02 / 12
+                    toProsentAvHøyForMåned = BigDecimal("418.9174666666666666666666666666667"),
                 )
                 it.satsPerÅr shouldBe BigDecimal("231080.28") // 2.28 * 101351
                 it.satsForMåned shouldBe BigDecimal("19256.69") // 2.28 * 101351 / 12
@@ -113,7 +114,8 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                         virkningstidspunkt = 1.januar(2015),
                         måned = januar(2021),
                     ),
-                    toProsentAvHøyForMåned = BigDecimal("418.9174666666666666666666666666667"), // 2.48 * 101351 * 0.02 / 12
+                    // 2.48 * 101351 * 0.02 / 12
+                    toProsentAvHøyForMåned = BigDecimal("418.9174666666666666666666666666667"),
                 )
                 it.satsPerÅr shouldBe BigDecimal("251350.48") // 2.48 * 101351
                 it.satsForMåned.scaleTo4() shouldBe BigDecimal("20945.8733") // 2.48 * 101351 / 12
@@ -143,7 +145,8 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                         virkningstidspunkt = 1.januar(2015),
                         måned = mai(2021),
                     ),
-                    toProsentAvHøyForMåned = BigDecimal("439.7825333333333333333333333333333"), // 2.48 * 106399 * 0.02 / 12
+                    // 2.48 * 106399 * 0.02 / 12
+                    toProsentAvHøyForMåned = BigDecimal("439.7825333333333333333333333333333"),
                 )
                 it.satsPerÅr shouldBe BigDecimal("242589.72") // 2.28 * 106399
                 it.satsForMåned shouldBe BigDecimal("20215.81") // 2.28 * 106399 / 12
@@ -173,7 +176,8 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                         virkningstidspunkt = 1.januar(2015),
                         måned = mai(2021),
                     ),
-                    toProsentAvHøyForMåned = BigDecimal("439.7825333333333333333333333333333"), // 2.48 * 106399 * 0.02 / 12
+                    // 2.48 * 106399 * 0.02 / 12
+                    toProsentAvHøyForMåned = BigDecimal("439.7825333333333333333333333333333"),
                 )
                 it.satsPerÅr shouldBe BigDecimal("263869.52") // 2.48 * 106399
                 it.satsForMåned.scaleTo4() shouldBe BigDecimal("21989.1267") // 2.48 * 106399 / 12
@@ -203,7 +207,8 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                         virkningstidspunkt = 1.januar(2015),
                         måned = mai(2022),
                     ),
-                    toProsentAvHøyForMåned = BigDecimal("460.7716"), // 2.48 * G2022-5 * 0.02 / 12
+                    // 2.48 * G2022-5 * 0.02 / 12
+                    toProsentAvHøyForMåned = BigDecimal("460.7716"),
                 )
                 it.satsPerÅr shouldBe BigDecimal("254167.56") // 2.28 * G2022-5
                 it.satsForMåned shouldBe BigDecimal("21180.63") // 2.28 * G2022-5 / 12
@@ -233,7 +238,8 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                         virkningstidspunkt = 1.januar(2015),
                         måned = mai(2022),
                     ),
-                    toProsentAvHøyForMåned = BigDecimal("460.7716"), // 2.48 * G2022-5 * 0.02 / 12
+                    // 2.48 * G2022-5 * 0.02 / 12
+                    toProsentAvHøyForMåned = BigDecimal("460.7716"),
                 )
                 it.satsPerÅr shouldBe BigDecimal("276462.96") // 2.48 * G2022-5
                 it.satsForMåned.scaleTo4() shouldBe BigDecimal("23038.5800") // 2.48 * G2022-5 / 12
@@ -263,7 +269,8 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                         virkningstidspunkt = 1.januar(2015),
                         måned = mai(2023),
                     ),
-                    toProsentAvHøyForMåned = BigDecimal("490.2960"), // 2.48 * G2023-5 * 0.02 / 12
+                    // 2.48 * G2023-5 * 0.02 / 12
+                    toProsentAvHøyForMåned = BigDecimal("490.2960"),
                 )
                 it.satsPerÅr shouldBe BigDecimal("270453.60") // 2.28 * G2023-5
                 it.satsForMåned shouldBe BigDecimal("22537.80") // 2.28 * G2023-5 / 12
@@ -293,7 +300,8 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                         virkningstidspunkt = 1.januar(2015),
                         måned = mai(2023),
                     ),
-                    toProsentAvHøyForMåned = BigDecimal("490.2960"), // 2.48 * G2023-5 * 0.02 / 12
+                    // 2.48 * G2023-5 * 0.02 / 12
+                    toProsentAvHøyForMåned = BigDecimal("490.2960"),
                 )
                 it.satsPerÅr shouldBe BigDecimal("294177.60") // 2.48 * G2023-5
                 it.satsForMåned.scaleTo4() shouldBe BigDecimal("24514.8000") // 2.48 * G2023-5 / 12
@@ -351,7 +359,8 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                             virkningstidspunkt = 1.januar(2015),
                             måned = mai(2022),
                         ),
-                        toProsentAvHøyForMåned = BigDecimal("412.7464"), // 2.48 * G2022-5 * 0.02 / 12
+                        // 2.48 * G2022-5 * 0.02 / 12
+                        toProsentAvHøyForMåned = BigDecimal("412.7464"),
                     )
                     it.satsPerÅr shouldBe BigDecimal("247647.84") // 2.48 * G2022-5
                     it.satsForMåned.scaleTo4() shouldBe BigDecimal("20637.3200") // 2.48 * G2022-5 / 12

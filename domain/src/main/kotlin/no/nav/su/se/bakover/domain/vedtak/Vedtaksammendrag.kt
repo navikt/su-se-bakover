@@ -74,7 +74,8 @@ fun List<Vedtaksammendrag>.tilInnvilgetForMånedEllerSenere(
                     sakId = it.value.first().sakId,
                     saksnummer = it.value.first().saksnummer,
                     fnr = it.key,
-                    type = Sakstype.UFØRE, // TODO jah: Denne blir feil hvis vi implementerer alder
+                    // TODO jah: Denne blir feil hvis vi implementerer alder
+                    type = Sakstype.UFØRE,
                 )
             } else {
                 null

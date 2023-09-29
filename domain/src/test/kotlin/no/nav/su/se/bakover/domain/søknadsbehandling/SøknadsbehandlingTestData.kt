@@ -26,7 +26,7 @@ private val sakOgUavklart
 
 internal val opprettet get() = sakOgUavklart.second
 
-internal const val fritekstTilBrev: String = "Fritekst til brev"
+internal const val FRITEKST_TIL_BREV: String = "Fritekst til brev"
 
 internal val vilkårsvurdertInnvilget: VilkårsvurdertSøknadsbehandling.Innvilget
     get() =
@@ -77,15 +77,15 @@ internal val simulert: SimulertSøknadsbehandling
 
 internal val tilAttesteringInnvilget: SøknadsbehandlingTilAttestering.Innvilget
     get() =
-        simulert.tilAttestering(saksbehandler, fritekstTilBrev, fixedClock).getOrFail()
+        simulert.tilAttestering(saksbehandler, FRITEKST_TIL_BREV, fixedClock).getOrFail()
 
 internal val tilAttesteringAvslagVilkår: SøknadsbehandlingTilAttestering.Avslag.UtenBeregning
     get() =
-        vilkårsvurdertAvslag.tilAttestering(saksbehandler, fritekstTilBrev, fixedClock).getOrFail()
+        vilkårsvurdertAvslag.tilAttestering(saksbehandler, FRITEKST_TIL_BREV, fixedClock).getOrFail()
 
 internal val tilAttesteringAvslagBeregning: SøknadsbehandlingTilAttestering.Avslag.MedBeregning
     get() =
-        beregnetAvslag.tilAttestering(saksbehandler, fritekstTilBrev, fixedClock).getOrFail()
+        beregnetAvslag.tilAttestering(saksbehandler, FRITEKST_TIL_BREV, fixedClock).getOrFail()
 
 internal val underkjentInnvilget: UnderkjentSøknadsbehandling.Innvilget
     get() =

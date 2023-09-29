@@ -40,7 +40,7 @@ internal fun Route.opprettRevurderingRoute(
         val begrunnelse: String,
         val informasjonSomRevurderes: List<Revurderingsteg>,
     )
-    post(revurderingPath) {
+    post(REVURDERING_PATH) {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBody<Body> { body ->

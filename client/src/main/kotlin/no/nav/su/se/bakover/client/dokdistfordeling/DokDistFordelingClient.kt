@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 
-internal const val dokDistFordelingPath = "/rest/v1/distribuerjournalpost"
+internal const val DOK_DIST_FORDELING_PATH = "/rest/v1/distribuerjournalpost"
 
 /**
  * https://confluence.adeo.no/pages/viewpage.action?pageId=320039012
@@ -29,7 +29,7 @@ class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag
         distribusjonstidspunkt: Distribusjonstidspunkt,
     ): Either<KunneIkkeBestilleDistribusjon, BrevbestillingId> {
         val body = byggDistribusjonPostJson(journalPostId, distribusjonstype, distribusjonstidspunkt)
-        val (_, _, result) = "$baseUrl$dokDistFordelingPath".httpPost()
+        val (_, _, result) = "$baseUrl$DOK_DIST_FORDELING_PATH".httpPost()
             .authentication().bearer(tokenOppslag.token().value)
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")

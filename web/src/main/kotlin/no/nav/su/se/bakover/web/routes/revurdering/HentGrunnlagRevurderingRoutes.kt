@@ -24,10 +24,11 @@ import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurdering
  * som en del av revurderingen.
  */
 internal fun Route.hentGrunnlagRevurderingRoutes(
-    sakService: SakService, // TODO ai: Flytte denne til "VedtakRoutes" når vi får något sånt
+    // TODO ai: Flytte denne til "VedtakRoutes" når vi får något sånt
+    sakService: SakService,
     satsFactory: SatsFactory,
 ) {
-    get("$revurderingPath/historisk/vedtak/{vedtakId}/grunnlagsdataOgVilkårsvurderinger") {
+    get("$REVURDERING_PATH/historisk/vedtak/{vedtakId}/grunnlagsdataOgVilkårsvurderinger") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withVedtakId { vedtakId ->

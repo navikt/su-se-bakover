@@ -29,18 +29,18 @@ import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeLageAvsluttet
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
+import no.nav.su.se.bakover.web.routes.revurdering.REVURDERING_PATH
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.brevvalgIkkeTillatt
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.manglerBrevvalg
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkePersonEllerSaksbehandlerNavn
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
-import no.nav.su.se.bakover.web.routes.revurdering.revurderingPath
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
 
 internal fun Route.avsluttRevurderingRoute(
     revurderingService: RevurderingService,
     satsFactory: SatsFactory,
 ) {
-    post("$revurderingPath/{revurderingId}/avslutt") {
+    post("$REVURDERING_PATH/{revurderingId}/avslutt") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBody<AvsluttRevurderingRequestJson> { body ->
                 call.withRevurderingId { revurderingId ->
@@ -67,7 +67,7 @@ internal fun Route.avsluttRevurderingRoute(
     data class BrevutkastForAvslutting(
         val fritekst: String = "",
     )
-    post("$revurderingPath/{revurderingId}/brevutkastForAvslutting") {
+    post("$REVURDERING_PATH/{revurderingId}/brevutkastForAvslutting") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<BrevutkastForAvslutting> { body ->

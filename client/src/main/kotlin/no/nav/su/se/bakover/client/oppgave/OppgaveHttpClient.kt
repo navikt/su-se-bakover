@@ -8,7 +8,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.client.PATCH
 import no.nav.su.se.bakover.client.isSuccess
 import no.nav.su.se.bakover.client.sts.TokenOppslag
-import no.nav.su.se.bakover.common.CorrelationIdHeader
+import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
@@ -34,7 +34,7 @@ import java.time.Clock
 import java.time.Duration
 import java.time.format.DateTimeFormatter
 
-internal const val oppgavePath = "/api/v1/oppgaver"
+internal const val OPPGAVE_PATH = "/api/v1/oppgaver"
 
 /**
  * Github repo: https://github.com/navikt/oppgave
@@ -184,10 +184,10 @@ internal class OppgaveHttpClient(
 
         return Either.catch {
             val request = HttpRequest.newBuilder()
-                .uri(URI.create("${connectionConfig.url}$oppgavePath"))
+                .uri(URI.create("${connectionConfig.url}$OPPGAVE_PATH"))
                 .header("Authorization", "Bearer $token")
                 .header("Accept", "application/json")
-                .header(CorrelationIdHeader, getOrCreateCorrelationIdFromThreadLocal().toString())
+                .header(CORRELATION_ID_HEADER, getOrCreateCorrelationIdFromThreadLocal().toString())
                 .header("Content-Type", "application/json")
                 .POST(
                     HttpRequest.BodyPublishers.ofString(
@@ -252,10 +252,10 @@ internal class OppgaveHttpClient(
     ): Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, OppgaveResponse> {
         return Either.catch {
             val request = HttpRequest.newBuilder()
-                .uri(URI.create("${connectionConfig.url}$oppgavePath/$oppgaveId"))
+                .uri(URI.create("${connectionConfig.url}$OPPGAVE_PATH/$oppgaveId"))
                 .header("Authorization", "Bearer $token")
                 .header("Accept", "application/json")
-                .header(CorrelationIdHeader, getOrCreateCorrelationIdFromThreadLocal().toString())
+                .header(CORRELATION_ID_HEADER, getOrCreateCorrelationIdFromThreadLocal().toString())
                 .header("Content-Type", "application/json")
                 .GET()
                 .build()
@@ -329,10 +329,10 @@ internal class OppgaveHttpClient(
 
         return Either.catch {
             val request = HttpRequest.newBuilder()
-                .uri(URI.create("${connectionConfig.url}$oppgavePath/${oppgave.id}"))
+                .uri(URI.create("${connectionConfig.url}$OPPGAVE_PATH/${oppgave.id}"))
                 .header("Authorization", "Bearer $token")
                 .header("Accept", "application/json")
-                .header(CorrelationIdHeader, getOrCreateCorrelationIdFromThreadLocal().toString())
+                .header(CORRELATION_ID_HEADER, getOrCreateCorrelationIdFromThreadLocal().toString())
                 .header("Content-Type", "application/json")
                 .PATCH(
                     HttpRequest.BodyPublishers.ofString(

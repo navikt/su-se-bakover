@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -36,7 +36,7 @@ internal class LeggTilFamiliegjenforeningRoutesTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/familiegjenforening",
+                "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/familiegjenforening",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -75,7 +75,7 @@ internal class LeggTilFamiliegjenforeningRoutesTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/familiegjenforening",
+                "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/familiegjenforening",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(

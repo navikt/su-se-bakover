@@ -107,7 +107,7 @@ suspend fun ApplicationTestBuilder.defaultRequest(
 suspend fun ApplicationTestBuilder.requestSomAttestant(
     method: HttpMethod,
     uri: String,
-    navIdent: String? = navIdentAttestant,
+    navIdent: String? = NAV_IDENT_ATTESTANT,
     setup: HttpRequestBuilder.() -> Unit = {},
 ): HttpResponse {
     return this.client.request(uri) {
@@ -126,4 +126,4 @@ suspend fun ApplicationTestBuilder.requestSomAttestant(
     }
 }
 
-const val navIdentAttestant = "random-attestant-id"
+const val NAV_IDENT_ATTESTANT = "random-attestant-id"

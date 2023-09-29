@@ -30,7 +30,8 @@ class IverksettRevurderingTest {
             clock = clock,
             revurderingsperiode = revurderingsperiode,
             grunnlagsdataOverrides = listOf(
-                fradragsgrunnlagArbeidsinntekt(periode = revurderingsperiode, arbeidsinntekt = 100000.0), // Tvinger fram et opphør.
+                // Tvinger fram et opphør.
+                fradragsgrunnlagArbeidsinntekt(periode = revurderingsperiode, arbeidsinntekt = 100000.0),
             ),
             utbetalingerKjørtTilOgMed = { 1.juni(2021) },
         )
@@ -47,10 +48,12 @@ class IverksettRevurderingTest {
                     simulering = simuleringFeilutbetaling(
                         gjelderId = sak.fnr,
                         simulertePerioder = listOf(
-                            aprilFraFørsteSimulering, // April er uendet.
+                            // April er uendet.
+                            aprilFraFørsteSimulering,
                             simulertMånedFeilutbetalingVedOpphør(
                                 måned = mai,
-                                tidligereBeløp = 21946, // Øker beløpet med 1000 siden saksbehandlers simulering for å emulere enn større feilutbetaling.
+                                // Øker beløpet med 1000 siden saksbehandlers simulering for å emulere enn større feilutbetaling.
+                                tidligereBeløp = 21946,
                             ),
                         ),
                     ),

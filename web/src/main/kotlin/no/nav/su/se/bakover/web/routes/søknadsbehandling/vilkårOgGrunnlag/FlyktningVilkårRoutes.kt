@@ -17,8 +17,8 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vilkår.flyktning.LeggTilFlyktningVilkårRequest
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.json
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.søknadsbehandlingPath
 import no.nav.su.se.bakover.web.routes.vilkår.flyktning.LeggTilVurderingsperiodeFlyktningVilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.flyktning.tilResultat
 import no.nav.su.se.bakover.web.routes.vilkår.flyktning.toDomain
@@ -29,7 +29,7 @@ internal fun Route.flyktningVilkårRoutes(
     satsFactory: SatsFactory,
     clock: Clock,
 ) {
-    post("$søknadsbehandlingPath/{behandlingId}/flyktning") {
+    post("$SØKNADSBEHANDLING_PATH/{behandlingId}/flyktning") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId {
                 call.withBody<List<LeggTilVurderingsperiodeFlyktningVilkårJson>> { body ->

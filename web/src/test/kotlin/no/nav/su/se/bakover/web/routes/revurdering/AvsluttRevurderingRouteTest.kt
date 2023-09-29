@@ -42,7 +42,7 @@ internal class AvsluttRevurderingRouteTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$revurderingPath/${avsluttet.id}/avslutt",
+                "$REVURDERING_PATH/${avsluttet.id}/avslutt",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(

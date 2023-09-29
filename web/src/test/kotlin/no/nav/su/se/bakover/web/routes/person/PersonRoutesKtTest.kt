@@ -46,7 +46,7 @@ internal class PersonRoutesKtTest {
                 testSusebakoverWithMockedDb()
             }
 
-            client.post("$personPath/søk") {
+            client.post("$PERSON_PATH/søk") {
                 setBody("""{"fnr":"$testIdent"}""")
             }.apply {
                 status shouldBe HttpStatusCode.Unauthorized
@@ -60,7 +60,7 @@ internal class PersonRoutesKtTest {
             application {
                 testSusebakoverWithMockedDb()
             }
-            defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
+            defaultRequest(Post, "$PERSON_PATH/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"qwertyuiopå"}""")
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
@@ -134,7 +134,7 @@ internal class PersonRoutesKtTest {
             application {
                 testSusebakoverWithMockedDb(clock = fixedClock, accessCheckProxy = accessCheckProxyMock)
             }
-            defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
+            defaultRequest(Post, "$PERSON_PATH/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"$testIdent"}""")
             }.apply {
                 status shouldBe OK
@@ -161,7 +161,7 @@ internal class PersonRoutesKtTest {
             application {
                 testSusebakoverWithMockedDb(clients = clients)
             }
-            defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
+            defaultRequest(Post, "$PERSON_PATH/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"$testIdent"}""")
             }.apply {
                 status shouldBe HttpStatusCode.InternalServerError
@@ -197,7 +197,7 @@ internal class PersonRoutesKtTest {
             application {
                 testSusebakoverWithMockedDb(clients = clients)
             }
-            defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
+            defaultRequest(Post, "$PERSON_PATH/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr": $testIdent}""")
             }.apply {
                 this.status shouldBe NotFound
@@ -235,7 +235,7 @@ internal class PersonRoutesKtTest {
                     clients = clients,
                 )
             }
-            defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
+            defaultRequest(Post, "$PERSON_PATH/søk", listOf(Brukerrolle.Veileder)) {
                 setBody(
                     """
                         {

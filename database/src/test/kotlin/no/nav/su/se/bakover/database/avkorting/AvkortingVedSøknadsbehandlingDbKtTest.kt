@@ -72,21 +72,21 @@ internal class AvkortingVedSøknadsbehandlingDbKtTest {
         @Nested
         inner class IngenUtestående {
             @Test
-            fun UHÅNDTERT_INGEN_UTESTÅENDE() {
+            fun `uhåndtert ingen utestående`() {
                 fromAvkortingDbJson(
                     """{"@type":"UHÅNDTERT_INGEN_UTESTÅENDE"}""",
                 ) shouldBe AvkortingVedSøknadsbehandling.IkkeVurdert
             }
 
             @Test
-            fun HÅNDTERT_INGEN_UTESTÅENDE() {
+            fun `håndtert ingen utestående`() {
                 fromAvkortingDbJson(
                     """{"@type":"HÅNDTERT_INGEN_UTESTÅENDE"}""",
                 ) shouldBe AvkortingVedSøknadsbehandling.IngenAvkorting
             }
 
             @Test
-            fun IVERKSATT_INGEN_UTESTÅENDE() {
+            fun `iverksatt ingen utestående`() {
                 fromAvkortingDbJson(
                     """{"@type":"IVERKSATT_INGEN_UTESTÅENDE"}""",
                 ) shouldBe AvkortingVedSøknadsbehandling.IngenAvkorting
@@ -96,7 +96,7 @@ internal class AvkortingVedSøknadsbehandlingDbKtTest {
         @Nested
         inner class KanIkke {
             @Test
-            fun UHÅNDTERT_KAN_IKKE() {
+            fun `uhåndtert kan ikke`() {
                 fromAvkortingDbJson(
                     """
                     {
@@ -108,7 +108,7 @@ internal class AvkortingVedSøknadsbehandlingDbKtTest {
             }
 
             @Test
-            fun HÅNDTERT_KAN_IKKE() {
+            fun `håndtert kan ikke`() {
                 deserialize<AvkortingVedSøknadsbehandlingDb.Håndtert.KanIkkeHåndtere>(
                     """
                         {
@@ -120,7 +120,7 @@ internal class AvkortingVedSøknadsbehandlingDbKtTest {
             }
 
             @Test
-            fun IVERKSATT_KAN_IKKE() {
+            fun `iverksatt kan ikke`() {
                 shouldThrowWithMessage<IllegalStateException>("Avventer migrering av AvkortingVedSøknadsbehandlingDb.Iverksatt.KanIkkeHåndtere - skal ikke være i bruk.") {
                     deserialize<AvkortingVedSøknadsbehandlingDb.Iverksatt.KanIkkeHåndtere>(
                         """
@@ -136,7 +136,7 @@ internal class AvkortingVedSøknadsbehandlingDbKtTest {
             @Nested
             inner class Utestående {
                 @Test
-                fun UHÅNDTERT_UTESTÅENDE() {
+                fun `uhåndtert utestående`() {
                     fromAvkortingDbJson(
                         """
                         {
@@ -148,7 +148,7 @@ internal class AvkortingVedSøknadsbehandlingDbKtTest {
                 }
 
                 @Test
-                fun HÅNDTERT_AVKORTET_UTESTÅENDE() {
+                fun `håndtert avkortet utestående`() {
                     val avkortingsvarselSkalAvkortes = avkortingsvarselSkalAvkortes()
                     fromAvkortingDbJson(
                         """
@@ -163,7 +163,7 @@ internal class AvkortingVedSøknadsbehandlingDbKtTest {
                 }
 
                 @Test
-                fun IVERKSATT_AVKORTET_UTESTÅENDE() {
+                fun `iverksatt avkortet utestående`() {
                     val avkortingsvarselAvkortet = avkortingsvarselAvkortet()
                     fromAvkortingDbJson(
                         """

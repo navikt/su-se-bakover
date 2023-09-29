@@ -85,7 +85,8 @@ internal fun withKomptestApplication(
         SharedRegressionTestData.databaseRepos(
             dataSource = dataSource,
             clock = klokke,
-            satsFactory = satsFactory, // TODO uheldig at vi ikke kan overstyre denne med satsFactory.gjeldende(LocalDate.now(clock))
+            // TODO uheldig at vi ikke kan overstyre denne med satsFactory.gjeldende(LocalDate.now(clock))
+            satsFactory = satsFactory,
         )
     },
     clientsBuilder: (databaseRepos: DatabaseRepos, clock: Clock) -> Clients = { databaseRepos, klokke ->

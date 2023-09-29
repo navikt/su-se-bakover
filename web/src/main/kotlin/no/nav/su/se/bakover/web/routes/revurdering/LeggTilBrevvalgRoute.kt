@@ -31,7 +31,7 @@ internal fun Route.leggTilBrevvalgRevurderingRoute(
         val begrunnelse: String?,
     )
 
-    post("$revurderingPath/{revurderingId}/brevvalg") {
+    post("$REVURDERING_PATH/{revurderingId}/brevvalg") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<Body> { body ->

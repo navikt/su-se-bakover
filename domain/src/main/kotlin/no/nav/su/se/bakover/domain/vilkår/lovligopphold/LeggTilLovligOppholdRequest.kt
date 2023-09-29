@@ -10,7 +10,10 @@ import java.time.Clock
 import java.util.UUID
 
 enum class LovligOppholdVilkårStatus {
-    VilkårOppfylt, VilkårIkkeOppfylt, Uavklart;
+    VilkårOppfylt,
+    VilkårIkkeOppfylt,
+    Uavklart,
+    ;
 
     fun toResultat(): Vurdering {
         return when (this) {

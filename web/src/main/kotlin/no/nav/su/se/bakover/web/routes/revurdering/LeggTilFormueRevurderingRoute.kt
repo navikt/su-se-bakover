@@ -98,7 +98,7 @@ internal fun Route.leggTilFormueRevurderingRoute(
     satsFactory: SatsFactory,
     clock: Clock,
 ) {
-    post("$revurderingPath/{revurderingId}/formuegrunnlag") {
+    post("$REVURDERING_PATH/{revurderingId}/formuegrunnlag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->

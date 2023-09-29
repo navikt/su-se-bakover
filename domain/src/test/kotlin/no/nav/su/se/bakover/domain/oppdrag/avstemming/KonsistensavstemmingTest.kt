@@ -358,7 +358,8 @@ internal class KonsistensavstemmingTest {
         Avstemming.Konsistensavstemming.Ny(
             id = UUID30.randomUUID(),
             opprettet = fixedTidspunkt,
-            løpendeFraOgMed = 1.desember(2021).startOfDay(), // Dato litt lenger fram i tid
+            // Dato litt lenger fram i tid
+            løpendeFraOgMed = 1.desember(2021).startOfDay(),
             opprettetTilOgMed = Tidspunkt.now(andreKlokke),
             utbetalinger = listOf(s1u1, s1u2, s2u1, s2u2),
             avstemmingXmlRequest = "",
@@ -386,7 +387,8 @@ internal class KonsistensavstemmingTest {
             id = UUID30.randomUUID(),
             opprettet = fixedTidspunkt,
             løpendeFraOgMed = 1.januar(2021).startOfDay(),
-            opprettetTilOgMed = 1.januar(2000).endOfDay(), // Dato langt bak i tid
+            // Dato langt bak i tid
+            opprettetTilOgMed = 1.januar(2000).endOfDay(),
             utbetalinger = listOf(s1u1, s1u2, s2u1, s2u2),
             avstemmingXmlRequest = "",
             fagområde = Fagområde.SUUFORE,
@@ -396,7 +398,8 @@ internal class KonsistensavstemmingTest {
             id = UUID30.randomUUID(),
             opprettet = fixedTidspunkt,
             løpendeFraOgMed = 1.januar(2021).startOfDay(),
-            opprettetTilOgMed = Tidspunkt.now(andreKlokke).minus(1, ChronoUnit.DAYS), // Dato forut for andre klokke
+            // Dato forut for andre klokke
+            opprettetTilOgMed = Tidspunkt.now(andreKlokke).minus(1, ChronoUnit.DAYS),
             utbetalinger = listOf(s1u1, s1u2, s2u1, s2u2),
             avstemmingXmlRequest = "",
             fagområde = Fagområde.SUUFORE,

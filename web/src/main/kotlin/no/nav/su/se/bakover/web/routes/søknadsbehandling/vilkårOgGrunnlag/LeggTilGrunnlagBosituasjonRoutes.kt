@@ -22,14 +22,14 @@ import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.routes.grunnlag.LeggTilBosituasjonJsonRequest
 import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.søknadsbehandlingPath
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 
 internal fun Route.leggTilGrunnlagBosituasjonRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
     satsFactory: SatsFactory,
 ) {
-    post("$søknadsbehandlingPath/{behandlingId}/grunnlag/bosituasjon") {
+    post("$SØKNADSBEHANDLING_PATH/{behandlingId}/grunnlag/bosituasjon") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->

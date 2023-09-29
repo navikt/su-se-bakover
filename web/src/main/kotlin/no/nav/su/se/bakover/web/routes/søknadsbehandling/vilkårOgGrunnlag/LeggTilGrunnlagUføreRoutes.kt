@@ -19,14 +19,14 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.routes.grunnlag.LeggTilUførervurderingerBody
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.søknadsbehandlingPath
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 
 internal fun Route.leggTilUføregrunnlagRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
     satsFactory: SatsFactory,
 ) {
-    post("$søknadsbehandlingPath/{behandlingId}/uføregrunnlag") {
+    post("$SØKNADSBEHANDLING_PATH/{behandlingId}/uføregrunnlag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 call.withBody<LeggTilUførervurderingerBody> { body ->

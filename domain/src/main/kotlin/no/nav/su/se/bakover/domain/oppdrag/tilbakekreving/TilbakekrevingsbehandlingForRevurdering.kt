@@ -188,7 +188,8 @@ data class MottattKravgrunnlag(
             vedtakId = kravgrunnlag.eksternVedtakId,
             ansvarligEnhet = "8020",
             kontrollFelt = kravgrunnlag.eksternKontrollfelt,
-            behandler = kravgrunnlag.behandler, // TODO behandler bør sannsynligvis være fra tilbakekrevingsbehandling/revurdering og ikke kravgrunnlaget
+            // TODO behandler bør sannsynligvis være fra tilbakekrevingsbehandling/revurdering og ikke kravgrunnlaget
+            behandler = kravgrunnlag.behandler,
             tilbakekrevingsperioder = kravgrunnlag.grunnlagsmåneder.map { grunnlagsperiode ->
                 Tilbakekrevingsvedtak.Tilbakekrevingsperiode(
                     periode = grunnlagsperiode.måned,

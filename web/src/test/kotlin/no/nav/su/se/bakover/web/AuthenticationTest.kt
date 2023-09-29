@@ -21,7 +21,8 @@ import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.util.Date
 
-const val secureEndpoint = "/me"
+// TODO jah: Se på navngivningen her.
+const val SECURE_ENDPOINT = "/me"
 
 internal class AuthenticationTest {
 
@@ -31,7 +32,7 @@ internal class AuthenticationTest {
             application {
                 testSusebakoverWithMockedDb()
             }
-            defaultRequest(Get, secureEndpoint).apply {
+            defaultRequest(Get, SECURE_ENDPOINT).apply {
                 assertEquals(Unauthorized, this.status)
             }
         }
@@ -43,7 +44,7 @@ internal class AuthenticationTest {
             application {
                 testSusebakoverWithMockedDb()
             }
-            defaultRequest(Get, secureEndpoint, listOf(Brukerrolle.Veileder)).apply {
+            defaultRequest(Get, SECURE_ENDPOINT, listOf(Brukerrolle.Veileder)).apply {
                 assertEquals(OK, status)
             }
         }
@@ -55,7 +56,7 @@ internal class AuthenticationTest {
             application {
                 testSusebakoverWithMockedDb()
             }
-            client.get(secureEndpoint) {
+            client.get(SECURE_ENDPOINT) {
                 headers {
                     append(HttpHeaders.Authorization, jwtStub.createJwtToken(navIdent = null).asBearerToken())
                 }
@@ -72,7 +73,7 @@ internal class AuthenticationTest {
             application {
                 testSusebakoverWithMockedDb()
             }
-            client.get(secureEndpoint) {
+            client.get(SECURE_ENDPOINT) {
                 header(Authorization, jwtStub.createJwtToken(audience = "wrong_audience").asBearerToken())
             }.apply {
                 assertEquals(Unauthorized, this.status)
@@ -86,7 +87,7 @@ internal class AuthenticationTest {
             application {
                 testSusebakoverWithMockedDb()
             }
-            client.get(secureEndpoint) {
+            client.get(SECURE_ENDPOINT) {
                 header(Authorization, jwtStub.createJwtToken(roller = emptyList()).asBearerToken())
             }.apply {
                 assertEquals(Unauthorized, this.status)
@@ -100,7 +101,7 @@ internal class AuthenticationTest {
             application {
                 testSusebakoverWithMockedDb()
             }
-            client.get(secureEndpoint) {
+            client.get(SECURE_ENDPOINT) {
                 header(
                     Authorization,
                     jwtStub.createJwtToken(expiresAt = Date.from(Instant.now(fixedClock).minusSeconds(1))).asBearerToken(),
@@ -117,7 +118,7 @@ internal class AuthenticationTest {
             application {
                 testSusebakoverWithMockedDb()
             }
-            client.get(secureEndpoint) {
+            client.get(SECURE_ENDPOINT) {
                 header(Authorization, jwtStub.createJwtToken(issuer = "wrong_issuer").asBearerToken())
             }.apply {
                 assertEquals(Unauthorized, this.status)

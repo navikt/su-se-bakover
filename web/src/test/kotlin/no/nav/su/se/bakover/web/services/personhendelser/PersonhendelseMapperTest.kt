@@ -24,12 +24,11 @@ import org.junit.jupiter.api.Test
 import java.time.Instant
 import no.nav.person.pdl.leesah.Personhendelse as EksternPersonhendelse
 
+private const val TOPIC = "topic"
+private const val PARTITION = 0
+private const val OFFSET = 0L
+private const val AKTØR_ID = "1234567890000"
 internal class PersonhendelseMapperTest {
-    private val TOPIC = "topic"
-    private val PARTITION = 0
-    private val OFFSET = 0L
-
-    private val aktørId = "1234567890000"
     private val fnr = Fnr.generer().toString()
     private val opprettet = Instant.now(fixedClock)
 
@@ -37,7 +36,7 @@ internal class PersonhendelseMapperTest {
     fun `mapper fra ekstern dødsfalltype til intern`() {
         val personhendelse = EksternPersonhendelse(
             "hendelseId",
-            listOf(fnr, aktørId),
+            listOf(fnr, AKTØR_ID),
             "FREG",
             opprettet,
             "DOEDSFALL_V1",
@@ -49,7 +48,7 @@ internal class PersonhendelseMapperTest {
             null,
             null,
         )
-        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
+        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, AKTØR_ID, personhendelse)
         val actual = PersonhendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
 
         actual shouldBe Personhendelse.IkkeTilknyttetSak(
@@ -62,7 +61,7 @@ internal class PersonhendelseMapperTest {
                 offset = OFFSET,
                 partisjon = PARTITION,
                 master = "FREG",
-                key = aktørId,
+                key = AKTØR_ID,
             ),
         )
     }
@@ -71,7 +70,7 @@ internal class PersonhendelseMapperTest {
     fun `mapper fra tom ekstern dødsfalltype til intern`() {
         val personhendelse = EksternPersonhendelse(
             "hendelseId",
-            listOf(fnr, aktørId),
+            listOf(fnr, AKTØR_ID),
             "FREG",
             opprettet,
             "DOEDSFALL_V1",
@@ -83,7 +82,7 @@ internal class PersonhendelseMapperTest {
             null,
             null,
         )
-        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
+        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, AKTØR_ID, personhendelse)
         val actual = PersonhendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
 
         actual shouldBe Personhendelse.IkkeTilknyttetSak(
@@ -96,7 +95,7 @@ internal class PersonhendelseMapperTest {
                 offset = OFFSET,
                 partisjon = PARTITION,
                 master = "FREG",
-                key = aktørId,
+                key = AKTØR_ID,
             ),
         )
     }
@@ -105,7 +104,7 @@ internal class PersonhendelseMapperTest {
     fun `mapper fra ekstern utflyttingstype til intern`() {
         val personhendelse = EksternPersonhendelse(
             "hendelseId",
-            listOf(fnr, aktørId),
+            listOf(fnr, AKTØR_ID),
             "FREG",
             opprettet,
             "UTFLYTTING_FRA_NORGE",
@@ -117,7 +116,7 @@ internal class PersonhendelseMapperTest {
             null,
             null,
         )
-        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
+        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, AKTØR_ID, personhendelse)
         val actual = PersonhendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
 
         actual shouldBe Personhendelse.IkkeTilknyttetSak(
@@ -130,7 +129,7 @@ internal class PersonhendelseMapperTest {
                 offset = OFFSET,
                 partisjon = PARTITION,
                 master = "FREG",
-                key = aktørId,
+                key = AKTØR_ID,
             ),
         )
     }
@@ -139,7 +138,7 @@ internal class PersonhendelseMapperTest {
     fun `mapper fra tom ekstern utflyttingstype til intern`() {
         val personhendelse = EksternPersonhendelse(
             "hendelseId",
-            listOf(fnr, aktørId),
+            listOf(fnr, AKTØR_ID),
             "FREG",
             opprettet,
             "UTFLYTTING_FRA_NORGE",
@@ -151,7 +150,7 @@ internal class PersonhendelseMapperTest {
             null,
             null,
         )
-        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
+        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, AKTØR_ID, personhendelse)
         val actual = PersonhendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
 
         actual shouldBe Personhendelse.IkkeTilknyttetSak(
@@ -164,7 +163,7 @@ internal class PersonhendelseMapperTest {
                 offset = OFFSET,
                 partisjon = PARTITION,
                 master = "FREG",
-                key = aktørId,
+                key = AKTØR_ID,
             ),
         )
     }
@@ -173,7 +172,7 @@ internal class PersonhendelseMapperTest {
     fun `mapper fra ekstern sivilstand til intern`() {
         val personhendelse = EksternPersonhendelse(
             "hendelseId",
-            listOf(fnr, aktørId),
+            listOf(fnr, AKTØR_ID),
             "FREG",
             opprettet,
             "SIVILSTAND_V1",
@@ -185,7 +184,7 @@ internal class PersonhendelseMapperTest {
             null,
             null,
         )
-        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
+        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, AKTØR_ID, personhendelse)
         val actual = PersonhendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
 
         actual shouldBe Personhendelse.IkkeTilknyttetSak(
@@ -198,7 +197,7 @@ internal class PersonhendelseMapperTest {
                 offset = OFFSET,
                 partisjon = PARTITION,
                 master = "FREG",
-                key = aktørId,
+                key = AKTØR_ID,
             ),
         )
     }
@@ -207,7 +206,7 @@ internal class PersonhendelseMapperTest {
     fun `mapper fra tom ekstern sivilstand til intern`() {
         val personhendelse = EksternPersonhendelse(
             "hendelseId",
-            listOf(fnr, aktørId),
+            listOf(fnr, AKTØR_ID),
             "FREG",
             opprettet,
             "SIVILSTAND_V1",
@@ -219,7 +218,7 @@ internal class PersonhendelseMapperTest {
             null,
             null,
         )
-        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
+        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, AKTØR_ID, personhendelse)
         val actual = PersonhendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
 
         actual shouldBe Personhendelse.IkkeTilknyttetSak(
@@ -232,7 +231,7 @@ internal class PersonhendelseMapperTest {
                 offset = OFFSET,
                 partisjon = PARTITION,
                 master = "FREG",
-                key = aktørId,
+                key = AKTØR_ID,
             ),
         )
     }
@@ -241,7 +240,7 @@ internal class PersonhendelseMapperTest {
     fun `fjerner prepend i key`() {
         val personhendelse = EksternPersonhendelse(
             "hendelseId",
-            listOf(fnr, aktørId),
+            listOf(fnr, AKTØR_ID),
             "FREG",
             opprettet,
             "UTFLYTTING_FRA_NORGE",
@@ -253,7 +252,7 @@ internal class PersonhendelseMapperTest {
             null,
             null,
         )
-        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, "\u0000$aktørId", personhendelse)
+        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, "\u0000$AKTØR_ID", personhendelse)
         val actual = PersonhendelseMapper.map(message)
 
         actual shouldBe Personhendelse.IkkeTilknyttetSak(
@@ -266,7 +265,7 @@ internal class PersonhendelseMapperTest {
                 offset = OFFSET,
                 partisjon = PARTITION,
                 master = "FREG",
-                key = aktørId,
+                key = AKTØR_ID,
             ),
         ).right()
     }
@@ -275,7 +274,7 @@ internal class PersonhendelseMapperTest {
     fun `skipper hendelser vi ikke er intressert i`() {
         val personhendelse = EksternPersonhendelse(
             "hendelseId",
-            listOf(fnr, aktørId),
+            listOf(fnr, AKTØR_ID),
             "FREG",
             opprettet,
             "FOEDSEL_V1",
@@ -287,7 +286,7 @@ internal class PersonhendelseMapperTest {
             null,
             null,
         )
-        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
+        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, AKTØR_ID, personhendelse)
         val actual = PersonhendelseMapper.map(message)
 
         actual shouldBe KunneIkkeMappePersonhendelse.IkkeAktuellOpplysningstype("hendelseId", "FOEDSEL_V1").left()
@@ -297,7 +296,7 @@ internal class PersonhendelseMapperTest {
     fun `mapper fra ekstern bostedsadresse til intern`() {
         val personhendelse = EksternPersonhendelse(
             "hendelseId",
-            listOf(fnr, aktørId),
+            listOf(fnr, AKTØR_ID),
             "FREG",
             opprettet,
             "BOSTEDSADRESSE_V1",
@@ -324,7 +323,7 @@ internal class PersonhendelseMapperTest {
                 null,
             ),
         )
-        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
+        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, AKTØR_ID, personhendelse)
         val actual = PersonhendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
 
         actual shouldBe Personhendelse.IkkeTilknyttetSak(
@@ -337,7 +336,7 @@ internal class PersonhendelseMapperTest {
                 offset = OFFSET,
                 partisjon = PARTITION,
                 master = "FREG",
-                key = aktørId,
+                key = AKTØR_ID,
             ),
         )
     }
@@ -346,7 +345,7 @@ internal class PersonhendelseMapperTest {
     fun `mapper fra ekstern kontaktadresse til intern`() {
         val personhendelse = EksternPersonhendelse(
             "hendelseId",
-            listOf(fnr, aktørId),
+            listOf(fnr, AKTØR_ID),
             "FREG",
             opprettet,
             "KONTAKTADRESSE_V1",
@@ -374,7 +373,7 @@ internal class PersonhendelseMapperTest {
             ),
             null,
         )
-        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
+        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, AKTØR_ID, personhendelse)
         val actual = PersonhendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
 
         actual shouldBe Personhendelse.IkkeTilknyttetSak(
@@ -387,7 +386,7 @@ internal class PersonhendelseMapperTest {
                 offset = OFFSET,
                 partisjon = PARTITION,
                 master = "FREG",
-                key = aktørId,
+                key = AKTØR_ID,
             ),
         )
     }
