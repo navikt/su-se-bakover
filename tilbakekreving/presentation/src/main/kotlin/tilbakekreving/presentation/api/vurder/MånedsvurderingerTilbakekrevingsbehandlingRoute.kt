@@ -32,6 +32,7 @@ import tilbakekreving.domain.vurdert.OppdaterMånedsvurderingerCommand
 import tilbakekreving.domain.vurdert.Vurdering
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
+import tilbakekreving.presentation.api.common.manglerBrukkerroller
 import tilbakekreving.presentation.api.tilbakekrevingPath
 import java.time.YearMonth
 import java.util.UUID
@@ -67,10 +68,7 @@ private fun Body.toCommand(
         )
     }.let {
         val validatedBrukerroller = Either.catch { brukerroller.toNonEmptyList() }.getOrElse {
-            return HttpStatusCode.InternalServerError.errorJson(
-                message = "teknisk feil: Brukeren mangler brukerroller",
-                code = "mangler_brukerroller",
-            ).left()
+            return manglerBrukkerroller.left()
         }
 
         val validatedMånedsvurderinger = Either.catch { it.toNonEmptyList() }.getOrElse {

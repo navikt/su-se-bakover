@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.common.domain.Attesteringshistorikk
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import tilbakekreving.domain.vurdert.Månedsvurderinger
 
-sealed interface VurdertTilbakekrevingsbehandling : KanVurdere {
+sealed interface VurdertTilbakekrevingsbehandling : KanLeggeTilBrev {
 
     val forrigeSteg: KanVurdere
     override val månedsvurderinger: Månedsvurderinger
@@ -26,17 +26,20 @@ sealed interface VurdertTilbakekrevingsbehandling : KanVurdere {
     }
 
     data class Utfylt(
-        override val forrigeSteg: VurdertTilbakekrevingsbehandling,
+        override val forrigeSteg: KanLeggeTilBrev,
+        override val hendelseId: HendelseId,
         override val månedsvurderinger: Månedsvurderinger,
         override val brevvalg: Brevvalg.SaksbehandlersValg,
         override val attesteringer: Attesteringshistorikk,
-    ) : VurdertTilbakekrevingsbehandling, KanVurdere by forrigeSteg {
+    ) : VurdertTilbakekrevingsbehandling, KanLeggeTilBrev by forrigeSteg {
         constructor(
             forrigeSteg: Utfylt,
+            hendelseId: HendelseId,
             månedsvurderinger: Månedsvurderinger,
         ) : this(
             forrigeSteg = forrigeSteg,
             månedsvurderinger = månedsvurderinger,
+            hendelseId = hendelseId,
             brevvalg = forrigeSteg.brevvalg,
             attesteringer = forrigeSteg.attesteringer,
         )

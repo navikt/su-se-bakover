@@ -1,4 +1,7 @@
-package tilbakekreving.domain.vurdert
+@file:Suppress("PackageDirectoryMismatch")
+// Må ligge i samme pakke som TilbakekrevingsbehandlingHendelse (siden det er et sealed interface), men trenger ikke ligge i samme mappe.
+
+package tilbakekreving.domain
 
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -7,8 +10,6 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
-import tilbakekreving.domain.TilbakekrevingsbehandlingId
-import java.lang.IllegalStateException
 import java.util.UUID
 
 data class BrevTilbakekrevingsbehandlingHendelse(
@@ -18,10 +19,10 @@ data class BrevTilbakekrevingsbehandlingHendelse(
     override val versjon: Hendelsesversjon,
     override val meta: HendelseMetadata,
     override val tidligereHendelseId: HendelseId,
-    val id: TilbakekrevingsbehandlingId,
+    override val id: TilbakekrevingsbehandlingId,
     val utførtAv: NavIdentBruker.Saksbehandler,
     val brevvalg: Brevvalg.SaksbehandlersValg,
-) : Sakshendelse {
+) : TilbakekrevingsbehandlingHendelse {
     override val entitetId: UUID = sakId
     override fun compareTo(other: Sakshendelse): Int {
         require(this.entitetId == other.entitetId && this.sakId == other.sakId)
@@ -37,5 +38,25 @@ data class BrevTilbakekrevingsbehandlingHendelse(
             is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev,
             -> Unit
         }
+    }
+}
+
+internal fun Tilbakekrevingsbehandling.applyHendelse(
+    hendelse: BrevTilbakekrevingsbehandlingHendelse,
+): VurdertTilbakekrevingsbehandling.Utfylt {
+    return when (this) {
+        is OpprettetTilbakekrevingsbehandling -> throw IllegalArgumentException("Kan ikke gå fra en OpprettetTilbakekrevingsbehandling til BrevTilbakekrevingshendelse. Den må månedsvurderes først. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
+        is VurdertTilbakekrevingsbehandling -> VurdertTilbakekrevingsbehandling.Utfylt(
+            forrigeSteg = this,
+            månedsvurderinger = this.månedsvurderinger,
+            hendelseId = hendelse.hendelseId,
+            brevvalg = hendelse.brevvalg,
+            attesteringer = this.attesteringer,
+        )
+
+        is AvbruttTilbakekrevingsbehandling,
+        is IverksattTilbakekrevingsbehandling,
+        is TilbakekrevingsbehandlingTilAttestering,
+        -> TODO("implementer")
     }
 }

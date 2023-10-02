@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
+import tilbakekreving.application.service.BrevTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.HentÅpentKravgrunnlagService
 import tilbakekreving.application.service.MånedsvurderingerTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.OpprettTilbakekrevingsbehandlingService
@@ -15,6 +16,7 @@ import tilbakekreving.infrastructure.KravgrunnlagPostgresRepo
 import tilbakekreving.infrastructure.TilbakekrevingsbehandlingPostgresRepo
 import tilbakekreving.presentation.api.hent.hentKravgrunnlagRoute
 import tilbakekreving.presentation.api.opprett.opprettTilbakekrevingsbehandlingRoute
+import tilbakekreving.presentation.api.vurder.brevTilbakekrevingsbehandlingRoute
 import tilbakekreving.presentation.api.vurder.månedsvurderingerTilbakekrevingsbehandlingRoute
 import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
 import java.time.Clock
@@ -69,6 +71,15 @@ fun Route.tilbakekrevingRoutes(
             sakService = sakService,
             tilgangstyring = tilgangstyringService,
             hendelseRepo = hendelseRepo,
+            clock = clock,
+        ),
+    )
+
+    this.brevTilbakekrevingsbehandlingRoute(
+        BrevTilbakekrevingsbehandlingService(
+            tilgangstyring = tilgangstyringService,
+            sakService = sakService,
+            tilbakekrevingsbehandlingRepo = tilbakekrevingsbehHandlingRepo,
             clock = clock,
         ),
     )

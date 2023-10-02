@@ -8,6 +8,11 @@ internal val ingenÅpneKravgrunnlag = HttpStatusCode.BadRequest.errorJson(
     "ingen_ferdig_behandlede_kravgrunnlag",
 )
 
+internal val manglerBrukkerroller = HttpStatusCode.InternalServerError.errorJson(
+    message = "teknisk feil: Brukeren mangler brukerroller",
+    code = "mangler_brukerroller",
+)
+
 // TODO jah: flytt til person infra/presentation
 internal val ikkeTilgangTilSak = HttpStatusCode.Forbidden.errorJson(
     "Ikke tilgang til sak",

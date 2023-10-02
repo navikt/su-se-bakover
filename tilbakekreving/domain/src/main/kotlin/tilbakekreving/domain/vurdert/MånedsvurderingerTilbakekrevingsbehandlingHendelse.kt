@@ -46,6 +46,7 @@ internal fun Tilbakekrevingsbehandling.applyHendelse(
         )
         is VurdertTilbakekrevingsbehandling.Utfylt -> VurdertTilbakekrevingsbehandling.Utfylt(
             forrigeSteg = this,
+            hendelseId = hendelse.hendelseId,
             månedsvurderinger = hendelse.vurderinger,
         )
         is AvbruttTilbakekrevingsbehandling,
