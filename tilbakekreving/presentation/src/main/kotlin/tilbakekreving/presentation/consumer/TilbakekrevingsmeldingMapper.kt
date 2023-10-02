@@ -74,6 +74,7 @@ data object TilbakekrevingsmeldingMapper {
                                     else -> throw IllegalArgumentException("Ukjent kravgrunnlagstatus: ${kravgrunnlagDto.kodeStatusKrav}")
                                 },
                                 kontrollfelt = kravgrunnlagDto.kontrollfelt,
+                                // TODO jah: Bytt til ren String (vi vet ikke om det er en saksbehandler eller attestant) og det betyr heller ingenting.
                                 behandler = NavIdentBruker.Saksbehandler(kravgrunnlagDto.saksbehId),
                                 utbetalingId = UUID30.fromString(kravgrunnlagDto.utbetalingId),
                                 grunnlagsperioder = kravgrunnlagDto.tilbakekrevingsperioder.map { tilbakekrevingsperiode ->
