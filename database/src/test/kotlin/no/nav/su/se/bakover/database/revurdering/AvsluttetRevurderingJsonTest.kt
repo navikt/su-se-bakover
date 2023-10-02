@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.database.revurdering
 
+import dokument.database.BrevvalgDbJson
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.database.brev.BrevvalgDatabaseJson
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test
@@ -29,7 +29,7 @@ internal class AvsluttetRevurderingJsonTest {
             serialize(
                 AvsluttetRevurderingDatabaseJson(
                     begrunnelse = "en begrunnelse",
-                    brevvalg = BrevvalgDatabaseJson("en fri tekst", null, BrevvalgDatabaseJson.Type.SAKSBEHANDLER_VALG_SKAL_SENDE_INFORMASJONSBREV_MED_FRITEKST),
+                    brevvalg = BrevvalgDbJson("en fri tekst", null, BrevvalgDbJson.Type.SAKSBEHANDLER_VALG_SKAL_SENDE_INFORMASJONSBREV_MED_FRITEKST),
                     tidspunktAvsluttet = fixedTidspunkt,
                     avsluttetAv = saksbehandler.navIdent,
                 ),

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.revurdering
 
 import arrow.core.getOrElse
+import dokument.database.BrevvalgDbJson.Companion.toJson
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.deserializeList
@@ -34,7 +35,6 @@ import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.avkorting.toDb
 import no.nav.su.se.bakover.database.avkorting.toDomain
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
-import no.nav.su.se.bakover.database.brev.BrevvalgDatabaseJson.Companion.toJson
 import no.nav.su.se.bakover.database.brev.BrevvalgRevurderingDbJson
 import no.nav.su.se.bakover.database.brev.toDb
 import no.nav.su.se.bakover.database.brev.toDomain

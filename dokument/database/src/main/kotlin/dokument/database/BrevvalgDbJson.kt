@@ -1,14 +1,14 @@
-package no.nav.su.se.bakover.database.brev
+package dokument.database
 
 import dokument.domain.brev.Brevvalg
 
-data class BrevvalgDatabaseJson(
+data class BrevvalgDbJson(
     val fritekst: String?,
     val begrunnelse: String?,
     val type: Type,
 ) {
     companion object {
-        fun Brevvalg.toJson() = BrevvalgDatabaseJson(
+        fun Brevvalg.toJson() = BrevvalgDbJson(
             fritekst = this.fritekst,
             begrunnelse = this.begrunnelse,
             type = when (this) {

@@ -67,3 +67,4 @@ include("tilbakekreving:domain")
 include("tilbakekreving:infrastructure")
 
 include("person:domain")
+include("dokument:database")
