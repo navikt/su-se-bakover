@@ -5,6 +5,7 @@ package tilbakekreving.domain
 
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.domain.Attesteringshistorikk
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import tilbakekreving.domain.vurdert.Månedsvurderinger
 
 sealed interface VurdertTilbakekrevingsbehandling : KanVurdere {
@@ -17,6 +18,7 @@ sealed interface VurdertTilbakekrevingsbehandling : KanVurdere {
      */
     data class Påbegynt(
         override val forrigeSteg: KanVurdere,
+        override val hendelseId: HendelseId,
         override val månedsvurderinger: Månedsvurderinger,
     ) : VurdertTilbakekrevingsbehandling, KanVurdere by forrigeSteg {
         override val brevvalg: Brevvalg.SaksbehandlersValg? = null

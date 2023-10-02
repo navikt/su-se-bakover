@@ -41,6 +41,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
                 type = when (hendelse) {
                     is OpprettetTilbakekrevingsbehandlingHendelse -> OpprettTilbakekrevingsbehandlingHendelsestype
                     is MånedsvurderingerTilbakekrevingsbehandlingHendelse -> VurderMånederTilbakekrevingsbehandlingHendelsestype
+                    else -> throw IllegalStateException("TilbakekrevingsbehandlingPostgresRepo-lagre mangler type for ${hendelse.id}")
                 },
                 data = hendelse.toJson(),
                 sessionContext = null,
@@ -110,5 +111,6 @@ fun TilbakekrevingsbehandlingHendelse.toJson(): String {
     return when (this) {
         is OpprettetTilbakekrevingsbehandlingHendelse -> this.toJson()
         is MånedsvurderingerTilbakekrevingsbehandlingHendelse -> this.toJson()
+        else -> throw IllegalStateException("TilbakekrevingsbehandlingPostgresRepo-toJson() mangler type for å mappe ${this.id}")
     }
 }

@@ -36,10 +36,12 @@ internal fun Tilbakekrevingsbehandling.applyHendelse(
     return when (this) {
         is OpprettetTilbakekrevingsbehandling -> VurdertTilbakekrevingsbehandling.Påbegynt(
             forrigeSteg = this,
+            hendelseId = hendelse.hendelseId,
             månedsvurderinger = hendelse.vurderinger,
         )
         is VurdertTilbakekrevingsbehandling.Påbegynt -> VurdertTilbakekrevingsbehandling.Påbegynt(
             forrigeSteg = this,
+            hendelseId = hendelse.hendelseId,
             månedsvurderinger = hendelse.vurderinger,
         )
         is VurdertTilbakekrevingsbehandling.Utfylt -> VurdertTilbakekrevingsbehandling.Utfylt(
