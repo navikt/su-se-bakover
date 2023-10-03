@@ -6,10 +6,8 @@ import arrow.core.left
 import arrow.core.right
 import arrow.core.toNonEmptyListOrNone
 import no.nav.su.se.bakover.common.CorrelationId
-import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
@@ -24,7 +22,6 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import tilbakekreving.domain.kravgrunnlag.Grunnlagsmåned
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
@@ -59,17 +56,17 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
                         log.error("Kunne ikke prosessere kravgrunnlag: hentUprosesserteRåttKravgrunnlagHendelser returnerte hendelseId $hendelseId fra basen, men hentRåttKravgrunnlagHendelseForHendelseId fant den ikke. Denne vil prøves på nytt.")
                         return@forEach
                     }
-                val kravgrunnlag = mapRåttKravgrunnlag(råttKravgrunnlagHendelse.råttKravgrunnlag)
-                val saksnummer = kravgrunnlag.saksnummer
+                val kravgrunnlagPåHendelsen = mapRåttKravgrunnlag(råttKravgrunnlagHendelse.råttKravgrunnlag)
+                val saksnummer = kravgrunnlagPåHendelsen.saksnummer
                 val sak = sakService.hentSak(saksnummer).getOrElse {
                     log.error("Kunne ikke prosessere kravgrunnlag: Fant ikke sak med saksnummer $saksnummer, hendelse $hendelseId. Denne vil prøves på nytt.")
                     return@forEach
                 }
                 if (kravgrunnlagRepo.hentKravgrunnlagPåSakHendelser(sak.id).any {
-                        it.eksternKravgrunnlagId == kravgrunnlag.kravgrunnlagId
+                        it.kravgrunnlag.kravgrunnlagId == kravgrunnlagPåHendelsen.kravgrunnlagId
                     }
                 ) {
-                    log.error("Kunne ikke prosessere kravgrunnlag: Fant eksisterende kravgrunnlag knyttet til sak med eksternKravgrunnlagId ${kravgrunnlag.kravgrunnlagId} på sak $saksnummer og hendelse $hendelseId. Ignorerer hendelsen.")
+                    log.error("Kunne ikke prosessere kravgrunnlag: Fant eksisterende kravgrunnlag knyttet til sak med eksternKravgrunnlagId ${kravgrunnlagPåHendelsen.kravgrunnlagId} på sak $saksnummer og hendelse $hendelseId. Ignorerer hendelsen.")
                     hendelsekonsumenterRepo.lagre(
                         hendelseId = råttKravgrunnlagHendelse.hendelseId,
                         konsumentId = konsumentId,
@@ -77,10 +74,11 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
                     return@forEach
                 }
                 val utbetaling =
-                    sak.utbetalinger.filter { it.id == kravgrunnlag.utbetalingId }.toNonEmptyListOrNone().getOrElse {
-                        log.error("Kunne ikke prosessere kravgrunnlag: Fant ikke utbetaling med id ${kravgrunnlag.utbetalingId} på sak $saksnummer og hendelse $hendelseId. Kanskje den ikke er opprettet enda? Prøver igjen ved neste kjøring.")
-                        return@forEach
-                    }.single()
+                    sak.utbetalinger.filter { it.id == kravgrunnlagPåHendelsen.utbetalingId }.toNonEmptyListOrNone()
+                        .getOrElse {
+                            log.error("Kunne ikke prosessere kravgrunnlag: Fant ikke utbetaling med id ${kravgrunnlagPåHendelsen.utbetalingId} på sak $saksnummer og hendelse $hendelseId. Kanskje den ikke er opprettet enda? Prøver igjen ved neste kjøring.")
+                            return@forEach
+                        }.single()
                 when (utbetaling) {
                     is Utbetaling.SimulertUtbetaling,
                     is Utbetaling.UtbetalingForSimulering,
@@ -89,17 +87,27 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
                         log.error("Kunne ikke prosessere kravgrunnlag: Utbetalingen skal ikke være i tilstanden ${utbetaling::class.simpleName} for utbetalingId ${utbetaling.id} og hendelse $hendelseId")
                         return@forEach
                     }
+
                     is Utbetaling.OversendtUtbetaling.MedKvittering -> {
                         val revurdering =
-                            finnRevurderingKnyttetTilKravgrunnlag(sak, kravgrunnlag).getOrElse { return@forEach }
+                            finnRevurderingKnyttetTilKravgrunnlag(
+                                sak,
+                                kravgrunnlagPåHendelsen,
+                            ).getOrElse { return@forEach }
                         val nyHendelse =
-                            nyHendelse(sak, correlationId, råttKravgrunnlagHendelse, kravgrunnlag, revurdering?.id)
+                            nyHendelse(
+                                sak,
+                                correlationId,
+                                råttKravgrunnlagHendelse,
+                                kravgrunnlagPåHendelsen,
+                                revurdering?.id,
+                            )
                         val mottatt = revurdering?.let {
                             (revurdering.tilbakekrevingsbehandling as? Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag)?.mottattKravgrunnlag(
                                 kravgrunnlag = råttKravgrunnlagHendelse.råttKravgrunnlag,
                                 kravgrunnlagMottatt = Tidspunkt.now(clock),
                                 hentRevurdering = { revurdering },
-                                kravgrunnlagMapper = { kravgrunnlag },
+                                kravgrunnlagMapper = { kravgrunnlagPåHendelsen },
                             )
                         }
 
@@ -140,19 +148,7 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
             hendelsestidspunkt = Tidspunkt.now(clock),
             meta = HendelseMetadata.fraCorrelationId(correlationId),
             tidligereHendelseId = råttKravgrunnlagHendelse.hendelseId,
-            eksternKravgrunnlagId = kravgrunnlag.kravgrunnlagId,
-            eksternVedtakId = kravgrunnlag.vedtakId,
-            eksternKontrollfelt = kravgrunnlag.kontrollfelt,
-            status = kravgrunnlag.status,
-            behandler = kravgrunnlag.behandler.navIdent,
-            utbetalingId = kravgrunnlag.utbetalingId,
-            grunnlagsmåneder = kravgrunnlag.grunnlagsperioder.map {
-                Grunnlagsmåned(
-                    måned = it.periode.tilMåned(),
-                    betaltSkattForYtelsesgruppen = it.beløpSkattMnd,
-                    grunnlagsbeløp = it.grunnlagsbeløp.toNonEmptyList(),
-                )
-            }.toNonEmptyList(),
+            kravgrunnlag = kravgrunnlag,
             revurderingId = revurderingId,
         )
     }

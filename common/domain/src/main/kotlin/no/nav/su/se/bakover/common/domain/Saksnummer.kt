@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.common.domain
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonValue
@@ -18,6 +19,13 @@ data class Saksnummer(@JsonValue val nummer: Long) {
             return saksnummer.toLongOrNull()?.let {
                 tryParse(it)
             } ?: UgyldigSaksnummer.left()
+        }
+
+        /**
+         * @throws IllegalArgumentException if saksnummer is invalid
+         */
+        fun parse(saksnummer: String): Saksnummer {
+            return tryParse(saksnummer).getOrElse { throw IllegalArgumentException("Prøvde parse $saksnummer som Saksnummer, men det var ugyldig: $it") }
         }
 
         private fun tryParse(saksnummer: Long): Either<UgyldigSaksnummer, Saksnummer> {

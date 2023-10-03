@@ -4,6 +4,8 @@ import arrow.core.Nel
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.januar
@@ -13,7 +15,6 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.hendelse.hendelseMetadata
-import tilbakekreving.domain.kravgrunnlag.Grunnlagsmåned
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
@@ -65,10 +66,11 @@ fun kravgrunnlagPåSakHendelse(
     status: Kravgrunnlag.KravgrunnlagStatus = Kravgrunnlag.KravgrunnlagStatus.Nytt,
     behandler: String = attestant.navIdent,
     utbetalingId: UUID30 = UUID30.randomUUID(),
-    grunnlagsmåneder: Nel<Grunnlagsmåned> = nonEmptyListOf(
+    grunnlagsmåneder: Nel<Kravgrunnlag.Grunnlagsperiode> = nonEmptyListOf(
         grunnlagsmåned(),
     ),
     revurderingId: UUID? = null,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
 ): KravgrunnlagPåSakHendelse {
     return KravgrunnlagPåSakHendelse(
         hendelseId = hendelseId,
@@ -77,13 +79,16 @@ fun kravgrunnlagPåSakHendelse(
         hendelsestidspunkt = hendelsestidspunkt,
         meta = meta,
         tidligereHendelseId = tidligereHendelseId,
-        eksternKravgrunnlagId = eksternKravgrunnlagId,
-        eksternVedtakId = eksternVedtakId,
-        eksternKontrollfelt = eksternKontrollfelt,
-        status = status,
-        behandler = behandler,
-        utbetalingId = utbetalingId,
-        grunnlagsmåneder = grunnlagsmåneder,
+        kravgrunnlag = Kravgrunnlag(
+            kravgrunnlagId = eksternKravgrunnlagId,
+            vedtakId = eksternVedtakId,
+            kontrollfelt = eksternKontrollfelt,
+            status = status,
+            behandler = NavIdentBruker.Saksbehandler(behandler),
+            utbetalingId = utbetalingId,
+            grunnlagsperioder = grunnlagsmåneder,
+            saksnummer = saksnummer,
+        ),
         revurderingId = revurderingId,
     )
 }
@@ -95,10 +100,10 @@ fun grunnlagsmåned(
         grunnlagsbeløpFeil(),
         grunnlagsbeløpYtel(),
     ),
-): Grunnlagsmåned {
-    return Grunnlagsmåned(
-        måned = måned,
-        betaltSkattForYtelsesgruppen = betaltSkattForYtelsesgruppen,
+): Kravgrunnlag.Grunnlagsperiode {
+    return Kravgrunnlag.Grunnlagsperiode(
+        periode = måned,
+        beløpSkattMnd = betaltSkattForYtelsesgruppen,
         grunnlagsbeløp = grunnlagsbeløps,
     )
 }

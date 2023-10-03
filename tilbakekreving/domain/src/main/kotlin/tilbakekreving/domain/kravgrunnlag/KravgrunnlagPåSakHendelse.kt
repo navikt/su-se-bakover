@@ -1,7 +1,5 @@
 package tilbakekreving.domain.kravgrunnlag
 
-import arrow.core.Nel
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
@@ -28,13 +26,7 @@ data class KravgrunnlagPåSakHendelse(
     override val hendelsestidspunkt: Tidspunkt,
     override val meta: HendelseMetadata,
     override val tidligereHendelseId: HendelseId,
-    val eksternKravgrunnlagId: String,
-    val eksternVedtakId: String,
-    val eksternKontrollfelt: String,
-    val status: Kravgrunnlag.KravgrunnlagStatus,
-    val behandler: String,
-    val utbetalingId: UUID30,
-    val grunnlagsmåneder: Nel<Grunnlagsmåned>,
+    val kravgrunnlag: Kravgrunnlag,
     val revurderingId: UUID?,
 ) : Sakshendelse {
     init {
@@ -59,13 +51,7 @@ data class KravgrunnlagPåSakHendelse(
             entitetId: UUID,
             sakId: UUID,
             tidligereHendelseId: HendelseId,
-            eksternKravgrunnlagId: String,
-            eksternVedtakId: String,
-            eksternKontrollfelt: String,
-            status: Kravgrunnlag.KravgrunnlagStatus,
-            behandler: String,
-            utbetalingId: UUID30,
-            grunnlagsmåneder: Nel<Grunnlagsmåned>,
+            kravgrunnlag: Kravgrunnlag,
             revurderingId: UUID?,
         ): KravgrunnlagPåSakHendelse {
             return KravgrunnlagPåSakHendelse(
@@ -75,13 +61,7 @@ data class KravgrunnlagPåSakHendelse(
                 sakId = sakId,
                 versjon = forrigeVersjon,
                 tidligereHendelseId = tidligereHendelseId,
-                eksternKravgrunnlagId = eksternKravgrunnlagId,
-                eksternVedtakId = eksternVedtakId,
-                eksternKontrollfelt = eksternKontrollfelt,
-                status = status,
-                behandler = behandler,
-                utbetalingId = utbetalingId,
-                grunnlagsmåneder = grunnlagsmåneder,
+                kravgrunnlag = kravgrunnlag,
                 revurderingId = revurderingId,
             ).also {
                 require(it.entitetId == entitetId) {
