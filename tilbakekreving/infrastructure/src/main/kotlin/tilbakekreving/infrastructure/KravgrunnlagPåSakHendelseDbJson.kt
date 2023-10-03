@@ -12,6 +12,7 @@ import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
 import økonomi.domain.KlasseType
 import java.math.BigDecimal
 import java.time.YearMonth
+import java.util.UUID
 
 fun KravgrunnlagPåSakHendelse.toJson(): String {
     return KravgrunnlagPåSakDbJson(
@@ -62,6 +63,7 @@ fun KravgrunnlagPåSakHendelse.toJson(): String {
 
             )
         },
+        revurderingId = revurderingId?.toString(),
     ).let {
         serialize(it)
     }
@@ -126,6 +128,7 @@ fun PersistertHendelse.toKravgrunnlagPåSakHendelse(): KravgrunnlagPåSakHendels
                     }.toNonEmptyList(),
                 )
             }.toNonEmptyList(),
+            revurderingId = json.revurderingId?.let { UUID.fromString(it) },
         )
     }
 }
@@ -141,6 +144,7 @@ private data class KravgrunnlagPåSakDbJson(
     val behandler: String,
     val utbetalingId: String,
     val grunnlagsmåneder: List<GrunnlagsmånedDbJson>,
+    val revurderingId: String?,
 )
 
 /**

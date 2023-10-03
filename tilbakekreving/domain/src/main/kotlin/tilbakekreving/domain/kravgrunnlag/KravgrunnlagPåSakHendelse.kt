@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
 import java.util.UUID
 
 /**
- * Vi knytter et kravgrunnlag mot en sak.
+ * Vi knytter et kravgrunnlag mot en sak, utbetaling og potensielt en revurdering (dersom vi behandlet tilbakekrevingen i revurderingen)
  *
  * @param tidligereHendelseId Hendelsen vi mottok på køen fra Oppdrag. Her vil den originale meldingen ligge. Kan leses som at denne hendelsen erstatter den forrige, selvom entitetId/sakId og versjon ikke vil henge sammen i dette tilfellet. Dette vil gjøre det enklere og debugge sammenhengen mellom disse hendelsene..
  * @param eksternKravgrunnlagId Dette er en ekstern id som genereres og eies av Oppdrag. Den er transient i vårt system.
@@ -19,6 +19,7 @@ import java.util.UUID
  * @param behandler Transient felt. Saksbehandleren/Attestanten knyttet til vedtaket/utbetalinga. Utbetalinga vår kaller dette behandler, så vi gjenbruker det her. Oppdrag har ikke skillet mellom saksbehandler/attestant (men bruker ofte ordet saksbehandler).
  * @param utbetalingId Mappes fra referansefeltet i kravgrunnlaget. En referanse til utbetalingId (vår) som førte til opprettelse/endring av dette kravgrunnlaget. Usikker på om denne kan være null dersom det var en manuell endring som førte til opprettelse av kravgrunnlaget.
  * @param grunnlagsmåneder En eller flere måneder kravgrunnlaget knyttes mot. Antar at det finnes minst ett element i lista.
+ * @param revurderingId Dersom vi har behandlet tilbakekrevingen i en revurdering, så vil denne peke på revurderingen. Dersom denne er tilstede, ønsker vi ikke å starte en separat tilbakekrevingsbehandling.
  */
 data class KravgrunnlagPåSakHendelse(
     override val hendelseId: HendelseId,
@@ -34,6 +35,7 @@ data class KravgrunnlagPåSakHendelse(
     val behandler: String,
     val utbetalingId: UUID30,
     val grunnlagsmåneder: Nel<Grunnlagsmåned>,
+    val revurderingId: UUID?,
 ) : Sakshendelse {
     init {
         require(versjon.value > 1L) {
@@ -64,6 +66,7 @@ data class KravgrunnlagPåSakHendelse(
             behandler: String,
             utbetalingId: UUID30,
             grunnlagsmåneder: Nel<Grunnlagsmåned>,
+            revurderingId: UUID?,
         ): KravgrunnlagPåSakHendelse {
             return KravgrunnlagPåSakHendelse(
                 hendelseId = hendelseId,
@@ -79,6 +82,7 @@ data class KravgrunnlagPåSakHendelse(
                 behandler = behandler,
                 utbetalingId = utbetalingId,
                 grunnlagsmåneder = grunnlagsmåneder,
+                revurderingId = revurderingId,
             ).also {
                 require(it.entitetId == entitetId) {
                     "Den persistert entitetId var ulik den utleda fra domenet:${it.entitetId} vs. $entitetId."

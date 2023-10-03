@@ -11,6 +11,7 @@ dependencies {
     implementation(project(":dokument:domain"))
 
     implementation(project(":domain"))
+    implementation(project(":service"))
     testImplementation(project(":test-common"))
 }
 

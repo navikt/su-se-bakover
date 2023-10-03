@@ -13,7 +13,7 @@ import javax.jms.Session
  * 3. Deserialisere til String.
  * 4. Lagre
  *
- * For selve prosessering av kravgrunnlagene, se [TilbakekrevingJob]
+ * For selve prosessering av kravgrunnlagene, se [SendTilbakekrevingsvedtakForRevurdering]
  */
 internal class TilbakekrevingIbmMqConsumer(
     queueName: String,

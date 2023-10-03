@@ -4,6 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.jobs.shouldRun
+import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.KnyttKravgrunnlagTilSakOgUtbetalingKonsument
@@ -15,6 +16,7 @@ import kotlin.concurrent.fixedRateTimer
  */
 class Tilbakekrevingsjobber(
     private val knyttKravgrunnlagTilSakOgUtbetalingKonsument: KnyttKravgrunnlagTilSakOgUtbetalingKonsument,
+    private val tilbakekrevingService: TilbakekrevingService,
     private val initialDelay: Duration,
     private val intervall: Duration,
     private val runCheckFactory: RunCheckFactory,

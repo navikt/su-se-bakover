@@ -13,9 +13,9 @@ import java.time.Duration
 import kotlin.concurrent.fixedRateTimer
 
 /**
- * Konverterer XML-meldingen fra Oppdrag til domenemodellen
+ * I en overgangsfase, så lenge vi støtter å vurdere tilbakekreving i revurderingen, må vi ha denne jobben som sender tilbakekrevingsvedtakene til oppdrag for de tilfellene.
  */
-internal class TilbakekrevingJob(
+internal class SendTilbakekrevingsvedtakForRevurdering(
     private val tilbakekrevingService: TilbakekrevingService,
     private val initialDelay: Duration,
     private val intervall: Duration,

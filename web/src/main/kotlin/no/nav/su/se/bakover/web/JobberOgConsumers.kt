@@ -41,8 +41,8 @@ import no.nav.su.se.bakover.web.services.klage.klageinstans.Klageinstanshendelse
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
 import no.nav.su.se.bakover.web.services.tilbakekreving.LokalMottaKravgrunnlagJob
+import no.nav.su.se.bakover.web.services.tilbakekreving.SendTilbakekrevingsvedtakForRevurdering
 import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingIbmMqConsumer
-import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingJob
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringIbmMqConsumer
 import økonomi.infrastructure.kvittering.consumer.lokal.LokalKvitteringJob
@@ -259,7 +259,7 @@ fun startJobberOgConsumers(
             tilbakekrevingConsumer = consumers.tilbakekrevingConsumer,
         )
 
-        TilbakekrevingJob(
+        SendTilbakekrevingsvedtakForRevurdering(
             tilbakekrevingService = services.tilbakekrevingService,
             initialDelay = initialDelay.next(),
             intervall = Duration.of(15, ChronoUnit.MINUTES),
@@ -361,7 +361,7 @@ fun startJobberOgConsumers(
             intervall = Duration.ofSeconds(10),
         ).schedule()
 
-        TilbakekrevingJob(
+        SendTilbakekrevingsvedtakForRevurdering(
             tilbakekrevingService = services.tilbakekrevingService,
             initialDelay = initialDelay.next(),
             intervall = Duration.ofSeconds(10),

@@ -6,6 +6,7 @@ dependencies {
 
     implementation(project(":tilbakekreving:domain"))
     implementation(project(":person:domain"))
+    implementation(project(":service"))
 
     testImplementation(project(":test-common"))
 }

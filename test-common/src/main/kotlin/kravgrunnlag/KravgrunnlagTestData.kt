@@ -68,6 +68,7 @@ fun kravgrunnlagPåSakHendelse(
     grunnlagsmåneder: Nel<Grunnlagsmåned> = nonEmptyListOf(
         grunnlagsmåned(),
     ),
+    revurderingId: UUID? = null,
 ): KravgrunnlagPåSakHendelse {
     return KravgrunnlagPåSakHendelse(
         hendelseId = hendelseId,
@@ -83,6 +84,7 @@ fun kravgrunnlagPåSakHendelse(
         behandler = behandler,
         utbetalingId = utbetalingId,
         grunnlagsmåneder = grunnlagsmåneder,
+        revurderingId = revurderingId,
     )
 }
 
