@@ -50,7 +50,7 @@ private data class GrunnlagsmånedDbJson(
 )
 
 /**
- * @see [tilbakekreving.domain.kravgrunnlag.Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp]
+ * @see [tilbakekreving.domain.kravgrunnlag.Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp]
  */
 private data class GrunnlagsbeløpDbJson(
     val kode: String,

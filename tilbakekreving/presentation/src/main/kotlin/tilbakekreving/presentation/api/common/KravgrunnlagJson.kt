@@ -40,9 +40,9 @@ data class GrunnlagsperiodeJson(
     val grunnlagsbeløp: List<GrunnlagsbeløpJson>,
 ) {
     companion object {
-        fun List<Kravgrunnlag.Grunnlagsperiode>.toJson(): List<GrunnlagsperiodeJson> = this.map {
+        fun List<Kravgrunnlag.Grunnlagsmåned>.toJson(): List<GrunnlagsperiodeJson> = this.map {
             GrunnlagsperiodeJson(
-                periode = it.periode.toJson(),
+                periode = it.måned.toJson(),
                 beløpSkattMnd = it.beløpSkattMnd.toString(),
                 grunnlagsbeløp = it.grunnlagsbeløp.toJson(),
             )
@@ -60,7 +60,7 @@ data class GrunnlagsbeløpJson(
     val skatteProsent: String,
 ) {
     companion object {
-        fun List<Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp>.toJson(): List<GrunnlagsbeløpJson> = this.map {
+        fun List<Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp>.toJson(): List<GrunnlagsbeløpJson> = this.map {
             GrunnlagsbeløpJson(
                 kode = it.kode.toJson(),
                 type = it.type.toJson(),

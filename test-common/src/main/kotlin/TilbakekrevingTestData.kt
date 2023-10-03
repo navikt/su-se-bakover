@@ -35,11 +35,11 @@ fun matchendeKravgrunnlag(
             utbetalingId = utbetalingId,
             grunnlagsperioder = it.hentFeilutbetalteBeløp()
                 .map { (periode, feilutbetaling) ->
-                    Kravgrunnlag.Grunnlagsperiode(
-                        periode = periode.tilMåned(),
+                    Kravgrunnlag.Grunnlagsmåned(
+                        måned = periode.tilMåned(),
                         beløpSkattMnd = BigDecimal(4395),
                         grunnlagsbeløp = listOf(
-                            Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp(
+                            Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
                                 kode = KlasseKode.KL_KODE_FEIL_INNT,
                                 type = KlasseType.FEIL,
                                 beløpTidligereUtbetaling = BigDecimal.ZERO,
@@ -48,7 +48,7 @@ fun matchendeKravgrunnlag(
                                 beløpSkalIkkeTilbakekreves = BigDecimal.ZERO,
                                 skatteProsent = BigDecimal.ZERO,
                             ),
-                            Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp(
+                            Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
                                 kode = KlasseKode.SUUFORE,
                                 type = KlasseType.YTEL,
                                 beløpTidligereUtbetaling = BigDecimal(it.hentUtbetalteBeløp(periode)!!.sum()),
@@ -76,7 +76,7 @@ fun nyKravgrunnlag(
     status: Kravgrunnlag.KravgrunnlagStatus = Kravgrunnlag.KravgrunnlagStatus.Manuell,
     behandler: String = saksbehandler.toString(),
     utbetalingId: UUID30 = UUID30.randomUUID(),
-    grunnlagsperioder: List<Kravgrunnlag.Grunnlagsperiode> = emptyList(),
+    grunnlagsperioder: List<Kravgrunnlag.Grunnlagsmåned> = emptyList(),
 ): Kravgrunnlag {
     return Kravgrunnlag(
         saksnummer = saksnummer,

@@ -10,7 +10,7 @@ import com.fasterxml.jackson.module.kotlin.contains
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import økonomi.domain.KlasseKode
@@ -76,14 +76,14 @@ data object TilbakekrevingsmeldingMapper {
                                 behandler = kravgrunnlagDto.saksbehId,
                                 utbetalingId = UUID30.fromString(kravgrunnlagDto.utbetalingId),
                                 grunnlagsperioder = kravgrunnlagDto.tilbakekrevingsperioder.map { tilbakekrevingsperiode ->
-                                    Kravgrunnlag.Grunnlagsperiode(
-                                        periode = Periode.create(
+                                    Kravgrunnlag.Grunnlagsmåned(
+                                        måned = Måned.Companion.fra(
                                             LocalDate.parse(tilbakekrevingsperiode.periode.fraOgMed),
                                             LocalDate.parse(tilbakekrevingsperiode.periode.tilOgMed),
                                         ),
                                         beløpSkattMnd = BigDecimal(tilbakekrevingsperiode.skattebeløpPerMåned),
                                         grunnlagsbeløp = tilbakekrevingsperiode.tilbakekrevingsbeløp.map {
-                                            Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp(
+                                            Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
                                                 kode = KlasseKode.valueOf(it.kodeKlasse),
                                                 type = KlasseType.valueOf(it.typeKlasse),
                                                 beløpTidligereUtbetaling = BigDecimal(it.belopOpprUtbet),

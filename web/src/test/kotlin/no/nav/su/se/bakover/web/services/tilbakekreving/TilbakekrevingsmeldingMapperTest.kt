@@ -87,11 +87,11 @@ internal class TilbakekrevingsmeldingMapperTest {
             behandler = "K231B433",
             utbetalingId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),
             grunnlagsperioder = listOf(
-                Kravgrunnlag.Grunnlagsperiode(
-                    periode = oktober(2021),
+                Kravgrunnlag.Grunnlagsmåned(
+                    måned = oktober(2021),
                     beløpSkattMnd = BigDecimal(4395).setScale(2),
                     grunnlagsbeløp = listOf(
-                        Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp(
+                        Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
                             kode = KlasseKode.KL_KODE_FEIL_INNT,
                             type = KlasseType.FEIL,
                             beløpTidligereUtbetaling = BigDecimal.ZERO.setScale(2),
@@ -100,7 +100,7 @@ internal class TilbakekrevingsmeldingMapperTest {
                             beløpSkalIkkeTilbakekreves = BigDecimal.ZERO.setScale(2),
                             skatteProsent = BigDecimal.ZERO.setScale(4),
                         ),
-                        Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp(
+                        Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
                             kode = KlasseKode.SUUFORE,
                             type = KlasseType.YTEL,
                             beløpTidligereUtbetaling = BigDecimal(9989).setScale(2),
@@ -209,11 +209,11 @@ internal class TilbakekrevingsmeldingMapperTest {
             behandler = "K231B433",
             utbetalingId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),
             grunnlagsperioder = listOf(
-                Kravgrunnlag.Grunnlagsperiode(
-                    periode = oktober(2021),
+                Kravgrunnlag.Grunnlagsmåned(
+                    måned = oktober(2021),
                     beløpSkattMnd = BigDecimal(5280).setScale(2),
                     grunnlagsbeløp = listOf(
-                        Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp(
+                        Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
                             kode = KlasseKode.KL_KODE_FEIL_INNT,
                             type = KlasseType.FEIL,
                             beløpTidligereUtbetaling = BigDecimal.ZERO.setScale(2),
@@ -222,7 +222,7 @@ internal class TilbakekrevingsmeldingMapperTest {
                             beløpSkalIkkeTilbakekreves = BigDecimal.ZERO.setScale(2),
                             skatteProsent = BigDecimal.ZERO.setScale(4),
                         ),
-                        Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp(
+                        Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
                             kode = KlasseKode.SUUFORE,
                             type = KlasseType.YTEL,
                             beløpTidligereUtbetaling = BigDecimal(21989).setScale(2),
@@ -234,11 +234,11 @@ internal class TilbakekrevingsmeldingMapperTest {
                         ),
                     ),
                 ),
-                Kravgrunnlag.Grunnlagsperiode(
-                    periode = november(2021),
+                Kravgrunnlag.Grunnlagsmåned(
+                    måned = november(2021),
                     beløpSkattMnd = BigDecimal(5280).setScale(2),
                     grunnlagsbeløp = listOf(
-                        Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp(
+                        Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
                             kode = KlasseKode.KL_KODE_FEIL_INNT,
                             type = KlasseType.FEIL,
                             beløpTidligereUtbetaling = BigDecimal.ZERO.setScale(2),
@@ -247,7 +247,7 @@ internal class TilbakekrevingsmeldingMapperTest {
                             beløpSkalIkkeTilbakekreves = BigDecimal.ZERO.setScale(2),
                             skatteProsent = BigDecimal.ZERO.setScale(4),
                         ),
-                        Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp(
+                        Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
                             kode = KlasseKode.SUUFORE,
                             type = KlasseType.YTEL,
                             beløpTidligereUtbetaling = BigDecimal(21989).setScale(2),

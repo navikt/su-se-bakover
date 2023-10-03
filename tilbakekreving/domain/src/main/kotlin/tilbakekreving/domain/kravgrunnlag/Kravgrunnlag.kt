@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.MånedBeløp
 import no.nav.su.se.bakover.common.Månedsbeløp
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import økonomi.domain.KlasseKode
 import økonomi.domain.KlasseType
@@ -30,7 +30,7 @@ data class Kravgrunnlag(
      */
     val behandler: String,
     val utbetalingId: UUID30,
-    val grunnlagsperioder: List<Grunnlagsperiode>,
+    val grunnlagsperioder: List<Grunnlagsmåned>,
 ) {
 
     fun hentBeløpSkalTilbakekreves(): Månedsbeløp {
@@ -41,14 +41,17 @@ data class Kravgrunnlag(
         )
     }
 
-    data class Grunnlagsperiode(
-        val periode: Periode,
+    data class Grunnlagsmåned(
+        val måned: Måned,
         val beløpSkattMnd: BigDecimal,
         val grunnlagsbeløp: List<Grunnlagsbeløp>,
     ) {
 
         fun hentBeløpSkalTilbakekreves(): MånedBeløp {
-            return MånedBeløp(periode.tilMåned(), Beløp(grunnlagsbeløp.sumOf { it.beløpSkalTilbakekreves.intValueExact() }))
+            return MånedBeløp(
+                måned.tilMåned(),
+                Beløp(grunnlagsbeløp.sumOf { it.beløpSkalTilbakekreves.intValueExact() }),
+            )
         }
 
         data class Grunnlagsbeløp(

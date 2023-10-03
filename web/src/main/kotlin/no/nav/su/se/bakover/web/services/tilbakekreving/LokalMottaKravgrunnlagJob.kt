@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -120,8 +119,8 @@ internal class LokalMottaKravgrunnlagJob(
                     tilbakekrevingsperioder = kravgrunnlag.grunnlagsperioder.map {
                         KravgrunnlagDto.Tilbakekrevingsperiode(
                             periode = KravgrunnlagDto.Tilbakekrevingsperiode.Periode(
-                                fraOgMed = it.periode.fraOgMed.toString(),
-                                tilOgMed = it.periode.tilOgMed.toString(),
+                                fraOgMed = it.måned.fraOgMed.toString(),
+                                tilOgMed = it.måned.tilOgMed.toString(),
                             ),
                             skattebeløpPerMåned = it.beløpSkattMnd.toString(),
                             tilbakekrevingsbeløp = it.grunnlagsbeløp.map {
@@ -163,15 +162,12 @@ fun matchendeKravgrunnlag(
             behandler = "K231B433",
             utbetalingId = utbetalingId,
             grunnlagsperioder = it.hentFeilutbetalteBeløp()
-                .map { (periode, feilutbetaling) ->
-                    Kravgrunnlag.Grunnlagsperiode(
-                        periode = Periode.create(
-                            fraOgMed = periode.fraOgMed,
-                            tilOgMed = periode.tilOgMed,
-                        ),
+                .map { (måned, feilutbetaling) ->
+                    Kravgrunnlag.Grunnlagsmåned(
+                        måned = måned,
                         beløpSkattMnd = BigDecimal(4395),
                         grunnlagsbeløp = listOf(
-                            Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp(
+                            Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
                                 kode = KlasseKode.KL_KODE_FEIL_INNT,
                                 type = KlasseType.FEIL,
                                 beløpTidligereUtbetaling = BigDecimal.ZERO,
@@ -180,11 +176,11 @@ fun matchendeKravgrunnlag(
                                 beløpSkalIkkeTilbakekreves = BigDecimal.ZERO,
                                 skatteProsent = BigDecimal.ZERO,
                             ),
-                            Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp(
+                            Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
                                 kode = KlasseKode.SUUFORE,
                                 type = KlasseType.YTEL,
-                                beløpTidligereUtbetaling = BigDecimal(it.hentUtbetalteBeløp(periode)!!.sum()),
-                                beløpNyUtbetaling = BigDecimal(it.hentTotalUtbetaling(periode)!!.sum()),
+                                beløpTidligereUtbetaling = BigDecimal(it.hentUtbetalteBeløp(måned)!!.sum()),
+                                beløpNyUtbetaling = BigDecimal(it.hentTotalUtbetaling(måned)!!.sum()),
                                 beløpSkalTilbakekreves = BigDecimal(feilutbetaling.sum()),
                                 beløpSkalIkkeTilbakekreves = BigDecimal.ZERO,
                                 skatteProsent = BigDecimal("43.9983"),
@@ -232,8 +228,8 @@ internal fun matchendeKravgrunnlagDto(
             tilbakekrevingsperioder = kravgrunnlag.grunnlagsperioder.map {
                 KravgrunnlagDto.Tilbakekrevingsperiode(
                     periode = KravgrunnlagDto.Tilbakekrevingsperiode.Periode(
-                        fraOgMed = it.periode.fraOgMed.toString(),
-                        tilOgMed = it.periode.tilOgMed.toString(),
+                        fraOgMed = it.måned.fraOgMed.toString(),
+                        tilOgMed = it.måned.tilOgMed.toString(),
                     ),
                     skattebeløpPerMåned = it.beløpSkattMnd.toString(),
                     tilbakekrevingsbeløp = it.grunnlagsbeløp.map {

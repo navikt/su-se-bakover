@@ -149,7 +149,7 @@ data class MottattKravgrunnlag(
             behandler = kravgrunnlag.behandler,
             tilbakekrevingsperioder = kravgrunnlag.grunnlagsperioder.map { grunnlagsperiode ->
                 Tilbakekrevingsvedtak.Tilbakekrevingsperiode(
-                    periode = grunnlagsperiode.periode,
+                    periode = grunnlagsperiode.måned,
                     renterBeregnes = false,
                     beløpRenter = BigDecimal.ZERO,
                     tilbakekrevingsbeløp = grunnlagsperiode.grunnlagsbeløp.map {
@@ -191,7 +191,7 @@ data class MottattKravgrunnlag(
             behandler = kravgrunnlag.behandler, // TODO behandler bør sannsynligvis være fra tilbakekrevingsbehandling/revurdering og ikke kravgrunnlaget
             tilbakekrevingsperioder = kravgrunnlag.grunnlagsperioder.map { grunnlagsperiode ->
                 Tilbakekrevingsvedtak.Tilbakekrevingsperiode(
-                    periode = grunnlagsperiode.periode,
+                    periode = grunnlagsperiode.måned,
                     renterBeregnes = false,
                     beløpRenter = BigDecimal.ZERO,
                     tilbakekrevingsbeløp = grunnlagsperiode.grunnlagsbeløp.map {
@@ -221,7 +221,7 @@ data class MottattKravgrunnlag(
         )
     }
 
-    private fun mapDelkomponentForFeilutbetaling(it: Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp): Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp {
+    private fun mapDelkomponentForFeilutbetaling(it: Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp): Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp {
         return Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling(
             kodeKlasse = it.kode,
             beløpTidligereUtbetaling = it.beløpTidligereUtbetaling,

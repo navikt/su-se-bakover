@@ -39,8 +39,8 @@ internal data class KravgrunnlagDbJson(
             val beløpSkalIkkeTilbakekreves: String,
             val skatteProsent: String,
         ) {
-            fun toDomain(): Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp {
-                return Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp(
+            fun toDomain(): Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp {
+                return Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
                     kode = when (this.kode) {
                         "SUUFORE" -> økonomi.domain.KlasseKode.SUUFORE
                         "KL_KODE_FEIL_INNT" -> økonomi.domain.KlasseKode.KL_KODE_FEIL_INNT
@@ -67,7 +67,7 @@ internal data class KravgrunnlagDbJson(
             }
 
             companion object {
-                fun Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp.toDbJson(): Beløp {
+                fun Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp.toDbJson(): Beløp {
                     return Beløp(
                         kode = when (this.kode) {
                             økonomi.domain.KlasseKode.SUUFORE -> "SUUFORE"
@@ -94,18 +94,18 @@ internal data class KravgrunnlagDbJson(
             }
         }
 
-        fun toDomain(): Kravgrunnlag.Grunnlagsperiode {
-            return Kravgrunnlag.Grunnlagsperiode(
-                periode = Måned.fra(YearMonth.parse(this.måned)),
+        fun toDomain(): Kravgrunnlag.Grunnlagsmåned {
+            return Kravgrunnlag.Grunnlagsmåned(
+                måned = Måned.fra(YearMonth.parse(this.måned)),
                 beløpSkattMnd = BigDecimal(this.betaltSkattForYtelsesgruppen),
                 grunnlagsbeløp = this.grunnlagsbeløp.map { it.toDomain() },
             )
         }
 
         companion object {
-            fun Kravgrunnlag.Grunnlagsperiode.toDbJson(): Grunnlagsmåned {
+            fun Kravgrunnlag.Grunnlagsmåned.toDbJson(): Grunnlagsmåned {
                 return Grunnlagsmåned(
-                    måned = this.periode.tilMåned().toString(), // uuuu-MM
+                    måned = this.måned.tilMåned().toString(), // uuuu-MM
                     betaltSkattForYtelsesgruppen = this.beløpSkattMnd.toString(),
                     grunnlagsbeløp = this.grunnlagsbeløp.map { it.toDbJson() },
                 )
@@ -154,7 +154,7 @@ internal data class KravgrunnlagDbJson(
                     Kravgrunnlag.KravgrunnlagStatus.Nytt -> "Nytt"
                     Kravgrunnlag.KravgrunnlagStatus.Sperret -> "Sperret"
                 },
-                behandler = this.behandler.toString(),
+                behandler = this.behandler,
                 utbetalingId = this.utbetalingId.value,
                 saksnummer = this.saksnummer.toString(),
                 grunnlagsmåneder = this.grunnlagsperioder.map { it.toDbJson() },
