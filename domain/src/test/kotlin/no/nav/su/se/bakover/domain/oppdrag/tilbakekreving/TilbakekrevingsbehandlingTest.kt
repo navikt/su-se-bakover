@@ -51,7 +51,7 @@ internal class TilbakekrevingsbehandlingTest {
         ).lagTilbakekrevingsvedtak { kravgrunnlag } shouldBe Tilbakekrevingsvedtak.FullTilbakekreving(
             vedtakId = "654321",
             ansvarligEnhet = "8020",
-            kontrollFelt = kravgrunnlag.kontrollfelt,
+            kontrollFelt = kravgrunnlag.eksternKontrollfelt,
             behandler = NavIdentBruker.Saksbehandler("K231B433"), // TODO sannsynligvis tilbakekrevingsbehandling/revurdering
             tilbakekrevingsperioder = listOf(
                 Tilbakekrevingsvedtak.Tilbakekrevingsperiode(
@@ -199,7 +199,7 @@ internal class TilbakekrevingsbehandlingTest {
         ).lagTilbakekrevingsvedtak { kravgrunnlag } shouldBe Tilbakekrevingsvedtak.IngenTilbakekreving(
             vedtakId = "654321",
             ansvarligEnhet = "8020",
-            kontrollFelt = kravgrunnlag.kontrollfelt,
+            kontrollFelt = kravgrunnlag.eksternKontrollfelt,
             behandler = NavIdentBruker.Saksbehandler("K231B433"), // TODO sannsynligvis tilbakekrevingsbehandling/revurdering
             tilbakekrevingsperioder = listOf(
                 Tilbakekrevingsvedtak.Tilbakekrevingsperiode(

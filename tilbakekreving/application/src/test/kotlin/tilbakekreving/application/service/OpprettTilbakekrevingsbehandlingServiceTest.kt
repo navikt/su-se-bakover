@@ -81,7 +81,7 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
                     ),
                     id = it.id, // Denne blir generert av domenet.
                     opprettetAv = opprettetAv,
-                    kravgrunnlagsId = kravgrunnlag.kravgrunnlagId,
+                    kravgrunnlagsId = kravgrunnlag.eksternKravgrunnlagId,
                 )
             },
             anyOrNull(),

@@ -22,9 +22,9 @@ data class KravgrunnlagJson(
 
     companion object {
         fun Kravgrunnlag.toJson(): KravgrunnlagJson = KravgrunnlagJson(
-            eksternKravgrunnlagsId = this.kravgrunnlagId,
-            eksternVedtakId = this.vedtakId,
-            kontrollfelt = this.kontrollfelt,
+            eksternKravgrunnlagsId = this.eksternKravgrunnlagId,
+            eksternVedtakId = this.eksternVedtakId,
+            kontrollfelt = this.eksternKontrollfelt,
             status = this.status.toJson(),
             grunnlagsperiode = this.grunnlagsperioder.toJson(),
         )

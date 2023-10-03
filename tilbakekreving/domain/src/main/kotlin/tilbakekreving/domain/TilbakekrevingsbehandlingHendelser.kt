@@ -89,7 +89,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                 when (hendelse) {
                     is OpprettetTilbakekrevingsbehandlingHendelse -> acc.plus(
                         hendelseId to hendelse.toDomain(
-                            kravgrunnlag = kravgrunnlagPåSak.first { it.kravgrunnlagId == hendelse.kravgrunnlagsId },
+                            kravgrunnlag = kravgrunnlagPåSak.first { it.eksternKravgrunnlagId == hendelse.kravgrunnlagsId },
                         ),
                     )
                     is MånedsvurderingerTilbakekrevingsbehandlingHendelse -> acc.plus(

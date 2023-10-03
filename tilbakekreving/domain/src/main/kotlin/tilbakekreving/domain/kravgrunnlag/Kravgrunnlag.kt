@@ -15,13 +15,13 @@ import java.math.BigDecimal
 data class Kravgrunnlag(
     val saksnummer: Saksnummer,
     /** Dette er en ekstern id som genereres og eies av Oppdrag. Den er transient i vårt system. */
-    val kravgrunnlagId: String,
+    val eksternKravgrunnlagId: String,
 
     /** Dette er en ekstern id som genereres og eies av Oppdrag. Den er transient i vårt system. */
-    val vedtakId: String,
+    val eksternVedtakId: String,
 
     /** Denne er generert av Oppdrag og er vedlagt i kravgrunnlaget, den er transient i vårt system*/
-    val kontrollfelt: String,
+    val eksternKontrollfelt: String,
     val status: KravgrunnlagStatus,
 
     /**

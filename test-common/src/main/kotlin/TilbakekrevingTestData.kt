@@ -28,9 +28,9 @@ fun matchendeKravgrunnlag(
     return simulering.let {
         Kravgrunnlag(
             saksnummer = revurdering.saksnummer,
-            kravgrunnlagId = "123456",
-            vedtakId = "654321",
-            kontrollfelt = Tidspunkt.now(clock).toOppdragTimestamp(),
+            eksternKravgrunnlagId = "123456",
+            eksternVedtakId = "654321",
+            eksternKontrollfelt = Tidspunkt.now(clock).toOppdragTimestamp(),
             status = Kravgrunnlag.KravgrunnlagStatus.Nytt,
             behandler = NavIdentBruker.Saksbehandler("K231B433"),
             utbetalingId = utbetalingId,
@@ -81,9 +81,9 @@ fun nyKravgrunnlag(
 ): Kravgrunnlag {
     return Kravgrunnlag(
         saksnummer = saksnummer,
-        kravgrunnlagId = kravgrunnlagId,
-        vedtakId = vedtakId,
-        kontrollfelt = kontrollfelt,
+        eksternKravgrunnlagId = kravgrunnlagId,
+        eksternVedtakId = vedtakId,
+        eksternKontrollfelt = kontrollfelt,
         status = status,
         behandler = behandler,
         utbetalingId = utbetalingId,

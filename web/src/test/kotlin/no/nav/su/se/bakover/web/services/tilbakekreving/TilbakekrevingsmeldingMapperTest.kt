@@ -81,9 +81,9 @@ internal class TilbakekrevingsmeldingMapperTest {
         TilbakekrevingsmeldingMapper.toDto(inputXml).getOrFail() shouldBe expected
         TilbakekrevingsmeldingMapper.toKravgrunnlag(RåttKravgrunnlag(inputXml)).getOrFail() shouldBe Kravgrunnlag(
             saksnummer = Saksnummer(2461),
-            kravgrunnlagId = "298604",
-            vedtakId = "436204",
-            kontrollfelt = "2022-02-07-18.39.46.586953",
+            eksternKravgrunnlagId = "298604",
+            eksternVedtakId = "436204",
+            eksternKontrollfelt = "2022-02-07-18.39.46.586953",
             status = Kravgrunnlag.KravgrunnlagStatus.Nytt,
             behandler = NavIdentBruker.Saksbehandler("K231B433"),
             utbetalingId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),
@@ -203,9 +203,9 @@ internal class TilbakekrevingsmeldingMapperTest {
         TilbakekrevingsmeldingMapper.toDto(inputXml).getOrFail() shouldBe expected
         TilbakekrevingsmeldingMapper.toKravgrunnlag(RåttKravgrunnlag(inputXml)).getOrFail() shouldBe Kravgrunnlag(
             saksnummer = Saksnummer(2463),
-            kravgrunnlagId = "298606",
-            vedtakId = "436206",
-            kontrollfelt = "2022-02-07-18.39.47.693011",
+            eksternKravgrunnlagId = "298606",
+            eksternVedtakId = "436206",
+            eksternKontrollfelt = "2022-02-07-18.39.47.693011",
             status = Kravgrunnlag.KravgrunnlagStatus.Nytt,
             behandler = NavIdentBruker.Saksbehandler("K231B433"),
             utbetalingId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),

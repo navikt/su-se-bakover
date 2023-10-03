@@ -143,9 +143,9 @@ data class MottattKravgrunnlag(
 
     private fun fullTilbakekreving(kravgrunnlag: Kravgrunnlag): Tilbakekrevingsvedtak.FullTilbakekreving {
         return Tilbakekrevingsvedtak.FullTilbakekreving(
-            vedtakId = kravgrunnlag.vedtakId,
+            vedtakId = kravgrunnlag.eksternVedtakId,
             ansvarligEnhet = "8020",
-            kontrollFelt = kravgrunnlag.kontrollfelt,
+            kontrollFelt = kravgrunnlag.eksternKontrollfelt,
             behandler = kravgrunnlag.behandler,
             tilbakekrevingsperioder = kravgrunnlag.grunnlagsperioder.map { grunnlagsperiode ->
                 Tilbakekrevingsvedtak.Tilbakekrevingsperiode(
@@ -185,9 +185,9 @@ data class MottattKravgrunnlag(
 
     private fun ingenTilbakekreving(kravgrunnlag: Kravgrunnlag): Tilbakekrevingsvedtak.IngenTilbakekreving {
         return Tilbakekrevingsvedtak.IngenTilbakekreving(
-            vedtakId = kravgrunnlag.vedtakId,
+            vedtakId = kravgrunnlag.eksternVedtakId,
             ansvarligEnhet = "8020",
-            kontrollFelt = kravgrunnlag.kontrollfelt,
+            kontrollFelt = kravgrunnlag.eksternKontrollfelt,
             behandler = kravgrunnlag.behandler, // TODO behandler bør sannsynligvis være fra tilbakekrevingsbehandling/revurdering og ikke kravgrunnlaget
             tilbakekrevingsperioder = kravgrunnlag.grunnlagsperioder.map { grunnlagsperiode ->
                 Tilbakekrevingsvedtak.Tilbakekrevingsperiode(

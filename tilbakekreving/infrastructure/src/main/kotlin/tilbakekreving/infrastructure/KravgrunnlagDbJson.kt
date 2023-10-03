@@ -116,9 +116,9 @@ internal data class KravgrunnlagDbJson(
 
     fun toDomain(): Kravgrunnlag {
         return Kravgrunnlag(
-            kravgrunnlagId = this.eksternKravgrunnlagId,
-            vedtakId = this.eksternVedtakId,
-            kontrollfelt = this.eksternKontrollfelt,
+            eksternKravgrunnlagId = this.eksternKravgrunnlagId,
+            eksternVedtakId = this.eksternVedtakId,
+            eksternKontrollfelt = this.eksternKontrollfelt,
             status = when (this.status) {
                 "Annulert" -> Kravgrunnlag.KravgrunnlagStatus.Annulert
                 "AnnulertVedOmg" -> Kravgrunnlag.KravgrunnlagStatus.AnnulertVedOmg
@@ -141,9 +141,9 @@ internal data class KravgrunnlagDbJson(
     companion object {
         fun Kravgrunnlag.toDbJson(): KravgrunnlagDbJson {
             return KravgrunnlagDbJson(
-                eksternKravgrunnlagId = this.kravgrunnlagId,
-                eksternVedtakId = this.vedtakId,
-                eksternKontrollfelt = this.kontrollfelt,
+                eksternKravgrunnlagId = this.eksternKravgrunnlagId,
+                eksternVedtakId = this.eksternVedtakId,
+                eksternKontrollfelt = this.eksternKontrollfelt,
                 status = when (this.status) {
                     Kravgrunnlag.KravgrunnlagStatus.Annulert -> "Annullert"
                     Kravgrunnlag.KravgrunnlagStatus.AnnulertVedOmg -> "AnnulertVedOmg"

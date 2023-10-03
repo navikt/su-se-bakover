@@ -59,8 +59,8 @@ data object TilbakekrevingsmeldingMapper {
                         tilbakekrevingsmeldingDto.kravgrunnlagDto.let { kravgrunnlagDto ->
                             Kravgrunnlag(
                                 saksnummer = Saksnummer(kravgrunnlagDto.fagsystemId.toLong()),
-                                kravgrunnlagId = kravgrunnlagDto.kravgrunnlagId,
-                                vedtakId = kravgrunnlagDto.vedtakId,
+                                eksternKravgrunnlagId = kravgrunnlagDto.kravgrunnlagId,
+                                eksternVedtakId = kravgrunnlagDto.vedtakId,
                                 status = when (kravgrunnlagDto.kodeStatusKrav) {
                                     "ANNU" -> Kravgrunnlag.KravgrunnlagStatus.Annulert
                                     "ANOM" -> Kravgrunnlag.KravgrunnlagStatus.AnnulertVedOmg
@@ -73,7 +73,7 @@ data object TilbakekrevingsmeldingMapper {
                                     "SPER" -> Kravgrunnlag.KravgrunnlagStatus.Sperret
                                     else -> throw IllegalArgumentException("Ukjent kravgrunnlagstatus: ${kravgrunnlagDto.kodeStatusKrav}")
                                 },
-                                kontrollfelt = kravgrunnlagDto.kontrollfelt,
+                                eksternKontrollfelt = kravgrunnlagDto.kontrollfelt,
                                 // TODO jah: Bytt til ren String (vi vet ikke om det er en saksbehandler eller attestant) og det betyr heller ingenting.
                                 behandler = NavIdentBruker.Saksbehandler(kravgrunnlagDto.saksbehId),
                                 utbetalingId = UUID30.fromString(kravgrunnlagDto.utbetalingId),

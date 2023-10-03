@@ -80,9 +80,9 @@ fun kravgrunnlagPåSakHendelse(
         meta = meta,
         tidligereHendelseId = tidligereHendelseId,
         kravgrunnlag = Kravgrunnlag(
-            kravgrunnlagId = eksternKravgrunnlagId,
-            vedtakId = eksternVedtakId,
-            kontrollfelt = eksternKontrollfelt,
+            eksternKravgrunnlagId = eksternKravgrunnlagId,
+            eksternVedtakId = eksternVedtakId,
+            eksternKontrollfelt = eksternKontrollfelt,
             status = status,
             behandler = NavIdentBruker.Saksbehandler(behandler),
             utbetalingId = utbetalingId,

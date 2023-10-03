@@ -63,10 +63,10 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
                     return@forEach
                 }
                 if (kravgrunnlagRepo.hentKravgrunnlagPåSakHendelser(sak.id).any {
-                        it.kravgrunnlag.kravgrunnlagId == kravgrunnlagPåHendelsen.kravgrunnlagId
+                        it.kravgrunnlag.eksternKravgrunnlagId == kravgrunnlagPåHendelsen.eksternKravgrunnlagId
                     }
                 ) {
-                    log.error("Kunne ikke prosessere kravgrunnlag: Fant eksisterende kravgrunnlag knyttet til sak med eksternKravgrunnlagId ${kravgrunnlagPåHendelsen.kravgrunnlagId} på sak $saksnummer og hendelse $hendelseId. Ignorerer hendelsen.")
+                    log.error("Kunne ikke prosessere kravgrunnlag: Fant eksisterende kravgrunnlag knyttet til sak med eksternKravgrunnlagId ${kravgrunnlagPåHendelsen.eksternKravgrunnlagId} på sak $saksnummer og hendelse $hendelseId. Ignorerer hendelsen.")
                     hendelsekonsumenterRepo.lagre(
                         hendelseId = råttKravgrunnlagHendelse.hendelseId,
                         konsumentId = konsumentId,

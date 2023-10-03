@@ -99,8 +99,8 @@ internal class LokalMottaKravgrunnlagJob(
         return TilbakekrevingsmeldingMapper.toXml(
             KravgrunnlagRootDto(
                 kravgrunnlagDto = KravgrunnlagDto(
-                    kravgrunnlagId = kravgrunnlag.kravgrunnlagId,
-                    vedtakId = kravgrunnlag.vedtakId,
+                    kravgrunnlagId = kravgrunnlag.eksternKravgrunnlagId,
+                    vedtakId = kravgrunnlag.eksternVedtakId,
                     kodeStatusKrav = kravgrunnlag.status.toString(),
                     kodeFagområde = "SUUFORE",
                     fagsystemId = revurdering.saksnummer.toString(),
@@ -115,7 +115,7 @@ internal class LokalMottaKravgrunnlagJob(
                     enhetAnsvarlig = "4815",
                     enhetBosted = "8020",
                     enhetBehandl = "4815",
-                    kontrollfelt = kravgrunnlag.kontrollfelt,
+                    kontrollfelt = kravgrunnlag.eksternKontrollfelt,
                     saksbehId = kravgrunnlag.behandler.toString(),
                     utbetalingId = kravgrunnlag.utbetalingId.toString(),
                     tilbakekrevingsperioder = kravgrunnlag.grunnlagsperioder.map {
@@ -157,9 +157,9 @@ fun matchendeKravgrunnlag(
     return simulering.let {
         Kravgrunnlag(
             saksnummer = revurdering.saksnummer,
-            kravgrunnlagId = "123456",
-            vedtakId = "654321",
-            kontrollfelt = Tidspunkt.now(clock).toOppdragTimestamp(),
+            eksternKravgrunnlagId = "123456",
+            eksternVedtakId = "654321",
+            eksternKontrollfelt = Tidspunkt.now(clock).toOppdragTimestamp(),
             status = Kravgrunnlag.KravgrunnlagStatus.Nytt,
             behandler = NavIdentBruker.Saksbehandler("K231B433"),
             utbetalingId = utbetalingId,
@@ -211,8 +211,8 @@ internal fun matchendeKravgrunnlagDto(
     )
     return KravgrunnlagRootDto(
         kravgrunnlagDto = KravgrunnlagDto(
-            kravgrunnlagId = kravgrunnlag.kravgrunnlagId,
-            vedtakId = kravgrunnlag.vedtakId,
+            kravgrunnlagId = kravgrunnlag.eksternKravgrunnlagId,
+            vedtakId = kravgrunnlag.eksternVedtakId,
             kodeStatusKrav = kravgrunnlag.status.toDtoStatus(),
             kodeFagområde = "SUUFORE",
             fagsystemId = revurdering.saksnummer.toString(),
@@ -227,7 +227,7 @@ internal fun matchendeKravgrunnlagDto(
             enhetAnsvarlig = "4815",
             enhetBosted = "8020",
             enhetBehandl = "4815",
-            kontrollfelt = kravgrunnlag.kontrollfelt,
+            kontrollfelt = kravgrunnlag.eksternKontrollfelt,
             saksbehId = kravgrunnlag.behandler.toString(),
             utbetalingId = kravgrunnlag.utbetalingId.toString(),
             tilbakekrevingsperioder = kravgrunnlag.grunnlagsperioder.map {

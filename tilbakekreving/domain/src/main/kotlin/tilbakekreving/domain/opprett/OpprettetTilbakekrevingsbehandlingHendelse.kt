@@ -63,7 +63,7 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
     }
 
     fun toDomain(kravgrunnlag: Kravgrunnlag): OpprettetTilbakekrevingsbehandling {
-        require(kravgrunnlag.kravgrunnlagId == this.kravgrunnlagsId)
+        require(kravgrunnlag.eksternKravgrunnlagId == this.kravgrunnlagsId)
         return OpprettetTilbakekrevingsbehandling(
             id = id,
             sakId = sakId,
