@@ -85,7 +85,7 @@ fun kravgrunnlagPåSakHendelse(
             status = status,
             behandler = behandler,
             utbetalingId = utbetalingId,
-            grunnlagsperioder = grunnlagsmåneder,
+            grunnlagsmåneder = grunnlagsmåneder,
             saksnummer = saksnummer,
         ),
         revurderingId = revurderingId,
@@ -102,7 +102,7 @@ fun grunnlagsmåned(
 ): Kravgrunnlag.Grunnlagsmåned {
     return Kravgrunnlag.Grunnlagsmåned(
         måned = måned,
-        beløpSkattMnd = betaltSkattForYtelsesgruppen,
+        betaltSkattForYtelsesgruppen = betaltSkattForYtelsesgruppen,
         grunnlagsbeløp = grunnlagsbeløps,
     )
 }

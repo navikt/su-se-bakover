@@ -97,7 +97,7 @@ internal data class KravgrunnlagDbJson(
         fun toDomain(): Kravgrunnlag.Grunnlagsmåned {
             return Kravgrunnlag.Grunnlagsmåned(
                 måned = Måned.fra(YearMonth.parse(this.måned)),
-                beløpSkattMnd = BigDecimal(this.betaltSkattForYtelsesgruppen),
+                betaltSkattForYtelsesgruppen = BigDecimal(this.betaltSkattForYtelsesgruppen),
                 grunnlagsbeløp = this.grunnlagsbeløp.map { it.toDomain() },
             )
         }
@@ -106,7 +106,7 @@ internal data class KravgrunnlagDbJson(
             fun Kravgrunnlag.Grunnlagsmåned.toDbJson(): Grunnlagsmåned {
                 return Grunnlagsmåned(
                     måned = this.måned.tilMåned().toString(), // uuuu-MM
-                    betaltSkattForYtelsesgruppen = this.beløpSkattMnd.toString(),
+                    betaltSkattForYtelsesgruppen = this.betaltSkattForYtelsesgruppen.toString(),
                     grunnlagsbeløp = this.grunnlagsbeløp.map { it.toDbJson() },
                 )
             }
@@ -132,7 +132,7 @@ internal data class KravgrunnlagDbJson(
             },
             behandler = this.behandler,
             utbetalingId = UUID30.fromString(this.utbetalingId),
-            grunnlagsperioder = this.grunnlagsmåneder.map { it.toDomain() },
+            grunnlagsmåneder = this.grunnlagsmåneder.map { it.toDomain() },
             saksnummer = Saksnummer.parse(this.saksnummer),
         )
     }
@@ -157,7 +157,7 @@ internal data class KravgrunnlagDbJson(
                 behandler = this.behandler,
                 utbetalingId = this.utbetalingId.value,
                 saksnummer = this.saksnummer.toString(),
-                grunnlagsmåneder = this.grunnlagsperioder.map { it.toDbJson() },
+                grunnlagsmåneder = this.grunnlagsmåneder.map { it.toDbJson() },
             )
         }
     }

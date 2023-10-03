@@ -128,7 +128,7 @@ internal class TilbakekrevingsbehandlingTest {
             tilbakekrevingsvedtak.tilbakekrevingsperioder
                 .flatMap { it.tilbakekrevingsbeløp }
                 .filterIsInstance<Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse>()
-                .all { it.beløpSkatt == BigDecimal("1759") && it.beløpSkatt < kravgrunnlag.grunnlagsperioder[0].beløpSkattMnd } shouldBe true
+                .all { it.beløpSkatt == BigDecimal("1759") && it.beløpSkatt < kravgrunnlag.grunnlagsmåneder[0].betaltSkattForYtelsesgruppen } shouldBe true
         }
     }
 

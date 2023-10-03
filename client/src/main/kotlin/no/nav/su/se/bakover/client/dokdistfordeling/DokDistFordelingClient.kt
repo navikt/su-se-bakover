@@ -87,7 +87,7 @@ class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag
     }
 }
 
-private sealed class PayloadTyper {
+private sealed interface PayloadTyper {
     enum class Distribusjonstype(val value: String) {
         VEDTAK("VEDTAK"),
         VIKTIG("VIKTIG"),

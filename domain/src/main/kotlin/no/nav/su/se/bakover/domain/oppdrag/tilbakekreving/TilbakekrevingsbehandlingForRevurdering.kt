@@ -147,7 +147,7 @@ data class MottattKravgrunnlag(
             ansvarligEnhet = "8020",
             kontrollFelt = kravgrunnlag.eksternKontrollfelt,
             behandler = kravgrunnlag.behandler,
-            tilbakekrevingsperioder = kravgrunnlag.grunnlagsperioder.map { grunnlagsperiode ->
+            tilbakekrevingsperioder = kravgrunnlag.grunnlagsmåneder.map { grunnlagsperiode ->
                 Tilbakekrevingsvedtak.Tilbakekrevingsperiode(
                     periode = grunnlagsperiode.måned,
                     renterBeregnes = false,
@@ -165,7 +165,7 @@ data class MottattKravgrunnlag(
                                         .multiply(it.skatteProsent)
                                         .divide(BigDecimal("100"))
                                         .setScale(0, RoundingMode.DOWN)
-                                        .min(grunnlagsperiode.beløpSkattMnd),
+                                        .min(grunnlagsperiode.betaltSkattForYtelsesgruppen),
                                     tilbakekrevingsresultat = Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING,
                                     skyld = Tilbakekrevingsvedtak.Skyld.BRUKER,
                                 )
@@ -189,7 +189,7 @@ data class MottattKravgrunnlag(
             ansvarligEnhet = "8020",
             kontrollFelt = kravgrunnlag.eksternKontrollfelt,
             behandler = kravgrunnlag.behandler, // TODO behandler bør sannsynligvis være fra tilbakekrevingsbehandling/revurdering og ikke kravgrunnlaget
-            tilbakekrevingsperioder = kravgrunnlag.grunnlagsperioder.map { grunnlagsperiode ->
+            tilbakekrevingsperioder = kravgrunnlag.grunnlagsmåneder.map { grunnlagsperiode ->
                 Tilbakekrevingsvedtak.Tilbakekrevingsperiode(
                     periode = grunnlagsperiode.måned,
                     renterBeregnes = false,

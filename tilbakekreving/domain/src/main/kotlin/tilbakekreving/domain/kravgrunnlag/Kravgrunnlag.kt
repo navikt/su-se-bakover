@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.Månedsbeløp
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import økonomi.domain.KlasseKode
 import økonomi.domain.KlasseType
 import java.math.BigDecimal
@@ -30,12 +29,12 @@ data class Kravgrunnlag(
      */
     val behandler: String,
     val utbetalingId: UUID30,
-    val grunnlagsperioder: List<Grunnlagsmåned>,
+    val grunnlagsmåneder: List<Grunnlagsmåned>,
 ) {
 
     fun hentBeløpSkalTilbakekreves(): Månedsbeløp {
         return Månedsbeløp(
-            grunnlagsperioder
+            grunnlagsmåneder
                 .map { it.hentBeløpSkalTilbakekreves() }
                 .filter { it.sum() > 0 },
         )
@@ -43,14 +42,15 @@ data class Kravgrunnlag(
 
     data class Grunnlagsmåned(
         val måned: Måned,
-        val beløpSkattMnd: BigDecimal,
+        /** Kravgrunnlaget oppgir kun total skatt som er betalt for hele ytelsesgruppen til SU. Så denne kan bare brukes som en øvre grense. */
+        val betaltSkattForYtelsesgruppen: BigDecimal,
         val grunnlagsbeløp: List<Grunnlagsbeløp>,
     ) {
 
         fun hentBeløpSkalTilbakekreves(): MånedBeløp {
             return MånedBeløp(
-                måned.tilMåned(),
-                Beløp(grunnlagsbeløp.sumOf { it.beløpSkalTilbakekreves.intValueExact() }),
+                periode = måned,
+                beløp = Beløp(grunnlagsbeløp.sumOf { it.beløpSkalTilbakekreves.intValueExact() }),
             )
         }
 

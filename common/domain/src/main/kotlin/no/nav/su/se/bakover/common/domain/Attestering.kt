@@ -66,19 +66,19 @@ data class Attesteringshistorikk private constructor(
     JsonSubTypes.Type(value = Attestering.Iverksatt::class, name = "Iverksatt"),
     JsonSubTypes.Type(value = Attestering.Underkjent::class, name = "Underkjent"),
 )
-sealed class Attestering {
-    abstract val attestant: NavIdentBruker.Attestant
-    abstract val opprettet: Tidspunkt
+sealed interface Attestering {
+    val attestant: NavIdentBruker.Attestant
+    val opprettet: Tidspunkt
 
     data class Iverksatt(override val attestant: NavIdentBruker.Attestant, override val opprettet: Tidspunkt) :
-        Attestering()
+        Attestering
 
     data class Underkjent(
         override val attestant: NavIdentBruker.Attestant,
         override val opprettet: Tidspunkt,
         val grunn: Grunn,
         val kommentar: String,
-    ) : Attestering() {
+    ) : Attestering {
         enum class Grunn {
             INNGANGSVILKÅRENE_ER_FEILVURDERT,
             BEREGNINGEN_ER_FEIL,

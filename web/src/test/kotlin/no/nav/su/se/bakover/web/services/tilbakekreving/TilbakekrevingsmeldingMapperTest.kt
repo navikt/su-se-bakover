@@ -86,10 +86,10 @@ internal class TilbakekrevingsmeldingMapperTest {
             status = Kravgrunnlag.KravgrunnlagStatus.Nytt,
             behandler = "K231B433",
             utbetalingId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),
-            grunnlagsperioder = listOf(
+            grunnlagsmåneder = listOf(
                 Kravgrunnlag.Grunnlagsmåned(
                     måned = oktober(2021),
-                    beløpSkattMnd = BigDecimal(4395).setScale(2),
+                    betaltSkattForYtelsesgruppen = BigDecimal(4395).setScale(2),
                     grunnlagsbeløp = listOf(
                         Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
                             kode = KlasseKode.KL_KODE_FEIL_INNT,
@@ -208,10 +208,10 @@ internal class TilbakekrevingsmeldingMapperTest {
             status = Kravgrunnlag.KravgrunnlagStatus.Nytt,
             behandler = "K231B433",
             utbetalingId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),
-            grunnlagsperioder = listOf(
+            grunnlagsmåneder = listOf(
                 Kravgrunnlag.Grunnlagsmåned(
                     måned = oktober(2021),
-                    beløpSkattMnd = BigDecimal(5280).setScale(2),
+                    betaltSkattForYtelsesgruppen = BigDecimal(5280).setScale(2),
                     grunnlagsbeløp = listOf(
                         Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
                             kode = KlasseKode.KL_KODE_FEIL_INNT,
@@ -236,7 +236,7 @@ internal class TilbakekrevingsmeldingMapperTest {
                 ),
                 Kravgrunnlag.Grunnlagsmåned(
                     måned = november(2021),
-                    beløpSkattMnd = BigDecimal(5280).setScale(2),
+                    betaltSkattForYtelsesgruppen = BigDecimal(5280).setScale(2),
                     grunnlagsbeløp = listOf(
                         Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
                             kode = KlasseKode.KL_KODE_FEIL_INNT,

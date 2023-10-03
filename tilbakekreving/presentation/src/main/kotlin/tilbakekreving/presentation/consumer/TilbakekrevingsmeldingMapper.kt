@@ -75,13 +75,13 @@ data object TilbakekrevingsmeldingMapper {
                                 eksternKontrollfelt = kravgrunnlagDto.kontrollfelt,
                                 behandler = kravgrunnlagDto.saksbehId,
                                 utbetalingId = UUID30.fromString(kravgrunnlagDto.utbetalingId),
-                                grunnlagsperioder = kravgrunnlagDto.tilbakekrevingsperioder.map { tilbakekrevingsperiode ->
+                                grunnlagsmåneder = kravgrunnlagDto.tilbakekrevingsperioder.map { tilbakekrevingsperiode ->
                                     Kravgrunnlag.Grunnlagsmåned(
                                         måned = Måned.Companion.fra(
                                             LocalDate.parse(tilbakekrevingsperiode.periode.fraOgMed),
                                             LocalDate.parse(tilbakekrevingsperiode.periode.tilOgMed),
                                         ),
-                                        beløpSkattMnd = BigDecimal(tilbakekrevingsperiode.skattebeløpPerMåned),
+                                        betaltSkattForYtelsesgruppen = BigDecimal(tilbakekrevingsperiode.skattebeløpPerMåned),
                                         grunnlagsbeløp = tilbakekrevingsperiode.tilbakekrevingsbeløp.map {
                                             Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
                                                 kode = KlasseKode.valueOf(it.kodeKlasse),

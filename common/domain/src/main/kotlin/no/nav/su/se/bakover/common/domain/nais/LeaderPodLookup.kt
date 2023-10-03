@@ -6,7 +6,7 @@ interface LeaderPodLookup {
     fun amITheLeader(localHostName: String): Either<LeaderPodLookupFeil, Boolean>
 }
 
-sealed class LeaderPodLookupFeil {
-    data object KunneIkkeKontakteLeaderElectorContainer : LeaderPodLookupFeil()
-    data object UkjentSvarFraLeaderElectorContainer : LeaderPodLookupFeil()
+sealed interface LeaderPodLookupFeil {
+    data object KunneIkkeKontakteLeaderElectorContainer : LeaderPodLookupFeil
+    data object UkjentSvarFraLeaderElectorContainer : LeaderPodLookupFeil
 }

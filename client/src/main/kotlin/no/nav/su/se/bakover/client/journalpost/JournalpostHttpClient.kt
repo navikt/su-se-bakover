@@ -219,16 +219,16 @@ internal class JournalpostHttpClient(
         }
     }
 
-    sealed class GraphQLApiFeil {
+    sealed interface GraphQLApiFeil {
 
-        data class TekniskFeil(val request: Any, val msg: String) : GraphQLApiFeil()
-        sealed class HttpFeil : GraphQLApiFeil() {
-            data class NotFound(val request: Any, val msg: String) : HttpFeil()
-            data class ServerError(val request: Any, val msg: String) : HttpFeil()
-            data class BadRequest(val request: Any, val msg: String) : HttpFeil()
-            data class Forbidden(val request: Any, val msg: String) : HttpFeil()
+        data class TekniskFeil(val request: Any, val msg: String) : GraphQLApiFeil
+        sealed interface HttpFeil : GraphQLApiFeil {
+            data class NotFound(val request: Any, val msg: String) : HttpFeil
+            data class ServerError(val request: Any, val msg: String) : HttpFeil
+            data class BadRequest(val request: Any, val msg: String) : HttpFeil
+            data class Forbidden(val request: Any, val msg: String) : HttpFeil
 
-            data class Ukjent(val request: Any, val msg: String) : HttpFeil()
+            data class Ukjent(val request: Any, val msg: String) : HttpFeil
         }
     }
 }

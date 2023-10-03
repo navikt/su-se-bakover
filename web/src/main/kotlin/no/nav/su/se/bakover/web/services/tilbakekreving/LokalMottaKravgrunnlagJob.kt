@@ -116,13 +116,13 @@ internal class LokalMottaKravgrunnlagJob(
                     kontrollfelt = kravgrunnlag.eksternKontrollfelt,
                     saksbehId = kravgrunnlag.behandler,
                     utbetalingId = kravgrunnlag.utbetalingId.toString(),
-                    tilbakekrevingsperioder = kravgrunnlag.grunnlagsperioder.map {
+                    tilbakekrevingsperioder = kravgrunnlag.grunnlagsmåneder.map {
                         KravgrunnlagDto.Tilbakekrevingsperiode(
                             periode = KravgrunnlagDto.Tilbakekrevingsperiode.Periode(
                                 fraOgMed = it.måned.fraOgMed.toString(),
                                 tilOgMed = it.måned.tilOgMed.toString(),
                             ),
-                            skattebeløpPerMåned = it.beløpSkattMnd.toString(),
+                            skattebeløpPerMåned = it.betaltSkattForYtelsesgruppen.toString(),
                             tilbakekrevingsbeløp = it.grunnlagsbeløp.map {
                                 KravgrunnlagDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
                                     kodeKlasse = it.kode.toString(),
@@ -161,11 +161,11 @@ fun matchendeKravgrunnlag(
             status = Kravgrunnlag.KravgrunnlagStatus.Nytt,
             behandler = "K231B433",
             utbetalingId = utbetalingId,
-            grunnlagsperioder = it.hentFeilutbetalteBeløp()
+            grunnlagsmåneder = it.hentFeilutbetalteBeløp()
                 .map { (måned, feilutbetaling) ->
                     Kravgrunnlag.Grunnlagsmåned(
                         måned = måned,
-                        beløpSkattMnd = BigDecimal(4395),
+                        betaltSkattForYtelsesgruppen = BigDecimal(4395),
                         grunnlagsbeløp = listOf(
                             Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
                                 kode = KlasseKode.KL_KODE_FEIL_INNT,
@@ -225,13 +225,13 @@ internal fun matchendeKravgrunnlagDto(
             kontrollfelt = kravgrunnlag.eksternKontrollfelt,
             saksbehId = kravgrunnlag.behandler,
             utbetalingId = kravgrunnlag.utbetalingId.toString(),
-            tilbakekrevingsperioder = kravgrunnlag.grunnlagsperioder.map {
+            tilbakekrevingsperioder = kravgrunnlag.grunnlagsmåneder.map {
                 KravgrunnlagDto.Tilbakekrevingsperiode(
                     periode = KravgrunnlagDto.Tilbakekrevingsperiode.Periode(
                         fraOgMed = it.måned.fraOgMed.toString(),
                         tilOgMed = it.måned.tilOgMed.toString(),
                     ),
-                    skattebeløpPerMåned = it.beløpSkattMnd.toString(),
+                    skattebeløpPerMåned = it.betaltSkattForYtelsesgruppen.toString(),
                     tilbakekrevingsbeløp = it.grunnlagsbeløp.map {
                         KravgrunnlagDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
                             kodeKlasse = it.kode.toString(),

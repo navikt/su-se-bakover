@@ -33,11 +33,11 @@ fun matchendeKravgrunnlag(
             status = Kravgrunnlag.KravgrunnlagStatus.Nytt,
             behandler = "K231B433",
             utbetalingId = utbetalingId,
-            grunnlagsperioder = it.hentFeilutbetalteBeløp()
+            grunnlagsmåneder = it.hentFeilutbetalteBeløp()
                 .map { (periode, feilutbetaling) ->
                     Kravgrunnlag.Grunnlagsmåned(
                         måned = periode.tilMåned(),
-                        beløpSkattMnd = BigDecimal(4395),
+                        betaltSkattForYtelsesgruppen = BigDecimal(4395),
                         grunnlagsbeløp = listOf(
                             Kravgrunnlag.Grunnlagsmåned.Grunnlagsbeløp(
                                 kode = KlasseKode.KL_KODE_FEIL_INNT,
@@ -86,6 +86,6 @@ fun nyKravgrunnlag(
         status = status,
         behandler = behandler,
         utbetalingId = utbetalingId,
-        grunnlagsperioder = grunnlagsperioder,
+        grunnlagsmåneder = grunnlagsperioder,
     )
 }

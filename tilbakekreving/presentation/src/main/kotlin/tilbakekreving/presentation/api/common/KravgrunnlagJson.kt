@@ -26,7 +26,7 @@ data class KravgrunnlagJson(
             eksternVedtakId = this.eksternVedtakId,
             kontrollfelt = this.eksternKontrollfelt,
             status = this.status.toJson(),
-            grunnlagsperiode = this.grunnlagsperioder.toJson(),
+            grunnlagsperiode = this.grunnlagsmåneder.toJson(),
         )
 
         fun Kravgrunnlag.toStringifiedJson(): String = serialize(this.toJson())
@@ -43,7 +43,7 @@ data class GrunnlagsperiodeJson(
         fun List<Kravgrunnlag.Grunnlagsmåned>.toJson(): List<GrunnlagsperiodeJson> = this.map {
             GrunnlagsperiodeJson(
                 periode = it.måned.toJson(),
-                beløpSkattMnd = it.beløpSkattMnd.toString(),
+                beløpSkattMnd = it.betaltSkattForYtelsesgruppen.toString(),
                 grunnlagsbeløp = it.grunnlagsbeløp.toJson(),
             )
         }

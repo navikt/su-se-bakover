@@ -11,6 +11,7 @@ internal fun List<Adressetype>.finnRiktigAdresseformatOgMapTilPdlAdresse(): List
                 adresseformat = format.type,
                 adressetype = adressetype,
             )
+
             is PostadresseIFrittFormat -> PdlData.Adresse(
                 adresselinje = listOfNotNull(
                     format.adresselinje1,
@@ -21,12 +22,14 @@ internal fun List<Adressetype>.finnRiktigAdresseformatOgMapTilPdlAdresse(): List
                 adresseformat = format.type,
                 adressetype = adressetype,
             )
+
             is Postboksadresse -> PdlData.Adresse(
                 adresselinje = "${format.postbokseier}, ${format.postboks}",
                 postnummer = format.postnummer,
                 adresseformat = format.type,
                 adressetype = adressetype,
             )
+
             is UkjentBosted -> null
             is Matrikkeladresse -> PdlData.Adresse(
                 adresselinje = format.tilleggsnavn ?: "",
@@ -36,6 +39,7 @@ internal fun List<Adressetype>.finnRiktigAdresseformatOgMapTilPdlAdresse(): List
                 adresseformat = format.type,
                 adressetype = adressetype,
             )
+
             is UtenlandskAdresse -> PdlData.Adresse(
                 adresselinje = listOfNotNull(
                     format.adressenavnNummer,
@@ -48,6 +52,7 @@ internal fun List<Adressetype>.finnRiktigAdresseformatOgMapTilPdlAdresse(): List
                 adresseformat = format.type,
                 adressetype = adressetype,
             )
+
             is UtenlandskAdresseIFrittFormat -> PdlData.Adresse(
                 adresselinje = listOfNotNull(
                     format.adresselinje1,
@@ -93,12 +98,17 @@ internal fun List<Adressetype>.finnRiktigAdresseformatOgMapTilPdlAdresse(): List
     }.distinct()
 }
 
-sealed class Adressetype(val type: String)
+sealed interface Adressetype {
+    val type: String
+}
+
 data class Bostedsadresse(
     val vegadresse: Vegadresse?,
     val ukjentBosted: UkjentBosted?,
     val matrikkeladresse: Matrikkeladresse?,
-) : Adressetype(type = "Bostedsadresse")
+) : Adressetype {
+    override val type: String = "Bostedsadresse"
+}
 
 data class Kontaktadresse(
     val vegadresse: Vegadresse?,
@@ -106,15 +116,22 @@ data class Kontaktadresse(
     val postboksadresse: Postboksadresse?,
     val utenlandskAdresse: UtenlandskAdresse?,
     val utenlandskAdresseIFrittFormat: UtenlandskAdresseIFrittFormat?,
-) : Adressetype(type = "Kontaktadresse")
+) : Adressetype {
+    override val type: String = "Kontaktadresse"
+}
 
 data class Oppholdsadresse(
     val vegadresse: Vegadresse?,
     val matrikkeladresse: Matrikkeladresse?,
     val utenlandskAdresse: UtenlandskAdresse?,
-) : Adressetype(type = "Oppholdsadresse")
+) : Adressetype {
+    override val type: String = "Oppholdsadresse"
+}
 
-sealed class Adresseformat(val type: String)
+sealed interface Adresseformat {
+    val type: String
+}
+
 data class Vegadresse(
     val husnummer: String?,
     val husbokstav: String?,
@@ -122,24 +139,32 @@ data class Vegadresse(
     val kommunenummer: String?,
     val postnummer: String?,
     val bruksenhetsnummer: String?,
-) : Adresseformat(type = "Vegadresse")
+) : Adresseformat {
+    override val type = "Vegadresse"
+}
 
 data class PostadresseIFrittFormat(
     val adresselinje1: String?,
     val adresselinje2: String?,
     val adresselinje3: String?,
     val postnummer: String?,
-) : Adresseformat(type = "PostadresseIFrittFormat")
+) : Adresseformat {
+    override val type = "PostadresseIFrittFormat"
+}
 
 data class Postboksadresse(
     val postbokseier: String?,
     val postboks: String?,
     val postnummer: String?,
-) : Adresseformat(type = "Postboksadresse")
+) : Adresseformat {
+    override val type = "Postboksadresse"
+}
 
 data class UkjentBosted(
     val bostedskommune: String,
-) : Adresseformat(type = "UkjentBosted")
+) : Adresseformat {
+    override val type = "UkjentBosted"
+}
 
 data class Matrikkeladresse(
     val matrikkelId: Long?,
@@ -147,7 +172,9 @@ data class Matrikkeladresse(
     val tilleggsnavn: String?,
     val postnummer: String?,
     val kommunenummer: String?,
-) : Adresseformat(type = "Matrikkeladresse")
+) : Adresseformat {
+    override val type = "PostadresseIFrittFormat"
+}
 
 data class UtenlandskAdresse(
     val adressenavnNummer: String?,
@@ -157,7 +184,9 @@ data class UtenlandskAdresse(
     val bySted: String?,
     val regionDistriktOmraade: String?,
     val landkode: String,
-) : Adresseformat(type = "UtenlandskAdresse")
+) : Adresseformat {
+    override val type = "UtenlandskAdresse"
+}
 
 data class UtenlandskAdresseIFrittFormat(
     val adresselinje1: String?,
@@ -166,4 +195,6 @@ data class UtenlandskAdresseIFrittFormat(
     val postkode: String?,
     val byEllerStedsnavn: String?,
     val landkode: String,
-) : Adresseformat(type = "UtenlandskAdresseIFrittFormat")
+) : Adresseformat {
+    override val type = "UtenlandskAdresseIFrittFormat"
+}

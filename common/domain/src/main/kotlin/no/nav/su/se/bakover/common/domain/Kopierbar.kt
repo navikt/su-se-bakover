@@ -19,23 +19,23 @@ interface KopierbarForSnitt<Type> {
     fun copy(args: CopyArgs.Snitt): Type?
 }
 
-sealed class CopyArgs {
-    sealed class Tidslinje : CopyArgs() {
+sealed interface CopyArgs {
+    sealed interface Tidslinje : CopyArgs {
         /**
          * Kopier aktuelt objekt og sett perioden til å være [periode].
          */
-        data class NyPeriode(val periode: Periode) : Tidslinje()
+        data class NyPeriode(val periode: Periode) : Tidslinje
 
         /**
          * Kopier aktuelt objekt som det er.
          */
-        data object Full : Tidslinje()
+        data object Full : Tidslinje
     }
 
     /**
      * Lager kopi hvor perioden settes til snittet av periodene.
      */
-    data class Snitt(val periode: Periode) : CopyArgs() {
+    data class Snitt(val periode: Periode) : CopyArgs {
         fun snittFor(original: Periode): Periode? {
             return original.snitt(periode)
         }

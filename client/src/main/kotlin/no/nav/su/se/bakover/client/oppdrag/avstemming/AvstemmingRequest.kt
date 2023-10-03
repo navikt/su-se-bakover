@@ -168,6 +168,9 @@ internal data class KonsistensavstemmingData(
     )
 }
 
+/**
+ * TODO jah: Bytt til sealed interface? Må løse protected
+ */
 sealed class Aksjonsdata {
     @JacksonXmlProperty
     @Suppress("unused")
