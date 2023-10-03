@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -116,7 +115,7 @@ internal class LokalMottaKravgrunnlagJob(
                     enhetBosted = "8020",
                     enhetBehandl = "4815",
                     kontrollfelt = kravgrunnlag.eksternKontrollfelt,
-                    saksbehId = kravgrunnlag.behandler.toString(),
+                    saksbehId = kravgrunnlag.behandler,
                     utbetalingId = kravgrunnlag.utbetalingId.toString(),
                     tilbakekrevingsperioder = kravgrunnlag.grunnlagsperioder.map {
                         KravgrunnlagDto.Tilbakekrevingsperiode(
@@ -161,7 +160,7 @@ fun matchendeKravgrunnlag(
             eksternVedtakId = "654321",
             eksternKontrollfelt = Tidspunkt.now(clock).toOppdragTimestamp(),
             status = Kravgrunnlag.KravgrunnlagStatus.Nytt,
-            behandler = NavIdentBruker.Saksbehandler("K231B433"),
+            behandler = "K231B433",
             utbetalingId = utbetalingId,
             grunnlagsperioder = it.hentFeilutbetalteBeløp()
                 .map { (periode, feilutbetaling) ->
@@ -228,7 +227,7 @@ internal fun matchendeKravgrunnlagDto(
             enhetBosted = "8020",
             enhetBehandl = "4815",
             kontrollfelt = kravgrunnlag.eksternKontrollfelt,
-            saksbehId = kravgrunnlag.behandler.toString(),
+            saksbehId = kravgrunnlag.behandler,
             utbetalingId = kravgrunnlag.utbetalingId.toString(),
             tilbakekrevingsperioder = kravgrunnlag.grunnlagsperioder.map {
                 KravgrunnlagDto.Tilbakekrevingsperiode(

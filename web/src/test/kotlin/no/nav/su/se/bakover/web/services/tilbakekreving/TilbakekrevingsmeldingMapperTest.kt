@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.web.services.tilbakekreving
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.november
 import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.test.getOrFail
@@ -85,7 +84,7 @@ internal class TilbakekrevingsmeldingMapperTest {
             eksternVedtakId = "436204",
             eksternKontrollfelt = "2022-02-07-18.39.46.586953",
             status = Kravgrunnlag.KravgrunnlagStatus.Nytt,
-            behandler = NavIdentBruker.Saksbehandler("K231B433"),
+            behandler = "K231B433",
             utbetalingId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),
             grunnlagsperioder = listOf(
                 Kravgrunnlag.Grunnlagsperiode(
@@ -207,7 +206,7 @@ internal class TilbakekrevingsmeldingMapperTest {
             eksternVedtakId = "436206",
             eksternKontrollfelt = "2022-02-07-18.39.47.693011",
             status = Kravgrunnlag.KravgrunnlagStatus.Nytt,
-            behandler = NavIdentBruker.Saksbehandler("K231B433"),
+            behandler = "K231B433",
             utbetalingId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),
             grunnlagsperioder = listOf(
                 Kravgrunnlag.Grunnlagsperiode(

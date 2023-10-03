@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.test
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -32,7 +31,7 @@ fun matchendeKravgrunnlag(
             eksternVedtakId = "654321",
             eksternKontrollfelt = Tidspunkt.now(clock).toOppdragTimestamp(),
             status = Kravgrunnlag.KravgrunnlagStatus.Nytt,
-            behandler = NavIdentBruker.Saksbehandler("K231B433"),
+            behandler = "K231B433",
             utbetalingId = utbetalingId,
             grunnlagsperioder = it.hentFeilutbetalteBeløp()
                 .map { (periode, feilutbetaling) ->
@@ -75,7 +74,7 @@ fun nyKravgrunnlag(
     vedtakId: String = "789-101",
     kontrollfelt: String = "19.09.2023.16:54",
     status: Kravgrunnlag.KravgrunnlagStatus = Kravgrunnlag.KravgrunnlagStatus.Manuell,
-    behandler: NavIdentBruker = saksbehandler,
+    behandler: String = saksbehandler.toString(),
     utbetalingId: UUID30 = UUID30.randomUUID(),
     grunnlagsperioder: List<Kravgrunnlag.Grunnlagsperiode> = emptyList(),
 ): Kravgrunnlag {

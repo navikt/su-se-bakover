@@ -2,7 +2,6 @@ package tilbakekreving.infrastructure
 
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
@@ -131,7 +130,7 @@ internal data class KravgrunnlagDbJson(
                 "Sperret" -> Kravgrunnlag.KravgrunnlagStatus.Sperret
                 else -> throw IllegalStateException("Ukjent persistert kravgrunnlagsstatus på KravgrunnlagPåSakHendelse: ${this.status}")
             },
-            behandler = NavIdentBruker.Saksbehandler(this.behandler),
+            behandler = this.behandler,
             utbetalingId = UUID30.fromString(this.utbetalingId),
             grunnlagsperioder = this.grunnlagsmåneder.map { it.toDomain() },
             saksnummer = Saksnummer.parse(this.saksnummer),

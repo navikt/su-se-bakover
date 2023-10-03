@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.oppdrag.tilbakekreving
 import no.nav.su.se.bakover.common.Beløp
 import no.nav.su.se.bakover.common.MånedBeløp
 import no.nav.su.se.bakover.common.Månedsbeløp
-import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import økonomi.domain.KlasseKode
@@ -13,7 +12,7 @@ sealed interface Tilbakekrevingsvedtak {
     val vedtakId: String
     val ansvarligEnhet: String
     val kontrollFelt: String
-    val behandler: NavIdentBruker
+    val behandler: String
     val tilbakekrevingsperioder: List<Tilbakekrevingsperiode>
 
     fun netto(): Månedsbeløp {
@@ -32,7 +31,7 @@ sealed interface Tilbakekrevingsvedtak {
         override val vedtakId: String,
         override val ansvarligEnhet: String,
         override val kontrollFelt: String,
-        override val behandler: NavIdentBruker,
+        override val behandler: String,
         override val tilbakekrevingsperioder: List<Tilbakekrevingsperiode>,
     ) : Tilbakekrevingsvedtak
 
@@ -40,7 +39,7 @@ sealed interface Tilbakekrevingsvedtak {
         override val vedtakId: String,
         override val ansvarligEnhet: String,
         override val kontrollFelt: String,
-        override val behandler: NavIdentBruker,
+        override val behandler: String,
         override val tilbakekrevingsperioder: List<Tilbakekrevingsperiode>,
     ) : Tilbakekrevingsvedtak
 

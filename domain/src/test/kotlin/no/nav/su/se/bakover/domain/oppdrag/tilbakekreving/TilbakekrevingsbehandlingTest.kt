@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.Beløp
 import no.nav.su.se.bakover.common.MånedBeløp
 import no.nav.su.se.bakover.common.Månedsbeløp
 import no.nav.su.se.bakover.common.extensions.juli
-import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.test.fixedClock
@@ -52,7 +51,7 @@ internal class TilbakekrevingsbehandlingTest {
             vedtakId = "654321",
             ansvarligEnhet = "8020",
             kontrollFelt = kravgrunnlag.eksternKontrollfelt,
-            behandler = NavIdentBruker.Saksbehandler("K231B433"), // TODO sannsynligvis tilbakekrevingsbehandling/revurdering
+            behandler = "K231B433",
             tilbakekrevingsperioder = listOf(
                 Tilbakekrevingsvedtak.Tilbakekrevingsperiode(
                     periode = mai(2021),
@@ -200,7 +199,7 @@ internal class TilbakekrevingsbehandlingTest {
             vedtakId = "654321",
             ansvarligEnhet = "8020",
             kontrollFelt = kravgrunnlag.eksternKontrollfelt,
-            behandler = NavIdentBruker.Saksbehandler("K231B433"), // TODO sannsynligvis tilbakekrevingsbehandling/revurdering
+            behandler = "K231B433",
             tilbakekrevingsperioder = listOf(
                 Tilbakekrevingsvedtak.Tilbakekrevingsperiode(
                     periode = mai(2021),

@@ -12,7 +12,6 @@ import no.nav.okonomi.tilbakekrevingservice.KravgrunnlagHentListeResponse
 import no.nav.okonomi.tilbakekrevingservice.TilbakekrevingPortType
 import no.nav.okonomi.tilbakekrevingservice.TilbakekrevingsvedtakRequest
 import no.nav.okonomi.tilbakekrevingservice.TilbakekrevingsvedtakResponse
-import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsvedtak
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingsvedtakForsendelseFeil
@@ -52,7 +51,7 @@ internal class TilbakekrevingSoapClientTest {
                 vedtakId = "12345",
                 ansvarligEnhet = "1111",
                 kontrollFelt = "2222",
-                behandler = NavIdentBruker.Saksbehandler("jab"),
+                behandler = "jab",
                 tilbakekrevingsperioder = listOf(),
             ),
         ) shouldBe TilbakekrevingsvedtakForsendelseFeil.left()
@@ -84,7 +83,7 @@ internal class TilbakekrevingSoapClientTest {
                 vedtakId = "12345",
                 ansvarligEnhet = "1111",
                 kontrollFelt = "2222",
-                behandler = NavIdentBruker.Saksbehandler("jab"),
+                behandler = "jab",
                 tilbakekrevingsperioder = listOf(),
             ),
         ) shouldBe TilbakekrevingsvedtakForsendelseFeil.left()
@@ -126,7 +125,7 @@ internal class TilbakekrevingSoapClientTest {
                 vedtakId = "12345",
                 ansvarligEnhet = "1111",
                 kontrollFelt = "2222",
-                behandler = NavIdentBruker.Saksbehandler("jab"),
+                behandler = "jab",
                 tilbakekrevingsperioder = listOf(),
             ),
         ) shouldBe RåTilbakekrevingsvedtakForsendelse(

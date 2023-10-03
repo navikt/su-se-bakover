@@ -10,7 +10,6 @@ import com.fasterxml.jackson.module.kotlin.contains
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
@@ -74,8 +73,7 @@ data object TilbakekrevingsmeldingMapper {
                                     else -> throw IllegalArgumentException("Ukjent kravgrunnlagstatus: ${kravgrunnlagDto.kodeStatusKrav}")
                                 },
                                 eksternKontrollfelt = kravgrunnlagDto.kontrollfelt,
-                                // TODO jah: Bytt til ren String (vi vet ikke om det er en saksbehandler eller attestant) og det betyr heller ingenting.
-                                behandler = NavIdentBruker.Saksbehandler(kravgrunnlagDto.saksbehId),
+                                behandler = kravgrunnlagDto.saksbehId,
                                 utbetalingId = UUID30.fromString(kravgrunnlagDto.utbetalingId),
                                 grunnlagsperioder = kravgrunnlagDto.tilbakekrevingsperioder.map { tilbakekrevingsperiode ->
                                     Kravgrunnlag.Grunnlagsperiode(

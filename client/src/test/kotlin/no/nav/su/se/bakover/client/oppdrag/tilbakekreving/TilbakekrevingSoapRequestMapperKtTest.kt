@@ -17,7 +17,7 @@ internal class TilbakekrevingSoapRequestMapperKtTest {
             vedtakId = "436204",
             ansvarligEnhet = "8020",
             kontrollFelt = "2022-02-07-18.39.46.586953",
-            behandler = saksbehandler,
+            behandler = saksbehandler.toString(),
             tilbakekrevingsperioder = listOf(
                 Tilbakekrevingsvedtak.Tilbakekrevingsperiode(
                     periode = oktober(2021),
@@ -99,7 +99,7 @@ internal class TilbakekrevingSoapRequestMapperKtTest {
             vedtakId = "436204",
             ansvarligEnhet = "8020",
             kontrollFelt = "2022-02-07-18.39.46.586953",
-            behandler = saksbehandler,
+            behandler = saksbehandler.toString(),
             tilbakekrevingsperioder = listOf(
                 Tilbakekrevingsvedtak.Tilbakekrevingsperiode(
                     periode = oktober(2021),
