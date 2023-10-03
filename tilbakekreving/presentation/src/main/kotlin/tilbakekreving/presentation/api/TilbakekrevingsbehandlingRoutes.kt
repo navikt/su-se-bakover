@@ -12,8 +12,10 @@ import tilbakekreving.application.service.HentÅpentKravgrunnlagService
 import tilbakekreving.application.service.MånedsvurderingerTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.OpprettTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.TilbakekrevingsbehandlingTilgangstyringService
+import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingService
 import tilbakekreving.infrastructure.KravgrunnlagPostgresRepo
 import tilbakekreving.infrastructure.TilbakekrevingsbehandlingPostgresRepo
+import tilbakekreving.presentation.api.forhåndsvarsel.forhåndsvarsleTilbakekrevingRoute
 import tilbakekreving.presentation.api.hent.hentKravgrunnlagRoute
 import tilbakekreving.presentation.api.opprett.opprettTilbakekrevingsbehandlingRoute
 import tilbakekreving.presentation.api.vurder.brevTilbakekrevingsbehandlingRoute
@@ -81,6 +83,14 @@ fun Route.tilbakekrevingRoutes(
             sakService = sakService,
             tilbakekrevingsbehandlingRepo = tilbakekrevingsbehHandlingRepo,
             clock = clock,
+        ),
+    )
+
+    this.forhåndsvarsleTilbakekrevingRoute(
+        ForhåndsvarsleTilbakekrevingsbehandlingService(
+            tilbakekrevingsbehandlingRepo = tilbakekrevingsbehHandlingRepo,
+            sakService = sakService,
+            tilgangstyring = tilgangstyringService,
         ),
     )
 }
