@@ -5,8 +5,8 @@ package tilbakekreving.domain
 
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.vurdert.Månedsvurderinger
 import tilbakekreving.domain.vurdert.OppdaterBrevtekstCommand
@@ -27,7 +27,7 @@ sealed interface KanLeggeTilBrev : KanVurdere {
             sakId = command.sakId,
             hendelsestidspunkt = Tidspunkt.now(clock),
             versjon = nesteVersjon,
-            meta = HendelseMetadata(
+            meta = DefaultHendelseMetadata(
                 correlationId = command.correlationId,
                 ident = command.utførtAv,
                 brukerroller = command.brukerroller,

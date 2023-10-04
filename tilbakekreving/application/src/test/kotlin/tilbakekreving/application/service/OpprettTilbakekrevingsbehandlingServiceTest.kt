@@ -5,7 +5,7 @@ import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -74,7 +74,7 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
                     sakId = sakId,
                     hendelsestidspunkt = it.hendelsestidspunkt, // vi bruker tikkende-klokke
                     versjon = Hendelsesversjon(value = 2),
-                    meta = HendelseMetadata(
+                    meta = DefaultHendelseMetadata(
                         correlationId = correlationId,
                         ident = saksbehandler,
                         brukerroller = brukerroller,

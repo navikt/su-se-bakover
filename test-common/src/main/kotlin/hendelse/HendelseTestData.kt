@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.SakOpprettetHendelse
@@ -35,7 +36,7 @@ fun hendelseMetadata(
     correlationId: CorrelationId? = correlationId(),
     ident: NavIdentBruker? = saksbehandler,
     brukerroller: List<Brukerrolle> = listOf(Brukerrolle.Saksbehandler, Brukerrolle.Attestant),
-) = HendelseMetadata(
+) = DefaultHendelseMetadata(
     correlationId = correlationId,
     ident = ident,
     brukerroller = brukerroller,

@@ -11,8 +11,8 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
@@ -220,7 +220,7 @@ class OpprettOppgaverForInstitusjonsoppholdshendelserTest {
                     versjon = Hendelsesversjon(value = 3),
                     hendelsestidspunkt = fixedTidspunkt,
                     oppgaveId = OppgaveId("oppgaveId"),
-                    meta = HendelseMetadata.fraCorrelationId(correlationId),
+                    meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
                     relaterteHendelser = listOf(hendelse.hendelseId),
                 )
             },

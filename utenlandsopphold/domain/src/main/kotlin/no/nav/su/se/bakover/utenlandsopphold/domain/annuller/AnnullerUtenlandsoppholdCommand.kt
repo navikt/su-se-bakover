@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.utenlandsopphold.domain.annuller
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdHendelse
 import java.time.Clock
@@ -30,7 +30,7 @@ data class AnnullerUtenlandsoppholdCommand(
             nesteVersjon = nesteVersjon,
             utførtAv = opprettetAv,
             clock = clock,
-            hendelseMetadata = HendelseMetadata(
+            hendelseMetadata = DefaultHendelseMetadata(
                 correlationId = correlationId,
                 ident = opprettetAv,
                 brukerroller = brukerroller,

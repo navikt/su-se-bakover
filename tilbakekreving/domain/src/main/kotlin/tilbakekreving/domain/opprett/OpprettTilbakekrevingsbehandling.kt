@@ -1,6 +1,6 @@
 package tilbakekreving.domain.opprett
 
-import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandling
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
@@ -16,7 +16,7 @@ fun opprettTilbakekrevingsbehandling(
     return OpprettetTilbakekrevingsbehandlingHendelse.opprett(
         sakId = command.sakId,
         opprettetAv = command.opprettetAv,
-        meta = HendelseMetadata(
+        meta = DefaultHendelseMetadata(
             correlationId = command.correlationId,
             ident = command.opprettetAv,
             brukerroller = command.brukerroller,

@@ -17,8 +17,8 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelseskonsument
@@ -176,7 +176,7 @@ class OpprettOppgaverForInstitusjonsoppholdshendelser(
             versjon = nesteHendelsesversjon(),
             oppgaveId = oppgaveId,
             hendelsestidspunkt = Tidspunkt.now(clock),
-            meta = HendelseMetadata.fraCorrelationId(correlationId),
+            meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
             relaterteHendelser = hendelserSomManglerOppgaver,
         )
         sessionFactory.withTransactionContext { tx ->

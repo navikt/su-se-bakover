@@ -2,8 +2,8 @@ package økonomi.application.kvittering
 
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import økonomi.domain.kvittering.RåKvitteringHendelse
 import økonomi.domain.kvittering.UtbetalingKvitteringRepo
 import java.time.Clock
@@ -24,7 +24,7 @@ class RåKvitteringService(
             hendelse = RåKvitteringHendelse(
                 hendelseId = HendelseId.generer(),
                 hendelsestidspunkt = Tidspunkt.now(clock),
-                meta = HendelseMetadata.fraCorrelationId(correlationId),
+                meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
                 originalKvittering = originalKvittering,
             ),
         )

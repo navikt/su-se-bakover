@@ -14,8 +14,8 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandl
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.vedtak.Revurderingsvedtak
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelseskonsument
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
@@ -146,7 +146,7 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
             versjon = sak.versjon.inc(),
             sakId = sak.id,
             hendelsestidspunkt = Tidspunkt.now(clock),
-            meta = HendelseMetadata.fraCorrelationId(correlationId),
+            meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
             tidligereHendelseId = råttKravgrunnlagHendelse.hendelseId,
             kravgrunnlag = kravgrunnlag,
             revurderingId = revurderingId,

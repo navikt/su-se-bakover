@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.SakOpprettetHendelse
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
-import no.nav.su.se.bakover.hendelse.infrastructure.persistence.MetadataJson.Companion.toMeta
+import no.nav.su.se.bakover.hendelse.infrastructure.persistence.DefaultMetadataJson.Companion.toMeta
 import java.util.UUID
 
 class HendelsePostgresRepo(
@@ -188,7 +188,7 @@ class HendelsePostgresRepo(
                     SakOpprettetHendelseJson.toDomain(
                         hendelseId = HendelseId.fromUUID(it.uuid("hendelseId")),
                         sakId = it.uuid("sakId"),
-                        metadata = MetadataJson.toDomain(it.string("meta")),
+                        metadata = DefaultMetadataJson.toDomain(it.string("meta")),
                         json = it.string("data"),
                         entitetId = it.uuid("entitetId"),
                         versjon = it.long("versjon"),
@@ -228,7 +228,7 @@ class HendelsePostgresRepo(
             sakId = it.uuidOrNull("sakId"),
             hendelseId = HendelseId.fromUUID(it.uuid("hendelseId")),
             tidligereHendelseId = it.uuidOrNull("tidligereHendelseId")?.let { HendelseId.fromUUID(it) },
-            hendelseMetadata = MetadataJson.toDomain(it.string("meta")),
+            hendelseMetadata = DefaultMetadataJson.toDomain(it.string("meta")),
             entitetId = it.uuid("entitetId"),
         )
     }

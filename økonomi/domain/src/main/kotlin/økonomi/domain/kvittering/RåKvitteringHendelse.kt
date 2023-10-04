@@ -3,6 +3,7 @@ package økonomi.domain.kvittering
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelse
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
@@ -72,7 +73,7 @@ data class RåKvitteringHendelse(
         return KvitteringPåSakHendelse(
             hendelseId = HendelseId.generer(),
             hendelsestidspunkt = Tidspunkt.now(clock),
-            meta = HendelseMetadata.fraCorrelationId(correlationId),
+            meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
             sakId = sakId,
             utbetalingsstatus = utbetalingsstatus,
             originalKvittering = this.originalKvittering,

@@ -5,8 +5,8 @@ package tilbakekreving.domain
 
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.vurdert.Månedsvurderinger
 import tilbakekreving.domain.vurdert.OppdaterMånedsvurderingerCommand
@@ -25,7 +25,7 @@ sealed interface KanVurdere : Tilbakekrevingsbehandling {
             hendelsestidspunkt = Tidspunkt.now(clock),
             versjon = nesteVersjon,
             tidligereHendelseId = tidligereHendelsesId,
-            meta = HendelseMetadata(
+            meta = DefaultHendelseMetadata(
                 correlationId = command.correlationId,
                 ident = command.utførtAv,
                 brukerroller = command.brukerroller,

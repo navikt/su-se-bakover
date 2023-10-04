@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
-import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdDokumentasjon
 import java.time.Clock
@@ -34,7 +34,7 @@ data class RegistrerUtenlandsoppholdCommand(
             begrunnelse = begrunnelse,
             opprettetAv = opprettetAv,
             clock = clock,
-            hendelseMetadata = HendelseMetadata(
+            hendelseMetadata = DefaultHendelseMetadata(
                 correlationId = correlationId,
                 ident = opprettetAv,
                 brukerroller = brukerroller,

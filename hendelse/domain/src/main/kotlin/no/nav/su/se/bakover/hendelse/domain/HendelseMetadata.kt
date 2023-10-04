@@ -9,17 +9,23 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
  * @param ident Brukeren som utførte handlingen og rollen vi tilegnet den.
  * @param brukerroller Rollene brukeren har som har tilknytning til dette systemet.
  */
-data class HendelseMetadata(
-    val correlationId: CorrelationId?,
-    val ident: NavIdentBruker?,
-    val brukerroller: List<Brukerrolle>,
-) {
+data class DefaultHendelseMetadata(
+    override val correlationId: CorrelationId?,
+    override val ident: NavIdentBruker?,
+    override val brukerroller: List<Brukerrolle>,
+) : HendelseMetadata {
     companion object {
-        fun tom(): HendelseMetadata = HendelseMetadata(null, null, emptyList())
-        fun fraCorrelationId(correlationId: CorrelationId): HendelseMetadata = HendelseMetadata(
+        fun tom() = DefaultHendelseMetadata(null, null, emptyList())
+        fun fraCorrelationId(correlationId: CorrelationId) = DefaultHendelseMetadata(
             correlationId = correlationId,
             ident = null,
             brukerroller = emptyList(),
         )
     }
+}
+
+interface HendelseMetadata {
+    val correlationId: CorrelationId?
+    val ident: NavIdentBruker?
+    val brukerroller: List<Brukerrolle>
 }
