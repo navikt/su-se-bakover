@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
-import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingConsumer
 import no.nav.su.se.bakover.web.susebakover
 import org.mockito.kotlin.mock
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringConsumer
@@ -52,11 +51,6 @@ class AppComponents private constructor(
                 services = services,
             )
             val consumers = Consumers(
-                tilbakekrevingConsumer = TilbakekrevingConsumer(
-                    tilbakekrevingService = services.tilbakekrevingService,
-                    revurderingService = services.revurdering,
-                    clock = clock,
-                ),
                 utbetalingKvitteringConsumer = UtbetalingKvitteringConsumer(
                     utbetalingService = services.utbetaling,
                     ferdigstillVedtakService = services.ferdigstillVedtak,

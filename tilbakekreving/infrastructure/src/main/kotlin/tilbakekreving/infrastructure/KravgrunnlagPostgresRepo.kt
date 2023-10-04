@@ -3,10 +3,10 @@ package tilbakekreving.infrastructure
 import arrow.core.Either
 import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withOptionalSession
-import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
@@ -27,7 +27,7 @@ val MottattKravgrunnlagHendelsestype = Hendelsestype("MOTTATT_KRAVGRUNNLAG")
 val KnyttetKravgrunnlagTilSakHendelsestype = Hendelsestype("KNYTTET_KRAVGRUNNLAG_TIL_SAK")
 
 class KravgrunnlagPostgresRepo(
-    private val sessionFactory: PostgresSessionFactory,
+    private val sessionFactory: SessionFactory,
     private val hendelseRepo: HendelseRepo,
     private val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
     private val mapper: (råttKravgrunnlag: RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
@@ -162,7 +162,7 @@ class KravgrunnlagPostgresRepo(
         hendelseId: HendelseId,
         sessionContext: SessionContext?,
     ): KravgrunnlagPåSakHendelse? {
-        return (hendelseRepo as HendelsePostgresRepo).hentHendelseForHendelseId(hendelseId)
+        return (hendelseRepo as HendelsePostgresRepo).hentHendelseForHendelseId(hendelseId, sessionContext)
             ?.toKravgrunnlagPåSakHendelse()
     }
 

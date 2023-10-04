@@ -24,4 +24,22 @@ data class JMSHendelseMetadata(
 ) : HendelseMetadata {
     override val ident: NavIdentBruker? = null
     override val brukerroller: List<Brukerrolle> = emptyList()
+
+    companion object {
+        fun fromCorrelationId(correlationId: CorrelationId): JMSHendelseMetadata =
+            JMSHendelseMetadata(
+                jmsCorrelationId = null,
+                jmsDeliveryMode = null,
+                jmsDeliveryTime = null,
+                jmsDestination = null,
+                jmsExpiration = null,
+                jmsMessageId = null,
+                jmsPriority = null,
+                jmsRedelivered = null,
+                jmsReplyTo = null,
+                jmsTimestamp = null,
+                jmsType = null,
+                correlationId = correlationId,
+            )
+    }
 }

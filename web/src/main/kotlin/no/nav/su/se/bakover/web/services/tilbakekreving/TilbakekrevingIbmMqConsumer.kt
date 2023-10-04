@@ -1,11 +1,6 @@
 package no.nav.su.se.bakover.web.services.tilbakekreving
 
-import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
-import no.nav.su.se.bakover.common.sikkerLogg
-import org.slf4j.LoggerFactory
-import javax.jms.JMSContext
-import javax.jms.Session
-
+/*
 /**
  * Har ansvar for:
  * 1. Integrasjonen mot meldingskøen.
@@ -44,3 +39,5 @@ internal class TilbakekrevingIbmMqConsumer(
         jmsContext.start()
     }
 }
+
+ */

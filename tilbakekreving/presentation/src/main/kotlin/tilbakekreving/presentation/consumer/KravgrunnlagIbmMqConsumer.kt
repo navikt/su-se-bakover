@@ -16,7 +16,7 @@ import javax.jms.Session
  *
  * Denne skal erstatte TilbakekrevingIbmMqConsumer
  */
-internal class KravgrunnlagIbmMqConsumer(
+class KravgrunnlagIbmMqConsumer(
     queueName: String,
     globalJmsContext: JMSContext,
     private val service: RåttKravgrunnlagService,

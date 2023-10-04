@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.web.metrics.SøknadMicrometerMetrics
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
-import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingConsumer
 import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringConsumer
 import java.time.Clock
@@ -86,11 +85,6 @@ fun Application.susebakover(
     ),
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
     consumers: Consumers = Consumers(
-        tilbakekrevingConsumer = TilbakekrevingConsumer(
-            tilbakekrevingService = services.tilbakekrevingService,
-            revurderingService = services.revurdering,
-            clock = clock,
-        ),
         utbetalingKvitteringConsumer = UtbetalingKvitteringConsumer(
             utbetalingService = services.utbetaling,
             ferdigstillVedtakService = services.ferdigstillVedtak,

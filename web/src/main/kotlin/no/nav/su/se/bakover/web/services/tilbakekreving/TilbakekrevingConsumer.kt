@@ -1,20 +1,6 @@
 package no.nav.su.se.bakover.web.services.tilbakekreving
 
-import arrow.core.getOrElse
-import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
-import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
-import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
-import org.slf4j.LoggerFactory
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
-import tilbakekreving.presentation.consumer.KravgrunnlagRootDto
-import tilbakekreving.presentation.consumer.KravgrunnlagStatusendringRootDto
-import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
-import java.time.Clock
-
+/*
 class TilbakekrevingConsumer(
     private val tilbakekrevingService: TilbakekrevingService,
     private val revurderingService: RevurderingService,
@@ -60,3 +46,5 @@ class TilbakekrevingConsumer(
         }
     }
 }
+
+ */

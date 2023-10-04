@@ -21,7 +21,7 @@ import java.time.LocalDate
 /**
  * Deserialiserer en simulering fra database json.
  */
-internal fun String.deserializeSimulering(): Simulering {
+fun String.deserializeSimulering(): Simulering {
     return deserialize<SimuleringDatabaseJson>(this).toDomain()
 }
 
