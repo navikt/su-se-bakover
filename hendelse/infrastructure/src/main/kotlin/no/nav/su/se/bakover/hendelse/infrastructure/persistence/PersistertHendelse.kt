@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.hendelse.infrastructure.persistence
 
-import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
@@ -29,5 +28,5 @@ data class PersistertHendelse(
     /**
      * @throws com.fasterxml.jackson.core.JacksonException if the json does not match [JMSHendelseMetadata]
      */
-    fun jmsHendelseMetadata(): JMSHendelseMetadata = deserialize<JMSHendelseMetadata>(hendelseMetadataDbJson)
+    fun jmsHendelseMetadata(): JMSHendelseMetadata = toJMSHendelseMetaData(hendelseMetadataDbJson)
 }
