@@ -1,9 +1,8 @@
 package tilbakekreving.application.service
 
-import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
+import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlagHendelse
@@ -19,13 +18,13 @@ class RåttKravgrunnlagService(
      */
     fun lagreRåKvitteringshendelse(
         råttKravgrunnlag: RåttKravgrunnlag,
-        correlationId: CorrelationId,
+        meta: JMSHendelseMetadata,
     ) {
         kravgrunnlagRepo.lagreRåttKravgrunnlagHendelse(
             hendelse = RåttKravgrunnlagHendelse(
                 hendelseId = HendelseId.generer(),
                 hendelsestidspunkt = Tidspunkt.now(clock),
-                meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
+                meta = meta,
                 råttKravgrunnlag = råttKravgrunnlag,
             ),
         )

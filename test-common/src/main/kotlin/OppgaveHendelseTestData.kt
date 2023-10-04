@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
 import java.util.UUID
@@ -16,7 +15,7 @@ fun nyOppgaveHendelseFraInstitusjonsoppholdsHendelser(
     oppgaveId: OppgaveId = OppgaveId("oppgaveId"),
     nesteVersjon: Hendelsesversjon,
     relaterteHendelser: List<HendelseId> = listOf(HendelseId.generer()),
-    metadata: HendelseMetadata = DefaultHendelseMetadata.fraCorrelationId(correlationId()),
+    metadata: DefaultHendelseMetadata = DefaultHendelseMetadata.fraCorrelationId(correlationId()),
 ): OppgaveHendelse {
     return OppgaveHendelse.opprettet(
         hendelseId = hendelseId,

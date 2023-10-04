@@ -7,8 +7,8 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.MånedsvurderingerTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
@@ -27,7 +27,7 @@ internal fun mapToMånedsvurderingerTilbakekrevingsbehandlingHendelse(
     sakId: UUID,
     hendelsestidspunkt: Tidspunkt,
     versjon: Hendelsesversjon,
-    meta: HendelseMetadata,
+    meta: DefaultHendelseMetadata,
 ): MånedsvurderingerTilbakekrevingsbehandlingHendelse {
     val deserialized = deserialize<MånedsvurderingTilbakekrevingsbehandlingDbJson>(data)
 

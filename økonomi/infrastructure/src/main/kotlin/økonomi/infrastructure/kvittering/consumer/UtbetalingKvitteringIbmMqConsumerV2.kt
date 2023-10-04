@@ -2,6 +2,7 @@ package økonomi.infrastructure.kvittering.consumer
 
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.hendelse.infrastructure.persistence.toJMSHendelseMetadata
 import org.slf4j.LoggerFactory
 import økonomi.application.kvittering.RåKvitteringService
 import javax.jms.JMSContext
@@ -26,7 +27,7 @@ internal class UtbetalingKvitteringIbmMqConsumerV2(
 
                     message.getBody(String::class.java).let {
                         sikkerLogg.info("Kvittering lest fra $kvitteringQueueName, innhold:$it")
-                        råKvitteringService.lagreRåKvitteringshendelse(it, correlationId)
+                        råKvitteringService.lagreRåKvitteringshendelse(it, message.toJMSHendelseMetadata(correlationId))
                     }
                 }
             } catch (ex: Exception) {

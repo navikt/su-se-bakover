@@ -1,8 +1,8 @@
 package tilbakekreving.domain.kravgrunnlag
 
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
 import java.util.UUID
@@ -24,7 +24,7 @@ data class KravgrunnlagPåSakHendelse(
     override val versjon: Hendelsesversjon,
     override val sakId: UUID,
     override val hendelsestidspunkt: Tidspunkt,
-    override val meta: HendelseMetadata,
+    override val meta: DefaultHendelseMetadata,
     override val tidligereHendelseId: HendelseId,
     val kravgrunnlag: Kravgrunnlag,
     val revurderingId: UUID?,
@@ -46,7 +46,7 @@ data class KravgrunnlagPåSakHendelse(
         fun fraPersistert(
             hendelseId: HendelseId,
             hendelsestidspunkt: Tidspunkt,
-            hendelseMetadata: HendelseMetadata,
+            hendelseMetadata: DefaultHendelseMetadata,
             forrigeVersjon: Hendelsesversjon,
             entitetId: UUID,
             sakId: UUID,

@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
+import no.nav.su.se.bakover.hendelse.infrastructure.persistence.toJson
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
@@ -95,6 +96,7 @@ class KravgrunnlagPostgresRepo(
             type = MottattKravgrunnlagHendelsestype,
             data = hendelse.toJson(),
             sessionContext = sessionContext,
+            meta = hendelse.meta.toJson(),
         )
     }
 

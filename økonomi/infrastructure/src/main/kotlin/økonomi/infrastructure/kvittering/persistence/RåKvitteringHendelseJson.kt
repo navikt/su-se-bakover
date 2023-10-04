@@ -28,7 +28,7 @@ internal data class RåKvitteringHendelseJson(
                 RåKvitteringHendelse.fraPersistert(
                     hendelseId = this.hendelseId,
                     hendelsestidspunkt = this.hendelsestidspunkt,
-                    hendelseMetadata = this.hendelseMetadata,
+                    hendelseMetadata = this.jmsHendelseMetadata(),
                     forrigeVersjon = this.versjon,
                     entitetId = this.entitetId,
                     originalKvittering = json.originalKvittering,

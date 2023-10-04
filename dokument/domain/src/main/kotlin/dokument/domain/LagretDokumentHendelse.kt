@@ -2,8 +2,8 @@ package dokument.domain.dokument.domain
 
 import dokument.domain.Dokument
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
 import java.util.UUID
@@ -20,7 +20,7 @@ data class LagretDokumentHendelse(
     override val hendelseId: HendelseId,
     override val hendelsestidspunkt: Tidspunkt,
     override val versjon: Hendelsesversjon,
-    override val meta: HendelseMetadata,
+    override val meta: DefaultHendelseMetadata,
     override val sakId: UUID,
     val dokument: Dokument.MedMetadata,
 ) : Sakshendelse {
@@ -39,7 +39,7 @@ data class LagretDokumentHendelse(
         fun fraPersistert(
             hendelseId: HendelseId,
             hendelsestidspunkt: Tidspunkt,
-            hendelseMetadata: HendelseMetadata,
+            hendelseMetadata: DefaultHendelseMetadata,
             entitetId: UUID,
             forrigeVersjon: Hendelsesversjon,
             sakId: UUID,

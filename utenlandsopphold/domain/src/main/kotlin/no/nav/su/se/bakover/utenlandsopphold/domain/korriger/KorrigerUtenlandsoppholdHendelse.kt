@@ -6,8 +6,8 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrertUtenlandsopphold
 import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdDokumentasjon
@@ -31,7 +31,7 @@ data class KorrigerUtenlandsoppholdHendelse private constructor(
     override val utførtAv: NavIdentBruker.Saksbehandler,
     override val hendelsestidspunkt: Tidspunkt,
     override val versjon: Hendelsesversjon,
-    override val meta: HendelseMetadata,
+    override val meta: DefaultHendelseMetadata,
 ) : UtenlandsoppholdHendelse {
 
     companion object {
@@ -47,7 +47,7 @@ data class KorrigerUtenlandsoppholdHendelse private constructor(
             utførtAv: NavIdentBruker.Saksbehandler,
             hendelsestidspunkt: Tidspunkt,
             versjon: Hendelsesversjon,
-            hendelseMetadata: HendelseMetadata,
+            hendelseMetadata: DefaultHendelseMetadata,
             entitetId: UUID,
         ): KorrigerUtenlandsoppholdHendelse {
             return KorrigerUtenlandsoppholdHendelse(
@@ -78,7 +78,7 @@ data class KorrigerUtenlandsoppholdHendelse private constructor(
             utførtAv: NavIdentBruker.Saksbehandler,
             clock: Clock,
             hendelsestidspunkt: Tidspunkt = Tidspunkt.now(clock),
-            hendelseMetadata: HendelseMetadata,
+            hendelseMetadata: DefaultHendelseMetadata,
             nesteVersjon: Hendelsesversjon,
         ): KorrigerUtenlandsoppholdHendelse {
             require(korrigererHendelse is RegistrerUtenlandsoppholdHendelse || korrigererHendelse is KorrigerUtenlandsoppholdHendelse) {

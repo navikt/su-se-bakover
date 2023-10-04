@@ -29,7 +29,7 @@ data class RåttKravgrunnlagDbJson(
                 RåttKravgrunnlagHendelse.fraPersistert(
                     hendelseId = this.hendelseId,
                     hendelsestidspunkt = this.hendelsestidspunkt,
-                    hendelseMetadata = this.hendelseMetadata,
+                    jmsHendelseMetadata = this.jmsHendelseMetadata(),
                     forrigeVersjon = this.versjon,
                     entitetId = this.entitetId,
                     råttKravgrunnlag = RåttKravgrunnlag(json.råttKravgrunnlag),

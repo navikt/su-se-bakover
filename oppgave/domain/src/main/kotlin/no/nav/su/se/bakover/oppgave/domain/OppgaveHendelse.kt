@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.oppgave.domain
 
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse.Oppgavestatus.LUKKET
@@ -19,7 +19,7 @@ data class OppgaveHendelse private constructor(
     override val sakId: UUID,
     override val versjon: Hendelsesversjon,
     override val hendelsestidspunkt: Tidspunkt,
-    override val meta: HendelseMetadata,
+    override val meta: DefaultHendelseMetadata,
     val oppgaveId: OppgaveId,
     val relaterteHendelser: List<HendelseId>,
     val status: Oppgavestatus,
@@ -49,7 +49,7 @@ data class OppgaveHendelse private constructor(
             versjon: Hendelsesversjon,
             sakId: UUID,
             relaterteHendelser: List<HendelseId>,
-            meta: HendelseMetadata,
+            meta: DefaultHendelseMetadata,
         ): OppgaveHendelse {
             return OppgaveHendelse(
                 hendelseId = hendelseId,
@@ -71,7 +71,7 @@ data class OppgaveHendelse private constructor(
             versjon: Hendelsesversjon,
             sakId: UUID,
             relaterteHendelser: List<HendelseId>,
-            meta: HendelseMetadata,
+            meta: DefaultHendelseMetadata,
             tidligereHendelseId: HendelseId,
         ): OppgaveHendelse {
             return OppgaveHendelse(
@@ -94,7 +94,7 @@ data class OppgaveHendelse private constructor(
             versjon: Hendelsesversjon,
             sakId: UUID,
             relaterteHendelser: List<HendelseId>,
-            meta: HendelseMetadata,
+            meta: DefaultHendelseMetadata,
             tidligereHendelseId: HendelseId,
         ): OppgaveHendelse {
             return OppgaveHendelse(
@@ -120,7 +120,7 @@ data class OppgaveHendelse private constructor(
             entitetId: UUID,
             tidligereHendelseId: HendelseId?,
             status: Oppgavestatus,
-            meta: HendelseMetadata,
+            meta: DefaultHendelseMetadata,
         ): OppgaveHendelse {
             require(entitetId == sakId) { "Forventer at sakId $sakId og entitetId $entitetId er like." }
             return OppgaveHendelse(

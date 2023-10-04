@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.oppgave.infrastructure
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
 
@@ -29,7 +29,7 @@ internal data class OppgaveHendelseData(
 }
 
 internal fun PersistertHendelse.toOppgaveHendelse(
-    meta: HendelseMetadata,
+    meta: DefaultHendelseMetadata,
 ): OppgaveHendelse {
     val data = deserialize<OppgaveHendelseData>(this.data)
     return OppgaveHendelse.createFromPersistence(

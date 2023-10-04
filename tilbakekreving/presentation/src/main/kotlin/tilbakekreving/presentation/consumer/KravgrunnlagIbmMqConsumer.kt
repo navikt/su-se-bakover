@@ -2,6 +2,7 @@ package tilbakekreving.presentation.consumer
 
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.hendelse.infrastructure.persistence.toJMSHendelseMetadata
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.RåttKravgrunnlagService
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
@@ -32,8 +33,8 @@ internal class KravgrunnlagIbmMqConsumer(
                     message.getBody(String::class.java).let {
                         sikkerLogg.info("Kravgrunnlag lest fra $queueName, innhold: $it")
                         service.lagreRåKvitteringshendelse(
-                            RåttKravgrunnlag(it),
-                            correlationId = correlationId,
+                            råttKravgrunnlag = RåttKravgrunnlag(it),
+                            meta = message.toJMSHendelseMetadata(correlationId),
                         )
                         log.info("Lagret kravgrunnlag fra køen: $queueName. Acker meldingen.")
                     }

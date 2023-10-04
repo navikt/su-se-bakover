@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
+import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.SakOpprettetHendelse
 import no.nav.su.se.bakover.test.correlationId
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -20,7 +20,7 @@ fun sakOpprettetHendelse(
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     opprettetAv: NavIdentBruker = saksbehandler,
     hendelsestidspunkt: Tidspunkt = fixedTidspunkt,
-    meta: HendelseMetadata = hendelseMetadata(),
+    meta: DefaultHendelseMetadata = defaultHendelseMetadata(),
 ) = SakOpprettetHendelse.fraPersistert(
     hendelseId = hendelseId,
     sakId = sakId,
@@ -32,7 +32,7 @@ fun sakOpprettetHendelse(
     versjon = 1,
 )
 
-fun hendelseMetadata(
+fun defaultHendelseMetadata(
     correlationId: CorrelationId? = correlationId(),
     ident: NavIdentBruker? = saksbehandler,
     brukerroller: List<Brukerrolle> = listOf(Brukerrolle.Saksbehandler, Brukerrolle.Attestant),
@@ -40,4 +40,32 @@ fun hendelseMetadata(
     correlationId = correlationId,
     ident = ident,
     brukerroller = brukerroller,
+)
+
+fun jmsHendelseMetadata(
+    jmsCorrelationId: String = "jmsCorrelationId",
+    jmsDeliveryMode: Int = 1,
+    jmsDeliveryTime: Long = 1,
+    jmsDestination: String = "jmsDestination",
+    jmsExpiration: Long = 1,
+    jmsMessageId: String = "jmsMessageId",
+    jmsPriority: Int = 1,
+    jmsRedelivered: Boolean = false,
+    jmsReplyTo: String = "jmsReplyTo",
+    jmsTimestamp: Long = 1,
+    jmsType: String = "jmsType",
+    correlationId: CorrelationId = CorrelationId("correlationId"),
+): JMSHendelseMetadata = JMSHendelseMetadata(
+    jmsCorrelationId = jmsCorrelationId,
+    jmsDeliveryMode = jmsDeliveryMode,
+    jmsDeliveryTime = jmsDeliveryTime,
+    jmsDestination = jmsDestination,
+    jmsExpiration = jmsExpiration,
+    jmsMessageId = jmsMessageId,
+    jmsPriority = jmsPriority,
+    jmsRedelivered = jmsRedelivered,
+    jmsReplyTo = jmsReplyTo,
+    jmsTimestamp = jmsTimestamp,
+    jmsType = jmsType,
+    correlationId = correlationId,
 )

@@ -6,8 +6,8 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrertUtenlandsopphold
 import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdDokumentasjon
@@ -32,7 +32,7 @@ data class RegistrerUtenlandsoppholdHendelse private constructor(
     override val utførtAv: NavIdentBruker.Saksbehandler,
     override val hendelsestidspunkt: Tidspunkt,
     override val versjon: Hendelsesversjon,
-    override val meta: HendelseMetadata,
+    override val meta: DefaultHendelseMetadata,
 ) : UtenlandsoppholdHendelse {
     override val tidligereHendelseId: HendelseId? = null
 
@@ -76,7 +76,7 @@ data class RegistrerUtenlandsoppholdHendelse private constructor(
             opprettetAv: NavIdentBruker.Saksbehandler,
             clock: Clock,
             hendelsestidspunkt: Tidspunkt = Tidspunkt.now(clock),
-            hendelseMetadata: HendelseMetadata,
+            hendelseMetadata: DefaultHendelseMetadata,
             nesteVersjon: Hendelsesversjon,
         ): RegistrerUtenlandsoppholdHendelse {
             return RegistrerUtenlandsoppholdHendelse(
@@ -102,7 +102,7 @@ data class RegistrerUtenlandsoppholdHendelse private constructor(
             begrunnelse: String?,
             opprettetAv: NavIdentBruker.Saksbehandler,
             hendelsestidspunkt: Tidspunkt,
-            hendelseMetadata: HendelseMetadata,
+            hendelseMetadata: DefaultHendelseMetadata,
             forrigeVersjon: Hendelsesversjon,
             entitetId: UUID,
         ): RegistrerUtenlandsoppholdHendelse {

@@ -4,8 +4,8 @@ import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrertUtenlandsopphold
 import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdHendelse
@@ -27,7 +27,7 @@ data class AnnullerUtenlandsoppholdHendelse private constructor(
     override val utførtAv: NavIdentBruker.Saksbehandler,
     override val hendelsestidspunkt: Tidspunkt,
     override val versjon: Hendelsesversjon,
-    override val meta: HendelseMetadata,
+    override val meta: DefaultHendelseMetadata,
 ) : UtenlandsoppholdHendelse {
 
     companion object {
@@ -39,7 +39,7 @@ data class AnnullerUtenlandsoppholdHendelse private constructor(
             utførtAv: NavIdentBruker.Saksbehandler,
             hendelsestidspunkt: Tidspunkt,
             versjon: Hendelsesversjon,
-            meta: HendelseMetadata,
+            meta: DefaultHendelseMetadata,
             entitetId: UUID,
         ): AnnullerUtenlandsoppholdHendelse {
             return AnnullerUtenlandsoppholdHendelse(
@@ -63,7 +63,7 @@ data class AnnullerUtenlandsoppholdHendelse private constructor(
             utførtAv: NavIdentBruker.Saksbehandler,
             clock: Clock,
             hendelsestidspunkt: Tidspunkt = Tidspunkt.now(clock),
-            hendelseMetadata: HendelseMetadata,
+            hendelseMetadata: DefaultHendelseMetadata,
             nesteVersjon: Hendelsesversjon,
         ): AnnullerUtenlandsoppholdHendelse {
             require(annullererHendelse is RegistrerUtenlandsoppholdHendelse || annullererHendelse is KorrigerUtenlandsoppholdHendelse) {

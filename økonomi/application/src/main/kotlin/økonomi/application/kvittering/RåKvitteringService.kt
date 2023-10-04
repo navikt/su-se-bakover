@@ -1,9 +1,8 @@
 package økonomi.application.kvittering
 
-import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
+import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import økonomi.domain.kvittering.RåKvitteringHendelse
 import økonomi.domain.kvittering.UtbetalingKvitteringRepo
 import java.time.Clock
@@ -18,13 +17,13 @@ class RåKvitteringService(
      */
     fun lagreRåKvitteringshendelse(
         originalKvittering: String,
-        correlationId: CorrelationId,
+        meta: JMSHendelseMetadata,
     ) {
         utbetalingKvitteringRepo.lagre(
             hendelse = RåKvitteringHendelse(
                 hendelseId = HendelseId.generer(),
                 hendelsestidspunkt = Tidspunkt.now(clock),
-                meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
+                meta = meta,
                 originalKvittering = originalKvittering,
             ),
         )

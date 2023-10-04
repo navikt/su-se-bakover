@@ -33,6 +33,7 @@ class HendelsePostgresRepo(
         type: Hendelsestype,
         data: String,
         sessionContext: SessionContext? = null,
+        meta: String = hendelse.toMeta(),
     ) {
         persister(
             hendelse = hendelse,
@@ -40,6 +41,7 @@ class HendelsePostgresRepo(
             data = data,
             sakId = hendelse.sakId,
             sessionContext = sessionContext,
+            meta = meta,
         )
     }
 
@@ -51,6 +53,7 @@ class HendelsePostgresRepo(
         type: Hendelsestype,
         data: String,
         sessionContext: SessionContext? = null,
+        meta: String = hendelse.toMeta(),
     ) {
         persister(
             hendelse = hendelse,
@@ -58,6 +61,7 @@ class HendelsePostgresRepo(
             data = data,
             sakId = (hendelse as? Sakshendelse)?.sakId,
             sessionContext = sessionContext,
+            meta = meta,
         )
     }
 
@@ -70,6 +74,7 @@ class HendelsePostgresRepo(
         data: String,
         sakId: UUID?,
         sessionContext: SessionContext? = null,
+        meta: String = hendelse.toMeta(),
     ) {
         dbMetrics.timeQuery("persisterHendelse") {
             sessionContext.withOptionalSession(sessionFactory) { session ->
@@ -93,7 +98,7 @@ class HendelsePostgresRepo(
                         "sakId" to sakId,
                         "type" to type.toString(),
                         "data" to data,
-                        "meta" to hendelse.toMeta(),
+                        "meta" to meta,
                         "hendelsestidspunkt" to hendelse.hendelsestidspunkt,
                         "entitetId" to hendelse.entitetId,
                         "versjon" to hendelse.versjon.value,
@@ -228,7 +233,7 @@ class HendelsePostgresRepo(
             sakId = it.uuidOrNull("sakId"),
             hendelseId = HendelseId.fromUUID(it.uuid("hendelseId")),
             tidligereHendelseId = it.uuidOrNull("tidligereHendelseId")?.let { HendelseId.fromUUID(it) },
-            hendelseMetadata = DefaultMetadataJson.toDomain(it.string("meta")),
+            hendelseMetadataDbJson = it.string("meta"),
             entitetId = it.uuid("entitetId"),
         )
     }

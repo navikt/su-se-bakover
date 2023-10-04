@@ -30,7 +30,7 @@ class OppgaveHendelsePostgresRepo(
     override fun hentForSak(sakId: UUID): List<OppgaveHendelse> {
         return dbMetrics.timeQuery("hentOppgaveHendelserForSak") {
             hendelseRepo.hentHendelserForSakIdOgType(sakId, OppgaveHendelsestype).map {
-                it.toOppgaveHendelse(it.hendelseMetadata)
+                it.toOppgaveHendelse(it.defaultHendelseMetadata())
             }
         }
     }

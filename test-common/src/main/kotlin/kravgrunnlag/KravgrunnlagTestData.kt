@@ -8,12 +8,14 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.hendelse.hendelseMetadata
+import no.nav.su.se.bakover.test.hendelse.defaultHendelseMetadata
+import no.nav.su.se.bakover.test.hendelse.jmsHendelseMetadata
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
@@ -31,7 +33,7 @@ fun råttKravgrunnlagHendelse(
     hendelseId: HendelseId = HendelseId.generer(),
     clock: Clock = fixedClock,
     hendelsestidspunkt: Tidspunkt = Tidspunkt.now(clock),
-    meta: HendelseMetadata = hendelseMetadata(),
+    meta: JMSHendelseMetadata = jmsHendelseMetadata(),
     råttKravgrunnlag: RåttKravgrunnlag = råttKravgrunnlag(),
 ): RåttKravgrunnlagHendelse {
     return RåttKravgrunnlagHendelse(
@@ -57,7 +59,7 @@ fun kravgrunnlagPåSakHendelse(
     sakId: UUID = UUID.randomUUID(),
     clock: Clock = fixedClock,
     hendelsestidspunkt: Tidspunkt = Tidspunkt.now(clock),
-    meta: HendelseMetadata = hendelseMetadata(),
+    meta: DefaultHendelseMetadata = defaultHendelseMetadata(),
     tidligereHendelseId: HendelseId = HendelseId.generer(),
     eksternKravgrunnlagId: String = UUID.randomUUID().toString(),
     eksternVedtakId: String = UUID.randomUUID().toString(),

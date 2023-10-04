@@ -5,8 +5,8 @@ package tilbakekreving.domain
 
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
@@ -24,7 +24,7 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
     override val sakId: UUID,
     override val hendelsestidspunkt: Tidspunkt,
     override val versjon: Hendelsesversjon,
-    override val meta: HendelseMetadata,
+    override val meta: DefaultHendelseMetadata,
     override val id: TilbakekrevingsbehandlingId,
     val opprettetAv: NavIdentBruker.Saksbehandler,
     val kravgrunnlagsId: String,
@@ -46,7 +46,7 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
         fun opprett(
             sakId: UUID,
             opprettetAv: NavIdentBruker.Saksbehandler,
-            meta: HendelseMetadata,
+            meta: DefaultHendelseMetadata,
             versjon: Hendelsesversjon,
             clock: Clock,
             kravgrunnlagsId: String,

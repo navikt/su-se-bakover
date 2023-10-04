@@ -6,8 +6,8 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelse
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.hendelse.domain.JMSHendelseMetadata
 import java.time.Clock
 import java.util.UUID
 
@@ -21,7 +21,7 @@ import java.util.UUID
 data class RåKvitteringHendelse(
     override val hendelseId: HendelseId,
     override val hendelsestidspunkt: Tidspunkt,
-    override val meta: HendelseMetadata,
+    override val meta: JMSHendelseMetadata,
     val originalKvittering: String,
 ) : Hendelse<RåKvitteringHendelse> {
     override val tidligereHendelseId: HendelseId? = null
@@ -40,7 +40,7 @@ data class RåKvitteringHendelse(
         fun fraPersistert(
             hendelseId: HendelseId,
             hendelsestidspunkt: Tidspunkt,
-            hendelseMetadata: HendelseMetadata,
+            hendelseMetadata: JMSHendelseMetadata,
             forrigeVersjon: Hendelsesversjon,
             entitetId: UUID,
             originalKvittering: String,

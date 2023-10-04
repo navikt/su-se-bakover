@@ -47,7 +47,7 @@ internal data class KvitteringPåSakHendelseJson(
                 KvitteringPåSakHendelse.fraPersistert(
                     hendelseId = this.hendelseId,
                     hendelsestidspunkt = this.hendelsestidspunkt,
-                    hendelseMetadata = this.hendelseMetadata,
+                    hendelseMetadata = this.defaultHendelseMetadata(),
                     forrigeVersjon = this.versjon,
                     entitetId = this.entitetId,
                     utbetalingsstatus = json.utbetalingsstatusDomain,

@@ -93,7 +93,7 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
             sakId = this.sakId!!,
             hendelsestidspunkt = this.hendelsestidspunkt,
             versjon = this.versjon,
-            meta = this.hendelseMetadata,
+            meta = this.defaultHendelseMetadata(),
         )
 
         VurderMånederTilbakekrevingsbehandlingHendelsestype -> mapToMånedsvurderingerTilbakekrevingsbehandlingHendelse(
@@ -102,7 +102,7 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
             sakId = this.sakId!!,
             hendelsestidspunkt = this.hendelsestidspunkt,
             versjon = this.versjon,
-            meta = this.hendelseMetadata,
+            meta = this.defaultHendelseMetadata(),
             tidligereHendelsesId = this.tidligereHendelseId!!,
         )
 
@@ -112,7 +112,7 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
             sakId = this.sakId!!,
             hendelsestidspunkt = this.hendelsestidspunkt,
             versjon = this.versjon,
-            meta = this.hendelseMetadata,
+            meta = this.defaultHendelseMetadata(),
             tidligereHendelsesId = this.tidligereHendelseId!!,
         )
 

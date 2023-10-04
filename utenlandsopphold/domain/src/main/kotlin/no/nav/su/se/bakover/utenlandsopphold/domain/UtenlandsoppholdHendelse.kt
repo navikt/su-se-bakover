@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.utenlandsopphold.domain
 
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
 import java.util.UUID
@@ -19,7 +19,7 @@ interface UtenlandsoppholdHendelse : Sakshendelse {
     val utførtAv: NavIdentBruker.Saksbehandler
     override val hendelsestidspunkt: Tidspunkt
     override val versjon: Hendelsesversjon
-    override val meta: HendelseMetadata
+    override val meta: DefaultHendelseMetadata
     override val entitetId: UUID
         get() = sakId
 

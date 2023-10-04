@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
 import java.time.Clock
@@ -57,7 +56,7 @@ data class InstitusjonsoppholdHendelse(
     override val tidligereHendelseId: HendelseId? = null,
     val eksterneHendelse: EksternInstitusjonsoppholdHendelse,
 ) : Sakshendelse {
-    override val meta: HendelseMetadata = DefaultHendelseMetadata.tom()
+    override val meta: DefaultHendelseMetadata = DefaultHendelseMetadata.tom()
     override val entitetId: UUID = sakId
 
     override fun compareTo(other: Sakshendelse): Int {
