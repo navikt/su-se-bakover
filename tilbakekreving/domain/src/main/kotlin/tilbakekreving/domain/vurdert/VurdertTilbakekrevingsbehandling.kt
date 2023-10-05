@@ -23,6 +23,7 @@ sealed interface VurdertTilbakekrevingsbehandling : KanLeggeTilBrev {
     ) : VurdertTilbakekrevingsbehandling, KanVurdere by forrigeSteg {
         override val brevvalg: Brevvalg.SaksbehandlersValg? = null
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
+        override fun erÅpen(): Boolean = true
     }
 
     data class Utfylt(

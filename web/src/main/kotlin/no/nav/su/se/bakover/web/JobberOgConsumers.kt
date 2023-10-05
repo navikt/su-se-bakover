@@ -42,8 +42,10 @@ import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
 import no.nav.su.se.bakover.web.services.tilbakekreving.LokalMottaKravgrunnlagJob
 import no.nav.su.se.bakover.web.services.tilbakekreving.SendTilbakekrevingsvedtakForRevurdering
-import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingIbmMqConsumer
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import tilbakekreving.infrastructure.Tilbakekrevingskomponenter
+import tilbakekreving.presentation.consumer.KravgrunnlagIbmMqConsumer
+import tilbakekreving.presentation.job.Tilbakekrevingsjobber
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringIbmMqConsumer
 import økonomi.infrastructure.kvittering.consumer.lokal.LokalKvitteringJob
 import økonomi.infrastructure.kvittering.consumer.lokal.LokalKvitteringService
@@ -65,6 +67,7 @@ fun startJobberOgConsumers(
     consumers: Consumers,
     // TODO jah: Skal brukes når vi bytter over til ny jobb for å ferdigstille vedtak med utbetaling+kvittering
     @Suppress("UNUSED_PARAMETER") dbMetrics: DbMetrics,
+    tilbakekrevingskomponenter: Tilbakekrevingskomponenter,
 ) {
     val personhendelseService = PersonhendelseService(
         sakRepo = databaseRepos.sak,
@@ -253,11 +256,18 @@ fun startJobberOgConsumers(
             runCheckFactory = runCheckFactory,
         ).schedule()
 
-        TilbakekrevingIbmMqConsumer(
+        KravgrunnlagIbmMqConsumer(
             queueName = applicationConfig.oppdrag.tilbakekreving.mq.mottak,
             globalJmsContext = jmsConfig.jmsContext,
-            tilbakekrevingConsumer = consumers.tilbakekrevingConsumer,
+            service = tilbakekrevingskomponenter.services.råttKravgrunnlagService,
         )
+
+        Tilbakekrevingsjobber(
+            knyttKravgrunnlagTilSakOgUtbetalingKonsument = tilbakekrevingskomponenter.services.knyttKravgrunnlagTilSakOgUtbetalingKonsument,
+            initialDelay = initialDelay.next(),
+            intervall = Duration.ofSeconds(10),
+            runCheckFactory = runCheckFactory,
+        ).schedule()
 
         SendTilbakekrevingsvedtakForRevurdering(
             tilbakekrevingService = services.tilbakekrevingService,
@@ -354,11 +364,17 @@ fun startJobberOgConsumers(
         ).schedule()
 
         LokalMottaKravgrunnlagJob(
-            tilbakekrevingConsumer = consumers.tilbakekrevingConsumer,
-            tilbakekrevingService = services.tilbakekrevingService,
-            vedtakService = services.vedtakService,
             initialDelay = initialDelay.next(),
             intervall = Duration.ofSeconds(10),
+            sessionFactory = databaseRepos.sessionFactory,
+            service = tilbakekrevingskomponenter.services.råttKravgrunnlagService,
+        ).schedule()
+
+        Tilbakekrevingsjobber(
+            knyttKravgrunnlagTilSakOgUtbetalingKonsument = tilbakekrevingskomponenter.services.knyttKravgrunnlagTilSakOgUtbetalingKonsument,
+            initialDelay = initialDelay.next(),
+            intervall = Duration.ofSeconds(10),
+            runCheckFactory = runCheckFactory,
         ).schedule()
 
         SendTilbakekrevingsvedtakForRevurdering(

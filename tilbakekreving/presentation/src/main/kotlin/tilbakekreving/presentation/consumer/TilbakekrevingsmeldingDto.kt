@@ -1,7 +1,10 @@
 package tilbakekreving.presentation.consumer
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonRootName
+import no.nav.su.se.bakover.common.extensions.zoneIdOslo
+import java.time.format.DateTimeFormatter
 
 /**
  * Brukes for å deserialisere XML-meldinger fra oppdrag.
@@ -263,3 +266,8 @@ data class KravgrunnlagDto(
         )
     }
 }
+
+@JsonIgnore
+val kontrollfeltFormatter: DateTimeFormatter = DateTimeFormatter
+    .ofPattern("yyyy-MM-dd-HH.mm.ss.SSSSSS")
+    .withZone(zoneIdOslo)

@@ -38,4 +38,6 @@ sealed interface KanVurdere : Tilbakekrevingsbehandling {
     }
 
     fun leggTilBrevtekst(): VurdertTilbakekrevingsbehandling.Utfylt
+
+    override fun erÅpen() = true
 }

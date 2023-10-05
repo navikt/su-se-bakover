@@ -158,19 +158,21 @@ class HendelsePostgresRepo(
 
     fun hentHendelseForHendelseId(
         hendelseId: HendelseId,
-        sessionContext: SessionContext = sessionFactory.newSessionContext(),
+        sessionContext: SessionContext? = sessionFactory.newSessionContext(),
     ): PersistertHendelse? {
         return dbMetrics.timeQuery("hentHendelseForHendelseId") {
-            sessionContext.withSession { session ->
-                """
+            sessionFactory.withSessionContext(sessionContext) { context ->
+                context.withSession { session ->
+                    """
                     select * from hendelse
                     where hendelseId = :hendelseId
-                """.trimIndent().hent(
-                    params = mapOf(
-                        "hendelseId" to hendelseId,
-                    ),
-                    session = session,
-                ) { toPersistertHendelse(it) }
+                    """.trimIndent().hent(
+                        params = mapOf(
+                            "hendelseId" to hendelseId.value,
+                        ),
+                        session = session,
+                    ) { toPersistertHendelse(it) }
+                }
             }
         }
     }

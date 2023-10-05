@@ -2,6 +2,7 @@ package tilbakekreving.infrastructure
 
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
@@ -23,6 +24,7 @@ internal data class KravgrunnlagDbJson(
     val utbetalingId: String,
     val saksnummer: String,
     val grunnlagsmåneder: List<Grunnlagsmåned>,
+    val eksternTidspunkt: Tidspunkt,
 ) {
     data class Grunnlagsmåned(
         val måned: String,
@@ -134,6 +136,7 @@ internal data class KravgrunnlagDbJson(
             utbetalingId = UUID30.fromString(this.utbetalingId),
             grunnlagsmåneder = this.grunnlagsmåneder.map { it.toDomain() },
             saksnummer = Saksnummer.parse(this.saksnummer),
+            eksternTidspunkt = eksternTidspunkt,
         )
     }
 
@@ -158,6 +161,7 @@ internal data class KravgrunnlagDbJson(
                 utbetalingId = this.utbetalingId.value,
                 saksnummer = this.saksnummer.toString(),
                 grunnlagsmåneder = this.grunnlagsmåneder.map { it.toDbJson() },
+                eksternTidspunkt = eksternTidspunkt,
             )
         }
     }

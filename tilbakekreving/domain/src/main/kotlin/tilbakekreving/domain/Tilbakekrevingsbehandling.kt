@@ -29,4 +29,6 @@ sealed interface Tilbakekrevingsbehandling {
     val attesteringer: Attesteringshistorikk
     val versjon: Hendelsesversjon
     val hendelseId: HendelseId
+
+    fun erÅpen(): Boolean
 }

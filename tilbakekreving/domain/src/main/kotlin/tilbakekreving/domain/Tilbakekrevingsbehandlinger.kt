@@ -31,6 +31,8 @@ data class Tilbakekrevingsbehandlinger(
         }
     }
 
+    fun harÅpen() = this.behandlinger.any { it.erÅpen() }
+
     companion object {
         fun empty(sakId: UUID) = Tilbakekrevingsbehandlinger(sakId, listOf())
     }

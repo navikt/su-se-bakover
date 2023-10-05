@@ -6,7 +6,6 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.behandling.vurderTilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import org.slf4j.LoggerFactory
 import tilbakekreving.domain.VurdertTilbakekrevingsbehandling
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
@@ -16,7 +15,6 @@ import java.time.Clock
 
 class MånedsvurderingerTilbakekrevingsbehandlingService(
     private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
-    private val hendelseRepo: HendelseRepo,
     private val sakService: SakService,
     private val tilgangstyring: TilbakekrevingsbehandlingTilgangstyringService,
     private val clock: Clock,
@@ -29,12 +27,12 @@ class MånedsvurderingerTilbakekrevingsbehandlingService(
         val sakId = command.sakId
 
         tilgangstyring.assertHarTilgangTilSak(sakId).onLeft {
+            log.info("Kunne ikke vurdere tilbakekrevingsbehandling, mangler tilgang til sak. Kommandoen var: $command. Feil: $it")
             return KunneIkkeVurdereTilbakekrevingsbehandling.IkkeTilgang(it).left()
         }
         val sak = sakService.hentSak(sakId).getOrElse {
             throw IllegalStateException("Kunne ikke vurdere tilbakekrevingsbehandling, fant ikke sak. Kommandoen var: $command")
         }
-
         return sak.vurderTilbakekrevingsbehandling(command, clock).let { pair ->
             pair.second.right().onRight {
                 tilbakekrevingsbehandlingRepo.lagre(pair.first)

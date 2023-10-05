@@ -47,6 +47,7 @@ internal class SakJsonTest {
         type = Sakstype.UFØRE,
         uteståendeAvkorting = Avkortingsvarsel.Ingen,
         versjon = Hendelsesversjon(1),
+        uteståendeKravgrunnlag = null,
     )
 
     //language=JSON
@@ -69,7 +70,8 @@ internal class SakJsonTest {
                 "utenlandsopphold": {"utenlandsopphold": [], "antallDager":  0},
                 "versjon": 1,
                 "uteståendeAvkorting": null,
-                "tilbakekrevinger": []
+                "tilbakekrevinger": [],
+                "uteståendeKravgrunnlag": null
             }
         """.trimIndent()
 

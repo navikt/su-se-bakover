@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.MånedBeløp
 import no.nav.su.se.bakover.common.Månedsbeløp
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import økonomi.domain.KlasseKode
 import økonomi.domain.KlasseType
@@ -20,6 +21,10 @@ data class Kravgrunnlag(
 
     /** Denne er generert av Oppdrag og er vedlagt i kravgrunnlaget, den er transient i vårt system*/
     val eksternKontrollfelt: String,
+
+    /** Formatert [eksternKontrollfelt], kan brukes til å sortere hendelsene på en sak. */
+    val eksternTidspunkt: Tidspunkt,
+
     val status: KravgrunnlagStatus,
 
     /**
@@ -31,7 +36,6 @@ data class Kravgrunnlag(
     val utbetalingId: UUID30,
     val grunnlagsmåneder: List<Grunnlagsmåned>,
 ) {
-
     fun hentBeløpSkalTilbakekreves(): Månedsbeløp {
         return Månedsbeløp(
             grunnlagsmåneder

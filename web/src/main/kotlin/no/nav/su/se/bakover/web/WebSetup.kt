@@ -40,11 +40,13 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import person.domain.KunneIkkeHentePerson
+import tilbakekreving.infrastructure.Tilbakekrevingskomponenter
 import java.time.Clock
 import java.time.format.DateTimeParseException
 
 internal fun Application.setupKtor(
     services: Services,
+    tilbakekrevingskomponenter: Tilbakekrevingskomponenter,
     clock: Clock,
     applicationConfig: ApplicationConfig,
     accessCheckProxy: AccessCheckProxy,
@@ -80,6 +82,7 @@ internal fun Application.setupKtor(
         satsFactoryIDag = satsFactoryIDag,
         databaseRepos = databaseRepos,
         clients = clients,
+        tilbakekrevingskomponenter = tilbakekrevingskomponenter,
     )
 }
 

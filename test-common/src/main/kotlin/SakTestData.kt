@@ -47,8 +47,12 @@ fun Sak.hentGjeldendeVilkårOgGrunnlag(
     )
 }
 
+/**
+ * @param sakId forkastes dersom sakInfo sendes inn.
+ */
 fun nySakUføre(
     clock: Clock = fixedClock,
+    sakId: UUID = no.nav.su.se.bakover.test.sakId,
     sakInfo: SakInfo = SakInfo(
         sakId = sakId,
         saksnummer = saksnummer,

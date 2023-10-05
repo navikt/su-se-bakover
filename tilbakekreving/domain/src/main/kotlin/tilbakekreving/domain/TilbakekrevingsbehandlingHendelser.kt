@@ -3,14 +3,14 @@ package tilbakekreving.domain
 import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
-import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
 import java.time.Clock
 import java.util.UUID
 
 data class TilbakekrevingsbehandlingHendelser private constructor(
     private val sakId: UUID,
     private val sorterteHendelser: List<TilbakekrevingsbehandlingHendelse>,
-    private val kravgrunnlagPåSak: List<Kravgrunnlag>,
+    private val kravgrunnlagPåSak: List<KravgrunnlagPåSakHendelse>,
     private val clock: Clock,
 ) {
     init {
@@ -69,7 +69,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
             sakId: UUID,
             clock: Clock,
             hendelser: List<TilbakekrevingsbehandlingHendelse>,
-            kravgrunnlagPåSak: List<Kravgrunnlag>,
+            kravgrunnlagPåSak: List<KravgrunnlagPåSakHendelse>,
         ): TilbakekrevingsbehandlingHendelser {
             return TilbakekrevingsbehandlingHendelser(
                 sakId = sakId,
@@ -82,14 +82,14 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
         private fun toCurrentState(
             sakId: UUID,
             hendelser: NonEmptyList<TilbakekrevingsbehandlingHendelse>,
-            kravgrunnlagPåSak: List<Kravgrunnlag>,
+            kravgrunnlagPåSak: List<KravgrunnlagPåSakHendelse>,
         ): Tilbakekrevingsbehandlinger {
             return hendelser.fold(mapOf<HendelseId, Tilbakekrevingsbehandling>()) { acc, hendelse ->
                 val hendelseId = hendelse.hendelseId
                 when (hendelse) {
                     is OpprettetTilbakekrevingsbehandlingHendelse -> acc.plus(
                         hendelseId to hendelse.toDomain(
-                            kravgrunnlag = kravgrunnlagPåSak.first { it.eksternKravgrunnlagId == hendelse.kravgrunnlagsId },
+                            kravgrunnlagPåSakHendelse = kravgrunnlagPåSak.first { it.kravgrunnlag.eksternKravgrunnlagId == hendelse.kravgrunnlagsId },
                         ),
                     )
                     is MånedsvurderingerTilbakekrevingsbehandlingHendelse -> acc.plus(

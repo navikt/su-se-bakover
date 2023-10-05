@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon.Companion.max
 import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdRepo
+import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import java.util.UUID
 
@@ -49,6 +50,7 @@ internal class SakPostgresRepo(
     private val utenlandsoppholdRepo: UtenlandsoppholdRepo,
     private val tilbakekrevingRepo: TilbakekrevingsbehandlingRepo,
     private val hendelseRepo: HendelseRepo,
+    private val kravgrunnlagRepo: KravgrunnlagRepo,
 ) : SakRepo {
 
     private val åpneBehandlingerRepo = ÅpneBehandlingerRepo(
@@ -336,6 +338,7 @@ internal class SakPostgresRepo(
                 // Siden vi ikke har migrert SAK_OPPRETTET-hendelser, vil vi ikke alltid ha en hendelse knyttet til denne saken. Vi reserverer da den aller første hendelsesversjonen til SAK_OPPRETTET.
                 // Det betyr at etter hvert som vi migrerer sak/søknad osv. til hendelser vil versjonene kunne være out of order. En mulighet er da og bumpe alle versjoner tilsvarende med antall hendelser vi migrerer. Dette fungerer bare så lenge ingen andre tabeller/systemer har lagret hendelsesversjonene våre.
                 versjon = max(hendelseRepo.hentSisteVersjonFraEntitetId(sakId, sessionContext), Hendelsesversjon(1)),
+                uteståendeKravgrunnlag = kravgrunnlagRepo.hentKravgrunnlagPåSakHendelser(sakId, sessionContext).hentUteståendeKravgrunnlag(),
             )
         }
     }

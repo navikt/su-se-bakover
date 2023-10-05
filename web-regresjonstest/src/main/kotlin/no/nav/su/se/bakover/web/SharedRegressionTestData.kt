@@ -54,6 +54,9 @@ import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
 import org.mockito.kotlin.mock
 import org.slf4j.MDC
+import tilbakekreving.application.service.TilbakekrevingServices
+import tilbakekreving.infrastructure.TilbakekrevingRepos
+import tilbakekreving.infrastructure.Tilbakekrevingskomponenter
 import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
 import java.time.Clock
 import java.time.LocalDate
@@ -98,7 +101,6 @@ data object SharedRegressionTestData {
             dbMetrics = dbMetricsStub,
             clock = clock,
             satsFactory = satsFactory,
-            kravgrunnlagMapper = TilbakekrevingsmeldingMapper::toKravgrunnlag,
         )
     }
 
@@ -163,6 +165,29 @@ data object SharedRegressionTestData {
                     )
                 },
                 applicationConfig = applicationConfig,
+                tilbakekrevingskomponenterBuilder = { databaseRepos, services ->
+                    val repos = TilbakekrevingRepos(
+                        clock = clock,
+                        sessionFactory = databaseRepos.sessionFactory,
+                        hendelseRepo = databaseRepos.hendelseRepo,
+                        hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
+                    )
+                    Tilbakekrevingskomponenter(
+                        repos = repos,
+                        services = TilbakekrevingServices(
+                            clock = clock,
+                            sessionFactory = databaseRepos.sessionFactory,
+                            personRepo = databaseRepos.person,
+                            personService = services.person,
+                            kravgrunnlagRepo = repos.kravgrunnlagRepo,
+                            hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
+                            tilbakekrevingService = services.tilbakekrevingService,
+                            sakService = services.sak,
+                            tilbakekrevingsbehandlingRepo = repos.tilbakekrevingsbehandlingRepo,
+                            mapRåttKravgrunnlag = TilbakekrevingsmeldingMapper::toKravgrunnlag,
+                        ),
+                    )
+                },
             )
             testApplication {
                 application {

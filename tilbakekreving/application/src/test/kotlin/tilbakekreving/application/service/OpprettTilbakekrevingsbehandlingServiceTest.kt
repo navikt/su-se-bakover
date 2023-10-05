@@ -5,15 +5,16 @@ import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.extensions.februar
+import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
-import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.correlationId
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.nyKravgrunnlag
-import no.nav.su.se.bakover.test.nyRåttKravgrunnlag
+import no.nav.su.se.bakover.test.fixedClockAt
+import no.nav.su.se.bakover.test.kravgrunnlag.sakMedUteståendeKravgrunnlag
 import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -22,7 +23,6 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
 import tilbakekreving.domain.opprett.OpprettTilbakekrevingsbehandlingCommand
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import java.time.Clock
@@ -32,27 +32,26 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
 
     @Test
     fun `oppretter ny manuell tilbakekrevingsbehandling`() {
-        val clock = TikkendeKlokke()
-        val sakId = UUID.randomUUID()
+        val clock = TikkendeKlokke(fixedClockAt(1.februar(2021)))
+
         val correlationId = correlationId()
         val opprettetAv = saksbehandler
         val brukerroller = nonEmptyListOf(Brukerrolle.Saksbehandler)
-        val kravgrunnlag = nyKravgrunnlag()
 
-        val kravgrunnlagRepo = mock<KravgrunnlagRepo> {
-            on { hentRåttÅpentKravgrunnlagForSak(any(), anyOrNull()) } doReturn nyRåttKravgrunnlag()
-        }
+        val sakMedKravgrunnlag = sakMedUteståendeKravgrunnlag(clock = clock)
+        val sakId = sakMedKravgrunnlag.id
+        val kravgrunnlag = sakMedKravgrunnlag.uteståendeKravgrunnlag!!
         val tilgangstyringService = mock<TilbakekrevingsbehandlingTilgangstyringService> {
             on { assertHarTilgangTilSak(any()) } doReturn Unit.right()
         }
-        val hendelseRepo = mock<HendelseRepo> {
-            on { hentSisteVersjonFraEntitetId(any(), anyOrNull()) } doReturn Hendelsesversjon(1)
+
+        val sakService = mock<SakService> {
+            on { hentSak(any<UUID>()) } doReturn sakMedKravgrunnlag.right()
         }
 
         val mocks = mockedServices(
-            kravgrunnlagRepo = kravgrunnlagRepo,
             tilgangstyringService = tilgangstyringService,
-            hendelseRepo = hendelseRepo,
+            sakService = sakService,
             clock = clock,
         )
         mocks.service().opprett(
@@ -63,10 +62,13 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
                 brukerroller = brukerroller,
                 klientensSisteSaksversjon = Hendelsesversjon(1),
             ),
-            kravgrunnlagMapper = { kravgrunnlag.right() },
         ).shouldBeRight()
 
-        verify(kravgrunnlagRepo).hentRåttÅpentKravgrunnlagForSak(argThat { it shouldBe sakId }, anyOrNull())
+        verify(mocks.sakService).hentSak(
+            argThat<UUID> {
+                it shouldBe sakId
+            },
+        )
         verify(mocks.tilbakekrevingsbehandlingRepo).lagre(
             argThat {
                 it shouldBe OpprettetTilbakekrevingsbehandlingHendelse(
@@ -86,29 +88,30 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
             },
             anyOrNull(),
         )
-        verify(mocks.hendelseRepo).hentSisteVersjonFraEntitetId(argThat { it shouldBe sakId }, anyOrNull())
         mocks.verifyNoMoreInteractions()
     }
 
     private data class mockedServices(
-        val kravgrunnlagRepo: KravgrunnlagRepo = mock(),
         val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo = mock(),
         val tilgangstyringService: TilbakekrevingsbehandlingTilgangstyringService = mock(),
-        val hendelseRepo: HendelseRepo = mock(),
         val clock: Clock = fixedClock,
+        val sakService: SakService = mock(),
     ) {
         fun service(): OpprettTilbakekrevingsbehandlingService =
             OpprettTilbakekrevingsbehandlingService(
                 tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
-                kravgrunnlagRepo = kravgrunnlagRepo,
                 tilgangstyring = tilgangstyringService,
+                sakService = sakService,
                 clock = clock,
-                hendelseRepo = hendelseRepo,
             )
 
         fun verifyNoMoreInteractions() {
             verify(tilgangstyringService).assertHarTilgangTilSak(any())
-            org.mockito.kotlin.verifyNoMoreInteractions(kravgrunnlagRepo)
+            org.mockito.kotlin.verifyNoMoreInteractions(
+                tilbakekrevingsbehandlingRepo,
+                tilgangstyringService,
+                sakService,
+            )
         }
     }
 }

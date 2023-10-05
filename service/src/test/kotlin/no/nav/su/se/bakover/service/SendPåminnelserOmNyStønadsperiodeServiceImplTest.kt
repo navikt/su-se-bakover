@@ -402,6 +402,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             type = Sakstype.UFØRE,
             uteståendeAvkorting = Avkortingsvarsel.Ingen,
             versjon = Hendelsesversjon(1),
+            uteståendeKravgrunnlag = null,
         )
 
         SendPåminnelseNyStønadsperiodeServiceAndMocks(

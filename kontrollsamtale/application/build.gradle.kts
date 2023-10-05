@@ -10,6 +10,7 @@ dependencies {
     testImplementation(project(":utenlandsopphold:domain"))
     testImplementation(project(":hendelse:domain"))
     testImplementation(project(":økonomi:domain"))
+    testImplementation(project(":tilbakekreving:domain"))
 }
 
 tasks.named<Jar>("jar") {

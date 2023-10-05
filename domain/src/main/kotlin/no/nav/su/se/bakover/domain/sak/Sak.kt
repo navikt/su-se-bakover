@@ -54,6 +54,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrerteUtenlandsopphold
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -75,6 +76,7 @@ data class Sak(
     val uteståendeAvkorting: Avkortingsvarsel = Avkortingsvarsel.Ingen,
     val utenlandsopphold: RegistrerteUtenlandsopphold = RegistrerteUtenlandsopphold.empty(id),
     val versjon: Hendelsesversjon,
+    val uteståendeKravgrunnlag: Kravgrunnlag?,
 ) {
     init {
         require(uteståendeAvkorting is Avkortingsvarsel.Ingen || uteståendeAvkorting is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes)

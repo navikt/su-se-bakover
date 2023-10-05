@@ -1,10 +1,12 @@
 package no.nav.su.se.bakover.web.services.tilbakekreving
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.periode.november
 import no.nav.su.se.bakover.common.tid.periode.oktober
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
@@ -42,7 +44,7 @@ internal class TilbakekrevingsmeldingMapperTest {
                 enhetAnsvarlig = "8020",
                 enhetBosted = "8020",
                 enhetBehandl = "8020",
-                kontrollfelt = "2022-02-07-18.39.46.586953",
+                kontrollfelt = "2021-01-01-02.02.03.456789",
                 saksbehId = "K231B433",
                 utbetalingId = "268e62fb-3079-4e8d-ab32-ff9fb9",
                 tilbakekrevingsperioder = listOf(
@@ -76,16 +78,16 @@ internal class TilbakekrevingsmeldingMapperTest {
                 ),
             ),
         )
-
         TilbakekrevingsmeldingMapper.toDto(inputXml).getOrFail() shouldBe expected
         TilbakekrevingsmeldingMapper.toKravgrunnlag(RåttKravgrunnlag(inputXml)).getOrFail() shouldBe Kravgrunnlag(
             saksnummer = Saksnummer(2461),
             eksternKravgrunnlagId = "298604",
             eksternVedtakId = "436204",
-            eksternKontrollfelt = "2022-02-07-18.39.46.586953",
+            eksternKontrollfelt = "2021-01-01-02.02.03.456789",
             status = Kravgrunnlag.KravgrunnlagStatus.Nytt,
             behandler = "K231B433",
             utbetalingId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),
+            eksternTidspunkt = fixedTidspunkt,
             grunnlagsmåneder = listOf(
                 Kravgrunnlag.Grunnlagsmåned(
                     måned = oktober(2021),
@@ -137,7 +139,7 @@ internal class TilbakekrevingsmeldingMapperTest {
                 enhetAnsvarlig = "8020",
                 enhetBosted = "8020",
                 enhetBehandl = "8020",
-                kontrollfelt = "2022-02-07-18.39.47.693011",
+                kontrollfelt = "2021-01-01-02.02.03.456789",
                 saksbehId = "K231B433",
                 utbetalingId = "268e62fb-3079-4e8d-ab32-ff9fb9",
                 tilbakekrevingsperioder = listOf(
@@ -198,16 +200,17 @@ internal class TilbakekrevingsmeldingMapperTest {
                 ),
             ),
         )
-
+        val tidspunkt = fixedTidspunkt
         TilbakekrevingsmeldingMapper.toDto(inputXml).getOrFail() shouldBe expected
         TilbakekrevingsmeldingMapper.toKravgrunnlag(RåttKravgrunnlag(inputXml)).getOrFail() shouldBe Kravgrunnlag(
             saksnummer = Saksnummer(2463),
             eksternKravgrunnlagId = "298606",
             eksternVedtakId = "436206",
-            eksternKontrollfelt = "2022-02-07-18.39.47.693011",
+            eksternTidspunkt = tidspunkt,
             status = Kravgrunnlag.KravgrunnlagStatus.Nytt,
             behandler = "K231B433",
             utbetalingId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),
+            eksternKontrollfelt = tidspunkt.toOppdragTimestamp(),
             grunnlagsmåneder = listOf(
                 Kravgrunnlag.Grunnlagsmåned(
                     måned = oktober(2021),

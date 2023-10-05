@@ -23,6 +23,7 @@ data class OpprettetTilbakekrevingsbehandling(
     override val hendelseId: HendelseId,
 ) : KanVurdere {
     override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
+
     override val månedsvurderinger: Månedsvurderinger? = null
     override val brevvalg: Brevvalg.SaksbehandlersValg? = null
 

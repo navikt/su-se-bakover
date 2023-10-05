@@ -35,7 +35,7 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
     private val tilbakekrevingService: TilbakekrevingService,
     private val sakService: SakService,
     private val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
-    private val mapRåttKravgrunnlag: (RåttKravgrunnlag) -> Kravgrunnlag,
+    private val mapRåttKravgrunnlag: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
     private val clock: Clock,
     private val sessionFactory: SessionFactory,
 ) : Hendelseskonsument {
@@ -56,7 +56,10 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
                         log.error("Kunne ikke prosessere kravgrunnlag: hentUprosesserteRåttKravgrunnlagHendelser returnerte hendelseId $hendelseId fra basen, men hentRåttKravgrunnlagHendelseForHendelseId fant den ikke. Denne vil prøves på nytt.")
                         return@forEach
                     }
-                val kravgrunnlagPåHendelsen = mapRåttKravgrunnlag(råttKravgrunnlagHendelse.råttKravgrunnlag)
+                val kravgrunnlagPåHendelsen = mapRåttKravgrunnlag(råttKravgrunnlagHendelse.råttKravgrunnlag).getOrElse {
+                    log.error("Kunne ikke prosessere kravgrunnlag: mapRåttKravgrunnlag feilet for hendelseId $hendelseId. Denne vil prøves på nytt.", it)
+                    return@forEach
+                }
                 val saksnummer = kravgrunnlagPåHendelsen.saksnummer
                 val sak = sakService.hentSak(saksnummer).getOrElse {
                     log.error("Kunne ikke prosessere kravgrunnlag: Fant ikke sak med saksnummer $saksnummer, hendelse $hendelseId. Denne vil prøves på nytt.")

@@ -25,10 +25,8 @@ class KravgrunnlagPostgresRepoTest {
                 dbMetrics = testDataHelper.dbMetrics,
             )
             val kravgrunnlagRepo = KravgrunnlagPostgresRepo(
-                sessionFactory = testDataHelper.sessionFactory,
                 hendelseRepo = hendelseRepo,
                 hendelsekonsumenterRepo = testDataHelper.hendelsekonsumenterRepo,
-                mapper = { _ -> TODO("Ikke i bruk her.") },
             )
             kravgrunnlagRepo.lagreRåttKravgrunnlagHendelse(hendelse1)
             val konsumentId = HendelseskonsumentId("konsumentId")
@@ -58,16 +56,14 @@ class KravgrunnlagPostgresRepoTest {
                 dbMetrics = testDataHelper.dbMetrics,
             )
             val kravgrunnlagRepo = KravgrunnlagPostgresRepo(
-                sessionFactory = testDataHelper.sessionFactory,
                 hendelseRepo = hendelseRepo,
                 hendelsekonsumenterRepo = testDataHelper.hendelsekonsumenterRepo,
-                mapper = { _ -> TODO("Ikke i bruk her.") },
             )
             val konsumentId = HendelseskonsumentId("konsumentId")
             testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave(
                 sakId = sakId,
             )
-            kravgrunnlagRepo.hentKravgrunnlagForSak(
+            kravgrunnlagRepo.hentKravgrunnlagPåSakHendelser(
                 sakId = sakId,
             ) shouldBe emptyList()
             kravgrunnlagRepo.hentUprosesserteKravgrunnlagKnyttetTilSakHendelser(
@@ -89,9 +85,9 @@ class KravgrunnlagPostgresRepoTest {
             kravgrunnlagRepo.hentUprosesserteKravgrunnlagKnyttetTilSakHendelser(
                 konsumentId = konsumentId,
             ) shouldBe emptyList()
-            kravgrunnlagRepo.hentKravgrunnlagForSak(
+            kravgrunnlagRepo.hentKravgrunnlagPåSakHendelser(
                 sakId = sakId,
-            ) shouldBe emptyList()
+            ) shouldBe listOf(hendelse1)
         }
     }
 }

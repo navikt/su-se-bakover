@@ -56,6 +56,7 @@ class HentSøknadPdfTest {
         type = Sakstype.UFØRE,
         uteståendeAvkorting = Avkortingsvarsel.Ingen,
         versjon = Hendelsesversjon(1),
+        uteståendeKravgrunnlag = null,
     )
     private val person = Person(
         ident = Ident(
