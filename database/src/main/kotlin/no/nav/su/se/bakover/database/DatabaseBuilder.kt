@@ -243,10 +243,12 @@ data object DatabaseBuilder {
             dbMetrics = dbMetrics,
             clock = clock,
         )
+        // TODO jah: Denne kreves av sakRepo. Samtidig som TilbakekrevingRepoer krever sessionFactory og andre repoer herfra. Så vi får 2 instanser av disse, men det går fint.
         val kravgrunnlagRepo = KravgrunnlagPostgresRepo(
             hendelseRepo = hendelseRepo,
             hendelsekonsumenterRepo = hendelsekonsumenterRepo,
         )
+        // TODO jah: Denne kreves av sakRepo. Samtidig som TilbakekrevingRepoer krever sessionFactory og andre repoer herfra. Så vi får 2 instanser av disse, men det går fint.
         val tilbakekrevingsbehandlingRepo = TilbakekrevingsbehandlingPostgresRepo(
             sessionFactory = sessionFactory,
             hendelseRepo = hendelseRepo,

@@ -43,8 +43,6 @@ import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJo
 import no.nav.su.se.bakover.web.services.tilbakekreving.LokalMottaKravgrunnlagJob
 import no.nav.su.se.bakover.web.services.tilbakekreving.SendTilbakekrevingsvedtakForRevurdering
 import org.apache.kafka.clients.consumer.KafkaConsumer
-import tilbakekreving.application.service.RåttKravgrunnlagService
-import tilbakekreving.infrastructure.KravgrunnlagPostgresRepo
 import tilbakekreving.infrastructure.Tilbakekrevingskomponenter
 import tilbakekreving.presentation.consumer.KravgrunnlagIbmMqConsumer
 import tilbakekreving.presentation.job.Tilbakekrevingsjobber
@@ -258,18 +256,10 @@ fun startJobberOgConsumers(
             runCheckFactory = runCheckFactory,
         ).schedule()
 
-        val kravgrunnlagRepo = KravgrunnlagPostgresRepo(
-            hendelseRepo = databaseRepos.hendelseRepo,
-            hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
-        )
-
         KravgrunnlagIbmMqConsumer(
             queueName = applicationConfig.oppdrag.tilbakekreving.mq.mottak,
             globalJmsContext = jmsConfig.jmsContext,
-            service = RåttKravgrunnlagService(
-                kravgrunnlagRepo = kravgrunnlagRepo,
-                clock = clock,
-            ),
+            service = tilbakekrevingskomponenter.services.råttKravgrunnlagService,
         )
 
         Tilbakekrevingsjobber(
