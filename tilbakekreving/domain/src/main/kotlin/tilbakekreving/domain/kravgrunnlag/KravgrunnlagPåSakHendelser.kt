@@ -6,6 +6,10 @@ data class KravgrunnlagPåSakHendelser(
 
     fun hentUteståendeKravgrunnlag(): Kravgrunnlag? {
         return hendelser
+            .filter {
+                // Dersom revurderingId != null har den blitt behandlet i revurderingen og skal ikke behandles på nytt.
+                it.revurderingId == null
+            }
             .map { it.kravgrunnlag }
             .maxByOrNull { it.eksternTidspunkt.instant }
     }
