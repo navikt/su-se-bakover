@@ -135,15 +135,17 @@ fun matchendeKravgrunnlag(
     utbetalingId: UUID30,
     clock: Clock,
 ): Kravgrunnlag {
+    val now = Tidspunkt.now(clock)
     return simulering.let {
         Kravgrunnlag(
             saksnummer = saksnummer,
             eksternKravgrunnlagId = "123456",
             eksternVedtakId = "654321",
-            eksternKontrollfelt = Tidspunkt.now(clock).toOppdragTimestamp(),
+            eksternKontrollfelt = now.toOppdragTimestamp(),
             status = Kravgrunnlag.KravgrunnlagStatus.Nytt,
             behandler = "K231B433",
             utbetalingId = utbetalingId,
+            eksternTidspunkt = now,
             grunnlagsmåneder = it.hentFeilutbetalteBeløp()
                 .map { (måned, feilutbetaling) ->
                     Kravgrunnlag.Grunnlagsmåned(
@@ -169,6 +171,7 @@ fun matchendeKravgrunnlag(
                                 skatteProsent = BigDecimal("43.9983"),
                             ),
                         ),
+
                     )
                 },
         )

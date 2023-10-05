@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.infrastructure.audit.CefAuditLogger
 import no.nav.su.se.bakover.common.infrastructure.brukerrolle.AzureGroupMapper
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
-import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.web.withUser
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.satser.SatsFactory
@@ -36,6 +35,7 @@ import no.nav.su.se.bakover.web.routes.vedtak.stønadsmottakereRoute
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.opplysningspliktRoutes
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.Services
+import tilbakekreving.infrastructure.Tilbakekrevingskomponenter
 import tilbakekreving.presentation.api.tilbakekrevingRoutes
 import java.time.Clock
 
@@ -48,6 +48,7 @@ internal fun Application.setupKtorRoutes(
     azureGroupMapper: AzureGroupMapper,
     satsFactoryIDag: SatsFactory,
     databaseRepos: DatabaseRepos,
+    tilbakekrevingskomponenter: Tilbakekrevingskomponenter,
     clients: Clients,
 ) {
     routing {
@@ -135,13 +136,11 @@ internal fun Application.setupKtorRoutes(
                         kontrollsamtaleService = services.kontrollsamtaleSetup.kontrollsamtaleService,
                     )
                     tilbakekrevingRoutes(
-                        personRepo = databaseRepos.person,
-                        personService = services.person,
-                        sakService = services.sak,
-                        sessionFactory = databaseRepos.sessionFactory as PostgresSessionFactory,
-                        clock = clock,
-                        hendelseRepo = databaseRepos.hendelseRepo,
-                        hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
+                        opprettTilbakekrevingsbehandlingService = tilbakekrevingskomponenter.services.opprettTilbakekrevingsbehandlingService,
+                        månedsvurderingerTilbakekrevingsbehandlingService = tilbakekrevingskomponenter.services.månedsvurderingerTilbakekrevingsbehandlingService,
+                        brevTilbakekrevingsbehandlingService = tilbakekrevingskomponenter.services.brevTilbakekrevingsbehandlingService,
+                        forhåndsvarsleTilbakekrevingsbehandlingService = tilbakekrevingskomponenter.services.forhåndsvarsleTilbakekrevingsbehandlingService,
+
                     )
                 }
             }

@@ -2,13 +2,11 @@ package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import økonomi.domain.KlasseKode
 import økonomi.domain.KlasseType
 import java.math.BigDecimal
@@ -24,15 +22,17 @@ fun matchendeKravgrunnlag(
     utbetalingId: UUID30,
     clock: Clock,
 ): Kravgrunnlag {
+    val now = Tidspunkt.now(clock)
     return simulering.let {
         Kravgrunnlag(
             saksnummer = revurdering.saksnummer,
             eksternKravgrunnlagId = "123456",
             eksternVedtakId = "654321",
-            eksternKontrollfelt = Tidspunkt.now(clock).toOppdragTimestamp(),
+            eksternKontrollfelt = now.toOppdragTimestamp(),
             status = Kravgrunnlag.KravgrunnlagStatus.Nytt,
             behandler = "K231B433",
             utbetalingId = utbetalingId,
+            eksternTidspunkt = now,
             grunnlagsmåneder = it.hentFeilutbetalteBeløp()
                 .map { (periode, feilutbetaling) ->
                     Kravgrunnlag.Grunnlagsmåned(
@@ -62,30 +62,4 @@ fun matchendeKravgrunnlag(
                 },
         )
     }
-}
-
-fun nyRåttKravgrunnlag(
-    kravgrunnlagXml: String = "<detaljertKravgrunnlagMelding><detaljertKravgrunnlag><kravgrunnlagId>123456</kravgrunnlagId><vedtakId>654321</vedtakId><kodeStatusKrav>NY</kodeStatusKrav><kodeFagomraade>SUUFORE</kodeFagomraade><fagsystemId>10002099</fagsystemId><datoVedtakFagsystem/><vedtakIdOmgjort/><vedtakGjelderId>18506438140</vedtakGjelderId><typeGjelderId>PERSON</typeGjelderId><utbetalesTilId>18506438140</utbetalesTilId><typeUtbetId>PERSON</typeUtbetId><kodeHjemmel>ANNET</kodeHjemmel><renterBeregnes>N</renterBeregnes><enhetAnsvarlig>4815</enhetAnsvarlig><enhetBosted>8020</enhetBosted><enhetBehandl>4815</enhetBehandl><kontrollfelt>2023-09-19-10.01.03.842916</kontrollfelt><saksbehId>K231B433</saksbehId><referanse>ef8ac92a-ba30-414e-85f4-d1227c</referanse><tilbakekrevingsPeriode><periode><fom>2023-06-01</fom><tom>2023-06-30</tom></periode><belopSkattMnd>4395</belopSkattMnd><tilbakekrevingsBelop><kodeKlasse>KL_KODE_FEIL_INNT</kodeKlasse><typeKlasse>FEIL</typeKlasse><belopOpprUtbet>0</belopOpprUtbet><belopNy>2643</belopNy><belopTilbakekreves>0</belopTilbakekreves><belopUinnkrevd>0</belopUinnkrevd><skattProsent>0</skattProsent></tilbakekrevingsBelop><tilbakekrevingsBelop><kodeKlasse>SUUFORE</kodeKlasse><typeKlasse>YTEL</typeKlasse><belopOpprUtbet>16181</belopOpprUtbet><belopNy>13538</belopNy><belopTilbakekreves>2643</belopTilbakekreves><belopUinnkrevd>0</belopUinnkrevd><skattProsent>43.9983</skattProsent></tilbakekrevingsBelop></tilbakekrevingsPeriode><tilbakekrevingsPeriode><periode><fom>2023-07-01</fom><tom>2023-07-31</tom></periode><belopSkattMnd>4395</belopSkattMnd><tilbakekrevingsBelop><kodeKlasse>KL_KODE_FEIL_INNT</kodeKlasse><typeKlasse>FEIL</typeKlasse><belopOpprUtbet>0</belopOpprUtbet><belopNy>2643</belopNy><belopTilbakekreves>0</belopTilbakekreves><belopUinnkrevd>0</belopUinnkrevd><skattProsent>0</skattProsent></tilbakekrevingsBelop><tilbakekrevingsBelop><kodeKlasse>SUUFORE</kodeKlasse><typeKlasse>YTEL</typeKlasse><belopOpprUtbet>16181</belopOpprUtbet><belopNy>13538</belopNy><belopTilbakekreves>2643</belopTilbakekreves><belopUinnkrevd>0</belopUinnkrevd><skattProsent>43.9983</skattProsent></tilbakekrevingsBelop></tilbakekrevingsPeriode><tilbakekrevingsPeriode><periode><fom>2023-08-01</fom><tom>2023-08-31</tom></periode><belopSkattMnd>4395</belopSkattMnd><tilbakekrevingsBelop><kodeKlasse>KL_KODE_FEIL_INNT</kodeKlasse><typeKlasse>FEIL</typeKlasse><belopOpprUtbet>0</belopOpprUtbet><belopNy>2643</belopNy><belopTilbakekreves>0</belopTilbakekreves><belopUinnkrevd>0</belopUinnkrevd><skattProsent>0</skattProsent></tilbakekrevingsBelop><tilbakekrevingsBelop><kodeKlasse>SUUFORE</kodeKlasse><typeKlasse>YTEL</typeKlasse><belopOpprUtbet>16181</belopOpprUtbet><belopNy>13538</belopNy><belopTilbakekreves>2643</belopTilbakekreves><belopUinnkrevd>0</belopUinnkrevd><skattProsent>43.9983</skattProsent></tilbakekrevingsBelop></tilbakekrevingsPeriode></detaljertKravgrunnlag></detaljertKravgrunnlagMelding>",
-): RåttKravgrunnlag = RåttKravgrunnlag(kravgrunnlagXml)
-
-fun nyKravgrunnlag(
-    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
-    kravgrunnlagId: String = "123-456",
-    vedtakId: String = "789-101",
-    kontrollfelt: String = "19.09.2023.16:54",
-    status: Kravgrunnlag.KravgrunnlagStatus = Kravgrunnlag.KravgrunnlagStatus.Manuell,
-    behandler: String = saksbehandler.toString(),
-    utbetalingId: UUID30 = UUID30.randomUUID(),
-    grunnlagsperioder: List<Kravgrunnlag.Grunnlagsmåned> = emptyList(),
-): Kravgrunnlag {
-    return Kravgrunnlag(
-        saksnummer = saksnummer,
-        eksternKravgrunnlagId = kravgrunnlagId,
-        eksternVedtakId = vedtakId,
-        eksternKontrollfelt = kontrollfelt,
-        status = status,
-        behandler = behandler,
-        utbetalingId = utbetalingId,
-        grunnlagsmåneder = grunnlagsperioder,
-    )
 }

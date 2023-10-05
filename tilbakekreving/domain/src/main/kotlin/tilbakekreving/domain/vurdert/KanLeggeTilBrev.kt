@@ -40,4 +40,6 @@ sealed interface KanLeggeTilBrev : KanVurdere {
 
         return hendelse to this.applyHendelse(hendelse)
     }
+
+    override fun erÅpen() = true
 }

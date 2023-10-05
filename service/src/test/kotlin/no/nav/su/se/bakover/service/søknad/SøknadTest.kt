@@ -60,6 +60,7 @@ class SøknadTest {
         type = Sakstype.UFØRE,
         uteståendeAvkorting = Avkortingsvarsel.Ingen,
         versjon = Hendelsesversjon(1),
+        uteståendeKravgrunnlag = null,
     )
     private val pdf = PdfA("pdf-data".toByteArray())
     private val journalpostId = JournalpostId("1")

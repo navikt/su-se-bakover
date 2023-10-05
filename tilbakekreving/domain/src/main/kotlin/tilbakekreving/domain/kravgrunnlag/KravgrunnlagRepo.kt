@@ -6,22 +6,6 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import java.util.UUID
 
 interface KravgrunnlagRepo {
-    /**
-     * TODO jah: Slett når kravgrunnlaghendelsene er i prod
-     */
-    fun hentRåttÅpentKravgrunnlagForSak(
-        sakId: UUID,
-        sessionContext: SessionContext? = null,
-    ): RåttKravgrunnlag?
-
-    /**
-     * TODO jah: Slett når kravgrunnlaghendelsene er i prod
-     */
-    fun hentKravgrunnlagForSak(
-        sakId: UUID,
-        sessionContext: SessionContext? = null,
-    ): List<Kravgrunnlag>
-
     fun lagreRåttKravgrunnlagHendelse(
         hendelse: RåttKravgrunnlagHendelse,
         sessionContext: SessionContext? = null,
@@ -46,16 +30,11 @@ interface KravgrunnlagRepo {
     fun hentKravgrunnlagPåSakHendelser(
         sakId: UUID,
         sessionContext: SessionContext? = null,
-    ): List<KravgrunnlagPåSakHendelse>
+    ): KravgrunnlagPåSakHendelser
 
     fun hentUprosesserteKravgrunnlagKnyttetTilSakHendelser(
         konsumentId: HendelseskonsumentId,
         sessionContext: SessionContext? = null,
         limit: Int = 10,
     ): List<HendelseId>
-
-    fun hentKravgrunnlagKnyttetTilSak(
-        hendelseId: HendelseId,
-        sessionContext: SessionContext? = null,
-    ): KravgrunnlagPåSakHendelse?
 }

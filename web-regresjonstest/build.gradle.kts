@@ -17,8 +17,13 @@ dependencies {
     implementation(project(":økonomi:domain"))
     implementation(project(":dokument:domain"))
 
+    implementation(project(":hendelse:domain"))
+    implementation(project(":hendelse:infrastructure"))
+
     implementation(project(":tilbakekreving:domain"))
     implementation(project(":tilbakekreving:presentation"))
+    implementation(project(":tilbakekreving:application"))
+    implementation(project(":tilbakekreving:infrastructure"))
 
     implementation("io.ktor:ktor-client-java:$ktorVersion")
     implementation("io.ktor:ktor-server-test-host:$ktorVersion") {

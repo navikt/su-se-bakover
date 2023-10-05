@@ -1,8 +1,8 @@
 package tilbakekreving.infrastructure
 
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withOptionalSession
-import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
@@ -26,7 +26,7 @@ private val IverksettTilbakekrevingsbehandlingHendelsestype = Hendelsestype("IVE
 private val AvbrytTilbakekrevingsbehandlingHendelsestype = Hendelsestype("AVBRYT_TILBAKEKREVINGSBEHANDLING")
 
 class TilbakekrevingsbehandlingPostgresRepo(
-    private val sessionFactory: PostgresSessionFactory,
+    private val sessionFactory: SessionFactory,
     private val hendelseRepo: HendelseRepo,
     private val clock: Clock,
     private val kravgrunnlagRepo: KravgrunnlagRepo,
@@ -78,7 +78,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
                     sakId = sakId,
                     hendelser = it,
                     clock = clock,
-                    kravgrunnlagPåSak = kravgrunnlagRepo.hentKravgrunnlagForSak(sakId, openSessionContext),
+                    kravgrunnlagPåSak = kravgrunnlagRepo.hentKravgrunnlagPåSakHendelser(sakId, openSessionContext),
                 )
             }
         }

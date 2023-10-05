@@ -10,12 +10,14 @@ import com.fasterxml.jackson.module.kotlin.contains
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import økonomi.domain.KlasseKode
 import økonomi.domain.KlasseType
 import java.math.BigDecimal
+import java.time.Instant
 import java.time.LocalDate
 
 /**
@@ -95,6 +97,12 @@ data object TilbakekrevingsmeldingMapper {
                                         },
                                     )
                                 },
+                                eksternTidspunkt = Tidspunkt(
+                                    kontrollfeltFormatter.parse(
+                                        kravgrunnlagDto.kontrollfelt,
+                                        Instant::from,
+                                    ),
+                                ),
                             )
                         }
                     }

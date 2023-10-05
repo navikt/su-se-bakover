@@ -20,6 +20,10 @@ import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.susebakover
 import org.mockito.kotlin.mock
+import tilbakekreving.application.service.TilbakekrevingServices
+import tilbakekreving.infrastructure.TilbakekrevingRepos
+import tilbakekreving.infrastructure.Tilbakekrevingskomponenter
+import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringConsumer
 import java.time.Clock
 import java.time.LocalDate
@@ -31,6 +35,7 @@ class AppComponents private constructor(
     val databaseRepos: DatabaseRepos,
     val clients: Clients,
     val services: Services,
+    val tilbakekrevingskomponenter: Tilbakekrevingskomponenter,
     val accessCheckProxy: AccessCheckProxy,
     val consumers: Consumers,
 ) {
@@ -42,6 +47,7 @@ class AppComponents private constructor(
             repoBuilder: (dataSource: DataSource, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad) -> DatabaseRepos,
             clientBuilder: (databaseRepos: DatabaseRepos, clock: Clock) -> Clients,
             serviceBuilder: (databaseRepos: DatabaseRepos, clients: Clients, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad) -> Services,
+            tilbakekrevingskomponenterBuilder: (databaseRepos: DatabaseRepos, services: Services) -> Tilbakekrevingskomponenter,
         ): AppComponents {
             val databaseRepos = repoBuilder(dataSource, clock, satsFactoryTest)
             val clients = clientBuilder(databaseRepos, clock)
@@ -57,6 +63,7 @@ class AppComponents private constructor(
                     clock = clock,
                 ),
             )
+            val tilbakekrevingskomponenter = tilbakekrevingskomponenterBuilder(databaseRepos, services)
             return AppComponents(
                 clock = clock,
                 applicationConfig = applicationConfig,
@@ -65,6 +72,7 @@ class AppComponents private constructor(
                 services = services,
                 accessCheckProxy = accessCheckProxy,
                 consumers = consumers,
+                tilbakekrevingskomponenter = tilbakekrevingskomponenter,
             )
         }
     }
@@ -98,6 +106,29 @@ internal fun withKomptestApplication(
             dbMetrics = dbMetricsStub,
         )
     },
+    tilbakekrevingskomponenterBuilder: (databaseRepos: DatabaseRepos, services: Services) -> Tilbakekrevingskomponenter = { databaseRepos, services ->
+        val repos = TilbakekrevingRepos(
+            clock = clock,
+            sessionFactory = databaseRepos.sessionFactory,
+            hendelseRepo = databaseRepos.hendelseRepo,
+            hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
+        )
+        Tilbakekrevingskomponenter(
+            repos = repos,
+            services = TilbakekrevingServices(
+                clock = clock,
+                sessionFactory = databaseRepos.sessionFactory,
+                personRepo = databaseRepos.person,
+                personService = services.person,
+                kravgrunnlagRepo = repos.kravgrunnlagRepo,
+                hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
+                tilbakekrevingService = services.tilbakekrevingService,
+                sakService = services.sak,
+                tilbakekrevingsbehandlingRepo = repos.tilbakekrevingsbehandlingRepo,
+                mapRåttKravgrunnlag = TilbakekrevingsmeldingMapper::toKravgrunnlag,
+            ),
+        )
+    },
     test: ApplicationTestBuilder.(appComponents: AppComponents) -> Unit,
 ) {
     withMigratedDb { dataSource ->
@@ -109,6 +140,7 @@ internal fun withKomptestApplication(
                 clientBuilder = clientsBuilder,
                 serviceBuilder = serviceBuilder,
                 applicationConfig = applicationConfig,
+                tilbakekrevingskomponenterBuilder = tilbakekrevingskomponenterBuilder,
             ),
             test = test,
         )

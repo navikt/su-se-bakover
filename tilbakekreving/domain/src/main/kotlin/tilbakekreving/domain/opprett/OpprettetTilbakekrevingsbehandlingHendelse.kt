@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
+import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
 import java.time.Clock
 import java.util.UUID
 
@@ -60,6 +61,10 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
             id = TilbakekrevingsbehandlingId.generer(),
             kravgrunnlagsId = kravgrunnlagsId,
         )
+    }
+
+    fun toDomain(kravgrunnlagPåSakHendelse: KravgrunnlagPåSakHendelse): OpprettetTilbakekrevingsbehandling {
+        return toDomain(kravgrunnlagPåSakHendelse.kravgrunnlag)
     }
 
     fun toDomain(kravgrunnlag: Kravgrunnlag): OpprettetTilbakekrevingsbehandling {

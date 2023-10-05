@@ -24,6 +24,9 @@ import no.nav.su.se.bakover.web.metrics.SøknadMicrometerMetrics
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
+import tilbakekreving.application.service.TilbakekrevingServices
+import tilbakekreving.infrastructure.TilbakekrevingRepos
+import tilbakekreving.infrastructure.Tilbakekrevingskomponenter
 import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringConsumer
 import java.time.Clock
@@ -58,7 +61,6 @@ fun Application.susebakover(
         clock = clock,
         satsFactory = satsFactory,
         queryParameterMappers = listOf(DomainToQueryParameterMapper),
-        kravgrunnlagMapper = TilbakekrevingsmeldingMapper::toKravgrunnlag,
     ),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
     clients: Clients = if (applicationConfig.runtimeEnvironment != ApplicationConfig.RuntimeEnvironment.Nais) {
@@ -83,6 +85,29 @@ fun Application.susebakover(
         applicationConfig = applicationConfig,
         dbMetrics = dbMetrics,
     ),
+    tilbakekrevingskomponenter: Tilbakekrevingskomponenter = run {
+        val repos = TilbakekrevingRepos(
+            clock = clock,
+            sessionFactory = databaseRepos.sessionFactory,
+            hendelseRepo = databaseRepos.hendelseRepo,
+            hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
+        )
+        Tilbakekrevingskomponenter(
+            services = TilbakekrevingServices(
+                clock = clock,
+                sessionFactory = databaseRepos.sessionFactory,
+                personRepo = databaseRepos.person,
+                personService = services.person,
+                kravgrunnlagRepo = repos.kravgrunnlagRepo,
+                hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
+                tilbakekrevingService = services.tilbakekrevingService,
+                sakService = services.sak,
+                tilbakekrevingsbehandlingRepo = repos.tilbakekrevingsbehandlingRepo,
+                mapRåttKravgrunnlag = { TilbakekrevingsmeldingMapper.toKravgrunnlag(it) },
+            ),
+            repos = repos,
+        )
+    },
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
     consumers: Consumers = Consumers(
         utbetalingKvitteringConsumer = UtbetalingKvitteringConsumer(
@@ -104,6 +129,7 @@ fun Application.susebakover(
         satsFactoryIDag = satsFactoryIDag,
         databaseRepos = databaseRepos,
         extraRoutes = extraRoutes,
+        tilbakekrevingskomponenter = tilbakekrevingskomponenter,
     )
     startJobberOgConsumers(
         services = services,
@@ -114,5 +140,6 @@ fun Application.susebakover(
         clock = clock,
         consumers = consumers,
         dbMetrics = dbMetrics,
+        tilbakekrevingskomponenter = tilbakekrevingskomponenter,
     )
 }

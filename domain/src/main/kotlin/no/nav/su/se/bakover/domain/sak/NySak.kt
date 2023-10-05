@@ -33,6 +33,7 @@ data class NySak(
             type = søknad.type,
             uteståendeAvkorting = Avkortingsvarsel.Ingen,
             versjon = versjon,
+            uteståendeKravgrunnlag = null,
         )
     }
 }

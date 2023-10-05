@@ -4,13 +4,9 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
-import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.domain.sak.SakService
 import org.slf4j.LoggerFactory
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandling
-import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
-import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag
 import tilbakekreving.domain.opprett.KunneIkkeOppretteTilbakekrevingsbehandling
 import tilbakekreving.domain.opprett.OpprettTilbakekrevingsbehandlingCommand
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
@@ -18,42 +14,39 @@ import tilbakekreving.domain.opprett.opprettTilbakekrevingsbehandling
 import java.time.Clock
 
 class OpprettTilbakekrevingsbehandlingService(
-    private val kravgrunnlagRepo: KravgrunnlagRepo,
     private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
-    private val hendelseRepo: HendelseRepo,
     private val tilgangstyring: TilbakekrevingsbehandlingTilgangstyringService,
+    private val sakService: SakService,
     private val clock: Clock,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun opprett(
         command: OpprettTilbakekrevingsbehandlingCommand,
-        kravgrunnlagMapper: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
     ): Either<KunneIkkeOppretteTilbakekrevingsbehandling, OpprettetTilbakekrevingsbehandling> {
         val sakId = command.sakId
         tilgangstyring.assertHarTilgangTilSak(sakId).onLeft {
+            log.info("Kunne ikke opprette tilbakekreving. Mangler tilgang til sak. command: $command. Feil: $it")
             return KunneIkkeOppretteTilbakekrevingsbehandling.IkkeTilgang(it).left()
         }
-
-        // Det er ikke sikkert vi har en hendelse på saken, i så fall genererer vi en ny.
-        val sisteVersjon = hendelseRepo.hentSisteVersjonFraEntitetId(sakId) ?: Hendelsesversjon.ny()
-
-        // TODO - en sjekk på at kravgrunnlaget ikke har en aktiv behandling (bør gå via Sak.kt)
-        //  Da får vi en naturlig inngang og kravgrunnlaget bør ligge på saken slik at vi slipper mappingsbiten her.
-        return kravgrunnlagRepo.hentRåttÅpentKravgrunnlagForSak(sakId)?.let {
-            kravgrunnlagMapper(it).map { kravgrunnlag ->
-                opprettTilbakekrevingsbehandling(
-                    command = command,
-                    forrigeVersjon = sisteVersjon,
-                    clock = clock,
-                    kravgrunnlag = kravgrunnlag,
-                )
-            }.getOrElse {
-                throw IllegalStateException("Feil ved mapping av kravgrunnlag på sak $sakId", it)
-            }.let {
-                tilbakekrevingsbehandlingRepo.lagre(it.first)
-                it.second.right()
+        val sak = sakService.hentSak(sakId).getOrElse {
+            throw IllegalStateException("Kunne ikke opprette tilbakekreving. Fant ikke sak $sakId. Feil: $it")
+        }
+        if (sak.behandlinger.tilbakekrevinger.harÅpen()) {
+            log.info("Kunne ikke opprette tilbakekreving. Fant allerede en åpen tilbakekrevingsbehandling for sak $sakId")
+            return KunneIkkeOppretteTilbakekrevingsbehandling.FinnesAlleredeEnÅpenBehandling.left()
+        }
+        return when (val k = sak.uteståendeKravgrunnlag) {
+            null -> KunneIkkeOppretteTilbakekrevingsbehandling.IngenÅpneKravgrunnlag.left()
+            else -> opprettTilbakekrevingsbehandling(
+                command = command,
+                forrigeVersjon = sak.versjon,
+                clock = clock,
+                kravgrunnlag = k,
+            ).let { (hendelse, behandling) ->
+                tilbakekrevingsbehandlingRepo.lagre(hendelse)
+                behandling.right()
             }
-        } ?: KunneIkkeOppretteTilbakekrevingsbehandling.IngenÅpneKravgrunnlag.left()
+        }
     }
 }

@@ -44,7 +44,8 @@ fun assertSakJson(
         "utenlandsopphold": $expectedUtenlandsopphold,
         "versjon": $expectedVersjon,
         "uteståendeAvkorting": null,
-        "tilbakekrevinger": $expectedTilbakekrevinger
+        "tilbakekrevinger": $expectedTilbakekrevinger,
+        "uteståendeKravgrunnlag": null
     }
     """.trimIndent()
     jsonAssertEquals(

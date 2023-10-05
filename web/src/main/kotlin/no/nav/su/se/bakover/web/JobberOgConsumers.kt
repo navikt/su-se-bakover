@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web
 
-import arrow.core.getOrElse
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.extensions.april
 import no.nav.su.se.bakover.common.extensions.august
@@ -19,7 +18,6 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
 import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
-import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.institusjonsopphold.application.service.EksternInstitusjonsoppholdKonsument
 import no.nav.su.se.bakover.institusjonsopphold.application.service.OpprettOppgaverForInstitusjonsoppholdshendelser
@@ -45,16 +43,14 @@ import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJo
 import no.nav.su.se.bakover.web.services.tilbakekreving.LokalMottaKravgrunnlagJob
 import no.nav.su.se.bakover.web.services.tilbakekreving.SendTilbakekrevingsvedtakForRevurdering
 import org.apache.kafka.clients.consumer.KafkaConsumer
-import tilbakekreving.application.service.KnyttKravgrunnlagTilSakOgUtbetalingKonsument
 import tilbakekreving.application.service.RåttKravgrunnlagService
 import tilbakekreving.infrastructure.KravgrunnlagPostgresRepo
+import tilbakekreving.infrastructure.Tilbakekrevingskomponenter
 import tilbakekreving.presentation.consumer.KravgrunnlagIbmMqConsumer
-import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
 import tilbakekreving.presentation.job.Tilbakekrevingsjobber
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringIbmMqConsumer
 import økonomi.infrastructure.kvittering.consumer.lokal.LokalKvitteringJob
 import økonomi.infrastructure.kvittering.consumer.lokal.LokalKvitteringService
-import java.lang.IllegalStateException
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -73,6 +69,7 @@ fun startJobberOgConsumers(
     consumers: Consumers,
     // TODO jah: Skal brukes når vi bytter over til ny jobb for å ferdigstille vedtak med utbetaling+kvittering
     @Suppress("UNUSED_PARAMETER") dbMetrics: DbMetrics,
+    tilbakekrevingskomponenter: Tilbakekrevingskomponenter,
 ) {
     val personhendelseService = PersonhendelseService(
         sakRepo = databaseRepos.sak,
@@ -262,10 +259,8 @@ fun startJobberOgConsumers(
         ).schedule()
 
         val kravgrunnlagRepo = KravgrunnlagPostgresRepo(
-            sessionFactory = databaseRepos.sessionFactory,
             hendelseRepo = databaseRepos.hendelseRepo,
             hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
-            mapper = TilbakekrevingsmeldingMapper::toKravgrunnlag,
         )
 
         KravgrunnlagIbmMqConsumer(
@@ -278,25 +273,7 @@ fun startJobberOgConsumers(
         )
 
         Tilbakekrevingsjobber(
-            knyttKravgrunnlagTilSakOgUtbetalingKonsument = KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
-                kravgrunnlagRepo = kravgrunnlagRepo,
-                tilbakekrevingService = services.tilbakekrevingService,
-                sakService = services.sak,
-                hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
-                mapRåttKravgrunnlag = { råttKravgrunnlag ->
-                    // TODO jah: Løs dette bedre
-                    TilbakekrevingsmeldingMapper.toKravgrunnlag(råttKravgrunnlag).getOrElse {
-                        throw IllegalStateException(
-                            "Kunne ikke mappe rått kravgrunnlag til kravgrunnlag, se sikkerlogg for kravgrunnlag.",
-                            it,
-                        ).also {
-                            sikkerLogg.error("Kunne ikke mappe rått kravgrunnlag til kravgrunnlag. Kravgrunnlag $råttKravgrunnlag")
-                        }
-                    }
-                },
-                clock = clock,
-                sessionFactory = databaseRepos.sessionFactory,
-            ),
+            knyttKravgrunnlagTilSakOgUtbetalingKonsument = tilbakekrevingskomponenter.services.knyttKravgrunnlagTilSakOgUtbetalingKonsument,
             initialDelay = initialDelay.next(),
             intervall = Duration.ofSeconds(10),
             runCheckFactory = runCheckFactory,
@@ -396,47 +373,15 @@ fun startJobberOgConsumers(
             runCheckFactory = runCheckFactory,
         ).schedule()
 
-        val kravgrunnlagRepo = KravgrunnlagPostgresRepo(
-            sessionFactory = databaseRepos.sessionFactory,
-            hendelseRepo = databaseRepos.hendelseRepo,
-            hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
-            mapper = TilbakekrevingsmeldingMapper::toKravgrunnlag,
-        )
         LokalMottaKravgrunnlagJob(
             initialDelay = initialDelay.next(),
             intervall = Duration.ofSeconds(10),
             sessionFactory = databaseRepos.sessionFactory,
-            service = RåttKravgrunnlagService(
-                kravgrunnlagRepo = KravgrunnlagPostgresRepo(
-                    sessionFactory = databaseRepos.sessionFactory,
-                    hendelseRepo = databaseRepos.hendelseRepo,
-                    hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
-                    mapper = TilbakekrevingsmeldingMapper::toKravgrunnlag,
-                ),
-                clock = clock,
-            ),
+            service = tilbakekrevingskomponenter.services.råttKravgrunnlagService,
         ).schedule()
 
         Tilbakekrevingsjobber(
-            knyttKravgrunnlagTilSakOgUtbetalingKonsument = KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
-                kravgrunnlagRepo = kravgrunnlagRepo,
-                tilbakekrevingService = services.tilbakekrevingService,
-                sakService = services.sak,
-                hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
-                mapRåttKravgrunnlag = { råttKravgrunnlag ->
-                    // TODO jah: Løs dette bedre
-                    TilbakekrevingsmeldingMapper.toKravgrunnlag(råttKravgrunnlag).getOrElse {
-                        throw IllegalStateException(
-                            "Kunne ikke mappe rått kravgrunnlag til kravgrunnlag, se sikkerlogg for kravgrunnlag.",
-                            it,
-                        ).also {
-                            sikkerLogg.error("Kunne ikke mappe rått kravgrunnlag til kravgrunnlag. Kravgrunnlag $råttKravgrunnlag")
-                        }
-                    }
-                },
-                clock = clock,
-                sessionFactory = databaseRepos.sessionFactory,
-            ),
+            knyttKravgrunnlagTilSakOgUtbetalingKonsument = tilbakekrevingskomponenter.services.knyttKravgrunnlagTilSakOgUtbetalingKonsument,
             initialDelay = initialDelay.next(),
             intervall = Duration.ofSeconds(10),
             runCheckFactory = runCheckFactory,

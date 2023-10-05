@@ -6,6 +6,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.correlationId
@@ -21,7 +22,6 @@ import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Comp
 import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
 import tilbakekreving.presentation.api.common.ingenÅpneKravgrunnlag
 import tilbakekreving.presentation.api.tilbakekrevingPath
-import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
 
 private data class Body(
     val saksversjon: Long,
@@ -42,7 +42,6 @@ internal fun Route.opprettTilbakekrevingsbehandlingRoute(
                             brukerroller = call.suUserContext.roller.toNonEmptyList(),
                             klientensSisteSaksversjon = Hendelsesversjon(body.saksversjon),
                         ),
-                        kravgrunnlagMapper = TilbakekrevingsmeldingMapper::toKravgrunnlag,
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = { call.svar(Resultat.json(HttpStatusCode.Created, it.toStringifiedJson())) },
@@ -54,6 +53,7 @@ internal fun Route.opprettTilbakekrevingsbehandlingRoute(
 }
 
 private fun KunneIkkeOppretteTilbakekrevingsbehandling.tilResultat(): Resultat = when (this) {
-    KunneIkkeOppretteTilbakekrevingsbehandling.IngenÅpneKravgrunnlag -> ingenÅpneKravgrunnlag
+    is KunneIkkeOppretteTilbakekrevingsbehandling.IngenÅpneKravgrunnlag -> ingenÅpneKravgrunnlag
     is KunneIkkeOppretteTilbakekrevingsbehandling.IkkeTilgang -> ikkeTilgangTilSak
+    is KunneIkkeOppretteTilbakekrevingsbehandling.FinnesAlleredeEnÅpenBehandling -> Feilresponser.harAlleredeÅpenBehandling
 }
