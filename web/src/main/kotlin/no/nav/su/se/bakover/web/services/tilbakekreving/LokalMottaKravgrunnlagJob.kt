@@ -82,7 +82,7 @@ internal class LokalMottaKravgrunnlagJob(
                 kravgrunnlagDto = KravgrunnlagDto(
                     kravgrunnlagId = kravgrunnlag.eksternKravgrunnlagId,
                     vedtakId = kravgrunnlag.eksternVedtakId,
-                    kodeStatusKrav = kravgrunnlag.status.toString(),
+                    kodeStatusKrav = kravgrunnlag.status.toDtoStatus(),
                     kodeFagområde = "SUUFORE",
                     fagsystemId = saksnummer.toString(),
                     datoVedtakFagsystem = null,
