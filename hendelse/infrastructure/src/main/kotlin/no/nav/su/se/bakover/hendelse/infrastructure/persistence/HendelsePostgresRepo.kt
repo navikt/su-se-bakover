@@ -168,7 +168,7 @@ class HendelsePostgresRepo(
                     where hendelseId = :hendelseId
                     """.trimIndent().hent(
                         params = mapOf(
-                            "hendelseId" to hendelseId.toString(),
+                            "hendelseId" to hendelseId.value,
                         ),
                         session = session,
                     ) { toPersistertHendelse(it) }
