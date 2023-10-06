@@ -27,6 +27,9 @@ enum class Behandlingstype(val value: String) {
 
     /** UFOR_FLYKT_KLAGE_SUP;ab0431;ae0058;SUP */
     KLAGE("ae0058"),
+
+    /** UFOR_FLYKT_TILBK_SUP;ab0431;ae0203;SUP */
+    TILBAKEKREVING("ae0203"),
     ;
 
     override fun toString() = this.value

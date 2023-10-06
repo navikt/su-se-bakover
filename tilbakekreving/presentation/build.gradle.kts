@@ -9,6 +9,7 @@ dependencies {
     implementation(project(":hendelse:infrastructure"))
     implementation(project(":hendelse:domain"))
     implementation(project(":dokument:domain"))
+    implementation(project(":person:domain"))
 
     implementation(project(":domain"))
     implementation(project(":service"))

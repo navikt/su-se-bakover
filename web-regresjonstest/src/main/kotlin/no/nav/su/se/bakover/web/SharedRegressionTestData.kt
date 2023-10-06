@@ -171,6 +171,7 @@ data object SharedRegressionTestData {
                         sessionFactory = databaseRepos.sessionFactory,
                         hendelseRepo = databaseRepos.hendelseRepo,
                         hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
+                        oppgaveHendelseRepo = databaseRepos.oppgaveHendelseRepo,
                     )
                     Tilbakekrevingskomponenter(
                         repos = repos,
@@ -185,6 +186,8 @@ data object SharedRegressionTestData {
                             sakService = services.sak,
                             tilbakekrevingsbehandlingRepo = repos.tilbakekrevingsbehandlingRepo,
                             mapRåttKravgrunnlag = TilbakekrevingsmeldingMapper::toKravgrunnlag,
+                            oppgaveService = services.oppgave,
+                            oppgaveHendelseRepo = repos.oppgaveHendelseRepo,
                         ),
                     )
                 },

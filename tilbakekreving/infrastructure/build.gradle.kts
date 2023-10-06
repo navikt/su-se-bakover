@@ -11,6 +11,7 @@ dependencies {
     implementation(project(":hendelse:infrastructure"))
     implementation(project(":hendelse:domain"))
     implementation(project(":økonomi:domain"))
+    implementation(project(":oppgave:domain"))
 
     testImplementation(project(":test-common"))
 }

@@ -2,10 +2,12 @@ package tilbakekreving.application.service
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.PersonRepo
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.application.service.consumer.KnyttKravgrunnlagTilSakOgUtbetalingKonsument
@@ -33,7 +35,9 @@ class TilbakekrevingServices(
     private val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
     private val tilbakekrevingService: TilbakekrevingService,
     private val sakService: SakService,
+    private val oppgaveService: OppgaveService,
     private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
+    private val oppgaveHendelseRepo: OppgaveHendelseRepo,
     private val mapRåttKravgrunnlag: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
     private val tilgangstyringService: TilbakekrevingsbehandlingTilgangstyringService = TilbakekrevingsbehandlingTilgangstyringService(
         personRepo = personRepo,
@@ -65,6 +69,10 @@ class TilbakekrevingServices(
         tilgangstyring = tilgangstyringService,
         clock = clock,
         sakService = sakService,
+        oppgaveService = oppgaveService,
+        personService = personService,
+        oppgaveHendelseRepo = oppgaveHendelseRepo,
+        sessionFactory = sessionFactory,
     ),
     val råttKravgrunnlagService: RåttKravgrunnlagService = RåttKravgrunnlagService(
         kravgrunnlagRepo = kravgrunnlagRepo,

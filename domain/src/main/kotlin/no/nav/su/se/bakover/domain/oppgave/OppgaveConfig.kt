@@ -79,6 +79,21 @@ sealed class OppgaveConfig {
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(30)
     }
 
+    data class Tilbakekrevingsbehandling(
+        val saksnummer: Saksnummer,
+        override val aktørId: AktørId,
+        override val tilordnetRessurs: NavIdentBruker?,
+        override val clock: Clock,
+    ) : OppgaveConfig() {
+        override val saksreferanse = saksnummer.toString()
+        override val journalpostId: JournalpostId? = null
+        override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKTNING
+        override val behandlingstype = Behandlingstype.TILBAKEKREVING
+        override val oppgavetype = Oppgavetype.BEHANDLE_SAK
+        override val aktivDato: LocalDate = LocalDate.now(clock)
+        override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(30)
+    }
+
     data class AttesterRevurdering(
         val saksnummer: Saksnummer,
         override val aktørId: AktørId,

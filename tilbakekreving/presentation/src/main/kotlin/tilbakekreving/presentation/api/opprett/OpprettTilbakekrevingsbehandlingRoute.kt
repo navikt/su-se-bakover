@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import person.domain.KunneIkkeHentePerson
 import tilbakekreving.application.service.opprett.OpprettTilbakekrevingsbehandlingService
 import tilbakekreving.domain.opprett.KunneIkkeOppretteTilbakekrevingsbehandling
 import tilbakekreving.domain.opprett.OpprettTilbakekrevingsbehandlingCommand
@@ -56,4 +57,13 @@ private fun KunneIkkeOppretteTilbakekrevingsbehandling.tilResultat(): Resultat =
     is KunneIkkeOppretteTilbakekrevingsbehandling.IngenÅpneKravgrunnlag -> ingenÅpneKravgrunnlag
     is KunneIkkeOppretteTilbakekrevingsbehandling.IkkeTilgang -> ikkeTilgangTilSak
     is KunneIkkeOppretteTilbakekrevingsbehandling.FinnesAlleredeEnÅpenBehandling -> Feilresponser.harAlleredeÅpenBehandling
+    is KunneIkkeOppretteTilbakekrevingsbehandling.FeilVedHentingAvPerson -> this.feil.tilResultat()
+    KunneIkkeOppretteTilbakekrevingsbehandling.FeilVedOpprettelseAvOppgave -> TODO()
+}
+
+// dobbel-impl av person routes
+internal fun KunneIkkeHentePerson.tilResultat(): Resultat = when (this) {
+    KunneIkkeHentePerson.FantIkkePerson -> Feilresponser.fantIkkePerson
+    KunneIkkeHentePerson.IkkeTilgangTilPerson -> Feilresponser.ikkeTilgangTilPerson
+    KunneIkkeHentePerson.Ukjent -> Feilresponser.feilVedOppslagPåPerson
 }

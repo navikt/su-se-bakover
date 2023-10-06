@@ -3,6 +3,7 @@ package tilbakekreving.infrastructure
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import java.time.Clock
@@ -17,6 +18,7 @@ class TilbakekrevingRepos(
     val sessionFactory: SessionFactory,
     val hendelseRepo: HendelseRepo,
     val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
+    val oppgaveHendelseRepo: OppgaveHendelseRepo,
     val kravgrunnlagRepo: KravgrunnlagRepo = KravgrunnlagPostgresRepo(
         hendelseRepo = hendelseRepo,
         hendelsekonsumenterRepo = hendelsekonsumenterRepo,

@@ -91,6 +91,7 @@ fun Application.susebakover(
             sessionFactory = databaseRepos.sessionFactory,
             hendelseRepo = databaseRepos.hendelseRepo,
             hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
+            oppgaveHendelseRepo = databaseRepos.oppgaveHendelseRepo,
         )
         Tilbakekrevingskomponenter(
             services = TilbakekrevingServices(
@@ -103,7 +104,9 @@ fun Application.susebakover(
                 tilbakekrevingService = services.tilbakekrevingService,
                 sakService = services.sak,
                 tilbakekrevingsbehandlingRepo = repos.tilbakekrevingsbehandlingRepo,
+                oppgaveService = services.oppgave,
                 mapRåttKravgrunnlag = { TilbakekrevingsmeldingMapper.toKravgrunnlag(it) },
+                oppgaveHendelseRepo = repos.oppgaveHendelseRepo,
             ),
             repos = repos,
         )

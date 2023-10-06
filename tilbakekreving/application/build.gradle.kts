@@ -8,6 +8,8 @@ dependencies {
     implementation(project(":person:domain"))
     implementation(project(":service"))
 
+    implementation(project(":oppgave:domain"))
+
     testImplementation(project(":test-common"))
 }
 
