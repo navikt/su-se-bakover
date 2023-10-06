@@ -1,4 +1,4 @@
-package tilbakekreving.application.service
+package tilbakekreving.application.service.common
 
 import arrow.core.Either
 import arrow.core.right
@@ -18,7 +18,7 @@ class TilbakekrevingsbehandlingTilgangstyringService(
     private val personRepo: PersonRepo,
     private val personService: PersonService,
 ) {
-    internal fun assertHarTilgangTilSak(sakId: UUID): Either<IkkeTilgangTilSak, Unit> {
+    fun assertHarTilgangTilSak(sakId: UUID): Either<IkkeTilgangTilSak, Unit> {
         // TODO jah: Flytt denne inn i servicen, vi skal ikke trenge bruke person sitt repo direkte.
         return personRepo.hentFnrForSak(sakId).map {
             assertHarTilgangTilPerson(it)

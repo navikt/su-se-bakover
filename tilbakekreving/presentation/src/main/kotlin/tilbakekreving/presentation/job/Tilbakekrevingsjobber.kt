@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.infrastructure.jobs.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.jobs.shouldRun
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
-import tilbakekreving.application.service.KnyttKravgrunnlagTilSakOgUtbetalingKonsument
+import tilbakekreving.application.service.consumer.KnyttKravgrunnlagTilSakOgUtbetalingKonsument
 import java.time.Duration
 import kotlin.concurrent.fixedRateTimer
 

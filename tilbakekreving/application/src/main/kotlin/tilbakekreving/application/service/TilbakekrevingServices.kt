@@ -7,7 +7,12 @@ import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
+import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgangstyringService
+import tilbakekreving.application.service.consumer.KnyttKravgrunnlagTilSakOgUtbetalingKonsument
 import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingService
+import tilbakekreving.application.service.opprett.OpprettTilbakekrevingsbehandlingService
+import tilbakekreving.application.service.vurder.BrevTilbakekrevingsbehandlingService
+import tilbakekreving.application.service.vurder.MånedsvurderingerTilbakekrevingsbehandlingService
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagRepo
 import tilbakekreving.domain.kravgrunnlag.RåttKravgrunnlag

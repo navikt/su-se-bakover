@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import tilbakekreving.application.service.OpprettTilbakekrevingsbehandlingService
+import tilbakekreving.application.service.opprett.OpprettTilbakekrevingsbehandlingService
 import tilbakekreving.domain.opprett.KunneIkkeOppretteTilbakekrevingsbehandling
 import tilbakekreving.domain.opprett.OpprettTilbakekrevingsbehandlingCommand
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson

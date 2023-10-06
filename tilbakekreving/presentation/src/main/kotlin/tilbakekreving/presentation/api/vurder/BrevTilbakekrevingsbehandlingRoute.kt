@@ -22,7 +22,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.infrastructure.web.withTilbakekrevingId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import tilbakekreving.application.service.BrevTilbakekrevingsbehandlingService
+import tilbakekreving.application.service.vurder.BrevTilbakekrevingsbehandlingService
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.vurdert.KunneIkkeLagreBrevtekst
 import tilbakekreving.domain.vurdert.OppdaterBrevtekstCommand

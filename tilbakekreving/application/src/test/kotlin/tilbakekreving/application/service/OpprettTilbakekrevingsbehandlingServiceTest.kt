@@ -22,6 +22,8 @@ import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgangstyringService
+import tilbakekreving.application.service.opprett.OpprettTilbakekrevingsbehandlingService
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.opprett.OpprettTilbakekrevingsbehandlingCommand
 import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo

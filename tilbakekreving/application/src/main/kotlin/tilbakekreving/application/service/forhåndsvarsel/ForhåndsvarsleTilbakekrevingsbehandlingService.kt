@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import no.nav.su.se.bakover.domain.sak.SakService
 import org.slf4j.LoggerFactory
-import tilbakekreving.application.service.TilbakekrevingsbehandlingTilgangstyringService
+import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.domain.Tilbakekrevingsbehandling
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarselTilbakekrevingsbehandlingCommand
 import tilbakekreving.domain.forhåndsvarsel.KunneIkkeForhåndsvarsle

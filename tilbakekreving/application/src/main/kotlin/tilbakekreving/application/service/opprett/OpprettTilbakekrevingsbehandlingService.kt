@@ -1,4 +1,4 @@
-package tilbakekreving.application.service
+package tilbakekreving.application.service.opprett
 
 import arrow.core.Either
 import arrow.core.getOrElse
@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.domain.sak.SakService
 import org.slf4j.LoggerFactory
+import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandling
 import tilbakekreving.domain.opprett.KunneIkkeOppretteTilbakekrevingsbehandling
 import tilbakekreving.domain.opprett.OpprettTilbakekrevingsbehandlingCommand

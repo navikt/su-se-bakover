@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.infrastructure.web.withTilbakekrevingId
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import tilbakekreving.application.service.MånedsvurderingerTilbakekrevingsbehandlingService
+import tilbakekreving.application.service.vurder.MånedsvurderingerTilbakekrevingsbehandlingService
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.vurdert.KunneIkkeVurdereTilbakekrevingsbehandling
 import tilbakekreving.domain.vurdert.Månedsvurdering

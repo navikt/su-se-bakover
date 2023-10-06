@@ -1,4 +1,4 @@
-package tilbakekreving.application.service
+package tilbakekreving.application.service.consumer
 
 import arrow.core.Either
 import arrow.core.getOrElse
