@@ -86,6 +86,7 @@ class OpprettOppgaverForInstitusjonsoppholdshendelser(
                     merkSomProsessert(uprosesserteHendelser, sx)
                 }
             }
+
             else -> {
                 håndterHendelserSomManglerOppgave(
                     instOgOppgaveHendelserPåSak = instOgOppgaveHendelserPåSak,
@@ -142,21 +143,14 @@ class OpprettOppgaverForInstitusjonsoppholdshendelser(
             }
 
         val nesteHendelsesversjon = (
-            hendelseRepo.hentSisteVersjonFraEntitetId(sakInfo.sakId)
-                ?: run {
-                    log.error(
-                        "Fikk ikke noe hendelsesversjon ved henting fra entitetId (sakId) ${sakInfo.sakId}. Denne vil bli retried.",
-                        RuntimeException("Trigger stacktrace"),
-                    )
-                    return
-                }
-            ).let {
-            var v = it
-            {
-                v = v.inc()
-                v
+            hendelseRepo.hentSisteVersjonFraEntitetId(sakInfo.sakId) ?: run {
+                log.error(
+                    "Fikk ikke noe hendelsesversjon ved henting fra entitetId (sakId) ${sakInfo.sakId}. Denne vil bli retried.",
+                    RuntimeException("Trigger stacktrace"),
+                )
+                return
             }
-        }
+            ).inc()
 
         val oppgaveCommand = lagOppgaveConfig(sakInfo, clock).getOrElse {
             return
@@ -173,7 +167,7 @@ class OpprettOppgaverForInstitusjonsoppholdshendelser(
         val opprettetOppgaveHendelse = OppgaveHendelse.opprettet(
             hendelseId = HendelseId.generer(),
             sakId = sakInfo.sakId,
-            versjon = nesteHendelsesversjon(),
+            versjon = nesteHendelsesversjon,
             oppgaveId = oppgaveId,
             hendelsestidspunkt = Tidspunkt.now(clock),
             meta = DefaultHendelseMetadata.fraCorrelationId(correlationId),
