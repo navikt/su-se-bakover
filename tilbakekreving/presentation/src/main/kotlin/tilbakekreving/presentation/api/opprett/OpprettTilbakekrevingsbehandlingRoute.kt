@@ -58,7 +58,7 @@ private fun KunneIkkeOppretteTilbakekrevingsbehandling.tilResultat(): Resultat =
     is KunneIkkeOppretteTilbakekrevingsbehandling.IkkeTilgang -> ikkeTilgangTilSak
     is KunneIkkeOppretteTilbakekrevingsbehandling.FinnesAlleredeEnÅpenBehandling -> Feilresponser.harAlleredeÅpenBehandling
     is KunneIkkeOppretteTilbakekrevingsbehandling.FeilVedHentingAvPerson -> this.feil.tilResultat()
-    KunneIkkeOppretteTilbakekrevingsbehandling.FeilVedOpprettelseAvOppgave -> TODO()
+    KunneIkkeOppretteTilbakekrevingsbehandling.FeilVedOpprettelseAvOppgave -> Feilresponser.kunneIkkeOppretteOppgave
 }
 
 // dobbel-impl av person routes
