@@ -1,5 +1,6 @@
 {
-  "ingress": "https://su-se-bakover.nais.adeo.no",
+  "ingress1": "https://su-se-bakover.nais.adeo.no",
+  "ingress2": "https://su-se-bakover.intern.nav.no",
   "secret_env": "prod",
   "cluster": "prod",
   "tenant": "nav.no",

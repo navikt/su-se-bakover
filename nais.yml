@@ -41,7 +41,8 @@ spec:
       memory: 1Gi
       cpu: 1000m
   ingresses:
-    - {{ ingress }}
+    - {{ ingress1 }}
+    - {{ ingress2 }}
   webproxy: true
   prometheus:
     enabled: true
