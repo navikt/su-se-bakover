@@ -170,7 +170,7 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
                 val revurdering = avventerKravgrunnlag.single()
                 val matcherUtbetalingId = sak.vedtakListe
                     .filterIsInstance<Revurderingsvedtak>()
-                    .any { it.id == revurdering.id && it.utbetalingId == kravgrunnlag.utbetalingId }
+                    .any { it.behandling.id == revurdering.id && it.utbetalingId == kravgrunnlag.utbetalingId }
 
                 if (matcherUtbetalingId) {
                     revurdering.right()
