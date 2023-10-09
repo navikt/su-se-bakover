@@ -27,9 +27,9 @@ class OppgaveHendelsePostgresRepo(
         }
     }
 
-    override fun hentForSak(sakId: UUID): List<OppgaveHendelse> {
+    override fun hentForSak(sakId: UUID, sessionContext: SessionContext?): List<OppgaveHendelse> {
         return dbMetrics.timeQuery("hentOppgaveHendelserForSak") {
-            hendelseRepo.hentHendelserForSakIdOgType(sakId, OppgaveHendelsestype).map {
+            hendelseRepo.hentHendelserForSakIdOgType(sakId, OppgaveHendelsestype, sessionContext).map {
                 it.toOppgaveHendelse(it.defaultHendelseMetadata())
             }
         }

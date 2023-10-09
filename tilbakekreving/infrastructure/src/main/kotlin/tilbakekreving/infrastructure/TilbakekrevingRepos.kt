@@ -28,5 +28,6 @@ class TilbakekrevingRepos(
         hendelseRepo = hendelseRepo,
         clock = clock,
         kravgrunnlagRepo = kravgrunnlagRepo,
+        oppgaveRepo = oppgaveHendelseRepo,
     ),
 )

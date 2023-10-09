@@ -82,5 +82,7 @@ class TilbakekrevingServices(
         tilgangstyring = tilgangstyringService,
         sakService = sakService,
         tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+        oppgaveService = oppgaveService,
+        oppgaveHendelseRepo = oppgaveHendelseRepo,
     ),
 )

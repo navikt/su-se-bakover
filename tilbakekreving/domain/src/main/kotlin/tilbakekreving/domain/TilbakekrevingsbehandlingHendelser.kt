@@ -1,16 +1,22 @@
 package tilbakekreving.domain
 
 import arrow.core.NonEmptyList
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.extensions.toNonEmptyList
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
 import tilbakekreving.domain.kravgrunnlag.KravgrunnlagPåSakHendelse
 import java.time.Clock
 import java.util.UUID
 
+/**
+ * @param tilhørendeOgSorterteOppgaveHendelser - oppgavehendelsene i denne listen må ha en tilbakekrevingshendelse i sin relaterteHendelser
+ */
 data class TilbakekrevingsbehandlingHendelser private constructor(
     private val sakId: UUID,
     private val sorterteHendelser: List<TilbakekrevingsbehandlingHendelse>,
     private val kravgrunnlagPåSak: List<KravgrunnlagPåSakHendelse>,
+    private val tilhørendeOgSorterteOppgaveHendelser: List<OppgaveHendelse>,
     private val clock: Clock,
 ) {
     init {
@@ -40,6 +46,26 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                 sorterteHendelser.map { it.entitetId }.distinct()
             }"
         }
+        require(tilhørendeOgSorterteOppgaveHendelser.sorted() == tilhørendeOgSorterteOppgaveHendelser) {
+            "tilhørendeOgSorterteOppgaveHendelser må være sortert etter stigende versjon."
+        }
+
+        require(
+            tilhørendeOgSorterteOppgaveHendelser.all { oppgaveHendelse ->
+                sorterteHendelser.any { opprettetHendelse ->
+                    oppgaveHendelse.relaterteHendelser.contains(opprettetHendelse.hendelseId)
+                }
+            },
+        ) {
+            "Oppgave hendelsene må være relatert til minst 1 tilbakekrevingsbehandlingHendelse"
+        }
+        // { "All OppgaveHendelser must have a reference to at least one OpprettetHendelse." }
+
+        require(tilhørendeOgSorterteOppgaveHendelser.map { it.oppgaveId }.distinct().size <= 1) {
+            "tilhørendeOgSorterteOppgaveHendelser må kun inneholde 1 eller 0 distinkt oppgaveId. Fant ${
+                tilhørendeOgSorterteOppgaveHendelser.map { it.oppgaveId }.distinct().size
+            }"
+        }
     }
 
     val currentState: Tilbakekrevingsbehandlinger by lazy {
@@ -54,6 +80,8 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
         }
     }
 
+    fun hentOppgaveId(): OppgaveId = this.tilhørendeOgSorterteOppgaveHendelser.first().oppgaveId
+
     companion object {
 
         fun empty(sakId: UUID, clock: Clock): TilbakekrevingsbehandlingHendelser {
@@ -62,6 +90,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                 clock = clock,
                 sorterteHendelser = emptyList(),
                 kravgrunnlagPåSak = emptyList(),
+                tilhørendeOgSorterteOppgaveHendelser = emptyList(),
             )
         }
 
@@ -70,12 +99,14 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
             clock: Clock,
             hendelser: List<TilbakekrevingsbehandlingHendelse>,
             kravgrunnlagPåSak: List<KravgrunnlagPåSakHendelse>,
+            oppgaveHendelser: List<OppgaveHendelse>,
         ): TilbakekrevingsbehandlingHendelser {
             return TilbakekrevingsbehandlingHendelser(
                 sakId = sakId,
                 clock = clock,
                 sorterteHendelser = hendelser.sorted(),
                 kravgrunnlagPåSak = kravgrunnlagPåSak,
+                tilhørendeOgSorterteOppgaveHendelser = oppgaveHendelser.sorted(),
             )
         }
 
@@ -92,6 +123,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                             kravgrunnlagPåSakHendelse = kravgrunnlagPåSak.first { it.kravgrunnlag.eksternKravgrunnlagId == hendelse.kravgrunnlagsId },
                         ),
                     )
+
                     is MånedsvurderingerTilbakekrevingsbehandlingHendelse -> acc.plus(
                         hendelseId to acc[hendelse.tidligereHendelseId]!!.applyHendelse(
                             hendelse,

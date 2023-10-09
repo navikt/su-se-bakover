@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.test.correlationId
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.nyInstitusjonsoppholdHendelse
-import no.nav.su.se.bakover.test.nyOppgaveHendelseFraInstitusjonsoppholdsHendelser
+import no.nav.su.se.bakover.test.nyOppgaveHendelse
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
@@ -63,7 +63,7 @@ class OpprettOppgaverForInstitusjonsoppholdshendelserTest {
             )
         }
         val oppgaveHendelseRepo = mock<OppgaveHendelseRepo> {
-            on { hentForSak(any()) } doReturn emptyList()
+            on { hentForSak(any(), anyOrNull()) } doReturn emptyList()
         }
         val institusjonsoppholdHendelseRepo = mock<InstitusjonsoppholdHendelseRepo> {
             on { hentForSak(any()) } doReturn InstitusjonsoppholdHendelserPåSak(nonEmptyListOf(hendelse))
@@ -85,7 +85,7 @@ class OpprettOppgaverForInstitusjonsoppholdshendelserTest {
             anyOrNull(),
             anyOrNull(),
         )
-        verify(oppgaveHendelseRepo).hentForSak(argThat { it shouldBe sak.id })
+        verify(oppgaveHendelseRepo).hentForSak(argThat { it shouldBe sak.id }, anyOrNull())
         verify(institusjonsoppholdHendelseRepo).hentForSak(argThat { it shouldBe sak.id })
         verify(sakRepo).hentSakInfo(argThat { it shouldBe sak.id })
         testMocks.verifyNoMoreInteractions()
@@ -111,7 +111,7 @@ class OpprettOppgaverForInstitusjonsoppholdshendelserTest {
             )
         }
         val oppgaveHendelseRepo = mock<OppgaveHendelseRepo> {
-            on { hentForSak(any()) } doReturn emptyList()
+            on { hentForSak(any(), anyOrNull()) } doReturn emptyList()
         }
         val institusjonsoppholdHendelseRepo = mock<InstitusjonsoppholdHendelseRepo> {
             on { hentForSak(any()) } doReturn InstitusjonsoppholdHendelserPåSak(nonEmptyListOf(hendelse))
@@ -141,7 +141,7 @@ class OpprettOppgaverForInstitusjonsoppholdshendelserTest {
             anyOrNull(),
             anyOrNull(),
         )
-        verify(oppgaveHendelseRepo).hentForSak(argThat { it shouldBe sak.id })
+        verify(oppgaveHendelseRepo).hentForSak(argThat { it shouldBe sak.id }, anyOrNull())
         verify(institusjonsoppholdHendelseRepo).hentForSak(argThat { it shouldBe sak.id })
         verify(sakRepo).hentSakInfo(argThat { it shouldBe sak.id })
         verify(personService).hentAktørIdMedSystembruker(argThat { it shouldBe sak.fnr })
@@ -161,7 +161,7 @@ class OpprettOppgaverForInstitusjonsoppholdshendelserTest {
                 mapOf(sak.id to nonEmptyListOf(hendelse.hendelseId))
         }
         val oppgaveHendelseRepo = mock<OppgaveHendelseRepo> {
-            on { hentForSak(any()) } doReturn emptyList()
+            on { hentForSak(any(), anyOrNull()) } doReturn emptyList()
             doNothing().whenever(it).lagre(any(), any())
         }
         val institusjonsoppholdHendelseRepo = mock<InstitusjonsoppholdHendelseRepo> {
@@ -196,7 +196,7 @@ class OpprettOppgaverForInstitusjonsoppholdshendelserTest {
             anyOrNull(),
             anyOrNull(),
         )
-        verify(oppgaveHendelseRepo).hentForSak(argThat { it shouldBe sak.id })
+        verify(oppgaveHendelseRepo).hentForSak(argThat { it shouldBe sak.id }, anyOrNull())
         verify(institusjonsoppholdHendelseRepo).hentForSak(argThat { it shouldBe sak.id })
         verify(sakRepo).hentSakInfo(argThat { it shouldBe sak.id })
         verify(personService).hentAktørIdMedSystembruker(argThat { it shouldBe sak.fnr })
@@ -240,7 +240,7 @@ class OpprettOppgaverForInstitusjonsoppholdshendelserTest {
         val hendelse = nyInstitusjonsoppholdHendelse(
             sakId = sak.id,
         )
-        val oppgaveHendelse = nyOppgaveHendelseFraInstitusjonsoppholdsHendelser(
+        val oppgaveHendelse = nyOppgaveHendelse(
             sakId = sak.id,
             relaterteHendelser = listOf(hendelse.hendelseId),
             nesteVersjon = Hendelsesversjon(3),
@@ -251,7 +251,7 @@ class OpprettOppgaverForInstitusjonsoppholdshendelserTest {
                 mapOf(sak.id to nonEmptyListOf(hendelse.hendelseId))
         }
         val oppgaveHendelseRepo = mock<OppgaveHendelseRepo> {
-            on { hentForSak(any()) } doReturn listOf(oppgaveHendelse)
+            on { hentForSak(any(), anyOrNull()) } doReturn listOf(oppgaveHendelse)
         }
         val institusjonsoppholdHendelseRepo = mock<InstitusjonsoppholdHendelseRepo> {
             on { hentForSak(any()) } doReturn InstitusjonsoppholdHendelserPåSak(nonEmptyListOf(hendelse))
@@ -276,7 +276,7 @@ class OpprettOppgaverForInstitusjonsoppholdshendelserTest {
             konsumentId = argThat { it shouldBe hendelseskonsumentId },
             context = anyOrNull(),
         )
-        verify(oppgaveHendelseRepo).hentForSak(argThat { it shouldBe sak.id })
+        verify(oppgaveHendelseRepo).hentForSak(argThat { it shouldBe sak.id }, anyOrNull())
         verify(institusjonsoppholdHendelseRepo).hentForSak(argThat { it shouldBe sak.id })
         testMocks.verifyNoMoreInteractions()
     }

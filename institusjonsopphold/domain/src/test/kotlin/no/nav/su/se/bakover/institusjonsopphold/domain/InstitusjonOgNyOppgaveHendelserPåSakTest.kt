@@ -5,7 +5,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.InstitusjonOgOppgaveHendelserPåSak
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelserPåSak
 import no.nav.su.se.bakover.test.nyInstitusjonsoppholdHendelse
-import no.nav.su.se.bakover.test.nyOppgaveHendelseFraInstitusjonsoppholdsHendelser
+import no.nav.su.se.bakover.test.nyOppgaveHendelse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
@@ -20,7 +20,7 @@ class InstitusjonOgNyOppgaveHendelserPåSakTest {
             InstitusjonOgOppgaveHendelserPåSak(
                 InstitusjonsoppholdHendelserPåSak(nonEmptyListOf(institusjonsoppholdHendelse)),
                 listOf(
-                    nyOppgaveHendelseFraInstitusjonsoppholdsHendelser(
+                    nyOppgaveHendelse(
                         relaterteHendelser = listOf(
                             institusjonsoppholdHendelse.hendelseId,
                         ),
@@ -39,7 +39,7 @@ class InstitusjonOgNyOppgaveHendelserPåSakTest {
             InstitusjonOgOppgaveHendelserPåSak(
                 InstitusjonsoppholdHendelserPåSak(nonEmptyListOf(institusjonsoppholdHendelse)),
                 listOf(
-                    nyOppgaveHendelseFraInstitusjonsoppholdsHendelser(
+                    nyOppgaveHendelse(
                         relaterteHendelser = listOf(
                             institusjonsoppholdHendelse.hendelseId,
                         ),
@@ -57,7 +57,7 @@ class InstitusjonOgNyOppgaveHendelserPåSakTest {
         val instHendelseMedOppgave = nyInstitusjonsoppholdHendelse(
             sakId = sakId,
         )
-        val oppgaveHendelse = nyOppgaveHendelseFraInstitusjonsoppholdsHendelser(
+        val oppgaveHendelse = nyOppgaveHendelse(
             relaterteHendelser = listOf(
                 instHendelseMedOppgave.hendelseId,
             ),

@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
 import java.util.UUID
 
-fun nyOppgaveHendelseFraInstitusjonsoppholdsHendelser(
+fun nyOppgaveHendelse(
     sakId: UUID = UUID.randomUUID(),
     hendelseId: HendelseId = HendelseId.generer(),
     hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,

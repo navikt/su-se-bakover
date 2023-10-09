@@ -1,12 +1,12 @@
 package tilbakekreving.infrastructure
 
-import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withOptionalSession
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import tilbakekreving.domain.BrevTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.MånedsvurderingerTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
@@ -30,12 +30,13 @@ class TilbakekrevingsbehandlingPostgresRepo(
     private val hendelseRepo: HendelseRepo,
     private val clock: Clock,
     private val kravgrunnlagRepo: KravgrunnlagRepo,
+    private val oppgaveRepo: OppgaveHendelseRepo,
 ) : TilbakekrevingsbehandlingRepo {
     override fun lagre(
         hendelse: TilbakekrevingsbehandlingHendelse,
         sessionContext: SessionContext?,
     ) {
-        sessionContext.withOptionalSession(sessionFactory) {
+        sessionFactory.withSessionContext(sessionContext) {
             // TODO jah: Kanskje vi bør flytte denne til interfacet?
             (hendelseRepo as HendelsePostgresRepo).persisterSakshendelse(
                 hendelse = hendelse,
@@ -46,7 +47,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
                     else -> throw IllegalStateException("TilbakekrevingsbehandlingPostgresRepo-lagre mangler type for ${hendelse.id}")
                 },
                 data = hendelse.toJson(),
-                sessionContext = null,
+                sessionContext = it,
             )
         }
     }
@@ -73,12 +74,15 @@ class TilbakekrevingsbehandlingPostgresRepo(
                     ).map {
                         it.toTilbakekrevingsbehandlingHendelse()
                     }
-            }.let {
+            }.let { tilbakekrevingsHendelser ->
                 TilbakekrevingsbehandlingHendelser.create(
                     sakId = sakId,
-                    hendelser = it,
+                    hendelser = tilbakekrevingsHendelser,
                     clock = clock,
                     kravgrunnlagPåSak = kravgrunnlagRepo.hentKravgrunnlagPåSakHendelser(sakId, openSessionContext),
+                    oppgaveHendelser = oppgaveRepo.hentForSak(sakId).filter {
+                        it.relaterteHendelser.containsAll(tilbakekrevingsHendelser.map { it.hendelseId })
+                    }.sorted(),
                 )
             }
         }

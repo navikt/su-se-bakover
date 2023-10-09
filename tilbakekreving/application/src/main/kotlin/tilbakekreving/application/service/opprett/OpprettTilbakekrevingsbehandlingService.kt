@@ -60,6 +60,7 @@ class OpprettTilbakekrevingsbehandlingService(
                 clock = clock,
                 kravgrunnlag = k,
             ).let { (hendelse, behandling) ->
+                // TODO - lag egen consumer / service som oppretter oppgave
                 val oppgaveHendelse = opprettOppgaveHendelse(hendelse, sak, command).getOrElse { return it.left() }
 
                 sessionFactory.withTransactionContext {

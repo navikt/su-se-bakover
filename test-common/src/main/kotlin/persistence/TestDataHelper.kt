@@ -97,8 +97,11 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.hendelse.domain.Hendelse
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
+import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.attesteringIverksatt
@@ -106,6 +109,7 @@ import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandling
 import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
 import no.nav.su.se.bakover.test.epsFnr
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
@@ -117,7 +121,8 @@ import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.nyInstitusjonsoppholdHendelse
-import no.nav.su.se.bakover.test.nyOppgaveHendelseFraInstitusjonsoppholdsHendelser
+import no.nav.su.se.bakover.test.nyOppgaveHendelse
+import no.nav.su.se.bakover.test.nyOpprettetTilbakekrevingsbehandlingHendelse
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurdering
@@ -150,6 +155,9 @@ import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandling
+import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
+import tilbakekreving.infrastructure.KravgrunnlagPostgresRepo
+import tilbakekreving.infrastructure.TilbakekrevingsbehandlingPostgresRepo
 import vilkår.personligOppmøtevilkårAvslag
 import økonomi.domain.kvittering.Kvittering
 import java.time.Clock
@@ -192,6 +200,15 @@ class TestDataHelper(
     val institusjonsoppholdHendelseRepo = databaseRepos.institusjonsoppholdHendelseRepo
     val oppgaveHendelseRepo = databaseRepos.oppgaveHendelseRepo
     val hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo
+    val hendelseRepo = HendelsePostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics)
+    val kravgrunnlagPostgresRepo = KravgrunnlagPostgresRepo(hendelseRepo, hendelsekonsumenterRepo)
+    val tilbakekrevingHendelseRepo = TilbakekrevingsbehandlingPostgresRepo(
+        sessionFactory = sessionFactory,
+        hendelseRepo = hendelseRepo,
+        clock = fixedClock,
+        kravgrunnlagRepo = kravgrunnlagPostgresRepo,
+        oppgaveRepo = oppgaveHendelseRepo,
+    )
 
     /**
      * Oppretter og persisterer en ny sak (dersom den ikke finnes fra før) med søknad med tomt søknadsinnhold.
@@ -566,6 +583,29 @@ class TestDataHelper(
         },
         sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakEndringIYtelse>) -> Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling, Revurderingsvedtak> = {
             iverksattRevurdering(clock = clock, sakOgVedtakSomKanRevurderes = it)
+        },
+    ): Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse> {
+        return sakOgRevurdering(sakOgVedtak).let { (sak, revurdering, utbetaling, vedtak) ->
+            databaseRepos.revurderingRepo.lagre(revurdering)
+            databaseRepos.utbetaling.opprettUtbetaling(utbetaling)
+            databaseRepos.vedtakRepo.lagre(vedtak)
+            databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
+                Tuple4(
+                    first = persistertSak!!,
+                    second = persistertSak.revurderinger.single { it.id == revurdering.id } as IverksattRevurdering,
+                    third = persistertSak.utbetalinger.single { it.id == utbetaling.id } as Utbetaling.OversendtUtbetaling.MedKvittering,
+                    fourth = persistertSak.vedtakListe.single { it.id == vedtak.id } as VedtakEndringIYtelse,
+                )
+            }
+        }
+    }
+
+    fun persisterRevurderingMedUtsattTilbakekreving(
+        sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
+            sak to vedtak
+        },
+        sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakEndringIYtelse>) -> Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling, Revurderingsvedtak> = {
+            iverksattRevurdering(clock = clock, sakOgVedtakSomKanRevurderes = it, skalTilbakekreve = false)
         },
     ): Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering, VedtakEndringIYtelse> {
         return sakOgRevurdering(sakOgVedtak).let { (sak, revurdering, utbetaling, vedtak) ->
@@ -1601,7 +1641,7 @@ class TestDataHelper(
 
     fun persisterOppgaveHendelse(): OppgaveHendelse {
         return persisterInstitusjonsoppholdHendelse().let {
-            nyOppgaveHendelseFraInstitusjonsoppholdsHendelser(
+            nyOppgaveHendelse(
                 relaterteHendelser = listOf(it.hendelseId),
                 nesteVersjon = it.versjon.inc(),
                 sakId = it.sakId,
@@ -1609,6 +1649,18 @@ class TestDataHelper(
                 sessionFactory.withSessionContext {
                     oppgaveHendelseRepo.lagre(oppgaveHendelse, it)
                 }
+            }
+        }
+    }
+
+    fun <T : Hendelse<T>> persisterOppgaveHendelseFraRelatertHendelse(
+        relatertHendelse: () -> T,
+    ): OppgaveHendelse {
+        return relatertHendelse().let {
+            nyOppgaveHendelse(sakId = (it as? Sakshendelse)?.sakId ?: UUID.randomUUID(), nesteVersjon = it.versjon.inc(), relaterteHendelser = listOf(it.hendelseId))
+        }.also { oppgaveHendelse ->
+            sessionFactory.withSessionContext {
+                oppgaveHendelseRepo.lagre(oppgaveHendelse, it)
             }
         }
     }
@@ -1643,6 +1695,19 @@ class TestDataHelper(
                         konsumentId = HendelseskonsumentId("INSTITUSJON"),
                         tx,
                     )
+                }
+            }
+        }
+    }
+
+    fun persisterOpprettetTilbakekrevingsbehandlingHendelse(): OpprettetTilbakekrevingsbehandlingHendelse {
+        return persisterSøknadsbehandlingIverksatt().let {
+            persisterRevurderingMedUtsattTilbakekreving().let {
+                nyOpprettetTilbakekrevingsbehandlingHendelse(
+                    sakId = it.first.id,
+                    kravgrunnlagsId = it.first.uteståendeKravgrunnlag?.eksternKravgrunnlagId ?: "fake kravgrunnlagsId",
+                ).also {
+                    tilbakekrevingHendelseRepo.lagre(it)
                 }
             }
         }

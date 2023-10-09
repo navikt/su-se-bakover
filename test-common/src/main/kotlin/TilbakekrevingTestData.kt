@@ -2,15 +2,22 @@ package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
+import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import økonomi.domain.KlasseKode
 import økonomi.domain.KlasseType
 import java.math.BigDecimal
 import java.time.Clock
+import java.util.UUID
 
 /**
  * TODO dobbeltimplementasjon
@@ -63,3 +70,23 @@ fun matchendeKravgrunnlag(
         )
     }
 }
+
+fun nyOpprettetTilbakekrevingsbehandlingHendelse(
+    hendelseId: HendelseId = HendelseId.generer(),
+    sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    hendelsesTidspunkt: Tidspunkt = fixedTidspunkt,
+    versjon: Hendelsesversjon = Hendelsesversjon(2),
+    meta: DefaultHendelseMetadata = DefaultHendelseMetadata.tom(),
+    behandlingId: TilbakekrevingsbehandlingId = TilbakekrevingsbehandlingId.generer(),
+    opprettetAv: NavIdentBruker.Saksbehandler = saksbehandler,
+    kravgrunnlagsId: String = "123",
+): OpprettetTilbakekrevingsbehandlingHendelse = OpprettetTilbakekrevingsbehandlingHendelse(
+    hendelseId = hendelseId,
+    sakId = sakId,
+    hendelsestidspunkt = hendelsesTidspunkt,
+    versjon = versjon,
+    meta = meta,
+    id = behandlingId,
+    opprettetAv = opprettetAv,
+    kravgrunnlagsId = kravgrunnlagsId,
+)

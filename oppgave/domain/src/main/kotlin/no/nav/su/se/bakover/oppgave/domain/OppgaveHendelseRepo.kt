@@ -5,5 +5,5 @@ import java.util.UUID
 
 interface OppgaveHendelseRepo {
     fun lagre(hendelse: OppgaveHendelse, sessionContext: SessionContext)
-    fun hentForSak(sakId: UUID): List<OppgaveHendelse>
+    fun hentForSak(sakId: UUID, sessionContext: SessionContext? = null): List<OppgaveHendelse>
 }
