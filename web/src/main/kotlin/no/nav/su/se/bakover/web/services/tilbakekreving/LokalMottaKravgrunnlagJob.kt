@@ -33,6 +33,7 @@ internal class LokalMottaKravgrunnlagJob(
     private val intervall: Duration = Duration.ofMinutes(1),
     private val sessionFactory: SessionFactory,
     private val service: RåttKravgrunnlagService,
+    private val clock: Clock,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -46,106 +47,128 @@ internal class LokalMottaKravgrunnlagJob(
             period = intervall.toMillis(),
         ) {
             Either.catch {
-                withCorrelationId { correlationId ->
-                    finnSaksnummerOgUtbetalingIdSomManglerKravgrunnlag(sessionFactory).map { (saksnummer, utbetalingId, simulering) ->
-                        lagKravgrunnlagXml(
-                            saksnummer = saksnummer,
-                            simulering = simulering,
-                            utbetalingId = utbetalingId,
-                        )
-                    }.forEach {
-                        service.lagreRåKvitteringshendelse(
-                            råttKravgrunnlag = RåttKravgrunnlag(it),
-                            meta = JMSHendelseMetadata.fromCorrelationId(correlationId),
-                        )
-                    }
-                }
+                lagreRåttKravgrunnlagForUtbetalingerSomMangler(
+                    sessionFactory = sessionFactory,
+                    service = service,
+                    clock = clock,
+                )
             }.mapLeft {
                 log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)
             }
         }
     }
-
-    fun lagKravgrunnlagXml(
-        saksnummer: Saksnummer,
-        simulering: Simulering,
-        utbetalingId: UUID30,
-    ): String {
-        val kravgrunnlag = matchendeKravgrunnlag(
-            saksnummer = saksnummer,
-            simulering = simulering,
-            utbetalingId = utbetalingId,
-            clock = Clock.systemUTC(),
-        )
-        return TilbakekrevingsmeldingMapper.toXml(
-            KravgrunnlagRootDto(
-                kravgrunnlagDto = KravgrunnlagDto(
-                    kravgrunnlagId = kravgrunnlag.eksternKravgrunnlagId,
-                    vedtakId = kravgrunnlag.eksternVedtakId,
-                    kodeStatusKrav = kravgrunnlag.status.toDtoStatus(),
-                    kodeFagområde = "SUUFORE",
-                    fagsystemId = saksnummer.toString(),
-                    datoVedtakFagsystem = null,
-                    vedtakIdOmgjort = null,
-                    vedtakGjelderId = simulering.gjelderId.toString(),
-                    idTypeGjelder = "PERSON",
-                    utbetalesTilId = simulering.gjelderId.toString(),
-                    idTypeUtbet = "PERSON",
-                    kodeHjemmel = "ANNET",
-                    renterBeregnes = "N",
-                    enhetAnsvarlig = "4815",
-                    enhetBosted = "8020",
-                    enhetBehandl = "4815",
-                    kontrollfelt = kravgrunnlag.eksternKontrollfelt,
-                    saksbehId = kravgrunnlag.behandler,
-                    utbetalingId = kravgrunnlag.utbetalingId.toString(),
-                    tilbakekrevingsperioder = kravgrunnlag.grunnlagsmåneder.map {
-                        KravgrunnlagDto.Tilbakekrevingsperiode(
-                            periode = KravgrunnlagDto.Tilbakekrevingsperiode.Periode(
-                                fraOgMed = it.måned.fraOgMed.toString(),
-                                tilOgMed = it.måned.tilOgMed.toString(),
-                            ),
-                            skattebeløpPerMåned = it.betaltSkattForYtelsesgruppen.toString(),
-                            tilbakekrevingsbeløp = it.grunnlagsbeløp.map {
-                                KravgrunnlagDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
-                                    kodeKlasse = it.kode.toString(),
-                                    typeKlasse = it.type.toString(),
-                                    belopOpprUtbet = it.beløpTidligereUtbetaling.toString(),
-                                    belopNy = it.beløpNyUtbetaling.toString(),
-                                    belopTilbakekreves = it.beløpSkalTilbakekreves.toString(),
-                                    belopUinnkrevd = it.beløpSkalIkkeTilbakekreves.toString(),
-                                    skattProsent = it.skatteProsent.toString(),
-                                )
-                            },
-                        )
-                    },
-                ),
-            ),
-        ).getOrElse { throw it }
-    }
 }
 
 /**
- * TODO dobbeltimplementasjon
+ * Denne kan gjenbrukes fra regresjonstester.
+ */
+fun lagreRåttKravgrunnlagForUtbetalingerSomMangler(
+    sessionFactory: SessionFactory,
+    service: RåttKravgrunnlagService,
+    clock: Clock,
+) {
+    withCorrelationId { correlationId ->
+        finnSaksnummerOgUtbetalingIdSomManglerKravgrunnlag(sessionFactory).map { (saksnummer, utbetalingId, simulering) ->
+            lagKravgrunnlagXml(
+                saksnummer = saksnummer,
+                simulering = simulering,
+                utbetalingId = utbetalingId,
+                clock = clock,
+            )
+        }.forEach {
+            service.lagreRåKvitteringshendelse(
+                råttKravgrunnlag = RåttKravgrunnlag(it),
+                meta = JMSHendelseMetadata.fromCorrelationId(correlationId),
+            )
+        }
+    }
+}
+
+fun lagKravgrunnlagXml(
+    saksnummer: Saksnummer,
+    simulering: Simulering,
+    utbetalingId: UUID30,
+    clock: Clock,
+): String {
+    val kravgrunnlag = matchendeKravgrunnlag(
+        saksnummer = saksnummer,
+        simulering = simulering,
+        utbetalingId = utbetalingId,
+        clock = clock,
+    )
+    return TilbakekrevingsmeldingMapper.toXml(
+        KravgrunnlagRootDto(
+            kravgrunnlagDto = KravgrunnlagDto(
+                kravgrunnlagId = kravgrunnlag.eksternKravgrunnlagId,
+                vedtakId = kravgrunnlag.eksternVedtakId,
+                kodeStatusKrav = kravgrunnlag.status.toDtoStatus(),
+                kodeFagområde = "SUUFORE",
+                fagsystemId = saksnummer.toString(),
+                datoVedtakFagsystem = null,
+                vedtakIdOmgjort = null,
+                vedtakGjelderId = simulering.gjelderId.toString(),
+                idTypeGjelder = "PERSON",
+                utbetalesTilId = simulering.gjelderId.toString(),
+                idTypeUtbet = "PERSON",
+                kodeHjemmel = "ANNET",
+                renterBeregnes = "N",
+                enhetAnsvarlig = "4815",
+                enhetBosted = "8020",
+                enhetBehandl = "4815",
+                kontrollfelt = kravgrunnlag.eksternKontrollfelt,
+                saksbehId = kravgrunnlag.behandler,
+                utbetalingId = kravgrunnlag.utbetalingId.toString(),
+                tilbakekrevingsperioder = kravgrunnlag.grunnlagsmåneder.map {
+                    KravgrunnlagDto.Tilbakekrevingsperiode(
+                        periode = KravgrunnlagDto.Tilbakekrevingsperiode.Periode(
+                            fraOgMed = it.måned.fraOgMed.toString(),
+                            tilOgMed = it.måned.tilOgMed.toString(),
+                        ),
+                        skattebeløpPerMåned = it.betaltSkattForYtelsesgruppen.toString(),
+                        tilbakekrevingsbeløp = it.grunnlagsbeløp.map {
+                            KravgrunnlagDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
+                                kodeKlasse = it.kode.toString(),
+                                typeKlasse = it.type.toString(),
+                                belopOpprUtbet = it.beløpTidligereUtbetaling.toString(),
+                                belopNy = it.beløpNyUtbetaling.toString(),
+                                belopTilbakekreves = it.beløpSkalTilbakekreves.toString(),
+                                belopUinnkrevd = it.beløpSkalIkkeTilbakekreves.toString(),
+                                skattProsent = it.skatteProsent.toString(),
+                            )
+                        },
+                    )
+                },
+            ),
+        ),
+    ).getOrElse { throw it }
+}
+
+/**
  * @see [no.nav.su.se.bakover.test.matchendeKravgrunnlag]
+ *
+ * @param clock Brukes til å sette default eksternTidspunkt
  */
 fun matchendeKravgrunnlag(
     saksnummer: Saksnummer,
     simulering: Simulering,
     utbetalingId: UUID30,
     clock: Clock,
+    eksternKravgrunnlagId: String = "123456",
+    eksternVedtakId: String = "654321",
+    behandler: String = "K231B433",
+    eksternTidspunkt: Tidspunkt = Tidspunkt.now(clock),
+    status: Kravgrunnlag.KravgrunnlagStatus = Kravgrunnlag.KravgrunnlagStatus.Nytt,
 ): Kravgrunnlag {
-    val now = Tidspunkt.now(clock)
     return simulering.let {
         Kravgrunnlag(
             saksnummer = saksnummer,
-            eksternKravgrunnlagId = "123456",
-            eksternVedtakId = "654321",
-            eksternKontrollfelt = now.toOppdragTimestamp(),
-            status = Kravgrunnlag.KravgrunnlagStatus.Nytt,
-            behandler = "K231B433",
+            eksternKravgrunnlagId = eksternKravgrunnlagId,
+            eksternVedtakId = eksternVedtakId,
+            eksternKontrollfelt = eksternTidspunkt.toOppdragTimestamp(),
+            status = status,
+            behandler = behandler,
             utbetalingId = utbetalingId,
-            eksternTidspunkt = now,
+            eksternTidspunkt = eksternTidspunkt,
             grunnlagsmåneder = it.hentFeilutbetalteBeløp()
                 .map { (måned, feilutbetaling) ->
                     Kravgrunnlag.Grunnlagsmåned(
@@ -171,68 +194,10 @@ fun matchendeKravgrunnlag(
                                 skatteProsent = BigDecimal("43.9983"),
                             ),
                         ),
-
                     )
                 },
         )
     }
-}
-
-internal fun matchendeKravgrunnlagDto(
-    saksnummer: Saksnummer,
-    simulering: Simulering,
-    utbetalingId: UUID30,
-    clock: Clock,
-): KravgrunnlagRootDto {
-    val kravgrunnlag = matchendeKravgrunnlag(
-        saksnummer = saksnummer,
-        simulering = simulering,
-        utbetalingId = utbetalingId,
-        clock = clock,
-    )
-    return KravgrunnlagRootDto(
-        kravgrunnlagDto = KravgrunnlagDto(
-            kravgrunnlagId = kravgrunnlag.eksternKravgrunnlagId,
-            vedtakId = kravgrunnlag.eksternVedtakId,
-            kodeStatusKrav = kravgrunnlag.status.toDtoStatus(),
-            kodeFagområde = "SUUFORE",
-            fagsystemId = saksnummer.toString(),
-            datoVedtakFagsystem = null,
-            vedtakIdOmgjort = null,
-            vedtakGjelderId = simulering.gjelderId.toString(),
-            idTypeGjelder = "PERSON",
-            utbetalesTilId = simulering.gjelderId.toString(),
-            idTypeUtbet = "PERSON",
-            kodeHjemmel = "ANNET",
-            renterBeregnes = "N",
-            enhetAnsvarlig = "4815",
-            enhetBosted = "8020",
-            enhetBehandl = "4815",
-            kontrollfelt = kravgrunnlag.eksternKontrollfelt,
-            saksbehId = kravgrunnlag.behandler,
-            utbetalingId = kravgrunnlag.utbetalingId.toString(),
-            tilbakekrevingsperioder = kravgrunnlag.grunnlagsmåneder.map {
-                KravgrunnlagDto.Tilbakekrevingsperiode(
-                    periode = KravgrunnlagDto.Tilbakekrevingsperiode.Periode(
-                        fraOgMed = it.måned.fraOgMed.toString(),
-                        tilOgMed = it.måned.tilOgMed.toString(),
-                    ),
-                    skattebeløpPerMåned = it.betaltSkattForYtelsesgruppen.toString(),
-                    tilbakekrevingsbeløp = it.grunnlagsbeløp.map {
-                        KravgrunnlagDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
-                            kodeKlasse = it.kode.toString(),
-                            typeKlasse = it.type.toString(),
-                            belopOpprUtbet = it.beløpTidligereUtbetaling.toString(),
-                            belopNy = it.beløpNyUtbetaling.toString(),
-                            belopTilbakekreves = it.beløpSkalTilbakekreves.toString(),
-                            belopUinnkrevd = it.beløpSkalIkkeTilbakekreves.toString(),
-                            skattProsent = it.skatteProsent.toString(),
-                        )
-                    },
-                )
-            },
-        ),
-    )
 }
 
 private fun Kravgrunnlag.KravgrunnlagStatus.toDtoStatus(): String = when (this) {

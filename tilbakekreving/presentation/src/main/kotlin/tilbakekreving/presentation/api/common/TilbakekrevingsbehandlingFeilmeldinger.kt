@@ -3,9 +3,9 @@ package tilbakekreving.presentation.api.common
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 
-internal val ingenÅpneKravgrunnlag = HttpStatusCode.BadRequest.errorJson(
-    "Ingen ferdig behandlede kravgrunnlag",
-    "ingen_ferdig_behandlede_kravgrunnlag",
+internal val ingenUteståendeKravgrunnlag = HttpStatusCode.BadRequest.errorJson(
+    "Ingen utestående kravgrunnlag",
+    "ingen_utestående_kravgrunnlag",
 )
 
 internal val manglerBrukkerroller = HttpStatusCode.InternalServerError.errorJson(
