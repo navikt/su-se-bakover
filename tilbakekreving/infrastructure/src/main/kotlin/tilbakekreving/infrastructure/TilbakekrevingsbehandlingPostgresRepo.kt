@@ -37,20 +37,18 @@ class TilbakekrevingsbehandlingPostgresRepo(
         hendelse: TilbakekrevingsbehandlingHendelse,
         sessionContext: SessionContext?,
     ) {
-        sessionFactory.withSessionContext(sessionContext) {
-            // TODO jah: Kanskje vi bør flytte denne til interfacet?
-            (hendelseRepo as HendelsePostgresRepo).persisterSakshendelse(
-                hendelse = hendelse,
-                type = when (hendelse) {
-                    is OpprettetTilbakekrevingsbehandlingHendelse -> OpprettTilbakekrevingsbehandlingHendelsestype
-                    is MånedsvurderingerTilbakekrevingsbehandlingHendelse -> VurderMånederTilbakekrevingsbehandlingHendelsestype
-                    is BrevTilbakekrevingsbehandlingHendelse -> OppdaterBrevTilbakekrevingsbehandlingHendelsestype
-                    else -> throw IllegalStateException("TilbakekrevingsbehandlingPostgresRepo-lagre mangler type for ${hendelse.id}")
-                },
-                data = hendelse.toJson(),
-                sessionContext = it,
-            )
-        }
+        // TODO jah: Kanskje vi bør flytte denne til interfacet?
+        (hendelseRepo as HendelsePostgresRepo).persisterSakshendelse(
+            hendelse = hendelse,
+            type = when (hendelse) {
+                is OpprettetTilbakekrevingsbehandlingHendelse -> OpprettTilbakekrevingsbehandlingHendelsestype
+                is MånedsvurderingerTilbakekrevingsbehandlingHendelse -> VurderMånederTilbakekrevingsbehandlingHendelsestype
+                is BrevTilbakekrevingsbehandlingHendelse -> OppdaterBrevTilbakekrevingsbehandlingHendelsestype
+                else -> throw IllegalStateException("TilbakekrevingsbehandlingPostgresRepo-lagre mangler type for ${hendelse.id}")
+            },
+            data = hendelse.toJson(),
+            sessionContext = sessionContext,
+        )
     }
 
     override fun hentHendelse(id: HendelseId, sessionContext: SessionContext?): TilbakekrevingsbehandlingHendelse? {

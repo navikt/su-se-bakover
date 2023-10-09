@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.tilbakekreving
 
+import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.client.request.setBody
@@ -23,7 +24,9 @@ fun opprettTilbakekrevingsbehandling(
             listOf(Brukerrolle.Saksbehandler),
             client = client,
         ) { setBody("""{"saksversjon":$saksversjon}""") }.apply {
-            status shouldBe expectedHttpStatusCode
+            withClue("opprettTilbakekrevingsbehandling feilet: ${this.bodyAsText()}") {
+                status shouldBe expectedHttpStatusCode
+            }
         }.bodyAsText()
     }
 }

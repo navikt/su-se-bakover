@@ -369,6 +369,7 @@ fun startJobberOgConsumers(
             intervall = Duration.ofSeconds(10),
             sessionFactory = databaseRepos.sessionFactory,
             service = tilbakekrevingskomponenter.services.råttKravgrunnlagService,
+            clock = clock,
         ).schedule()
 
         Tilbakekrevingsjobber(

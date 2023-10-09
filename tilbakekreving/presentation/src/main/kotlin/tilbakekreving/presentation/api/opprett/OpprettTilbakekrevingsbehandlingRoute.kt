@@ -22,7 +22,7 @@ import tilbakekreving.domain.opprett.OpprettTilbakekrevingsbehandlingCommand
 import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
-import tilbakekreving.presentation.api.common.ingenÅpneKravgrunnlag
+import tilbakekreving.presentation.api.common.ingenUteståendeKravgrunnlag
 
 private data class Body(
     val saksversjon: Long,
@@ -54,11 +54,12 @@ internal fun Route.opprettTilbakekrevingsbehandlingRoute(
 }
 
 private fun KunneIkkeOppretteTilbakekrevingsbehandling.tilResultat(): Resultat = when (this) {
-    is KunneIkkeOppretteTilbakekrevingsbehandling.IngenÅpneKravgrunnlag -> ingenÅpneKravgrunnlag
+    is KunneIkkeOppretteTilbakekrevingsbehandling.IngenUteståendeKravgrunnlag -> ingenUteståendeKravgrunnlag
     is KunneIkkeOppretteTilbakekrevingsbehandling.IkkeTilgang -> ikkeTilgangTilSak
     is KunneIkkeOppretteTilbakekrevingsbehandling.FinnesAlleredeEnÅpenBehandling -> Feilresponser.harAlleredeÅpenBehandling
     is KunneIkkeOppretteTilbakekrevingsbehandling.FeilVedHentingAvPerson -> this.feil.tilResultat()
     KunneIkkeOppretteTilbakekrevingsbehandling.FeilVedOpprettelseAvOppgave -> Feilresponser.kunneIkkeOppretteOppgave
+    KunneIkkeOppretteTilbakekrevingsbehandling.UlikVersjon -> Feilresponser.utdatertVersjon
 }
 
 // dobbel-impl av person routes

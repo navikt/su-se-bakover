@@ -37,12 +37,16 @@ class OpprettTilbakekrevingsbehandlingService(
         val sak = sakService.hentSak(sakId).getOrElse {
             throw IllegalStateException("Kunne ikke opprette tilbakekreving. Fant ikke sak $sakId. Feil: $it")
         }
+        if (sak.versjon != command.klientensSisteSaksversjon) {
+            log.info("Kunne ikke opprette tilbakekreving. Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
+            return KunneIkkeOppretteTilbakekrevingsbehandling.UlikVersjon.left()
+        }
         if (sak.behandlinger.tilbakekrevinger.harÅpen()) {
             log.info("Kunne ikke opprette tilbakekreving. Fant allerede en åpen tilbakekrevingsbehandling for sak $sakId")
             return KunneIkkeOppretteTilbakekrevingsbehandling.FinnesAlleredeEnÅpenBehandling.left()
         }
         return when (val k = sak.uteståendeKravgrunnlag) {
-            null -> KunneIkkeOppretteTilbakekrevingsbehandling.IngenÅpneKravgrunnlag.left()
+            null -> KunneIkkeOppretteTilbakekrevingsbehandling.IngenUteståendeKravgrunnlag.left()
             else -> opprettTilbakekrevingsbehandling(
                 command = command,
                 forrigeVersjon = sak.versjon,

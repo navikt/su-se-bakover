@@ -265,6 +265,11 @@ data object Feilresponser {
         "skal_ikke_sendes_brev",
     )
 
+    val utdatertVersjon = BadRequest.errorJson(
+        "Det har skjedd en endring på saken siden du startet å redigere. Vennligst last inn siden på nytt og prøv igjen.",
+        "utdatert_versjon",
+    )
+
     val ugyldigMåned = BadRequest.errorJson(
         "Ugyldig måned",
         "ugyldig_måned",
