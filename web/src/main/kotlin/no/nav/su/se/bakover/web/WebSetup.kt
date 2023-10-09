@@ -40,7 +40,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import person.domain.KunneIkkeHentePerson
-import tilbakekreving.infrastructure.Tilbakekrevingskomponenter
+import tilbakekreving.application.service.Tilbakekrevingskomponenter
 import java.time.Clock
 import java.time.format.DateTimeParseException
 

@@ -1,6 +1,7 @@
 package tilbakekreving.domain.opprett
 
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelser
 import java.util.UUID
@@ -10,6 +11,11 @@ interface TilbakekrevingsbehandlingRepo {
         hendelse: TilbakekrevingsbehandlingHendelse,
         sessionContext: SessionContext? = null,
     )
+
+    fun hentHendelse(
+        id: HendelseId,
+        sessionContext: SessionContext? = null,
+    ): TilbakekrevingsbehandlingHendelse?
 
     fun hentForSak(sakId: UUID, sessionContext: SessionContext? = null): TilbakekrevingsbehandlingHendelser
 }

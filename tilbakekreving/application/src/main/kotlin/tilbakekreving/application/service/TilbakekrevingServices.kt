@@ -6,11 +6,13 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.PersonRepo
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import tilbakekreving.application.service.common.TilbakekrevingsbehandlingTilgangstyringService
 import tilbakekreving.application.service.consumer.KnyttKravgrunnlagTilSakOgUtbetalingKonsument
+import tilbakekreving.application.service.consumer.OpprettOppgaveForTilbakekrevingshendelserKonsument
 import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.opprett.OpprettTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.vurder.BrevTilbakekrevingsbehandlingService
@@ -39,6 +41,7 @@ class TilbakekrevingServices(
     private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
     private val oppgaveHendelseRepo: OppgaveHendelseRepo,
     private val mapRåttKravgrunnlag: (RåttKravgrunnlag) -> Either<Throwable, Kravgrunnlag>,
+    private val hendelseRepo: HendelseRepo,
     private val tilgangstyringService: TilbakekrevingsbehandlingTilgangstyringService = TilbakekrevingsbehandlingTilgangstyringService(
         personRepo = personRepo,
         personService = personService,
@@ -69,9 +72,7 @@ class TilbakekrevingServices(
         tilgangstyring = tilgangstyringService,
         clock = clock,
         sakService = sakService,
-        oppgaveService = oppgaveService,
         personService = personService,
-        oppgaveHendelseRepo = oppgaveHendelseRepo,
         sessionFactory = sessionFactory,
     ),
     val råttKravgrunnlagService: RåttKravgrunnlagService = RåttKravgrunnlagService(
@@ -85,4 +86,16 @@ class TilbakekrevingServices(
         oppgaveService = oppgaveService,
         oppgaveHendelseRepo = oppgaveHendelseRepo,
     ),
+    val opprettOppgaveForTilbakekrevingshendelserKonsument: OpprettOppgaveForTilbakekrevingshendelserKonsument = OpprettOppgaveForTilbakekrevingshendelserKonsument(
+        sakService = sakService,
+        personService = personService,
+        oppgaveService = oppgaveService,
+        tilbakekrevingsbehandlingHendelseRepo = tilbakekrevingsbehandlingRepo,
+        oppgaveHendelseRepo = oppgaveHendelseRepo,
+        hendelseRepo = hendelseRepo,
+        hendelsekonsumenterRepo = hendelsekonsumenterRepo,
+        sessionFactory = sessionFactory,
+        clock = clock,
+    ),
+
 )

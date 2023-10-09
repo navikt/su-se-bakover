@@ -2,6 +2,7 @@ package tilbakekreving.infrastructure
 
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
@@ -17,7 +18,7 @@ import tilbakekreving.domain.opprett.TilbakekrevingsbehandlingRepo
 import java.time.Clock
 import java.util.UUID
 
-private val OpprettTilbakekrevingsbehandlingHendelsestype = Hendelsestype("OPPRETT_TILBAKEKREVINGSBEHANDLING")
+val OpprettTilbakekrevingsbehandlingHendelsestype = Hendelsestype("OPPRETT_TILBAKEKREVINGSBEHANDLING")
 private val VurderMånederTilbakekrevingsbehandlingHendelsestype = Hendelsestype("VURDER_MÅNEDER_TILBAKEKREVINGSBEHANDLING")
 private val OppdaterBrevTilbakekrevingsbehandlingHendelsestype = Hendelsestype("OPPDATER_BREV_TILBAKEKREVINGSBEHANDLING")
 private val TilAttesteringTilbakekrevingsbehandlingHendelsestype = Hendelsestype("TIL_ATTESTERING_TILBAKEKREVINGSBEHANDLING")
@@ -49,6 +50,14 @@ class TilbakekrevingsbehandlingPostgresRepo(
                 data = hendelse.toJson(),
                 sessionContext = it,
             )
+        }
+    }
+
+    override fun hentHendelse(id: HendelseId, sessionContext: SessionContext?): TilbakekrevingsbehandlingHendelse? {
+        return sessionFactory.withSessionContext(sessionContext) {
+            (hendelseRepo as HendelsePostgresRepo).hentHendelseForHendelseId(id)
+        }.let {
+            it?.toTilbakekrevingsbehandlingHendelse()
         }
     }
 

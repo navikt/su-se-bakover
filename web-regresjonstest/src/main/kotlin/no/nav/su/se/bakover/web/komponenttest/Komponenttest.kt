@@ -21,8 +21,8 @@ import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.susebakover
 import org.mockito.kotlin.mock
 import tilbakekreving.application.service.TilbakekrevingServices
+import tilbakekreving.application.service.Tilbakekrevingskomponenter
 import tilbakekreving.infrastructure.TilbakekrevingRepos
-import tilbakekreving.infrastructure.Tilbakekrevingskomponenter
 import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringConsumer
 import java.time.Clock
@@ -130,6 +130,7 @@ internal fun withKomptestApplication(
                 mapRåttKravgrunnlag = TilbakekrevingsmeldingMapper::toKravgrunnlag,
                 oppgaveService = services.oppgave,
                 oppgaveHendelseRepo = repos.oppgaveHendelseRepo,
+                hendelseRepo = repos.hendelseRepo,
             ),
         )
     },

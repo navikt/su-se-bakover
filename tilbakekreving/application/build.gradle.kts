@@ -5,6 +5,8 @@ dependencies {
     implementation(project(":hendelse:domain"))
 
     implementation(project(":tilbakekreving:domain"))
+    implementation(project(":tilbakekreving:infrastructure"))
+
     implementation(project(":person:domain"))
     implementation(project(":service"))
 

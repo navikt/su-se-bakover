@@ -80,7 +80,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
         }
     }
 
-    fun hentOppgaveId(): OppgaveId = this.tilhørendeOgSorterteOppgaveHendelser.first().oppgaveId
+    fun hentOppgaveId(): OppgaveId? = this.tilhørendeOgSorterteOppgaveHendelser.firstOrNull()?.oppgaveId
 
     companion object {
 

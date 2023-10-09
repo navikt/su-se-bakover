@@ -43,7 +43,7 @@ import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJo
 import no.nav.su.se.bakover.web.services.tilbakekreving.LokalMottaKravgrunnlagJob
 import no.nav.su.se.bakover.web.services.tilbakekreving.SendTilbakekrevingsvedtakForRevurdering
 import org.apache.kafka.clients.consumer.KafkaConsumer
-import tilbakekreving.infrastructure.Tilbakekrevingskomponenter
+import tilbakekreving.application.service.Tilbakekrevingskomponenter
 import tilbakekreving.presentation.consumer.KravgrunnlagIbmMqConsumer
 import tilbakekreving.presentation.job.Tilbakekrevingsjobber
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringIbmMqConsumer
@@ -264,6 +264,7 @@ fun startJobberOgConsumers(
 
         Tilbakekrevingsjobber(
             knyttKravgrunnlagTilSakOgUtbetalingKonsument = tilbakekrevingskomponenter.services.knyttKravgrunnlagTilSakOgUtbetalingKonsument,
+            opprettOppgaveKonsument = tilbakekrevingskomponenter.services.opprettOppgaveForTilbakekrevingshendelserKonsument,
             initialDelay = initialDelay.next(),
             intervall = Duration.ofSeconds(10),
             runCheckFactory = runCheckFactory,
@@ -372,6 +373,7 @@ fun startJobberOgConsumers(
 
         Tilbakekrevingsjobber(
             knyttKravgrunnlagTilSakOgUtbetalingKonsument = tilbakekrevingskomponenter.services.knyttKravgrunnlagTilSakOgUtbetalingKonsument,
+            opprettOppgaveKonsument = tilbakekrevingskomponenter.services.opprettOppgaveForTilbakekrevingshendelserKonsument,
             initialDelay = initialDelay.next(),
             intervall = Duration.ofSeconds(10),
             runCheckFactory = runCheckFactory,

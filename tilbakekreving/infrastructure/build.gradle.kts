@@ -5,7 +5,6 @@ dependencies {
     implementation(project(":dokument:database"))
     implementation(project(":hendelse:domain"))
     implementation(project(":tilbakekreving:domain"))
-    implementation(project(":tilbakekreving:application"))
 
     implementation(project(":common:infrastructure"))
     implementation(project(":hendelse:infrastructure"))

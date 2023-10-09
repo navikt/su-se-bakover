@@ -25,8 +25,8 @@ import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
 import tilbakekreving.application.service.TilbakekrevingServices
+import tilbakekreving.application.service.Tilbakekrevingskomponenter
 import tilbakekreving.infrastructure.TilbakekrevingRepos
-import tilbakekreving.infrastructure.Tilbakekrevingskomponenter
 import tilbakekreving.presentation.consumer.TilbakekrevingsmeldingMapper
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringConsumer
 import java.time.Clock
@@ -107,6 +107,7 @@ fun Application.susebakover(
                 oppgaveService = services.oppgave,
                 mapRåttKravgrunnlag = { TilbakekrevingsmeldingMapper.toKravgrunnlag(it) },
                 oppgaveHendelseRepo = repos.oppgaveHendelseRepo,
+                hendelseRepo = repos.hendelseRepo,
             ),
             repos = repos,
         )

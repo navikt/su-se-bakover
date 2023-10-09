@@ -5,16 +5,12 @@ import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.extensions.februar
-import no.nav.su.se.bakover.common.person.AktørId
-import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -57,19 +53,11 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
         val sakService = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sakMedKravgrunnlag.right()
         }
-        val personService = mock<PersonService> {
-            on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
-        }
-        val oppgaveService = mock<OppgaveService> {
-            on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
-        }
 
         val mocks = mockedServices(
             tilgangstyringService = tilgangstyringService,
             sakService = sakService,
             clock = clock,
-            personService = personService,
-            oppgaveService = oppgaveService,
         )
         mocks.service().opprett(
             command = OpprettTilbakekrevingsbehandlingCommand(
@@ -83,19 +71,6 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
 
         verify(mocks.sakService).hentSak(
             argThat<UUID> { it shouldBe sakId },
-        )
-        verify(mocks.personService).hentAktørId(
-            argThat { it shouldBe sakMedKravgrunnlag.fnr },
-        )
-        verify(mocks.oppgaveService).opprettOppgave(
-            argThat {
-                it shouldBe OppgaveConfig.Tilbakekrevingsbehandling(
-                    saksnummer = sakMedKravgrunnlag.saksnummer,
-                    aktørId = AktørId(aktørId = "aktørId"),
-                    tilordnetRessurs = saksbehandler,
-                    clock = clock,
-                )
-            },
         )
 
         verify(mocks.tilbakekrevingsbehandlingRepo).lagre(
@@ -120,28 +95,6 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
             },
             anyOrNull(),
         )
-        verify(mocks.oppgaveHendelseRepo).lagre(
-            argThat {
-                it shouldBe OppgaveHendelse.opprettet(
-                    // Denne blir generert av domenet.
-                    hendelseId = it.hendelseId,
-                    sakId = sakId,
-                    versjon = Hendelsesversjon(value = 3),
-                    // vi bruker tikkende-klokke
-                    hendelsestidspunkt = it.hendelsestidspunkt,
-                    meta = DefaultHendelseMetadata(
-                        correlationId = correlationId,
-                        ident = saksbehandler,
-                        brukerroller = brukerroller,
-                    ),
-                    oppgaveId = OppgaveId(value = "oppgaveId"),
-                    relaterteHendelser = it.relaterteHendelser.also {
-                        it.size shouldBe 1
-                    },
-                )
-            },
-            anyOrNull(),
-        )
         mocks.verifyNoMoreInteractions()
     }
 
@@ -161,9 +114,7 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
                 tilgangstyring = tilgangstyringService,
                 sakService = sakService,
                 clock = clock,
-                oppgaveService = oppgaveService,
                 personService = personService,
-                oppgaveHendelseRepo = oppgaveHendelseRepo,
                 sessionFactory = sessionFactory,
             )
 
