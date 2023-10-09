@@ -56,16 +56,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                     oppgaveHendelse.relaterteHendelser.contains(opprettetHendelse.hendelseId)
                 }
             },
-        ) {
-            "Oppgave hendelsene må være relatert til minst 1 tilbakekrevingsbehandlingHendelse"
-        }
-        // { "All OppgaveHendelser must have a reference to at least one OpprettetHendelse." }
-
-        require(tilhørendeOgSorterteOppgaveHendelser.map { it.oppgaveId }.distinct().size <= 1) {
-            "tilhørendeOgSorterteOppgaveHendelser må kun inneholde 1 eller 0 distinkt oppgaveId. Fant ${
-                tilhørendeOgSorterteOppgaveHendelser.map { it.oppgaveId }.distinct().size
-            }"
-        }
+        ) { "Oppgavehendelsene må være relatert til minst 1 tilbakekrevingsbehandlingHendelse" }
     }
 
     val currentState: Tilbakekrevingsbehandlinger by lazy {
